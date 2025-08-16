@@ -3,415 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RedsRacing #8 - The Official Hub</title>
+    <title>RedsRacing #8 - The Ultimate Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <!-- Swiper.js CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/scrollreveal"></script>
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0a192f; /* Dark Blue */
+            background-color: #05080f; /* Even darker blue */
+            color: #e2e8f0; /* Lighter gray for better contrast */
         }
-        .hero-bg {
-            background: linear-gradient(rgba(10, 25, 47, 0.8), rgba(10, 25, 47, 0.8)), url('https://placehold.co/1920x1080/000000/FFFFFF?text=Full+Throttle');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+        .font-racing {
+            font-family: 'Racing Sans One', sans-serif;
         }
-        .text-shadow {
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-        .neon-yellow {
-            color: #f7ff00; /* Electric Yellow */
-        }
-        .title-blue {
-            color: #00c6ff; /* Electric Blue */
-        }
-        .bg-neon-yellow {
-            background-color: #f7ff00;
-        }
-        .border-neon-yellow {
-            border-color: #f7ff00;
-        }
-        .hover-neon-yellow:hover {
-            color: #f7ff00;
-        }
-        .gallery-item {
-            position: relative;
-            overflow: hidden;
-            border-radius: 0.5rem;
-            transition: transform 0.3s ease;
-            background-color: #1e293b; /* slate-800 */
-        }
-        .gallery-item img {
-            object-fit: cover;
+        .hero-video-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
             width: 100%;
             height: 100%;
+            object-fit: cover;
+            transform: translate(-50%, -50%);
+            z-index: -1;
         }
-        .gallery-item:hover {
-            transform: scale(1.03);
+        .hero-overlay {
+            background: linear-gradient(to top, rgba(5, 8, 15, 1) 0%, rgba(5, 8, 15, 0.6) 50%, rgba(5, 8, 15, 1) 100%);
         }
-        .gallery-overlay {
+        .text-shadow-strong {
+            text-shadow: 0 4px 10px rgba(0,0,0,0.7);
+        }
+        .neon-yellow { color: #f7ff00; }
+        .title-blue { color: #00c6ff; }
+        .section-glow {
+            position: relative;
+        }
+        .section-glow::before {
+            content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            display: flex;
-            align-items: flex-end;
-            padding: 1rem;
-            z-index: 5; /* Ensure it's above the image */
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 200px;
+            background: radial-gradient(circle, rgba(0, 198, 255, 0.05), transparent 70%);
+            z-index: -1;
+            pointer-events: none;
         }
-        .gallery-item:hover .gallery-overlay {
-            opacity: 1;
-        }
-        .video-item {
+        .stat-card, .video-item, .gallery-item, .sponsor-logo {
+            background: rgba(15, 23, 42, 0.5); /* slate-900/50 */
+            border: 1px solid rgba(51, 65, 85, 0.5); /* slate-700/50 */
+            backdrop-filter: blur(10px);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .video-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(247, 255, 0, 0.1);
+        .stat-card:hover, .video-item:hover, .gallery-item:hover, .sponsor-logo:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 0 30px rgba(247, 255, 0, 0.15);
         }
-
-        /* --- STYLES FOR AWESOME FEATURES --- */
-        @keyframes fadeInZoom {
-            from { opacity: 0; transform: scale(1.05); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .hero-title-animate { animation: fadeInZoom 1.5s ease-out forwards; }
-        .hero-subtitle-animate { animation: fadeInZoom 1.5s ease-out 0.5s forwards; opacity: 0; }
-        .stat-item { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px); }
-        .car-hotspot-container { position: relative; }
-        .hotspot { position: absolute; width: 2rem; height: 2rem; background-color: rgba(247, 255, 0, 0.8); border-radius: 50%; border: 2px solid white; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 15px rgba(247, 255, 0, 0.7); }
-        .hotspot:hover { transform: scale(1.2); background-color: #f7ff00; }
-        .hotspot-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(247, 255, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(247, 255, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(247, 255, 0, 0); } }
-        .hotspot-info { display: none; position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background-color: #1e293b; color: white; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #f7ff00; width: 200px; z-index: 10; text-align: center; }
-        .hotspot:hover .hotspot-info { display: block; }
-        .countdown-item { background-color: #1e293b; padding: 1rem; border-radius: 0.5rem; border: 1px solid #334155; }
-        .countdown-number { font-size: 2.5rem; font-weight: 900; line-height: 1; color: #f7ff00; }
-        .countdown-label { font-size: 0.875rem; text-transform: uppercase; color: #94a3b8; }
-        
-        /* --- SCHEDULE STYLES --- */
         .schedule-card {
-            background-color: #1e293b;
-            border-left: 4px solid #334155;
+            background-color: #1e293b; /* slate-800 */
+            border-left: 4px solid #475569; /* slate-600 */
             transition: all 0.3s ease;
         }
-        .schedule-card.upcoming {
-            border-left-color: #f7ff00;
+        .schedule-card.upcoming { border-left-color: #f7ff00; }
+        .schedule-card.past { opacity: 0.6; }
+        .schedule-card:hover {
+            transform: translateX(5px);
+            border-left-color: #00c6ff;
         }
-        .schedule-card.past {
-            opacity: 0.6;
-        }
+        .car-hotspot-container { position: relative; }
+        .hotspot { position: absolute; width: 2.5rem; height: 2.5rem; background-color: rgba(0, 198, 255, 0.8); border-radius: 50%; border: 2px solid white; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 15px rgba(0, 198, 255, 0.7); }
+        .hotspot:hover { transform: scale(1.2); background-color: #00c6ff; }
+        .hotspot-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 198, 255, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(0, 198, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 198, 255, 0); } }
+        .hotspot-info { display: none; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background-color: #1e293b; color: white; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #00c6ff; width: 220px; z-index: 10; text-align: center; font-size: 0.9rem; }
+        .hotspot:hover .hotspot-info { display: block; }
+        
+        .swiper { width: 100%; height: 100%; }
+        .swiper-slide { width: 100%; height: 100%; }
+        .swiper-button-next, .swiper-button-prev { color: #f7ff00 !important; opacity: 0; transition: opacity 0.3s ease; --swiper-navigation-size: 30px; }
+        .gallery-item:hover .swiper-button-next, .gallery-item:hover .swiper-button-prev { opacity: 0.7; }
+        .swiper-pagination-bullet-active { background: #f7ff00 !important; }
 
-        /* --- SWIPER GALLERY STYLES --- */
-        .swiper {
-            width: 100%;
-            height: 100%;
+        .sponsor-logo img {
+            filter: grayscale(100%) brightness(0.8);
+            transition: filter 0.3s ease;
         }
-        .swiper-slide {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .sponsor-logo:hover img {
+            filter: grayscale(0%) brightness(1);
         }
-        .swiper-button-next, .swiper-button-prev {
-            color: #f7ff00 !important;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            --swiper-navigation-size: 30px;
-        }
-        .gallery-item:hover .swiper-button-next,
-        .gallery-item:hover .swiper-button-prev {
-            opacity: 0.7;
-        }
-        .gallery-item:hover .swiper-button-next:hover,
-        .gallery-item:hover .swiper-button-prev:hover {
-            opacity: 1;
-        }
-        .swiper-pagination-bullet-active {
-            background: #f7ff00 !important;
-        }
-        .swiper-pagination {
-            bottom: 10px !important;
+        .tiktok-embed {
+            max-width: 100% !important;
+            min-width: 0 !important; /* Override default min-width */
         }
     </style>
 </head>
-<body class="text-gray-200">
+<body>
 
-    <!-- Header & Navigation -->
-    <header class="bg-slate-900/80 backdrop-blur-sm fixed w-full top-0 z-50 border-b border-slate-700/50">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="#" class="text-3xl font-black uppercase tracking-tighter">
-                <span class="title-blue">Reds</span><span class="neon-yellow">Racing #8</span>
+    <!-- Header -->
+    <header class="bg-black/30 backdrop-blur-md fixed w-full top-0 z-50 border-b border-slate-700/50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="#" class="text-4xl font-racing uppercase tracking-wider">
+                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
             </a>
-            <div class="hidden md:flex items-center space-x-8">
-                <a href="#about" class="hover-neon-yellow transition duration-300 font-semibold">About</a>
-                <a href="#stats" class="hover-neon-yellow transition duration-300 font-semibold">Stats</a>
-                <a href="#the-car" class="hover-neon-yellow transition duration-300 font-semibold">The Car</a>
-                <a href="#schedule" class="hover-neon-yellow transition duration-300 font-semibold">Schedule</a>
-                <a href="#gallery" class="hover-neon-yellow transition duration-300 font-semibold">Gallery</a>
-                <a href="#videos" class="hover-neon-yellow transition duration-300 font-semibold">Videos</a>
-                <a href="#contact" class="hover-neon-yellow transition duration-300 font-semibold">Contact</a>
-                <a id="auth-link" href="login.html" class="bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Login</a>
+            <div class="hidden md:flex items-center space-x-6 font-bold">
+                <a href="#about" class="hover:text-neon-yellow transition duration-300">About</a>
+                <a href="#the-car" class="hover:text-neon-yellow transition duration-300">The Car</a>
+                <a href="#schedule" class="hover:text-neon-yellow transition duration-300">Schedule</a>
+                <a href="#gallery" class="hover:text-neon-yellow transition duration-300">Gallery</a>
+                <a href="#videos" class="hover:text-neon-yellow transition duration-300">Videos</a>
+                <a href="#tiktok" class="hover:text-neon-yellow transition duration-300">TikTok</a>
+                <a id="auth-link" href="login.html" class="bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300">
+                    DRIVER LOGIN
+                </a>
             </div>
             <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
             </button>
         </nav>
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden md:hidden bg-slate-900">
-            <a href="#about" class="block py-3 px-6 text-sm hover:bg-slate-800">About</a>
-            <a href="#stats" class="block py-3 px-6 text-sm hover:bg-slate-800">Stats</a>
-            <a href="#the-car" class="block py-3 px-6 text-sm hover:bg-slate-800">The Car</a>
-            <a href="#schedule" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
-            <a href="#gallery" class="block py-3 px-6 text-sm hover:bg-slate-800">Gallery</a>
-            <a href="#videos" class="block py-3 px-6 text-sm hover:bg-slate-800">Videos</a>
-            <a href="#contact" class="block py-3 px-6 text-sm hover:bg-slate-800">Contact</a>
-            <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Login</a>
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
+             <a href="#about" class="block py-3 px-6 text-sm hover:bg-slate-800">About</a>
+             <a href="#the-car" class="block py-3 px-6 text-sm hover:bg-slate-800">The Car</a>
+             <a href="#schedule" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
+             <a href="#gallery" class="block py-3 px-6 text-sm hover:bg-slate-800">Gallery</a>
+             <a href="#videos" class="block py-3 px-6 text-sm hover:bg-slate-800">Videos</a>
+             <a href="#tiktok" class="block py-3 px-6 text-sm hover:bg-slate-800">TikTok</a>
+             <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
         </div>
     </header>
 
     <main>
         <!-- Hero Section -->
-        <section id="home" class="hero-bg h-screen flex items-center justify-center text-center">
-            <div class="p-8">
-                <h1 class="text-6xl md:text-8xl font-black uppercase text-white text-shadow leading-tight hero-title-animate">Beyond The Apex</h1>
-                <p class="mt-4 text-xl md:text-2xl font-bold neon-yellow text-shadow tracking-widest hero-subtitle-animate">JON'S RACING SAGA</p>
+        <section id="home" class="h-screen relative flex items-center justify-center text-center overflow-hidden">
+            <video autoplay loop muted playsinline class="hero-video-bg" poster="https://placehold.co/1920x1080/05080f/FFFFFF?text=Loading...">
+                <source src="https://videos.pexels.com/video-files/4679339/4679339-hd_1920_1080_25fps.mp4" type="video/mp4">
+            </video>
+            <div class="relative z-10 p-8 hero-overlay w-full h-full flex flex-col items-center justify-center">
+                <h1 class="text-6xl md:text-9xl font-racing uppercase text-white text-shadow-strong tracking-wider">
+                    <span class="title-blue">Push</span> <span class="neon-yellow">The Limit</span>
+                </h1>
+                <p class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest">THE OFFICIAL HUB OF JON'S RACING SAGA</p>
             </div>
         </section>
 
-        <!-- About Section -->
-        <section id="about" class="py-24 bg-slate-900">
+        <!-- About & Stats Combined Section -->
+        <section id="about" class="py-24 md:py-32 section-glow">
             <div class="container mx-auto px-6">
-                <div class="text-center mb-12">
-                    <h2 class="text-4xl font-bold uppercase tracking-wider">Meet The Driver</h2>
-                    <div class="w-24 h-1 bg-neon-yellow mx-auto mt-4"></div>
-                </div>
-                <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10">
-                    <img src="https://placehold.co/400x400/1E293B/F7FF00?text=Jon" alt="Jon Portrait" class="w-52 h-52 md:w-64 md:h-64 rounded-full object-cover border-4 border-neon-yellow shadow-lg flex-shrink-0">
-                    <div class="text-left text-gray-300 text-lg space-y-4">
-                        <p>Welcome to my official hub! I'm Jon, a driver fueled by a lifelong passion for speed and precision. This isn't just a hobby; it's a relentless pursuit of the perfect lap.</p>
-                        <p>From late nights in the garage fine-tuning every detail to the adrenaline rush of the green flag, this is where I document the highs, the lows, and the unfiltered reality of life on the track. Follow along for exclusive content and a behind-the-scenes look at my racing journey.</p>
+                <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-12 lg:gap-20">
+                    <div class="text-lg space-y-4 reveal-left">
+                        <h2 class="font-racing text-5xl uppercase mb-4">Meet The <span class="neon-yellow">Driver</span></h2>
+                        <p class="text-slate-300">Fueled by a lifelong passion for speed and precision, I'm Jon, and this is my world. This isn't just a hobby; it's a relentless pursuit of the perfect lap, the extra tenth, the top step of the podium. It's about the bond between man and machine, and sharing that thrill with my son, Jace.</p>
+                        <p class="text-slate-400">From late nights in the garage to the adrenaline of the green flag, this is where I document the unfiltered reality of life on the track. Follow along for a behind-the-scenes look at my racing journey.</p>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Dynamic Race Stats Section -->
-        <section id="stats" class="py-24 bg-gray-900/50">
-            <div class="container mx-auto px-6">
-                <div class="text-center mb-12">
-                    <h2 class="text-4xl font-bold uppercase tracking-wider">By The Numbers</h2>
-                    <div class="w-24 h-1 bg-neon-yellow mx-auto mt-4"></div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center max-w-4xl mx-auto">
-                    <div class="stat-item p-8 rounded-lg">
-                        <div id="wins-counter" class="text-6xl font-black neon-yellow mb-2" data-target="1">0</div>
-                        <div class="text-xl font-bold uppercase text-white">Wins</div>
-                    </div>
-                    <div class="stat-item p-8 rounded-lg">
-                        <div id="podiums-counter" class="text-6xl font-black neon-yellow mb-2" data-target="3">0</div>
-                        <div class="text-xl font-bold uppercase text-white">Podiums</div>
-                    </div>
-                    <div class="stat-item p-8 rounded-lg">
-                        <div id="laps-counter" class="text-6xl font-black neon-yellow mb-2" data-target="200">0</div>
-                        <div class="text-xl font-bold uppercase text-white">Laps Raced</div>
+                    <div id="stats" class="grid grid-cols-1 sm:grid-cols-3 gap-4 reveal-right">
+                        <div class="stat-card p-6 rounded-lg text-center">
+                            <div id="wins-counter" class="text-6xl font-bold neon-yellow mb-2" data-target="12">0</div>
+                            <div class="text-lg font-racing uppercase text-white tracking-wider">Wins</div>
+                        </div>
+                        <div class="stat-card p-6 rounded-lg text-center">
+                            <div id="podiums-counter" class="text-6xl font-bold neon-yellow mb-2" data-target="38">0</div>
+                            <div class="text-lg font-racing uppercase text-white tracking-wider">Podiums</div>
+                        </div>
+                        <div class="stat-card p-6 rounded-lg text-center">
+                            <div id="laps-counter" class="text-6xl font-bold neon-yellow mb-2" data-target="2500">0</div>
+                            <div class="text-lg font-racing uppercase text-white tracking-wider">Laps Raced</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Interactive "Meet the Car" Section -->
-        <section id="the-car" class="py-24 bg-slate-900">
-            <div class="container mx-auto px-6">
-                <div class="text-center mb-12">
-                    <h2 class="text-4xl font-bold uppercase tracking-wider">Meet The Beast</h2>
-                    <div class="w-24 h-1 bg-neon-yellow mx-auto mt-4"></div>
-                    <p class="max-w-2xl mx-auto mt-4 text-gray-400">Hover over the points on the car to learn more about the tech that powers every race.</p>
-                </div>
-                <div class="car-hotspot-container max-w-4xl mx-auto">
-                    <img src="https://i.imgur.com/EumUdup.jpg" alt="Race Car" class="w-full h-auto rounded-lg" onerror="this.onerror=null;this.src='https://placehold.co/1200x675';">
-                    <div class="hotspot hotspot-pulse" style="top: 45%; left: 30%;">1<div class="hotspot-info"><strong>1 Cylinder Engine:</strong> Top speed 70MPH, @6000RPMs.</div></div>
-                    <div class="hotspot hotspot-pulse" style="top: 35%; left: 75%;">2<div class="hotspot-info"><strong>Aero Wing:</strong> Wing providing over 1000lbs of downforce for high-speed stability.</div></div>
-                    <div class="hotspot hotspot-pulse" style="top: 70%; left: 65%;">3<div class="hotspot-info"><strong>Racing Slicks:</strong> Specially formulated tires that get stickier as they heat up for maximum grip.</div></div>
+        <!-- The Car Section -->
+        <section id="the-car" class="py-24 md:py-32 bg-black/20">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="font-racing text-5xl uppercase mb-4 reveal-fade">Meet The <span class="neon-yellow">Beast</span></h2>
+                <p class="max-w-2xl mx-auto mb-12 text-slate-400 reveal-fade" data-reveal-delay="200">Hover over the points on the car to learn more about the tech that powers every race.</p>
+                <div class="car-hotspot-container max-w-4xl mx-auto reveal-up">
+                    <img src="https://i.imgur.com/EumUdup.jpg" alt="Race Car" class="w-full h-auto rounded-lg shadow-2xl" onerror="this.onerror=null;this.src='https://placehold.co/1200x675';">
+                    <div class="hotspot hotspot-pulse" style="top: 45%; left: 30%;">1<div class="hotspot-info"><strong>Engine & Powertrain:</strong> Custom-built 1-cylinder engine, meticulously tuned for optimal power-to-weight ratio.</div></div>
+                    <div class="hotspot hotspot-pulse" style="top: 35%; left: 75%;">2<div class="hotspot-info"><strong>Aerodynamics:</strong> Carbon fiber rear wing and front splitter providing over 1000lbs of downforce for high-speed stability.</div></div>
+                    <div class="hotspot hotspot-pulse" style="top: 70%; left: 65%;">3<div class="hotspot-info"><strong>Tires & Grip:</strong> Hoosier Racing Slicks, a soft compound that gets stickier as they heat up for maximum grip in the corners.</div></div>
                 </div>
             </div>
         </section>
 
-        <!-- Race Schedule & Countdown Section -->
-        <section id="schedule" class="py-24 bg-gray-900/50">
+        <!-- Schedule Section -->
+        <section id="schedule" class="py-24 md:py-32 section-glow">
             <div class="container mx-auto px-6">
-                <div class="text-center mb-12">
-                    <h2 class="text-4xl font-bold uppercase tracking-wider">2025 Race Schedule</h2>
-                    <div class="w-24 h-1 bg-neon-yellow mx-auto mt-4"></div>
-                </div>
-                
-                <div class="max-w-4xl mx-auto bg-slate-800/50 p-8 rounded-lg text-center mb-12">
-                    <h3 class="text-xl font-bold text-gray-400 uppercase">Countdown to Next Race</h3>
-                    <p id="next-race-name" class="text-3xl font-bold text-white uppercase mb-6">Loading...</p>
-                    <div id="countdown-timer" class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-xl mx-auto">
-                        <div class="countdown-item"><div id="days" class="countdown-number">0</div><div class="countdown-label">Days</div></div>
-                        <div class="countdown-item"><div id="hours" class="countdown-number">0</div><div class="countdown-label">Hours</div></div>
-                        <div class="countdown-item"><div id="minutes" class="countdown-number">0</div><div class="countdown-label">Minutes</div></div>
-                        <div class="countdown-item"><div id="seconds" class="countdown-number">0</div><div class="countdown-label">Seconds</div></div>
+                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">2025 Race <span class="neon-yellow">Schedule</span></h2>
+                <div class="max-w-4xl mx-auto bg-slate-900/50 p-8 rounded-lg text-center mb-12 reveal-up">
+                    <h3 class="text-xl font-bold text-slate-400 uppercase">Countdown to Next Race</h3>
+                    <p id="next-race-name" class="text-3xl font-racing text-white uppercase my-4">Loading...</p>
+                    <div id="countdown-timer" class="grid grid-cols-4 gap-4 max-w-md mx-auto">
+                        <div><div id="days" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Days</div></div>
+                        <div><div id="hours" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Hours</div></div>
+                        <div><div id="minutes" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Minutes</div></div>
+                        <div><div id="seconds" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Seconds</div></div>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 max-w-6xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 max-w-6xl mx-auto reveal-up" data-reveal-delay="200">
                     <div>
-                        <h3 class="text-2xl font-bold text-white uppercase mb-4 border-b-2 border-neon-yellow pb-2">American Super Cups Traveling Series</h3>
+                        <h3 class="text-3xl font-racing text-white uppercase mb-4 border-b-2 border-neon-yellow pb-2">American Super Cups</h3>
                         <div id="super-cups-schedule" class="space-y-4"></div>
                     </div>
                     <div>
-                        <h3 class="text-2xl font-bold text-white uppercase mb-4 border-b-2 border-neon-yellow pb-2">Special Events</h3>
+                        <h3 class="text-3xl font-racing text-white uppercase mb-4 border-b-2 border-neon-yellow pb-2">Special Events</h3>
                         <div id="special-events-schedule" class="space-y-4"></div>
                     </div>
                 </div>
             </div>
         </section>
-
+        
         <!-- Gallery Section -->
-        <section id="gallery" class="py-24 bg-slate-900">
-             <div class="container mx-auto px-6">
-                <div class="text-center mb-12">
-                    <h2 class="text-4xl font-bold uppercase tracking-wider">Action Shots</h2>
-                    <div class="w-24 h-1 bg-neon-yellow mx-auto mt-4"></div>
-                </div>
+        <section id="gallery" class="py-24 md:py-32 bg-black/20">
+            <div class="container mx-auto px-6">
+                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Action <span class="neon-yellow">Shots</span></h2>
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    
-                    <!-- Featured Shot Slider -->
-                    <div class="gallery-item col-span-2 row-span-2 aspect-square">
-                        <div class="swiper">
-                            <div class="swiper-wrapper">
-                                <div class="swiper-slide"><img src="https://placehold.co/800x800/0a192f/F7FF00?text=Victory+Lane" alt="Racing Photo" onerror="this.onerror=null;this.src='https://placehold.co/800x800';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Victory Lane</h3></div></div>
-                                <div class="swiper-slide"><img src="https://placehold.co/800x800/0a192f/FFFFFF?text=Close+Call" alt="Racing Photo" onerror="this.onerror=null;this.src='https://placehold.co/800x800';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Side-by-side Action</h3></div></div>
-                                <div class="swiper-slide"><img src="https://placehold.co/800x800/000000/F7FF00?text=Celebration" alt="Racing Photo" onerror="this.onerror=null;this.src='https://placehold.co/800x800';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Podium Celebration</h3></div></div>
-                            </div>
-                            <div class="swiper-pagination"></div>
-                            <div class="swiper-button-prev"></div>
-                            <div class="swiper-button-next"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Interview Slider -->
-                    <div class="gallery-item aspect-square">
-                         <div class="swiper">
-                            <div class="swiper-wrapper">
-                                <div class="swiper-slide"><img src="https://i.imgur.com/Bd5lEOS.jpg" alt="Jon being interviewed" onerror="this.onerror=null;this.src='https://placehold.co/400x400';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Post-Race Interview</h3></div></div>
-                                <div class="swiper-slide"><img src="https://placehold.co/400x400/1e293b/FFFFFF?text=Interview+2" alt="Interview Photo" onerror="this.onerror=null;this.src='https://placehold.co/400x400';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Talking Strategy</h3></div></div>
-                            </div>
-                            <div class="swiper-pagination"></div>
-                            <div class="swiper-button-prev"></div>
-                            <div class="swiper-button-next"></div>
-                        </div>
-                    </div>
-
-                    <!-- Pit Stop Slider -->
-                    <div class="gallery-item aspect-square">
-                        <div class="swiper">
-                            <div class="swiper-wrapper">
-                                <div class="swiper-slide"><img src="https://i.imgur.com/EumUdup.jpg" alt="Racing Photo" onerror="this.onerror=null;this.src='https://placehold.co/400x400';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Beast</h3></div></div>
-                                <div class="swiper-slide"><img src="https://placehold.co/400x400/1e293b/F7FF00?text=Pit+Stop" alt="Pit Stop Photo" onerror="this.onerror=null;this.src='https://placehold.co/400x400';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Tire Change</h3></div></div>
-                                <div class="swiper-slide"><img src="https://i.imgur.com/zeTBCBV.jpeg" alt="Pre-race checks" onerror="this.onerror=null;this.src='https://placehold.co/400x400';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Pre-Race Checks</h3></div></div>
-                            </div>
-                            <div class="swiper-pagination"></div>
-                            <div class="swiper-button-prev"></div>
-                            <div class="swiper-button-next"></div>
-                        </div>
-                    </div>
-
-                    <!-- Engine Slider -->
-                    <div class="gallery-item aspect-square">
-                        <div class="swiper">
-                            <div class="swiper-wrapper">
-                               <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/F7FF00?text=Engine" alt="Racing Photo" onerror="this.onerror=null;this.src='https://placehold.co/400x400';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Powerplant</h3></div></div>
-                               <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/FFFFFF?text=Tuning" alt="Tuning Photo" onerror="this.onerror=null;this.src='https://placehold.co/400x400';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Fine Tuning</h3></div></div>
-                            </div>
-                            <div class="swiper-pagination"></div>
-                            <div class="swiper-button-prev"></div>
-                            <div class="swiper-button-next"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Cockpit Slider -->
-                    <div class="gallery-item aspect-square">
-                        <div class="swiper">
-                            <div class="swiper-wrapper">
-                                <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/F7FF00?text=Interior" alt="Racing Photo" onerror="this.onerror=null;this.src='https://placehold.co/400x400';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Cockpit</h3></div></div>
-                                <div class="swiper-slide"><img src="https://placehold.co/400x400/000000/FFFFFF?text=Dashboard" alt="Dashboard Photo" onerror="this.onerror=null;this.src='https://placehold.co/400x400';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Command Center</h3></div></div>
-                            </div>
-                            <div class="swiper-pagination"></div>
-                            <div class="swiper-button-prev"></div>
-                            <div class="swiper-button-next"></div>
-                        </div>
-                    </div>
-
-                    <!-- Crew Slider -->
-                    <div class="gallery-item aspect-square">
-                        <div class="swiper">
-                            <div class="swiper-wrapper">
-                                <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/F7FF00?text=Team" alt="Racing Photo" onerror="this.onerror=null;this.src='https://placehold.co/400x400';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Crew</h3></div></div>
-                                <div class="swiper-slide"><img src="https://placehold.co/400x400/1e293b/FFFFFF?text=Teamwork" alt="Teamwork Photo" onerror="this.onerror=null;this.src='https://placehold.co/400x400';"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Teamwork</h3></div></div>
-                            </div>
-                            <div class="swiper-pagination"></div>
-                            <div class="swiper-button-prev"></div>
-                            <div class="swiper-button-next"></div>
-                        </div>
-                    </div>
+                    <div class="gallery-item col-span-2 row-span-2 aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
+                        <div class="swiper-slide"><img src="https://placehold.co/800x800/05080f/F7FF00?text=Victory+Lane" alt="Racing Photo"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Victory Lane</h3></div></div>
+                        <div class="swiper-slide"><img src="https://placehold.co/800x800/05080f/FFFFFF?text=Close+Call" alt="Racing Photo"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Side-by-side Action</h3></div></div>
+                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
+                    <div class="gallery-item aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
+                        <div class="swiper-slide"><img src="https://i.imgur.com/Bd5lEOS.jpg" alt="Jon being interviewed"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Post-Race Interview</h3></div></div>
+                        <div class="swiper-slide"><img src="https://placehold.co/400x400/1e293b/FFFFFF?text=Interview+2" alt="Interview Photo"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Talking Strategy</h3></div></div>
+                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
+                    <div class="gallery-item aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
+                        <div class="swiper-slide"><img src="https://i.imgur.com/EumUdup.jpg" alt="Racing Photo"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Beast</h3></div></div>
+                        <div class="swiper-slide"><img src="https://i.imgur.com/zeTBCBV.jpeg" alt="Pre-race checks"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Pre-Race Checks</h3></div></div>
+                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
+                    <div class="gallery-item aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
+                       <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/F7FF00?text=Engine" alt="Racing Photo"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Powerplant</h3></div></div>
+                       <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/FFFFFF?text=Tuning" alt="Tuning Photo"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Fine Tuning</h3></div></div>
+                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
+                    <div class="gallery-item aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
+                        <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/F7FF00?text=Interior" alt="Racing Photo"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Cockpit</h3></div></div>
+                        <div class="swiper-slide"><img src="https://placehold.co/400x400/000000/FFFFFF?text=Dashboard" alt="Dashboard Photo"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Command Center</h3></div></div>
+                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
                 </div>
             </div>
         </section>
 
         <!-- Videos Section -->
-        <section id="videos" class="py-24 bg-gray-900/50">
+        <section id="videos" class="py-24 md:py-32 section-glow">
             <div class="container mx-auto px-6">
-                <div class="text-center mb-12">
-                    <h2 class="text-4xl font-bold uppercase tracking-wider">Onboard & Highlights</h2>
-                    <div class="w-24 h-1 bg-neon-yellow mx-auto mt-4"></div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div class="video-item bg-slate-800 rounded-lg overflow-hidden shadow-lg p-4"><div class="aspect-w-16 aspect-h-9 rounded-md overflow-hidden"><iframe src="https://www.youtube.com/embed/Lzi_w8jqgS8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe></div><h3 class="font-bold text-lg mt-4">Dells Raceway Park</h3><p class="text-sm text-gray-400">A hot lap around the track.</p></div>
-                    <div class="video-item bg-slate-800 rounded-lg overflow-hidden shadow-lg p-4"><div class="aspect-w-16 aspect-h-9 rounded-md overflow-hidden"><iframe src="https://www.youtube.com/embed/DMYD64ViS88" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe></div><h3 class="font-bold text-lg mt-4">Slinger Super Speedway</h3><p class="text-sm text-gray-400">Highlights from the race at Slinger.</p></div>
-                    <div class="video-item bg-slate-800 rounded-lg overflow-hidden shadow-lg p-4"><div class="aspect-w-16 aspect-h-9 rounded-md overflow-hidden"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe></div><h3 class="font-bold text-lg mt-4">Garage Talk: Car Setup</h3><p class="text-sm text-gray-400">A deep dive into the technical setup for this weekend's race.</p></div>
+                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Onboard & <span class="neon-yellow">Highlights</span></h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="video-item rounded-lg overflow-hidden reveal-up">
+                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/Lzi_w8jqgS8" frameborder="0" allowfullscreen class="w-full h-full"></iframe></div>
+                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Dells Raceway Park</h3><p class="text-sm text-slate-400">A hot lap around the track.</p></div>
+                    </div>
+                    <div class="video-item rounded-lg overflow-hidden reveal-up" data-reveal-delay="200">
+                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/DMYD64ViS88" frameborder="0" allowfullscreen class="w-full h-full"></iframe></div>
+                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Slinger Super Speedway</h3><p class="text-sm text-slate-400">Highlights from the race.</p></div>
+                    </div>
+                    <div class="video-item rounded-lg overflow-hidden reveal-up" data-reveal-delay="400">
+                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen class="w-full h-full"></iframe></div>
+                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Garage Talk: Car Setup</h3><p class="text-sm text-slate-400">A deep dive into the tech setup.</p></div>
+                    </div>
                 </div>
             </div>
         </section>
+        
+        <!-- TikTok Section -->
+        <section id="tiktok" class="py-24 md:py-32 bg-black/20">
+            <div class="container mx-auto px-6">
+                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Latest From <span class="neon-yellow">TikTok</span></h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Replace these placeholders with the actual URLs of Jon's TikToks -->
+                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>First race of the season!</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
+                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Working late in the garage.</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
+                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Podium finish!</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
+                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Jace helping out in the pits.</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sponsors Section -->
+        <section id="sponsors" class="py-24 md:py-32 section-glow">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="font-racing text-5xl uppercase mb-12 reveal-fade">Team <span class="neon-yellow">Partners</span></h2>
+                <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-8 items-center">
+                    <div class="sponsor-logo p-4 rounded-lg reveal-up"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=OK1+Automotive" alt="OK1 Automotive Technology"></div>
+                    <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="100"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=StepUp+Construction" alt="StepUp Construction"></div>
+                    <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="200"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=Paul+Ries+%26+Sons" alt="Paul Ries and Sons Chicago"></div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
-    <!-- Footer / Contact -->
-    <footer id="contact" class="bg-slate-900 border-t border-slate-700/50 py-16">
+    <!-- Footer -->
+    <footer class="bg-black/50 border-t border-slate-800 py-16">
         <div class="container mx-auto px-6 text-center">
-            <h3 class="text-3xl font-bold mb-2 neon-yellow">Get In Touch</h3>
-            <p class="text-gray-400 mb-8">Follow my journey on social media or send a message!</p>
-            <div class="max-w-md mx-auto mb-8"><p class="text-lg text-white mb-2">Subscribe for Race Updates!</p><form id="subscribe-form" class="flex flex-col sm:flex-row gap-2"><input type="email" id="subscribe-email" placeholder="Enter your email" required class="flex-grow bg-slate-700 text-white px-4 py-2 rounded-md border border-slate-600 focus:outline-none focus:border-neon-yellow w-full"><button type="submit" class="bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Subscribe</button></form><p id="subscribe-message" class="text-sm mt-2 h-4"></p></div>
-            <div class="flex justify-center space-x-6 mb-8">
-                <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:neon-yellow transition duration-300 transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
-                <a href="https://www.tiktok.com/@redsracing?_t=ZT-8ySZYkz8uQx&_r=1" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:neon-yellow transition duration-300 transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"></path></svg></a>
+            <h3 class="font-racing text-4xl uppercase mb-2 neon-yellow">Get In Touch</h3>
+            <p class="text-slate-400 mb-8">Subscribe for race updates and follow the journey on social media.</p>
+            <div class="max-w-md mx-auto mb-8">
+                <form id="subscribe-form" class="flex flex-col sm:flex-row gap-2">
+                    <input type="email" id="subscribe-email" placeholder="Enter your email" required class="flex-grow bg-slate-800 text-white px-4 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-neon-yellow w-full">
+                    <button type="submit" class="bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Subscribe</button>
+                </form>
+                <p id="subscribe-message" class="text-sm mt-2 h-4"></p>
             </div>
-            <p class="mt-8 text-gray-500">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
+            <div class="flex justify-center space-x-6 mb-8">
+                <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
+                <a href="https://www.tiktok.com/@redsracing" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"/></svg></a>
+            </div>
+            <p class="mt-8 text-slate-500 text-sm">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
         </div>
     </footer>
 
-    <!-- Swiper.js JS -->
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-
+    <script async src="https://www.tiktok.com/embed.js"></script>
     <script type="module">
-        // --- Firebase Imports (MUST be at the top level of the module) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- This robust event listener waits for the entire window to load,
-        // --- including all scripts, images, and stylesheets.
         window.onload = () => {
-
             // --- Firebase Config & Initialization ---
             const firebaseConfig = {
               apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
@@ -425,11 +335,12 @@
             const auth = getAuth(app);
             const db = getFirestore(app);
 
-            // --- Standard Page Logic (Menu, Auth, etc.) ---
+            // --- Mobile Menu ---
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenuButton.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
-            document.getElementById('year').textContent = new Date().getFullYear();
+            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+            // --- Auth State ---
             const authLink = document.getElementById('auth-link');
             const authLinkMobile = document.getElementById('auth-link-mobile');
             onAuthStateChanged(auth, user => {
@@ -440,40 +351,43 @@
                     authLink.addEventListener('click', handleLogout);
                     authLinkMobile.addEventListener('click', handleLogout);
                 } else {
-                    authLink.textContent = 'Login'; authLink.href = 'login.html';
-                    authLinkMobile.textContent = 'Login'; authLinkMobile.href = 'login.html';
+                    authLink.textContent = 'Driver Login'; authLink.href = 'login.html';
+                    authLinkMobile.textContent = 'Driver Login'; authLinkMobile.href = 'login.html';
                 }
             });
+            
+            // --- Animate on Scroll ---
+            ScrollReveal().reveal('.reveal-fade', { delay: 200, distance: '0px', opacity: 0, duration: 1000 });
+            ScrollReveal().reveal('.reveal-up', { delay: 200, distance: '50px', origin: 'bottom', duration: 1000, interval: 100 });
+            ScrollReveal().reveal('.reveal-left', { delay: 200, distance: '50px', origin: 'left', duration: 1000 });
+            ScrollReveal().reveal('.reveal-right', { delay: 200, distance: '50px', origin: 'right', duration: 1000 });
 
-            // --- JAVASCRIPT FOR AWESOME FEATURES ---
-
-            // 1. Animated Stats Counter
-            function animateCounter(element, target) {
-                let current = 0;
-                const increment = Math.ceil(target / 100);
-                const stepTime = Math.max(1, 2000 / (target / increment));
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= target) { current = target; clearInterval(timer); }
-                    element.textContent = current;
-                }, stepTime);
-            }
+            // --- Animated Stats Counter ---
             const statsSection = document.getElementById('stats');
             let hasAnimated = false;
             const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting && !hasAnimated) {
-                        hasAnimated = true;
-                        document.querySelectorAll('[data-target]').forEach(counter => {
-                            animateCounter(counter, parseInt(counter.dataset.target));
-                        });
-                        observer.unobserve(statsSection);
-                    }
-                });
+                if (entries[0].isIntersecting && !hasAnimated) {
+                    hasAnimated = true;
+                    document.querySelectorAll('[data-target]').forEach(counter => {
+                        const target = +counter.dataset.target;
+                        let current = 0;
+                        const increment = Math.ceil(target / 100);
+                        const timer = setInterval(() => {
+                            current += increment;
+                            if (current >= target) {
+                                counter.textContent = target.toLocaleString();
+                                clearInterval(timer);
+                            } else {
+                                counter.textContent = Math.ceil(current).toLocaleString();
+                            }
+                        }, 20);
+                    });
+                    observer.unobserve(statsSection);
+                }
             }, { threshold: 0.5 });
-            if(statsSection) observer.observe(statsSection);
-
-            // 2. Race Schedule & Countdown Logic
+            if (statsSection) observer.observe(statsSection);
+            
+            // --- Race Schedule & Countdown ---
             const raceData = {
                 superCups: [
                     { date: '2025-04-26', name: 'Grundy County Speedway, IL', race: '#1' },
@@ -493,49 +407,37 @@
                     { date: '2025-08-08', name: 'Grundy County Speedway, IL', special: 'Jon Kirsch Birthday Race' }
                 ]
             };
-
             const superCupsContainer = document.getElementById('super-cups-schedule');
             const specialEventsContainer = document.getElementById('special-events-schedule');
-            const today = new Date(); // Use the actual current date
-            today.setHours(0,0,0,0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-            let allRaces = [];
-
-            function createRaceCard(race) {
+            const allRaces = [...raceData.superCups, ...raceData.specialEvents].sort((a,b) => new Date(a.date) - new Date(b.date));
+            
+            allRaces.forEach(race => {
                 const raceDate = new Date(race.date + 'T00:00:00');
                 const isPast = raceDate < today;
                 const cardClass = isPast ? 'past' : 'upcoming';
-                allRaces.push({ ...race, dateObj: raceDate });
-                const formattedDate = raceDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const displayName = race.special || race.name;
-                const displaySubtext = race.special ? race.name : `${formattedDate}, 2025`;
-                const raceNumberText = race.special ? '🎉' : race.race;
-                const raceNumberColor = race.special ? 'neon-yellow' : 'text-slate-600';
-                return `
+                const formattedDate = raceDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+                const cardHTML = `
                     <div class="schedule-card p-4 rounded-lg flex justify-between items-center ${cardClass}">
-                        <div>
-                            <p class="font-bold text-lg text-white">${displayName}</p>
-                            <p class="text-sm text-gray-400">${displaySubtext}</p>
-                        </div>
-                        <div class="font-black text-2xl ${raceNumberColor}">${raceNumberText}</div>
+                        <div><p class="font-bold text-lg text-white">${race.name}</p><p class="text-sm text-slate-400">${race.special || `Race ${race.race}`}</p></div>
+                        <div class="font-semibold text-right text-slate-300">${formattedDate}</div>
                     </div>`;
-            }
+                if (race.special && specialEventsContainer) specialEventsContainer.innerHTML += cardHTML;
+                else if (superCupsContainer) superCupsContainer.innerHTML += cardHTML;
+            });
 
-            if (superCupsContainer) raceData.superCups.forEach(race => superCupsContainer.innerHTML += createRaceCard(race));
-            if (specialEventsContainer) raceData.specialEvents.forEach(race => specialEventsContainer.innerHTML += createRaceCard(race));
-            
-            allRaces.sort((a, b) => a.dateObj - b.dateObj);
-            const nextRace = allRaces.find(race => race.dateObj >= today);
-
+            const nextRace = allRaces.find(race => new Date(race.date + 'T00:00:00') >= today);
             if (nextRace) {
-                document.getElementById('next-race-name').textContent = nextRace.special || nextRace.name;
+                document.getElementById('next-race-name').textContent = nextRace.name;
                 const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
                 const countdownInterval = setInterval(() => {
                     const now = new Date().getTime();
                     const distance = nextRaceDate - now;
                     if (distance < 0) {
                         clearInterval(countdownInterval);
-                        document.getElementById('countdown-timer').innerHTML = "<div class='col-span-full text-2xl font-bold neon-yellow'>RACE DAY!</div>";
+                        document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-3xl font-racing neon-yellow'>RACE DAY!</div>";
                         return;
                     }
                     document.getElementById('days').textContent = Math.floor(distance / (1000 * 60 * 60 * 24));
@@ -545,10 +447,10 @@
                 }, 1000);
             } else {
                 document.getElementById('next-race-name').textContent = "Season Complete!";
-                document.getElementById('countdown-timer').innerHTML = "<div class='col-span-full text-2xl font-bold neon-yellow'>Thanks for a great season!</div>";
+                document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-2xl font-racing'>Thanks for a great season!</div>";
             }
 
-            // 3. Subscription Form
+            // --- Subscription Form ---
             const subscribeForm = document.getElementById('subscribe-form');
             if (subscribeForm) {
                 subscribeForm.addEventListener('submit', async (e) => {
@@ -556,18 +458,13 @@
                     const subscribeEmail = document.getElementById('subscribe-email');
                     const subscribeMessage = document.getElementById('subscribe-message');
                     const email = subscribeEmail.value.trim();
-                    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-                        subscribeMessage.textContent = 'Please enter a valid email.';
-                        subscribeMessage.style.color = '#ef4444';
-                        return;
-                    }
+                    if (!email) return;
                     try {
                         await addDoc(collection(db, "subscribers"), { email: email, subscribedAt: new Date() });
                         subscribeMessage.textContent = 'Success! You are subscribed.';
                         subscribeMessage.style.color = '#22c55e';
                         subscribeEmail.value = '';
                     } catch (error) {
-                        console.error("Error adding document: ", error);
                         subscribeMessage.textContent = 'Subscription failed. Please try again.';
                         subscribeMessage.style.color = '#ef4444';
                     }
@@ -575,28 +472,17 @@
                 });
             }
 
-            // 4. Initialize Swiper Galleries
-            try {
-                document.querySelectorAll('.gallery-item .swiper').forEach(function (swiperElement) {
-                    new Swiper(swiperElement, {
-                        loop: true,
-                        effect: 'fade',
-                        fadeEffect: {
-                            crossFade: true
-                        },
-                        pagination: {
-                            el: swiperElement.querySelector('.swiper-pagination'),
-                            clickable: true,
-                        },
-                        navigation: {
-                            nextEl: swiperElement.querySelector('.swiper-button-next'),
-                            prevEl: swiperElement.querySelector('.swiper-button-prev'),
-                        },
-                    });
+            // --- Swiper Galleries ---
+            document.querySelectorAll('.gallery-item .swiper').forEach(el => {
+                new Swiper(el, {
+                    loop: true, effect: 'fade', fadeEffect: { crossFade: true },
+                    pagination: { el: el.querySelector('.swiper-pagination'), clickable: true },
+                    navigation: { nextEl: el.querySelector('.swiper-button-next'), prevEl: el.querySelector('.swiper-button-prev') },
                 });
-            } catch (e) {
-                console.error("Error initializing Swiper:", e);
-            }
+            });
+
+            // --- Footer Year ---
+            document.getElementById('year').textContent = new Date().getFullYear();
         };
     </script>
 </body>
