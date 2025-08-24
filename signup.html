@@ -70,6 +70,11 @@
                     <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
                     <input type="password" id="password" name="password" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm">
                 </div>
+
+                <div>
+                    <label for="invitation-code" class="block text-sm font-medium text-gray-300">Invitation Code <span class="text-gray-400">(Optional)</span></label>
+                    <input type="text" id="invitation-code" name="invitation-code" class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" placeholder="Enter code for team access">
+                </div>
                 
                 <div class="flex flex-col space-y-4">
                     <button type="button" id="signup-button" class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Sign Up</button>
@@ -110,6 +115,7 @@
             GoogleAuthProvider,
             signInWithPopup
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 
         // Your web app's Firebase configuration from the main page
         const firebaseConfig = {
@@ -124,11 +130,13 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const functions = getFunctions(app);
         const googleProvider = new GoogleAuthProvider();
 
         // Get form elements
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
+        const invitationCodeInput = document.getElementById('invitation-code');
         const signinButton = document.getElementById('signin-button');
         const signupButton = document.getElementById('signup-button');
         const googleSigninButton = document.getElementById('google-signin-button');
@@ -143,8 +151,8 @@
 
         // Function to handle successful login
         function handleSuccess() {
-            // Redirect to the main page after successful login/signup
-            window.location.href = 'index.html';
+            // Redirect to the dashboard after successful login/signup
+            window.location.href = 'dashboard.html';
         }
 
         // Event listener for Sign In button
@@ -161,26 +169,42 @@
         });
 
         // Event listener for Sign Up button
-        signupButton.addEventListener('click', () => {
+        signupButton.addEventListener('click', async () => {
             const email = emailInput.value;
             const password = passwordInput.value;
-            createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    handleSuccess();
-                })
-                .catch((error) => {
-                    showError(error.message);
-                });
+            const invitationCode = invitationCodeInput.value.trim();
+
+            try {
+                // 1. Create the user in Firebase Auth
+                await createUserWithEmailAndPassword(auth, email, password);
+
+                // 2. Call the Firebase Function to process the role.
+                // Note: The user is now authenticated, so the function can access their UID.
+                const processInvitationCode = httpsCallable(functions, 'processInvitationCode');
+                await processInvitationCode({ invitationCode: invitationCode });
+
+                // 3. Force a token refresh to get the new custom claim on the client.
+                await auth.currentUser.getIdToken(true);
+
+                // 4. Redirect to the dashboard.
+                handleSuccess();
+
+            } catch (error) {
+                // Handle errors from both user creation and the callable function.
+                showError(error.message);
+            }
         });
 
         // Event listener for Google Sign In button
-        googleSigninButton.addEventListener('click', () => {
-            signInWithPopup(auth, googleProvider)
-                .then((result) => {
-                    handleSuccess();
-                }).catch((error) => {
-                    showError(error.message);
-                });
+        googleSigninButton.addEventListener('click', async () => {
+            try {
+                // We don't support invitation codes for Google Sign-in in this flow,
+                // so the user will be assigned the 'public-fan' role by default.
+                await signInWithPopup(auth, googleProvider);
+                handleSuccess();
+            } catch (error) {
+                showError(error.message);
+            }
         });
     </script>
 </body>
