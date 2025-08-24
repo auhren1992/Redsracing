@@ -334,11 +334,8 @@
             const authLinkMobile = document.getElementById('auth-link-mobile');
             onAuthStateChanged(auth, user => {
                 if (user) {
-                    authLink.textContent = 'Logout'; authLink.href = '#';
-                    authLinkMobile.textContent = 'Logout'; authLinkMobile.href = '#';
-                    const handleLogout = (e) => { e.preventDefault(); signOut(auth).catch(error => console.error('Logout Error:', error)); };
-                    authLink.addEventListener('click', handleLogout);
-                    authLinkMobile.addEventListener('click', handleLogout);
+                    authLink.textContent = 'Dashboard'; authLink.href = 'dashboard.html';
+                    authLinkMobile.textContent = 'Dashboard'; authLinkMobile.href = 'dashboard.html';
                 } else {
                     authLink.textContent = 'Driver Login'; authLink.href = 'login.html';
                     authLinkMobile.textContent = 'Driver Login'; authLinkMobile.href = 'login.html';
