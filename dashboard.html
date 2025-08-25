@@ -51,8 +51,9 @@
     </header>
 
     <main class="flex-grow container mx-auto px-6 py-12">
-        <div id="loading-state" class="text-center">
-            <p class="text-2xl">Loading Driver Dashboard...</p>
+        <div id="loading-state" class="flex flex-col items-center justify-center text-center py-20">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-neon-yellow"></div>
+            <p class="text-2xl mt-4 font-racing uppercase tracking-wider">Loading Dashboard...</p>
         </div>
 
         <div id="dashboard-content" class="hidden">
@@ -120,6 +121,28 @@
                             </a>
                         </div>
                     </div>
+
+                    <!-- Race Management -->
+                    <div id="race-management-card" class="card rounded-lg p-6" style="display: none;">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Race <span class="neon-yellow">Management</span></h2>
+                        <div class="flex justify-end mb-4">
+                             <button id="add-race-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Add New Race</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="border-b border-slate-600">
+                                        <th class="p-2">Date</th>
+                                        <th class="p-2">Name</th>
+                                        <th class="p-2">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="races-table-body">
+                                    <!-- Race rows will be inserted here by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -134,7 +157,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
@@ -153,8 +176,25 @@
         const userEmailEl = document.getElementById('user-email');
         const logoutButton = document.getElementById('logout-button');
         const driverNotesCard = document.getElementById('driver-notes-card');
+        const raceManagementCard = document.getElementById('race-management-card');
         const driverNotesEl = document.getElementById('driver-notes');
         const notesStatusEl = document.getElementById('notes-status');
+
+        // Modal elements
+        const raceModal = document.getElementById('race-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const raceForm = document.getElementById('race-form');
+        const raceIdInput = document.getElementById('race-id');
+        const raceDateInput = document.getElementById('race-date');
+        const raceNameInput = document.getElementById('race-name');
+        const raceTypeInput = document.getElementById('race-type');
+        const raceNumberContainer = document.getElementById('race-number-container');
+        const raceNumberInput = document.getElementById('race-number');
+        const specialNameContainer = document.getElementById('special-name-container');
+        const specialNameInput = document.getElementById('special-name');
+        const addRaceBtn = document.getElementById('add-race-btn');
+        const cancelRaceBtn = document.getElementById('cancel-race-btn');
+
         let notesSaveTimeout;
         let countdownInterval;
 
@@ -203,18 +243,133 @@
             }, 1000);
         };
 
+        // --- CRUD Functions ---
+
+        // 1. READ Races and Render Table
+        const renderRacesTable = (races) => {
+            const tableBody = document.getElementById('races-table-body');
+            tableBody.innerHTML = ''; // Clear existing rows
+            races.forEach(race => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-700 hover:bg-slate-800';
+                row.innerHTML = `
+                    <td class="p-2">${race.date}</td>
+                    <td class="p-2">${race.name}</td>
+                    <td class="p-2">
+                        <button class="edit-race-btn bg-yellow-500 text-white px-2 py-1 rounded text-sm" data-id="${race.id}">Edit</button>
+                        <button class="delete-race-btn bg-red-600 text-white px-2 py-1 rounded text-sm ml-2" data-id="${race.id}">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Add event listeners for the new buttons
+            document.querySelectorAll('.edit-race-btn').forEach(btn => btn.addEventListener('click', () => openRaceModal(races.find(r => r.id === btn.dataset.id))));
+            document.querySelectorAll('.delete-race-btn').forEach(btn => btn.addEventListener('click', () => deleteRace(btn.dataset.id)));
+        };
+
         // Fetch race data from Firestore
         const getRaceData = async () => {
             const racesCol = collection(db, "races");
             const q = query(racesCol, orderBy("date", "asc"));
             const raceSnapshot = await getDocs(q);
-            const raceList = raceSnapshot.docs.map(doc => doc.data());
+            const raceList = raceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            renderRacesTable(raceList); // Render the management table
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const nextRace = raceList.find(race => new Date(race.date + 'T00:00:00') >= today);
             startCountdown(nextRace);
         };
+
+        // 2. CREATE/UPDATE Races
+        const openRaceModal = (race = null) => {
+            raceForm.reset();
+            if (race) {
+                // Editing existing race
+                modalTitle.textContent = 'Edit Race';
+                raceIdInput.value = race.id;
+                raceDateInput.value = race.date;
+                raceNameInput.value = race.name;
+                raceTypeInput.value = race.type;
+                if (race.type === 'superCup') {
+                    raceNumberInput.value = race.race || '';
+                    specialNameInput.value = '';
+                } else {
+                    specialNameInput.value = race.special || '';
+                    raceNumberInput.value = '';
+                }
+            } else {
+                // Adding new race
+                modalTitle.textContent = 'Add New Race';
+                raceIdInput.value = '';
+            }
+            toggleRaceTypeFields();
+            raceModal.classList.remove('hidden');
+        };
+
+        const closeRaceModal = () => {
+            raceModal.classList.add('hidden');
+        };
+
+        const toggleRaceTypeFields = () => {
+            if (raceTypeInput.value === 'superCup') {
+                raceNumberContainer.classList.remove('hidden');
+                specialNameContainer.classList.add('hidden');
+            } else {
+                raceNumberContainer.classList.add('hidden');
+                specialNameContainer.classList.remove('hidden');
+            }
+        };
+
+        raceForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const raceId = raceIdInput.value;
+            const raceData = {
+                date: raceDateInput.value,
+                name: raceNameInput.value,
+                type: raceTypeInput.value,
+                ...(raceTypeInput.value === 'superCup'
+                    ? { race: raceNumberInput.value }
+                    : { special: specialNameInput.value })
+            };
+
+            try {
+                if (raceId) {
+                    // Update existing document
+                    const raceRef = doc(db, 'races', raceId);
+                    await updateDoc(raceRef, raceData);
+                } else {
+                    // Add new document
+                    await addDoc(collection(db, 'races'), raceData);
+                }
+                closeRaceModal();
+                await getRaceData(); // Refresh the table
+            } catch (error) {
+                console.error("Error saving race:", error);
+                alert("Failed to save race. Check console for details.");
+            }
+        });
+
+        // 3. DELETE Races
+        const deleteRace = async (id) => {
+            if (confirm('Are you sure you want to delete this race?')) {
+                try {
+                    const raceRef = doc(db, 'races', id);
+                    await deleteDoc(raceRef);
+                    await getRaceData(); // Refresh the table
+                } catch (error) {
+                    console.error("Error deleting race:", error);
+                    alert("Failed to delete race. Check console for details.");
+                }
+            }
+        };
+
+        // Wire up modal buttons
+        addRaceBtn.addEventListener('click', () => openRaceModal());
+        cancelRaceBtn.addEventListener('click', closeRaceModal);
+        raceTypeInput.addEventListener('change', toggleRaceTypeFields);
 
         // Auth State Change Listener
         onAuthStateChanged(auth, async (user) => {
@@ -230,6 +385,7 @@
 
                 if (userRole === 'team-member') {
                     driverNotesCard.style.display = 'block';
+                    raceManagementCard.style.display = 'block';
                     // Load notes only for team members
                     const userNotesRef = doc(db, "driver_notes", user.uid);
                     const docSnap = await getDoc(userNotesRef);
@@ -276,6 +432,45 @@
         document.getElementById('year').textContent = new Date().getFullYear();
 
     </script>
+
+    <!-- Add/Edit Race Modal -->
+    <div id="race-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-slate-900 p-8 rounded-lg shadow-2xl w-full max-w-md border border-slate-700">
+            <h2 id="modal-title" class="text-3xl font-racing text-white uppercase mb-6">Add New Race</h2>
+            <form id="race-form">
+                <input type="hidden" id="race-id">
+                <div class="space-y-4">
+                    <div>
+                        <label for="race-date" class="block text-sm font-medium text-gray-300">Date</label>
+                        <input type="date" id="race-date" required class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1">
+                    </div>
+                    <div>
+                        <label for="race-name" class="block text-sm font-medium text-gray-300">Track Name</label>
+                        <input type="text" id="race-name" required class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="e.g., Grundy County Speedway, IL">
+                    </div>
+                    <div>
+                        <label for="race-type" class="block text-sm font-medium text-gray-300">Event Type</label>
+                        <select id="race-type" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1">
+                            <option value="superCup">American Super Cup</option>
+                            <option value="specialEvent">Special Event</option>
+                        </select>
+                    </div>
+                    <div id="race-number-container">
+                        <label for="race-number" class="block text-sm font-medium text-gray-300">Race Number</label>
+                        <input type="text" id="race-number" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="e.g., #1">
+                    </div>
+                     <div id="special-name-container" class="hidden">
+                        <label for="special-name" class="block text-sm font-medium text-gray-300">Event Name</label>
+                        <input type="text" id="special-name" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="e.g., Jon Kirsch Birthday Race">
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end space-x-4">
+                    <button type="button" id="cancel-race-btn" class="bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition">Cancel</button>
+                    <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Save Race</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
 </html>
