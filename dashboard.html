@@ -57,6 +57,11 @@
         </div>
 
         <div id="dashboard-content" class="hidden">
+            <div id="email-verification-notice" class="hidden bg-yellow-900 border-l-4 border-yellow-500 text-yellow-200 p-4 mb-8 rounded-r-lg" role="alert">
+                <p class="font-bold">Verify your email</p>
+                <p>Your email address has not been verified. Please check your inbox for a verification link to enable all features.</p>
+                <button id="resend-verification-btn" class="mt-2 text-sm font-bold underline hover:text-white">Resend verification email</button>
+            </div>
             <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
             <p class="text-slate-400 mb-8">Welcome back, <span id="user-email" class="font-bold text-white"></span>.</p>
 
@@ -143,6 +148,23 @@
                             </table>
                         </div>
                     </div>
+
+                    <!-- 2-Step Verification -->
+                    <div id="mfa-card" class="card rounded-lg p-6" style="display: none;">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">2-Step <span class="neon-yellow">Verification</span></h2>
+                        <div id="mfa-status"></div>
+                        <div id="mfa-enroll-form" class="space-y-4">
+                            <p class="text-slate-400">Add your phone number to secure your account.</p>
+                            <input type="tel" id="mfa-phone-number" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2" placeholder="+1 555-555-5555">
+                            <button id="mfa-send-code-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Send Code</button>
+                        </div>
+                         <div id="mfa-verify-form" class="hidden space-y-4">
+                            <p class="text-slate-400">Enter the code sent to your phone.</p>
+                            <input type="text" id="mfa-verification-code" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2" placeholder="6-digit code">
+                             <button id="mfa-verify-btn" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-500 transition">Verify & Enable</button>
+                        </div>
+                        <div id="mfa-recaptcha-container" class="mt-4"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -156,7 +178,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, sendEmailVerification, PhoneAuthProvider, linkWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -175,10 +197,20 @@
         const dashboardContent = document.getElementById('dashboard-content');
         const userEmailEl = document.getElementById('user-email');
         const logoutButton = document.getElementById('logout-button');
+        const emailVerificationNotice = document.getElementById('email-verification-notice');
+        const resendVerificationBtn = document.getElementById('resend-verification-btn');
         const driverNotesCard = document.getElementById('driver-notes-card');
         const raceManagementCard = document.getElementById('race-management-card');
         const driverNotesEl = document.getElementById('driver-notes');
         const notesStatusEl = document.getElementById('notes-status');
+        const mfaCard = document.getElementById('mfa-card');
+        const mfaStatus = document.getElementById('mfa-status');
+        const mfaEnrollForm = document.getElementById('mfa-enroll-form');
+        const mfaVerifyForm = document.getElementById('mfa-verify-form');
+        const mfaPhoneNumberInput = document.getElementById('mfa-phone-number');
+        const mfaSendCodeBtn = document.getElementById('mfa-send-code-btn');
+        const mfaVerificationCodeInput = document.getElementById('mfa-verification-code');
+        const mfaVerifyBtn = document.getElementById('mfa-verify-btn');
 
         // Modal elements
         const raceModal = document.getElementById('race-modal');
@@ -376,6 +408,20 @@
             if (user) {
                 userEmailEl.textContent = user.email;
 
+                // Handle Email Verification Notice
+                if (!user.emailVerified) {
+                    emailVerificationNotice.classList.remove('hidden');
+                    resendVerificationBtn.addEventListener('click', async () => {
+                        try {
+                            await sendEmailVerification(user);
+                            alert('Verification email sent! Please check your inbox.');
+                        } catch (error) {
+                            console.error('Error resending verification email:', error);
+                            alert('Failed to resend verification email. Please try again later.');
+                        }
+                    });
+                }
+
                 // Fetch data
                 await getRaceData();
 
@@ -386,6 +432,8 @@
                 if (userRole === 'team-member') {
                     driverNotesCard.style.display = 'block';
                     raceManagementCard.style.display = 'block';
+                    mfaCard.style.display = 'block';
+                    setupMfa(user);
                     // Load notes only for team members
                     const userNotesRef = doc(db, "driver_notes", user.uid);
                     const docSnap = await getDoc(userNotesRef);
