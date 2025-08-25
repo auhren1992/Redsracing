@@ -1,484 +1,89 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RedsRacing #8 - The Ultimate Hub</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/scrollreveal"></script>
-    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #05080f; /* Even darker blue */
-            color: #e2e8f0; /* Lighter gray for better contrast */
-        }
-        .font-racing {
-            font-family: 'Racing Sans One', sans-serif;
-        }
-        .hero-video-bg {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: translate(-50%, -50%);
-            z-index: -1;
-        }
-        .hero-overlay {
-            background: linear-gradient(to top, rgba(5, 8, 15, 1) 0%, rgba(5, 8, 15, 0.6) 50%, rgba(5, 8, 15, 1) 100%);
-        }
-        .text-shadow-strong {
-            text-shadow: 0 4px 10px rgba(0,0,0,0.7);
-        }
-        .neon-yellow { color: #f7ff00; }
-        .title-blue { color: #00c6ff; }
-        .section-glow {
-            position: relative;
-        }
-        .section-glow::before {
-            content: '';
-            position: absolute;
-            top: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            height: 200px;
-            background: radial-gradient(circle, rgba(0, 198, 255, 0.05), transparent 70%);
-            z-index: -1;
-            pointer-events: none;
-        }
-        .stat-card, .video-item, .gallery-item, .sponsor-logo {
-            background: rgba(15, 23, 42, 0.5); /* slate-900/50 */
-            border: 1px solid rgba(51, 65, 85, 0.5); /* slate-700/50 */
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .stat-card:hover, .video-item:hover, .gallery-item:hover, .sponsor-logo:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 0 30px rgba(247, 255, 0, 0.15);
-        }
-        .schedule-card {
-            background-color: #1e293b; /* slate-800 */
-            border-left: 4px solid #475569; /* slate-600 */
-            transition: all 0.3s ease;
-        }
-        .schedule-card.upcoming { border-left-color: #f7ff00; }
-        .schedule-card.past { opacity: 0.6; }
-        .schedule-card:hover {
-            transform: translateX(5px);
-            border-left-color: #00c6ff;
-        }
-        .car-hotspot-container { position: relative; }
-        .hotspot { position: absolute; width: 2.5rem; height: 2.5rem; background-color: rgba(0, 198, 255, 0.8); border-radius: 50%; border: 2px solid white; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 15px rgba(0, 198, 255, 0.7); }
-        .hotspot:hover { transform: scale(1.2); background-color: #00c6ff; }
-        .hotspot-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 198, 255, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(0, 198, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 198, 255, 0); } }
-        .hotspot-info { display: none; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background-color: #1e293b; color: white; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #00c6ff; width: 220px; z-index: 10; text-align: center; font-size: 0.9rem; }
-        .hotspot:hover .hotspot-info { display: block; }
-        
-        .swiper { width: 100%; height: 100%; }
-        .swiper-slide { width: 100%; height: 100%; }
-        .swiper-button-next, .swiper-button-prev { color: #f7ff00 !important; opacity: 0; transition: opacity 0.3s ease; --swiper-navigation-size: 30px; }
-        .gallery-item:hover .swiper-button-next, .gallery-item:hover .swiper-button-prev { opacity: 0.7; }
-        .swiper-pagination-bullet-active { background: #f7ff00 !important; }
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Firebase Hosting</title>
 
-        .sponsor-logo img {
-            filter: grayscale(100%) brightness(0.8);
-            transition: filter 0.3s ease;
-        }
-        .sponsor-logo:hover img {
-            filter: grayscale(0%) brightness(1);
-        }
-        .tiktok-embed {
-            max-width: 100% !important;
-            min-width: 0 !important; /* Override default min-width */
-        }
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/12.1.0/firebase-app-compat.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/12.1.0/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/12.1.0/firebase-database-compat.js"></script>
+    <script defer src="/__/firebase/12.1.0/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/12.1.0/firebase-functions-compat.js"></script>
+    <script defer src="/__/firebase/12.1.0/firebase-messaging-compat.js"></script>
+    <script defer src="/__/firebase/12.1.0/firebase-storage-compat.js"></script>
+    <script defer src="/__/firebase/12.1.0/firebase-analytics-compat.js"></script>
+    <script defer src="/__/firebase/12.1.0/firebase-remote-config-compat.js"></script>
+    <script defer src="/__/firebase/12.1.0/firebase-performance-compat.js"></script>
+    <!-- 
+      initialize the SDK after all desired features are loaded, set useEmulator to false
+      to avoid connecting the SDK to running emulators.
+    -->
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+
+    <style media="screen">
+      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
+      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
+      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
+      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
+      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
+      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
+      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
+      @media (max-width: 600px) {
+        body, #message { margin-top: 0; background: white; box-shadow: none; }
+        body { border-top: 16px solid #ffa100; }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <div id="message">
+      <h2>Welcome</h2>
+      <h1>Firebase Hosting Setup Complete</h1>
+      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
+      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
+    </div>
+    <p id="load">Firebase SDK Loading&hellip;</p>
 
-    <header class="bg-black/30 backdrop-blur-md fixed w-full top-0 z-50 border-b border-slate-700/50">
-        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="#" class="text-4xl font-racing uppercase tracking-wider">
-                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
-            </a>
-            <div class="hidden md:flex items-center space-x-6 font-bold">
-                <a href="#about" class="hover:text-neon-yellow transition duration-300">About</a>
-                <a href="#the-car" class="hover:text-neon-yellow transition duration-300">The Car</a>
-                <a href="#schedule" class="hover:text-neon-yellow transition duration-300">Schedule</a>
-                <a href="#gallery" class="hover:text-neon-yellow transition duration-300">Gallery</a>
-                <a href="#videos" class="hover:text-neon-yellow transition duration-300">Videos</a>
-                <a href="#tiktok" class="hover:text-neon-yellow transition duration-300">TikTok</a>
-                <a id="auth-link" href="login.html" class="bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300">
-                    DRIVER LOGIN
-                </a>
-            </div>
-            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-            </button>
-        </nav>
-        <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
-             <a href="#about" class="block py-3 px-6 text-sm hover:bg-slate-800">About</a>
-             <a href="#the-car" class="block py-3 px-6 text-sm hover:bg-slate-800">The Car</a>
-             <a href="#schedule" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
-             <a href="#gallery" class="block py-3 px-6 text-sm hover:bg-slate-800">Gallery</a>
-             <a href="#videos" class="block py-3 px-6 text-sm hover:bg-slate-800">Videos</a>
-             <a href="#tiktok" class="block py-3 px-6 text-sm hover:bg-slate-800">TikTok</a>
-             <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
-        </div>
-    </header>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const loadEl = document.querySelector('#load');
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        // // The Firebase SDK is initialized and available here!
+        //
+        // firebase.auth().onAuthStateChanged(user => { });
+        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
+        // firebase.firestore().doc('/foo/bar').get().then(() => { });
+        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
+        // firebase.messaging().requestPermission().then(() => { });
+        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
+        // firebase.analytics(); // call to activate
+        // firebase.analytics().logEvent('tutorial_completed');
+        // firebase.performance(); // call to activate
+        //
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
-    <main>
-        <section id="home" class="h-screen relative flex items-center justify-center text-center overflow-hidden">
-            <video autoplay loop muted playsinline class="hero-video-bg" poster="https://placehold.co/1920x1080/05080f/FFFFFF?text=RedsRacing">
-                <source src="https://assets.mixkit.co/videos/preview/mixkit-sports-car-driving-on-a-road-in-the-forest-34262-large.mp4" type="video/mp4">
-            </video>
-            <div class="relative z-10 p-8 hero-overlay w-full h-full flex flex-col items-center justify-center">
-                <h1 class="text-6xl md:text-9xl font-racing uppercase text-white text-shadow-strong tracking-wider">
-                    <span class="title-blue">Push</span> <span class="neon-yellow">The Limit</span>
-                </h1>
-                <p class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest">THE OFFICIAL HUB OF JON'S RACING SAGA</p>
-            </div>
-        </section>
-
-        <section id="about" class="py-24 md:py-32 section-glow">
-            <div class="container mx-auto px-6">
-                <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-12 lg:gap-20">
-                    <div class="text-lg space-y-4 reveal-left">
-                        <h2 class="font-racing text-5xl uppercase mb-4">Meet The <span class="neon-yellow">Driver</span></h2>
-                        <p class="text-slate-300">Fueled by a lifelong passion for speed and precision, I'm Jon, and this is my world. This isn't just a hobby; it's a relentless pursuit of the perfect lap, the extra tenth, the top step of the podium. It's about the bond between man and machine, pushing the limits together on the ragged edge.</p>
-                        <p class="text-slate-400">From late nights in the garage to the adrenaline of the green flag, this is where I document the unfiltered reality of life on the track. Follow along for a behind-the-scenes look at my racing journey.</p>
-                    </div>
-                    <div id="stats" class="grid grid-cols-1 sm:grid-cols-3 gap-4 reveal-right">
-                        <div class="stat-card p-6 rounded-lg text-center">
-                            <div id="wins-counter" class="text-6xl font-bold neon-yellow mb-2" data-target="2">0</div>
-                            <div class="text-lg font-racing uppercase text-white tracking-wider">Wins</div>
-                        </div>
-                        <div class="stat-card p-6 rounded-lg text-center">
-                            <div id="podiums-counter" class="text-6xl font-bold neon-yellow mb-2" data-target="4">0</div>
-                            <div class="text-lg font-racing uppercase text-white tracking-wider">Podiums</div>
-                        </div>
-                        <div class="stat-card p-6 rounded-lg text-center">
-                            <div id="laps-counter" class="text-6xl font-bold neon-yellow mb-2" data-target="200">0</div>
-                            <div class="text-lg font-racing uppercase text-white tracking-wider">Laps Raced</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="the-car" class="py-24 md:py-32 bg-black/20">
-            <div class="container mx-auto px-6 text-center">
-                <h2 class="font-racing text-5xl uppercase mb-4 reveal-fade">Meet The <span class="neon-yellow">Beast</span></h2>
-                <p class="max-w-2xl mx-auto mb-12 text-slate-400 reveal-fade" data-reveal-delay="200">Hover over the points on the car to learn more about the tech that powers every race.</p>
-                <div class="car-hotspot-container max-w-4xl mx-auto reveal-up">
-                    <img src="https://i.imgur.com/EumUdup.jpg" alt="Race Car" class="w-full h-auto rounded-lg shadow-2xl" loading="lazy" width="1200" height="675" onerror="this.onerror=null;this.src='https://placehold.co/1200x675';">
-                    <div class="hotspot hotspot-pulse" style="top: 45%; left: 30%;">1<div class="hotspot-info"><strong>Engine & Powertrain:</strong> Custom-built 1-cylinder engine, meticulously tuned for optimal power-to-weight ratio.</div></div>
-                    <div class="hotspot hotspot-pulse" style="top: 35%; left: 75%;">2<div class="hotspot-info"><strong>Aerodynamics:</strong> Carbon fiber rear wing and front splitter providing over 1000lbs of downforce for high-speed stability.</div></div>
-                    <div class="hotspot hotspot-pulse" style="top: 70%; left: 65%;">3<div class="hotspot-info"><strong>Tires & Grip:</strong> Hoosier Racing Slicks, a soft compound that gets stickier as they heat up for maximum grip in the corners.</div></div>
-                </div>
-            </div>
-        </section>
-
-        <section id="schedule" class="py-24 md:py-32 section-glow">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">2025 Race <span class="neon-yellow">Schedule</span></h2>
-                <div class="max-w-4xl mx-auto bg-slate-900/50 p-8 rounded-lg text-center mb-12 reveal-up">
-                    <h3 class="text-xl font-bold text-slate-400 uppercase">Countdown to Next Race</h3>
-                    <p id="next-race-name" class="text-3xl font-racing text-white uppercase my-4">Loading...</p>
-                    <div id="countdown-timer" class="grid grid-cols-4 gap-4 max-w-md mx-auto">
-                        <div><div id="days" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Days</div></div>
-                        <div><div id="hours" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Hours</div></div>
-                        <div><div id="minutes" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Minutes</div></div>
-                        <div><div id="seconds" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Seconds</div></div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 max-w-6xl mx-auto reveal-up" data-reveal-delay="200">
-                    <div>
-                        <h3 class="text-3xl font-racing text-white uppercase mb-4 border-b-2 border-neon-yellow pb-2">American Super Cups</h3>
-                        <div id="super-cups-schedule" class="space-y-4"></div>
-                    </div>
-                    <div>
-                        <h3 class="text-3xl font-racing text-white uppercase mb-4 border-b-2 border-neon-yellow pb-2">Special Events</h3>
-                        <div id="special-events-schedule" class="space-y-4"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <section id="gallery" class="py-24 md:py-32 bg-black/20">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Action <span class="neon-yellow">Shots</span></h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <div class="gallery-item col-span-2 row-span-2 aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
-                        <div class="swiper-slide"><img src="https://placehold.co/800x800/05080f/F7FF00?text=Victory+Lane" alt="Racing Photo" loading="lazy" width="800" height="800"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Victory Lane</h3></div></div>
-                        <div class="swiper-slide"><img src="https://placehold.co/800x800/05080f/FFFFFF?text=Close+Call" alt="Racing Photo" loading="lazy" width="800" height="800"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Side-by-side Action</h3></div></div>
-                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
-                    <div class="gallery-item aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
-                        <div class="swiper-slide"><img src="https://i.imgur.com/Bd5lEOS.jpg" alt="Jon being interviewed" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Post-Race Interview</h3></div></div>
-                        <div class="swiper-slide"><img src="https://placehold.co/400x400/1e293b/FFFFFF?text=Interview+2" alt="Interview Photo" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Talking Strategy</h3></div></div>
-                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
-                    <div class="gallery-item aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
-                        <div class="swiper-slide"><img src="https://i.imgur.com/EumUdup.jpg" alt="Racing Photo" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Beast</h3></div></div>
-                        <div class="swiper-slide"><img src="https://i.imgur.com/zeTBCBV.jpeg" alt="Pre-race checks" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Pre-Race Checks</h3></div></div>
-                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
-                    <div class="gallery-item aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
-                       <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/F7FF00?text=Engine" alt="Racing Photo" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Powerplant</h3></div></div>
-                       <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/FFFFFF?text=Tuning" alt="Tuning Photo" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Fine Tuning</h3></div></div>
-                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
-                    <div class="gallery-item aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
-                        <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/F7FF00?text=Interior" alt="Racing Photo" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Cockpit</h3></div></div>
-                        <div class="swiper-slide"><img src="https://placehold.co/400x400/000000/FFFFFF?text=Dashboard" alt="Dashboard Photo" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Command Center</h3></div></div>
-                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
-                </div>
-            </div>
-        </section>
-
-        <section id="videos" class="py-24 md:py-32 section-glow">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Onboard & <span class="neon-yellow">Highlights</span></h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="video-item rounded-lg overflow-hidden reveal-up">
-                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/Lzi_w8jqgS8" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
-                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Dells Raceway Park</h3><p class="text-sm text-slate-400">A hot lap around the track.</p></div>
-                    </div>
-                    <div class="video-item rounded-lg overflow-hidden reveal-up" data-reveal-delay="200">
-                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/DMYD64ViS88" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
-                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Slinger Super Speedway</h3><p class="text-sm text-slate-400">Highlights from the race.</p></div>
-                    </div>
-                    <div class="video-item rounded-lg overflow-hidden reveal-up" data-reveal-delay="400">
-                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
-                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Garage Talk: Car Setup</h3><p class="text-sm text-slate-400">A deep dive into the tech setup.</p></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <section id="tiktok" class="py-24 md:py-32 bg-black/20">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Latest From <span class="neon-yellow">TikTok</span></h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7527470903773367582" data-video-id="7527470903773367582" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>🏁 Ready to hit the track! Our #8 American Super Cup car is looking mean and ready for race day. 🔥 Catch all the action and join the Red&#39;s Racing family! #RedsRacing #AmericanSuperCup #RaceCar #Motorsport #TrackDay #Speed #Racing #CarTok #SundayFunday #WeekendVibes</p> <a target="_blank" title="♬ original sound  - Reds Racing" href="https://www.tiktok.com/music/original-sound-Reds-Racing-7527476054991080222?refer=embed">♬ original sound  - Reds Racing</a> </section> </blockquote>
-                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Working late in the garage.</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
-                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Podium finish!</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
-                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Behind the scenes in the pits.</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
-                </div>
-            </div>
-        </section>
-
-        <section id="sponsors" class="py-24 md:py-32 section-glow">
-            <div class="container mx-auto px-6 text-center">
-                <h2 class="font-racing text-5xl uppercase mb-12 reveal-fade">Team <span class="neon-yellow">Partners</span></h2>
-                <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-8 items-center">
-                    <div class="sponsor-logo p-4 rounded-lg reveal-up"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=OK1+Automotive" alt="OK1 Automotive Technology" loading="lazy" width="300" height="150"></div>
-                    <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="100"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=StepUp+Construction" alt="StepUp Construction" loading="lazy" width="300" height="150"></div>
-                    <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="200"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=Paul+Ries+%26+Sons" alt="Paul Ries and Sons Chicago" loading="lazy" width="300" height="150"></div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <footer class="bg-black/50 border-t border-slate-800 py-16">
-        <div class="container mx-auto px-6 text-center">
-            <h3 class="font-racing text-4xl uppercase mb-2 neon-yellow">Get In Touch</h3>
-            <p class="text-slate-400 mb-8">Subscribe for race updates and follow the journey on social media.</p>
-            <div class="max-w-md mx-auto mb-8">
-                <form id="subscribe-form" class="flex flex-col sm:flex-row gap-2">
-                    <input type="email" id="subscribe-email" placeholder="Enter your email" required class="flex-grow bg-slate-800 text-white px-4 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-neon-yellow w-full">
-                    <button type="submit" class="bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Subscribe</button>
-                </form>
-                <p id="subscribe-message" class="text-sm mt-2 h-4"></p>
-            </div>
-            <div class="flex justify-center space-x-6 mb-8">
-                <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
-                <a href="https://www.tiktok.com/@redsracing" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"/></svg></a>
-            </div>
-            <p class="mt-8 text-slate-500 text-sm">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
-        </div>
-    </footer>
-
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-    <script async src="https://www.tiktok.com/embed.js"></script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        window.onload = () => {
-            // --- Firebase Config & Initialization ---
-            const firebaseConfig = {
-              apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
-              authDomain: "redsracing-a7f8b.firebaseapp.com",
-              projectId: "redsracing-a7f8b",
-              storageBucket: "redsracing-a7f8b.appspot.com",
-              messagingSenderId: "517034606151",
-              appId: "1:517034606151:web:24cae262e1d98832757b62"
-            };
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const db = getFirestore(app);
-
-            // --- Mobile Menu ---
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
-
-            // --- Auth State ---
-            const authLink = document.getElementById('auth-link');
-            const authLinkMobile = document.getElementById('auth-link-mobile');
-            onAuthStateChanged(auth, user => {
-                if (user) {
-                    authLink.textContent = 'Dashboard'; authLink.href = 'dashboard.html';
-                    authLinkMobile.textContent = 'Dashboard'; authLinkMobile.href = 'dashboard.html';
-                } else {
-                    authLink.textContent = 'Driver Login'; authLink.href = 'login.html';
-                    authLinkMobile.textContent = 'Driver Login'; authLinkMobile.href = 'login.html';
-                }
-            });
-            
-            // --- Animate on Scroll ---
-            ScrollReveal().reveal('.reveal-fade', { delay: 200, distance: '0px', opacity: 0, duration: 1000 });
-            ScrollReveal().reveal('.reveal-up', { delay: 200, distance: '50px', origin: 'bottom', duration: 1000, interval: 100 });
-            ScrollReveal().reveal('.reveal-left', { delay: 200, distance: '50px', origin: 'left', duration: 1000 });
-            ScrollReveal().reveal('.reveal-right', { delay: 200, distance: '50px', origin: 'right', duration: 1000 });
-
-            // --- Animated Stats Counter ---
-            const statsSection = document.getElementById('stats');
-            let hasAnimated = false;
-            const observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && !hasAnimated) {
-                    hasAnimated = true;
-                    document.querySelectorAll('[data-target]').forEach(counter => {
-                        const target = +counter.dataset.target;
-                        let current = 0;
-                        const increment = Math.ceil(target / 100);
-                        const timer = setInterval(() => {
-                            current += increment;
-                            if (current >= target) {
-                                counter.textContent = target.toLocaleString();
-                                clearInterval(timer);
-                            } else {
-                                counter.textContent = Math.ceil(current).toLocaleString();
-                            }
-                        }, 20);
-                    });
-                    observer.unobserve(statsSection);
-                }
-            }, { threshold: 0.5 });
-            if (statsSection) observer.observe(statsSection);
-            
-            // --- Race Schedule & Countdown ---
-            const raceData = {
-                superCups: [
-                    { date: '2025-04-26', name: 'Grundy County Speedway, IL', race: '#1' },
-                    { date: '2025-05-10', name: 'Dells Raceway Park, WI', race: '#2' },
-                    { date: '2025-05-26', name: 'Golden Sands Speedway, WI', race: '#3' },
-                    { date: '2025-06-07', name: 'Grundy County Speedway, IL', race: '#4' },
-                    { date: '2025-06-08', name: 'Slinger Speedway, WI', race: '#5' },
-                    { date: '2025-06-27', name: 'Tomah Speedway, WI', race: '#6' },
-                    { date: '2025-06-28', name: 'La Crosse Speedway, WI', race: '#7' },
-                    { date: '2025-07-13', name: 'Slinger Speedway, WI', race: '#8' },
-                    { date: '2025-07-26', name: 'Dells Raceway Park, WI', race: '#9' },
-                    { date: '2025-08-09', name: 'Blackhawk Farms, WI', race: '#10' },
-                    { date: '2025-08-31', name: 'Dells Raceway Park, WI', race: '#11' },
-                    { date: '2025-09-01', name: 'Golden Sands Speedway, WI', race: '#12' },
-                ],
-                specialEvents: [
-                    { date: '2025-08-08', name: 'Grundy County Speedway, IL', special: 'Jon Kirsch Birthday Race' }
-                ]
-            };
-            const superCupsContainer = document.getElementById('super-cups-schedule');
-            const specialEventsContainer = document.getElementById('special-events-schedule');
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const allRaces = [...raceData.superCups, ...raceData.specialEvents].sort((a,b) => new Date(a.date) - new Date(b.date));
-            
-            allRaces.forEach(race => {
-                const raceDate = new Date(race.date + 'T00:00:00');
-                const isPast = raceDate < today;
-                const cardClass = isPast ? 'past' : 'upcoming';
-                const formattedDate = raceDate.toLocaleString('en-US', { month: 'long', day: 'numeric' });
-                const cardHTML = `
-                    <div class="schedule-card p-4 rounded-lg flex justify-between items-center ${cardClass}">
-                        <div><p class="font-bold text-lg text-white">${race.name}</p><p class="text-sm text-slate-400">${race.special || `Race ${race.race}`}</p></div>
-                        <div class="font-semibold text-right text-slate-300">${formattedDate}</div>
-                    </div>`;
-                if (race.special && specialEventsContainer) specialEventsContainer.innerHTML += cardHTML;
-                else if (superCupsContainer) superCupsContainer.innerHTML += cardHTML;
-            });
-
-            const nextRace = allRaces.find(race => new Date(race.date + 'T00:00:00') >= today);
-            if (nextRace) {
-                document.getElementById('next-race-name').textContent = nextRace.name;
-                const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
-                const countdownInterval = setInterval(() => {
-                    const now = new Date().getTime();
-                    const distance = nextRaceDate - now;
-                    if (distance < 0) {
-                        clearInterval(countdownInterval);
-                        document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-3xl font-racing neon-yellow'>RACE DAY!</div>";
-                        return;
-                    }
-                    document.getElementById('days').textContent = Math.floor(distance / (1000 * 60 * 60 * 24));
-                    document.getElementById('hours').textContent = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    document.getElementById('minutes').textContent = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                    document.getElementById('seconds').textContent = Math.floor((distance % (1000 * 60)) / 1000);
-                }, 1000);
-            } else {
-                document.getElementById('next-race-name').textContent = "Season Complete!";
-                document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-2xl font-racing'>Thanks for a great season!</div>";
-            }
-
-            // --- Subscription Form ---
-            const subscribeForm = document.getElementById('subscribe-form');
-            if (subscribeForm) {
-                subscribeForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const subscribeEmail = document.getElementById('subscribe-email');
-                    const subscribeMessage = document.getElementById('subscribe-message');
-                    const email = subscribeEmail.value.trim();
-                    if (!email) return;
-
-                    const q = query(collection(db, "subscribers"), where("email", "==", email));
-                    const querySnapshot = await getDocs(q);
-
-                    if (!querySnapshot.empty) {
-                        subscribeMessage.textContent = 'This email is already subscribed.';
-                        subscribeMessage.style.color = '#facc15';
-                    } else {
-                        try {
-                            await addDoc(collection(db, "subscribers"), { email: email, subscribedAt: new Date() });
-                            subscribeMessage.textContent = 'Success! You are subscribed.';
-                            subscribeMessage.style.color = '#22c55e';
-                            subscribeEmail.value = '';
-                        } catch (error) {
-                            subscribeMessage.textContent = 'Subscription failed. Please try again.';
-                            subscribeMessage.style.color = '#ef4444';
-                        }
-                    }
-                    setTimeout(() => { subscribeMessage.textContent = ''; }, 5000);
-                });
-            }
-
-            // --- Swiper Galleries ---
-            document.querySelectorAll('.gallery-item .swiper').forEach(el => {
-                new Swiper(el, {
-                    loop: true, effect: 'fade', fadeEffect: { crossFade: true },
-                    pagination: { el: el.querySelector('.swiper-pagination'), clickable: true },
-                    navigation: { nextEl: el.querySelector('.swiper-button-next'), prevEl: el.querySelector('.swiper-button-prev') },
-                });
-            });
-
-            // --- Footer Year ---
-            document.getElementById('year').textContent = new Date().getFullYear();
-        };
+        try {
+          let app = firebase.app();
+          let features = [
+            'auth', 
+            'database', 
+            'firestore',
+            'functions',
+            'messaging', 
+            'storage', 
+            'analytics', 
+            'remoteConfig',
+            'performance',
+          ].filter(feature => typeof app[feature] === 'function');
+          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
+        } catch (e) {
+          console.error(e);
+          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+        }
+      });
     </script>
-</body>
+  </body>
 </html>
