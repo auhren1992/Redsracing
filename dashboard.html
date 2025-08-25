@@ -21,18 +21,16 @@
             background: rgba(15, 23, 42, 0.5);
             border: 1px solid rgba(51, 65, 85, 0.5);
             backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0, 198, 255, 0.1);
         }
         .textarea-notes {
             background-color: #1e293b;
             border: 1px solid #334155;
             min-height: 200px;
-        }
-        .btn-primary {
-            background-color: #f7ff00;
-            color: #05080f;
-        }
-        .btn-primary:hover {
-            background-color: #eab308;
         }
     </style>
 </head>
@@ -44,8 +42,7 @@
                 <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
             </a>
             <div class="flex items-center space-x-6 font-bold">
-                <a href="index.html#schedule" class="hover:text-neon-yellow transition duration-300">Schedule</a>
-                <a href="index.html#the-car" class="hover:text-neon-yellow transition duration-300">The Car</a>
+                <a href="index.html#schedule" class="hover:text-neon-yellow transition duration-300">Full Schedule</a>
                 <a id="logout-button" href="#" class="bg-red-600 text-white py-2 px-5 rounded-md hover:bg-red-500 transition duration-300">
                     Logout
                 </a>
@@ -59,41 +56,76 @@
         </div>
 
         <div id="dashboard-content" class="hidden">
-            <h1 class="text-5xl font-racing uppercase mb-4">Driver <span class="neon-yellow">Dashboard</span></h1>
-            <p class="text-slate-400 mb-8">Welcome back, <span id="user-email" class="font-bold text-white"></span>. Here's your private dashboard.</p>
+            <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
+            <p class="text-slate-400 mb-8">Welcome back, <span id="user-email" class="font-bold text-white"></span>.</p>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Driver Notes -->
-                <div class="card rounded-lg p-6">
-                    <h2 class="text-3xl font-racing text-white uppercase mb-4">Driver <span class="neon-yellow">Notes</span></h2>
-                    <p class="text-slate-400 mb-4">Your private space for race notes, setup changes, and reminders. Data is saved automatically.</p>
-                    <textarea id="driver-notes" class="w-full p-4 rounded-md textarea-notes" placeholder="Start typing your notes..."></textarea>
-                    <p id="notes-status" class="text-sm text-slate-500 mt-2 h-4"></p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                <!-- Column 1 -->
+                <div class="space-y-8">
+                    <!-- Next Race Countdown -->
+                    <div class="card rounded-lg p-6">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Next <span class="neon-yellow">Race</span></h2>
+                        <p id="next-race-name" class="text-2xl font-bold text-white uppercase mb-4">Loading...</p>
+                        <div id="countdown-timer" class="grid grid-cols-4 gap-4 text-center">
+                            <div><div id="days" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Days</div></div>
+                            <div><div id="hours" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Hours</div></div>
+                            <div><div id="minutes" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Minutes</div></div>
+                            <div><div id="seconds" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Seconds</div></div>
+                        </div>
+                    </div>
+
+                    <!-- Driver Notes -->
+                    <div id="driver-notes-card" class="card rounded-lg p-6">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Driver <span class="neon-yellow">Notes</span></h2>
+                        <p class="text-slate-400 mb-4">Your private space for race notes and reminders. Saved automatically.</p>
+                        <textarea id="driver-notes" class="w-full p-4 rounded-md textarea-notes" placeholder="Start typing your notes..."></textarea>
+                        <p id="notes-status" class="text-sm text-slate-500 mt-2 h-4"></p>
+                    </div>
                 </div>
 
-                <!-- Quick Links -->
-                <div class="card rounded-lg p-6">
-                    <h2 class="text-3xl font-racing text-white uppercase mb-4">Quick <span class="neon-yellow">Links</span></h2>
-                    <div class="space-y-4">
-                        <a href="index.html#schedule" class="block bg-slate-800 p-4 rounded-md hover:bg-slate-700 transition">
-                            <p class="font-bold text-lg">View Public Race Schedule</p>
-                            <p class="text-sm text-slate-400">Check the official 2025 race calendar.</p>
-                        </a>
-                        <a href="index.html#gallery" class="block bg-slate-800 p-4 rounded-md hover:bg-slate-700 transition">
-                            <p class="font-bold text-lg">Browse Photo Gallery</p>
-                            <p class="text-sm text-slate-400">Look back at recent action shots.</p>
-                        </a>
-                         <a href="index.html#videos" class="block bg-slate-800 p-4 rounded-md hover:bg-slate-700 transition">
-                            <p class="font-bold text-lg">Watch Onboards & Highlights</p>
-                            <p class="text-sm text-slate-400">Review race footage and highlights.</p>
-                        </a>
+                <!-- Column 2 -->
+                <div class="space-y-8">
+                    <!-- At a Glance Stats -->
+                    <div class="card rounded-lg p-6">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">At a <span class="neon-yellow">Glance</span></h2>
+                        <div id="stats" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="stat-card p-6 rounded-lg text-center bg-slate-900/50">
+                                <div id="wins-counter" class="text-5xl font-bold neon-yellow mb-2" data-target="2">0</div>
+                                <div class="text-md font-racing uppercase text-white tracking-wider">Wins</div>
+                            </div>
+                            <div class="stat-card p-6 rounded-lg text-center bg-slate-900/50">
+                                <div id="podiums-counter" class="text-5xl font-bold neon-yellow mb-2" data-target="4">0</div>
+                                <div class="text-md font-racing uppercase text-white tracking-wider">Podiums</div>
+                            </div>
+                            <div class="stat-card p-6 rounded-lg text-center bg-slate-900/50">
+                                <div id="laps-counter" class="text-5xl font-bold neon-yellow mb-2" data-target="200">0</div>
+                                <div class="text-md font-racing uppercase text-white tracking-wider">Laps Raced</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Links -->
+                    <div class="card rounded-lg p-6">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Quick <span class="neon-yellow">Links</span></h2>
+                        <div class="space-y-4">
+                            <a href="index.html#schedule" class="block bg-slate-800 p-4 rounded-md hover:bg-slate-700 transition">
+                                <p class="font-bold text-lg">View Public Race Schedule</p>
+                            </a>
+                            <a href="index.html#gallery" class="block bg-slate-800 p-4 rounded-md hover:bg-slate-700 transition">
+                                <p class="font-bold text-lg">Browse Photo Gallery</p>
+                            </a>
+                             <a href="index.html#videos" class="block bg-slate-800 p-4 rounded-md hover:bg-slate-700 transition">
+                                <p class="font-bold text-lg">Watch Highlights</p>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="bg-black/50 border-t border-slate-800 py-8">
+    <footer class="bg-black/50 border-t border-slate-800 py-8 mt-12">
         <div class="container mx-auto px-6 text-center text-slate-500 text-sm">
             <p>© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
         </div>
@@ -102,9 +134,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- Firebase Config & Initialization ---
         const firebaseConfig = {
           apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
           authDomain: "redsracing-a7f8b.firebaseapp.com",
@@ -117,61 +148,131 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- DOM Elements ---
         const loadingState = document.getElementById('loading-state');
         const dashboardContent = document.getElementById('dashboard-content');
         const userEmailEl = document.getElementById('user-email');
         const logoutButton = document.getElementById('logout-button');
+        const driverNotesCard = document.getElementById('driver-notes-card');
         const driverNotesEl = document.getElementById('driver-notes');
         const notesStatusEl = document.getElementById('notes-status');
-
         let notesSaveTimeout;
+        let countdownInterval;
 
-        // --- Auth State ---
+        // Animate counters function
+        const animateCounters = () => {
+            document.querySelectorAll('[data-target]').forEach(counter => {
+                const target = +counter.dataset.target;
+                let current = 0;
+                const increment = Math.ceil(target / 100);
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        counter.textContent = target.toLocaleString();
+                        clearInterval(timer);
+                    } else {
+                        counter.textContent = Math.ceil(current).toLocaleString();
+                    }
+                }, 20);
+            });
+        };
+
+        // Countdown function
+        const startCountdown = (nextRace) => {
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (!nextRace) {
+                document.getElementById('next-race-name').textContent = "Season Complete!";
+                document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-2xl font-racing'>Thanks for a great season!</div>";
+                return;
+            }
+
+            document.getElementById('next-race-name').textContent = nextRace.name;
+            const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
+
+            countdownInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = nextRaceDate - now;
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-3xl font-racing neon-yellow'>RACE DAY!</div>";
+                    return;
+                }
+                document.getElementById('days').textContent = Math.floor(distance / (1000 * 60 * 60 * 24));
+                document.getElementById('hours').textContent = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById('minutes').textContent = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById('seconds').textContent = Math.floor((distance % (1000 * 60)) / 1000);
+            }, 1000);
+        };
+
+        // Fetch race data from Firestore
+        const getRaceData = async () => {
+            const racesCol = collection(db, "races");
+            const q = query(racesCol, orderBy("date", "asc"));
+            const raceSnapshot = await getDocs(q);
+            const raceList = raceSnapshot.docs.map(doc => doc.data());
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const nextRace = raceList.find(race => new Date(race.date + 'T00:00:00') >= today);
+            startCountdown(nextRace);
+        };
+
+        // Auth State Change Listener
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // User is signed in.
                 userEmailEl.textContent = user.email;
 
-                // Load notes
-                const userNotesRef = doc(db, "driver_notes", user.uid);
-                const docSnap = await getDoc(userNotesRef);
-                if (docSnap.exists()) {
-                    driverNotesEl.value = docSnap.data().notes;
+                // Fetch data
+                await getRaceData();
+
+                // Check user role for feature access
+                const idTokenResult = await user.getIdTokenResult();
+                const userRole = idTokenResult.claims.role;
+
+                if (userRole === 'team-member') {
+                    driverNotesCard.style.display = 'block';
+                    // Load notes only for team members
+                    const userNotesRef = doc(db, "driver_notes", user.uid);
+                    const docSnap = await getDoc(userNotesRef);
+                    if (docSnap.exists()) {
+                        driverNotesEl.value = docSnap.data().notes;
+                    }
+                    // Add listener for notes changes
+                    driverNotesEl.addEventListener('keyup', () => {
+                        notesStatusEl.textContent = 'Saving...';
+                        clearTimeout(notesSaveTimeout);
+                        notesSaveTimeout = setTimeout(async () => {
+                            try {
+                                await setDoc(userNotesRef, { notes: driverNotesEl.value }, { merge: true });
+                                notesStatusEl.textContent = 'Saved!';
+                            } catch (e) {
+                                notesStatusEl.textContent = 'Error saving notes.';
+                            }
+                            setTimeout(() => { notesStatusEl.textContent = ''; }, 2000);
+                        }, 1000);
+                    });
+                } else {
+                    // Hide the driver notes card for public fans
+                    driverNotesCard.style.display = 'none';
                 }
+
 
                 // Show dashboard, hide loading
                 loadingState.classList.add('hidden');
                 dashboardContent.classList.remove('hidden');
 
-                // Add listener for notes changes
-                driverNotesEl.addEventListener('keyup', () => {
-                    notesStatusEl.textContent = 'Saving...';
-                    clearTimeout(notesSaveTimeout);
-                    notesSaveTimeout = setTimeout(async () => {
-                        try {
-                            await setDoc(userNotesRef, { notes: driverNotesEl.value }, { merge: true });
-                            notesStatusEl.textContent = 'Saved!';
-                        } catch (e) {
-                            notesStatusEl.textContent = 'Error saving notes.';
-                        }
-                        setTimeout(() => { notesStatusEl.textContent = ''; }, 2000);
-                    }, 1000);
-                });
+                // Start animations
+                animateCounters();
 
             } else {
-                // User is signed out. Redirect to login.
                 window.location.href = 'login.html';
             }
         });
 
-        // --- Logout ---
         logoutButton.addEventListener('click', (e) => {
             e.preventDefault();
             signOut(auth).catch(error => console.error('Logout Error:', error));
         });
 
-        // --- Footer Year ---
         document.getElementById('year').textContent = new Date().getFullYear();
 
     </script>
