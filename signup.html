@@ -111,7 +111,6 @@
         import { 
             getAuth, 
             createUserWithEmailAndPassword, 
-            sendEmailVerification,
             signInWithEmailAndPassword,
             GoogleAuthProvider,
             signInWithPopup
@@ -177,19 +176,17 @@
 
             try {
                 // 1. Create the user in Firebase Auth
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await createUserWithEmailAndPassword(auth, email, password);
 
-                // 2. Send a verification email
-                await sendEmailVerification(userCredential.user);
-
-                // 3. Call the Firebase Function to process the role.
+                // 2. Call the Firebase Function to process the role.
+                // Note: The user is now authenticated, so the function can access their UID.
                 const processInvitationCode = httpsCallable(functions, 'processInvitationCode');
                 await processInvitationCode({ invitationCode: invitationCode });
 
-                // 4. Force a token refresh to get the new custom claim on the client.
+                // 3. Force a token refresh to get the new custom claim on the client.
                 await auth.currentUser.getIdToken(true);
 
-                // 5. Redirect to the dashboard.
+                // 4. Redirect to the dashboard.
                 handleSuccess();
 
             } catch (error) {
