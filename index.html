@@ -214,7 +214,7 @@
         <section id="gallery" class="py-24 md:py-32 bg-black/20">
             <div class="container mx-auto px-6">
                 <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Action <span class="neon-yellow">Shots</span></h2>
-
+                
                 <!-- Upload Form -->
                 <div id="upload-container" class="max-w-xl mx-auto bg-slate-800/50 p-6 rounded-lg mb-12" style="display: none;">
                     <h3 class="font-racing text-2xl text-white uppercase mb-4">Share Your <span class="neon-yellow">Race Photos</span></h3>
@@ -265,7 +265,7 @@
             <div class="container mx-auto px-6">
                 <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Latest From <span class="neon-yellow">TikTok</span></h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7527470903773367582" data-video-id="7527470903773367582" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>🏁 Ready to hit the track! Our #8 American Super Cup car is looking mean and ready for race day. 🔥 Catch all the action and join the Red&#39;s Racing family! #RedsRacing #AmericanSuperCup #RaceCar #Motorsport #TrackDay #Speed #Racing #CarTok #SundayFunday #WeekendVibes</p> <a target="_blank" title="♬ original sound  - Reds Racing" href="https://www.tiktok.com/music/original-sound-Reds-Racing-7527476054991080222?refer=embed">♬ original sound  - Reds Racing</a> </section> </blockquote>
+                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7527470903773367582" data-video-id="7527470903773367582" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>🏁 Ready to hit the track! Our #8 American Super Cup car is looking mean and ready for race day. 🔥 Catch all the action and join the Red&#39;s Racing family! #RedsRacing #AmericanSuperCup #RaceCar #Motorsport #TrackDay #Speed #Racing #CarTok #SundayFunday #WeekendVibes</p> <a target="_blank" title="♬ original sound  - Reds Racing" href="https://www.tiktok.com/music/original-sound-Reds-Racing-7527476054991080222?refer=embed">♬ original sound  - Reds Racing</a> </section> </blockquote>
                     <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Working late in the garage.</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
                     <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Podium finish!</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
                     <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Behind the scenes in the pits.</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
@@ -371,31 +371,31 @@
 
                 uploadBtn.disabled = true;
                 uploadInput.disabled = true;
-
+                
                 const userId = auth.currentUser.uid;
                 const userEmail = auth.currentUser.email;
                 const timestamp = Date.now();
                 const storageRef = ref(storage, `gallery/${userId}/${timestamp}-${selectedFile.name}`);
                 const uploadTask = uploadBytesResumable(storageRef, selectedFile);
 
-                uploadTask.on('state_changed',
+                uploadTask.on('state_changed', 
                     (snapshot) => {
                         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                         progressBar.style.width = progress + '%';
                         uploadStatus.textContent = `Uploading... ${Math.round(progress)}%`;
-                    },
+                    }, 
                     (error) => {
                         console.error("Upload failed:", error);
                         uploadStatus.textContent = `Upload failed: ${error.message}`;
                         uploadStatus.style.color = '#ef4444'; // Red
                         uploadBtn.disabled = false;
                         uploadInput.disabled = false;
-                    },
+                    }, 
                     async () => {
                         uploadStatus.textContent = 'Processing...';
                         try {
                             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-
+                            
                             await addDoc(collection(db, "gallery_images"), {
                                 imageUrl: downloadURL,
                                 uploaderUid: userId,
@@ -425,7 +425,7 @@
 
             const renderGallery = () => {
                 const q = query(collection(db, "gallery_images"), where("approved", "==", true), orderBy("createdAt", "desc"));
-
+                
                 onSnapshot(q, (snapshot) => {
                     galleryContainer.innerHTML = ''; // Clear existing gallery
                     if (snapshot.empty) {
@@ -436,7 +436,7 @@
                         const image = doc.data();
                         const galleryItem = document.createElement('div');
                         galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
-
+                        
                         let tagsHTML = '';
                         if (image.tags && image.tags.length > 0) {
                             tagsHTML = image.tags.slice(0, 3).map(tag => `<span class="bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join(' ');
