@@ -7,117 +7,51 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0a192f; /* Dark Blue from main site */
-        }
-        .neon-yellow {
-            color: #f7ff00;
-        }
-        .title-blue {
-            color: #00c6ff;
-        }
-        .bg-neon-yellow {
-            background-color: #f7ff00;
-        }
-        .form-container {
-            background-color: #1e293b; /* slate-800 */
-            border: 1px solid #334155; /* slate-700 */
-        }
-        .form-input {
-            background-color: #334155; /* slate-700 */
-            border: 1px solid #475569; /* slate-600 */
-            color: #e2e8f0; /* slate-200 */
-        }
-        .form-input:focus {
-            outline: none;
-            border-color: #f7ff00;
-            box-shadow: 0 0 0 2px rgba(247, 255, 0, 0.3);
-        }
-        .error-message {
-            background-color: #991b1b; /* red-800 */
-            color: #fca5a5; /* red-300 */
-            border-left: 4px solid #ef4444; /* red-500 */
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #0a192f; }
+        .neon-yellow { color: #f7ff00; }
+        .title-blue { color: #00c6ff; }
+        .form-container { background-color: #1e293b; border: 1px solid #334155; }
+        .form-input { background-color: #334155; border: 1px solid #475569; color: #e2e8f0; }
+        .form-input:focus { outline: none; border-color: #f7ff00; box-shadow: 0 0 0 2px rgba(247, 255, 0, 0.3); }
+        .error-message { background-color: #991b1b; color: #fca5a5; border-left: 4px solid #ef4444; }
     </style>
 </head>
 <body class="text-gray-200 flex items-center justify-center min-h-screen p-4">
-
     <div class="w-full max-w-md">
-        <!-- Logo Header -->
         <div class="text-center mb-8">
             <a href="index.html" class="text-4xl font-black uppercase tracking-tighter">
                 <span class="title-blue">Reds</span><span class="neon-yellow">Racing #8</span>
             </a>
         </div>
-
-        <!-- Form Container -->
         <div class="form-container p-8 rounded-lg shadow-2xl">
             <h2 class="text-2xl font-bold text-center text-white mb-6">Create Your Account</h2>
-            
-            <!-- Error Message Display -->
-            <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
-                <p id="error-text"></p>
-            </div>
-
-            <!-- Login Form -->
-            <form id="login-form" class="space-y-6">
+            <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden"><p id="error-text"></p></div>
+            <form id="signup-form" class="space-y-6">
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-300">Email</label>
-                    <input type="email" id="email" name="email" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm">
+                    <input type="email" id="email" required class="form-input mt-1 block w-full px-3 py-2 rounded-md">
                 </div>
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
-                    <input type="password" id="password" name="password" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm">
+                    <input type="password" id="password" required class="form-input mt-1 block w-full px-3 py-2 rounded-md">
                 </div>
-
                 <div>
                     <label for="invitation-code" class="block text-sm font-medium text-gray-300">Invitation Code <span class="text-gray-400">(Optional)</span></label>
-                    <input type="text" id="invitation-code" name="invitation-code" class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" placeholder="Enter code for team access">
+                    <input type="text" id="invitation-code" class="form-input mt-1 block w-full px-3 py-2 rounded-md" placeholder="Enter code for team access">
                 </div>
-                
                 <div class="flex flex-col space-y-4">
-                    <button type="button" id="signup-button" class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Sign Up</button>
-                    <button type="button" id="signin-button" class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition duration-300">Sign In</button>
+                    <button type="submit" id="signup-button" class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition">Sign Up</button>
                 </div>
             </form>
-
-            <!-- Divider -->
-            <div class="relative my-6">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-slate-600"></div>
-                </div>
-                <div class="relative flex justify-center text-sm">
-                    <span class="px-2 bg-slate-800 text-gray-400">Or continue with</span>
-                </div>
-            </div>
-
-            <!-- Google Sign-in -->
-            <div>
-                <button type="button" id="google-signin-button" class="w-full flex justify-center items-center bg-white text-gray-700 font-semibold py-2 px-4 rounded-md shadow-sm hover:bg-gray-200 transition duration-300">
-                    <svg class="w-5 h-5 mr-2" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.9 0 129.8 110.3 20 244 20c66.2 0 121.3 24.8 162.2 65.5l-68.5 64.9C314.5 124.9 282.8 108 244 108c-73.2 0-132.3 59.8-132.3 133.1s59.1 133.1 132.3 133.1c76.9 0 114.3-52.3 120.8-79.1H244V261.8h244z"></path></svg>
-                    Sign in with Google
-                </button>
-            </div>
+             <p class="text-center text-gray-500 text-sm mt-6">
+                Already have an account? <a href="login.html" class="font-semibold neon-yellow hover:text-yellow-300">Sign in</a>.
+            </p>
         </div>
-        <p class="text-center text-gray-500 text-sm mt-6">
-            Already have an account? <a href="login.html" class="font-semibold neon-yellow hover:text-yellow-300">Sign in</a>.
-        </p>
     </div>
-
     <script type="module">
-        // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword,
-            GoogleAuthProvider,
-            signInWithPopup
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
-
-        // Your web app's Firebase configuration from the main page
         const firebaseConfig = {
           apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
           authDomain: "redsracing-a7f8b.firebaseapp.com",
@@ -126,82 +60,33 @@
           messagingSenderId: "517034606151",
           appId: "1:517034606151:web:24cae262e1d98832757b62"
         };
-
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const functions = getFunctions(app);
-        const googleProvider = new GoogleAuthProvider();
-
-        // Get form elements
+        const signupForm = document.getElementById('signup-form');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
         const invitationCodeInput = document.getElementById('invitation-code');
-        const signinButton = document.getElementById('signin-button');
-        const signupButton = document.getElementById('signup-button');
-        const googleSigninButton = document.getElementById('google-signin-button');
         const errorBox = document.getElementById('error-box');
         const errorText = document.getElementById('error-text');
-
-        // Function to show error messages
+        
         function showError(message) {
             errorText.textContent = message;
             errorBox.classList.remove('hidden');
         }
 
-        // Function to handle successful login
-        function handleSuccess() {
-            // Redirect to the dashboard after successful login/signup
-            window.location.href = 'dashboard.html';
-        }
-
-        // Event listener for Sign In button
-        signinButton.addEventListener('click', () => {
-            const email = emailInput.value;
-            const password = passwordInput.value;
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    handleSuccess();
-                })
-                .catch((error) => {
-                    showError(error.message);
-                });
-        });
-
-        // Event listener for Sign Up button
-        signupButton.addEventListener('click', async () => {
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             const email = emailInput.value;
             const password = passwordInput.value;
             const invitationCode = invitationCodeInput.value.trim();
-
             try {
-                // 1. Create the user in Firebase Auth
-                await createUserWithEmailAndPassword(auth, email, password);
-
-                // 2. Call the Firebase Function to process the role.
-                // Note: The user is now authenticated, so the function can access their UID.
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await sendEmailVerification(userCredential.user);
                 const processInvitationCode = httpsCallable(functions, 'processInvitationCode');
                 await processInvitationCode({ invitationCode: invitationCode });
-
-                // 3. Force a token refresh to get the new custom claim on the client.
                 await auth.currentUser.getIdToken(true);
-
-                // 4. Redirect to the dashboard.
-                handleSuccess();
-
-            } catch (error) {
-                // Handle errors from both user creation and the callable function.
-                showError(error.message);
-            }
-        });
-
-        // Event listener for Google Sign In button
-        googleSigninButton.addEventListener('click', async () => {
-            try {
-                // We don't support invitation codes for Google Sign-in in this flow,
-                // so the user will be assigned the 'public-fan' role by default.
-                await signInWithPopup(auth, googleProvider);
-                handleSuccess();
+                window.location.href = 'dashboard.html';
             } catch (error) {
                 showError(error.message);
             }

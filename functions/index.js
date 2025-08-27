@@ -3,20 +3,7 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 
-/**
- * A callable function that processes a user's invitation code upon signup.
- *
- * This function checks if a provided invitation code is valid and unused.
- * If it is, it assigns the 'team-member' custom claim to the user.
- * Otherwise, it assigns the 'public-fan' custom claim.
- * It also marks the invitation code as used to prevent reuse.
- *
- * @param {object} data The data passed to the function, expecting { invitationCode: string }.
- * @param {object} context The context of the function call, containing auth information.
- * @returns {object} A result object indicating success or failure.
- */
 exports.processInvitationCode = functions.https.onCall(async (data, context) => {
-  // 1. Check if the user is authenticated. If not, throw an error.
   if (!context.auth) {
     throw new functions.https.HttpsError(
         "unauthenticated",
@@ -27,54 +14,43 @@ exports.processInvitationCode = functions.https.onCall(async (data, context) => 
   const uid = context.auth.uid;
   const invitationCode = data.invitationCode;
 
-  // 2. If no invitation code is provided, assign 'public-fan' role and exit.
   if (!invitationCode) {
-    await admin.auth().setCustomUserClaims(uid, {role: "public-fan"});
-    return {status: "success", message: "Public fan role assigned."};
+    await admin.auth().setCustomUserClaims(uid, { role: "public-fan" });
+    return { status: "success", message: "Public fan role assigned." };
   }
 
   const db = admin.firestore();
   const codeRef = db.collection("invitation_codes").doc(invitationCode);
-  let wasCodeSuccessfullyUsed = false;
 
   try {
-    // 3. Run a transaction to safely check and claim the invitation code.
-    wasCodeSuccessfullyUsed = await db.runTransaction(async (transaction) => {
+    const wasCodeSuccessfullyUsed = await db.runTransaction(async (transaction) => {
       const codeDoc = await transaction.get(codeRef);
       if (!codeDoc.exists || codeDoc.data().used) {
-        return false; // Code is invalid or already used.
+        return false;
       }
-      // Code is valid, so claim it in the transaction.
       transaction.update(codeRef, {
         used: true,
         usedBy: uid,
         usedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
-      return true; // Return true to indicate success.
+      return true;
     });
 
-    // 4. Set custom claims based on the transaction's outcome.
     if (wasCodeSuccessfullyUsed) {
-      await admin.auth().setCustomUserClaims(uid, {role: "team-member"});
-      console.log(`Successfully assigned team-member role to ${uid}`);
-      return {status: "success", message: "Team member role assigned."};
+      await admin.auth().setCustomUserClaims(uid, { role: "team-member" });
+      return { status: "success", message: "Team member role assigned." };
     } else {
-      await admin.auth().setCustomUserClaims(uid, {role: "public-fan"});
-      console.log(`User ${uid} attempted to use invalid code. Assigned public-fan role.`);
-      return {status: "success", message: "Invalid code. Public fan role assigned."};
+      await admin.auth().setCustomUserClaims(uid, { role: "public-fan" });
+      return { status: "success", message: "Invalid code. Public fan role assigned." };
     }
+
   } catch (error) {
     console.error("Error processing invitation code:", error);
-    // As a safe fallback, assign 'public-fan' role if anything goes wrong.
     try {
-      await admin.auth().setCustomUserClaims(uid, {role: "public-fan"});
+      await admin.auth().setCustomUserClaims(uid, { role: "public-fan" });
     } catch (claimError) {
       console.error("Critical: Failed to set default role after error:", claimError);
     }
-    // Throw an internal error to the client.
-    throw new functions.https.HttpsError(
-        "internal",
-        "An error occurred while processing the invitation code.",
-    );
+    throw new functions.https.HttpsError("internal", "An error occurred while processing the code.");
   }
 });
