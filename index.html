@@ -214,27 +214,29 @@
         <section id="gallery" class="py-24 md:py-32 bg-black/20">
             <div class="container mx-auto px-6">
                 <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Action <span class="neon-yellow">Shots</span></h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <div class="gallery-item col-span-2 row-span-2 aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
-                        <div class="swiper-slide"><img src="https://placehold.co/800x800/05080f/F7FF00?text=Victory+Lane" alt="Racing Photo" loading="lazy" width="800" height="800"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Victory Lane</h3></div></div>
-                        <div class="swiper-slide"><img src="https://placehold.co/800x800/05080f/FFFFFF?text=Close+Call" alt="Racing Photo" loading="lazy" width="800" height="800"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Side-by-side Action</h3></div></div>
-                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
-                    <div class="gallery-item aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
-                        <div class="swiper-slide"><img src="https://i.imgur.com/Bd5lEOS.jpg" alt="Jon being interviewed" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Post-Race Interview</h3></div></div>
-                        <div class="swiper-slide"><img src="https://placehold.co/400x400/1e293b/FFFFFF?text=Interview+2" alt="Interview Photo" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Talking Strategy</h3></div></div>
-                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
-                    <div class="gallery-item aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
-                        <div class="swiper-slide"><img src="https://i.imgur.com/EumUdup.jpg" alt="Racing Photo" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Beast</h3></div></div>
-                        <div class="swiper-slide"><img src="https://i.imgur.com/zeTBCBV.jpeg" alt="Pre-race checks" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Pre-Race Checks</h3></div></div>
-                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
-                    <div class="gallery-item aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
-                       <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/F7FF00?text=Engine" alt="Racing Photo" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Powerplant</h3></div></div>
-                       <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/FFFFFF?text=Tuning" alt="Tuning Photo" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Fine Tuning</h3></div></div>
-                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
-                    <div class="gallery-item aspect-square reveal-up"><div class="swiper"><div class="swiper-wrapper">
-                        <div class="swiper-slide"><img src="https://placehold.co/400x400/0a192f/F7FF00?text=Interior" alt="Racing Photo" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">The Cockpit</h3></div></div>
-                        <div class="swiper-slide"><img src="https://placehold.co/400x400/000000/FFFFFF?text=Dashboard" alt="Dashboard Photo" loading="lazy" width="400" height="400"><div class="gallery-overlay"><h3 class="text-white font-bold text-lg">Command Center</h3></div></div>
-                    </div><div class="swiper-pagination"></div><div class="swiper-button-prev"></div><div class="swiper-button-next"></div></div></div>
+
+                <!-- Upload Form -->
+                <div id="upload-container" class="max-w-xl mx-auto bg-slate-800/50 p-6 rounded-lg mb-12" style="display: none;">
+                    <h3 class="font-racing text-2xl text-white uppercase mb-4">Share Your <span class="neon-yellow">Race Photos</span></h3>
+                    <div class="flex items-center space-x-4">
+                        <input type="file" id="photo-upload-input" accept="image/jpeg, image/png" class="block w-full text-sm text-slate-400
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-neon-yellow file:text-slate-900
+                            hover:file:bg-yellow-300">
+                        <button id="upload-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition disabled:opacity-50" disabled>Upload</button>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-slate-700 rounded-full h-2.5">
+                            <div id="upload-progress-bar" class="bg-neon-yellow h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <p id="upload-status" class="text-sm text-slate-400 mt-2 h-4"></p>
+                    </div>
+                </div>
+
+                <div id="dynamic-gallery-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- Dynamic gallery items will be inserted here -->
                 </div>
             </div>
         </section>
@@ -263,7 +265,7 @@
             <div class="container mx-auto px-6">
                 <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Latest From <span class="neon-yellow">TikTok</span></h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7527470903773367582" data-video-id="7527470903773367582" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>🏁 Ready to hit the track! Our #8 American Super Cup car is looking mean and ready for race day. 🔥 Catch all the action and join the Red&#39;s Racing family! #RedsRacing #AmericanSuperCup #RaceCar #Motorsport #TrackDay #Speed #Racing #CarTok #SundayFunday #WeekendVibes</p> <a target="_blank" title="♬ original sound  - Reds Racing" href="https://www.tiktok.com/music/original-sound-Reds-Racing-7527476054991080222?refer=embed">♬ original sound  - Reds Racing</a> </section> </blockquote>
+                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7527470903773367582" data-video-id="7527470903773367582" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>🏁 Ready to hit the track! Our #8 American Super Cup car is looking mean and ready for race day. 🔥 Catch all the action and join the Red&#39;s Racing family! #RedsRacing #AmericanSuperCup #RaceCar #Motorsport #TrackDay #Speed #Racing #CarTok #SundayFunday #WeekendVibes</p> <a target="_blank" title="♬ original sound  - Reds Racing" href="https://www.tiktok.com/music/original-sound-Reds-Racing-7527476054991080222?refer=embed">♬ original sound  - Reds Racing</a> </section> </blockquote>
                     <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Working late in the garage.</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
                     <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Podium finish!</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
                     <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Behind the scenes in the pits.</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
@@ -308,7 +310,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         window.onload = () => {
             // --- Firebase Config & Initialization ---
@@ -323,8 +326,9 @@
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
             const db = getFirestore(app);
+            const storage = getStorage(app);
 
-            // --- Mobile Menu ---
+            // --- UI Elements ---
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
             mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
@@ -333,14 +337,126 @@
             const authLink = document.getElementById('auth-link');
             const authLinkMobile = document.getElementById('auth-link-mobile');
             onAuthStateChanged(auth, user => {
+                const uploadContainer = document.getElementById('upload-container');
                 if (user) {
                     authLink.textContent = 'Dashboard'; authLink.href = 'dashboard.html';
                     authLinkMobile.textContent = 'Dashboard'; authLinkMobile.href = 'dashboard.html';
+                    uploadContainer.style.display = 'block'; // Show upload form to logged-in users
                 } else {
                     authLink.textContent = 'Driver Login'; authLink.href = 'login.html';
                     authLinkMobile.textContent = 'Driver Login'; authLinkMobile.href = 'login.html';
+                    uploadContainer.style.display = 'none'; // Hide form if not logged in
                 }
             });
+
+            // --- Photo Upload Logic ---
+            const uploadInput = document.getElementById('photo-upload-input');
+            const uploadBtn = document.getElementById('upload-btn');
+            const progressBar = document.getElementById('upload-progress-bar');
+            const uploadStatus = document.getElementById('upload-status');
+            let selectedFile = null;
+
+            uploadInput.addEventListener('change', (e) => {
+                selectedFile = e.target.files[0];
+                if (selectedFile) {
+                    uploadBtn.disabled = false;
+                    uploadStatus.textContent = `Selected: ${selectedFile.name}`;
+                } else {
+                    uploadBtn.disabled = true;
+                }
+            });
+
+            uploadBtn.addEventListener('click', () => {
+                if (!selectedFile || !auth.currentUser) return;
+
+                uploadBtn.disabled = true;
+                uploadInput.disabled = true;
+
+                const userId = auth.currentUser.uid;
+                const userEmail = auth.currentUser.email;
+                const timestamp = Date.now();
+                const storageRef = ref(storage, `gallery/${userId}/${timestamp}-${selectedFile.name}`);
+                const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        progressBar.style.width = progress + '%';
+                        uploadStatus.textContent = `Uploading... ${Math.round(progress)}%`;
+                    },
+                    (error) => {
+                        console.error("Upload failed:", error);
+                        uploadStatus.textContent = `Upload failed: ${error.message}`;
+                        uploadStatus.style.color = '#ef4444'; // Red
+                        uploadBtn.disabled = false;
+                        uploadInput.disabled = false;
+                    },
+                    async () => {
+                        uploadStatus.textContent = 'Processing...';
+                        try {
+                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+                            await addDoc(collection(db, "gallery_images"), {
+                                imageUrl: downloadURL,
+                                uploaderUid: userId,
+                                uploaderEmail: userEmail,
+                                createdAt: serverTimestamp(),
+                                tags: [], // Tags will be added by the backend function
+                                approved: false // Admin approval step
+                            });
+
+                            uploadStatus.textContent = 'Upload complete! Waiting for approval.';
+                            uploadStatus.style.color = '#22c55e'; // Green
+                            selectedFile = null;
+                            uploadInput.value = ''; // Reset file input
+                        } catch (error) {
+                            console.error("Error creating Firestore entry:", error);
+                            uploadStatus.textContent = 'Error saving file data.';
+                            uploadStatus.style.color = '#ef4444';
+                        } finally {
+                            uploadInput.disabled = false;
+                        }
+                    }
+                );
+            });
+
+            // --- Dynamic Gallery Rendering ---
+            const galleryContainer = document.getElementById('dynamic-gallery-container');
+
+            const renderGallery = () => {
+                const q = query(collection(db, "gallery_images"), where("approved", "==", true), orderBy("createdAt", "desc"));
+
+                onSnapshot(q, (snapshot) => {
+                    galleryContainer.innerHTML = ''; // Clear existing gallery
+                    if (snapshot.empty) {
+                        galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos yet. Be the first to upload one!</p>`;
+                        return;
+                    }
+                    snapshot.forEach(doc => {
+                        const image = doc.data();
+                        const galleryItem = document.createElement('div');
+                        galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
+
+                        let tagsHTML = '';
+                        if (image.tags && image.tags.length > 0) {
+                            tagsHTML = image.tags.slice(0, 3).map(tag => `<span class="bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join(' ');
+                        }
+
+                        galleryItem.innerHTML = `
+                            <img src="${image.imageUrl}" alt="User uploaded race photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                                <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderEmail}</p>
+                                <div class="mt-2">
+                                    ${tagsHTML}
+                                </div>
+                            </div>
+                        `;
+                        galleryContainer.appendChild(galleryItem);
+                    });
+                });
+            };
+
+            renderGallery(); // Initial call to render the gallery
             
             // --- Animate on Scroll ---
             ScrollReveal().reveal('.reveal-fade', { delay: 200, distance: '0px', opacity: 0, duration: 1000 });
