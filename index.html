@@ -98,6 +98,9 @@
             max-width: 100% !important;
             min-width: 0 !important; /* Override default min-width */
         }
+        #home {
+            min-height: 100vh;
+        }
     </style>
 </head>
 <body>
@@ -134,10 +137,7 @@
     </header>
 
     <main>
-        <section id="home" class="h-screen relative flex items-center justify-center text-center overflow-hidden">
-            <video autoplay loop muted playsinline class="hero-video-bg" poster="https://placehold.co/1920x1080/05080f/FFFFFF?text=RedsRacing">
-                <source src="https://assets.mixkit.co/videos/preview/mixkit-sports-car-driving-on-a-road-in-the-forest-34262-large.mp4" type="video/mp4">
-            </video>
+        <section id="home" class="h-screen relative flex items-center justify-center text-center overflow-hidden" style="background-image: url('hero-bg.png'); background-size: cover; background-position: center;">
             <div class="relative z-10 p-8 hero-overlay w-full h-full flex flex-col items-center justify-center">
                 <h1 class="text-6xl md:text-9xl font-racing uppercase text-white text-shadow-strong tracking-wider">
                     <span class="title-blue">Push</span> <span class="neon-yellow">The Limit</span>
