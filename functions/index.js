@@ -1,7 +1,9 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const vision = require("@google-cloud/vision");
 
 admin.initializeApp();
+const client = new vision.ImageAnnotatorClient();
 
 /**
  * A callable function that processes a user's invitation code upon signup.
@@ -79,9 +81,6 @@ exports.processInvitationCode = functions.https.onCall(async (data, context) => 
   }
 });
 
-const vision = require("@google-cloud/vision");
-const client = new vision.ImageAnnotatorClient();
-
 exports.generateTags = functions.storage.object().onFinalize(async (object) => {
     const bucket = object.bucket;
     const filePath = object.name;
@@ -100,12 +99,12 @@ exports.generateTags = functions.storage.object().onFinalize(async (object) => {
     try {
         const [result] = await client.labelDetection(gcsUri);
         const labels = result.labelAnnotations.map(label => label.description);
-
+        
         functions.logger.log(`Labels for ${filePath}:`, labels);
 
         const db = admin.firestore();
         const imageUrl = `https://storage.googleapis.com/${bucket}/${filePath}`;
-
+        
         const q = db.collection("gallery_images").where("imageUrl", "==", imageUrl).limit(1);
         const snapshot = await q.get();
 
