@@ -1,10 +1,9 @@
 const admin = require("firebase-admin");
 const vision = require("@google-cloud/vision");
-const {onCall} = require("firebase-functions/v2/https");
+const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {onObjectFinalized} = require("firebase-functions/v2/storage");
 const {logger} = require("firebase-functions");
 
-// Explicitly initialize with the storage bucket
 admin.initializeApp({
   storageBucket: "redsracing-a7f8b.appspot.com"
 });
@@ -14,7 +13,7 @@ const db = admin.firestore();
 
 exports.processInvitationCode = onCall({region: "us-central1"}, async (request) => {
   if (!request.auth) {
-    throw new https.HttpsError(
+    throw new HttpsError(
         "unauthenticated",
         "The function must be called while authenticated.",
     );
@@ -60,7 +59,7 @@ exports.processInvitationCode = onCall({region: "us-central1"}, async (request) 
     } catch (claimError) {
       logger.error("Critical: Failed to set default role after error:", claimError);
     }
-    throw new https.HttpsError(
+    throw new HttpsError(
         "internal",
         "An error occurred while processing the invitation code.",
     );
