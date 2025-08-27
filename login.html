@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - RedsRacing #8</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a192f; /* Dark Blue from main site */
+        }
+        .neon-yellow {
+            color: #f7ff00;
+        }
+        .title-blue {
+            color: #00c6ff;
+        }
+        .bg-neon-yellow {
+            background-color: #f7ff00;
+        }
+        .form-container {
+            background-color: #1e293b; /* slate-800 */
+            border: 1px solid #334155; /* slate-700 */
+        }
+        .form-input {
+            background-color: #334155; /* slate-700 */
+            border: 1px solid #475569; /* slate-600 */
+            color: #e2e8f0; /* slate-200 */
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #f7ff00;
+            box-shadow: 0 0 0 2px rgba(247, 255, 0, 0.3);
+        }
+        .error-message {
+            background-color: #991b1b; /* red-800 */
+            color: #fca5a5; /* red-300 */
+            border-left: 4px solid #ef4444; /* red-500 */
+        }
+    </style>
+</head>
+<body class="text-gray-200 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md">
+        <!-- Logo Header -->
+        <div class="text-center mb-8">
+            <a href="index.html" class="text-4xl font-black uppercase tracking-tighter">
+                <span class="title-blue">Reds</span><span class="neon-yellow">Racing #8</span>
+            </a>
+        </div>
+
+        <!-- Form Container -->
+        <div class="form-container p-8 rounded-lg shadow-2xl">
+            <h2 class="text-2xl font-bold text-center text-white mb-6">Member Access</h2>
+
+            <!-- Error Message Display -->
+            <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
+                <p id="error-text"></p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-300">Email</label>
+                    <input type="email" id="email" name="email" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm">
+                </div>
+                <div>
+                    <div class="flex justify-between items-center">
+                        <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
+                        <a href="#" id="forgot-password-link" class="text-sm text-slate-400 hover:text-neon-yellow">Forgot password?</a>
+                    </div>
+                    <input type="password" id="password" name="password" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm">
+                </div>
+
+                <div class="flex flex-col space-y-4">
+                    <button type="button" id="signin-button" class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Sign In</button>
+                    <button type="button" id="signup-button" class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition duration-300">Sign Up</button>
+                </div>
+            </form>
+
+            <!-- Divider -->
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-slate-600"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-slate-800 text-gray-400">Or continue with</span>
+                </div>
+            </div>
+
+            <!-- Google Sign-in -->
+            <div>
+                <button type="button" id="google-signin-button" class="w-full flex justify-center items-center bg-white text-gray-700 font-semibold py-2 px-4 rounded-md shadow-sm hover:bg-gray-200 transition duration-300">
+                    <svg class="w-5 h-5 mr-2" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.9 0 129.8 110.3 20 244 20c66.2 0 121.3 24.8 162.2 65.5l-68.5 64.9C314.5 124.9 282.8 108 244 108c-73.2 0-132.3 59.8-132.3 133.1s59.1 133.1 132.3 133.1c76.9 0 114.3-52.3 120.8-79.1H244V261.8h244z"></path></svg>
+                    Sign in with Google
+                </button>
+            </div>
+
+            <!-- Phone Sign-in Form -->
+            <div id="phone-auth-container" class="mt-6">
+                 <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-slate-600"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-slate-800 text-gray-400">Or sign in with phone</span>
+                    </div>
+                </div>
+                <div id="phone-form" class="space-y-4">
+                    <label for="phone-number" class="block text-sm font-medium text-gray-300">Phone Number</label>
+                    <input type="tel" id="phone-number" name="phone-number" class="form-input block w-full px-3 py-2 rounded-md" placeholder="+1 555-555-5555">
+                    <button type="button" id="send-code-button" class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition">Send Verification Code</button>
+                </div>
+
+                <div id="code-form" class="hidden space-y-4 mt-4">
+                    <label for="verification-code" class="block text-sm font-medium text-gray-300">Verification Code</label>
+                    <input type="text" id="verification-code" name="verification-code" class="form-input block w-full px-3 py-2 rounded-md" placeholder="Enter 6-digit code">
+                    <button type="button" id="verify-code-button" class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition">Verify and Sign In</button>
+                </div>
+                <div id="recaptcha-container" class="mt-4"></div>
+            </div>
+        </div>
+        <p class="text-center text-gray-500 text-sm mt-6">
+            Don't have an account? <a href="signup.html" class="font-semibold neon-yellow hover:text-yellow-300">Sign up</a>.
+        </p>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            sendPasswordResetEmail,
+            GoogleAuthProvider,
+            signInWithPopup,
+            RecaptchaVerifier,
+            signInWithPhoneNumber,
+            PhoneAuthProvider,
+            PhoneMultiFactorGenerator
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // Your web app's Firebase configuration from the main page
+        const firebaseConfig = {
+          apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+          authDomain: "redsracing-a7f8b.firebaseapp.com",
+          projectId: "redsracing-a7f8b",
+          storageBucket: "redsracing-a7f8b.appspot.com",
+          messagingSenderId: "517034606151",
+          appId: "1:517034606151:web:24cae262e1d98832757b62"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        // Get form elements
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const signinButton = document.getElementById('signin-button');
+        const signupButton = document.getElementById('signup-button');
+        const googleSigninButton = document.getElementById('google-signin-button');
+        const forgotPasswordLink = document.getElementById('forgot-password-link');
+        const errorBox = document.getElementById('error-box');
+        const phoneForm = document.getElementById('phone-form');
+        const codeForm = document.getElementById('code-form');
+        const phoneNumberInput = document.getElementById('phone-number');
+        const sendCodeButton = document.getElementById('send-code-button');
+        const verificationCodeInput = document.getElementById('verification-code');
+        const verifyCodeButton = document.getElementById('verify-code-button');
+        const errorText = document.getElementById('error-text');
+
+        // Function to show error messages
+        function showMessage(message, isError = true) {
+            errorText.textContent = message;
+            errorBox.className = isError
+                ? 'error-message p-4 rounded-md mb-4'
+                : 'bg-green-800 text-green-300 border-l-4 border-green-500 p-4 rounded-md mb-4';
+            errorBox.classList.remove('hidden');
+        }
+
+        // Function to handle successful login
+        function handleSuccess() {
+            // Redirect to the main page after successful login/signup
+            window.location.href = 'dashboard.html';
+        }
+
+        // Event listener for Sign In button
+        signinButton.addEventListener('click', () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Standard login successful
+                    handleSuccess();
+                })
+                .catch((error) => {
+                    if (error.code === 'auth/multi-factor-required') {
+                        // The user has MFA enabled.
+                        showMessage("2-Step Verification required. Sending code...", false);
+                        const resolver = error.resolver;
+                        const phoneInfoOptions = {
+                            multiFactorHint: resolver.hints[0],
+                            session: resolver.session
+                        };
+                        const phoneAuthProvider = new PhoneAuthProvider(auth);
+
+                        // Send the verification code
+                        phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, window.recaptchaVerifier)
+                            .then((verificationId) => {
+                                // Show the code input form
+                                document.getElementById('login-form').classList.add('hidden');
+                                document.getElementById('phone-auth-container').classList.remove('hidden');
+                                phoneForm.classList.add('hidden');
+                                codeForm.classList.remove('hidden');
+
+                                // Override the verify button's behavior for MFA
+                                verifyCodeButton.onclick = () => {
+                                    const cred = PhoneMultiFactorGenerator.credential({
+                                        verificationId: verificationId,
+                                        verificationCode: verificationCodeInput.value
+                                    });
+                                    resolver.resolveSignIn(cred)
+                                        .then((userCredential) => handleSuccess())
+                                        .catch((err) => showMessage("Invalid 2-step verification code."));
+                                };
+                            }).catch((err) => {
+                                showMessage("Could not send 2-step verification code. Please try again.");
+                            });
+                    } else {
+                        // Handle other errors like wrong password
+                        showMessage(error.message);
+                    }
+                });
+        });
+
+        // --- Phone Auth Logic ---
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'invisible',
+            'callback': (response) => {
+                // reCAPTCHA solved, allow signInWithPhoneNumber.
+            }
+        });
+
+        sendCodeButton.addEventListener('click', () => {
+            const phoneNumber = phoneNumberInput.value;
+            const appVerifier = window.recaptchaVerifier;
+            signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+                .then((confirmationResult) => {
+                    // SMS sent. Save confirmation result to resolve later.
+                    window.confirmationResult = confirmationResult;
+                    showMessage("Verification code sent!", false);
+                    phoneForm.classList.add('hidden');
+                    codeForm.classList.remove('hidden');
+                }).catch((error) => {
+                    // Error; SMS not sent
+                    showMessage(error.message);
+                    // Reset reCAPTCHA so user can try again
+                    grecaptcha.reset(window.recaptchaWidgetId);
+                });
+        });
+
+        verifyCodeButton.addEventListener('click', () => {
+            const code = verificationCodeInput.value;
+            window.confirmationResult.confirm(code).then((result) => {
+                // User signed in successfully.
+                handleSuccess();
+            }).catch((error) => {
+                // User couldn't sign in.
+                showMessage("Invalid verification code. Please try again.");
+            });
+        });
+
+        // Event listener for Sign Up button (redirects to signup page)
+        signupButton.addEventListener('click', () => {
+            window.location.href = 'signup.html';
+        });
+
+        // Event listener for Forgot Password
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+            if (!email) {
+                showMessage("Please enter your email address above, then click 'Forgot password?'.");
+                return;
+            }
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    showMessage("Password reset email sent! Please check your inbox.", false);
+                })
+                .catch((error) => {
+                    showMessage(error.message);
+                });
+        });
+
+        // Event listener for Google Sign In button
+        googleSigninButton.addEventListener('click', () => {
+            signInWithPopup(auth, googleProvider)
+                .then((result) => {
+                    handleSuccess();
+                }).catch((error) => {
+                    showMessage(error.message);
+                });
+        });
+    </script>
+</body>
+</html>
