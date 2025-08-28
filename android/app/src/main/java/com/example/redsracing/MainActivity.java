@@ -34,8 +34,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // This should not happen if the user is coming from LoginActivity
             // But as a fallback, redirect to login if no user is found.
-            startActivity(new Intent(MainActivity.this, LoginActivity.class));
-            finish();
+            redirectToLogin();
             return;
         }
 
@@ -43,9 +42,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mAuth.signOut();
-                startActivity(new Intent(MainActivity.this, LoginActivity.class));
-                finish();
+                redirectToLogin();
             }
         });
+    }
+
+    private void redirectToLogin() {
+        startActivity(new Intent(MainActivity.this, LoginActivity.class));
+        finish();
     }
 }

@@ -35,7 +35,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         // Manually configure and initialize Firebase.
-        // This is a workaround for not having the google-services.json file.
+        // This is a temporary workaround with user approval due to environment limitations.
         FirebaseOptions firebaseOptions = new FirebaseOptions.Builder()
                 .setApiKey("AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg")
                 .setApplicationId("1:517034606151:web:24cae262e1d98832757b62")
@@ -79,13 +79,11 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI and navigate to MainActivity
                             Log.d(TAG, "signInWithEmail:success");
                             Toast.makeText(LoginActivity.this, "Login Successful.", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                            finish(); // Finish LoginActivity so user can't go back
+                            finish();
                         } else {
-                            // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
                             Toast.makeText(LoginActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
