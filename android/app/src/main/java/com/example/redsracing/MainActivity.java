@@ -1,47 +1,51 @@
 package com.example.redsracing;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
 import android.os.Bundle;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
 
-    private WebView myWebView;
+    private TextView welcomeTextView;
+    private Button logoutButton;
+
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        myWebView = (WebView) findViewById(R.id.webview);
-        WebSettings webSettings = myWebView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
 
-        // Set a WebViewClient to handle navigation within the WebView
-        myWebView.setWebViewClient(new MyWebViewClient());
+        welcomeTextView = findViewById(R.id.welcomeTextView);
+        logoutButton = findViewById(R.id.logoutButton);
 
-        // Load the website
-        myWebView.loadUrl("https://redsracing-a7f8b.web.app");
-    }
-
-    // A private class to prevent links from opening in an external browser
-    private static class MyWebViewClient extends WebViewClient {
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            view.loadUrl(url);
-            return true;
-        }
-    }
-
-    // Handle the back button to navigate in WebView history
-    @Override
-    public void onBackPressed() {
-        if (myWebView.canGoBack()) {
-            myWebView.goBack();
+        if (currentUser != null) {
+            welcomeTextView.setText("Welcome, " + currentUser.getEmail() + "!");
         } else {
-            super.onBackPressed();
+            // This should not happen if the user is coming from LoginActivity
+            // But as a fallback, redirect to login if no user is found.
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+            finish();
+            return;
         }
+
+        logoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mAuth.signOut();
+                startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                finish();
+            }
+        });
     }
 }
