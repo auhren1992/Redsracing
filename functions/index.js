@@ -86,7 +86,10 @@ exports.generateTags = functions.storage.object().onFinalize(async (object) => {
     const filePath = object.name;
     const contentType = object.contentType;
 
-    if (!contentType.startsWith("image/")) {
+    if (!contentType || !contentType.startsWith("image/")) {
+        if (!contentType) {
+            functions.logger.log("Content type is missing for file:", filePath);
+        }
         return functions.logger.log("This is not an image.");
     }
 
