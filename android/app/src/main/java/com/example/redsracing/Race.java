@@ -1,6 +1,11 @@
 package com.example.redsracing;
 
+import com.google.firebase.firestore.Exclude;
+
 public class Race {
+    @Exclude
+    private String id;
+
     private String name;
     private String date;
 
@@ -26,5 +31,14 @@ public class Race {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public Race withId(String id) {
+        this.id = id;
+        return this;
     }
 }
