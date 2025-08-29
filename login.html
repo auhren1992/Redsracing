@@ -245,6 +245,10 @@
                 // reCAPTCHA solved, allow signInWithPhoneNumber.
             }
         });
+        window.recaptchaVerifier.render().then((widgetId) => {
+            window.recaptchaWidgetId = widgetId;
+        });
+
 
         sendCodeButton.addEventListener('click', () => {
             const phoneNumber = phoneNumberInput.value;
