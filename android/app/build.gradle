@@ -41,6 +41,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore") // For dashboard
     implementation("com.google.firebase:firebase-messaging") // For push notifications
     implementation("com.google.firebase:firebase-storage")  // For image uploads
+    implementation("com.google.firebase:firebase-functions") // For calling cloud functions
 
     // Other Android dependencies
     implementation 'androidx.appcompat:appcompat:1.6.1'

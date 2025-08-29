@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class EditRaceActivity extends AppCompatActivity {
 
-    private EditText editRaceName, editRaceDate;
+    private EditText editRaceName, editRaceDate, editRaceType, editRaceNumber;
     private Button saveRaceButton, deleteRaceButton;
 
     private FirebaseFirestore db;
@@ -30,6 +30,8 @@ public class EditRaceActivity extends AppCompatActivity {
 
         editRaceName = findViewById(R.id.editRaceName);
         editRaceDate = findViewById(R.id.editRaceDate);
+        editRaceType = findViewById(R.id.editRaceType);
+        editRaceNumber = findViewById(R.id.editRaceNumber);
         saveRaceButton = findViewById(R.id.saveRaceButton);
         deleteRaceButton = findViewById(R.id.deleteRaceButton);
 
@@ -55,6 +57,8 @@ public class EditRaceActivity extends AppCompatActivity {
                 if (race != null) {
                     editRaceName.setText(race.getName());
                     editRaceDate.setText(race.getDate());
+                    editRaceType.setText(race.getType());
+                    editRaceNumber.setText(race.getRace());
                 }
             } else {
                 Toast.makeText(this, "Error: Race not found.", Toast.LENGTH_SHORT).show();
@@ -66,16 +70,19 @@ public class EditRaceActivity extends AppCompatActivity {
     private void saveRace() {
         String name = editRaceName.getText().toString().trim();
         String date = editRaceDate.getText().toString().trim();
+        String type = editRaceType.getText().toString().trim();
+        String raceNumber = editRaceNumber.getText().toString().trim();
 
         if (TextUtils.isEmpty(name) || TextUtils.isEmpty(date)) {
-            Toast.makeText(this, "Please fill out all fields", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Name and Date fields are required.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         Map<String, Object> race = new HashMap<>();
         race.put("name", name);
         race.put("date", date);
-        // In a real app, you would add the other fields like 'type' and 'race' number here as well.
+        race.put("type", type);
+        race.put("race", raceNumber);
 
         if (currentRaceId != null) {
             // Update existing race

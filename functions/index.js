@@ -5,34 +5,20 @@ const vision = require("@google-cloud/vision");
 admin.initializeApp();
 const client = new vision.ImageAnnotatorClient();
 
-/**
- * A callable function that processes a user's invitation code upon signup.
- *
- * This function checks if a provided invitation code is valid and unused.
- * If it is, it assigns the 'team-member' custom claim to the user.
- * Otherwise, it assigns the 'public-fan' custom claim.
- * It also marks the invitation code as used to prevent reuse.
- *
- * @param {object} data The data passed to the function, expecting { invitationCode: string }.
- * @param {object} context The context of the function call, containing auth information.
- * @returns {object} A result object indicating success or failure.
- */
-exports.processInvitationCode = functions.https.onCall(async (data, context) => {
-  // 1. Check if the user is authenticated. If not, throw an error.
+const processInvitationCode = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-        "unauthenticated",
-        "The function must be called while authenticated.",
+      "unauthenticated",
+      "The function must be called while authenticated."
     );
   }
 
   const uid = context.auth.uid;
   const invitationCode = data.invitationCode;
 
-  // 2. If no invitation code is provided, assign 'public-fan' role and exit.
   if (!invitationCode) {
-    await admin.auth().setCustomUserClaims(uid, {role: "public-fan"});
-    return {status: "success", message: "Public fan role assigned."};
+    await admin.auth().setCustomUserClaims(uid, { role: "public-fan" });
+    return { status: "success", message: "Public fan role assigned." };
   }
 
   const db = admin.firestore();
@@ -40,162 +26,115 @@ exports.processInvitationCode = functions.https.onCall(async (data, context) => 
   let wasCodeSuccessfullyUsed = false;
 
   try {
-    // 3. Run a transaction to safely check and claim the invitation code.
     wasCodeSuccessfullyUsed = await db.runTransaction(async (transaction) => {
       const codeDoc = await transaction.get(codeRef);
       if (!codeDoc.exists || codeDoc.data().used) {
-        return false; // Code is invalid or already used.
+        return false;
       }
-      // Code is valid, so claim it in the transaction.
       transaction.update(codeRef, {
         used: true,
         usedBy: uid,
         usedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
-      return true; // Return true to indicate success.
+      return true;
     });
 
-    // 4. Set custom claims based on the transaction's outcome.
     if (wasCodeSuccessfullyUsed) {
-      await admin.auth().setCustomUserClaims(uid, {role: "team-member"});
-      console.log(`Successfully assigned team-member role to ${uid}`);
-      return {status: "success", message: "Team member role assigned."};
+      await admin.auth().setCustomUserClaims(uid, { role: "team-member" });
+      return { status: "success", message: "Team member role assigned." };
     } else {
-      await admin.auth().setCustomUserClaims(uid, {role: "public-fan"});
-      console.log(`User ${uid} attempted to use invalid code. Assigned public-fan role.`);
-      return {status: "success", message: "Invalid code. Public fan role assigned."};
+      await admin.auth().setCustomUserClaims(uid, { role: "public-fan" });
+      return {
+        status: "success",
+        message: "Invalid code. Public fan role assigned.",
+      };
     }
   } catch (error) {
-    console.error("Error processing invitation code:", error);
-    // As a safe fallback, assign 'public-fan' role if anything goes wrong.
     try {
-      await admin.auth().setCustomUserClaims(uid, {role: "public-fan"});
-    } catch (claimError) {
-      console.error("Critical: Failed to set default role after error:", claimError);
-    }
-    // Throw an internal error to the client.
+      await admin.auth().setCustomUserClaims(uid, { role: "public-fan" });
+    } catch {}
     throw new functions.https.HttpsError(
-        "internal",
-        "An error occurred while processing the invitation code.",
+      "internal",
+      "An error occurred while processing the invitation code."
     );
   }
 });
 
-exports.generateTags = functions.storage.object().onFinalize(async (object) => {
-    const bucket = object.bucket;
-    const filePath = object.name;
-    const contentType = object.contentType;
+const generateTags = functions.storage.object().onFinalize(async (object) => {
+  const bucket = object.bucket;
+  const filePath = object.name;
+  const contentType = object.contentType || "";
 
-    if (!contentType || !contentType.startsWith("image/")) {
-        if (!contentType) {
-            functions.logger.log("Content type is missing for file:", filePath);
-        }
-        return functions.logger.log("This is not an image.");
-    }
 
-    if (!filePath.startsWith("gallery/")) {
-        return functions.logger.log("This is not a gallery image.");
-    }
+  if (!contentType.startsWith("image/")) return functions.logger.log("This is not an image.");
+  if (!filePath || !filePath.startsWith("gallery/")) return functions.logger.log("This is not a gallery image.");
 
-    const gcsUri = `gs://${bucket}/${filePath}`;
 
-    try {
-        const [result] = await client.labelDetection(gcsUri);
-        const labels = result.labelAnnotations.map(label => label.description);
-        
-        functions.logger.log(`Labels for ${filePath}:`, labels);
+  const gcsUri = `gs://${bucket}/${filePath}`;
 
-        const db = admin.firestore();
-        const imageUrl = `https://storage.googleapis.com/${bucket}/${filePath}`;
-        
-        const q = db.collection("gallery_images").where("imageUrl", "==", imageUrl).limit(1);
-        const snapshot = await q.get();
 
-        if (snapshot.empty) {
-            functions.logger.error("No matching document found for image url:", imageUrl);
-            return;
-        }
+  try {
+    const [result] = await client.labelDetection(gcsUri);
+    const labels = (result.labelAnnotations || []).map((l) => l.description).filter(Boolean);
 
-        const docRef = snapshot.docs[0].ref;
-        await docRef.update({ tags: labels, approved: true }); // Auto-approve for now
-
-        functions.logger.log("Successfully added tags to document:", docRef.id);
-
-    } catch (error) {
-        functions.logger.error("Error processing image:", error);
-    }
-});
-
-/**
- * An HTTP-triggered function to send a push notification to all registered devices.
- * Expects a POST request with a JSON body like: { "title": "Hello", "body": "This is a test" }
- */
-exports.sendNotification = functions.https.onRequest(async (req, res) => {
-    if (req.method !== "POST") {
-        res.status(405).send("Method Not Allowed");
-        return;
-    }
-
-    const authHeader = req.headers.authorization || "";
-    if (!authHeader.startsWith("Bearer ")) {
-        res.status(403).send("Unauthorized: Missing or invalid Authorization header");
-        return;
-    }
-
-    let decodedToken;
-    try {
-        const idToken = authHeader.split("Bearer ")[1];
-        decodedToken = await admin.auth().verifyIdToken(idToken);
-    } catch (error) {
-        console.error("Error verifying ID token:", error);
-        res.status(403).send("Unauthorized: Invalid ID token");
-        return;
-    }
-
-    if (decodedToken.role !== "team-member") {
-        res.status(403).send("Forbidden: Insufficient privileges");
-        return;
-    }
-
-    const { title, body } = req.body;
-
-    if (!title || !body) {
-        res.status(400).send("Missing title or body in request");
-        return;
-    }
 
     const db = admin.firestore();
-    const messaging = admin.messaging();
+    const imageUrl = `https://storage.googleapis.com/${bucket}/${filePath}`;
+    const snap = await db.collection("gallery_images").where("imageUrl", "==", imageUrl).limit(1).get();
+    if (snap.empty) return functions.logger.error("No matching document found for image url:", imageUrl);
 
-    try {
-        // Get all FCM tokens from the collection
-        const tokensSnapshot = await db.collection("fcmTokens").get();
-        if (tokensSnapshot.empty) {
-            console.log("No tokens to send notifications to.");
-            res.status(200).send("No tokens found.");
-            return;
-        }
 
-        const tokens = tokensSnapshot.docs.map((doc) => doc.id);
-
-        const payload = {
-            notification: {
-                title: title,
-                body: body,
-            },
-        };
-
-        console.log(`Sending notification to ${tokens.length} tokens.`);
-
-        // Send a message to the devices corresponding to the provided
-        // registration tokens.
-        const response = await messaging.sendToDevice(tokens, payload);
-
-        console.log("Successfully sent message:", response);
-        res.status(200).send({ success: true, message: `Notification sent to ${response.successCount} devices.` });
-
-    } catch (error) {
-        console.error("Error sending notification:", error);
-        res.status(500).send("Internal Server Error");
-    }
+    await snap.docs[0].ref.update({ tags: labels, approved: true });
+    functions.logger.log("Successfully added tags to document:", snap.docs[0].id);
+  } catch (err) {
+    functions.logger.error("Error processing image:", err);
+  }
 });
+
+const sendNotification = functions.https.onRequest(async (req, res) => {
+  try {
+    if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+
+
+    // Require Firebase ID token in Authorization header: "Bearer <token>"
+    const authHeader = req.headers.authorization || "";
+    const match = authHeader.match(/^Bearer (.*)$/);
+    if (!match) return res.status(401).send("Unauthorized");
+
+
+    const decoded = await admin.auth().verifyIdToken(match[1]);
+    if (!decoded || decoded.role !== "admin") {
+      return res.status(403).send("Forbidden");
+    }
+
+
+    const { title, body } = req.body || {};
+    if (!title || !body) return res.status(400).send("Missing title or body in request");
+
+
+    const db = admin.firestore();
+    const tokensSnapshot = await db.collection("fcmTokens").get();
+    if (tokensSnapshot.empty) return res.status(200).send("No tokens found.");
+
+
+    const tokens = tokensSnapshot.docs.map((d) => d.id);
+    const payload = { notification: { title, body } };
+
+
+    const response = await admin.messaging().sendToDevice(tokens, payload);
+    return res.status(200).send({ success: true, message: `Notification sent to ${response.successCount} devices.` });
+  } catch (error) {
+    console.error("sendNotification error:", error);
+    return res.status(500).send("Internal Server Error");
+  }
+});
+
+exports.processInvitationCode = processInvitationCode;
+exports.generateTags = generateTags;
+exports.sendNotification = sendNotification;
+
+module.exports = {
+  processInvitationCode,
+  generateTags,
+  sendNotification,
+};
