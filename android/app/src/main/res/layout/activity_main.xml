@@ -1,25 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:fillViewport="true"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/welcomeTextView"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:textSize="18sp"
-        tools:text="Welcome, user@example.com!" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <Button
-        android:id="@+id/logoutButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:text="Logout" />
+        <!-- Welcome Message -->
+        <TextView
+            android:id="@+id/welcomeTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp"
+            tools:text="Welcome, user@example.com!" />
 
-</RelativeLayout>
+        <!-- Stats Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="At a Glance"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp">
+
+            <TextView android:id="@+id/statsWins" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" tools:text="Wins: 2" />
+            <TextView android:id="@+id/statsPodiums" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" tools:text="Podiums: 4" />
+            <TextView android:id="@+id/statsLaps" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" tools:text="Laps: 200" />
+        </LinearLayout>
+
+        <!-- Driver Notes Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Driver Notes"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/notesEditText"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:gravity="top"
+            android:hint="Your private notes..."
+            android:inputType="textMultiLine"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/saveNotesButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:text="Save Notes"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Race Management Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Race Schedule"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/racesRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+        <!-- Logout Button -->
+        <Button
+            android:id="@+id/logoutButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Logout"
+            android:layout_marginTop="24dp" />
+
+    </LinearLayout>
+</ScrollView>
