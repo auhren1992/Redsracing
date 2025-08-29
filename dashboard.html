@@ -149,6 +149,14 @@
                         </div>
                     </div>
 
+                    <!-- Q&A Management -->
+                    <div id="qna-management-card" class="card rounded-lg p-6" style="display: none;">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Q&A <span class="neon-yellow">Submissions</span></h2>
+                        <div id="qna-list" class="space-y-4">
+                            <!-- Submitted questions will be loaded here -->
+                        </div>
+                    </div>
+
                     <!-- 2-Step Verification -->
                     <div id="mfa-card" class="card rounded-lg p-6" style="display: none;">
                         <h2 class="text-3xl font-racing text-white uppercase mb-4">2-Step <span class="neon-yellow">Verification</span></h2>
@@ -178,7 +186,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, sendEmailVerification, PhoneAuthProvider, linkWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, sendEmailVerification, RecaptchaVerifier, linkWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -224,8 +232,21 @@
         const raceNumberInput = document.getElementById('race-number');
         const specialNameContainer = document.getElementById('special-name-container');
         const specialNameInput = document.getElementById('special-name');
+        const raceResultsInput = document.getElementById('race-results');
+        const raceSummaryInput = document.getElementById('race-summary');
+        const liveTimingLinkInput = document.getElementById('live-timing-link');
         const addRaceBtn = document.getElementById('add-race-btn');
         const cancelRaceBtn = document.getElementById('cancel-race-btn');
+
+        // Q&A elements
+        const qnaManagementCard = document.getElementById('qna-management-card');
+        const qnaList = document.getElementById('qna-list');
+        const qnaModal = document.getElementById('qna-modal');
+        const qnaAnswerForm = document.getElementById('qna-answer-form');
+        const qnaIdInput = document.getElementById('qna-id');
+        const qnaModalQuestion = document.getElementById('qna-modal-question');
+        const qnaAnswerInput = document.getElementById('qna-answer');
+        const cancelQnaBtn = document.getElementById('cancel-qna-btn');
 
         let notesSaveTimeout;
         let countdownInterval;
@@ -332,6 +353,9 @@
                     specialNameInput.value = race.special || '';
                     raceNumberInput.value = '';
                 }
+                raceResultsInput.value = race.results || '';
+                raceSummaryInput.value = race.summary || '';
+                liveTimingLinkInput.value = race.liveTimingLink || '';
             } else {
                 // Adding new race
                 modalTitle.textContent = 'Add New Race';
@@ -364,7 +388,10 @@
                 type: raceTypeInput.value,
                 ...(raceTypeInput.value === 'superCup'
                     ? { race: raceNumberInput.value }
-                    : { special: specialNameInput.value })
+                    : { special: specialNameInput.value }),
+                results: raceResultsInput.value,
+                summary: raceSummaryInput.value,
+                liveTimingLink: liveTimingLinkInput.value
             };
 
             try {
@@ -403,6 +430,148 @@
         cancelRaceBtn.addEventListener('click', closeRaceModal);
         raceTypeInput.addEventListener('change', toggleRaceTypeFields);
 
+        // --- Q&A Management Functions ---
+        const renderQnaSubmissions = (submissions) => {
+            qnaList.innerHTML = '';
+            if (submissions.length === 0) {
+                qnaList.innerHTML = '<p class="text-slate-400">No pending questions.</p>';
+                return;
+            }
+            submissions.forEach(sub => {
+                const item = document.createElement('div');
+                item.className = 'p-4 bg-slate-800 rounded-md';
+                item.innerHTML = `
+                    <p class="text-white">${sub.question}</p>
+                    <p class="text-sm text-slate-400 mt-2">Submitted by: ${sub.submitterName}</p>
+                    <div class="mt-4 flex space-x-2">
+                        <button class="approve-qna-btn bg-green-600 text-white px-2 py-1 rounded text-sm" data-id="${sub.id}">Approve & Answer</button>
+                        <button class="delete-qna-btn bg-red-600 text-white px-2 py-1 rounded text-sm" data-id="${sub.id}">Delete</button>
+                    </div>
+                `;
+                qnaList.appendChild(item);
+            });
+
+            document.querySelectorAll('.approve-qna-btn').forEach(btn => btn.addEventListener('click', () => openQnaModal(submissions.find(s => s.id === btn.dataset.id))));
+            document.querySelectorAll('.delete-qna-btn').forEach(btn => btn.addEventListener('click', () => deleteQnaSubmission(btn.dataset.id)));
+        };
+
+        const getQnaSubmissions = async () => {
+            const q = query(collection(db, "qna_submissions"), where("status", "==", "submitted"), orderBy("submittedAt", "asc"));
+            const snapshot = await getDocs(q);
+            const submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderQnaSubmissions(submissions);
+        };
+
+        const openQnaModal = (submission) => {
+            qnaAnswerForm.reset();
+            qnaIdInput.value = submission.id;
+            qnaModalQuestion.textContent = submission.question;
+            qnaModal.classList.remove('hidden');
+        };
+
+        const closeQnaModal = () => {
+            qnaModal.classList.add('hidden');
+        };
+
+        qnaAnswerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = qnaIdInput.value;
+            const answer = qnaAnswerInput.value.trim();
+            if (!answer) return;
+
+            try {
+                const qnaRef = doc(db, 'qna_submissions', id);
+                await updateDoc(qnaRef, {
+                    answer: answer,
+                    status: 'published',
+                    answeredAt: new Date()
+                });
+                closeQnaModal();
+                await getQnaSubmissions(); // Refresh the list
+            } catch (error) {
+                console.error("Error publishing answer:", error);
+                alert("Failed to publish answer. Check console for details.");
+            }
+        });
+
+        const deleteQnaSubmission = async (id) => {
+            if (confirm('Are you sure you want to delete this question permanently?')) {
+                try {
+                    await deleteDoc(doc(db, 'qna_submissions', id));
+                    await getQnaSubmissions(); // Refresh list
+                } catch (error) {
+                    console.error("Error deleting question:", error);
+                    alert("Failed to delete question. Check console for details.");
+                }
+            }
+        };
+
+        cancelQnaBtn.addEventListener('click', closeQnaModal);
+
+
+        // --- MFA Setup ---
+        const setupMfa = (user) => {
+            const hasPhoneNumber = user.providerData.some(p => p.providerId === 'phone');
+
+            if (hasPhoneNumber) {
+                mfaStatus.innerHTML = `<p class="text-green-400 font-bold">2-Step Verification is enabled.</p>`;
+                mfaEnrollForm.style.display = 'none';
+                mfaVerifyForm.style.display = 'none';
+            } else {
+                mfaStatus.innerHTML = `<p class="text-yellow-400 font-bold">2-Step Verification is not enabled.</p>`;
+                mfaEnrollForm.style.display = 'block';
+                mfaVerifyForm.style.display = 'none';
+
+                // Ensure recaptcha is only rendered once
+                if (!window.recaptchaVerifier) {
+                    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'mfa-recaptcha-container', {
+                        'size': 'invisible',
+                        'callback': () => { /* reCAPTCHA solved */ }
+                    });
+                    window.recaptchaVerifier.render();
+                }
+
+                mfaSendCodeBtn.onclick = async () => {
+                    const phoneNumber = mfaPhoneNumberInput.value;
+                    const appVerifier = window.recaptchaVerifier;
+                    try {
+                        mfaSendCodeBtn.disabled = true;
+                        mfaSendCodeBtn.textContent = 'Sending...';
+                        window.confirmationResult = await linkWithPhoneNumber(user, phoneNumber, appVerifier);
+                        mfaEnrollForm.style.display = 'none';
+                        mfaVerifyForm.style.display = 'block';
+                        alert('Verification code sent!');
+                    } catch (error) {
+                        console.error('Error sending MFA code:', error);
+                        alert(`Error: ${error.message}`);
+                        // Reset reCAPTCHA if it fails
+                        window.recaptchaVerifier.render().then(widgetId => window.recaptchaVerifier.reset(widgetId));
+                    } finally {
+                        mfaSendCodeBtn.disabled = false;
+                        mfaSendCodeBtn.textContent = 'Send Code';
+                    }
+                };
+
+                mfaVerifyBtn.onclick = async () => {
+                    const code = mfaVerificationCodeInput.value;
+                    try {
+                        mfaVerifyBtn.disabled = true;
+                        mfaVerifyBtn.textContent = 'Verifying...';
+                        await window.confirmationResult.confirm(code);
+                        alert('2-Step Verification enabled successfully!');
+                        // Re-run setup to show enabled status and clear forms
+                        setupMfa(user);
+                    } catch (error) {
+                        console.error('Error verifying MFA code:', error);
+                        alert(`Error: ${error.message}`);
+                    } finally {
+                        mfaVerifyBtn.disabled = false;
+                        mfaVerifyBtn.textContent = 'Verify & Enable';
+                    }
+                };
+            }
+        };
+
         // Auth State Change Listener
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -432,8 +601,12 @@
                 if (userRole === 'team-member') {
                     driverNotesCard.style.display = 'block';
                     raceManagementCard.style.display = 'block';
+                    qnaManagementCard.style.display = 'block';
                     mfaCard.style.display = 'block';
-                    setupMfa(user);
+
+                    // Load team-member specific data
+                    getQnaSubmissions();
+
                     // Load notes only for team members
                     const userNotesRef = doc(db, "driver_notes", user.uid);
                     const docSnap = await getDoc(userNotesRef);
@@ -466,6 +639,11 @@
 
                 // Start animations
                 animateCounters();
+
+                // Setup MFA if applicable
+                if (userRole === 'team-member') {
+                    setupMfa(user);
+                }
 
             } else {
                 window.location.href = 'login.html';
@@ -511,6 +689,18 @@
                         <label for="special-name" class="block text-sm font-medium text-gray-300">Event Name</label>
                         <input type="text" id="special-name" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="e.g., Jon Kirsch Birthday Race">
                     </div>
+                    <div>
+                        <label for="race-results" class="block text-sm font-medium text-gray-300">Results</label>
+                        <input type="text" id="race-results" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="e.g., P5, 2nd Place">
+                    </div>
+                    <div>
+                        <label for="race-summary" class="block text-sm font-medium text-gray-300">Race Summary</label>
+                        <textarea id="race-summary" rows="4" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="Write a short recap of the race..."></textarea>
+                    </div>
+                    <div>
+                        <label for="live-timing-link" class="block text-sm font-medium text-gray-300">Live Timing Link</label>
+                        <input type="url" id="live-timing-link" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="https://www.example.com/live-timing">
+                    </div>
                 </div>
                 <div class="mt-8 flex justify-end space-x-4">
                     <button type="button" id="cancel-race-btn" class="bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition">Cancel</button>
@@ -520,5 +710,28 @@
         </div>
     </div>
 
+    <!-- Answer Question Modal -->
+    <div id="qna-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-slate-900 p-8 rounded-lg shadow-2xl w-full max-w-lg border border-slate-700">
+            <h2 class="text-3xl font-racing text-white uppercase mb-6">Answer <span class="neon-yellow">Question</span></h2>
+            <form id="qna-answer-form">
+                <input type="hidden" id="qna-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Question:</label>
+                        <p id="qna-modal-question" class="text-lg text-white mt-1"></p>
+                    </div>
+                    <div>
+                        <label for="qna-answer" class="block text-sm font-medium text-gray-300">Your Answer</label>
+                        <textarea id="qna-answer" rows="6" required class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1"></textarea>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end space-x-4">
+                    <button type="button" id="cancel-qna-btn" class="bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition">Cancel</button>
+                    <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Publish Answer</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

@@ -72,6 +72,11 @@
                 </div>
 
                 <div>
+                    <label for="display-name" class="block text-sm font-medium text-gray-300">Display Name</label>
+                    <input type="text" id="display-name" name="display-name" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" placeholder="This will be shown publicly">
+                </div>
+
+                <div>
                     <label for="invitation-code" class="block text-sm font-medium text-gray-300">Invitation Code <span class="text-gray-400">(Optional)</span></label>
                     <input type="text" id="invitation-code" name="invitation-code" class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" placeholder="Enter code for team access">
                 </div>
@@ -137,6 +142,7 @@
         // Get form elements
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
+        const displayNameInput = document.getElementById('display-name');
         const invitationCodeInput = document.getElementById('invitation-code');
         const signinButton = document.getElementById('signin-button');
         const signupButton = document.getElementById('signup-button');
@@ -173,7 +179,13 @@
         signupButton.addEventListener('click', async () => {
             const email = emailInput.value;
             const password = passwordInput.value;
+            const displayName = displayNameInput.value.trim();
             const invitationCode = invitationCodeInput.value.trim();
+
+            if (!displayName) {
+                showError("Please enter a Display Name.");
+                return;
+            }
 
             try {
                 // 1. Create the user in Firebase Auth
@@ -182,9 +194,12 @@
                 // 2. Send a verification email
                 await sendEmailVerification(userCredential.user);
 
-                // 3. Call the Firebase Function to process the role.
+                // 3. Call the Firebase Function to process the role and display name.
                 const processInvitationCode = httpsCallable(functions, 'processInvitationCode');
-                await processInvitationCode({ invitationCode: invitationCode });
+                await processInvitationCode({
+                    invitationCode: invitationCode,
+                    displayName: displayName
+                });
 
                 // 4. Force a token refresh to get the new custom claim on the client.
                 await auth.currentUser.getIdToken(true);

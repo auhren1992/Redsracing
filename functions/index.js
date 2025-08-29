@@ -1,125 +1,138 @@
-const functions = require("firebase-functions");
-const admin = require("firebase-admin");
+const {onCall} = require("firebase-functions/v2/https");
+const {onObjectFinalized} = require("firebase-functions/v2/storage");
+const {initializeApp} = require("firebase-admin/app");
+const {getAuth} = require("firebase-admin/auth");
+const {getFirestore} = require("firebase-admin/firestore");
+const vision = require("@google-cloud/vision");
+const logger = require("firebase-functions/logger");
 
-admin.initializeApp();
+initializeApp();
+const client = new vision.ImageAnnotatorClient();
 
-/**
- * A callable function that processes a user's invitation code upon signup.
- *
- * This function checks if a provided invitation code is valid and unused.
- * If it is, it assigns the 'team-member' custom claim to the user.
- * Otherwise, it assigns the 'public-fan' custom claim.
- * It also marks the invitation code as used to prevent reuse.
- *
- * @param {object} data The data passed to the function, expecting { invitationCode: string }.
- * @param {object} context The context of the function call, containing auth information.
- * @returns {object} A result object indicating success or failure.
- */
-exports.processInvitationCode = functions.https.onCall(async (data, context) => {
-  // 1. Check if the user is authenticated. If not, throw an error.
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-        "unauthenticated",
-        "The function must be called while authenticated.",
-    );
+// The bucket name must be specified for v2 storage functions.
+const BUCKET_NAME = "redsracing-a7f8b.firebasestorage.app";
+
+exports.processInvitationCode = onCall(async (request) => {
+  if (!request.auth) {
+    throw new Error("The function must be called while authenticated.");
   }
 
-  const uid = context.auth.uid;
-  const invitationCode = data.invitationCode;
+  const uid = request.auth.uid;
+  const email = request.auth.token.email;
+  const {invitationCode, displayName} = request.data;
 
-  // 2. If no invitation code is provided, assign 'public-fan' role and exit.
+  if (!displayName) {
+      throw new Error("Display name is required.");
+  }
+
+  const auth = getAuth();
+  const db = getFirestore();
+
+  await auth.updateUser(uid, {displayName: displayName});
+  logger.info(`Updated display name for user ${uid} to ${displayName}`);
+
+  await db.collection("users").doc(uid).set({
+    uid: uid,
+    email: email,
+    displayName: displayName,
+    createdAt: new Date(),
+  });
+  logger.info(`Created user document for ${uid}`);
+
   if (!invitationCode) {
-    await admin.auth().setCustomUserClaims(uid, {role: "public-fan"});
+    await auth.setCustomUserClaims(uid, {role: "public-fan"});
     return {status: "success", message: "Public fan role assigned."};
   }
 
-  const db = admin.firestore();
   const codeRef = db.collection("invitation_codes").doc(invitationCode);
   let wasCodeSuccessfullyUsed = false;
 
   try {
-    // 3. Run a transaction to safely check and claim the invitation code.
     wasCodeSuccessfullyUsed = await db.runTransaction(async (transaction) => {
       const codeDoc = await transaction.get(codeRef);
       if (!codeDoc.exists || codeDoc.data().used) {
-        return false; // Code is invalid or already used.
+        return false;
       }
-      // Code is valid, so claim it in the transaction.
       transaction.update(codeRef, {
         used: true,
         usedBy: uid,
-        usedAt: admin.firestore.FieldValue.serverTimestamp(),
+        usedAt: new Date(),
       });
-      return true; // Return true to indicate success.
+      return true;
     });
 
-    // 4. Set custom claims based on the transaction's outcome.
     if (wasCodeSuccessfullyUsed) {
-      await admin.auth().setCustomUserClaims(uid, {role: "team-member"});
-      console.log(`Successfully assigned team-member role to ${uid}`);
+      await auth.setCustomUserClaims(uid, {role: "team-member"});
+      logger.info(`Successfully assigned team-member role to ${uid}`);
       return {status: "success", message: "Team member role assigned."};
     } else {
-      await admin.auth().setCustomUserClaims(uid, {role: "public-fan"});
-      console.log(`User ${uid} attempted to use invalid code. Assigned public-fan role.`);
+      await auth.setCustomUserClaims(uid, {role: "public-fan"});
+      logger.warn(`User ${uid} attempted to use invalid code. Assigned public-fan role.`);
       return {status: "success", message: "Invalid code. Public fan role assigned."};
     }
   } catch (error) {
-    console.error("Error processing invitation code:", error);
-    // As a safe fallback, assign 'public-fan' role if anything goes wrong.
+    logger.error("Error processing invitation code:", error);
     try {
-      await admin.auth().setCustomUserClaims(uid, {role: "public-fan"});
+      await auth.setCustomUserClaims(uid, {role: "public-fan"});
     } catch (claimError) {
-      console.error("Critical: Failed to set default role after error:", claimError);
+      logger.error("Critical: Failed to set default role after error:", claimError);
     }
-    // Throw an internal error to the client.
-    throw new functions.https.HttpsError(
-        "internal",
-        "An error occurred while processing the invitation code.",
-    );
+    throw new Error("An error occurred while processing the invitation code.");
   }
 });
 
-const vision = require("@google-cloud/vision");
-const client = new vision.ImageAnnotatorClient();
+exports.generateTags = onObjectFinalized({bucket: BUCKET_NAME}, async (event) => {
+  const fileBucket = event.data.bucket;
+  const filePath = event.data.name;
+  const contentType = event.data.contentType;
 
-exports.generateTags = functions.storage.object().onFinalize(async (object) => {
-    const bucket = object.bucket;
-    const filePath = object.name;
-    const contentType = object.contentType;
+  logger.info(`Processing file: ${filePath}`);
 
-    if (!contentType.startsWith("image/")) {
-        return functions.logger.log("This is not an image.");
+  if (!contentType.startsWith("image/")) {
+    return logger.log("This is not an image.");
+  }
+
+  if (!filePath.startsWith("gallery/")) {
+    return logger.log("This is not a gallery image.");
+  }
+
+  const gcsUri = `gs://${fileBucket}/${filePath}`;
+
+  try {
+    const [result] = await client.labelDetection(gcsUri);
+    const labels = result.labelAnnotations.map((label) => label.description);
+
+    logger.log(`Labels for ${filePath}:`, labels);
+
+    const pathParts = filePath.split("/");
+    if (pathParts.length < 3 || pathParts[0] !== "gallery") {
+      return logger.log("Image is not in a user's gallery folder.");
+    }
+    const uploaderUid = pathParts[1];
+
+    const db = getFirestore();
+    const userRef = db.collection("users").doc(uploaderUid);
+    const userDoc = await userRef.get();
+    const uploaderDisplayName = userDoc.exists ? userDoc.data().displayName : "Anonymous";
+
+    const imageUrl = `https://storage.googleapis.com/${fileBucket}/${filePath}`;
+    const q = db.collection("gallery_images").where("imageUrl", "==", imageUrl).limit(1);
+    const snapshot = await q.get();
+
+    if (snapshot.empty) {
+      logger.error("No matching document found for image url:", imageUrl);
+      return;
     }
 
-    if (!filePath.startsWith("gallery/")) {
-        return functions.logger.log("This is not a gallery image.");
-    }
+    const docRef = snapshot.docs[0].ref;
+    await docRef.update({
+        tags: labels,
+        uploaderDisplayName: uploaderDisplayName,
+        approved: true,
+    });
 
-    const gcsUri = `gs://${bucket}/${filePath}`;
-
-    try {
-        const [result] = await client.labelDetection(gcsUri);
-        const labels = result.labelAnnotations.map(label => label.description);
-
-        functions.logger.log(`Labels for ${filePath}:`, labels);
-
-        const db = admin.firestore();
-        const imageUrl = `https://storage.googleapis.com/${bucket}/${filePath}`;
-
-        const q = db.collection("gallery_images").where("imageUrl", "==", imageUrl).limit(1);
-        const snapshot = await q.get();
-
-        if (snapshot.empty) {
-            functions.logger.error("No matching document found for image url:", imageUrl);
-            return;
-        }
-
-        const docRef = snapshot.docs[0].ref;
-        await docRef.update({ tags: labels, approved: true }); // Auto-approve for now
-
-        functions.logger.log("Successfully added tags to document:", docRef.id);
-
-    } catch (error) {
-        functions.logger.error("Error processing image:", error);
-    }
+    logger.log("Successfully added tags and display name to document:", docRef.id);
+  } catch (error) {
+    logger.error("Error processing image:", error);
+  }
 });
