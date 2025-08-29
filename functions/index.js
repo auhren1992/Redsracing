@@ -5,9 +5,6 @@ const vision = require("@google-cloud/vision");
 admin.initializeApp();
 const client = new vision.ImageAnnotatorClient();
 
-/**
- * Shared definition of processInvitationCode so it can be exported in both ways
- */
 const processInvitationCode = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
@@ -94,9 +91,7 @@ const generateTags = functions.storage.object().onFinalize(async (object) => {
   }
 });
 
-
-/** HTTP: sendNotification (admin-only via custom claim) */
-exports.sendNotification = functions.https.onRequest(async (req, res) => {
+const sendNotification = functions.https.onRequest(async (req, res) => {
   try {
     if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
@@ -134,7 +129,6 @@ exports.sendNotification = functions.https.onRequest(async (req, res) => {
   }
 });
 
-// Export in both ways
 exports.processInvitationCode = processInvitationCode;
 exports.generateTags = generateTags;
 exports.sendNotification = sendNotification;

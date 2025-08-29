@@ -185,8 +185,12 @@
 
         // Function to handle successful login
         function handleSuccess() {
-            // Redirect to the main page after successful login/signup
-            window.location.href = 'dashboard.html';
+            const user = auth.currentUser;
+            if (user && user.email && !user.emailVerified) {
+                window.location.href = 'check-email.html';
+            } else {
+                window.location.href = 'dashboard.html';
+            }
         }
 
         // Event listener for Sign In button
@@ -245,6 +249,10 @@
                 // reCAPTCHA solved, allow signInWithPhoneNumber.
             }
         });
+        window.recaptchaVerifier.render().then((widgetId) => {
+            window.recaptchaWidgetId = widgetId;
+        });
+
 
         sendCodeButton.addEventListener('click', () => {
             const phoneNumber = phoneNumberInput.value;
