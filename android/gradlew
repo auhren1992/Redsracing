@@ -1,0 +1,96 @@
+#!/usr/bin/env sh
+
+#
+# Copyright 2015 the original author or authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass any JVM options to Gradle.
+DEFAULT_JVM_OPTS=""
+
+APP_NAME="Gradle"
+APP_BASE_NAME=`basename "$0"`
+
+# Use the maximum available, or set MAX_FD != -1 to use that value.
+MAX_FD="maximum"
+
+# For Darwin, add options to specify how the application appears in the dock
+# DOCK_OPTS="-Xdock:name=$APP_NAME -Xdock:icon=$APP_HOME/media/gradle.icns"
+
+# OS specific support.  $var _must_ be set to either true or false.
+cygwin=false
+msys=false
+darwin=false
+nonstop=false
+case "`uname`" in
+  CYGWIN* )
+    cygwin=true
+    ;;
+  Darwin* )
+    darwin=true
+    ;;
+  MINGW* )
+    msys=true
+    ;;
+  NONSTOP* )
+    nonstop=true
+    ;;
+esac
+
+# Attempt to set APP_HOME
+# Resolve links: $0 may be a link
+PRG="$0"
+# Need this for relative symlinks.
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+        PRG="$link"
+    else
+        PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+APP_HOME=`dirname "$PRG"`
+
+# Absolutize APP_HOME
+# Needed for resolving config files in the case of symlinks
+APP_HOME=`cd "$APP_HOME" && pwd`
+
+# Add a hint for the user that this is not the real gradle binary
+if [ -f "$APP_HOME/gradle" -o -f "$APP_HOME/gradle.exe" ]; then
+    echo
+    echo "WARNING: You are running 'gradlew' script without a 'gradle-wrapper.jar' file."
+    echo "This will use the system-installed Gradle, which may be of the wrong version."
+    echo "To use the wrapper, please commit a 'gradle-wrapper.jar' file to your project."
+    echo
+fi
+
+# Add the 'gradle-wrapper.jar' to the classpath
+WRAPPER_JAR="$APP_HOME/gradle/wrapper/gradle-wrapper.jar"
+# if [ ! -f "$WRAPPER_JAR" ]; then
+#     echo "Could not find gradle-wrapper.jar. Please commit it to your project."
+#     exit 1
+# fi
+CLASSPATH="$WRAPPER_JAR"
+
+# Split up the JVM options only if spaces are available
+# Adopted from https://github.com/pledbrook/lazybones/blob/master/bin/lazybones
+if [ -z "$JAVA_OPTS" ] ; then
+    JAVA_OPTS_ARRAY=()
+else
+    JAVA_OPTS_ARRAY=($JAVA_OPTS)
+fi
+
+# Execute Gradle
+exec java "${DEFAULT_JVM_OPTS[@]}" "${JAVA_OPTS_ARRAY[@]}" -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "$@"

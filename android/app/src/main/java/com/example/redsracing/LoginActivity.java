@@ -14,8 +14,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -34,18 +32,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Manually configure and initialize Firebase.
-        // This is a temporary workaround with user approval due to environment limitations.
-        FirebaseOptions firebaseOptions = new FirebaseOptions.Builder()
-                .setApiKey("AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg")
-                .setApplicationId("1:517034606151:web:24cae262e1d98832757b62")
-                .setProjectId("redsracing-a7f8b")
-                .build();
-
-        if (FirebaseApp.getApps(this).isEmpty()) {
-            FirebaseApp.initializeApp(this, firebaseOptions);
-        }
-
+        // Initialize Firebase Auth.
+        // It's automatically initialized by the google-services plugin.
         mAuth = FirebaseAuth.getInstance();
 
         emailEditText = findViewById(R.id.editTextEmail);
