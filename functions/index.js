@@ -128,10 +128,29 @@ exports.generateTags = functions.storage.object().onFinalize(async (object) => {
  * Expects a POST request with a JSON body like: { "title": "Hello", "body": "This is a test" }
  */
 exports.sendNotification = functions.https.onRequest(async (req, res) => {
-    // For simplicity, this is a public endpoint.
-    // In a real app, you should secure this (e.g., check for admin privileges).
     if (req.method !== "POST") {
         res.status(405).send("Method Not Allowed");
+        return;
+    }
+
+    const authHeader = req.headers.authorization || "";
+    if (!authHeader.startsWith("Bearer ")) {
+        res.status(403).send("Unauthorized: Missing or invalid Authorization header");
+        return;
+    }
+
+    let decodedToken;
+    try {
+        const idToken = authHeader.split("Bearer ")[1];
+        decodedToken = await admin.auth().verifyIdToken(idToken);
+    } catch (error) {
+        console.error("Error verifying ID token:", error);
+        res.status(403).send("Unauthorized: Invalid ID token");
+        return;
+    }
+
+    if (decodedToken.role !== "team-member") {
+        res.status(403).send("Forbidden: Insufficient privileges");
         return;
     }
 
