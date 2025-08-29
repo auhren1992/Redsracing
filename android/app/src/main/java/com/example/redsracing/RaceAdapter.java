@@ -31,6 +31,13 @@ public class RaceAdapter extends RecyclerView.Adapter<RaceAdapter.RaceViewHolder
         Race race = raceList.get(position);
         holder.raceNameTextView.setText(race.getName());
         holder.raceDateTextView.setText(race.getDate());
+
+        holder.itemView.setOnClickListener(v -> {
+            android.content.Context context = v.getContext();
+            android.content.Intent intent = new android.content.Intent(context, EditRaceActivity.class);
+            intent.putExtra("RACE_ID", race.getId());
+            context.startActivity(intent);
+        });
     }
 
     @Override
