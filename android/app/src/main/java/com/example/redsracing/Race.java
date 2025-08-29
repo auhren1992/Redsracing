@@ -8,13 +8,18 @@ public class Race {
 
     private String name;
     private String date;
+    private String type; // e.g., "superCup" or "specialEvent"
+    private String race; // e.g., "#1" for superCup
 
     // Required empty public constructor for Firestore
     public Race() {}
 
-    public Race(String name, String date) {
+    // Constructor for creating a new race object
+    public Race(String name, String date, String type, String race) {
         this.name = name;
         this.date = date;
+        this.type = type;
+        this.race = race;
     }
 
     public String getName() {
@@ -40,5 +45,21 @@ public class Race {
     public Race withId(String id) {
         this.id = id;
         return this;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getRace() {
+        return race;
+    }
+
+    public void setRace(String race) {
+        this.race = race;
     }
 }

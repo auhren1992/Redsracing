@@ -25,6 +25,7 @@
         <activity android:name=".MainActivity" />
         <activity android:name=".EditRaceActivity" />
         <activity android:name=".GalleryActivity" />
+        <activity android:name=".SignupActivity" />
 
         <service
             android:name=".MyFirebaseMessagingService"
