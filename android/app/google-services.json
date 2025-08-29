@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "517034606151",
+    "firebase_url": "https://redsracing-a7f8b-default-rtdb.firebaseio.com",
+    "project_id": "redsracing-a7f8b",
+    "storage_bucket": "redsracing-a7f8b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:517034606151:android:d261bba802629335757b62",
+        "android_client_info": {
+          "package_name": "com.example.redsracing"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "517034606151-1deb2rodilt1og2oga7715qa5ke6u7cl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7k7xqJ20wRe6VcHVL4hVBFqTH-_f38WY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "517034606151-1deb2rodilt1og2oga7715qa5ke6u7cl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
