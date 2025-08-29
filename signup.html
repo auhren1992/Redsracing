@@ -144,16 +144,23 @@
         const errorBox = document.getElementById('error-box');
         const errorText = document.getElementById('error-text');
 
-        // Function to show error messages
-        function showError(message) {
+        // Function to show messages
+        function showMessage(message, isError = true) {
             errorText.textContent = message;
+            errorBox.className = isError
+                ? 'error-message p-4 rounded-md mb-4'
+                : 'bg-green-800 text-green-300 border-l-4 border-green-500 p-4 rounded-md mb-4';
             errorBox.classList.remove('hidden');
         }
 
         // Function to handle successful login
         function handleSuccess() {
-            // Redirect to the dashboard after successful login/signup
-            window.location.href = 'dashboard.html';
+            const user = auth.currentUser;
+            if (user && user.email && !user.emailVerified) {
+                window.location.href = 'check-email.html';
+            } else {
+                window.location.href = 'dashboard.html';
+            }
         }
 
         // Event listener for Sign In button
@@ -165,7 +172,7 @@
                     handleSuccess();
                 })
                 .catch((error) => {
-                    showError(error.message);
+                    showMessage(error.message);
                 });
         });
 
@@ -181,6 +188,7 @@
 
                 // 2. Send a verification email
                 await sendEmailVerification(userCredential.user);
+                showMessage('Verification email sent! Please check your inbox.', false);
 
                 // 3. Call the Firebase Function to process the role.
                 const processInvitationCode = httpsCallable(functions, 'processInvitationCode');
@@ -194,7 +202,7 @@
 
             } catch (error) {
                 // Handle errors from both user creation and the callable function.
-                showError(error.message);
+                showMessage(error.message);
             }
         });
 
@@ -206,7 +214,7 @@
                 await signInWithPopup(auth, googleProvider);
                 handleSuccess();
             } catch (error) {
-                showError(error.message);
+                showMessage(error.message);
             }
         });
     </script>
