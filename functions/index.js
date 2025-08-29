@@ -1,15 +1,16 @@
 const {onCall} = require("firebase-functions/v2/https");
+const {onRequest} = require("firebase-functions/v2/https");
 const {onObjectFinalized} = require("firebase-functions/v2/storage");
 const {initializeApp} = require("firebase-admin/app");
 const {getAuth} = require("firebase-admin/auth");
 const {getFirestore} = require("firebase-admin/firestore");
+const {getMessaging} = require("firebase-admin/messaging");
 const vision = require("@google-cloud/vision");
 const logger = require("firebase-functions/logger");
 
 initializeApp();
 const client = new vision.ImageAnnotatorClient();
 
-// The bucket name must be specified for v2 storage functions.
 const BUCKET_NAME = "redsracing-a7f8b.firebasestorage.app";
 
 exports.processInvitationCode = onCall(async (request) => {
@@ -134,5 +135,44 @@ exports.generateTags = onObjectFinalized({bucket: BUCKET_NAME}, async (event) =>
     logger.log("Successfully added tags and display name to document:", docRef.id);
   } catch (error) {
     logger.error("Error processing image:", error);
+  }
+});
+
+exports.sendNotification = onRequest(async (req, res) => {
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).send("Method Not Allowed");
+    }
+
+    const authHeader = req.headers.authorization || "";
+    const match = authHeader.match(/^Bearer (.*)$/);
+    if (!match) {
+      return res.status(401).send("Unauthorized");
+    }
+
+    const decoded = await getAuth().verifyIdToken(match[1]);
+    if (!decoded || decoded.role !== "admin") {
+      return res.status(403).send("Forbidden");
+    }
+
+    const { title, body } = req.body || {};
+    if (!title || !body) {
+      return res.status(400).send("Missing title or body in request");
+    }
+
+    const db = getFirestore();
+    const tokensSnapshot = await db.collection("fcmTokens").get();
+    if (tokensSnapshot.empty) {
+      return res.status(200).send("No tokens found.");
+    }
+
+    const tokens = tokensSnapshot.docs.map((d) => d.id);
+    const payload = { notification: { title, body } };
+
+    const response = await getMessaging().sendToDevice(tokens, payload);
+    return res.status(200).send({ success: true, message: `Notification sent to ${response.successCount} devices.` });
+  } catch (error) {
+    logger.error("sendNotification error:", error);
+    return res.status(500).send("Internal Server Error");
   }
 });
