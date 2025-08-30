@@ -1,11 +1,21 @@
 rules_version = '2';
 service cloud.firestore {
+
   match /databases/{database}/documents {
 
     // Helper function to check for team member role
     function isTeamMember() {
       return request.auth.token.role == 'team-member';
     }
+
+
+  // Helper function to check for team member role
+  function isTeamMember() {
+    return request.auth.token.role == 'team-member';
+  }
+
+  match /databases/{database}/documents {
+
 
     // Default deny all access unless explicitly allowed
     match /{document=**} {
