@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - RedsRacing #8</title>
+    <title>Sign Up - RedsRacing #8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -53,7 +53,7 @@
 
         <!-- Form Container -->
         <div class="form-container p-8 rounded-lg shadow-2xl">
-            <h2 class="text-2xl font-bold text-center text-white mb-6">Member Access</h2>
+            <h2 class="text-2xl font-bold text-center text-white mb-6">Create Your Account</h2>
             
             <!-- Error Message Display -->
             <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
@@ -70,10 +70,20 @@
                     <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
                     <input type="password" id="password" name="password" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm">
                 </div>
+
+                <div>
+                    <label for="display-name" class="block text-sm font-medium text-gray-300">Display Name</label>
+                    <input type="text" id="display-name" name="display-name" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" placeholder="This will be shown publicly">
+                </div>
+
+                <div>
+                    <label for="invitation-code" class="block text-sm font-medium text-gray-300">Invitation Code <span class="text-gray-400">(Optional)</span></label>
+                    <input type="text" id="invitation-code" name="invitation-code" class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" placeholder="Enter code for team access">
+                </div>
                 
                 <div class="flex flex-col space-y-4">
-                    <button type="button" id="signin-button" class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Sign In</button>
-                    <button type="button" id="signup-button" class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition duration-300">Sign Up</button>
+                    <button type="button" id="signup-button" class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Sign Up</button>
+                    <button type="button" id="signin-button" class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition duration-300">Sign In</button>
                 </div>
             </form>
 
@@ -96,7 +106,7 @@
             </div>
         </div>
         <p class="text-center text-gray-500 text-sm mt-6">
-            <a href="index.html" class="hover:text-gray-300 transition-colors">← Back to Main Site</a>
+            Already have an account? <a href="login.html" class="font-semibold neon-yellow hover:text-yellow-300">Sign in</a>.
         </p>
     </div>
 
@@ -106,10 +116,13 @@
         import { 
             getAuth, 
             createUserWithEmailAndPassword, 
+            sendEmailVerification,
             signInWithEmailAndPassword,
             GoogleAuthProvider,
-            signInWithPopup
+            signInWithPopup,
+            updateProfile
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 
         // Your web app's Firebase configuration from the main page
         const firebaseConfig = {
@@ -124,11 +137,14 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const functions = getFunctions(app);
         const googleProvider = new GoogleAuthProvider();
 
         // Get form elements
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
+        const displayNameInput = document.getElementById('display-name');
+        const invitationCodeInput = document.getElementById('invitation-code');
         const signinButton = document.getElementById('signin-button');
         const signupButton = document.getElementById('signup-button');
         const googleSigninButton = document.getElementById('google-signin-button');
@@ -143,8 +159,8 @@
 
         // Function to handle successful login
         function handleSuccess() {
-            // Redirect to the main page after successful login/signup
-            window.location.href = 'index.html';
+            // Redirect to the dashboard after successful login/signup
+            window.location.href = 'dashboard.html';
         }
 
         // Event listener for Sign In button
@@ -161,26 +177,59 @@
         });
 
         // Event listener for Sign Up button
-        signupButton.addEventListener('click', () => {
+        signupButton.addEventListener('click', async () => {
             const email = emailInput.value;
             const password = passwordInput.value;
-            createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    handleSuccess();
-                })
-                .catch((error) => {
-                    showError(error.message);
-                });
+            const displayName = displayNameInput.value.trim();
+            const invitationCode = invitationCodeInput.value.trim();
+
+            if (!displayName) {
+                showError("Please enter a Display Name.");
+                return;
+            }
+
+            try {
+                // 1. Create the user in Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // 2. Update the user's profile with their display name.
+                await updateProfile(user, { displayName: displayName });
+
+                // 3. Send a verification email
+                await sendEmailVerification(user);
+
+                // 4. Call the Firebase Function to process the invitation code (if provided).
+                if (invitationCode) {
+                    const processInvitationCode = httpsCallable(functions, 'processInvitationCode');
+                    await processInvitationCode({
+                        code: invitationCode,
+                        uid: user.uid
+                    });
+                }
+
+                // 5. Force a token refresh to get new custom claims if a role was assigned.
+                await user.getIdToken(true);
+
+                // 6. Redirect to the dashboard.
+                handleSuccess();
+
+            } catch (error) {
+                // Handle errors from user creation, profile update, or the callable function.
+                showError(error.message);
+            }
         });
 
         // Event listener for Google Sign In button
-        googleSigninButton.addEventListener('click', () => {
-            signInWithPopup(auth, googleProvider)
-                .then((result) => {
-                    handleSuccess();
-                }).catch((error) => {
-                    showError(error.message);
-                });
+        googleSigninButton.addEventListener('click', async () => {
+            try {
+                // We don't support invitation codes for Google Sign-in in this flow,
+                // so the user will be assigned the 'public-fan' role by default.
+                await signInWithPopup(auth, googleProvider);
+                handleSuccess();
+            } catch (error) {
+                showError(error.message);
+            }
         });
     </script>
 </body>

@@ -67,7 +67,10 @@
                     <input type="email" id="email" name="email" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm">
                 </div>
                 <div>
-                    <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
+                    <div class="flex justify-between items-center">
+                        <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
+                        <a href="#" id="forgot-password-link" class="text-sm text-slate-400 hover:text-neon-yellow">Forgot password?</a>
+                    </div>
                     <input type="password" id="password" name="password" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm">
                 </div>
                 
@@ -94,9 +97,33 @@
                     Sign in with Google
                 </button>
             </div>
+
+            <!-- Phone Sign-in Form -->
+            <div id="phone-auth-container" class="mt-6">
+                 <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-slate-600"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-slate-800 text-gray-400">Or sign in with phone</span>
+                    </div>
+                </div>
+                <div id="phone-form" class="space-y-4">
+                    <label for="phone-number" class="block text-sm font-medium text-gray-300">Phone Number</label>
+                    <input type="tel" id="phone-number" name="phone-number" class="form-input block w-full px-3 py-2 rounded-md" placeholder="+1 555-555-5555">
+                    <button type="button" id="send-code-button" class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition">Send Verification Code</button>
+                </div>
+
+                <div id="code-form" class="hidden space-y-4 mt-4">
+                    <label for="verification-code" class="block text-sm font-medium text-gray-300">Verification Code</label>
+                    <input type="text" id="verification-code" name="verification-code" class="form-input block w-full px-3 py-2 rounded-md" placeholder="Enter 6-digit code">
+                    <button type="button" id="verify-code-button" class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition">Verify and Sign In</button>
+                </div>
+                <div id="recaptcha-container" class="mt-4"></div>
+            </div>
         </div>
         <p class="text-center text-gray-500 text-sm mt-6">
-            <a href="index.html" class="hover:text-gray-300 transition-colors">← Back to Main Site</a>
+            Don't have an account? <a href="signup.html" class="font-semibold neon-yellow hover:text-yellow-300">Sign up</a>.
         </p>
     </div>
 
@@ -107,8 +134,13 @@
             getAuth, 
             createUserWithEmailAndPassword, 
             signInWithEmailAndPassword,
+            sendPasswordResetEmail,
             GoogleAuthProvider,
-            signInWithPopup
+            signInWithPopup,
+            RecaptchaVerifier,
+            signInWithPhoneNumber,
+            PhoneAuthProvider,
+            PhoneMultiFactorGenerator
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // Your web app's Firebase configuration from the main page
@@ -132,19 +164,29 @@
         const signinButton = document.getElementById('signin-button');
         const signupButton = document.getElementById('signup-button');
         const googleSigninButton = document.getElementById('google-signin-button');
+        const forgotPasswordLink = document.getElementById('forgot-password-link');
         const errorBox = document.getElementById('error-box');
+        const phoneForm = document.getElementById('phone-form');
+        const codeForm = document.getElementById('code-form');
+        const phoneNumberInput = document.getElementById('phone-number');
+        const sendCodeButton = document.getElementById('send-code-button');
+        const verificationCodeInput = document.getElementById('verification-code');
+        const verifyCodeButton = document.getElementById('verify-code-button');
         const errorText = document.getElementById('error-text');
 
         // Function to show error messages
-        function showError(message) {
+        function showMessage(message, isError = true) {
             errorText.textContent = message;
+            errorBox.className = isError
+                ? 'error-message p-4 rounded-md mb-4'
+                : 'bg-green-800 text-green-300 border-l-4 border-green-500 p-4 rounded-md mb-4';
             errorBox.classList.remove('hidden');
         }
 
         // Function to handle successful login
         function handleSuccess() {
             // Redirect to the main page after successful login/signup
-            window.location.href = 'index.html';
+            window.location.href = 'dashboard.html';
         }
 
         // Event listener for Sign In button
@@ -153,23 +195,105 @@
             const password = passwordInput.value;
             signInWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
+                    // Standard login successful
                     handleSuccess();
                 })
                 .catch((error) => {
-                    showError(error.message);
+                    if (error.code === 'auth/multi-factor-required') {
+                        // The user has MFA enabled.
+                        showMessage("2-Step Verification required. Sending code...", false);
+                        const resolver = error.resolver;
+                        const phoneInfoOptions = {
+                            multiFactorHint: resolver.hints[0],
+                            session: resolver.session
+                        };
+                        const phoneAuthProvider = new PhoneAuthProvider(auth);
+
+                        // Send the verification code
+                        phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, window.recaptchaVerifier)
+                            .then((verificationId) => {
+                                // Show the code input form
+                                document.getElementById('login-form').classList.add('hidden');
+                                document.getElementById('phone-auth-container').classList.remove('hidden');
+                                phoneForm.classList.add('hidden');
+                                codeForm.classList.remove('hidden');
+
+                                // Override the verify button's behavior for MFA
+                                verifyCodeButton.onclick = () => {
+                                    const cred = PhoneMultiFactorGenerator.credential({
+                                        verificationId: verificationId,
+                                        verificationCode: verificationCodeInput.value
+                                    });
+                                    resolver.resolveSignIn(cred)
+                                        .then((userCredential) => handleSuccess())
+                                        .catch((err) => showMessage("Invalid 2-step verification code."));
+                                };
+                            }).catch((err) => {
+                                showMessage("Could not send 2-step verification code. Please try again.");
+                            });
+                    } else {
+                        // Handle other errors like wrong password
+                        showMessage(error.message);
+                    }
                 });
         });
 
-        // Event listener for Sign Up button
+        // --- Phone Auth Logic ---
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'invisible',
+            'callback': (response) => {
+                // reCAPTCHA solved, allow signInWithPhoneNumber.
+            }
+        });
+
+        sendCodeButton.addEventListener('click', () => {
+            const phoneNumber = phoneNumberInput.value;
+            const appVerifier = window.recaptchaVerifier;
+            signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+                .then((confirmationResult) => {
+                    // SMS sent. Save confirmation result to resolve later.
+                    window.confirmationResult = confirmationResult;
+                    showMessage("Verification code sent!", false);
+                    phoneForm.classList.add('hidden');
+                    codeForm.classList.remove('hidden');
+                }).catch((error) => {
+                    // Error; SMS not sent
+                    showMessage(error.message);
+                    // Reset reCAPTCHA so user can try again
+                    grecaptcha.reset(window.recaptchaWidgetId);
+                });
+        });
+
+        verifyCodeButton.addEventListener('click', () => {
+            const code = verificationCodeInput.value;
+            window.confirmationResult.confirm(code).then((result) => {
+                // User signed in successfully.
+                handleSuccess();
+            }).catch((error) => {
+                // User couldn't sign in.
+                showMessage("Invalid verification code. Please try again.");
+            });
+        });
+
+        // Event listener for Sign Up button (redirects to signup page)
         signupButton.addEventListener('click', () => {
+            window.location.href = 'signup.html';
+        });
+
+        // Event listener for Forgot Password
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
             const email = emailInput.value;
-            const password = passwordInput.value;
-            createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    handleSuccess();
+            if (!email) {
+                showMessage("Please enter your email address above, then click 'Forgot password?'.");
+                return;
+            }
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    showMessage("Password reset email sent! Please check your inbox.", false);
                 })
                 .catch((error) => {
-                    showError(error.message);
+                    showMessage(error.message);
                 });
         });
 
@@ -179,7 +303,7 @@
                 .then((result) => {
                     handleSuccess();
                 }).catch((error) => {
-                    showError(error.message);
+                    showMessage(error.message);
                 });
         });
     </script>
