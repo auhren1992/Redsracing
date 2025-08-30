@@ -102,7 +102,7 @@ exports.generateTags = onObjectFinalized({bucket: BUCKET_NAME}, async (event) =>
   try {
     const [result] = await client.labelDetection(gcsUri);
     const labels = result.labelAnnotations.map((label) => label.description);
-
+    
     logger.log(`Labels for ${filePath}:`, labels);
 
     const pathParts = filePath.split("/");
@@ -126,8 +126,8 @@ exports.generateTags = onObjectFinalized({bucket: BUCKET_NAME}, async (event) =>
     }
 
     const docRef = snapshot.docs[0].ref;
-    await docRef.update({
-        tags: labels,
+    await docRef.update({ 
+        tags: labels, 
         uploaderDisplayName: uploaderDisplayName,
         approved: true,
     });
