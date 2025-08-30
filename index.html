@@ -368,11 +368,11 @@
                 if (user) {
                     authLink.textContent = 'Dashboard'; authLink.href = 'dashboard.html';
                     authLinkMobile.textContent = 'Dashboard'; authLinkMobile.href = 'dashboard.html';
-                    uploadContainer.style.display = 'block'; // Show upload form to logged-in users
+                    uploadContainer.style.display = 'block';
                 } else {
                     authLink.textContent = 'Driver Login'; authLink.href = 'login.html';
                     authLinkMobile.textContent = 'Driver Login'; authLinkMobile.href = 'login.html';
-                    uploadContainer.style.display = 'none'; // Hide form if not logged in
+                    uploadContainer.style.display = 'none';
                 }
             });
 
@@ -395,12 +395,10 @@
 
             uploadBtn.addEventListener('click', () => {
                 if (!selectedFile || !auth.currentUser) return;
-
                 uploadBtn.disabled = true;
                 uploadInput.disabled = true;
 
                 const userId = auth.currentUser.uid;
-                const userEmail = auth.currentUser.email;
                 const timestamp = Date.now();
                 const storageRef = ref(storage, `gallery/${userId}/${timestamp}-${selectedFile.name}`);
                 const uploadTask = uploadBytesResumable(storageRef, selectedFile);
@@ -414,7 +412,7 @@
                     (error) => {
                         console.error("Upload failed:", error);
                         uploadStatus.textContent = `Upload failed: ${error.message}`;
-                        uploadStatus.style.color = '#ef4444'; // Red
+                        uploadStatus.style.color = '#ef4444';
                         uploadBtn.disabled = false;
                         uploadInput.disabled = false;
                     },
@@ -422,20 +420,18 @@
                         uploadStatus.textContent = 'Processing...';
                         try {
                             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-
                             await addDoc(collection(db, "gallery_images"), {
                                 imageUrl: downloadURL,
                                 uploaderUid: userId,
-                                uploaderEmail: userEmail,
+                                uploaderEmail: auth.currentUser.email, // Kept for internal reference
                                 createdAt: serverTimestamp(),
-                                tags: [], // Tags will be added by the backend function
-                                approved: false // Admin approval step
+                                tags: [],
+                                approved: false
                             });
-
                             uploadStatus.textContent = 'Upload complete! Waiting for approval.';
-                            uploadStatus.style.color = '#22c55e'; // Green
+                            uploadStatus.style.color = '#22c55e';
                             selectedFile = null;
-                            uploadInput.value = ''; // Reset file input
+                            uploadInput.value = '';
                         } catch (error) {
                             console.error("Error creating Firestore entry:", error);
                             uploadStatus.textContent = 'Error saving file data.';
@@ -449,12 +445,10 @@
 
             // --- Dynamic Gallery Rendering ---
             const galleryContainer = document.getElementById('dynamic-gallery-container');
-
             const renderGallery = () => {
                 const q = query(collection(db, "gallery_images"), where("approved", "==", true), orderBy("createdAt", "desc"));
-
                 onSnapshot(q, (snapshot) => {
-                    galleryContainer.innerHTML = ''; // Clear existing gallery
+                    galleryContainer.innerHTML = '';
                     if (snapshot.empty) {
                         galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos yet. Be the first to upload one!</p>`;
                         return;
@@ -463,12 +457,10 @@
                         const image = doc.data();
                         const galleryItem = document.createElement('div');
                         galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
-
                         let tagsHTML = '';
                         if (image.tags && image.tags.length > 0) {
                             tagsHTML = image.tags.slice(0, 3).map(tag => `<span class="bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join(' ');
                         }
-
                         galleryItem.innerHTML = `
                             <img src="${image.imageUrl}" alt="User uploaded race photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                             <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
@@ -482,8 +474,7 @@
                     });
                 });
             };
-
-            renderGallery(); // Initial call to render the gallery
+            renderGallery();
             
             // --- Animate on Scroll ---
             ScrollReveal().reveal('.reveal-fade', { delay: 200, distance: '0px', opacity: 0, duration: 1000 });
@@ -491,119 +482,95 @@
             ScrollReveal().reveal('.reveal-left', { delay: 200, distance: '50px', origin: 'left', duration: 1000 });
             ScrollReveal().reveal('.reveal-right', { delay: 200, distance: '50px', origin: 'right', duration: 1000 });
 
-            // --- Animated Stats Counter ---
-            const statsSection = document.getElementById('stats');
-            let hasAnimated = false;
-            const observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && !hasAnimated) {
-                    hasAnimated = true;
-                    document.querySelectorAll('[data-target]').forEach(counter => {
-                        const target = +counter.dataset.target;
-                        let current = 0;
-                        const increment = Math.ceil(target / 100);
-                        const timer = setInterval(() => {
-                            current += increment;
-                            if (current >= target) {
-                                counter.textContent = target.toLocaleString();
-                                clearInterval(timer);
-                            } else {
-                                counter.textContent = Math.ceil(current).toLocaleString();
-                            }
-                        }, 20);
-                    });
-                    observer.unobserve(statsSection);
-                }
-            }, { threshold: 0.5 });
-            if (statsSection) observer.observe(statsSection);
-            
             // --- Race Schedule & Countdown ---
-            const raceData = {
-                superCups: [
-                    { date: '2025-04-26', name: 'Grundy County Speedway, IL', race: '#1' },
-                    { date: '2025-05-10', name: 'Dells Raceway Park, WI', race: '#2' },
-                    { date: '2025-05-26', name: 'Golden Sands Speedway, WI', race: '#3' },
-                    { date: '2025-06-07', name: 'Grundy County Speedway, IL', race: '#4' },
-                    { date: '2025-06-08', name: 'Slinger Speedway, WI', race: '#5' },
-                    { date: '2025-06-27', name: 'Tomah Speedway, WI', race: '#6' },
-                    { date: '2025-06-28', name: 'La Crosse Speedway, WI', race: '#7' },
-                    { date: '2025-07-13', name: 'Slinger Speedway, WI', race: '#8' },
-                    { date: '2025-07-26', name: 'Dells Raceway Park, WI', race: '#9' },
-                    { date: '2025-08-09', name: 'Blackhawk Farms, WI', race: '#10' },
-                    { date: '2025-08-31', name: 'Dells Raceway Park, WI', race: '#11' },
-                    { date: '2025-09-01', name: 'Golden Sands Speedway, WI', race: '#12' },
-                ],
-                specialEvents: [
-                    { date: '2025-08-08', name: 'Grundy County Speedway, IL', special: 'Jon Kirsch Birthday Race' }
-                ]
-            };
             const superCupsContainer = document.getElementById('super-cups-schedule');
             const specialEventsContainer = document.getElementById('special-events-schedule');
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const allRaces = [...raceData.superCups, ...raceData.specialEvents].sort((a,b) => new Date(a.date) - new Date(b.date));
-            
-            allRaces.forEach(race => {
-                const raceDate = new Date(race.date + 'T00:00:00');
-                const isPast = raceDate < today;
-                let cardClass = isPast ? 'past' : 'upcoming';
-                const formattedDate = raceDate.toLocaleString('en-US', { month: 'long', day: 'numeric' });
+            const qRaces = query(collection(db, "races"), orderBy("date", "asc"));
+            onSnapshot(qRaces, (snapshot) => {
+                superCupsContainer.innerHTML = '';
+                specialEventsContainer.innerHTML = '';
+                const allRaces = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                let recapHTML = '';
-                if (isPast && (race.results || race.summary)) {
-                    cardClass += ' cursor-pointer'; // Make past races with recaps clickable
-                    recapHTML = `
-                        <div class="race-recap hidden mt-4 pt-4 border-t border-slate-700">
-                            ${race.results ? `<p class="font-bold text-lg text-neon-yellow">Result: ${race.results}</p>` : ''}
-                            ${race.summary ? `<p class="text-slate-300 mt-2">${race.summary}</p>` : ''}
-                        </div>
-                    `;
-                }
+                allRaces.forEach(race => {
+                    const raceDate = new Date(race.date + 'T00:00:00');
+                    const isPast = raceDate < today;
+                    let cardClass = isPast ? 'past' : 'upcoming';
+                    const formattedDate = raceDate.toLocaleString('en-US', { month: 'long', day: 'numeric' });
 
-                const cardHTML = `
-                    <div class="schedule-card p-4 rounded-lg ${cardClass}" data-race-id="${race.id}">
-                        <div class="flex justify-between items-center">
-                            <div><p class="font-bold text-lg text-white">${race.name}</p><p class="text-sm text-slate-400">${race.special || `Race ${race.race}`}</p></div>
-                            <div class="font-semibold text-right text-slate-300">${formattedDate}</div>
-                        </div>
-                        ${recapHTML}
-                    </div>`;
+                    let recapHTML = '';
+                    if (isPast && (race.results || race.summary)) {
+                        cardClass += ' cursor-pointer';
+                        recapHTML = `
+                            <div class="race-recap hidden mt-4 pt-4 border-t border-slate-700">
+                                ${race.results ? `<p class="font-bold text-lg text-neon-yellow">Result: ${race.results}</p>` : ''}
+                                ${race.summary ? `<p class="text-slate-300 mt-2">${race.summary}</p>` : ''}
+                            </div>
+                        `;
+                    }
 
-                if (race.special && specialEventsContainer) specialEventsContainer.innerHTML += cardHTML;
-                else if (superCupsContainer) superCupsContainer.innerHTML += cardHTML;
-            });
+                    const cardHTML = `
+                        <div class="schedule-card p-4 rounded-lg ${cardClass}" data-race-id="${race.id}">
+                            <div class="flex justify-between items-center">
+                                <div><p class="font-bold text-lg text-white">${race.name}</p><p class="text-sm text-slate-400">${race.special || `Race ${race.race}`}</p></div>
+                                <div class="font-semibold text-right text-slate-300">${formattedDate}</div>
+                            </div>
+                            ${recapHTML}
+                        </div>`;
 
-            // Add click listeners for recap cards
-            document.querySelectorAll('.schedule-card.past').forEach(card => {
-                card.addEventListener('click', () => {
-                    const recap = card.querySelector('.race-recap');
-                    if (recap) {
-                        recap.classList.toggle('hidden');
+                    if (race.type === 'specialEvent') {
+                        specialEventsContainer.innerHTML += cardHTML;
+                    } else {
+                        superCupsContainer.innerHTML += cardHTML;
                     }
                 });
-            });
 
-            const nextRace = allRaces.find(race => new Date(race.date + 'T00:00:00') >= today);
-            if (nextRace) {
-                document.getElementById('next-race-name').textContent = nextRace.name;
-                const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
-                const countdownInterval = setInterval(() => {
-                    const now = new Date().getTime();
-                    const distance = nextRaceDate - now;
-                    if (distance < 0) {
-                        clearInterval(countdownInterval);
-                        document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-3xl font-racing neon-yellow'>RACE DAY!</div>";
-                        return;
+                document.querySelectorAll('.schedule-card.past').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const recap = card.querySelector('.race-recap');
+                        if (recap) recap.classList.toggle('hidden');
+                    });
+                });
+
+                const nextRace = allRaces.find(race => new Date(race.date + 'T00:00:00') >= today);
+                if (nextRace) {
+                    document.getElementById('next-race-name').textContent = nextRace.name;
+                    const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
+                    const countdownInterval = setInterval(() => {
+                        const now = new Date().getTime();
+                        const distance = nextRaceDate - now;
+                        if (distance < 0) {
+                            clearInterval(countdownInterval);
+                            document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-3xl font-racing neon-yellow'>RACE DAY!</div>";
+                            return;
+                        }
+                        document.getElementById('days').textContent = Math.floor(distance / (1000 * 60 * 60 * 24));
+                        document.getElementById('hours').textContent = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        document.getElementById('minutes').textContent = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        document.getElementById('seconds').textContent = Math.floor((distance % (1000 * 60)) / 1000);
+                    }, 1000);
+                } else {
+                    document.getElementById('next-race-name').textContent = "Season Complete!";
+                    document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-2xl font-racing'>Thanks for a great season!</div>";
+                }
+
+                const isRaceDay = allRaces.some(race => race.date === today.toISOString().split('T')[0]);
+                if (isRaceDay) {
+                    const liveBanner = document.getElementById('live-banner');
+                    const header = document.querySelector('header');
+                    const liveTimingLink = document.getElementById('live-timing-link');
+                    const raceOfTheDay = allRaces.find(race => race.date === today.toISOString().split('T')[0]);
+                    if(raceOfTheDay && raceOfTheDay.liveTimingLink) {
+                        liveTimingLink.href = raceOfTheDay.liveTimingLink;
+                    } else {
+                        liveTimingLink.href = '#schedule';
                     }
-                    document.getElementById('days').textContent = Math.floor(distance / (1000 * 60 * 60 * 24));
-                    document.getElementById('hours').textContent = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    document.getElementById('minutes').textContent = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                    document.getElementById('seconds').textContent = Math.floor((distance % (1000 * 60)) / 1000);
-                }, 1000);
-            } else {
-                document.getElementById('next-race-name').textContent = "Season Complete!";
-                document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-2xl font-racing'>Thanks for a great season!</div>";
-            }
+                    liveBanner.classList.remove('hidden');
+                    header.style.top = `${liveBanner.offsetHeight}px`;
+                }
+            });
 
             // --- Subscription Form ---
             const subscribeForm = document.getElementById('subscribe-form');
@@ -629,39 +596,6 @@
                 });
             }
 
-            // --- Swiper Galleries ---
-            document.querySelectorAll('.gallery-item .swiper').forEach(el => {
-                new Swiper(el, {
-                    loop: true, effect: 'fade', fadeEffect: { crossFade: true },
-                    pagination: { el: el.querySelector('.swiper-pagination'), clickable: true },
-                    navigation: { nextEl: el.querySelector('.swiper-button-next'), prevEl: el.querySelector('.swiper-button-prev') },
-                });
-            });
-
-            // --- Live Race Day Banner ---
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Normalize to midnight for date comparison
-            const todayString = today.toISOString().split('T')[0];
-
-            const isRaceDay = allRaces.some(race => race.date === todayString);
-
-            if (isRaceDay) {
-                const liveBanner = document.getElementById('live-banner');
-                const header = document.querySelector('header');
-                const liveTimingLink = document.getElementById('live-timing-link');
-
-                // You can update this link in your race data in the future
-                const raceOfTheDay = allRaces.find(race => race.date === todayString);
-                if(raceOfTheDay && raceOfTheDay.liveTimingLink) {
-                    liveTimingLink.href = raceOfTheDay.liveTimingLink;
-                } else {
-                    liveTimingLink.href = '#schedule'; // Fallback link
-                }
-
-                liveBanner.classList.remove('hidden');
-                header.style.top = `${liveBanner.offsetHeight}px`;
-            }
-
             // --- Fan Q&A Logic ---
             const qnaContainer = document.getElementById('qna-container');
             const qnaFormContainer = document.getElementById('qna-form-container');
@@ -669,7 +603,6 @@
             const qnaQuestionInput = document.getElementById('qna-question');
             const qnaFormStatus = document.getElementById('qna-form-status');
 
-            // Show Q&A form to logged-in users
             onAuthStateChanged(auth, user => {
                 if (user) {
                     qnaFormContainer.style.display = 'block';
@@ -678,7 +611,6 @@
                 }
             });
 
-            // Handle Q&A form submission
             if (qnaForm) {
                 qnaForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
@@ -694,7 +626,7 @@
                     try {
                         await addDoc(collection(db, "qna_submissions"), {
                             question: questionText,
-                            status: 'submitted', // initial status
+                            status: 'submitted',
                             submitterUid: user.uid,
                             submitterName: user.displayName || 'Anonymous',
                             submittedAt: serverTimestamp()
@@ -711,7 +643,6 @@
                 });
             }
 
-            // Render published Q&As
             const renderQAs = () => {
                 const q = query(collection(db, "qna_submissions"), where("status", "==", "published"), orderBy("answeredAt", "desc"));
                 onSnapshot(q, (snapshot) => {
@@ -742,3 +673,6 @@
     </script>
 </body>
 </html>
+```""",
+    continue_working=True
+)

@@ -119,7 +119,8 @@
             sendEmailVerification,
             signInWithEmailAndPassword,
             GoogleAuthProvider,
-            signInWithPopup
+            signInWithPopup,
+            updateProfile
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 
@@ -190,25 +191,31 @@
             try {
                 // 1. Create the user in Firebase Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
 
-                // 2. Send a verification email
-                await sendEmailVerification(userCredential.user);
+                // 2. Update the user's profile with their display name.
+                await updateProfile(user, { displayName: displayName });
 
-                // 3. Call the Firebase Function to process the role and display name.
-                const processInvitationCode = httpsCallable(functions, 'processInvitationCode');
-                await processInvitationCode({
-                    invitationCode: invitationCode,
-                    displayName: displayName
-                });
+                // 3. Send a verification email
+                await sendEmailVerification(user);
 
-                // 4. Force a token refresh to get the new custom claim on the client.
-                await auth.currentUser.getIdToken(true);
+                // 4. Call the Firebase Function to process the invitation code (if provided).
+                if (invitationCode) {
+                    const processInvitationCode = httpsCallable(functions, 'processInvitationCode');
+                    await processInvitationCode({
+                        code: invitationCode,
+                        uid: user.uid
+                    });
+                }
 
-                // 5. Redirect to the dashboard.
+                // 5. Force a token refresh to get new custom claims if a role was assigned.
+                await user.getIdToken(true);
+
+                // 6. Redirect to the dashboard.
                 handleSuccess();
 
             } catch (error) {
-                // Handle errors from both user creation and the callable function.
+                // Handle errors from user creation, profile update, or the callable function.
                 showError(error.message);
             }
         });
