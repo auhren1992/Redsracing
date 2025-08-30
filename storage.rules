@@ -2,7 +2,6 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-
     // Match files within a user-specific folder in the gallery.
     // This allows us to secure uploads on a per-user basis.
     match /gallery/{userId}/{imageId} {
@@ -18,17 +17,7 @@ service firebase.storage {
       allow write: if request.auth != null &&
                       request.auth.uid == userId &&
                       request.resource.size < 5 * 1024 * 1024 &&
-    // Match any file in the 'gallery' folder
-    match /gallery/{imageId} {
-      // Allow anyone to read images.
-      allow read;
-
-      // Only allow authenticated users to write (upload).
-      allow write: if request.auth != null &&
-                      // Enforce a maximum file size of 5MB.
-                      request.resource.size < 5 * 1024 * 1024 &&
-                      // Enforce that the uploaded file is an image.
->                      request.resource.contentType.matches('image/.*');
+                      request.resource.contentType.matches('image/.*');
     }
   }
 }

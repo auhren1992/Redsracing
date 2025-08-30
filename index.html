@@ -219,7 +219,7 @@
         <section id="gallery" class="py-24 md:py-32 bg-black/20">
             <div class="container mx-auto px-6">
                 <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Action <span class="neon-yellow">Shots</span></h2>
-                
+
                 <!-- Upload Form -->
                 <div id="upload-container" class="max-w-xl mx-auto bg-slate-800/50 p-6 rounded-lg mb-12" style="display: none;">
                     <h3 class="font-racing text-2xl text-white uppercase mb-4">Share Your <span class="neon-yellow">Race Photos</span></h3>
@@ -281,7 +281,7 @@
         <section id="qna" class="py-24 md:py-32 bg-black/20">
             <div class="container mx-auto px-6">
                 <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Fan <span class="neon-yellow">Q&A</span></h2>
-                
+
                 <div id="qna-container" class="space-y-8 max-w-4xl mx-auto">
                     <!-- Q&A items will be dynamically inserted here -->
                 </div>
@@ -397,25 +397,25 @@
                 if (!selectedFile || !auth.currentUser) return;
                 uploadBtn.disabled = true;
                 uploadInput.disabled = true;
-                
+
                 const userId = auth.currentUser.uid;
                 const timestamp = Date.now();
                 const storageRef = ref(storage, `gallery/${userId}/${timestamp}-${selectedFile.name}`);
                 const uploadTask = uploadBytesResumable(storageRef, selectedFile);
 
-                uploadTask.on('state_changed', 
+                uploadTask.on('state_changed',
                     (snapshot) => {
                         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                         progressBar.style.width = progress + '%';
                         uploadStatus.textContent = `Uploading... ${Math.round(progress)}%`;
-                    }, 
+                    },
                     (error) => {
                         console.error("Upload failed:", error);
                         uploadStatus.textContent = `Upload failed: ${error.message}`;
                         uploadStatus.style.color = '#ef4444';
                         uploadBtn.disabled = false;
                         uploadInput.disabled = false;
-                    }, 
+                    },
                     async () => {
                         uploadStatus.textContent = 'Processing...';
                         try {
@@ -499,7 +499,7 @@
                     const isPast = raceDate < today;
                     let cardClass = isPast ? 'past' : 'upcoming';
                     const formattedDate = raceDate.toLocaleString('en-US', { month: 'long', day: 'numeric' });
-                    
+
                     let recapHTML = '';
                     if (isPast && (race.results || race.summary)) {
                         cardClass += ' cursor-pointer';
