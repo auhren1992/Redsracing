@@ -54,7 +54,7 @@
         <!-- Form Container -->
         <div class="form-container p-8 rounded-lg shadow-2xl">
             <h2 class="text-2xl font-bold text-center text-white mb-6">Member Access</h2>
-
+            
             <!-- Error Message Display -->
             <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
                 <p id="error-text"></p>
@@ -73,7 +73,7 @@
                     </div>
                     <input type="password" id="password" name="password" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm">
                 </div>
-
+                
                 <div class="flex flex-col space-y-4">
                     <button type="button" id="signin-button" class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Sign In</button>
                     <button type="button" id="signup-button" class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition duration-300">Sign Up</button>
@@ -130,9 +130,9 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import {
-            getAuth,
-            createUserWithEmailAndPassword,
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
             signInWithEmailAndPassword,
             sendPasswordResetEmail,
             GoogleAuthProvider,
@@ -177,20 +177,16 @@
         // Function to show error messages
         function showMessage(message, isError = true) {
             errorText.textContent = message;
-            errorBox.className = isError
-                ? 'error-message p-4 rounded-md mb-4'
+            errorBox.className = isError 
+                ? 'error-message p-4 rounded-md mb-4' 
                 : 'bg-green-800 text-green-300 border-l-4 border-green-500 p-4 rounded-md mb-4';
             errorBox.classList.remove('hidden');
         }
 
         // Function to handle successful login
         function handleSuccess() {
-            const user = auth.currentUser;
-            if (user && user.email && !user.emailVerified) {
-                window.location.href = 'check-email.html';
-            } else {
-                window.location.href = 'dashboard.html';
-            }
+            // Redirect to the main page after successful login/signup
+            window.location.href = 'dashboard.html';
         }
 
         // Event listener for Sign In button
@@ -212,7 +208,7 @@
                             session: resolver.session
                         };
                         const phoneAuthProvider = new PhoneAuthProvider(auth);
-
+                        
                         // Send the verification code
                         phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, window.recaptchaVerifier)
                             .then((verificationId) => {
@@ -221,7 +217,7 @@
                                 document.getElementById('phone-auth-container').classList.remove('hidden');
                                 phoneForm.classList.add('hidden');
                                 codeForm.classList.remove('hidden');
-
+                                
                                 // Override the verify button's behavior for MFA
                                 verifyCodeButton.onclick = () => {
                                     const cred = PhoneMultiFactorGenerator.credential({
@@ -249,10 +245,6 @@
                 // reCAPTCHA solved, allow signInWithPhoneNumber.
             }
         });
-        window.recaptchaVerifier.render().then((widgetId) => {
-            window.recaptchaWidgetId = widgetId;
-        });
-
 
         sendCodeButton.addEventListener('click', () => {
             const phoneNumber = phoneNumberInput.value;

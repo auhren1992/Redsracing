@@ -104,8 +104,13 @@
     </style>
 </head>
 <body>
+    <div id="live-banner" class="hidden bg-neon-yellow text-slate-900 font-bold text-center p-3 fixed top-0 w-full z-50">
+        <a href="#" id="live-timing-link" target="_blank" class="hover:underline">
+            🏁 IT'S RACE DAY! Click here for Live Timing & Updates! 🏁
+        </a>
+    </div>
 
-    <header class="bg-black/30 backdrop-blur-md fixed w-full top-0 z-50 border-b border-slate-700/50">
+    <header class="bg-black/30 backdrop-blur-md fixed w-full top-0 z-50 border-b border-slate-700/50" style="top: 0;">
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
             <a href="#" class="text-4xl font-racing uppercase tracking-wider">
                 <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
@@ -265,10 +270,32 @@
             <div class="container mx-auto px-6">
                 <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Latest From <span class="neon-yellow">TikTok</span></h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7527470903773367582" data-video-id="7527470903773367582" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>🏁 Ready to hit the track! Our #8 American Super Cup car is looking mean and ready for race day. 🔥 Catch all the action and join the Red&#39;s Racing family! #RedsRacing #AmericanSuperCup #RaceCar #Motorsport #TrackDay #Speed #Racing #CarTok #SundayFunday #WeekendVibes</p> <a target="_blank" title="♬ original sound  - Reds Racing" href="https://www.tiktok.com/music/original-sound-Reds-Racing-7527476054991080222?refer=embed">♬ original sound  - Reds Racing</a> </section> </blockquote>
+                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7527470903773367582" data-video-id="7527470903773367582" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>🏁 Ready to hit the track! Our #8 American Super Cup car is looking mean and ready for race day. 🔥 Catch all the action and join the Red&#39;s Racing family! #RedsRacing #AmericanSuperCup #RaceCar #Motorsport #TrackDay #Speed #Racing #CarTok #SundayFunday #WeekendVibes</p> <a target="_blank" title="♬ original sound  - Reds Racing" href="https://www.tiktok.com/music/original-sound-Reds-Racing-7527476054991080222?refer=embed">♬ original sound  - Reds Racing</a> </section> </blockquote>
                     <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Working late in the garage.</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
                     <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Podium finish!</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
                     <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Behind the scenes in the pits.</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
+                </div>
+            </div>
+        </section>
+
+        <section id="qna" class="py-24 md:py-32 bg-black/20">
+            <div class="container mx-auto px-6">
+                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Fan <span class="neon-yellow">Q&A</span></h2>
+                
+                <div id="qna-container" class="space-y-8 max-w-4xl mx-auto">
+                    <!-- Q&A items will be dynamically inserted here -->
+                </div>
+
+                <div id="qna-form-container" class="max-w-4xl mx-auto mt-16" style="display: none;">
+                    <h3 class="font-racing text-3xl text-white uppercase mb-4 text-center">Ask a <span class="neon-yellow">Question</span></h3>
+                    <form id="qna-form" class="card p-8 space-y-4">
+                        <div>
+                            <label for="qna-question" class="block text-sm font-medium text-gray-300">Your Question</label>
+                            <textarea id="qna-question" rows="4" required class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="What do you want to know?"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Submit Question</button>
+                        <p id="qna-form-status" class="text-sm text-slate-500 mt-2 h-4"></p>
+                    </form>
                 </div>
             </div>
         </section>
@@ -279,7 +306,7 @@
                 <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-8 items-center">
                     <div class="sponsor-logo p-4 rounded-lg reveal-up"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=OK1+Automotive" alt="OK1 Automotive Technology" loading="lazy" width="300" height="150"></div>
                     <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="100"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=StepUp+Construction" alt="StepUp Construction" loading="lazy" width="300" height="150"></div>
-                    <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="200"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=Paul+Ries+%26+Sons" alt="Paul Ries and Sons Chicago" loading="lazy" width="300" height="150"></div>
+                    <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="200"><img src="https://i.imgur.com/h6p6QLs.png" alt="Paul Ries and Sons Chicago" loading="lazy" width="300" height="150"></div>
                 </div>
             </div>
         </section>
@@ -319,7 +346,7 @@
               apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
               authDomain: "redsracing-a7f8b.firebaseapp.com",
               projectId: "redsracing-a7f8b",
-              storageBucket: "redsracing-a7f8b.appspot.com",
+              storageBucket: "redsracing-a7f8b.firebasestorage.app",
               messagingSenderId: "517034606151",
               appId: "1:517034606151:web:24cae262e1d98832757b62"
             };
@@ -341,11 +368,11 @@
                 if (user) {
                     authLink.textContent = 'Dashboard'; authLink.href = 'dashboard.html';
                     authLinkMobile.textContent = 'Dashboard'; authLinkMobile.href = 'dashboard.html';
-                    uploadContainer.style.display = 'block'; // Show upload form to logged-in users
+                    uploadContainer.style.display = 'block';
                 } else {
                     authLink.textContent = 'Driver Login'; authLink.href = 'login.html';
                     authLinkMobile.textContent = 'Driver Login'; authLinkMobile.href = 'login.html';
-                    uploadContainer.style.display = 'none'; // Hide form if not logged in
+                    uploadContainer.style.display = 'none';
                 }
             });
 
@@ -368,12 +395,10 @@
 
             uploadBtn.addEventListener('click', () => {
                 if (!selectedFile || !auth.currentUser) return;
-
                 uploadBtn.disabled = true;
                 uploadInput.disabled = true;
                 
                 const userId = auth.currentUser.uid;
-                const userEmail = auth.currentUser.email;
                 const timestamp = Date.now();
                 const storageRef = ref(storage, `gallery/${userId}/${timestamp}-${selectedFile.name}`);
                 const uploadTask = uploadBytesResumable(storageRef, selectedFile);
@@ -387,7 +412,7 @@
                     (error) => {
                         console.error("Upload failed:", error);
                         uploadStatus.textContent = `Upload failed: ${error.message}`;
-                        uploadStatus.style.color = '#ef4444'; // Red
+                        uploadStatus.style.color = '#ef4444';
                         uploadBtn.disabled = false;
                         uploadInput.disabled = false;
                     }, 
@@ -395,20 +420,18 @@
                         uploadStatus.textContent = 'Processing...';
                         try {
                             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                            
                             await addDoc(collection(db, "gallery_images"), {
                                 imageUrl: downloadURL,
                                 uploaderUid: userId,
-                                uploaderEmail: userEmail,
+                                uploaderEmail: auth.currentUser.email, // Kept for internal reference
                                 createdAt: serverTimestamp(),
-                                tags: [], // Tags will be added by the backend function
-                                approved: false // Admin approval step
+                                tags: [],
+                                approved: false
                             });
-
                             uploadStatus.textContent = 'Upload complete! Waiting for approval.';
-                            uploadStatus.style.color = '#22c55e'; // Green
+                            uploadStatus.style.color = '#22c55e';
                             selectedFile = null;
-                            uploadInput.value = ''; // Reset file input
+                            uploadInput.value = '';
                         } catch (error) {
                             console.error("Error creating Firestore entry:", error);
                             uploadStatus.textContent = 'Error saving file data.';
@@ -422,12 +445,10 @@
 
             // --- Dynamic Gallery Rendering ---
             const galleryContainer = document.getElementById('dynamic-gallery-container');
-
             const renderGallery = () => {
                 const q = query(collection(db, "gallery_images"), where("approved", "==", true), orderBy("createdAt", "desc"));
-                
                 onSnapshot(q, (snapshot) => {
-                    galleryContainer.innerHTML = ''; // Clear existing gallery
+                    galleryContainer.innerHTML = '';
                     if (snapshot.empty) {
                         galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos yet. Be the first to upload one!</p>`;
                         return;
@@ -436,16 +457,14 @@
                         const image = doc.data();
                         const galleryItem = document.createElement('div');
                         galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
-                        
                         let tagsHTML = '';
                         if (image.tags && image.tags.length > 0) {
                             tagsHTML = image.tags.slice(0, 3).map(tag => `<span class="bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join(' ');
                         }
-
                         galleryItem.innerHTML = `
                             <img src="${image.imageUrl}" alt="User uploaded race photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                             <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                                <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderEmail}</p>
+                                <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderDisplayName || 'Anonymous'}</p>
                                 <div class="mt-2">
                                     ${tagsHTML}
                                 </div>
@@ -455,8 +474,7 @@
                     });
                 });
             };
-
-            renderGallery(); // Initial call to render the gallery
+            renderGallery();
             
             // --- Animate on Scroll ---
             ScrollReveal().reveal('.reveal-fade', { delay: 200, distance: '0px', opacity: 0, duration: 1000 });
@@ -464,93 +482,95 @@
             ScrollReveal().reveal('.reveal-left', { delay: 200, distance: '50px', origin: 'left', duration: 1000 });
             ScrollReveal().reveal('.reveal-right', { delay: 200, distance: '50px', origin: 'right', duration: 1000 });
 
-            // --- Animated Stats Counter ---
-            const statsSection = document.getElementById('stats');
-            let hasAnimated = false;
-            const observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && !hasAnimated) {
-                    hasAnimated = true;
-                    document.querySelectorAll('[data-target]').forEach(counter => {
-                        const target = +counter.dataset.target;
-                        let current = 0;
-                        const increment = Math.ceil(target / 100);
-                        const timer = setInterval(() => {
-                            current += increment;
-                            if (current >= target) {
-                                counter.textContent = target.toLocaleString();
-                                clearInterval(timer);
-                            } else {
-                                counter.textContent = Math.ceil(current).toLocaleString();
-                            }
-                        }, 20);
-                    });
-                    observer.unobserve(statsSection);
-                }
-            }, { threshold: 0.5 });
-            if (statsSection) observer.observe(statsSection);
-            
             // --- Race Schedule & Countdown ---
-            const raceData = {
-                superCups: [
-                    { date: '2025-04-26', name: 'Grundy County Speedway, IL', race: '#1' },
-                    { date: '2025-05-10', name: 'Dells Raceway Park, WI', race: '#2' },
-                    { date: '2025-05-26', name: 'Golden Sands Speedway, WI', race: '#3' },
-                    { date: '2025-06-07', name: 'Grundy County Speedway, IL', race: '#4' },
-                    { date: '2025-06-08', name: 'Slinger Speedway, WI', race: '#5' },
-                    { date: '2025-06-27', name: 'Tomah Speedway, WI', race: '#6' },
-                    { date: '2025-06-28', name: 'La Crosse Speedway, WI', race: '#7' },
-                    { date: '2025-07-13', name: 'Slinger Speedway, WI', race: '#8' },
-                    { date: '2025-07-26', name: 'Dells Raceway Park, WI', race: '#9' },
-                    { date: '2025-08-09', name: 'Blackhawk Farms, WI', race: '#10' },
-                    { date: '2025-08-31', name: 'Dells Raceway Park, WI', race: '#11' },
-                    { date: '2025-09-01', name: 'Golden Sands Speedway, WI', race: '#12' },
-                ],
-                specialEvents: [
-                    { date: '2025-08-08', name: 'Grundy County Speedway, IL', special: 'Jon Kirsch Birthday Race' }
-                ]
-            };
             const superCupsContainer = document.getElementById('super-cups-schedule');
             const specialEventsContainer = document.getElementById('special-events-schedule');
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const allRaces = [...raceData.superCups, ...raceData.specialEvents].sort((a,b) => new Date(a.date) - new Date(b.date));
-            
-            allRaces.forEach(race => {
-                const raceDate = new Date(race.date + 'T00:00:00');
-                const isPast = raceDate < today;
-                const cardClass = isPast ? 'past' : 'upcoming';
-                const formattedDate = raceDate.toLocaleString('en-US', { month: 'long', day: 'numeric' });
-                const cardHTML = `
-                    <div class="schedule-card p-4 rounded-lg flex justify-between items-center ${cardClass}">
-                        <div><p class="font-bold text-lg text-white">${race.name}</p><p class="text-sm text-slate-400">${race.special || `Race ${race.race}`}</p></div>
-                        <div class="font-semibold text-right text-slate-300">${formattedDate}</div>
-                    </div>`;
-                if (race.special && specialEventsContainer) specialEventsContainer.innerHTML += cardHTML;
-                else if (superCupsContainer) superCupsContainer.innerHTML += cardHTML;
-            });
+            const qRaces = query(collection(db, "races"), orderBy("date", "asc"));
+            onSnapshot(qRaces, (snapshot) => {
+                superCupsContainer.innerHTML = '';
+                specialEventsContainer.innerHTML = '';
+                const allRaces = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            const nextRace = allRaces.find(race => new Date(race.date + 'T00:00:00') >= today);
-            if (nextRace) {
-                document.getElementById('next-race-name').textContent = nextRace.name;
-                const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
-                const countdownInterval = setInterval(() => {
-                    const now = new Date().getTime();
-                    const distance = nextRaceDate - now;
-                    if (distance < 0) {
-                        clearInterval(countdownInterval);
-                        document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-3xl font-racing neon-yellow'>RACE DAY!</div>";
-                        return;
+                allRaces.forEach(race => {
+                    const raceDate = new Date(race.date + 'T00:00:00');
+                    const isPast = raceDate < today;
+                    let cardClass = isPast ? 'past' : 'upcoming';
+                    const formattedDate = raceDate.toLocaleString('en-US', { month: 'long', day: 'numeric' });
+                    
+                    let recapHTML = '';
+                    if (isPast && (race.results || race.summary)) {
+                        cardClass += ' cursor-pointer';
+                        recapHTML = `
+                            <div class="race-recap hidden mt-4 pt-4 border-t border-slate-700">
+                                ${race.results ? `<p class="font-bold text-lg text-neon-yellow">Result: ${race.results}</p>` : ''}
+                                ${race.summary ? `<p class="text-slate-300 mt-2">${race.summary}</p>` : ''}
+                            </div>
+                        `;
                     }
-                    document.getElementById('days').textContent = Math.floor(distance / (1000 * 60 * 60 * 24));
-                    document.getElementById('hours').textContent = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    document.getElementById('minutes').textContent = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                    document.getElementById('seconds').textContent = Math.floor((distance % (1000 * 60)) / 1000);
-                }, 1000);
-            } else {
-                document.getElementById('next-race-name').textContent = "Season Complete!";
-                document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-2xl font-racing'>Thanks for a great season!</div>";
-            }
+
+                    const cardHTML = `
+                        <div class="schedule-card p-4 rounded-lg ${cardClass}" data-race-id="${race.id}">
+                            <div class="flex justify-between items-center">
+                                <div><p class="font-bold text-lg text-white">${race.name}</p><p class="text-sm text-slate-400">${race.special || `Race ${race.race}`}</p></div>
+                                <div class="font-semibold text-right text-slate-300">${formattedDate}</div>
+                            </div>
+                            ${recapHTML}
+                        </div>`;
+
+                    if (race.type === 'specialEvent') {
+                        specialEventsContainer.innerHTML += cardHTML;
+                    } else {
+                        superCupsContainer.innerHTML += cardHTML;
+                    }
+                });
+
+                document.querySelectorAll('.schedule-card.past').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const recap = card.querySelector('.race-recap');
+                        if (recap) recap.classList.toggle('hidden');
+                    });
+                });
+
+                const nextRace = allRaces.find(race => new Date(race.date + 'T00:00:00') >= today);
+                if (nextRace) {
+                    document.getElementById('next-race-name').textContent = nextRace.name;
+                    const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
+                    const countdownInterval = setInterval(() => {
+                        const now = new Date().getTime();
+                        const distance = nextRaceDate - now;
+                        if (distance < 0) {
+                            clearInterval(countdownInterval);
+                            document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-3xl font-racing neon-yellow'>RACE DAY!</div>";
+                            return;
+                        }
+                        document.getElementById('days').textContent = Math.floor(distance / (1000 * 60 * 60 * 24));
+                        document.getElementById('hours').textContent = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        document.getElementById('minutes').textContent = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        document.getElementById('seconds').textContent = Math.floor((distance % (1000 * 60)) / 1000);
+                    }, 1000);
+                } else {
+                    document.getElementById('next-race-name').textContent = "Season Complete!";
+                    document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-2xl font-racing'>Thanks for a great season!</div>";
+                }
+
+                const isRaceDay = allRaces.some(race => race.date === today.toISOString().split('T')[0]);
+                if (isRaceDay) {
+                    const liveBanner = document.getElementById('live-banner');
+                    const header = document.querySelector('header');
+                    const liveTimingLink = document.getElementById('live-timing-link');
+                    const raceOfTheDay = allRaces.find(race => race.date === today.toISOString().split('T')[0]);
+                    if(raceOfTheDay && raceOfTheDay.liveTimingLink) {
+                        liveTimingLink.href = raceOfTheDay.liveTimingLink;
+                    } else {
+                        liveTimingLink.href = '#schedule';
+                    }
+                    liveBanner.classList.remove('hidden');
+                    header.style.top = `${liveBanner.offsetHeight}px`;
+                }
+            });
 
             // --- Subscription Form ---
             const subscribeForm = document.getElementById('subscribe-form');
@@ -562,35 +582,90 @@
                     const email = subscribeEmail.value.trim();
                     if (!email) return;
 
-                    const q = query(collection(db, "subscribers"), where("email", "==", email));
-                    const querySnapshot = await getDocs(q);
-
-                    if (!querySnapshot.empty) {
-                        subscribeMessage.textContent = 'This email is already subscribed.';
-                        subscribeMessage.style.color = '#facc15';
-                    } else {
-                        try {
-                            await addDoc(collection(db, "subscribers"), { email: email, subscribedAt: new Date() });
-                            subscribeMessage.textContent = 'Success! You are subscribed.';
-                            subscribeMessage.style.color = '#22c55e';
-                            subscribeEmail.value = '';
-                        } catch (error) {
-                            subscribeMessage.textContent = 'Subscription failed. Please try again.';
-                            subscribeMessage.style.color = '#ef4444';
-                        }
+                    try {
+                        await addDoc(collection(db, "subscribers"), { email: email, subscribedAt: new Date() });
+                        subscribeMessage.textContent = 'Success! You are subscribed.';
+                        subscribeMessage.style.color = '#22c55e';
+                        subscribeEmail.value = '';
+                    } catch (error) {
+                        console.error("Subscription error:", error);
+                        subscribeMessage.textContent = 'Subscription failed. Please try again.';
+                        subscribeMessage.style.color = '#ef4444';
                     }
                     setTimeout(() => { subscribeMessage.textContent = ''; }, 5000);
                 });
             }
 
-            // --- Swiper Galleries ---
-            document.querySelectorAll('.gallery-item .swiper').forEach(el => {
-                new Swiper(el, {
-                    loop: true, effect: 'fade', fadeEffect: { crossFade: true },
-                    pagination: { el: el.querySelector('.swiper-pagination'), clickable: true },
-                    navigation: { nextEl: el.querySelector('.swiper-button-next'), prevEl: el.querySelector('.swiper-button-prev') },
-                });
+            // --- Fan Q&A Logic ---
+            const qnaContainer = document.getElementById('qna-container');
+            const qnaFormContainer = document.getElementById('qna-form-container');
+            const qnaForm = document.getElementById('qna-form');
+            const qnaQuestionInput = document.getElementById('qna-question');
+            const qnaFormStatus = document.getElementById('qna-form-status');
+
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    qnaFormContainer.style.display = 'block';
+                } else {
+                    qnaFormContainer.style.display = 'none';
+                }
             });
+
+            if (qnaForm) {
+                qnaForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const user = auth.currentUser;
+                    if (!user) {
+                        qnaFormStatus.textContent = 'You must be logged in to ask a question.';
+                        qnaFormStatus.style.color = '#ef4444';
+                        return;
+                    }
+                    const questionText = qnaQuestionInput.value.trim();
+                    if (!questionText) return;
+
+                    try {
+                        await addDoc(collection(db, "qna_submissions"), {
+                            question: questionText,
+                            status: 'submitted',
+                            submitterUid: user.uid,
+                            submitterName: user.displayName || 'Anonymous',
+                            submittedAt: serverTimestamp()
+                        });
+                        qnaFormStatus.textContent = 'Your question has been submitted for approval!';
+                        qnaFormStatus.style.color = '#22c55e';
+                        qnaQuestionInput.value = '';
+                    } catch (error) {
+                        console.error("Error submitting question:", error);
+                        qnaFormStatus.textContent = 'Error submitting question. Please try again.';
+                        qnaFormStatus.style.color = '#ef4444';
+                    }
+                    setTimeout(() => { qnaFormStatus.textContent = ''; }, 5000);
+                });
+            }
+
+            const renderQAs = () => {
+                const q = query(collection(db, "qna_submissions"), where("status", "==", "published"), orderBy("answeredAt", "desc"));
+                onSnapshot(q, (snapshot) => {
+                    qnaContainer.innerHTML = '';
+                    if (snapshot.empty) {
+                        qnaContainer.innerHTML = `<p class="text-slate-400 text-center">No questions have been answered yet. Be the first to ask one!</p>`;
+                        return;
+                    }
+                    snapshot.forEach(doc => {
+                        const qna = doc.data();
+                        const qnaItem = document.createElement('div');
+                        qnaItem.className = 'card p-6 rounded-lg';
+                        qnaItem.innerHTML = `
+                            <p class="text-lg text-slate-400 font-semibold">Q: ${qna.question}</p>
+                            <p class="text-lg text-white mt-4 pl-4 border-l-4 border-neon-yellow">${qna.answer}</p>
+                            <p class="text-sm text-slate-500 text-right mt-4">- Asked by ${qna.submitterName}</p>
+                        `;
+                        qnaContainer.appendChild(qnaItem);
+                    });
+                });
+            };
+            renderQAs();
+
 
             // --- Footer Year ---
             document.getElementById('year').textContent = new Date().getFullYear();
@@ -598,3 +673,6 @@
     </script>
 </body>
 </html>
+```""",
+    continue_working=True
+)
