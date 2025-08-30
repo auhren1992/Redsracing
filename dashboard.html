@@ -66,7 +66,7 @@
             <p class="text-slate-400 mb-8">Welcome back, <span id="user-email" class="font-bold text-white"></span>.</p>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
+                
                 <!-- Column 1 -->
                 <div class="space-y-8">
                     <!-- Next Race Countdown -->
@@ -96,7 +96,7 @@
                     <div id="race-management-card" class="card rounded-lg p-6" style="display: none;">
                         <h2 class="text-3xl font-racing text-white uppercase mb-4">Race <span class="neon-yellow">Management</span></h2>
                         <div class="flex justify-end mb-4">
-                             <button id="add-race-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Add New Race</button>
+                                <button id="add-race-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Add New Race</button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left">
@@ -194,7 +194,7 @@
         const mfaSendCodeBtn = document.getElementById('mfa-send-code-btn');
         const mfaVerificationCodeInput = document.getElementById('mfa-verification-code');
         const mfaVerifyBtn = document.getElementById('mfa-verify-btn');
-
+        
         // Modal elements
         const raceModal = document.getElementById('race-modal');
         const modalTitle = document.getElementById('modal-title');
@@ -245,7 +245,7 @@
 
             document.getElementById('next-race-name').textContent = nextRace.name;
             const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
-
+            
             countdownInterval = setInterval(() => {
                 const now = new Date().getTime();
                 const distance = nextRaceDate - now;
@@ -327,7 +327,7 @@
         const closeRaceModal = () => {
             raceModal.classList.add('hidden');
         };
-
+        
         const toggleRaceTypeFields = () => {
             if (raceTypeInput.value === 'superCup') {
                 raceNumberContainer.classList.remove('hidden');
@@ -345,7 +345,7 @@
                 date: raceDateInput.value,
                 name: raceNameInput.value,
                 type: raceTypeInput.value,
-                ...(raceTypeInput.value === 'superCup'
+                ...(raceTypeInput.value === 'superCup' 
                     ? { race: raceNumberInput.value }
                     : { special: specialNameInput.value }),
                 results: raceResultsInput.value,
@@ -460,7 +460,7 @@
                 }
             }
         };
-
+        
         cancelQnaBtn.addEventListener('click', closeQnaModal);
 
         // --- Photo Approval Functions ---
@@ -532,7 +532,7 @@
         // --- MFA Setup ---
         const setupMfa = (user) => {
             const hasPhoneNumber = user.providerData.some(p => p.providerId === 'phone');
-
+            
             if (hasPhoneNumber) {
                 mfaStatus.innerHTML = `<p class="text-green-400 font-bold">2-Step Verification is enabled.</p>`;
                 mfaEnrollForm.style.display = 'none';
@@ -606,7 +606,7 @@
                         }
                     });
                 }
-
+                
                 await getRaceData();
 
                 const idTokenResult = await user.getIdTokenResult();
@@ -646,7 +646,7 @@
 
                 loadingState.classList.add('hidden');
                 dashboardContent.classList.remove('hidden');
-
+                
                 if (userRole === 'team-member') {
                     setupMfa(user);
                 }
@@ -660,7 +660,7 @@
             e.preventDefault();
             signOut(auth).catch(error => console.error('Logout Error:', error));
         });
-
+        
         document.getElementById('year').textContent = new Date().getFullYear();
 
     </script>
@@ -741,6 +741,3 @@
     </div>
 </body>
 </html>
-```""",
-    continue_working=True
-)

@@ -177,8 +177,8 @@
         // Function to show error messages
         function showMessage(message, isError = true) {
             errorText.textContent = message;
-            errorBox.className = isError
-                ? 'error-message p-4 rounded-md mb-4'
+            errorBox.className = isError 
+                ? 'error-message p-4 rounded-md mb-4' 
                 : 'bg-green-800 text-green-300 border-l-4 border-green-500 p-4 rounded-md mb-4';
             errorBox.classList.remove('hidden');
         }
@@ -208,7 +208,7 @@
                             session: resolver.session
                         };
                         const phoneAuthProvider = new PhoneAuthProvider(auth);
-
+                        
                         // Send the verification code
                         phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, window.recaptchaVerifier)
                             .then((verificationId) => {
@@ -217,7 +217,7 @@
                                 document.getElementById('phone-auth-container').classList.remove('hidden');
                                 phoneForm.classList.add('hidden');
                                 codeForm.classList.remove('hidden');
-
+                                
                                 // Override the verify button's behavior for MFA
                                 verifyCodeButton.onclick = () => {
                                     const cred = PhoneMultiFactorGenerator.credential({
