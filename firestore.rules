@@ -1,40 +1,73 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Subscribers: restrict writes to authenticated users.
-    // Consider handling sign-ups via a Cloud Function with validation,
-    // rate limiting, or CAPTCHA verification to deter abuse.
-    match /subscribers/{subscriberId} {
-      allow read: if false;
-      allow write: if request.auth != null;
+    // Helper function to check for team member role
+    function isTeamMember() {
+      return request.auth.token.role == 'team-member';
     }
 
-    // Races: Anyone can read the race schedule, only team members can change it.
+    // Default deny all access unless explicitly allowed
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // USERS: Public user data
+    // Read: Anyone can read public profiles
+    // Write: User can create their own profile, team members can update any profile.
+    match /users/{userId} {
+      allow read;
+      allow create: if request.auth.uid == userId;
+      allow update: if isTeamMember();
+    }
+
+    // SUBSCRIBERS: Email subscriptions
+    // Create: Anyone can create (subscribe).
+    // Read/Update/Delete: No one on the client-side.
+    match /subscribers/{subId} {
+      allow create;
+      allow read, update, delete: if false;
+    }
+
+    // RACES: Race schedule and results
+    // Read: Anyone can read the race schedule.
+    // Write: Only team members can manage races.
     match /races/{raceId} {
-      allow read: if true;
-      allow write: if request.auth.token.role == 'team-member';
+      allow read;
+      allow write: if isTeamMember();
     }
 
-    // Driver Notes: Only the authenticated user can read/write their own notes.
+    // DRIVER_NOTES: Private notes for team members
+    // Read/Write: Only the authenticated user can access their own notes.
     match /driver_notes/{userId} {
       allow read, write: if request.auth.uid == userId;
     }
 
-    // Invitation Codes: Only accessible by backend functions.
-    match /invitation_codes/{code} {
-      allow read, write: if false;
-    }
-
-    // Gallery Images: Anyone can read approved images.
-    // Any authenticated user can create a new image document.
-    // Only the uploader or a team member can delete an image.
+    // GALLERY_IMAGES: User-submitted photos
+    // Read: Anyone can see approved photos.
+    // Create: Any authenticated user can submit a photo for approval.
+    // Update: Only team members can update (e.g., to approve a photo).
+    // Delete: Only team members can delete photos.
     match /gallery_images/{imageId} {
       allow read: if resource.data.approved == true;
       allow create: if request.auth != null;
-      allow update: if request.auth.token.role == 'team-member'; // for approvals
-      allow delete: if request.auth.uid == resource.data.uploaderUid || request.auth.token.role == 'team-member';
+      allow update, delete: if isTeamMember();
+    }
+
+    // QNA_SUBMISSIONS: Fan questions and answers
+    // Read: Anyone can read published Q&As.
+    // Create: Any authenticated user can submit a question.
+    // Update/Delete: Only team members can manage submissions (answer, publish, delete).
+    match /qna_submissions/{qnaId} {
+      allow read: if resource.data.status == 'published';
+      allow create: if request.auth != null;
+      allow update, delete: if isTeamMember();
+    }
+
+    // INVITATION_CODES: Special codes for team access
+    // No client-side access. These are managed by backend functions or manually in the console.
+    match /invitation_codes/{codeId} {
+        allow read, write: if false;
     }
   }
 }
