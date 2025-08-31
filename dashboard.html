@@ -609,8 +609,17 @@
 
                 await getRaceData();
 
-                const idTokenResult = await user.getIdTokenResult();
-                const userRole = idTokenResult.claims.role;
+                // Check for role, prioritizing Firestore and falling back to token
+                let userRole = null;
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+
+                if (userDoc.exists() && userDoc.data().role) {
+                    userRole = userDoc.data().role;
+                } else {
+                    const idTokenResult = await user.getIdTokenResult();
+                    userRole = idTokenResult.claims.role;
+                }
 
                 if (userRole === 'team-member') {
                     driverNotesCard.style.display = 'block';
@@ -640,16 +649,14 @@
                             setTimeout(() => { notesStatusEl.textContent = ''; }, 2000);
                         }, 1000);
                     });
+
+                    setupMfa(user);
                 } else {
                     driverNotesCard.style.display = 'none';
                 }
 
                 loadingState.classList.add('hidden');
                 dashboardContent.classList.remove('hidden');
-
-                if (userRole === 'team-member') {
-                    setupMfa(user);
-                }
 
             } else {
                 window.location.href = 'login.html';

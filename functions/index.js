@@ -71,6 +71,10 @@ exports.processInvitationCode = onCall(async (request) => {
       logger.warn(`Depleted invitation code '${code}' used by ${uid}.`);
       throw new HttpsError("resource-exhausted", "This invitation code has no uses left.");
     }
+    if (codeData.used === true) {
+        logger.warn(`Already used invitation code '${code}' used by ${uid}.`);
+        throw new HttpsError("resource-exhausted", "This invitation code has already been used.");
+    }
     logger.info("Step 2 Complete: Code is valid.");
 
     const roleToAssign = codeData.role || "public-fan";
@@ -78,10 +82,18 @@ exports.processInvitationCode = onCall(async (request) => {
     await auth.setCustomUserClaims(uid, {role: roleToAssign});
     logger.info("Step 3 Complete: Custom claims set.");
 
-    if (codeData.usesLeft) {
-      logger.info(`Step 4: Updating code document uses for code '${code}'.`);
+    // 4. Update the invitation code document
+    if (codeData.usesLeft !== undefined) {
+      logger.info(`Step 4: Decrementing usesLeft for code '${code}'.`);
       await codeDoc.ref.update({
         usesLeft: FieldValue.increment(-1),
+        usersWhoClaimed: FieldValue.arrayUnion({uid: uid, claimedAt: new Date()}),
+      });
+      logger.info("Step 4 Complete: Code document updated.");
+    } else if (codeData.used === false) {
+      logger.info(`Step 4: Marking code '${code}' as used.`);
+      await codeDoc.ref.update({
+        used: true,
         usersWhoClaimed: FieldValue.arrayUnion({uid: uid, claimedAt: new Date()}),
       });
       logger.info("Step 4 Complete: Code document updated.");
