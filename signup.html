@@ -5,50 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - RedsRacing #8</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0a192f; /* Dark Blue from main site */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 100 100'%3E%3Cstyle%3E.logo { font-family: 'Racing Sans One', sans-serif; font-size: 40px; opacity: 0.02; } %3C/style%3E%3Ctext x='50' y='65' fill='%2300c6ff' class='logo' text-anchor='end' transform='rotate(-20 50 50)'%3E#%3C/text%3E%3Ctext x='52' y='65' fill='%23f7ff00' class='logo' text-anchor='start' transform='rotate(-20 50 50)'%3E8%3C/text%3E%3C/svg%3E");
-        }
-        .neon-yellow {
-            color: #f7ff00;
-        }
-        .title-blue {
-            color: #00c6ff;
-        }
-        .bg-neon-yellow {
-            background-color: #f7ff00;
-        }
-        .form-container {
-            background-color: #1e293b; /* slate-800 */
-            border: 1px solid #334155; /* slate-700 */
-        }
-        .form-input {
-            background-color: #334155; /* slate-700 */
-            border: 1px solid #475569; /* slate-600 */
-            color: #e2e8f0; /* slate-200 */
-        }
-        .form-input:focus {
-            outline: none;
-            border-color: #f7ff00;
-            box-shadow: 0 0 0 2px rgba(247, 255, 0, 0.3);
-        }
-        .error-message {
-            background-color: #991b1b; /* red-800 */
-            color: #fca5a5; /* red-300 */
-            border-left: 4px solid #ef4444; /* red-500 */
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
 </head>
-<body class="text-gray-200 flex items-center justify-center min-h-screen p-4">
+<body class="flex items-center justify-center min-h-screen p-4">
 
     <div class="w-full max-w-md">
         <!-- Logo Header -->
         <div class="text-center mb-8">
-            <a href="index.html" class="text-4xl font-black uppercase tracking-tighter">
-                <span class="title-blue">Reds</span><span class="neon-yellow">Racing #8</span>
+            <a href="index.html" class="text-5xl font-racing uppercase tracking-wider">
+                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
             </a>
         </div>
 
@@ -201,7 +167,7 @@
                 await sendEmailVerification(user);
 
                 // 4. Call the Firebase Function to process the invitation code (if provided).
-                if (invitationCode && invitationCode.trim() !== '') {
+                if (invitationCode) {
                     const processInvitationCode = httpsCallable(functions, 'processInvitationCode');
                     await processInvitationCode({
                         code: invitationCode,
