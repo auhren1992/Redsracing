@@ -15,6 +15,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #05080f; /* Even darker blue */
             color: #e2e8f0; /* Lighter gray for better contrast */
+            background-image: url("data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Racing Sans One, sans-serif' font-size='90' fill='rgba(0, 198, 255, 0.02)' transform='rotate(-15 50 50)'%3e8%3c/text%3e%3c/svg%3e");
         }
         .font-racing {
             font-family: 'Racing Sans One', sans-serif;
@@ -60,7 +61,7 @@
         }
         .stat-card:hover, .video-item:hover, .gallery-item:hover, .sponsor-logo:hover {
             transform: translateY(-10px);
-            box-shadow: 0 0 30px rgba(247, 255, 0, 0.15);
+            box-shadow: 0 0 15px 5px rgba(247, 255, 0, 0.2);
         }
         .schedule-card {
             background-color: #1e293b; /* slate-800 */
@@ -72,6 +73,7 @@
         .schedule-card:hover {
             transform: translateX(5px);
             border-left-color: #00c6ff;
+            box-shadow: 0 0 15px 5px rgba(0, 198, 255, 0.2);
         }
         .car-hotspot-container { position: relative; }
         .hotspot { position: absolute; width: 2.5rem; height: 2.5rem; background-color: rgba(0, 198, 255, 0.8); border-radius: 50%; border: 2px solid white; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 15px rgba(0, 198, 255, 0.7); }
@@ -101,10 +103,34 @@
         #home {
             min-height: 100vh;
         }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+            100% { transform: translateY(0); }
+        }
+        .sponsors-grid .sponsor-logo {
+            animation: float 5s ease-in-out infinite;
+        }
+        .sponsors-grid .sponsor-logo:nth-child(2) {
+            animation-delay: -2.5s;
+        }
+        .sponsors-grid .sponsor-logo:nth-child(3) {
+            animation-delay: -1.2s;
+        }
+
+        @keyframes pulse-text {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+        }
+        #live-banner a {
+            animation: pulse-text 2.5s ease-in-out infinite;
+            display: inline-block; /* Needed for transform to work */
+        }
     </style>
 </head>
 <body>
-    <div id="live-banner" class="hidden bg-neon-yellow text-slate-900 font-bold text-center p-3 fixed top-0 w-full z-50">
+    <div id="live-banner" class="hidden bg-neon-yellow text-slate-900 font-bold text-center p-3 fixed top-0 w-full z-50 transform -translate-y-full transition-transform duration-500 ease-out">
         <a href="#" id="live-timing-link" target="_blank" class="hover:underline">
             🏁 IT'S RACE DAY! Click here for Live Timing & Updates! 🏁
         </a>
@@ -142,10 +168,10 @@
     </header>
 
     <main>
-        <section id="home" class="h-screen relative flex items-center justify-center text-center overflow-hidden" style="background-image: url('hero-bg.png'); background-size: cover; background-position: center;">
+        <section id="home" class="h-screen relative flex items-center justify-center text-center overflow-hidden" style="background-image: url('hero-bg.png'); background-size: cover; background-position: center; background-attachment: fixed;">
             <div class="relative z-10 p-8 hero-overlay w-full h-full flex flex-col items-center justify-center">
-                <h1 class="text-6xl md:text-9xl font-racing uppercase text-white text-shadow-strong tracking-wider">
-                    <span class="title-blue">Push</span> <span class="neon-yellow">The Limit</span>
+                <h1 class="text-6xl md:text-9xl font-racing uppercase text-shadow-strong tracking-wider bg-gradient-to-r from-[#00c6ff] to-[#f7ff00] bg-clip-text text-transparent">
+                    Push The Limit
                 </h1>
                 <p class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest">THE OFFICIAL HUB OF JON'S RACING SAGA</p>
             </div>
@@ -303,7 +329,7 @@
         <section id="sponsors" class="py-24 md:py-32 section-glow">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="font-racing text-5xl uppercase mb-12 reveal-fade">Team <span class="neon-yellow">Partners</span></h2>
-                <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-8 items-center">
+                <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-8 items-center sponsors-grid">
                     <div class="sponsor-logo p-4 rounded-lg reveal-up"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=OK1+Automotive" alt="OK1 Automotive Technology" loading="lazy" width="300" height="150"></div>
                     <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="100"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=StepUp+Construction" alt="StepUp Construction" loading="lazy" width="300" height="150"></div>
                     <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="200"><img src="https://i.imgur.com/h6p6QLs.png" alt="Paul Ries and Sons Chicago" loading="lazy" width="300" height="150"></div>
@@ -312,6 +338,29 @@
         </section>
 
     </main>
+
+    <!-- Race Recap Modal -->
+    <div id="recap-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 transition-opacity duration-300 opacity-0">
+        <div class="bg-slate-900 border border-slate-700 rounded-lg shadow-2xl w-full max-w-2xl max-h-full overflow-y-auto transform transition-transform duration-300 scale-95">
+            <div class="p-6 sm:p-8">
+                <div class="flex justify-between items-start">
+                    <h2 id="modal-race-name" class="text-3xl font-racing text-white uppercase">Race Recap</h2>
+                    <button id="modal-close-btn" class="text-4xl font-thin leading-none text-slate-400 hover:text-white transition-colors">&times;</button>
+                </div>
+                <p id="modal-race-date" class="text-sm text-slate-400 mb-6"></p>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-racing text-xl text-neon-yellow uppercase tracking-wider">Result</h3>
+                        <p id="modal-race-results" class="text-white text-lg mt-1"></p>
+                    </div>
+                    <div>
+                        <h3 class="font-racing text-xl text-neon-yellow uppercase tracking-wider">Summary</h3>
+                        <p id="modal-race-summary" class="text-slate-300 mt-1 whitespace-pre-wrap"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer class="bg-black/50 border-t border-slate-800 py-16">
         <div class="container mx-auto px-6 text-center">
@@ -488,6 +537,42 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
+            // --- Race Recap Modal ---
+            const recapModal = document.getElementById('recap-modal');
+            const modalRaceName = document.getElementById('modal-race-name');
+            const modalRaceDate = document.getElementById('modal-race-date');
+            const modalRaceResults = document.getElementById('modal-race-results');
+            const modalRaceSummary = document.getElementById('modal-race-summary');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const modalContent = recapModal.querySelector('.transform');
+
+            const openRecapModal = (race) => {
+                modalRaceName.textContent = race.name;
+                const raceDate = new Date(race.date + 'T00:00:00');
+                modalRaceDate.textContent = raceDate.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                modalRaceResults.textContent = race.results || 'Not available.';
+                modalRaceSummary.textContent = race.summary || 'No summary provided.';
+                recapModal.classList.remove('hidden');
+                setTimeout(() => {
+                    recapModal.classList.remove('opacity-0');
+                    modalContent.classList.remove('scale-95');
+                }, 10);
+            };
+
+            const closeRecapModal = () => {
+                recapModal.classList.add('opacity-0');
+                modalContent.classList.add('scale-95');
+                setTimeout(() => {
+                    recapModal.classList.add('hidden');
+                }, 300);
+            };
+
+            modalCloseBtn.addEventListener('click', closeRecapModal);
+            recapModal.addEventListener('click', (e) => {
+                if (e.target === recapModal) closeRecapModal();
+            });
+
+
             const qRaces = query(collection(db, "races"), orderBy("date", "asc"));
             onSnapshot(qRaces, (snapshot) => {
                 superCupsContainer.innerHTML = '';
@@ -500,15 +585,8 @@
                     let cardClass = isPast ? 'past' : 'upcoming';
                     const formattedDate = raceDate.toLocaleString('en-US', { month: 'long', day: 'numeric' });
 
-                    let recapHTML = '';
                     if (isPast && (race.results || race.summary)) {
                         cardClass += ' cursor-pointer';
-                        recapHTML = `
-                            <div class="race-recap hidden mt-4 pt-4 border-t border-slate-700">
-                                ${race.results ? `<p class="font-bold text-lg text-neon-yellow">Result: ${race.results}</p>` : ''}
-                                ${race.summary ? `<p class="text-slate-300 mt-2">${race.summary}</p>` : ''}
-                            </div>
-                        `;
                     }
 
                     const cardHTML = `
@@ -517,7 +595,6 @@
                                 <div><p class="font-bold text-lg text-white">${race.name}</p><p class="text-sm text-slate-400">${race.special || `Race ${race.race}`}</p></div>
                                 <div class="font-semibold text-right text-slate-300">${formattedDate}</div>
                             </div>
-                            ${recapHTML}
                         </div>`;
 
                     if (race.type === 'specialEvent') {
@@ -528,10 +605,11 @@
                 });
 
                 document.querySelectorAll('.schedule-card.past').forEach(card => {
-                    card.addEventListener('click', () => {
-                        const recap = card.querySelector('.race-recap');
-                        if (recap) recap.classList.toggle('hidden');
-                    });
+                    const raceId = card.dataset.raceId;
+                    const race = allRaces.find(r => r.id === raceId);
+                    if (race && (race.results || race.summary)) {
+                        card.addEventListener('click', () => openRecapModal(race));
+                    }
                 });
 
                 const nextRace = allRaces.find(race => new Date(race.date + 'T00:00:00') >= today);
@@ -567,8 +645,14 @@
                     } else {
                         liveTimingLink.href = '#schedule';
                     }
+
                     liveBanner.classList.remove('hidden');
-                    header.style.top = `${liveBanner.offsetHeight}px`;
+
+                    // Use a short timeout to allow the browser to render it, then animate
+                    setTimeout(() => {
+                        header.style.top = `${liveBanner.offsetHeight}px`;
+                        liveBanner.classList.remove('-translate-y-full');
+                    }, 50);
                 }
             });
 
