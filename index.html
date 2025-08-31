@@ -15,6 +15,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #05080f; /* Even darker blue */
             color: #e2e8f0; /* Lighter gray for better contrast */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 100 100'%3E%3Cstyle%3E.logo { font-family: 'Racing Sans One', sans-serif; font-size: 40px; opacity: 0.02; } %3C/style%3E%3Ctext x='50' y='65' fill='%2300c6ff' class='logo' text-anchor='end' transform='rotate(-20 50 50)'%3E#%3C/text%3E%3Ctext x='52' y='65' fill='%23f7ff00' class='logo' text-anchor='start' transform='rotate(-20 50 50)'%3E8%3C/text%3E%3C/svg%3E");
         }
         .font-racing {
             font-family: 'Racing Sans One', sans-serif;
@@ -34,6 +35,12 @@
         }
         .text-shadow-strong {
             text-shadow: 0 4px 10px rgba(0,0,0,0.7);
+        }
+        .text-gradient {
+            background-image: linear-gradient(to right, #00c6ff, #f7ff00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
         .neon-yellow { color: #f7ff00; }
         .title-blue { color: #00c6ff; }
@@ -60,7 +67,8 @@
         }
         .stat-card:hover, .video-item:hover, .gallery-item:hover, .sponsor-logo:hover {
             transform: translateY(-10px);
-            box-shadow: 0 0 30px rgba(247, 255, 0, 0.15);
+            box-shadow: 0 0 30px rgba(247, 255, 0, 0.2), 0 0 12px rgba(247, 255, 0, 0.15);
+            border-color: rgba(247, 255, 0, 0.4);
         }
         .schedule-card {
             background-color: #1e293b; /* slate-800 */
@@ -121,7 +129,6 @@
                 <a href="#schedule" class="hover:text-neon-yellow transition duration-300">Schedule</a>
                 <a href="#gallery" class="hover:text-neon-yellow transition duration-300">Gallery</a>
                 <a href="#videos" class="hover:text-neon-yellow transition duration-300">Videos</a>
-                <a href="#tiktok" class="hover:text-neon-yellow transition duration-300">TikTok</a>
                 <a id="auth-link" href="login.html" class="bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300">
                     DRIVER LOGIN
                 </a>
@@ -136,16 +143,15 @@
              <a href="#schedule" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
              <a href="#gallery" class="block py-3 px-6 text-sm hover:bg-slate-800">Gallery</a>
              <a href="#videos" class="block py-3 px-6 text-sm hover:bg-slate-800">Videos</a>
-             <a href="#tiktok" class="block py-3 px-6 text-sm hover:bg-slate-800">TikTok</a>
              <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
         </div>
     </header>
 
     <main>
-        <section id="home" class="h-screen relative flex items-center justify-center text-center overflow-hidden" style="background-image: url('hero-bg.png'); background-size: cover; background-position: center;">
+        <section id="home" class="h-screen relative flex items-center justify-center text-center overflow-hidden" style="background-image: url('hero-bg.png'); background-size: cover; background-position: center; background-attachment: fixed;">
             <div class="relative z-10 p-8 hero-overlay w-full h-full flex flex-col items-center justify-center">
-                <h1 class="text-6xl md:text-9xl font-racing uppercase text-white text-shadow-strong tracking-wider">
-                    <span class="title-blue">Push</span> <span class="neon-yellow">The Limit</span>
+                <h1 class="text-6xl md:text-9xl font-racing uppercase text-gradient text-shadow-strong tracking-wider">
+                    Push The Limit
                 </h1>
                 <p class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest">THE OFFICIAL HUB OF JON'S RACING SAGA</p>
             </div>
@@ -266,18 +272,6 @@
             </div>
         </section>
         
-        <section id="tiktok" class="py-24 md:py-32 bg-black/20">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Latest From <span class="neon-yellow">TikTok</span></h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7527470903773367582" data-video-id="7527470903773367582" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>🏁 Ready to hit the track! Our #8 American Super Cup car is looking mean and ready for race day. 🔥 Catch all the action and join the Red&#39;s Racing family! #RedsRacing #AmericanSuperCup #RaceCar #Motorsport #TrackDay #Speed #Racing #CarTok #SundayFunday #WeekendVibes</p> <a target="_blank" title="♬ original sound  - Reds Racing" href="https://www.tiktok.com/music/original-sound-Reds-Racing-7527476054991080222?refer=embed">♬ original sound  - Reds Racing</a> </section> </blockquote>
-                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Working late in the garage.</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
-                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Podium finish!</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
-                    <blockquote class="tiktok-embed" cite="https://www.tiktok.com/@redsracing/video/7311021833881324846" data-video-id="7311021833881324846" style="max-width: 605px;min-width: 325px;" > <section> <a target="_blank" title="@redsracing" href="https://www.tiktok.com/@redsracing?refer=embed">@redsracing</a> <p>Behind the scenes in the pits.</p> <a target="_blank" title="♬ original sound - RedsRacing" href="https://www.tiktok.com/music/original-sound-7311021861338516270?refer=embed">♬ original sound - RedsRacing</a> </section> </blockquote>
-                </div>
-            </div>
-        </section>
-
         <section id="qna" class="py-24 md:py-32 bg-black/20">
             <div class="container mx-auto px-6">
                 <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Fan <span class="neon-yellow">Q&A</span></h2>
@@ -333,7 +327,6 @@
     </footer>
 
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-    <script async src="https://www.tiktok.com/embed.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";

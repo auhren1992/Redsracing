@@ -50,7 +50,7 @@ service cloud.firestore {
     // Update: Only team members can update (e.g., to approve a photo).
     // Delete: Only team members can delete photos.
     match /gallery_images/{imageId} {
-      allow read: if resource.data.approved == true;
+      allow read: if resource.data.approved == true || isTeamMember();
       allow create: if request.auth != null;
       allow update, delete: if isTeamMember();
     }
@@ -60,7 +60,7 @@ service cloud.firestore {
     // Create: Any authenticated user can submit a question.
     // Update/Delete: Only team members can manage submissions (answer, publish, delete).
     match /qna_submissions/{qnaId} {
-      allow read: if resource.data.status == 'published';
+      allow read: if resource.data.status == 'published' || isTeamMember();
       allow create: if request.auth != null;
       allow update, delete: if isTeamMember();
     }
