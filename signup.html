@@ -167,7 +167,7 @@
                 await sendEmailVerification(user);
 
                 // 4. Call the Firebase Function to process the invitation code (if provided).
-                if (invitationCode) {
+                if (invitationCode && invitationCode.trim() !== '') {
                     const processInvitationCode = httpsCallable(functions, 'processInvitationCode');
                     await processInvitationCode({
                         code: invitationCode,

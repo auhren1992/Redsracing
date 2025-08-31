@@ -134,7 +134,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, sendEmailVerification, RecaptchaVerifier, linkWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, where, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         const firebaseConfig = {
@@ -581,49 +581,69 @@
                     });
                 }
 
-                await getRaceData();
+                await getRaceData(); // Initial race data load
 
-                const idTokenResult = await user.getIdTokenResult();
-                const userRole = idTokenResult.claims.role;
+                const userDocRef = doc(db, "users", user.uid);
 
-                if (userRole === 'team-member') {
-                    driverNotesCard.style.display = 'block';
-                    raceManagementCard.style.display = 'block';
-                    qnaManagementCard.style.display = 'block';
-                    photoApprovalCard.style.display = 'block';
-                    mfaCard.style.display = 'block';
+                const updateDashboardUI = (role) => {
+                    const isTeamAdmin = role === 'team-member' || role === 'admin';
+                    if (isTeamAdmin) {
+                        driverNotesCard.style.display = 'block';
+                        raceManagementCard.style.display = 'block';
+                        qnaManagementCard.style.display = 'block';
+                        photoApprovalCard.style.display = 'block';
+                        mfaCard.style.display = 'block';
 
-                    getQnaSubmissions();
-                    getUnapprovedPhotos();
-
-                    const userNotesRef = doc(db, "driver_notes", user.uid);
-                    const docSnap = await getDoc(userNotesRef);
-                    if (docSnap.exists()) {
-                        driverNotesEl.value = docSnap.data().notes;
+                        getQnaSubmissions();
+                        getUnapprovedPhotos();
+                        setupMfa(user);
+                    } else {
+                        driverNotesCard.style.display = 'none';
+                        raceManagementCard.style.display = 'none';
+                        qnaManagementCard.style.display = 'none';
+                        photoApprovalCard.style.display = 'none';
+                        mfaCard.style.display = 'none';
                     }
-                    driverNotesEl.addEventListener('keyup', () => {
-                        notesStatusEl.textContent = 'Saving...';
-                        clearTimeout(notesSaveTimeout);
-                        notesSaveTimeout = setTimeout(async () => {
-                            try {
-                                await setDoc(userNotesRef, { notes: driverNotesEl.value }, { merge: true });
-                                notesStatusEl.textContent = 'Saved!';
-                            } catch (e) {
-                                notesStatusEl.textContent = 'Error saving notes.';
-                            }
-                            setTimeout(() => { notesStatusEl.textContent = ''; }, 2000);
-                        }, 1000);
-                    });
-                } else {
-                    driverNotesCard.style.display = 'none';
+                };
+
+                // Listen for real-time updates to the user's role
+                onSnapshot(userDocRef, (docSnap) => {
+                    let userRole = null;
+                    if (docSnap.exists() && docSnap.data().role) {
+                        userRole = docSnap.data().role;
+                        updateDashboardUI(userRole);
+                    } else {
+                        // If no role in Firestore, check the token as a fallback
+                        user.getIdTokenResult().then((idTokenResult) => {
+                            userRole = idTokenResult.claims.role;
+                            updateDashboardUI(userRole);
+                        });
+                    }
+                });
+
+                // Load driver notes once, as they are not role-dependent for display
+                const userNotesRef = doc(db, "driver_notes", user.uid);
+                const docSnap = await getDoc(userNotesRef);
+                if (docSnap.exists()) {
+                    driverNotesEl.value = docSnap.data().notes;
                 }
+                driverNotesEl.addEventListener('keyup', () => {
+                    notesStatusEl.textContent = 'Saving...';
+                    clearTimeout(notesSaveTimeout);
+                    notesSaveTimeout = setTimeout(async () => {
+                        try {
+                            await setDoc(userNotesRef, { notes: driverNotesEl.value }, { merge: true });
+                            notesStatusEl.textContent = 'Saved!';
+                        } catch (e) {
+                            notesStatusEl.textContent = 'Error saving notes.';
+                        }
+                        setTimeout(() => { notesStatusEl.textContent = ''; }, 2000);
+                    }, 1000);
+                });
+
 
                 loadingState.classList.add('hidden');
                 dashboardContent.classList.remove('hidden');
-
-                if (userRole === 'team-member') {
-                    setupMfa(user);
-                }
 
             } else {
                 window.location.href = 'login.html';
