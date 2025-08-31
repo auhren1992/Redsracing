@@ -11,7 +11,6 @@
             font-family: 'Inter', sans-serif;
             background-color: #05080f;
             color: #e2e8f0;
-            background-image: url("data:image/svg+xml,%3csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3e%3ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Racing Sans One, sans-serif' font-size='90' fill='rgba(0, 198, 255, 0.02)' transform='rotate(-15 50 50)'%3e8%3c/text%3e%3c/svg%3e");
         }
         .font-racing {
             font-family: 'Racing Sans One', sans-serif;
@@ -26,7 +25,7 @@
         }
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 0 15px 5px rgba(0, 198, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 198, 255, 0.1);
         }
         .textarea-notes {
             background-color: #1e293b;
@@ -610,8 +609,17 @@
 
                 await getRaceData();
 
-                const idTokenResult = await user.getIdTokenResult();
-                const userRole = idTokenResult.claims.role;
+                // Check for role, prioritizing Firestore and falling back to token
+                let userRole = null;
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+
+                if (userDoc.exists() && userDoc.data().role) {
+                    userRole = userDoc.data().role;
+                } else {
+                    const idTokenResult = await user.getIdTokenResult();
+                    userRole = idTokenResult.claims.role;
+                }
 
                 if (userRole === 'team-member') {
                     driverNotesCard.style.display = 'block';
@@ -641,16 +649,14 @@
                             setTimeout(() => { notesStatusEl.textContent = ''; }, 2000);
                         }, 1000);
                     });
+
+                    setupMfa(user);
                 } else {
                     driverNotesCard.style.display = 'none';
                 }
 
                 loadingState.classList.add('hidden');
                 dashboardContent.classList.remove('hidden');
-
-                if (userRole === 'team-member') {
-                    setupMfa(user);
-                }
 
             } else {
                 window.location.href = 'login.html';
