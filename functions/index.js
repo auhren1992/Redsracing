@@ -31,6 +31,8 @@ initializeApp();
  * @returns {Promise<object>} A promise that resolves with the result of the operation.
  */
 exports.processInvitationCode = onCall(async (request) => {
+  // Check if the user is authenticated.
+  // While the rules on the function should prevent this, it's a good failsafe.
   if (!request.auth) {
     logger.error("processInvitationCode called by unauthenticated user.");
     throw new HttpsError("unauthenticated", "You must be logged in to use an invitation code.");
@@ -49,72 +51,56 @@ exports.processInvitationCode = onCall(async (request) => {
   const codesRef = db.collection("invitation_codes");
 
   try {
-    logger.info("Step 1: Finding invitation code document by ID.");
-    const codeDoc = await codesRef.doc(code).get();
+    // 1. Find the invitation code document
+    const querySnapshot = await codesRef.where("code", "==", code).limit(1).get();
 
-    if (!codeDoc.exists) {
-      logger.warn(`Invitation code document with ID '${code}' not found for user ${uid}.`);
-      throw new HttpsError("not-found", "The invitation code you entered is invalid. Please check the code and try again.");
+    if (querySnapshot.empty) {
+      logger.warn(`Invitation code '${code}' not found for user ${uid}.`);
+      // Optionally, you could still grant a default role here if desired.
+      return {status: "error", message: "Invalid invitation code."};
     }
 
+    const codeDoc = querySnapshot.docs[0];
     const codeData = codeDoc.data();
-    logger.info("Step 1 Complete: Found code document.", {codeData});
 
-    logger.info("Step 2: Checking code validity (expiration and uses).");
+    // 2. Check if the code is still valid (not expired or fully used)
     const now = new Date();
     if (codeData.expiresAt && codeData.expiresAt.toDate() < now) {
       logger.warn(`Expired invitation code '${code}' used by ${uid}.`);
-      throw new HttpsError("deadline-exceeded", "This invitation code has expired.");
+      return {status: "error", message: "This invitation code has expired."};
     }
 
     if (codeData.usesLeft !== undefined && codeData.usesLeft <= 0) {
       logger.warn(`Depleted invitation code '${code}' used by ${uid}.`);
-      throw new HttpsError("resource-exhausted", "This invitation code has no uses left.");
+      return {status: "error", message: "This invitation code has no uses left."};
     }
-    if (codeData.used === true) {
-        logger.warn(`Already used invitation code '${code}' used by ${uid}.`);
-        throw new HttpsError("resource-exhausted", "This invitation code has already been used.");
-    }
-    logger.info("Step 2 Complete: Code is valid.");
 
-    const roleToAssign = codeData.role || "public-fan";
-    logger.info(`Step 3: Assigning role '${roleToAssign}' to user ${uid}.`);
+    // 3. Assign the custom role to the user
+    const roleToAssign = codeData.role || "public-fan"; // Default role if not specified
+    logger.info(`Assigning role '${roleToAssign}' to user ${uid}.`);
     await auth.setCustomUserClaims(uid, {role: roleToAssign});
-    logger.info("Step 3 Complete: Custom claims set.");
 
-    // 4. Update the invitation code document
-    if (codeData.usesLeft !== undefined) {
-      logger.info(`Step 4: Decrementing usesLeft for code '${code}'.`);
+    // 4. Update the invitation code document (decrement usesLeft)
+    if (codeData.usesLeft) {
       await codeDoc.ref.update({
         usesLeft: FieldValue.increment(-1),
         usersWhoClaimed: FieldValue.arrayUnion({uid: uid, claimedAt: new Date()}),
       });
-      logger.info("Step 4 Complete: Code document updated.");
-    } else if (codeData.used === false) {
-      logger.info(`Step 4: Marking code '${code}' as used.`);
-      await codeDoc.ref.update({
-        used: true,
-        usersWhoClaimed: FieldValue.arrayUnion({uid: uid, claimedAt: new Date()}),
-      });
-      logger.info("Step 4 Complete: Code document updated.");
+      logger.info(`Decremented uses for code '${code}'.`);
     }
 
-    logger.info(`Step 5: Updating user's public profile (users/${uid}).`);
+    // 5. Update user's public profile with the new role
+    // This is useful for client-side checks without needing to refresh the ID token
     await db.collection("users").doc(uid).set({
       role: roleToAssign,
     }, {merge: true});
-    logger.info("Step 5 Complete: User profile updated.");
+    logger.info(`Set role '${roleToAssign}' in user's public profile (users/${uid}).`);
 
 
     return {status: "success", message: `Role '${roleToAssign}' assigned successfully.`};
   } catch (error) {
-    logger.error(`Error at some step for user ${uid}:`, error);
-    // If it's already an HttpsError, rethrow it. Otherwise, wrap it.
-    if (error instanceof HttpsError) {
-      throw error;
-    } else {
-      throw new HttpsError("internal", "An internal error occurred while processing the code.", error);
-    }
+    logger.error(`Error processing invitation code for user ${uid}:`, error);
+    throw new HttpsError("internal", "An internal error occurred while processing the code.", error);
   }
 });
 
