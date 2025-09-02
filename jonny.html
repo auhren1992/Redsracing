@@ -167,12 +167,46 @@
         </div>
     </footer>
 
-    <script>
-        // Basic script for mobile menu, can be expanded later
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // Basic script for mobile menu
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
             document.getElementById('mobile-menu').classList.toggle('hidden');
         });
         document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Firebase Config
+        const firebaseConfig = {
+          apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+          authDomain: "redsracing-a7f8b.firebaseapp.com",
+          projectId: "redsracing-a7f8b",
+          storageBucket: "redsracing-a7f8b.appspot.com",
+          messagingSenderId: "517034606151",
+          appId: "1:517034606151:web:24cae262e1d98832757b62"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Auth State
+        const authLink = document.getElementById('auth-link');
+        const authLinkMobile = document.getElementById('auth-link-mobile');
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                authLink.textContent = 'Dashboard';
+                authLink.href = 'dashboard.html';
+                authLinkMobile.textContent = 'Dashboard';
+                authLinkMobile.href = 'dashboard.html';
+            } else {
+                authLink.textContent = 'DRIVER LOGIN';
+                authLink.href = 'login.html';
+                authLinkMobile.textContent = 'DRIVER LOGIN';
+                authLinkMobile.href = 'login.html';
+            }
+        });
     </script>
 </body>
 </html>
