@@ -605,7 +605,7 @@
                 await getRaceData();
 
                 const idTokenResult = await user.getIdTokenResult();
-                const userRole = idTokenResult.claims.role || 'public-fan';                console.log("User's custom claims:", idTokenResult.claims);
+                console.log("User's custom claims:", idTokenResult.claims);
                 const userRole = idTokenResult.claims.role;
 
                 if (userRole === 'team-member') {
