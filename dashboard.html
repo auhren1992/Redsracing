@@ -35,8 +35,10 @@
             <div id="email-verification-notice" class="hidden bg-yellow-900 border-l-4 border-yellow-500 text-yellow-200 p-4 mb-8 rounded-r-lg" role="alert">
                 <p class="font-bold">Verify your email</p>
                 <p>Your email address has not been verified. Please check your inbox for a verification link to enable all features.</p>
-                <button id="resend-verification-btn" class="mt-2 text-sm font-bold underline hover:text-white">Resend verification email</button>
-            </div>
+                <div-class="mt-2 space-x-4">
+                    <button id="resend-verification-btn" class="text-sm font-bold underline hover:text-white">Resend verification email</button>
+                    <button id="refresh-status-btn" class="text-sm font-bold underline hover:text-white text-neon-yellow">I've verified, check my status.</button>
+                </div>
             <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
             <p class="text-slate-400 mb-8">Welcome back, <span id="user-email" class="font-bold text-white"></span>.</p>
 
@@ -57,7 +59,7 @@
                     </div>
 
                     <!-- Driver Notes -->
-                    <div id="driver-notes-card" class="card rounded-lg p-6">
+                       <div id="driver-notes-card" class="card rounded-lg p-6 hidden">
                         <h2 class="text-3xl font-racing text-white uppercase mb-4">Driver <span class="neon-yellow">Notes</span></h2>
                         <p class="text-slate-400 mb-4">Your private space for race notes and reminders. Saved automatically.</p>
                         <textarea id="driver-notes" class="w-full p-4 rounded-md textarea-notes" placeholder="Start typing your notes..."></textarea>
@@ -584,12 +586,11 @@
 
                 await getRaceData();
 
-                const idTokenResult = await user.getIdTokenResult();
-                console.log("User's custom claims:", idTokenResult.claims);
+                const userRole = idTokenResult.claims.role || 'public-fan';                console.log("User's custom claims:", idTokenResult.claims);
                 const userRole = idTokenResult.claims.role;
 
                 if (userRole === 'team-member') {
-                    driverNotesCard.style.display = 'block';
+                   driverNotesCard.classList.remove('hidden');
                     raceManagementCard.style.display = 'block';
                     qnaManagementCard.style.display = 'block';
                     photoApprovalCard.style.display = 'block';
@@ -617,7 +618,7 @@
                         }, 1000);
                     });
                 } else {
-                    driverNotesCard.style.display = 'none';
+                             driverNotesCard.classList.add('hidden');
                 }
 
                 loadingState.classList.add('hidden');

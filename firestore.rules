@@ -19,7 +19,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow read;
       allow create: if request.auth.uid == userId;
-      allow update: if isTeamMember();
+       allow update: if request.auth.uid == userId || isTeamMember();
     }
 
     // SUBSCRIBERS: Email subscriptions
