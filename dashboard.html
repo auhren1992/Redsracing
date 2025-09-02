@@ -16,7 +16,7 @@
                 <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
             </a>
             <div class="flex items-center space-x-6 font-bold">
-                <a href="team.html" class="hover:text-neon-yellow transition duration-300">Our Team</a>
+                <a href="jonny.html" class="hover:text-neon-yellow transition duration-300">Jonny #88</a>
                 <a href="index.html#schedule" class="hover:text-neon-yellow transition duration-300">Full Schedule</a>
                 <a id="logout-button" href="#" class="bg-red-600 text-white py-2 px-5 rounded-md hover:bg-red-500 transition duration-300">
                     Logout
@@ -35,7 +35,10 @@
             <div id="email-verification-notice" class="hidden bg-yellow-900 border-l-4 border-yellow-500 text-yellow-200 p-4 mb-8 rounded-r-lg" role="alert">
                 <p class="font-bold">Verify your email</p>
                 <p>Your email address has not been verified. Please check your inbox for a verification link to enable all features.</p>
-                <button id="resend-verification-btn" class="mt-2 text-sm font-bold underline hover:text-white">Resend verification email</button>
+                <div class="mt-2 space-x-4">
+                    <button id="resend-verification-btn" class="text-sm font-bold underline hover:text-white">Resend verification email</button>
+                    <button id="refresh-status-btn" class="text-sm font-bold underline hover:text-white text-neon-yellow">I've verified, check my status.</button>
+                </div>
             </div>
             <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
             <p class="text-slate-400 mb-8">Welcome back, <span id="user-email" class="font-bold text-white"></span>.</p>
@@ -571,6 +574,8 @@
 
                 if (!user.emailVerified) {
                     emailVerificationNotice.classList.remove('hidden');
+
+                    // Handle resending the verification email
                     resendVerificationBtn.addEventListener('click', async () => {
                         try {
                             await sendEmailVerification(user);
@@ -578,6 +583,21 @@
                         } catch (error) {
                             console.error('Error resending verification email:', error);
                             alert('Failed to resend verification email. Please try again later.');
+                        }
+                    });
+
+                    // Handle checking the verification status
+                    const refreshStatusBtn = document.getElementById('refresh-status-btn');
+                    refreshStatusBtn.addEventListener('click', async () => {
+                        // Force a reload of the user's profile from Firebase servers
+                        await auth.currentUser.reload();
+
+                        // Check the new status
+                        if (auth.currentUser.emailVerified) {
+                            emailVerificationNotice.classList.add('hidden');
+                             alert('Thank you for verifying your email!');
+                        } else {
+                            alert('Your email is still not verified. Please check your inbox for the verification link.');
                         }
                     });
                 }
