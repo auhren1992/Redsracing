@@ -51,16 +51,16 @@ exports.processInvitationCode = onCall(async (request) => {
   const codesRef = db.collection("invitation_codes");
 
   try {
-    // 1. Find the invitation code document
-    const querySnapshot = await codesRef.where("code", "==", code).limit(1).get();
+    // 1. Find the invitation code document by its ID
+    const codeDocRef = codesRef.doc(code);
+    const codeDoc = await codeDocRef.get();
 
-    if (querySnapshot.empty) {
+    if (!codeDoc.exists) {
       logger.warn(`Invitation code '${code}' not found for user ${uid}.`);
-      // Optionally, you could still grant a default role here if desired.
+      // Grant a default role if the code is invalid, to avoid confusion.
+      await auth.setCustomUserClaims(uid, {role: "public-fan"});
       return {status: "error", message: "Invalid invitation code."};
     }
-
-    const codeDoc = querySnapshot.docs[0];
     const codeData = codeDoc.data();
 
     // 2. Check if the code is still valid (not expired or fully used)
