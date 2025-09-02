@@ -81,8 +81,8 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
-            getAuth, 
-            createUserWithEmailAndPassword, 
+            getAuth,
+            createUserWithEmailAndPassword,
             sendEmailVerification,
             signInWithEmailAndPassword,
             GoogleAuthProvider,
@@ -90,6 +90,7 @@
             updateProfile
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Your web app's Firebase configuration from the main page
         const firebaseConfig = {
@@ -105,6 +106,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const functions = getFunctions(app);
+        const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
         // Get form elements
@@ -169,10 +171,17 @@
                 // 4. Call the Firebase Function to process the invitation code (if provided).
                 if (invitationCode) {
                     const processInvitationCode = httpsCallable(functions, 'processInvitationCode');
-                    await processInvitationCode({
+                        const response = await processInvitationCode({
                         code: invitationCode,
                         uid: user.uid
                     });
+                      } else {
+                    await setDoc(doc(db, 'users', user.uid), { role: 'public-fan' });
+                    
+                    if (response.data?.status === "error") {
+                        showError(response.data.message);
+                        return; // Stop further execution if the code is invalid.
+                    }
                 }
 
                 // 5. Force a token refresh to get new custom claims if a role was assigned.
@@ -192,7 +201,8 @@
             try {
                 // We don't support invitation codes for Google Sign-in in this flow,
                 // so the user will be assigned the 'public-fan' role by default.
-                await signInWithPopup(auth, googleProvider);
+                  const result = await signInWithPopup(auth, googleProvider);
+                await setDoc(doc(db, 'users', result.user.uid), { role: 'public-fan' }, { merge: true });
                 handleSuccess();
             } catch (error) {
                 showError(error.message);
