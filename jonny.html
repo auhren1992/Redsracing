@@ -293,7 +293,7 @@
                 (error) => {
                     console.error("Upload failed:", error);
                     uploadStatus.textContent = `Upload failed: ${error.message}`;
-                    uploadStatus.style.color = '#ef4444'; // Use a red color for errors
+                    uploadStatus.style.color = '#ef4444';
                     uploadBtn.disabled = false;
                     uploadInput.disabled = false;
                 },
@@ -309,10 +309,10 @@
                             createdAt: serverTimestamp(),
                             tags: [],
                             approved: false,
-                            category: 'jonny' // The new category field
+                            category: 'jonny'
                         });
                         uploadStatus.textContent = 'Upload complete! Waiting for approval.';
-                        uploadStatus.style.color = '#22c55e'; // Use a green color for success
+                        uploadStatus.style.color = '#22c55e';
                         selectedFile = null;
                         uploadInput.value = '';
                     } catch (error) {
@@ -326,7 +326,7 @@
             );
         });
 
-        // Dynamic Gallery Rendering
+        // Dynamic Gallery Rendering for Jonny's page
         const renderGallery = () => {
             const q = query(
                 collection(db, "gallery_images"),
@@ -344,17 +344,10 @@
                     const image = doc.data();
                     const galleryItem = document.createElement('div');
                     galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
-                    let tagsHTML = '';
-                    if (image.tags && image.tags.length > 0) {
-                        tagsHTML = image.tags.slice(0, 3).map(tag => `<span class="bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join(' ');
-                    }
                     galleryItem.innerHTML = `
                         <img src="${image.imageUrl}" alt="User uploaded photo of Jonny Kirsch" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                         <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
                             <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderDisplayName || 'Anonymous'}</p>
-                            <div class="mt-2">
-                                ${tagsHTML}
-                            </div>
                         </div>
                     `;
                     galleryContainer.appendChild(galleryItem);
@@ -362,7 +355,6 @@
             });
         };
         renderGallery();
-
     </script>
 </body>
 </html>
