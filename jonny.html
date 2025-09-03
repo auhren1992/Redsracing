@@ -59,6 +59,16 @@
             </a>
             <div class="hidden md:flex items-center space-x-6 font-bold">
                 <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
+                <div class="relative dropdown">
+                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
+                        The Drivers <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+                        <a href="index.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jon Kirsch</a>
+                        <a href="jonny.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jonny Kirsch #88</a>
+                    </div>
+                </div>
+                <a href="index.html#schedule" class="hover:text-neon-yellow transition duration-300">Schedule</a>
                 <a id="auth-link" href="login.html" class="bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300">
                     DRIVER LOGIN
                 </a>
@@ -69,6 +79,10 @@
         </nav>
         <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
              <a href="index.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Home</a>
+             <div class="text-sm px-6 pt-3 font-bold text-slate-400">The Drivers</div>
+             <a href="index.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jon Kirsch</a>
+             <a href="jonny.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jonny Kirsch #88</a>
+             <a href="index.html#schedule" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
              <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
         </div>
     </header>
@@ -145,14 +159,40 @@
         <section id="jonny-gallery" class="py-16 md:py-24 bg-black/20">
             <div class="container mx-auto px-6">
                 <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Jonny's <span class="neon-red">Gallery</span></h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <!-- Placeholder Images -->
-                    <div class="gallery-item aspect-square reveal-up"><img src="https://placehold.co/400x400/1e293b/ff3333?text=Coming+Soon" alt="Placeholder Image" class="w-full h-full object-cover rounded-lg"></div>
-                    <div class="gallery-item aspect-square reveal-up"><img src="https://placehold.co/400x400/1e293b/ff3333?text=Coming+Soon" alt="Placeholder Image" class="w-full h-full object-cover rounded-lg"></div>
-                    <div class="gallery-item aspect-square reveal-up"><img src="https://placehold.co/400x400/1e293b/ff3333?text=Coming+Soon" alt="Placeholder Image" class="w-full h-full object-cover rounded-lg"></div>
-                    <div class="gallery-item aspect-square reveal-up"><img src="https://placehold.co/400x400/1e293b/ff3333?text=Coming+Soon" alt="Placeholder Image" class="w-full h-full object-cover rounded-lg"></div>
+
+                <!-- Upload Form -->
+                <div id="upload-container" class="max-w-xl mx-auto bg-slate-800/50 p-6 rounded-lg mb-12" style="display: none;">
+                    <h3 class="font-racing text-2xl text-white uppercase mb-4">Share Your <span class="neon-red">Photos of Jonny</span></h3>
+                    <div class="flex items-center space-x-4">
+                        <input type="file" id="photo-upload-input" accept="image/jpeg, image/png" class="block w-full text-sm text-slate-400
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-neon-red file:text-slate-900
+                            hover:file:bg-red-400">
+                        <button id="upload-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition disabled:opacity-50" disabled>Upload</button>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-slate-700 rounded-full h-2.5">
+                            <div id="upload-progress-bar" class="bg-neon-red h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <p id="upload-status" class="text-sm text-slate-400 mt-2 h-4"></p>
+                    </div>
+                </div>
+
+                <div id="dynamic-gallery-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- Photos will be dynamically inserted here -->
                 </div>
                 <p class="text-center mt-8 text-slate-400">This gallery will feature photos from Jonny's races and events.</p>
+            </div>
+        </section>
+
+        <section id="jonny-videos" class="py-16 md:py-24">
+            <div class="container mx-auto px-6">
+                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Jonny's <span class="neon-red">Videos</span></h2>
+                <div id="dynamic-video-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Videos will be dynamically inserted here -->
+                </div>
             </div>
         </section>
     </main>
@@ -170,6 +210,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // Basic script for mobile menu
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
@@ -190,23 +232,137 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
 
-        // Auth State
+        // UI Elements
         const authLink = document.getElementById('auth-link');
         const authLinkMobile = document.getElementById('auth-link-mobile');
+        const uploadContainer = document.getElementById('upload-container');
+        const uploadInput = document.getElementById('photo-upload-input');
+        const uploadBtn = document.getElementById('upload-btn');
+        const progressBar = document.getElementById('upload-progress-bar');
+        const uploadStatus = document.getElementById('upload-status');
+        const galleryContainer = document.getElementById('dynamic-gallery-container');
+        let selectedFile = null;
+
+        // Auth State Change
         onAuthStateChanged(auth, user => {
             if (user) {
                 authLink.textContent = 'Dashboard';
                 authLink.href = 'dashboard.html';
                 authLinkMobile.textContent = 'Dashboard';
                 authLinkMobile.href = 'dashboard.html';
+                uploadContainer.style.display = 'block';
             } else {
                 authLink.textContent = 'DRIVER LOGIN';
                 authLink.href = 'login.html';
                 authLinkMobile.textContent = 'DRIVER LOGIN';
                 authLinkMobile.href = 'login.html';
+                uploadContainer.style.display = 'none';
             }
         });
+
+        // Photo Upload Logic
+        uploadInput.addEventListener('change', (e) => {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                uploadBtn.disabled = false;
+                uploadStatus.textContent = `Selected: ${selectedFile.name}`;
+            } else {
+                uploadBtn.disabled = true;
+            }
+        });
+
+        uploadBtn.addEventListener('click', () => {
+            if (!selectedFile || !auth.currentUser) return;
+            uploadBtn.disabled = true;
+            uploadInput.disabled = true;
+
+            const userId = auth.currentUser.uid;
+            const timestamp = Date.now();
+            const storageRef = ref(storage, `gallery/jonny/${timestamp}-${selectedFile.name}`);
+            const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    progressBar.style.width = progress + '%';
+                    uploadStatus.textContent = `Uploading... ${Math.round(progress)}%`;
+                },
+                (error) => {
+                    console.error("Upload failed:", error);
+                    uploadStatus.textContent = `Upload failed: ${error.message}`;
+                    uploadStatus.style.color = '#ef4444'; // Use a red color for errors
+                    uploadBtn.disabled = false;
+                    uploadInput.disabled = false;
+                },
+                async () => {
+                    uploadStatus.textContent = 'Processing...';
+                    try {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        await addDoc(collection(db, "gallery_images"), {
+                            imageUrl: downloadURL,
+                            uploaderUid: userId,
+                            uploaderEmail: auth.currentUser.email,
+                            uploaderDisplayName: auth.currentUser.displayName || 'Anonymous',
+                            createdAt: serverTimestamp(),
+                            tags: [],
+                            approved: false,
+                            category: 'jonny' // The new category field
+                        });
+                        uploadStatus.textContent = 'Upload complete! Waiting for approval.';
+                        uploadStatus.style.color = '#22c55e'; // Use a green color for success
+                        selectedFile = null;
+                        uploadInput.value = '';
+                    } catch (error) {
+                        console.error("Error creating Firestore entry:", error);
+                        uploadStatus.textContent = 'Error saving file data.';
+                        uploadStatus.style.color = '#ef4444';
+                    } finally {
+                        uploadInput.disabled = false;
+                    }
+                }
+            );
+        });
+
+        // Dynamic Gallery Rendering
+        const renderGallery = () => {
+            const q = query(
+                collection(db, "gallery_images"),
+                where("approved", "==", true),
+                where("category", "==", "jonny"),
+                orderBy("createdAt", "desc")
+            );
+            onSnapshot(q, (snapshot) => {
+                galleryContainer.innerHTML = '';
+                if (snapshot.empty) {
+                    galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos of Jonny yet. Be the first to upload one!</p>`;
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const image = doc.data();
+                    const galleryItem = document.createElement('div');
+                    galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
+                    let tagsHTML = '';
+                    if (image.tags && image.tags.length > 0) {
+                        tagsHTML = image.tags.slice(0, 3).map(tag => `<span class="bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join(' ');
+                    }
+                    galleryItem.innerHTML = `
+                        <img src="${image.imageUrl}" alt="User uploaded photo of Jonny Kirsch" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                            <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderDisplayName || 'Anonymous'}</p>
+                            <div class="mt-2">
+                                ${tagsHTML}
+                            </div>
+                        </div>
+                    `;
+                    galleryContainer.appendChild(galleryItem);
+                });
+            });
+        };
+        renderGallery();
+
     </script>
 </body>
 </html>
