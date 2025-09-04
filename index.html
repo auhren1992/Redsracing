@@ -21,16 +21,30 @@
 
     <header class="bg-black/30 backdrop-blur-md fixed w-full top-0 z-50 border-b border-slate-700/50" style="top: 0;">
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="#" class="text-4xl font-racing uppercase tracking-wider">
+            <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
                 <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
             </a>
             <div class="hidden md:flex items-center space-x-6 font-bold">
+
+                <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
+
                 <a href="index.html#about" class="hover:text-neon-yellow transition duration-300">About</a>
+
                 <div class="relative dropdown">
                     <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
                         The Drivers <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+
+                        <a href="driver.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jon Kirsch</a>
+                        <a href="jonny.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jonny Kirsch #88</a>
+                    </div>
+                </div>
+                <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Schedule</a>
+                <a href="gallery.html" class="hover:text-neon-yellow transition duration-300">Gallery</a>
+                <a href="videos.html" class="hover:text-neon-yellow transition duration-300">Videos</a>
+                <a href="qna.html" class="hover:text-neon-yellow transition duration-300">Q&A</a>
+
                         <a href="index.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jon Kirsch</a>
                         <a href="jonny.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jonny Kirsch #88</a>
                     </div>
@@ -39,6 +53,7 @@
                 <a href="#schedule" class="hover:text-neon-yellow transition duration-300">Schedule</a>
                 <a href="#gallery" class="hover:text-neon-yellow transition duration-300">Gallery</a>
                 <a href="#videos" class="hover:text-neon-yellow transition duration-300">Videos</a>
+
                 <a id="auth-link" href="login.html" class="bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300">
                     DRIVER LOGIN
                 </a>
@@ -48,6 +63,16 @@
             </button>
         </nav>
         <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
+
+             <a href="index.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Home</a>
+             <div class="text-sm px-6 pt-3 font-bold text-slate-400">The Drivers</div>
+             <a href="driver.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jon Kirsch</a>
+             <a href="jonny.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jonny Kirsch #88</a>
+             <a href="schedule.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
+             <a href="gallery.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Gallery</a>
+             <a href="videos.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Videos</a>
+             <a href="qna.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Q&A</a>
+
              <a href="index.html#about" class="block py-3 px-6 text-sm hover:bg-slate-800">About</a>
              <div class="text-sm px-6 pt-3 font-bold text-slate-400">The Drivers</div>
              <a href="index.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jon Kirsch</a>
@@ -56,6 +81,7 @@
              <a href="#schedule" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
              <a href="#gallery" class="block py-3 px-6 text-sm hover:bg-slate-800">Gallery</a>
              <a href="#videos" class="block py-3 px-6 text-sm hover:bg-slate-800">Videos</a>
+
              <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
         </div>
     </header>
@@ -69,6 +95,8 @@
                 <p class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest">THE OFFICIAL HUB OF JON'S RACING SAGA</p>
             </div>
         </section>
+
+
 
         <section id="about" class="py-24 md:py-32 section-glow">
             <div class="container mx-auto px-6">
@@ -241,6 +269,13 @@
 
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script type="module">
+
+        // Basic scripts for the home page can go here
+        // For example, the mobile menu
+        document.getElementById('mobile-menu-button').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -576,9 +611,7 @@
             // --- Footer Year ---
             document.getElementById('year').textContent = new Date().getFullYear();
         };
+
     </script>
 </body>
 </html>
-```""",
-    continue_working=True
-)
