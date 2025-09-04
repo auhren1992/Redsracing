@@ -1,5 +1,5 @@
 # .github/workflows/firebase-deploy.yml
-name: Deploy to Firebase Hosting
+name: Deploy to Firebase Hosting & Functions
 
 on:
   push:
@@ -13,6 +13,7 @@ permissions:
   pull-requests: write
 
 jobs:
+  # --- PREVIEW (PRs) — Hosting only ---
   preview:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -23,22 +24,27 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
 
-      - name: Install dependencies
+      # Root site deps (if you have a frontend to build)
+      - name: Install deps (root)
+        if: hashFiles('package.json') != ''
         run: |
-          if [ -f package-lock.json ]; then npm ci; else npm i; fi
+          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm i --no-audit --no-fund; endif
 
-      - name: Build (if present)
+      - name: Build site (if present)
         run: npm run build --if-present
 
       - name: Firebase Hosting preview
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}               # comments a preview URL on the PR
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: your-project-id                           # <-- change this
-          # no channelId here => action creates a PR-specific preview channel
+          projectId: your-project-id   # <-- set this
 
+  # --- PRODUCTION (main) — Hosting LIVE + Functions ---
   production:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -49,18 +55,41 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          # 👇 Cache is tied to lockfiles; functions lockfile is the important one
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
 
-      - name: Install dependencies
+      # Install/build Functions using the lockfile in /functions
+      - name: Install deps (functions)
+        run: npm ci --prefix functions --no-audit --no-fund
+
+      - name: Build Functions (if TS or custom build)
+        run: npm --prefix functions run build || echo "no functions build script"
+
+      # Root site (optional)
+      - name: Install deps (root)
+        if: hashFiles('package.json') != ''
         run: |
-          if [ -f package-lock.json ]; then npm ci; else npm i; fi
+          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm i --no-audit --no-fund; fi
 
-      - name: Build (if present)
+      - name: Build site (if present)
         run: npm run build --if-present
 
-      - name: Deploy to LIVE channel
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: redsracing-a7f8b                     # <-- change this
-          channelId: live
+      # Deploy Hosting + Functions with Firebase CLI
+      - name: Install Firebase CLI
+        run: npm i -g firebase-tools
+
+      - name: Auth with service account
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $HOME/gcp.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcp.json" >> $GITHUB_ENV
+
+      - name: Deploy to Firebase (live)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+        run: |
+          firebase deploy \
+            your-project-id:redsracing-a7f8b     
+            --only hosting,functions \
+            --force
