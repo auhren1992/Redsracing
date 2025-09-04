@@ -29,9 +29,23 @@
                     </div>
                 </div>
                 <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Schedule</a>
-                <a href="gallery.html" class="hover:text-neon-yellow transition duration-300">Gallery</a>
-                <a href="videos.html" class="hover:text-neon-yellow transition duration-300">Videos</a>
-                <a href="qna.html" class="hover:text-neon-yellow transition duration-300">Q&A</a>
+                <div class="relative dropdown">
+                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
+                        Media <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+                        <a href="gallery.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gallery</a>
+                        <a href="videos.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Videos</a>
+                    </div>
+                </div>
+                <div class="relative dropdown">
+                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
+                        Community <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+                        <a href="qna.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Q&A</a>
+                    </div>
+                </div>
                 <a id="auth-link" href="login.html" class="bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300">
                     DRIVER LOGIN
                 </a>
@@ -46,9 +60,11 @@
              <a href="driver.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jon Kirsch</a>
              <a href="jonny.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jonny Kirsch #88</a>
              <a href="schedule.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
-             <a href="gallery.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Gallery</a>
-             <a href="videos.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Videos</a>
-             <a href="qna.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Q&A</a>
+             <div class="text-sm px-6 pt-3 font-bold text-slate-400">Media</div>
+             <a href="gallery.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Gallery</a>
+             <a href="videos.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Videos</a>
+             <div class="text-sm px-6 pt-3 font-bold text-slate-400">Community</div>
+             <a href="qna.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Q&A</a>
              <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
         </div>
     </header>
