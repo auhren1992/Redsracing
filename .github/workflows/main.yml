@@ -1,76 +1,26 @@
-# .github/workflows/firebase-deploy.yml
-name: Deploy to Firebase Hosting & Functions
+name: Deploy to Firebase
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pull-requests: write
+    branches:
+      - main
 
 jobs:
-  # --- PREVIEW (PRs) — Hosting only ---
-  preview:
-    if: github.event_name == 'pull_request'
+  build_and_deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            functions/package-lock.json
-
-      - name: Install and Build (root)
-        if: hashFiles('package.json') != ''
+      - name: Install Node.js and dependencies for Functions
         run: |
-          if [ -f package-lock.json ]; then npm ci; else npm i; fi
-          npm run build --if-present
-
-      - name: Firebase Hosting Preview
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: redsracing-a7f8b
-
-  # --- PRODUCTION (main) — Hosting LIVE + Functions ---
-  production:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            functions/package-lock.json
-
-      - name: Install and Build (root)
-        if: hashFiles('package.json') != ''
-        run: |
-          if [ -f package-lock.json ]; then npm ci; else npm i; fi
-          npm run build --if-present
-
-      - name: Install and Build (functions)
-        run: |
-          npm ci --prefix functions
-          npm run build --prefix functions --if-present
+          cd functions
+          npm ci
 
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: redsracing-a7f8b
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}'
           channelId: live
+          projectId: 'redsracing-a7f8b'
