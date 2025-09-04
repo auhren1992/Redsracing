@@ -28,9 +28,9 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: 
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: redsracing-a7f8b
-          # channelId omitted to allow automatic preview channel creation
+          channelId: live
 
   # --- PRODUCTION (main) — Hosting LIVE + Functions ---
   production:
@@ -48,8 +48,9 @@ jobs:
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          firebaseServiceAccount: 
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: redsracing-a7f8b
           channelId: live
           target: hosting,functions
 # Re-trigger deployment
+# Re-trigger deployment 2

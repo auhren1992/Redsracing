@@ -1,2 +1,0 @@
-- name: Deploy to Firebase
-  run: firebase deploy --token "${{ FIREBASE_TOKEN}}"

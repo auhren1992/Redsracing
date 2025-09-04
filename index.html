@@ -21,24 +21,38 @@
 
     <header class="bg-black/30 backdrop-blur-md fixed w-full top-0 z-50 border-b border-slate-700/50" style="top: 0;">
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="#" class="text-4xl font-racing uppercase tracking-wider">
+            <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
                 <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
             </a>
             <div class="hidden md:flex items-center space-x-6 font-bold">
-                <a href="index.html#about" class="hover:text-neon-yellow transition duration-300">About</a>
+                <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
                 <div class="relative dropdown">
                     <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
                         The Drivers <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
-                        <a href="index.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jon Kirsch</a>
+                        <a href="driver.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jon Kirsch</a>
                         <a href="jonny.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jonny Kirsch #88</a>
                     </div>
                 </div>
-                <a href="index.html#the-car" class="hover:text-neon-yellow transition duration-300">The Car</a>
-                <a href="#schedule" class="hover:text-neon-yellow transition duration-300">Schedule</a>
-                <a href="#gallery" class="hover:text-neon-yellow transition duration-300">Gallery</a>
-                <a href="#videos" class="hover:text-neon-yellow transition duration-300">Videos</a>
+                <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Schedule</a>
+                <div class="relative dropdown">
+                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
+                        Media <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+                        <a href="gallery.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gallery</a>
+                        <a href="videos.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Videos</a>
+                    </div>
+                </div>
+                <div class="relative dropdown">
+                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
+                        Community <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+                        <a href="qna.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Q&A</a>
+                    </div>
+                </div>
                 <a id="auth-link" href="login.html" class="bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300">
                     DRIVER LOGIN
                 </a>
@@ -48,7 +62,6 @@
             </button>
         </nav>
         <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
-
              <a href="index.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Home</a>
              <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">The Drivers</button>
              <div class="mobile-accordion-content hidden pl-4">
@@ -65,16 +78,6 @@
              <div class="mobile-accordion-content hidden pl-4">
                  <a href="qna.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Q&A</a>
              </div>
-
-             <a href="index.html#about" class="block py-3 px-6 text-sm hover:bg-slate-800">About</a>
-             <div class="text-sm px-6 pt-3 font-bold text-slate-400">The Drivers</div>
-             <a href="index.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jon Kirsch</a>
-             <a href="jonny.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jonny Kirsch #88</a>
-             <a href="index.html#the-car" class="block py-3 px-6 text-sm hover:bg-slate-800">The Car</a>
-             <a href="#schedule" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
-             <a href="#gallery" class="block py-3 px-6 text-sm hover:bg-slate-800">Gallery</a>
-             <a href="#videos" class="block py-3 px-6 text-sm hover:bg-slate-800">Videos</a>
-
              <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
         </div>
     </header>
@@ -86,143 +89,6 @@
                     Push The Limit
                 </h1>
                 <p class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest">THE OFFICIAL HUB OF JON'S RACING SAGA</p>
-            </div>
-        </section>
-
-        <section id="about" class="py-24 md:py-32 section-glow">
-            <div class="container mx-auto px-6">
-                <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-12 lg:gap-20">
-                    <div class="text-lg space-y-4 reveal-left">
-                        <h2 class="font-racing text-5xl uppercase mb-4">Meet The <span class="neon-yellow">Driver</span></h2>
-                        <p class="text-slate-300">Fueled by a lifelong passion for speed and precision, I'm Jon, and this is my world. This isn't just a hobby; it's a relentless pursuit of the perfect lap, the extra tenth, the top step of the podium. It's about the bond between man and machine, pushing the limits together on the ragged edge.</p>
-                        <p class="text-slate-400">From late nights in the garage to the adrenaline of the green flag, this is where I document the unfiltered reality of life on the track. Follow along for a behind-the-scenes look at my racing journey.</p>
-                    </div>
-                    <div id="stats" class="grid grid-cols-1 sm:grid-cols-3 gap-4 reveal-right">
-                        <div class="stat-card p-6 rounded-lg text-center">
-                            <div id="wins-counter" class="text-6xl font-bold neon-yellow mb-2" data-target="2">0</div>
-                            <div class="text-lg font-racing uppercase text-white tracking-wider">Wins</div>
-                        </div>
-                        <div class="stat-card p-6 rounded-lg text-center">
-                            <div id="podiums-counter" class="text-6xl font-bold neon-yellow mb-2" data-target="4">0</div>
-                            <div class="text-lg font-racing uppercase text-white tracking-wider">Podiums</div>
-                        </div>
-                        <div class="stat-card p-6 rounded-lg text-center">
-                            <div id="laps-counter" class="text-6xl font-bold neon-yellow mb-2" data-target="200">0</div>
-                            <div class="text-lg font-racing uppercase text-white tracking-wider">Laps Raced</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="the-car" class="py-24 md:py-32 bg-black/20">
-            <div class="container mx-auto px-6 text-center">
-                <h2 class="font-racing text-5xl uppercase mb-4 reveal-fade">Meet The <span class="neon-yellow">Beast</span></h2>
-                <p class="max-w-2xl mx-auto mb-12 text-slate-400 reveal-fade" data-reveal-delay="200">Hover over the points on the car to learn more about the tech that powers every race.</p>
-                <div class="car-hotspot-container max-w-4xl mx-auto reveal-up">
-                    <img src="https://i.imgur.com/EumUdup.jpg" alt="Race Car" class="w-full h-auto rounded-lg shadow-2xl" loading="lazy" width="1200" height="675" onerror="this.onerror=null;this.src='https://placehold.co/1200x675';">
-                    <div class="hotspot hotspot-pulse" style="top: 45%; left: 30%;">1<div class="hotspot-info"><strong>Engine & Powertrain:</strong> Custom-built 1-cylinder engine, meticulously tuned for optimal power-to-weight ratio.</div></div>
-                    <div class="hotspot hotspot-pulse" style="top: 35%; left: 75%;">2<div class="hotspot-info"><strong>Aerodynamics:</strong> Carbon fiber rear wing and front splitter providing over 1000lbs of downforce for high-speed stability.</div></div>
-                    <div class="hotspot hotspot-pulse" style="top: 70%; left: 65%;">3<div class="hotspot-info"><strong>Tires & Grip:</strong> Hoosier Racing Slicks, a soft compound that gets stickier as they heat up for maximum grip in the corners.</div></div>
-                </div>
-            </div>
-        </section>
-
-        <section id="schedule" class="py-24 md:py-32 section-glow">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">2025 Race <span class="neon-yellow">Schedule</span></h2>
-                <div class="max-w-4xl mx-auto bg-slate-900/50 p-8 rounded-lg text-center mb-12 reveal-up">
-                    <h3 class="text-xl font-bold text-slate-400 uppercase">Countdown to Next Race</h3>
-                    <p id="next-race-name" class="text-3xl font-racing text-white uppercase my-4">Loading...</p>
-                    <div id="countdown-timer" class="grid grid-cols-4 gap-4 max-w-md mx-auto">
-                        <div><div id="days" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Days</div></div>
-                        <div><div id="hours" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Hours</div></div>
-                        <div><div id="minutes" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Minutes</div></div>
-                        <div><div id="seconds" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Seconds</div></div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 max-w-6xl mx-auto reveal-up" data-reveal-delay="200">
-                    <div>
-                        <h3 class="text-3xl font-racing text-white uppercase mb-4 border-b-2 border-neon-yellow pb-2">American Super Cups</h3>
-                        <div id="super-cups-schedule" class="space-y-4"></div>
-                    </div>
-                    <div>
-                        <h3 class="text-3xl font-racing text-white uppercase mb-4 border-b-2 border-neon-yellow pb-2">Special Events</h3>
-                        <div id="special-events-schedule" class="space-y-4"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <section id="gallery" class="py-24 md:py-32 bg-black/20">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Action <span class="neon-yellow">Shots</span></h2>
-
-                <!-- Upload Form -->
-                <div id="upload-container" class="max-w-xl mx-auto bg-slate-800/50 p-6 rounded-lg mb-12" style="display: none;">
-                    <h3 class="font-racing text-2xl text-white uppercase mb-4">Share Your <span class="neon-yellow">Race Photos</span></h3>
-                    <div class="flex items-center space-x-4">
-                        <input type="file" id="photo-upload-input" accept="image/jpeg, image/png" class="block w-full text-sm text-slate-400
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-full file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-neon-yellow file:text-slate-900
-                            hover:file:bg-yellow-300">
-                        <button id="upload-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition disabled:opacity-50" disabled>Upload</button>
-                    </div>
-                    <div class="mt-4">
-                        <div class="w-full bg-slate-700 rounded-full h-2.5">
-                            <div id="upload-progress-bar" class="bg-neon-yellow h-2.5 rounded-full" style="width: 0%"></div>
-                        </div>
-                        <p id="upload-status" class="text-sm text-slate-400 mt-2 h-4"></p>
-                    </div>
-                </div>
-
-                <div id="dynamic-gallery-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <!-- Dynamic gallery items will be inserted here -->
-                </div>
-            </div>
-        </section>
-
-        <section id="videos" class="py-24 md:py-32 section-glow">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Onboard & <span class="neon-yellow">Highlights</span></h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="video-item rounded-lg overflow-hidden reveal-up">
-                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/Lzi_w8jqgS8" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
-                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Dells Raceway Park</h3><p class="text-sm text-slate-400">A hot lap around the track.</p></div>
-                    </div>
-                    <div class="video-item rounded-lg overflow-hidden reveal-up" data-reveal-delay="200">
-                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/DMYD64ViS88" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
-                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Slinger Super Speedway</h3><p class="text-sm text-slate-400">Highlights from the race.</p></div>
-                    </div>
-                    <div class="video-item rounded-lg overflow-hidden reveal-up" data-reveal-delay="400">
-                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
-                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Garage Talk: Car Setup</h3><p class="text-sm text-slate-400">A deep dive into the tech setup.</p></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <section id="qna" class="py-24 md:py-32 bg-black/20">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Fan <span class="neon-yellow">Q&A</span></h2>
-
-                <div id="qna-container" class="space-y-8 max-w-4xl mx-auto">
-                    <!-- Q&A items will be dynamically inserted here -->
-                </div>
-
-                <div id="qna-form-container" class="max-w-4xl mx-auto mt-16" style="display: none;">
-                    <h3 class="font-racing text-3xl text-white uppercase mb-4 text-center">Ask a <span class="neon-yellow">Question</span></h3>
-                    <form id="qna-form" class="card p-8 space-y-4">
-                        <div>
-                            <label for="qna-question" class="block text-sm font-medium text-gray-300">Your Question</label>
-                            <textarea id="qna-question" rows="4" required class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="What do you want to know?"></textarea>
-                        </div>
-                        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Submit Question</button>
-                        <p id="qna-form-status" class="text-sm text-slate-500 mt-2 h-4"></p>
-                    </form>
-                </div>
             </div>
         </section>
 
@@ -259,7 +125,6 @@
     </footer>
 
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Mobile menu toggle
@@ -275,344 +140,6 @@
                 });
             });
         });
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
-
-        window.onload = () => {
-            // --- Firebase Config & Initialization ---
-            const firebaseConfig = {
-              apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
-              authDomain: "redsracing-a7f8b.firebaseapp.com",
-              projectId: "redsracing-a7f8b",
-              storageBucket: "redsracing-a7f8b.firebasestorage.app",
-              messagingSenderId: "517034606151",
-              appId: "1:517034606151:web:24cae262e1d98832757b62"
-            };
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const db = getFirestore(app);
-            const storage = getStorage(app);
-
-            // --- UI Elements ---
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
-
-            // --- Auth State ---
-            const authLink = document.getElementById('auth-link');
-            const authLinkMobile = document.getElementById('auth-link-mobile');
-            onAuthStateChanged(auth, user => {
-                const uploadContainer = document.getElementById('upload-container');
-                if (user) {
-                    authLink.textContent = 'Dashboard'; authLink.href = 'dashboard.html';
-                    authLinkMobile.textContent = 'Dashboard'; authLinkMobile.href = 'dashboard.html';
-                    uploadContainer.style.display = 'block';
-                } else {
-                    authLink.textContent = 'Driver Login'; authLink.href = 'login.html';
-                    authLinkMobile.textContent = 'Driver Login'; authLinkMobile.href = 'login.html';
-                    uploadContainer.style.display = 'none';
-                }
-            });
-
-            // --- Photo Upload Logic ---
-            const uploadInput = document.getElementById('photo-upload-input');
-            const uploadBtn = document.getElementById('upload-btn');
-            const progressBar = document.getElementById('upload-progress-bar');
-            const uploadStatus = document.getElementById('upload-status');
-            let selectedFile = null;
-
-            uploadInput.addEventListener('change', (e) => {
-                selectedFile = e.target.files[0];
-                if (selectedFile) {
-                    uploadBtn.disabled = false;
-                    uploadStatus.textContent = `Selected: ${selectedFile.name}`;
-                } else {
-                    uploadBtn.disabled = true;
-                }
-            });
-
-            uploadBtn.addEventListener('click', () => {
-                if (!selectedFile || !auth.currentUser) return;
-                uploadBtn.disabled = true;
-                uploadInput.disabled = true;
-
-                const userId = auth.currentUser.uid;
-                const timestamp = Date.now();
-                const storageRef = ref(storage, `gallery/${userId}/${timestamp}-${selectedFile.name}`);
-                const uploadTask = uploadBytesResumable(storageRef, selectedFile);
-
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        progressBar.style.width = progress + '%';
-                        uploadStatus.textContent = `Uploading... ${Math.round(progress)}%`;
-                    },
-                    (error) => {
-                        console.error("Upload failed:", error);
-                        uploadStatus.textContent = `Upload failed: ${error.message}`;
-                        uploadStatus.style.color = '#ef4444';
-                        uploadBtn.disabled = false;
-                        uploadInput.disabled = false;
-                    },
-                    async () => {
-                        uploadStatus.textContent = 'Processing...';
-                        try {
-                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                            await addDoc(collection(db, "gallery_images"), {
-                                imageUrl: downloadURL,
-                                uploaderUid: userId,
-                                uploaderEmail: auth.currentUser.email, // Kept for internal reference
-                                createdAt: serverTimestamp(),
-                                tags: [],
-                                approved: false
-                            });
-                            uploadStatus.textContent = 'Upload complete! Waiting for approval.';
-                            uploadStatus.style.color = '#22c55e';
-                            selectedFile = null;
-                            uploadInput.value = '';
-                        } catch (error) {
-                            console.error("Error creating Firestore entry:", error);
-                            uploadStatus.textContent = 'Error saving file data.';
-                            uploadStatus.style.color = '#ef4444';
-                        } finally {
-                            uploadInput.disabled = false;
-                        }
-                    }
-                );
-            });
-
-            // --- Dynamic Gallery Rendering ---
-            const galleryContainer = document.getElementById('dynamic-gallery-container');
-            const renderGallery = () => {
-                const q = query(collection(db, "gallery_images"), where("approved", "==", true), orderBy("createdAt", "desc"));
-                onSnapshot(q, (snapshot) => {
-                    galleryContainer.innerHTML = '';
-                    if (snapshot.empty) {
-                        galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos yet. Be the first to upload one!</p>`;
-                        return;
-                    }
-                    snapshot.forEach(doc => {
-                        const image = doc.data();
-                        const galleryItem = document.createElement('div');
-                        galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
-                        let tagsHTML = '';
-                        if (image.tags && image.tags.length > 0) {
-                            tagsHTML = image.tags.slice(0, 3).map(tag => `<span class="bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join(' ');
-                        }
-                        galleryItem.innerHTML = `
-                            <img src="${image.imageUrl}" alt="User uploaded race photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                                <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderDisplayName || 'Anonymous'}</p>
-                                <div class="mt-2">
-                                    ${tagsHTML}
-                                </div>
-                            </div>
-                        `;
-                        galleryContainer.appendChild(galleryItem);
-                    });
-                });
-            };
-            renderGallery();
-            
-            // --- Animate on Scroll ---
-            ScrollReveal().reveal('.reveal-fade', { delay: 200, distance: '0px', opacity: 0, duration: 1000 });
-            ScrollReveal().reveal('.reveal-up', { delay: 200, distance: '50px', origin: 'bottom', duration: 1000, interval: 100 });
-            ScrollReveal().reveal('.reveal-left', { delay: 200, distance: '50px', origin: 'left', duration: 1000 });
-            ScrollReveal().reveal('.reveal-right', { delay: 200, distance: '50px', origin: 'right', duration: 1000 });
-
-            // --- Race Schedule & Countdown ---
-            const superCupsContainer = document.getElementById('super-cups-schedule');
-            const specialEventsContainer = document.getElementById('special-events-schedule');
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const qRaces = query(collection(db, "races"), orderBy("date", "asc"));
-            onSnapshot(qRaces, (snapshot) => {
-                superCupsContainer.innerHTML = '';
-                specialEventsContainer.innerHTML = '';
-                const allRaces = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                allRaces.forEach(race => {
-                    const raceDate = new Date(race.date + 'T00:00:00');
-                    const isPast = raceDate < today;
-                    let cardClass = isPast ? 'past' : 'upcoming';
-                    const formattedDate = raceDate.toLocaleString('en-US', { month: 'long', day: 'numeric' });
-
-                    let recapHTML = '';
-                    if (isPast && (race.results || race.summary)) {
-                        cardClass += ' cursor-pointer';
-                        recapHTML = `
-                            <div class="race-recap hidden mt-4 pt-4 border-t border-slate-700">
-                                ${race.results ? `<p class="font-bold text-lg text-neon-yellow">Result: ${race.results}</p>` : ''}
-                                ${race.summary ? `<p class="text-slate-300 mt-2">${race.summary}</p>` : ''}
-                            </div>
-                        `;
-                    }
-
-                    const cardHTML = `
-                        <div class="schedule-card p-4 rounded-lg ${cardClass}" data-race-id="${race.id}">
-                            <div class="flex justify-between items-center">
-                                <div><p class="font-bold text-lg text-white">${race.name}</p><p class="text-sm text-slate-400">${race.special || `Race ${race.race}`}</p></div>
-                                <div class="font-semibold text-right text-slate-300">${formattedDate}</div>
-                            </div>
-                            ${recapHTML}
-                        </div>`;
-
-                    if (race.type === 'specialEvent') {
-                        specialEventsContainer.innerHTML += cardHTML;
-                    } else {
-                        superCupsContainer.innerHTML += cardHTML;
-                    }
-                });
-
-                document.querySelectorAll('.schedule-card.past').forEach(card => {
-                    card.addEventListener('click', () => {
-                        const recap = card.querySelector('.race-recap');
-                        if (recap) recap.classList.toggle('hidden');
-                    });
-                });
-
-                const nextRace = allRaces.find(race => new Date(race.date + 'T00:00:00') >= today);
-                if (nextRace) {
-                    document.getElementById('next-race-name').textContent = nextRace.name;
-                    const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
-                    const countdownInterval = setInterval(() => {
-                        const now = new Date().getTime();
-                        const distance = nextRaceDate - now;
-                        if (distance < 0) {
-                            clearInterval(countdownInterval);
-                            document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-3xl font-racing neon-yellow'>RACE DAY!</div>";
-                            return;
-                        }
-                        document.getElementById('days').textContent = Math.floor(distance / (1000 * 60 * 60 * 24));
-                        document.getElementById('hours').textContent = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                        document.getElementById('minutes').textContent = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                        document.getElementById('seconds').textContent = Math.floor((distance % (1000 * 60)) / 1000);
-                    }, 1000);
-                } else {
-                    document.getElementById('next-race-name').textContent = "Season Complete!";
-                    document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-2xl font-racing'>Thanks for a great season!</div>";
-                }
-
-                const isRaceDay = allRaces.some(race => race.date === today.toISOString().split('T')[0]);
-                if (isRaceDay) {
-                    const liveBanner = document.getElementById('live-banner');
-                    const header = document.querySelector('header');
-                    const liveTimingLink = document.getElementById('live-timing-link');
-                    const raceOfTheDay = allRaces.find(race => race.date === today.toISOString().split('T')[0]);
-                    if(raceOfTheDay && raceOfTheDay.liveTimingLink) {
-                        liveTimingLink.href = raceOfTheDay.liveTimingLink;
-                    } else {
-                        liveTimingLink.href = '#schedule';
-                    }
-                    liveBanner.classList.remove('hidden');
-                    header.style.top = `${liveBanner.offsetHeight}px`;
-                }
-            });
-
-            // --- Subscription Form ---
-            const subscribeForm = document.getElementById('subscribe-form');
-            if (subscribeForm) {
-                subscribeForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const subscribeEmail = document.getElementById('subscribe-email');
-                    const subscribeMessage = document.getElementById('subscribe-message');
-                    const email = subscribeEmail.value.trim();
-                    if (!email) return;
-
-                    try {
-                        await addDoc(collection(db, "subscribers"), { email: email, subscribedAt: new Date() });
-                        subscribeMessage.textContent = 'Success! You are subscribed.';
-                        subscribeMessage.style.color = '#22c55e';
-                        subscribeEmail.value = '';
-                    } catch (error) {
-                        console.error("Subscription error:", error);
-                        subscribeMessage.textContent = 'Subscription failed. Please try again.';
-                        subscribeMessage.style.color = '#ef4444';
-                    }
-                    setTimeout(() => { subscribeMessage.textContent = ''; }, 5000);
-                });
-            }
-
-            // --- Fan Q&A Logic ---
-            const qnaContainer = document.getElementById('qna-container');
-            const qnaFormContainer = document.getElementById('qna-form-container');
-            const qnaForm = document.getElementById('qna-form');
-            const qnaQuestionInput = document.getElementById('qna-question');
-            const qnaFormStatus = document.getElementById('qna-form-status');
-
-            onAuthStateChanged(auth, user => {
-                if (user) {
-                    qnaFormContainer.style.display = 'block';
-                } else {
-                    qnaFormContainer.style.display = 'none';
-                }
-            });
-
-            if (qnaForm) {
-                qnaForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const user = auth.currentUser;
-                    if (!user) {
-                        qnaFormStatus.textContent = 'You must be logged in to ask a question.';
-                        qnaFormStatus.style.color = '#ef4444';
-                        return;
-                    }
-                    const questionText = qnaQuestionInput.value.trim();
-                    if (!questionText) return;
-
-                    try {
-                        await addDoc(collection(db, "qna_submissions"), {
-                            question: questionText,
-                            status: 'submitted',
-                            submitterUid: user.uid,
-                            submitterName: user.displayName || 'Anonymous',
-                            submittedAt: serverTimestamp()
-                        });
-                        qnaFormStatus.textContent = 'Your question has been submitted for approval!';
-                        qnaFormStatus.style.color = '#22c55e';
-                        qnaQuestionInput.value = '';
-                    } catch (error) {
-                        console.error("Error submitting question:", error);
-                        qnaFormStatus.textContent = 'Error submitting question. Please try again.';
-                        qnaFormStatus.style.color = '#ef4444';
-                    }
-                    setTimeout(() => { qnaFormStatus.textContent = ''; }, 5000);
-                });
-            }
-
-            const renderQAs = () => {
-                const q = query(collection(db, "qna_submissions"), where("status", "==", "published"), orderBy("answeredAt", "desc"));
-                onSnapshot(q, (snapshot) => {
-                    qnaContainer.innerHTML = '';
-                    if (snapshot.empty) {
-                        qnaContainer.innerHTML = `<p class="text-slate-400 text-center">No questions have been answered yet. Be the first to ask one!</p>`;
-                        return;
-                    }
-                    snapshot.forEach(doc => {
-                        const qna = doc.data();
-                        const qnaItem = document.createElement('div');
-                        qnaItem.className = 'card p-6 rounded-lg';
-                        qnaItem.innerHTML = `
-                            <p class="text-lg text-slate-400 font-semibold">Q: ${qna.question}</p>
-                            <p class="text-lg text-white mt-4 pl-4 border-l-4 border-neon-yellow">${qna.answer}</p>
-                            <p class="text-sm text-slate-500 text-right mt-4">- Asked by ${qna.submitterName}</p>
-                        `;
-                        qnaContainer.appendChild(qnaItem);
-                    });
-                });
-            };
-            renderQAs();
-
-
-            // --- Footer Year ---
-            document.getElementById('year').textContent = new Date().getFullYear();
-        };
-
     </script>
 </body>
 </html>
