@@ -54,7 +54,7 @@ jobs:
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           # This uses the secure service account key we discussed
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}'
+          firebaseServiceAccount: '${{ FIREBASE_TOKEN }}'
           # The ID of your Firebase project
           projectId: your-project-id
 
@@ -62,7 +62,7 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}'
+          firebaseServiceAccount: '${{ FIREBASE_TOKEN }}'
           channelId: live
           projectId: 'redsracing-a7f8b'
 
