@@ -28,21 +28,18 @@ jobs:
             package-lock.json
             functions/package-lock.json
 
-      # Root site deps (if you have a frontend to build)
-      - name: Install deps (root)
+      - name: Install and Build (root)
         if: hashFiles('package.json') != ''
         run: |
-          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm i --no-audit --no-fund; endif
+          if [ -f package-lock.json ]; then npm ci; else npm i; fi
+          npm run build --if-present
 
-      - name: Build site (if present)
-        run: npm run build --if-present
-
-      - name: Firebase Hosting preview
+      - name: Firebase Hosting Preview
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: your-project-id   # <-- set this
+          projectId: redsracing-a7f8b
 
   # --- PRODUCTION (main) — Hosting LIVE + Functions ---
   production:
@@ -55,18 +52,29 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          # 👇 Cache is tied to lockfiles; functions lockfile is the important one
           cache-dependency-path: |
             package-lock.json
             functions/package-lock.json
 
-      # Install/build Functions using the lockfile in /functions
-      - name: Install deps (functions)
-        run: npm ci --prefix functions --no-audit --no-fund
+      - name: Install and Build (root)
+        if: hashFiles('package.json') != ''
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm i; fi
+          npm run build --if-present
 
-      - name: Build Functions (if TS or custom build)
-        run: npm --prefix functions run build || echo "no functions build script"
+      - name: Install and Build (functions)
+        run: |
+          npm ci --prefix functions
+          npm run build --prefix functions --if-present
 
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: redsracing-a7f8b
+          channelId: live
+          
       # Root site (optional)
       - name: Install deps (root)
         if: hashFiles('package.json') != ''
