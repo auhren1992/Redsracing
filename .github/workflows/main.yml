@@ -14,7 +14,7 @@ jobs:
 
       - name: Install Node.js and dependencies for Functions
         run: |
-          cd D:\Redsracing\functions
+          cd Redsracing\functions
           npm ci
 
       - name: Deploy to Firebase
