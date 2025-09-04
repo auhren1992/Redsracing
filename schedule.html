@@ -121,6 +121,7 @@
     </footer>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -173,6 +174,26 @@
             };
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
+            const auth = getAuth(app);
+
+            // UI Elements
+            const authLink = document.getElementById('auth-link');
+            const authLinkMobile = document.getElementById('auth-link-mobile');
+
+            // Auth State Change
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    authLink.textContent = 'Dashboard';
+                    authLink.href = 'dashboard.html';
+                    authLinkMobile.textContent = 'Dashboard';
+                    authLinkMobile.href = 'dashboard.html';
+                } else {
+                    authLink.textContent = 'DRIVER LOGIN';
+                    authLink.href = 'login.html';
+                    authLinkMobile.textContent = 'DRIVER LOGIN';
+                    authLinkMobile.href = 'login.html';
+                }
+            });
 
             const superCupsContainer = document.getElementById('super-cups-schedule');
             const specialEventsContainer = document.getElementById('special-events-schedule');

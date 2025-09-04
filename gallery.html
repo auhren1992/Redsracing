@@ -183,11 +183,21 @@
             const storage = getStorage(app);
 
             // --- Auth State ---
+            const authLink = document.getElementById('auth-link');
+            const authLinkMobile = document.getElementById('auth-link-mobile');
+            const uploadContainer = document.getElementById('upload-container');
             onAuthStateChanged(auth, user => {
-                const uploadContainer = document.getElementById('upload-container');
                 if (user) {
+                    authLink.textContent = 'Dashboard';
+                    authLink.href = 'dashboard.html';
+                    authLinkMobile.textContent = 'Dashboard';
+                    authLinkMobile.href = 'dashboard.html';
                     uploadContainer.style.display = 'block';
                 } else {
+                    authLink.textContent = 'DRIVER LOGIN';
+                    authLink.href = 'login.html';
+                    authLinkMobile.textContent = 'DRIVER LOGIN';
+                    authLinkMobile.href = 'login.html';
                     uploadContainer.style.display = 'none';
                 }
             });

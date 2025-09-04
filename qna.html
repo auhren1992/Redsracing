@@ -178,11 +178,21 @@
             const qnaQuestionInput = document.getElementById('qna-question');
             const qnaFormStatus = document.getElementById('qna-form-status');
 
+            const authLink = document.getElementById('auth-link');
+            const authLinkMobile = document.getElementById('auth-link-mobile');
             onAuthStateChanged(auth, user => {
                 if (user) {
                     qnaFormContainer.style.display = 'block';
+                    authLink.textContent = 'Dashboard';
+                    authLink.href = 'dashboard.html';
+                    authLinkMobile.textContent = 'Dashboard';
+                    authLinkMobile.href = 'dashboard.html';
                 } else {
                     qnaFormContainer.style.display = 'none';
+                    authLink.textContent = 'DRIVER LOGIN';
+                    authLink.href = 'login.html';
+                    authLinkMobile.textContent = 'DRIVER LOGIN';
+                    authLinkMobile.href = 'login.html';
                 }
             });
 
