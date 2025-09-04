@@ -1,25 +1,28 @@
-name: Deploy to Firebase
+# .github/workflows/firebase-deploy.yml
+name: Deploy to Firebase Hosting
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  build_and_deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Node.js and dependencies for Functions
-        run: |
-          cd functions
-          npm ci
-
-      - name: Deploy to Firebase
-        uses: FirebaseExtended/action-hosting-deploy@v0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
+          node-version: 18
+
+      - run: npm ci && npm run build
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
           channelId: live
-          projectId: 'redsracing-a7f8b'
+          projectId: your-project-id
