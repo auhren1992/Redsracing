@@ -52,3 +52,4 @@ jobs:
           projectId: redsracing-a7f8b
           channelId: live
           target: hosting,functions
+# Re-trigger deployment
