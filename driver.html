@@ -56,15 +56,21 @@
         </nav>
         <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
              <a href="index.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Home</a>
-             <div class="text-sm px-6 pt-3 font-bold text-slate-400">The Drivers</div>
-             <a href="driver.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jon Kirsch</a>
-             <a href="jonny.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jonny Kirsch #88</a>
+             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">The Drivers</button>
+             <div class="mobile-accordion-content hidden pl-4">
+                 <a href="driver.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Jon Kirsch</a>
+                 <a href="jonny.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Jonny Kirsch #88</a>
+             </div>
              <a href="schedule.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
-             <div class="text-sm px-6 pt-3 font-bold text-slate-400">Media</div>
-             <a href="gallery.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Gallery</a>
-             <a href="videos.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Videos</a>
-             <div class="text-sm px-6 pt-3 font-bold text-slate-400">Community</div>
-             <a href="qna.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Q&A</a>
+             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Media</button>
+             <div class="mobile-accordion-content hidden pl-4">
+                 <a href="gallery.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Gallery</a>
+                 <a href="videos.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Videos</a>
+             </div>
+             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Community</button>
+             <div class="mobile-accordion-content hidden pl-4">
+                 <a href="qna.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Q&A</a>
+             </div>
              <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
         </div>
     </header>
@@ -127,8 +133,20 @@
         </div>
     </footer>
     <script>
-        // JS for counters and other driver page specific things will go here
         document.addEventListener('DOMContentLoaded', () => {
+            // Mobile menu toggle
+            document.getElementById('mobile-menu-button').addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.toggle('hidden');
+            });
+
+            // Mobile menu accordion
+            document.querySelectorAll('.mobile-accordion').forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    content.classList.toggle('hidden');
+                });
+            });
+
             // Your existing counter animation logic here
         });
     </script>

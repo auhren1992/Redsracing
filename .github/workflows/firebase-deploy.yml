@@ -1,0 +1,55 @@
+# .github/workflows/firebase-deploy.yml
+name: Deploy to Firebase Hosting & Functions
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # --- PREVIEW (PRs) — Hosting only ---
+  preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Firebase CLI
+        run: npm i -g firebase-tools
+      - name: Deploy to Firebase Hosting preview
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: 
+          projectId: redsracing-a7f8b
+          # channelId omitted to allow automatic preview channel creation
+
+  # --- PRODUCTION (main) — Hosting LIVE + Functions ---
+  production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Firebase CLI
+        run: npm i -g firebase-tools
+      - name: Install Functions Dependencies
+        run: npm ci --prefix functions
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: 
+          projectId: redsracing-a7f8b
+          channelId: live
+          target: hosting,functions
+# Re-trigger deployment
