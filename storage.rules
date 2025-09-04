@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Match files within a user-specific folder in the gallery.
+    // This allows us to secure uploads on a per-user basis.
+    match /gallery/{userId}/{imageId} {
+
+      // Allow anyone to read images from the gallery.
+      allow read;
+
+      // Allow write (uploads) only if the following conditions are met:
+      // 1. The user is authenticated.
+      // 2. The `userId` in the path matches the ID of the user making the request.
+      // 3. The file size is less than 5MB.
+      // 4. The file is an image.
+      allow write: if request.auth != null &&
+                      request.auth.uid == userId &&
+                      request.resource.size < 5 * 1024 * 1024 &&
+                      request.resource.contentType.matches('image/.*');
+    }
+  }
+}

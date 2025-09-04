@@ -1,25 +1,18 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RedsRacing #8 - The Ultimate Hub</title>
+    <title>Videos - RedsRacing #8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/scrollreveal"></script>
-    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
     <link rel="stylesheet" href="styles/main.css">
 </head>
-<body>
-    <div id="live-banner" class="hidden bg-neon-yellow text-slate-900 font-bold text-center p-3 fixed top-0 w-full z-50">
-        <a href="#" id="live-timing-link" target="_blank" class="hover:underline">
-            🏁 IT'S RACE DAY! Click here for Live Timing & Updates! 🏁
-        </a>
-    </div>
-
-    <header class="bg-black/30 backdrop-blur-md fixed w-full top-0 z-50 border-b border-slate-700/50" style="top: 0;">
+<body class="bg-dark-blue">
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
         <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
             <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
                 <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
@@ -59,30 +52,27 @@
              <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
         </div>
     </header>
-
-    <main>
-        <section id="home" class="h-screen relative flex items-center justify-center text-center overflow-hidden" style="background-image: url('hero-bg.png'); background-size: cover; background-position: center; background-attachment: fixed;">
-            <div class="relative z-10 p-8 hero-overlay w-full h-full flex flex-col items-center justify-center">
-                <h1 class="text-6xl md:text-9xl font-racing uppercase text-gradient text-shadow-strong tracking-wider">
-                    Push The Limit
-                </h1>
-                <p class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest">THE OFFICIAL HUB OF JON'S RACING SAGA</p>
-            </div>
-        </section>
-
-        <section id="sponsors" class="py-24 md:py-32 section-glow">
-            <div class="container mx-auto px-6 text-center">
-                <h2 class="font-racing text-5xl uppercase mb-12 reveal-fade">Team <span class="neon-yellow">Partners</span></h2>
-                <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-8 items-center">
-                    <div class="sponsor-logo p-4 rounded-lg reveal-up"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=OK1+Automotive" alt="OK1 Automotive Technology" loading="lazy" width="300" height="150"></div>
-                    <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="100"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=StepUp+Construction" alt="StepUp Construction" loading="lazy" width="300" height="150"></div>
-                    <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="200"><img src="https://i.imgur.com/h6p6QLs.png" alt="Paul Ries and Sons Chicago" loading="lazy" width="300" height="150"></div>
+    <main class="pt-20">
+        <section id="videos" class="py-24 md:py-32 section-glow">
+            <div class="container mx-auto px-6">
+                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Onboard & <span class="neon-yellow">Highlights</span></h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="video-item rounded-lg overflow-hidden reveal-up">
+                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/Lzi_w8jqgS8" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
+                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Dells Raceway Park</h3><p class="text-sm text-slate-400">A hot lap around the track.</p></div>
+                    </div>
+                    <div class="video-item rounded-lg overflow-hidden reveal-up" data-reveal-delay="200">
+                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/DMYD64ViS88" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
+                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Slinger Super Speedway</h3><p class="text-sm text-slate-400">Highlights from the race.</p></div>
+                    </div>
+                    <div class="video-item rounded-lg overflow-hidden reveal-up" data-reveal-delay="400">
+                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
+                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Garage Talk: Car Setup</h3><p class="text-sm text-slate-400">A deep dive into the tech setup.</p></div>
+                    </div>
                 </div>
             </div>
         </section>
-
     </main>
-
     <footer class="bg-black/50 border-t border-slate-800 py-16">
         <div class="container mx-auto px-6 text-center">
             <h3 class="font-racing text-4xl uppercase mb-2 neon-yellow">Get In Touch</h3>
@@ -101,14 +91,5 @@
             <p class="mt-8 text-slate-500 text-sm">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
         </div>
     </footer>
-
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-    <script type="module">
-        // Basic scripts for the home page can go here
-        // For example, the mobile menu
-        document.getElementById('mobile-menu-button').addEventListener('click', () => {
-            document.getElementById('mobile-menu').classList.toggle('hidden');
-        });
-    </script>
 </body>
 </html>

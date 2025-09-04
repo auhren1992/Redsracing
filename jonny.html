@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jonny Kirsch - #88</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/scrollreveal"></script>
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .neon-red { color: #ff3333; }
+        .bg-neon-red { background-color: #ff3333; }
+        .focus\:ring-neon-red:focus {
+            --tw-ring-color: #ff3333;
+        }
+        body.jonny-page {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 100 100'%3E%3Cstyle%3E.logo { font-family: 'Racing Sans One', sans-serif; font-size: 40px; opacity: 0.02; } %3C/style%3E%3Ctext x='50' y='65' fill='%23ff3333' class='logo' text-anchor='end' transform='rotate(-20 50 50)'%3E8%3C/text%3E%3Ctext x='52' y='65' fill='%23ffffff' class='logo' text-anchor='start' transform='rotate(-20 50 50)'%3E8%3C/text%3E%3C/svg%3E");
+        }
+        .text-gradient-red {
+            background-image: linear-gradient(to right, #ff3333, #f0f0f0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        /* Timeline Styles */
+        .timeline-item {
+            position: relative;
+            padding-left: 3rem;
+            padding-bottom: 2rem;
+            border-left: 4px solid #334155; /* slate-700 */
+        }
+        .timeline-item:last-child {
+            border-left: 4px solid transparent;
+            padding-bottom: 0;
+        }
+        .timeline-marker {
+            position: absolute;
+            left: -11px; /* (20px - 4px)/2 */
+            top: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #334155; /* slate-700 */
+            border: 4px solid #05080f; /* body bg */
+        }
+        .timeline-item.active .timeline-marker {
+            background-color: #ff3333; /* neon-red */
+        }
+    </style>
+</head>
+<body class="jonny-page">
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-6 font-bold">
+                <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
+                <div class="relative dropdown">
+                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
+                        The Drivers <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+                        <a href="driver.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jon Kirsch</a>
+                        <a href="jonny.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jonny Kirsch #88</a>
+                    </div>
+                </div>
+                <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Schedule</a>
+                <a href="gallery.html" class="hover:text-neon-yellow transition duration-300">Gallery</a>
+                <a href="videos.html" class="hover:text-neon-yellow transition duration-300">Videos</a>
+                <a href="qna.html" class="hover:text-neon-yellow transition duration-300">Q&A</a>
+                <a id="auth-link" href="login.html" class="bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300">
+                    DRIVER LOGIN
+                </a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
+             <a href="index.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Home</a>
+             <div class="text-sm px-6 pt-3 font-bold text-slate-400">The Drivers</div>
+             <a href="driver.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jon Kirsch</a>
+             <a href="jonny.html" class="block py-2 pl-10 text-sm hover:bg-slate-800">Jonny Kirsch #88</a>
+             <a href="schedule.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
+             <a href="gallery.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Gallery</a>
+             <a href="videos.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Videos</a>
+             <a href="qna.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Q&A</a>
+             <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
+        </div>
+    </header>
+
+    <main class="pt-20">
+        <section id="team-hero" class="py-20 md:py-32 text-center section-glow">
+            <div class="container mx-auto px-6">
+                <h1 class="text-6xl md:text-8xl font-racing uppercase text-gradient-red text-shadow-strong tracking-wider">
+                    Jonny Kirsch #88
+                </h1>
+                <p class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest">The Next Generation of Speed</p>
+            </div>
+        </section>
+
+        <section id="jonny-bio" class="py-16 md:py-24 bg-black/20">
+            <div class="container mx-auto px-6">
+                <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 items-center gap-12 lg:gap-16">
+                    <div class="lg:col-span-1 reveal-left">
+                        <img src="https://placehold.co/600x800/1e293b/ff3333?text=Jonny+Kirsch" alt="Jonny Kirsch" class="rounded-lg shadow-2xl w-full">
+                    </div>
+                    <div class="lg:col-span-2 text-lg space-y-6 reveal-right">
+                        <div>
+                            <h2 class="font-racing text-6xl uppercase">The Rookie <span class="neon-red">Sensation</span></h2>
+                            <p class="text-slate-300 mt-4">For nine-year-old Jonny, speed has always been a way of life. His journey began not on asphalt, but on dirt trails, mastering 4-wheelers and developing a natural feel for handling a machine at speed. This raw passion was later refined over 1.5 years of disciplined competition in K1 racing, where he learned sophisticated racecraft, precise control, and the art of the overtake. The first time he went to a race track was at 3 years old at Sycamore Speedway in 2018.</p>
+                            <p class="text-slate-400 mt-2">Now, Jonny is ready to trade his kart for a stock car and step onto the big stage of the American Super Cups. He won't be doing it alone. This next chapter is a shared dream with his father, built on countless hours in the garage and a mutual love for the sport. When Jonny climbs behind the wheel of the iconic #88, he’s not just a driver; he’s the future of a family legacy.</p>
+                            <p class="text-slate-400 mt-2">Off the track, Jonny's competitive spirit shines on the baseball diamond. The intense focus of the batter's box and the quick reflexes of an infielder translate directly to the split-second decisions required on the track. He is a true athlete, dedicated to excelling in everything he does. Jonny's story is one of passion, dedication, and family. The engine is warm, the green flag is about to drop, and a new rookie sensation is ready to make his mark.</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-center">
+                            <div class="stat-card p-4 rounded-lg border-l-4 border-neon-red">
+                                <div class="text-4xl font-bold">9</div>
+                                <div class="text-sm font-racing uppercase text-white tracking-wider">Years Old</div>
+                            </div>
+                             <div class="stat-card p-4 rounded-lg border-l-4 border-neon-red">
+                                <div class="text-4xl font-bold">#88</div>
+                                <div class="text-sm font-racing uppercase text-white tracking-wider">Car Number</div>
+                            </div>
+                             <div class="stat-card p-4 rounded-lg border-l-4 border-neon-red">
+                                <div class="text-4xl font-bold">4th</div>
+                                <div class="text-sm font-racing uppercase text-white tracking-wider">Grade</div>
+                            </div>
+                             <div class="stat-card p-4 rounded-lg border-l-4 border-neon-red">
+                                <div class="text-4xl font-bold">2026</div>
+                                <div class="text-sm font-racing uppercase text-white tracking-wider">Rookie Year</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="jonny-timeline" class="py-16 md:py-24">
+            <div class="container mx-auto px-6">
+                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Road to <span class="neon-red">Racing</span></h2>
+                <div class="max-w-2xl mx-auto">
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content p-4 rounded-lg stat-card">
+                            <h3 class="font-racing text-2xl text-white">First Racetrack Visit</h3>
+                            <time class="text-sm text-slate-400 mb-2 block">2018</time>
+                            <p>The first time he went to a race track was at 3 years old at Sycamore Speedway in 2018.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content p-4 rounded-lg stat-card">
+                            <h3 class="font-racing text-2xl text-white">The First Spark</h3>
+                            <time class="text-sm text-slate-400 mb-2 block">2021-2023</time>
+                            <p>Long before any official race, Jonny discovered his love for engines and dirt. These years were spent exploring trails and learning the fundamentals of control and balance on his 4-wheeler, building the foundation for a future in motorsports.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content p-4 rounded-lg stat-card">
+                            <h3 class="font-racing text-2xl text-white">Getting Serious</h3>
+                            <time class="text-sm text-slate-400 mb-2 block">Early 2024</time>
+                            <p>The passion for fun transforms into a focused pursuit. Jonny enters the world of competitive K1 racing, quickly adapting to the demands of wheel-to-wheel competition and learning the core skills of braking, cornering, and race strategy.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item active">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content p-4 rounded-lg stat-card">
+                            <h3 class="font-racing text-2xl text-white">The Dream Begins</h3>
+                            <time class="text-sm text-slate-400 mb-2 block">2025</time>
+                            <p>The big decision is made. After a successful and educational season and a half in karts, Jonny and his dad commit to the next challenge. The #88 number is chosen, the car is acquired, and the father-son team begins intensive preparations for their rookie season. The rest of this year is dedicated to practice, gaining valuable seat time, and perfecting the car's setup.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content p-4 rounded-lg stat-card">
+                            <h3 class="font-racing text-2xl text-white">First Green Flag</h3>
+                            <time class="text-sm text-slate-400 mb-2 block">2026</time>
+                            <p>The culmination of years of hard work and preparation. Jonny is scheduled to take his first green flag in the American Super Cups, officially launching his stock car racing career. The #88 will hit the track, ready to turn dreams into reality.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="jonny-gallery" class="py-16 md:py-24 bg-black/20">
+            <div class="container mx-auto px-6">
+                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Jonny's <span class="neon-red">Gallery</span></h2>
+
+                <!-- Upload Form -->
+                <div id="upload-container" class="max-w-xl mx-auto bg-slate-800/50 p-6 rounded-lg mb-12" style="display: none;">
+                    <h3 class="font-racing text-2xl text-white uppercase mb-4">Share Your <span class="neon-red">Photos of Jonny</span></h3>
+                    <div class="flex items-center space-x-4">
+                        <input type="file" id="photo-upload-input" accept="image/jpeg, image/png" class="block w-full text-sm text-slate-400
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-neon-red file:text-slate-900
+                            hover:file:bg-red-400">
+                        <button id="upload-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition disabled:opacity-50" disabled>Upload</button>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-slate-700 rounded-full h-2.5">
+                            <div id="upload-progress-bar" class="bg-neon-red h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <p id="upload-status" class="text-sm text-slate-400 mt-2 h-4"></p>
+                    </div>
+                </div>
+
+                <div id="dynamic-gallery-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- Photos will be dynamically inserted here -->
+                </div>
+                <p class="text-center mt-8 text-slate-400">This gallery will feature photos from Jonny's races and events.</p>
+            </div>
+        </section>
+
+        <section id="jonny-videos" class="py-16 md:py-24">
+            <div class="container mx-auto px-6">
+                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Jonny's <span class="neon-red">Videos</span></h2>
+                <div id="dynamic-video-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Videos will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-black/50 border-t border-slate-800 py-16">
+        <div class="container mx-auto px-6 text-center">
+             <div class="flex justify-center space-x-6 mb-8">
+                <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="text-slate-400 hover:text-neon-red transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
+                <a href="https://www.tiktok.com/@redsracing" target="_blank" class="text-slate-400 hover:text-neon-red transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"/></svg></a>
+            </div>
+            <p class="mt-8 text-slate-500 text-sm">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        // Basic script for mobile menu
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Firebase Config
+        const firebaseConfig = {
+          apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+          authDomain: "redsracing-a7f8b.firebaseapp.com",
+          projectId: "redsracing-a7f8b",
+          storageBucket: "redsracing-a7f8b.appspot.com",
+          messagingSenderId: "517034606151",
+          appId: "1:517034606151:web:24cae262e1d98832757b62"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // UI Elements
+        const authLink = document.getElementById('auth-link');
+        const authLinkMobile = document.getElementById('auth-link-mobile');
+        const uploadContainer = document.getElementById('upload-container');
+        const uploadInput = document.getElementById('photo-upload-input');
+        const uploadBtn = document.getElementById('upload-btn');
+        const progressBar = document.getElementById('upload-progress-bar');
+        const uploadStatus = document.getElementById('upload-status');
+        const galleryContainer = document.getElementById('dynamic-gallery-container');
+        let selectedFile = null;
+
+        // Auth State Change
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                authLink.textContent = 'Dashboard';
+                authLink.href = 'dashboard.html';
+                authLinkMobile.textContent = 'Dashboard';
+                authLinkMobile.href = 'dashboard.html';
+                uploadContainer.style.display = 'block';
+            } else {
+                authLink.textContent = 'DRIVER LOGIN';
+                authLink.href = 'login.html';
+                authLinkMobile.textContent = 'DRIVER LOGIN';
+                authLinkMobile.href = 'login.html';
+                uploadContainer.style.display = 'none';
+            }
+        });
+
+        // Photo Upload Logic
+        uploadInput.addEventListener('change', (e) => {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                uploadBtn.disabled = false;
+                uploadStatus.textContent = `Selected: ${selectedFile.name}`;
+            } else {
+                uploadBtn.disabled = true;
+            }
+        });
+
+        uploadBtn.addEventListener('click', () => {
+            if (!selectedFile || !auth.currentUser) return;
+            uploadBtn.disabled = true;
+            uploadInput.disabled = true;
+
+            const userId = auth.currentUser.uid;
+            const timestamp = Date.now();
+            const storageRef = ref(storage, `gallery/jonny/${timestamp}-${selectedFile.name}`);
+            const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    progressBar.style.width = progress + '%';
+                    uploadStatus.textContent = `Uploading... ${Math.round(progress)}%`;
+                },
+                (error) => {
+                    console.error("Upload failed:", error);
+                    uploadStatus.textContent = `Upload failed: ${error.message}`;
+                    uploadStatus.style.color = '#ef4444';
+                    uploadBtn.disabled = false;
+                    uploadInput.disabled = false;
+                },
+                async () => {
+                    uploadStatus.textContent = 'Processing...';
+                    try {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        await addDoc(collection(db, "gallery_images"), {
+                            imageUrl: downloadURL,
+                            uploaderUid: userId,
+                            uploaderEmail: auth.currentUser.email,
+                            uploaderDisplayName: auth.currentUser.displayName || 'Anonymous',
+                            createdAt: serverTimestamp(),
+                            tags: [],
+                            approved: false,
+                            category: 'jonny'
+                        });
+                        uploadStatus.textContent = 'Upload complete! Waiting for approval.';
+                        uploadStatus.style.color = '#22c55e';
+                        selectedFile = null;
+                        uploadInput.value = '';
+                    } catch (error) {
+                        console.error("Error creating Firestore entry:", error);
+                        uploadStatus.textContent = 'Error saving file data.';
+                        uploadStatus.style.color = '#ef4444';
+                    } finally {
+                        uploadInput.disabled = false;
+                    }
+                }
+            );
+        });
+
+        // Dynamic Gallery Rendering for Jonny's page
+        const renderGallery = () => {
+            const q = query(
+                collection(db, "gallery_images"),
+                where("approved", "==", true),
+                where("category", "==", "jonny"),
+                orderBy("createdAt", "desc")
+            );
+            onSnapshot(q, (snapshot) => {
+                galleryContainer.innerHTML = '';
+                if (snapshot.empty) {
+                    galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos of Jonny yet. Be the first to upload one!</p>`;
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const image = doc.data();
+                    const galleryItem = document.createElement('div');
+                    galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
+                    galleryItem.innerHTML = `
+                        <img src="${image.imageUrl}" alt="User uploaded photo of Jonny Kirsch" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                            <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderDisplayName || 'Anonymous'}</p>
+                        </div>
+                    `;
+                    galleryContainer.appendChild(galleryItem);
+                });
+            });
+        };
+        renderGallery();
+    </script>
+</body>
+</html>
