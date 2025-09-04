@@ -74,30 +74,3 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: redsracing-a7f8b
           channelId: live
-          
-      # Root site (optional)
-      - name: Install deps (root)
-        if: hashFiles('package.json') != ''
-        run: |
-          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm i --no-audit --no-fund; fi
-
-      - name: Build site (if present)
-        run: npm run build --if-present
-
-      # Deploy Hosting + Functions with Firebase CLI
-      - name: Install Firebase CLI
-        run: npm i -g firebase-tools
-
-      - name: Auth with service account
-        run: |
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $HOME/gcp.json
-          echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcp.json" >> $GITHUB_ENV
-
-      - name: Deploy to Firebase (live)
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
-        run: |
-          firebase deploy \
-            your-project-id:redsracing-a7f8b     
-            --only hosting,functions \
-            --force
