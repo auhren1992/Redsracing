@@ -1,5 +1,9 @@
+
 # 1. Name the workflow
 name: Build and Deploy to Firebase
+=
+name: Deploy to Firebase
+
 
 # 2. Define the trigger
 on:
@@ -9,13 +13,18 @@ on:
 
 # 3. Define the jobs
 jobs:
+
   # The job's unique ID
   build_and_deploy:
     # The type of virtual machine to run the job on
+
+  build_and_deploy:
+
     runs-on: ubuntu-latest
 
     # The sequence of tasks to perform
     steps:
+
       # Step 1: Check out your repository code
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -28,9 +37,16 @@ jobs:
 
       # Step 3: Install dependencies for your Cloud Functions (if you have them)
       - name: Install Function Dependencies
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Node.js and dependencies for Functions
+
         run: |
           cd functions
           npm ci
+
 
       # Step 4: Deploy the project to Firebase
       - name: Deploy to Firebase Hosting & Functions
@@ -41,3 +57,12 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}'
           # The ID of your Firebase project
           projectId: your-project-id
+
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}'
+          channelId: live
+          projectId: 'redsracing-a7f8b'
+
