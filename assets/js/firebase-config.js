@@ -4,10 +4,10 @@
 // in your Firebase project settings.
 
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "YOUR_AUTH_DOMAIN_HERE",
-  projectId: "YOUR_PROJECT_ID_HERE",
-  storageBucket: "YOUR_STORAGE_BUCKET_HERE",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID_HERE",
-  appId: "YOUR_APP_ID_HERE"
+  apiKey: "1:517034606151:web:24cae262e1d98832757b62",
+  authDomain: "redsracing-a7f8b.firebaseapp.com",
+  projectId: "https://redsracing-a7f8b-default-rtdb.firebaseio.com",
+  storageBucket: "redsracing-a7f8b.firebasestorage.app",
+  messagingSenderId: "517034606151",
+  appId: "1:517034606151:web:24cae262e1d98832757b62"
 };
