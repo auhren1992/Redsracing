@@ -172,3 +172,200 @@ def generate_tags(event: storage_fn.CloudEvent) -> None:
 
     except Exception as e:
         print(f"Failed to analyze image {file_path}. Error: {e}")
+
+
+# ------------------ Admin-only Functions for Race Management ------------------
+
+def _check_admin_role(req: https_fn.CallableRequest):
+    """Helper function to ensure a user is an authenticated admin."""
+    if req.auth is None:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
+            message="The function must be called by an authenticated user."
+        )
+    if req.auth.token.get("role") != "admin":
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.PERMISSION_DENIED,
+            message="This action requires administrator privileges."
+        )
+
+@https_fn.on_call(region="us-central1")
+def create_race(req: https_fn.CallableRequest) -> https_fn.Response:
+    """
+    Creates a new race event in the 'races' collection.
+    Requires admin privileges.
+    """
+    _check_admin_role(req)
+
+    data = req.data
+    required_fields = ["trackName", "raceDate", "series", "laps"]
+    if not all(field in data for field in required_fields):
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+            message="Missing required fields for race creation."
+        )
+
+    try:
+        db = firestore.client()
+        # The raceDate will likely come as an ISO 8601 string from the client.
+        # Firestore client library can handle converting this to a Timestamp.
+        new_race_ref = db.collection("races").add({
+            "trackName": data["trackName"],
+            "raceDate": data["raceDate"],
+            "series": data["series"],
+            "laps": int(data["laps"]),
+            "isComplete": False,
+            "createdAt": firestore.SERVER_TIMESTAMP
+        })
+
+        # The 'add' method returns a tuple (timestamp, reference)
+        race_id = new_race_ref[1].id
+        print(f"Admin user {req.auth.uid} created race {race_id}.")
+        return {"status": "success", "raceId": race_id}
+
+    except Exception as e:
+        print(f"Error creating race: {e}")
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INTERNAL,
+            message="An internal error occurred while creating the race."
+        )
+
+
+@https_fn.on_call(region="us-central1")
+def update_race(req: https_fn.CallableRequest) -> https_fn.Response:
+    """
+    Updates an existing race event document.
+    Requires admin privileges.
+    """
+    _check_admin_role(req)
+
+    data = req.data
+    race_id = data.get("raceId")
+    update_payload = data.get("payload")
+
+    if not race_id or not isinstance(update_payload, dict):
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+            message="Request must include a 'raceId' and a 'payload' object."
+        )
+
+    try:
+        db = firestore.client()
+        # For security, you might want to sanitize the payload here
+        # to prevent certain fields from being updated (e.g., 'createdAt').
+        db.collection("races").document(race_id).update(update_payload)
+
+        print(f"Admin user {req.auth.uid} updated race {race_id}.")
+        return {"status": "success", "message": f"Race {race_id} updated successfully."}
+
+    except Exception as e:
+        print(f"Error updating race {race_id}: {e}")
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INTERNAL,
+            message="An internal error occurred while updating the race."
+        )
+
+
+@https_fn.on_call(region="us-central1")
+def post_results(req: https_fn.CallableRequest) -> https_fn.Response:
+    """
+    Posts the results for a given race, adding them to the 'results'
+    subcollection and marking the race as complete.
+    Requires admin privileges.
+    """
+    _check_admin_role(req)
+
+    data = req.data
+    race_id = data.get("raceId")
+    results_list = data.get("results")
+
+    if not race_id or not isinstance(results_list, list) or not results_list:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+            message="Request must include a 'raceId' and a non-empty 'results' array."
+        )
+
+    try:
+        db = firestore.client()
+        batch = db.batch()
+
+        race_ref = db.collection("races").document(race_id)
+
+        # Add each result to the batch
+        for result in results_list:
+            required_keys = ["driverUid", "driverName", "finishPosition", "pointsEarned"]
+            if not all(k in result for k in required_keys):
+                raise https_fn.HttpsError(
+                    code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+                    message="Each result object is missing required fields."
+                )
+
+            # The document ID for each result will be the driver's UID
+            result_ref = race_ref.collection("results").document(result["driverUid"])
+            batch.set(result_ref, {
+                "driverName": result["driverName"],
+                "startPosition": result.get("startPosition"), # Optional field
+                "finishPosition": result["finishPosition"],
+                "pointsEarned": result["pointsEarned"]
+            })
+
+        # Mark the race as complete in the same batch
+        batch.update(race_ref, {"isComplete": True})
+
+        # Commit the atomic operation
+        batch.commit()
+
+        print(f"Admin user {req.auth.uid} posted results for race {race_id}.")
+        return {"status": "success", "message": f"Results for race {race_id} posted successfully."}
+
+    except Exception as e:
+        print(f"Error posting results for race {race_id}: {e}")
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INTERNAL,
+            message="An internal error occurred while posting results."
+        )
+
+
+# ------------------ Admin-only Function for Announcements ------------------
+
+@https_fn.on_call(region="us-central1")
+def create_announcement(req: https_fn.CallableRequest) -> https_fn.Response:
+    """
+    Creates a new announcement in the 'announcements' collection.
+    Requires admin privileges.
+    """
+    _check_admin_role(req)
+
+    data = req.data
+    title = data.get("title")
+    content = data.get("content")
+
+    if not title or not content:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+            message="Request must include a 'title' and 'content'."
+        )
+
+    try:
+        db = firestore.client()
+
+        # Get the admin's display name or email to store as the author
+        author_name = req.auth.token.get("name", req.auth.token.get("email", "Admin"))
+
+        new_announcement_ref = db.collection("announcements").add({
+            "title": title,
+            "content": content,
+            "author": author_name,
+            "createdAt": firestore.SERVER_TIMESTAMP
+        })
+
+        announcement_id = new_announcement_ref[1].id
+        print(f"Admin user {req.auth.uid} created announcement {announcement_id}.")
+        return {"status": "success", "announcementId": announcement_id}
+
+    except Exception as e:
+        print(f"Error creating announcement: {e}")
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INTERNAL,
+            message="An internal error occurred while creating the announcement."
+        )

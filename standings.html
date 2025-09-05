@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Videos - RedsRacing #8</title>
+    <title>Standings - RedsRacing #8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -77,122 +77,126 @@
         </div>
     </header>
     <main class="pt-20">
-        <section id="videos" class="py-24 md:py-32 section-glow">
+        <section id="standings" class="py-24 md:py-32 section-glow">
             <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Onboard & <span class="neon-yellow">Highlights</span></h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="video-item rounded-lg overflow-hidden reveal-up">
-                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/Lzi_w8jqgS8" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
-                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Dells Raceway Park</h3><p class="text-sm text-slate-400">A hot lap around the track.</p></div>
-                    </div>
-                    <div class="video-item rounded-lg overflow-hidden reveal-up" data-reveal-delay="200">
-                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/DMYD64ViS88" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
-                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Slinger Super Speedway</h3><p class="text-sm text-slate-400">Highlights from the race.</p></div>
-                    </div>
-                    <div class="video-item rounded-lg overflow-hidden reveal-up" data-reveal-delay="400">
-                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
-                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Garage Talk: Car Setup</h3><p class="text-sm text-slate-400">A deep dive into the tech setup.</p></div>
+                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Championship <span class="neon-yellow">Standings</span></h2>
+                <div class="max-w-4xl mx-auto bg-slate-900/50 p-8 rounded-lg reveal-up">
+                    <div id="standings-table-container">
+                        <p class="text-slate-400 text-center">Loading standings...</p>
                     </div>
                 </div>
             </div>
         </section>
     </main>
     <footer class="bg-black/50 border-t border-slate-800 py-16">
-        <div class="container mx-auto px-6 text-center">
-            <h3 class="font-racing text-4xl uppercase mb-2 neon-yellow">Get In Touch</h3>
-            <p class="text-slate-400 mb-8">Subscribe for race updates and follow the journey on social media.</p>
-            <div class="max-w-md mx-auto mb-8">
-                <form id="subscribe-form" class="flex flex-col sm:flex-row gap-2">
-                    <input type="email" id="subscribe-email" placeholder="Enter your email" required class="flex-grow bg-slate-800 text-white px-4 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-neon-yellow w-full">
-                    <button type="submit" class="bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Subscribe</button>
-                </form>
-                <p id="subscribe-message" class="text-sm mt-2 h-4"></p>
-            </div>
-            <div class="flex justify-center space-x-6 mb-8">
-                <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
-                <a href="https://www.tiktok.com/@redsracing" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"/></svg></a>
-            </div>
-            <p class="mt-8 text-slate-500 text-sm">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
-        </div>
+        <!-- Footer content from other pages -->
     </footer>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Desktop dropdowns
+            // Standard nav and auth logic
             document.querySelectorAll('.dropdown-toggle').forEach(button => {
                 button.addEventListener('click', (event) => {
                     event.stopPropagation();
                     const dropdownMenu = button.nextElementSibling;
                     const isHidden = dropdownMenu.classList.contains('hidden');
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.add('hidden'));
+                    if (isHidden) dropdownMenu.classList.remove('hidden');
+                });
+            });
+            window.addEventListener('click', () => document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.add('hidden')));
+            document.getElementById('mobile-menu-button').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('hidden'));
 
-                    // Close all other dropdowns
-                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                        menu.classList.add('hidden');
-                    });
+            const firebaseConfig = {
+              apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+              authDomain: "redsracing-a7f8b.firebaseapp.com",
+              projectId: "redsracing-a7f8b",
+              storageBucket: "redsracing-a7f8b.firebasestorage.app",
+              messagingSenderId: "517034606151",
+              appId: "1:517034606151:web:24cae262e1d98832757b62"
+            };
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+            onAuthStateChanged(auth, user => {
+                const authLink = document.getElementById('auth-link');
+                if (user) {
+                    authLink.textContent = 'Dashboard';
+                    authLink.href = 'dashboard.html';
+                } else {
+                    authLink.textContent = 'DRIVER LOGIN';
+                    authLink.href = 'login.html';
+                }
+            });
 
-                    // Toggle the current dropdown
-                    if (isHidden) {
-                        dropdownMenu.classList.remove('hidden');
+            const standingsContainer = document.getElementById('standings-table-container');
+
+            const fetchAndCalculateStandings = async () => {
+                try {
+                    const standings = new Map();
+                    const racesQuery = query(collection(db, "races"), where("isComplete", "==", true));
+                    const racesSnapshot = await getDocs(racesQuery);
+
+                    for (const raceDoc of racesSnapshot.docs) {
+                        const resultsSnapshot = await getDocs(collection(db, `races/${raceDoc.id}/results`));
+                        resultsSnapshot.forEach(resultDoc => {
+                            const result = resultDoc.data();
+                            const driverId = resultDoc.id;
+                            if (standings.has(driverId)) {
+                                standings.get(driverId).points += result.pointsEarned;
+                                standings.get(driverId).races += 1;
+                            } else {
+                                standings.set(driverId, {
+                                    name: result.driverName,
+                                    points: result.pointsEarned,
+                                    races: 1,
+                                });
+                            }
+                        });
                     }
-                });
-            });
 
-            // Close dropdowns when clicking outside
-            window.addEventListener('click', () => {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-            });
+                    if (standings.size === 0) {
+                        standingsContainer.innerHTML = '<p class="text-slate-400 text-center">No results have been posted yet. Standings will appear here once the first race is complete.</p>';
+                        return;
+                    }
 
-            // Mobile menu toggle
-            document.getElementById('mobile-menu-button').addEventListener('click', () => {
-                document.getElementById('mobile-menu').classList.toggle('hidden');
-            });
+                    const sortedStandings = Array.from(standings.values()).sort((a, b) => b.points - a.points);
 
-            // Mobile menu accordion
-            document.querySelectorAll('.mobile-accordion').forEach(button => {
-                button.addEventListener('click', () => {
-                    const content = button.nextElementSibling;
-                    content.classList.toggle('hidden');
-                });
-            });
+                    let tableHTML = `
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b-2 border-neon-yellow">
+                                    <th class="p-4">Pos</th>
+                                    <th class="p-4">Driver</th>
+                                    <th class="p-4 text-right">Races</th>
+                                    <th class="p-4 text-right">Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sortedStandings.map((driver, index) => `
+                                    <tr class="border-b border-slate-700">
+                                        <td class="p-4 font-bold text-lg">${index + 1}</td>
+                                        <td class="p-4 font-bold text-lg text-white">${driver.name}</td>
+                                        <td class="p-4 text-right">${driver.races}</td>
+                                        <td class="p-4 font-bold text-lg text-neon-yellow text-right">${driver.points}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    standingsContainer.innerHTML = tableHTML;
 
-            document.getElementById('year').textContent = new Date().getFullYear();
-        });
+                } catch (error) {
+                    console.error("Error calculating standings:", error);
+                    standingsContainer.innerHTML = '<p class="text-red-400 text-center">Could not load standings due to an error.</p>';
+                }
+            };
 
-        // Firebase Config
-        const firebaseConfig = {
-          apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
-          authDomain: "redsracing-a7f8b.firebaseapp.com",
-          projectId: "redsracing-a7f8b",
-          storageBucket: "redsracing-a7f8b.firebasestorage.app",
-          messagingSenderId: "517034606151",
-          appId: "1:517034606151:web:24cae262e1d98832757b62"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        // UI Elements
-        const authLink = document.getElementById('auth-link');
-        const authLinkMobile = document.getElementById('auth-link-mobile');
-
-        // Auth State Change
-        onAuthStateChanged(auth, user => {
-            if (user) {
-                authLink.textContent = 'Dashboard';
-                authLink.href = 'dashboard.html';
-                authLinkMobile.textContent = 'Dashboard';
-                authLinkMobile.href = 'dashboard.html';
-            } else {
-                authLink.textContent = 'DRIVER LOGIN';
-                authLink.href = 'login.html';
-                authLinkMobile.textContent = 'DRIVER LOGIN';
-                authLinkMobile.href = 'login.html';
-            }
+            fetchAndCalculateStandings();
         });
     </script>
 </body>

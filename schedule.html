@@ -43,6 +43,7 @@
                         Community <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+                        <a href="standings.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Standings</a>
                         <a href="qna.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Q&A</a>
                     </div>
                 </div>
@@ -69,6 +70,7 @@
              </div>
              <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Community</button>
              <div class="mobile-accordion-content hidden pl-4">
+                 <a href="standings.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Standings</a>
                  <a href="qna.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Q&A</a>
              </div>
              <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
@@ -122,47 +124,22 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, query, onSnapshot, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Desktop dropdowns
+            // Standard nav and auth logic from other pages...
             document.querySelectorAll('.dropdown-toggle').forEach(button => {
                 button.addEventListener('click', (event) => {
                     event.stopPropagation();
                     const dropdownMenu = button.nextElementSibling;
                     const isHidden = dropdownMenu.classList.contains('hidden');
-
-                    // Close all other dropdowns
-                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                        menu.classList.add('hidden');
-                    });
-
-                    // Toggle the current dropdown
-                    if (isHidden) {
-                        dropdownMenu.classList.remove('hidden');
-                    }
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.add('hidden'));
+                    if (isHidden) dropdownMenu.classList.remove('hidden');
                 });
             });
-
-            // Close dropdowns when clicking outside
-            window.addEventListener('click', () => {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-            });
-
-            // Mobile menu toggle
-            document.getElementById('mobile-menu-button').addEventListener('click', () => {
-                document.getElementById('mobile-menu').classList.toggle('hidden');
-            });
-
-            // Mobile menu accordion
-            document.querySelectorAll('.mobile-accordion').forEach(button => {
-                button.addEventListener('click', () => {
-                    const content = button.nextElementSibling;
-                    content.classList.toggle('hidden');
-                });
-            });
+            window.addEventListener('click', () => document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.add('hidden')));
+            document.getElementById('mobile-menu-button').addEventListener('click', () => document.getElementById('mobile-menu').classList.toggle('hidden'));
+            document.querySelectorAll('.mobile-accordion').forEach(button => button.addEventListener('click', () => button.nextElementSibling.classList.toggle('hidden')));
 
             const firebaseConfig = {
               apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
@@ -175,13 +152,9 @@
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
             const auth = getAuth(app);
-
-            // UI Elements
-            const authLink = document.getElementById('auth-link');
-            const authLinkMobile = document.getElementById('auth-link-mobile');
-
-            // Auth State Change
             onAuthStateChanged(auth, user => {
+                const authLink = document.getElementById('auth-link');
+                const authLinkMobile = document.getElementById('auth-link-mobile');
                 if (user) {
                     authLink.textContent = 'Dashboard';
                     authLink.href = 'dashboard.html';
@@ -197,59 +170,83 @@
 
             const superCupsContainer = document.getElementById('super-cups-schedule');
             const specialEventsContainer = document.getElementById('special-events-schedule');
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
 
-            const qRaces = query(collection(db, "races"), orderBy("date", "asc"));
+            const fetchAndRenderResults = async (raceId, container) => {
+                container.innerHTML = '<p class="text-slate-400 text-sm mt-2">Loading results...</p>';
+                const resultsQuery = query(collection(db, `races/${raceId}/results`), orderBy("finishPosition", "asc"));
+                try {
+                    const snapshot = await getDocs(resultsQuery);
+                    if (snapshot.empty) {
+                        container.innerHTML = '<p class="text-slate-400 text-sm mt-2">Results are not yet available.</p>';
+                        return;
+                    }
+                    const results = snapshot.docs.map(doc => doc.data());
+                    container.innerHTML = `
+                        <table class="w-full text-left text-sm mt-4">
+                            <thead><tr class="border-b border-slate-600"><th class="p-1">Pos</th><th class="p-1">Driver</th><th class="p-1 text-right">Points</th></tr></thead>
+                            <tbody>
+                                ${results.map(r => `<tr><td class="p-1">${r.finishPosition}</td><td class="p-1">${r.driverName}</td><td class="p-1 text-right">${r.pointsEarned}</td></tr>`).join('')}
+                            </tbody>
+                        </table>`;
+                } catch (error) {
+                    console.error("Error fetching results:", error);
+                    container.innerHTML = '<p class="text-red-400 text-sm mt-2">Could not load results.</p>';
+                }
+            };
+
+            const qRaces = query(collection(db, "races"), orderBy("raceDate", "asc"));
             onSnapshot(qRaces, (snapshot) => {
                 superCupsContainer.innerHTML = '';
                 specialEventsContainer.innerHTML = '';
                 const allRaces = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
                 allRaces.forEach(race => {
-                    const raceDate = new Date(race.date + 'T00:00:00');
-                    const isPast = raceDate < today;
-                    let cardClass = isPast ? 'past' : 'upcoming';
+                    const raceDate = race.raceDate.toDate();
+                    const isComplete = race.isComplete;
+                    let cardClass = isComplete ? 'past' : 'upcoming';
                     const formattedDate = raceDate.toLocaleString('en-US', { month: 'long', day: 'numeric' });
 
-                    let recapHTML = '';
-                    if (isPast && (race.results || race.summary)) {
+                    let resultsHTML = '';
+                    if (isComplete) {
                         cardClass += ' cursor-pointer';
-                        recapHTML = `
-                            <div class="race-recap hidden mt-4 pt-4 border-t border-slate-700">
-                                ${race.results ? `<p class="font-bold text-lg text-neon-yellow">Result: ${race.results}</p>` : ''}
-                                ${race.summary ? `<p class="text-slate-300 mt-2">${race.summary}</p>` : ''}
-                            </div>
-                        `;
+                        resultsHTML = `<div class="race-results-container hidden mt-4 pt-4 border-t border-slate-700"></div>`;
                     }
 
                     const cardHTML = `
                         <div class="schedule-card p-4 rounded-lg ${cardClass}" data-race-id="${race.id}">
                             <div class="flex justify-between items-center">
-                                <div><p class="font-bold text-lg text-white">${race.name}</p><p class="text-sm text-slate-400">${race.special || `Race ${race.race}`}</p></div>
+                                <div><p class="font-bold text-lg text-white">${race.trackName}</p><p class="text-sm text-slate-400">${race.series}</p></div>
                                 <div class="font-semibold text-right text-slate-300">${formattedDate}</div>
                             </div>
-                            ${recapHTML}
+                            ${resultsHTML}
                         </div>`;
 
-                    if (race.type === 'specialEvent') {
-                        specialEventsContainer.innerHTML += cardHTML;
-                    } else {
-                        superCupsContainer.innerHTML += cardHTML;
-                    }
+                    // Note: The original had a 'type' field which is now 'series'.
+                    // For this migration, we'll put all races in the first column.
+                    // This can be adapted later if a series/type distinction is needed.
+                    superCupsContainer.innerHTML += cardHTML;
                 });
 
                 document.querySelectorAll('.schedule-card.past').forEach(card => {
                     card.addEventListener('click', () => {
-                        const recap = card.querySelector('.race-recap');
-                        if (recap) recap.classList.toggle('hidden');
+                        const resultsContainer = card.querySelector('.race-results-container');
+                        if (resultsContainer) {
+                            const isHidden = resultsContainer.classList.contains('hidden');
+                            resultsContainer.classList.toggle('hidden');
+                            // Fetch results only on the first click
+                            if (isHidden && !resultsContainer.dataset.loaded) {
+                                fetchAndRenderResults(card.dataset.raceId, resultsContainer);
+                                resultsContainer.dataset.loaded = 'true';
+                            }
+                        }
                     });
                 });
 
-                const nextRace = allRaces.find(race => new Date(race.date + 'T00:00:00') >= today);
+                // Update countdown timer
+                const nextRace = allRaces.find(race => !race.isComplete);
                 if (nextRace) {
-                    document.getElementById('next-race-name').textContent = nextRace.name;
-                    const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
+                    document.getElementById('next-race-name').textContent = nextRace.trackName;
+                    const nextRaceDate = nextRace.raceDate.toDate().getTime();
                     const countdownInterval = setInterval(() => {
                         const now = new Date().getTime();
                         const distance = nextRaceDate - now;
