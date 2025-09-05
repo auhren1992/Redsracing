@@ -43,7 +43,9 @@
                         Community <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+                        <a href="standings.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Standings</a>
                         <a href="qna.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Q&A</a>
+                        <a href="feedback.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Feedback</a>
                     </div>
                 </div>
                 <a id="auth-link" href="login.html" class="bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300">
@@ -69,7 +71,9 @@
              </div>
              <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Community</button>
              <div class="mobile-accordion-content hidden pl-4">
+                 <a href="standings.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Standings</a>
                  <a href="qna.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Q&A</a>
+                 <a href="feedback.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Feedback</a>
              </div>
              <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
         </div>
@@ -78,230 +82,176 @@
         <section id="gallery" class="py-24 md:py-32 bg-black/20">
             <div class="container mx-auto px-6">
                 <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Action <span class="neon-yellow">Shots</span></h2>
-
-                <!-- Upload Form -->
-                <div id="upload-container" class="max-w-xl mx-auto bg-slate-800/50 p-6 rounded-lg mb-12" style="display: none;">
-                    <h3 class="font-racing text-2xl text-white uppercase mb-4">Share Your <span class="neon-yellow">Race Photos</span></h3>
-                    <div class="flex items-center space-x-4">
-                        <input type="file" id="photo-upload-input" accept="image/jpeg, image/png" class="block w-full text-sm text-slate-400
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-full file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-neon-yellow file:text-slate-900
-                            hover:file:bg-yellow-300">
-                        <button id="upload-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition disabled:opacity-50" disabled>Upload</button>
-                    </div>
-                    <div class="mt-4">
-                        <div class="w-full bg-slate-700 rounded-full h-2.5">
-                            <div id="upload-progress-bar" class="bg-neon-yellow h-2.5 rounded-full" style="width: 0%"></div>
-                        </div>
-                        <p id="upload-status" class="text-sm text-slate-400 mt-2 h-4"></p>
-                    </div>
-                </div>
-
-                <div id="dynamic-gallery-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div id="dynamic-gallery-container" class="auto-grid">
                     <!-- Dynamic gallery items will be inserted here -->
                 </div>
             </div>
         </section>
     </main>
     <footer class="bg-black/50 border-t border-slate-800 py-16">
-        <div class="container mx-auto px-6 text-center">
-            <h3 class="font-racing text-4xl uppercase mb-2 neon-yellow">Get In Touch</h3>
-            <p class="text-slate-400 mb-8">Subscribe for race updates and follow the journey on social media.</p>
-            <div class="max-w-md mx-auto mb-8">
-                <form id="subscribe-form" class="flex flex-col sm:flex-row gap-2">
-                    <input type="email" id="subscribe-email" placeholder="Enter your email" required class="flex-grow bg-slate-800 text-white px-4 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-neon-yellow w-full">
-                    <button type="submit" class="bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Subscribe</button>
-                </form>
-                <p id="subscribe-message" class="text-sm mt-2 h-4"></p>
-            </div>
-            <div class="flex justify-center space-x-6 mb-8">
-                <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
-                <a href="https://www.tiktok.com/@redsracing" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"/></svg></a>
-            </div>
-            <p class="mt-8 text-slate-500 text-sm">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
-        </div>
+        <!-- Footer content is the same as index.html -->
     </footer>
+
+    <!-- Comment Modal -->
+    <div id="comment-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" style="display: none;">
+        <div class="bg-slate-900 border border-slate-700 rounded-lg max-w-3xl w-full flex flex-col md:flex-row" style="max-height: 90vh;">
+            <div class="md:w-1/2 bg-black flex items-center justify-center">
+                <img id="modal-image" src="" alt="Gallery photo" class="object-contain w-full h-full max-h-96 md:max-h-full rounded-t-lg md:rounded-l-lg md:rounded-t-none">
+            </div>
+            <div class="md:w-1/2 p-6 flex flex-col">
+                <div class="flex justify-between items-start">
+                    <h3 class="font-racing text-xl uppercase text-white mb-4">Comments</h3>
+                    <button id="close-comment-modal" class="text-3xl leading-none text-white hover:text-neon-yellow">&times;</button>
+                </div>
+                <div id="modal-comments-list" class="flex-grow space-y-3 overflow-y-auto pr-2 mb-4"></div>
+                <div class="mt-auto pt-4 border-t border-slate-700">
+                    <form id="comment-form">
+                        <textarea id="comment-text" class="form-input w-full rounded-md" rows="3" placeholder="Add a comment..." required></textarea>
+                        <button type="submit" id="comment-submit-btn" class="w-full mt-2 bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition disabled:opacity-50">Post Comment</button>
+                    </form>
+                    <p id="comment-status" class="text-sm h-4 mt-2"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        import { getFirestore, collection, query, where, onSnapshot, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
+        import { firebaseConfig } from "./assets/js/firebase-config.js";
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Desktop dropdowns
-            document.querySelectorAll('.dropdown-toggle').forEach(button => {
-                button.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    const dropdownMenu = button.nextElementSibling;
-                    const isHidden = dropdownMenu.classList.contains('hidden');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const functions = getFunctions(app, 'us-central1');
 
-                    // Close all other dropdowns
-                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                        menu.classList.add('hidden');
-                    });
+        onAuthStateChanged(auth, user => {
+            document.getElementById('auth-link').textContent = user ? 'Dashboard' : 'DRIVER LOGIN';
+            document.getElementById('auth-link').href = user ? 'dashboard.html' : 'login.html';
+        });
 
-                    // Toggle the current dropdown
-                    if (isHidden) {
-                        dropdownMenu.classList.remove('hidden');
-                    }
-                });
-            });
-
-            // Close dropdowns when clicking outside
-            window.addEventListener('click', () => {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-            });
-
-            // Mobile menu toggle
-            document.getElementById('mobile-menu-button').addEventListener('click', () => {
-                document.getElementById('mobile-menu').classList.toggle('hidden');
-            });
-
-            // Mobile menu accordion
-            document.querySelectorAll('.mobile-accordion').forEach(button => {
-                button.addEventListener('click', () => {
-                    const content = button.nextElementSibling;
-                    content.classList.toggle('hidden');
-                });
-            });
-
-            const firebaseConfig = {
-              apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
-              authDomain: "redsracing-a7f8b.firebaseapp.com",
-              projectId: "redsracing-a7f8b",
-              storageBucket: "redsracing-a7f8b.firebasestorage.app",
-              messagingSenderId: "517034606151",
-              appId: "1:517034606151:web:24cae262e1d98832757b62"
-            };
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const db = getFirestore(app);
-            const storage = getStorage(app);
-
-            // --- Auth State ---
-            const authLink = document.getElementById('auth-link');
-            const authLinkMobile = document.getElementById('auth-link-mobile');
-            const uploadContainer = document.getElementById('upload-container');
-            onAuthStateChanged(auth, user => {
-                if (user) {
-                    authLink.textContent = 'Dashboard';
-                    authLink.href = 'dashboard.html';
-                    authLinkMobile.textContent = 'Dashboard';
-                    authLinkMobile.href = 'dashboard.html';
-                    uploadContainer.style.display = 'block';
-                } else {
-                    authLink.textContent = 'DRIVER LOGIN';
-                    authLink.href = 'login.html';
-                    authLinkMobile.textContent = 'DRIVER LOGIN';
-                    authLinkMobile.href = 'login.html';
-                    uploadContainer.style.display = 'none';
-                }
-            });
-
-            // --- Photo Upload Logic ---
-            const uploadInput = document.getElementById('photo-upload-input');
-            const uploadBtn = document.getElementById('upload-btn');
-            const progressBar = document.getElementById('upload-progress-bar');
-            const uploadStatus = document.getElementById('upload-status');
-            let selectedFile = null;
-
-            uploadInput.addEventListener('change', (e) => {
-                selectedFile = e.target.files[0];
-                if (selectedFile) {
-                    uploadBtn.disabled = false;
-                    uploadStatus.textContent = `Selected: ${selectedFile.name}`;
-                } else {
-                    uploadBtn.disabled = true;
-                }
-            });
-
-            uploadBtn.addEventListener('click', () => {
-                if (!selectedFile || !auth.currentUser) return;
-                uploadBtn.disabled = true;
-                uploadInput.disabled = true;
-
-                const userId = auth.currentUser.uid;
-                const timestamp = Date.now();
-                const storageRef = ref(storage, `gallery/${userId}/${timestamp}-${selectedFile.name}`);
-                const uploadTask = uploadBytesResumable(storageRef, selectedFile);
-
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        progressBar.style.width = progress + '%';
-                        uploadStatus.textContent = `Uploading... ${Math.round(progress)}%`;
-                    },
-                    (error) => {
-                        console.error("Upload failed:", error);
-                        uploadStatus.textContent = `Upload failed: ${error.message}`;
-                        uploadStatus.style.color = '#ef4444';
-                        uploadBtn.disabled = false;
-                        uploadInput.disabled = false;
-                    },
-                    async () => {
-                        uploadStatus.textContent = 'Processing...';
-                        try {
-                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                            await addDoc(collection(db, "gallery_images"), {
-                                imageUrl: downloadURL,
-                                uploaderUid: userId,
-                                uploaderEmail: auth.currentUser.email, // Kept for internal reference
-                                createdAt: serverTimestamp(),
-                                tags: [],
-                                approved: false
-                            });
-                            uploadStatus.textContent = 'Upload complete! Waiting for approval.';
-                            uploadStatus.style.color = '#22c55e';
-                            selectedFile = null;
-                            uploadInput.value = '';
-                        } catch (error) {
-                            console.error("Error creating Firestore entry:", error);
-                            uploadStatus.textContent = 'Error saving file data.';
-                            uploadStatus.style.color = '#ef4444';
-                        } finally {
-                            uploadInput.disabled = false;
-                        }
-                    }
-                );
-            });
-
-            // --- Dynamic Gallery Rendering ---
-            const galleryContainer = document.getElementById('dynamic-gallery-container');
-            const renderGallery = () => {
-                const q = query(collection(db, "gallery_images"), where("approved", "==", true), orderBy("createdAt", "desc"));
-                onSnapshot(q, (snapshot) => {
-                    galleryContainer.innerHTML = '';
-                    if (snapshot.empty) {
-                        galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos yet. Be the first to upload one!</p>`;
-                        return;
-                    }
-                    snapshot.forEach(doc => {
-                        const image = doc.data();
-                        const galleryItem = document.createElement('div');
-                        galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
-                        let tagsHTML = '';
-                        if (image.tags && image.tags.length > 0) {
-                            tagsHTML = image.tags.slice(0, 3).map(tag => `<span class="bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join(' ');
-                        }
-                        galleryItem.innerHTML = `
-                            <img src="${image.imageUrl}" alt="User uploaded race photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                                <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderDisplayName || 'Anonymous'}</p>
-                                <div class="mt-2">
-                                    ${tagsHTML}
-                                </div>
+        const galleryContainer = document.getElementById('dynamic-gallery-container');
+        const q = query(collection(db, "gallery_images"), where("approved", "==", true), orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            galleryContainer.innerHTML = '';
+            snapshot.forEach(doc => {
+                const image = doc.data();
+                const galleryItem = document.createElement('div');
+                galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
+                galleryItem.innerHTML = `
+                    <img src="${image.imageUrl}" alt="User uploaded race photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent p-4 flex flex-col justify-end">
+                         <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <button class="like-btn p-1" data-image-id="${doc.id}" aria-label="Like photo">
+                                    <svg class="w-6 h-6 text-white drop-shadow-lg hover:text-red-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>
+                                </button>
+                                <button class="comment-btn p-1" data-image-id="${doc.id}" data-image-url="${image.imageUrl}" aria-label="View comments">
+                                     <svg class="w-6 h-6 text-white drop-shadow-lg hover:text-blue-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 5.523-4.477 10-10 10S1 17.523 1 12 5.477 2 11 2s10 4.477 10 10z"></path></svg>
+                                </button>
                             </div>
-                        `;
-                        galleryContainer.appendChild(galleryItem);
-                    });
-                });
-            };
-            renderGallery();
+                            <span class="like-count text-white font-bold text-sm drop-shadow-lg">${image.likeCount || 0} likes</span>
+                        </div>
+                    </div>
+                `;
+                galleryContainer.appendChild(galleryItem);
+            });
+        });
+
+        // --- Like & Comment Logic ---
+        const toggleLikePhoto = httpsCallable(functions, 'toggle_like_photo');
+        const addPhotoComment = httpsCallable(functions, 'add_photo_comment');
+
+        const commentModal = document.getElementById('comment-modal');
+        const modalImage = document.getElementById('modal-image');
+        const modalCommentsList = document.getElementById('modal-comments-list');
+        const closeCommentModalBtn = document.getElementById('close-comment-modal');
+        const commentForm = document.getElementById('comment-form');
+        const commentText = document.getElementById('comment-text');
+        const commentSubmitBtn = document.getElementById('comment-submit-btn');
+        const commentStatus = document.getElementById('comment-status');
+        let currentImageId = null;
+
+        // Event Delegation for gallery items
+        galleryContainer.addEventListener('click', async (e) => {
+            const likeBtn = e.target.closest('.like-btn');
+            const commentBtn = e.target.closest('.comment-btn');
+
+            if (!auth.currentUser) {
+                alert("Please log in to like or comment.");
+                return;
+            }
+
+            if (likeBtn) {
+                const imageId = likeBtn.dataset.imageId;
+                likeBtn.disabled = true;
+                try {
+                    await toggleLikePhoto({ imageId });
+                    // The onSnapshot listener will handle the UI update automatically.
+                } catch (error) {
+                    console.error("Error toggling like:", error);
+                    alert(`Error: ${error.message}`);
+                } finally {
+                    likeBtn.disabled = false;
+                }
+            }
+
+            if (commentBtn) {
+                currentImageId = commentBtn.dataset.imageId;
+                modalImage.src = commentBtn.dataset.imageUrl;
+                commentModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                fetchAndRenderComments(currentImageId);
+            }
+        });
+
+        const fetchAndRenderComments = async (imageId) => {
+            modalCommentsList.innerHTML = '<p class="text-slate-400">Loading comments...</p>';
+            const commentsQuery = query(collection(db, `gallery_images/${imageId}/comments`), orderBy("createdAt", "asc"));
+            try {
+                const snapshot = await getDocs(commentsQuery);
+                if (snapshot.empty) {
+                    modalCommentsList.innerHTML = '<p class="text-slate-400">No comments yet. Be the first!</p>';
+                    return;
+                }
+                modalCommentsList.innerHTML = snapshot.docs.map(doc => {
+                    const comment = doc.data();
+                    const date = comment.createdAt.toDate().toLocaleString();
+                    return `<div class="p-2 bg-slate-800/50 rounded-md"><p class="text-sm text-white">${comment.text}</p><p class="text-xs text-slate-400 mt-1">by ${comment.authorName} on ${date}</p></div>`;
+                }).join('');
+            } catch (error) {
+                console.error("Error fetching comments:", error);
+                modalCommentsList.innerHTML = '<p class="text-red-400">Could not load comments.</p>';
+            }
+        };
+
+        closeCommentModalBtn.addEventListener('click', () => {
+            commentModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            currentImageId = null;
+        });
+
+        commentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentImageId || !commentText.value.trim()) return;
+            commentSubmitBtn.disabled = true;
+            commentStatus.textContent = "Posting...";
+            try {
+                await addPhotoComment({ imageId: currentImageId, text: commentText.value.trim() });
+                commentForm.reset();
+                commentStatus.textContent = "";
+                fetchAndRenderComments(currentImageId);
+            } catch (error) {
+                console.error("Error posting comment:", error);
+                commentStatus.textContent = `Error: ${error.message}`;
+            } finally {
+                commentSubmitBtn.disabled = false;
+            }
         });
     </script>
+    <script src="assets/js/main-nav.js" type="module"></script>
+    <script src="assets/js/subscribe.js" type="module"></script>
 </body>
 </html>

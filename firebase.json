@@ -12,7 +12,16 @@
       "functions_python/**"
     ]
   },
-  "functions": {
-    "source": "functions"
-  }
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "nodejs20"
+    },
+    {
+      "source": "functions_python",
+      "codebase": "python-api",
+      "runtime": "python312"
+    }
+  ]
 }
