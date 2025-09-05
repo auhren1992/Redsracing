@@ -46,9 +46,11 @@ jobs:
       - name: Install Functions Dependencies
         run: npm ci --prefix functions
       - name: Deploy to Firebase
-        run: |
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > ./gcloud-sa-key.json
-          export GOOGLE_APPLICATION_CREDENTIALS=./gcloud-sa-key.json
-          firebase deploy --only hosting,functions --project redsracing-a7f8b --non-interactive
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: redsracing-a7f8b
+          channelId: live
+          target: hosting,functions
 # Re-trigger deployment
 # Re-trigger deployment 2
