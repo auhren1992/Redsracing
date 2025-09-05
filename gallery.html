@@ -79,6 +79,19 @@
             <div class="container mx-auto px-6">
                 <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Action <span class="neon-yellow">Shots</span></h2>
 
+                <!-- Search bar -->
+                <div class="max-w-xl mx-auto mb-8">
+                    <label for="gallery-search" class="sr-only">Search Photos</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <input type="search" id="gallery-search" placeholder="Search by keyword (e.g., 'drift', 'podium')" class="block w-full bg-slate-800/50 border border-slate-700 rounded-md py-3 pl-10 pr-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-neon-yellow sm:text-sm">
+                    </div>
+                </div>
+
                 <!-- Upload Form -->
                 <div id="upload-container" class="max-w-xl mx-auto bg-slate-800/50 p-6 rounded-lg mb-12" style="display: none;">
                     <h3 class="font-racing text-2xl text-white uppercase mb-4">Share Your <span class="neon-yellow">Race Photos</span></h3>
@@ -99,7 +112,7 @@
                     </div>
                 </div>
 
-                <div id="dynamic-gallery-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div id="dynamic-gallery-container" class="auto-grid">
                     <!-- Dynamic gallery items will be inserted here -->
                 </div>
             </div>
@@ -269,38 +282,63 @@
                 );
             });
 
-            // --- Dynamic Gallery Rendering ---
+            // --- Dynamic Gallery Rendering & Filtering ---
             const galleryContainer = document.getElementById('dynamic-gallery-container');
-            const renderGallery = () => {
-                const q = query(collection(db, "gallery_images"), where("approved", "==", true), orderBy("createdAt", "desc"));
-                onSnapshot(q, (snapshot) => {
-                    galleryContainer.innerHTML = '';
-                    if (snapshot.empty) {
-                        galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos yet. Be the first to upload one!</p>`;
-                        return;
+            const searchInput = document.getElementById('gallery-search');
+            let allImages = []; // This will hold all fetched images
+
+            const displayImages = (imagesToDisplay) => {
+                galleryContainer.innerHTML = '';
+                if (imagesToDisplay.length === 0) {
+                    const searchTerm = searchInput.value.trim();
+                    const message = searchTerm
+                        ? `No photos match your search for "${searchTerm}".`
+                        : 'No photos yet. Be the first to upload one!';
+                    galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">${message}</p>`;
+                    return;
+                }
+
+                imagesToDisplay.forEach(image => {
+                    const galleryItem = document.createElement('div');
+                    galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
+                    let tagsHTML = '';
+                    if (image.tags && image.tags.length > 0) {
+                        tagsHTML = image.tags.slice(0, 3).map(tag => `<span class="bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join(' ');
                     }
-                    snapshot.forEach(doc => {
-                        const image = doc.data();
-                        const galleryItem = document.createElement('div');
-                        galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
-                        let tagsHTML = '';
-                        if (image.tags && image.tags.length > 0) {
-                            tagsHTML = image.tags.slice(0, 3).map(tag => `<span class="bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join(' ');
-                        }
-                        galleryItem.innerHTML = `
-                            <img src="${image.imageUrl}" alt="User uploaded race photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                                <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderDisplayName || 'Anonymous'}</p>
-                                <div class="mt-2">
-                                    ${tagsHTML}
-                                </div>
+                    galleryItem.innerHTML = `
+                        <img src="${image.imageUrl}" alt="User uploaded race photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                            <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderDisplayName || 'Anonymous'}</p>
+                            <div class="mt-2">
+                                ${tagsHTML}
                             </div>
-                        `;
-                        galleryContainer.appendChild(galleryItem);
-                    });
+                        </div>
+                    `;
+                    galleryContainer.appendChild(galleryItem);
                 });
             };
-            renderGallery();
+
+            const filterAndRender = () => {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                if (!searchTerm) {
+                    displayImages(allImages);
+                    return;
+                }
+                const filteredImages = allImages.filter(image =>
+                    image.tags && image.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+                );
+                displayImages(filteredImages);
+            };
+
+            // Listen for real-time updates from Firestore
+            const q = query(collection(db, "gallery_images"), where("approved", "==", true), orderBy("createdAt", "desc"));
+            onSnapshot(q, (snapshot) => {
+                allImages = snapshot.docs.map(doc => doc.data());
+                filterAndRender(); // Re-render the gallery with the latest data
+            });
+
+            // Add event listener for the search input
+            searchInput.addEventListener('input', filterAndRender);
         });
     </script>
 </body>

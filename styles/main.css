@@ -117,3 +117,10 @@ body {
 #home {
     min-height: 100vh;
 }
+
+/* Custom grid for a responsive, auto-fitting gallery */
+.auto-grid {
+    display: grid;
+    gap: 1rem; /* Equivalent to gap-4 in Tailwind */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
