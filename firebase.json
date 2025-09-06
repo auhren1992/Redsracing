@@ -14,15 +14,15 @@
     "rewrites": [
       {
         "source": "/add_subscriber",
-        "function": "python-api-add_subscriber"
+        "function": "add_subscriber"
       },
       {
         "source": "/send_feedback_email",
-        "function": "python-api-send_feedback_email"
+        "function": "send_feedback_email"
       },
       {
         "source": "/send_sponsorship_email",
-        "function": "python-api-send_sponsorship_email"
+        "function": "send_sponsorship_email"
       }
     ]
   },
@@ -35,8 +35,7 @@
     {
       "source": "functions_python",
       "codebase": "python-api",
-      "runtime": "python312",
-      "region": "us-central1"
+      "runtime": "python312"
     }
   ]
 }
