@@ -1,47 +1,44 @@
-import { getFirebaseConfig } from './firebase-config.js';
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
-
-async function initializeSponsorshipForm() {
-    const firebaseConfig = await getFirebaseConfig();
-    if (!firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith("YOUR_")) {
-        console.warn("Firebase config not found, sponsorship form will not work.");
-        return;
-    }
-
-    const app = initializeApp(firebaseConfig, "sponsorshipApp");
-    const functions = getFunctions(app);
-    const sendSponsorshipEmail = httpsCallable(functions, 'send_sponsorship_email');
-
+async function main() {
     const sponsorshipForm = document.getElementById('sponsorshipForm');
-    const statusDiv = document.getElementById('sponsorshipStatus');
+    const sponsorshipStatus = document.getElementById('sponsorshipStatus');
 
     if (sponsorshipForm) {
-        sponsorshipForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const formData = new FormData(sponsorshipForm);
-            const data = Object.fromEntries(formData.entries());
+        sponsorshipForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const companyName = sponsorshipForm.companyName.value;
+            const contactName = sponsorshipForm.contactName.value;
+            const email = sponsorshipForm.email.value;
+            const phone = sponsorshipForm.phone.value;
+            const message = sponsorshipForm.message.value;
 
-            statusDiv.textContent = 'Sending inquiry...';
-            statusDiv.className = 'p-4 rounded-md mb-4 bg-blue-900 text-blue-300';
-            statusDiv.classList.remove('hidden');
+            sponsorshipStatus.textContent = 'Sending...';
+            sponsorshipStatus.classList.remove('text-red-500', 'text-green-500');
 
             try {
-                const result = await sendSponsorshipEmail(data);
-                if (result.data.status === 'success') {
-                    statusDiv.textContent = result.data.message;
-                    statusDiv.className = 'p-4 rounded-md mb-4 bg-green-800 text-green-300';
-                    sponsorshipForm.reset();
-                } else {
-                    throw new Error(result.data.message || 'An unknown error occurred.');
+                const response = await fetch('/send_sponsorship_email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ companyName, contactName, email, phone, message }),
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Something went wrong');
                 }
+
+                sponsorshipStatus.textContent = result.message || 'Inquiry sent successfully!';
+                sponsorshipStatus.classList.add('text-green-500');
+                sponsorshipForm.reset();
             } catch (error) {
                 console.error('Error sending sponsorship inquiry:', error);
-                statusDiv.textContent = `Error: ${error.message}`;
-                statusDiv.className = 'p-4 rounded-md mb-4 error-message';
+                sponsorshipStatus.textContent = error.message || 'Failed to send inquiry.';
+                sponsorshipStatus.classList.add('text-red-500');
             }
         });
     }
 }
 
-initializeSponsorshipForm();
+main();

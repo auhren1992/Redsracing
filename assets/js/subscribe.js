@@ -1,38 +1,41 @@
-import { getFirebaseConfig } from './firebase-config.js';
-
-document.addEventListener('DOMContentLoaded', () => {
+async function main() {
     const subscribeForm = document.getElementById('subscribeForm');
+    const subscribeStatus = document.getElementById('subscribeStatus');
+    const emailInput = document.getElementById('emailInput');
+
     if (subscribeForm) {
-        subscribeForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const email = document.getElementById('emailInput').value;
-            const statusDiv = document.getElementById('subscribeStatus');
-            statusDiv.textContent = 'Subscribing...';
+        subscribeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+
+            subscribeStatus.textContent = 'Subscribing...';
+            subscribeStatus.classList.remove('text-red-500', 'text-green-500');
 
             try {
-                const firebaseConfig = await getFirebaseConfig();
-                const response = await fetch(`https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/add_subscriber`, {
+                const response = await fetch('/add_subscriber', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ email: email }),
+                    body: JSON.stringify({ email }),
                 });
 
-                const responseText = await response.text();
-                if (response.ok) {
-                    statusDiv.textContent = 'Success! You are subscribed.';
-                    statusDiv.style.color = 'green';
-                    subscribeForm.reset();
-                } else {
-                    statusDiv.textContent = `Error: ${responseText}`;
-                    statusDiv.style.color = 'red';
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Something went wrong');
                 }
+
+                subscribeStatus.textContent = result.message || 'Subscribed successfully!';
+                subscribeStatus.classList.add('text-green-500');
+                subscribeForm.reset();
             } catch (error) {
                 console.error('Error subscribing:', error);
-                statusDiv.textContent = 'An unexpected error occurred. Please try again.';
-                statusDiv.style.color = 'red';
+                subscribeStatus.textContent = error.message || 'Failed to subscribe.';
+                subscribeStatus.classList.add('text-red-500');
             }
         });
     }
-});
+}
+
+main();

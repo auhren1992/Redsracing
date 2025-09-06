@@ -1,6 +1,2 @@
-# For sending feedback emails
-sendgrid
-
-# For Firebase integration
 firebase-functions
 firebase-admin

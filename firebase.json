@@ -14,27 +14,15 @@
     "rewrites": [
       {
         "source": "/add_subscriber",
-        "function": {
-          "functionId": "add_subscriber",
-          "codebase": "python-api",
-          "region": "us-central1"
-        }
+        "function": "add_subscriber"
       },
       {
         "source": "/send_feedback_email",
-        "function": {
-          "functionId": "send_feedback_email",
-          "codebase": "python-api",
-          "region": "us-central1"
-        }
+        "function": "send_feedback_email"
       },
       {
         "source": "/send_sponsorship_email",
-        "function": {
-          "functionId": "send_sponsorship_email",
-          "codebase": "python-api",
-          "region": "us-central1"
-        }
+        "function": "send_sponsorship_email"
       }
     ]
   },

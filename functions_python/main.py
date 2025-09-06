@@ -1,101 +1,159 @@
-import firebase_admin
-from firebase_admin import firestore
+# main.py
 from firebase_functions import https_fn
+from firebase_admin import initialize_app, firestore
 import os
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 
-firebase_admin.initialize_app()
+# Initialize Firebase Admin SDK.
+# It's safe to call this multiple times; it will only initialize once.
+try:
+    initializeApp()
+except ValueError:
+    pass
 
-@https_fn.on_call(region="us-central1")
-def add_subscriber(req: https_fn.CallableRequest) -> https_fn.Response:
-    email = req.data.get("email")
-    if not email or "@" not in email or "." not in email:
-        raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT, message="A valid email address is required.")
-    try:
-        db = firestore.client()
-        db.collection("subscribers").document(email).set({"subscribedAt": firestore.SERVER_TIMESTAMP})
-        return {"status": "success", "message": "You have been subscribed successfully!"}
-    except Exception as e:
-        print(f"Error adding subscriber {email}: {e}")
-        raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INTERNAL, message="An internal error occurred.")
+db = firestore.client()
 
-@https_fn.on_call(region="us-central1")
-def send_feedback_email(req: https_fn.CallableRequest) -> https_fn.Response:
-    feedback_text = req.data.get("feedbackText")
-    user_email = req.data.get("email", "Not provided")
-    if not feedback_text:
-        raise https_fn.HttpsError(code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT, message="Feedback text cannot be empty.")
-    db = firestore.client()
-    try:
-        db.collection("feedback").add({"feedbackText": feedback_text, "submitterEmail": user_email, "submittedAt": firestore.SERVER_TIMESTAMP})
-    except Exception as e:
-        print(f"Error saving feedback to Firestore: {e}")
-    sendgrid_api_key = os.environ.get('SENDGRID_API_KEY')
-    to_email = 'redsracing65@gmail.com'
-    if not sendgrid_api_key:
-        print("CRITICAL: SENDGRID_API_KEY environment variable not set.")
-        return {"status": "success", "message": "Thank you for your feedback! (Admin note: email not sent)"}
-    message = Mail(from_email='feedback-bot@redsracing.com', to_emails=to_email, subject=f'New Website Feedback from {user_email}', html_content=f'<strong>Feedback from:</strong> {user_email}<br><br><strong>Message:</strong><br><p>{feedback_text}</p>')
-    try:
-        sg = SendGridAPIClient(sendgrid_api_key)
-        sg.send(message)
-        return {"status": "success", "message": "Thank you for your feedback!"}
-    except Exception as e:
-        print(f"Error sending feedback email via SendGrid: {e}")
-        return {"status": "success", "message": "Thank you for your feedback! (Admin note: email failed to send)"}
+@https_fn.on_request(region="us-central1")
+def add_subscriber(req: https_fn.Request) -> https_fn.Response:
+    """Adds a subscriber's email to the Firestore database."""
+    # Set CORS headers for preflight requests
+    if req.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Max-Age': '3600'
+        }
+        return https_fn.Response("", status=204, headers=headers)
 
-@https_fn.on_call(region="us-central1")
-def send_sponsorship_email(req: https_fn.CallableRequest) -> https_fn.Response:
-    data = req.data
-    required_fields = ["companyName", "contactName", "contactEmail", "contactPhone"]
-    for field in required_fields:
-        if field not in data or not data[field]:
-            raise https_fn.HttpsError(
-                code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
-                message=f"The '{field}' field is required."
-            )
+    # Set CORS headers for the main request
+    headers = {
+        'Access-Control-Allow-Origin': '*'
+    }
 
-    # Construct the email content
-    html_content = f"""
-        <h2>New Sponsorship Inquiry</h2>
-        <p><strong>Company Name:</strong> {data.get('companyName')}</p>
-        <p><strong>Company Website:</strong> {data.get('companyWebsite', 'Not provided')}</p>
-        <hr>
-        <p><strong>Contact Name:</strong> {data.get('contactName')}</p>
-        <p><strong>Contact Email:</strong> {data.get('contactEmail')}</p>
-        <p><strong>Contact Phone:</strong> {data.get('contactPhone')}</p>
-        <hr>
-        <p><strong>Sponsorship Level:</strong> {data.get('sponsorshipLevel', 'Not specified')}</p>
-        <p><strong>Budget Range:</strong> {data.get('budgetRange', 'Not specified')}</p>
-        <p><strong>Marketing Goal:</strong></p>
-        <p>{data.get('marketingGoal', 'Not provided')}</p>
-        <hr>
-        <p><strong>Additional Message:</strong></p>
-        <p>{data.get('message', 'No additional message.')}</p>
-    """
-
-    sendgrid_api_key = os.environ.get('SENDGRID_API_KEY')
-    to_email = 'redsracing65@gmail.com'
-
-    if not sendgrid_api_key:
-        print("CRITICAL: SENDGRID_API_KEY environment variable not set. Sponsorship email will not be sent.")
-        # Still return success to the user, but log the error for the admin.
-        return {"status": "success", "message": "Your request has been submitted! We will be in touch shortly."}
-
-    message = Mail(
-        from_email='sponsorship-bot@redsracing.com',
-        to_emails=to_email,
-        subject=f"New Sponsorship Inquiry from {data.get('companyName')}",
-        html_content=html_content
-    )
+    if req.method != "POST":
+        return https_fn.Response("Method not allowed.", status=405, headers=headers)
 
     try:
-        sg = SendGridAPIClient(sendgrid_api_key)
-        response = sg.send(message)
-        print(f"Sponsorship email sent! Status code: {response.status_code}")
-        return {"status": "success", "message": "Your sponsorship request has been sent successfully! We'll be in touch soon."}
+        data = req.get_json()
+        email = data.get("email")
+
+        if not email:
+            return https_fn.Response('{"message": "Email is required."}', status=400, mimetype="application/json", headers=headers)
+
+        # Using the email as the document ID is a simple way to prevent duplicates.
+        db.collection("subscribers").document(email).set({
+            "subscribed_at": firestore.SERVER_TIMESTAMP
+        })
+
+        return https_fn.Response('{"message": "Thank you for subscribing!"}', status=200, mimetype="application/json", headers=headers)
+
     except Exception as e:
-        print(f"Error sending sponsorship email via SendGrid: {e}")
-        # Don't expose the failure to the user, just log it.
-        return {"status": "success", "message": "Your request has been submitted! We will be in touch shortly."}
+        print(f"Error adding subscriber: {e}")
+        return https_fn.Response('{"message": "An internal error occurred."}', status=500, mimetype="application/json", headers=headers)
+
+
+@https_fn.on_request(region="us-central1")
+def send_feedback_email(req: https_fn.Request) -> https_fn.Response:
+    """Receives feedback from a user and logs it."""
+    # Set CORS headers
+    if req.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Max-Age': '3600'
+        }
+        return https_fn.Response("", status=204, headers=headers)
+
+    headers = {
+        'Access-Control-Allow-Origin': '*'
+    }
+
+    if req.method != "POST":
+        return https_fn.Response("Method not allowed.", status=405, headers=headers)
+
+    try:
+        data = req.get_json()
+        name = data.get("name")
+        email = data.get("email")
+        message = data.get("message")
+
+        if not all([name, email, message]):
+            return https_fn.Response('{"message": "Name, email, and message are required."}', status=400, mimetype="application/json", headers=headers)
+
+        # In a real application, you would use a transactional email service
+        # like SendGrid or Mailgun to send the email. For this example, we
+        # will just log the feedback, which is a good first step.
+        print("--- New Feedback Received ---")
+        print(f"From: {name} <{email}>")
+        print(f"Message: {message}")
+        print("-----------------------------")
+
+        # You can also store the feedback in Firestore
+        db.collection("feedback").add({
+            "name": name,
+            "email": email,
+            "message": message,
+            "received_at": firestore.SERVER_TIMESTAMP
+        })
+
+        return https_fn.Response('{"message": "Thank you for your feedback!"}', status=200, mimetype="application/json", headers=headers)
+
+    except Exception as e:
+        print(f"Error sending feedback: {e}")
+        return https_fn.Response('{"message": "An internal error occurred."}', status=500, mimetype="application/json", headers=headers)
+
+
+@https_fn.on_request(region="us-central1")
+def send_sponsorship_email(req: https_fn.Request) -> https_fn.Response:
+    """Receives a sponsorship inquiry and logs it."""
+    # Set CORS headers
+    if req.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Max-Age': '3600'
+        }
+        return https_fn.Response("", status=204, headers=headers)
+
+    headers = {
+        'Access-Control-Allow-Origin': '*'
+    }
+
+    if req.method != "POST":
+        return https_fn.Response("Method not allowed.", status=405, headers=headers)
+
+    try:
+        data = req.get_json()
+        companyName = data.get("companyName")
+        contactName = data.get("contactName")
+        email = data.get("email")
+        phone = data.get("phone")
+        message = data.get("message")
+
+        if not all([companyName, contactName, email, message]):
+            return https_fn.Response('{"message": "Company name, contact name, email, and message are required."}', status=400, mimetype="application/json", headers=headers)
+
+        # Log the inquiry and also save it to Firestore
+        print("--- New Sponsorship Inquiry ---")
+        print(f"Company: {companyName}")
+        print(f"Contact: {contactName} <{email}>")
+        print(f"Phone: {phone}")
+        print(f"Message: {message}")
+        print("-------------------------------")
+
+        db.collection("sponsorship_inquiries").add({
+            "companyName": companyName,
+            "contactName": contactName,
+            "email": email,
+            "phone": phone,
+            "message": message,
+            "received_at": firestore.SERVER_TIMESTAMP
+        })
+
+        return https_fn.Response('{"message": "Thank you for your inquiry! We will be in touch soon."}', status=200, mimetype="application/json", headers=headers)
+
+    except Exception as e:
+        print(f"Error sending sponsorship inquiry: {e}")
+        return https_fn.Response('{"message": "An internal error occurred."}', status=500, mimetype="application/json", headers=headers)

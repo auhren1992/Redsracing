@@ -117,7 +117,6 @@ exports.processInvitationCode = onCall(async (request) => {
  */
 exports.generateTags = onObjectFinalized({
   region: "us-central1", // Explicitly specify the function's region
-  bucket: "redsracing-a7f8b.firebasestorage.app", // Explicitly specify the bucket
   cpu: 2, // Allocate more CPU
   memory: "1GiB", // Allocate more memory
   timeoutSeconds: 300, // Extend timeout

@@ -1,20 +1,19 @@
-import { getFirebaseConfig } from './firebase-config.js';
-
-document.addEventListener('DOMContentLoaded', () => {
+async function main() {
     const feedbackForm = document.getElementById('feedbackForm');
-    if (feedbackForm) {
-        feedbackForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
+    const feedbackStatus = document.getElementById('feedbackStatus');
 
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const message = document.getElementById('message').value;
-            const statusDiv = document.getElementById('feedbackStatus');
-            statusDiv.textContent = 'Sending feedback...';
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = feedbackForm.name.value;
+            const email = feedbackForm.email.value;
+            const message = feedbackForm.message.value;
+
+            feedbackStatus.textContent = 'Sending...';
+            feedbackStatus.classList.remove('text-red-500', 'text-green-500');
 
             try {
-                const firebaseConfig = await getFirebaseConfig();
-                const response = await fetch(`https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/send_feedback_email`, {
+                const response = await fetch('/send_feedback_email', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -22,20 +21,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({ name, email, message }),
                 });
 
-                const responseText = await response.text();
-                if (response.ok) {
-                    statusDiv.textContent = 'Feedback sent successfully! Thank you.';
-                    statusDiv.style.color = 'green';
-                    feedbackForm.reset();
-                } else {
-                    statusDiv.textContent = `Error: ${responseText}`;
-                    statusDiv.style.color = 'red';
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Something went wrong');
                 }
+
+                feedbackStatus.textContent = result.message || 'Feedback sent successfully!';
+                feedbackStatus.classList.add('text-green-500');
+                feedbackForm.reset();
             } catch (error) {
                 console.error('Error sending feedback:', error);
-                statusDiv.textContent = 'An unexpected error occurred. Please try again.';
-                statusDiv.style.color = 'red';
+                feedbackStatus.textContent = error.message || 'Failed to send feedback.';
+                feedbackStatus.classList.add('text-red-500');
             }
         });
     }
-});
+}
+
+main();
