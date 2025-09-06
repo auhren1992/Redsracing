@@ -10,6 +10,24 @@
       ".git/**",
       "functions/**",
       "functions_python/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/add_subscriber",
+        "function": {
+          "functionId": "add_subscriber",
+          "codebase": "python-api",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/send_feedback_email",
+        "function": {
+          "functionId": "send_feedback_email",
+          "codebase": "python-api",
+          "region": "us-central1"
+        }
+      }
     ]
   },
   "functions": [
