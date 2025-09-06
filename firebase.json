@@ -14,27 +14,15 @@
     "rewrites": [
       {
         "source": "/add_subscriber",
-        "function": {
-          "functionId": "add_subscriber",
-          "codebase": "python-api",
-          "region": "us-central1"
-        }
+        "function": "python-api-add_subscriber"
       },
       {
         "source": "/send_feedback_email",
-        "function": {
-          "functionId": "send_feedback_email",
-          "codebase": "python-api",
-          "region": "us-central1"
-        }
+        "function": "python-api-send_feedback_email"
       },
       {
         "source": "/send_sponsorship_email",
-        "function": {
-          "functionId": "send_sponsorship_email",
-          "codebase": "python-api",
-          "region": "us-central1"
-        }
+        "function": "python-api-send_sponsorship_email"
       }
     ]
   },
@@ -47,7 +35,8 @@
     {
       "source": "functions_python",
       "codebase": "python-api",
-      "runtime": "python312"
+      "runtime": "python312",
+      "region": "us-central1"
     }
   ]
 }
