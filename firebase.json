@@ -27,6 +27,14 @@
           "codebase": "python-api",
           "region": "us-central1"
         }
+      },
+      {
+        "source": "/send_sponsorship_email",
+        "function": {
+          "functionId": "send_sponsorship_email",
+          "codebase": "python-api",
+          "region": "us-central1"
+        }
       }
     ]
   },
