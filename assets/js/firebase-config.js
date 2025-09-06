@@ -19,15 +19,14 @@ async function fetchFirebaseConfig() {
     } catch (error) {
         console.error("Failed to fetch Firebase config, falling back to placeholder. This is expected in local development if you haven't set up the local Firebase server.", error);
         // Fallback for local development if the above path doesn't work
-        // IMPORTANT: Replace with your actual config for local testing,
-        // but it's better to use the Firebase Local Emulator Suite which serves this file.
+        // Using the actual project configuration
         return {
-            apiKey: "YOUR_API_KEY", // Replace with your actual API key for local dev
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID",
+            apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+            authDomain: "redsracing-a7f8b.firebaseapp.com",
+            projectId: "redsracing-a7f8b",
+            storageBucket: "redsracing-a7f8b.firebasestorage.app",
+            messagingSenderId: "517034606151",
+            appId: "1:517034606151:web:24cae262e1d98832757b62"
         };
     }
 }
