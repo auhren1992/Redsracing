@@ -1,27 +1,29 @@
 # main.py
 from firebase_functions import https_fn
+from firebase_functions.core import init
 from firebase_admin import initialize_app, firestore
 import os
 
-# Lazily initialize Firebase
-app = None
+# Global variable for the Firestore client, to be initialized by @init.
 db = None
 
-def _initialize_firebase():
+@init
+def initialize():
     """
-    Initializes Firebase services if they haven't been already.
-    This lazy initialization helps to speed up cold starts.
+    Initializes the Firebase Admin SDK and Firestore client.
+    This function is decorated with @init, so it's only called once when the
+    function is deployed, not during the deployment process itself, which
+    avoids timeouts.
     """
-    global app, db
-    if app is None:
-        app = initialize_app()
-    if db is None:
-        db = firestore.client()
+    global db
+    initialize_app()
+    db = firestore.client()
 
 @https_fn.on_request(region="us-central1")
 def add_subscriber(req: https_fn.Request) -> https_fn.Response:
     """Adds a subscriber's email to the Firestore database."""
-    _initialize_firebase()
+    # The 'db' global is guaranteed to be available here because @init
+    # runs before any function invocations.
 
     # Set CORS headers for preflight requests
     if req.method == 'OPTIONS':
@@ -63,8 +65,6 @@ def add_subscriber(req: https_fn.Request) -> https_fn.Response:
 @https_fn.on_request(region="us-central1")
 def send_feedback_email(req: https_fn.Request) -> https_fn.Response:
     """Receives feedback from a user and logs it."""
-    _initialize_firebase()
-
     # Set CORS headers
     if req.method == 'OPTIONS':
         headers = {
@@ -91,14 +91,6 @@ def send_feedback_email(req: https_fn.Request) -> https_fn.Response:
         if not all([name, email, message]):
             return https_fn.Response('{"message": "Name, email, and message are required."}', status=400, mimetype="application/json", headers=headers)
 
-        # In a real application, you would use a transactional email service
-        # like SendGrid or Mailgun to send the email. For this example, we
-        # will just log the feedback, which is a good first step.
-        print("--- New Feedback Received ---")
-        print(f"From: {name} <{email}>")
-        print(f"Message: {message}")
-        print("-----------------------------")
-
         # You can also store the feedback in Firestore
         db.collection("feedback").add({
             "name": name,
@@ -117,8 +109,6 @@ def send_feedback_email(req: https_fn.Request) -> https_fn.Response:
 @https_fn.on_request(region="us-central1")
 def send_sponsorship_email(req: https_fn.Request) -> https_fn.Response:
     """Receives a sponsorship inquiry and logs it."""
-    _initialize_firebase()
-
     # Set CORS headers
     if req.method == 'OPTIONS':
         headers = {
@@ -148,13 +138,6 @@ def send_sponsorship_email(req: https_fn.Request) -> https_fn.Response:
             return https_fn.Response('{"message": "Company name, contact name, email, and message are required."}', status=400, mimetype="application/json", headers=headers)
 
         # Log the inquiry and also save it to Firestore
-        print("--- New Sponsorship Inquiry ---")
-        print(f"Company: {companyName}")
-        print(f"Contact: {contactName} <{email}>")
-        print(f"Phone: {phone}")
-        print(f"Message: {message}")
-        print("-------------------------------")
-
         db.collection("sponsorship_inquiries").add({
             "companyName": companyName,
             "contactName": contactName,
