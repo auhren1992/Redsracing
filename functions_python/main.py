@@ -20,7 +20,7 @@ def initialize():
     db = firestore.client()
 
 @https_fn.on_request(region="us-central1")
-def add_subscriber(req: https_fn.Request) -> https_fn.Response:
+def handleAddSubscriber(req: https_fn.Request) -> https_fn.Response:
     """Adds a subscriber's email to the Firestore database."""
     # The 'db' global is guaranteed to be available here because @init
     # runs before any function invocations.
@@ -63,7 +63,7 @@ def add_subscriber(req: https_fn.Request) -> https_fn.Response:
 
 
 @https_fn.on_request(region="us-central1")
-def send_feedback_email(req: https_fn.Request) -> https_fn.Response:
+def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
     """Receives feedback from a user and logs it."""
     # Set CORS headers
     if req.method == 'OPTIONS':
@@ -107,7 +107,7 @@ def send_feedback_email(req: https_fn.Request) -> https_fn.Response:
 
 
 @https_fn.on_request(region="us-central1")
-def send_sponsorship_email(req: https_fn.Request) -> https_fn.Response:
+def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
     """Receives a sponsorship inquiry and logs it."""
     # Set CORS headers
     if req.method == 'OPTIONS':
