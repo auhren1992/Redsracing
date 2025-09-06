@@ -1,4 +1,3 @@
-
 // This is a placeholder. In a real Firebase Hosting setup,
 // this file would be automatically generated.
 // For local development, you need to replace this with your actual
@@ -40,14 +39,3 @@ export async function getFirebaseConfig() {
     }
     return firebaseConfig;
 }
-
-
-export const firebaseConfig = {
-  apiKey: "1:517034606151:web:24cae262e1d98832757b62",
-  authDomain: "redsracing-a7f8b.firebaseapp.com",
-  projectId: "https://redsracing-a7f8b-default-rtdb.firebaseio.com",
-  storageBucket: "redsracing-a7f8b.firebasestorage.app",
-  messagingSenderId: "517034606151",
-  appId: "1:517034606151:web:24cae262e1d98832757b62"
-};
-

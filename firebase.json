@@ -14,15 +14,24 @@
     "rewrites": [
       {
         "source": "/add_subscriber",
-        "function": "add_subscriber"
+        "function": {
+          "functionId": "add_subscriber",
+          "codebase": "python-api"
+        }
       },
       {
         "source": "/send_feedback_email",
-        "function": "send_feedback_email"
+        "function": {
+          "functionId": "send_feedback_email",
+          "codebase": "python-api"
+        }
       },
       {
         "source": "/send_sponsorship_email",
-        "function": "send_sponsorship_email"
+        "function": {
+          "functionId": "send_sponsorship_email",
+          "codebase": "python-api"
+        }
       }
     ]
   },

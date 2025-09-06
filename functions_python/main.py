@@ -6,7 +6,7 @@ import os
 # Initialize Firebase Admin SDK.
 # It's safe to call this multiple times; it will only initialize once.
 try:
-    initializeApp()
+    initialize_app()
 except ValueError:
     pass
 
