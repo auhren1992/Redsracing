@@ -3,18 +3,26 @@ from firebase_functions import https_fn
 from firebase_admin import initialize_app, firestore
 import os
 
-# Initialize Firebase Admin SDK.
-# It's safe to call this multiple times; it will only initialize once.
-try:
-    initialize_app()
-except ValueError:
-    pass
+# Lazily initialize Firebase
+app = None
+db = None
 
-db = firestore.client()
+def _initialize_firebase():
+    """
+    Initializes Firebase services if they haven't been already.
+    This lazy initialization helps to speed up cold starts.
+    """
+    global app, db
+    if app is None:
+        app = initialize_app()
+    if db is None:
+        db = firestore.client()
 
 @https_fn.on_request(region="us-central1")
 def add_subscriber(req: https_fn.Request) -> https_fn.Response:
     """Adds a subscriber's email to the Firestore database."""
+    _initialize_firebase()
+
     # Set CORS headers for preflight requests
     if req.method == 'OPTIONS':
         headers = {
@@ -55,6 +63,8 @@ def add_subscriber(req: https_fn.Request) -> https_fn.Response:
 @https_fn.on_request(region="us-central1")
 def send_feedback_email(req: https_fn.Request) -> https_fn.Response:
     """Receives feedback from a user and logs it."""
+    _initialize_firebase()
+
     # Set CORS headers
     if req.method == 'OPTIONS':
         headers = {
@@ -107,6 +117,8 @@ def send_feedback_email(req: https_fn.Request) -> https_fn.Response:
 @https_fn.on_request(region="us-central1")
 def send_sponsorship_email(req: https_fn.Request) -> https_fn.Response:
     """Receives a sponsorship inquiry and logs it."""
+    _initialize_firebase()
+
     # Set CORS headers
     if req.method == 'OPTIONS':
         headers = {
