@@ -10,8 +10,6 @@ try:
 except ValueError:
     pass
 
-db = firestore.client()
-
 @https_fn.on_request(region="us-central1")
 def add_subscriber(req: https_fn.Request) -> https_fn.Response:
     """Adds a subscriber's email to the Firestore database."""
@@ -34,6 +32,9 @@ def add_subscriber(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response("Method not allowed.", status=405, headers=headers)
 
     try:
+        # Initialize Firestore client only when needed
+        db = firestore.client()
+        
         data = req.get_json()
         email = data.get("email")
 
@@ -73,6 +74,9 @@ def send_feedback_email(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response("Method not allowed.", status=405, headers=headers)
 
     try:
+        # Initialize Firestore client only when needed
+        db = firestore.client()
+        
         data = req.get_json()
         name = data.get("name")
         email = data.get("email")
@@ -125,6 +129,9 @@ def send_sponsorship_email(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response("Method not allowed.", status=405, headers=headers)
 
     try:
+        # Initialize Firestore client only when needed
+        db = firestore.client()
+        
         data = req.get_json()
         companyName = data.get("companyName")
         contactName = data.get("contactName")
