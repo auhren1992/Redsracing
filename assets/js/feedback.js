@@ -1,4 +1,10 @@
+import { getFirebaseConfig } from './firebase-config.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+
 async function main() {
+    const firebaseConfig = await getFirebaseConfig();
+    const app = initializeApp(firebaseConfig);
+
     const feedbackForm = document.getElementById('feedbackForm');
     const feedbackStatus = document.getElementById('feedbackStatus');
 
