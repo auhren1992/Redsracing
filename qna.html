@@ -44,6 +44,7 @@
                     </button>
                     <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
                         <a href="qna.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Q&A</a>
+                        <a href="feedback.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Feedback</a>
                     </div>
                 </div>
                 <a id="auth-link" href="login.html" class="bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300">
@@ -70,6 +71,7 @@
              <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Community</button>
              <div class="mobile-accordion-content hidden pl-4">
                  <a href="qna.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Q&A</a>
+                 <a href="feedback.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Feedback</a>
              </div>
              <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
         </div>
@@ -102,11 +104,11 @@
             <h3 class="font-racing text-4xl uppercase mb-2 neon-yellow">Get In Touch</h3>
             <p class="text-slate-400 mb-8">Subscribe for race updates and follow the journey on social media.</p>
             <div class="max-w-md mx-auto mb-8">
-                <form id="subscribe-form" class="flex flex-col sm:flex-row gap-2">
-                    <input type="email" id="subscribe-email" placeholder="Enter your email" required class="flex-grow bg-slate-800 text-white px-4 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-neon-yellow w-full">
+                <form id="subscribeForm" class="flex flex-col sm:flex-row gap-2">
+                    <input type="email" id="emailInput" placeholder="Enter your email" required class="flex-grow bg-slate-800 text-white px-4 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-neon-yellow w-full">
                     <button type="submit" class="bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Subscribe</button>
                 </form>
-                <p id="subscribe-message" class="text-sm mt-2 h-4"></p>
+                <p id="subscribeStatus" class="text-sm mt-2 h-4"></p>
             </div>
             <div class="flex justify-center space-x-6 mb-8">
                 <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
@@ -115,86 +117,29 @@
             <p class="mt-8 text-slate-500 text-sm">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
         </div>
     </footer>
+    <script type="module" src="assets/js/main.js"></script>
+    <script type="module" src="assets/js/subscribe.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirebaseConfig } from './firebase-config.js';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Desktop dropdowns
-            document.querySelectorAll('.dropdown-toggle').forEach(button => {
-                button.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    const dropdownMenu = button.nextElementSibling;
-                    const isHidden = dropdownMenu.classList.contains('hidden');
+        async function initializeQna() {
+            const firebaseConfig = await getFirebaseConfig();
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey.startsWith("YOUR_")) {
+                console.warn("Firebase config not found for Q&A, features will be limited.");
+                return;
+            }
 
-                    // Close all other dropdowns
-                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                        menu.classList.add('hidden');
-                    });
-
-                    // Toggle the current dropdown
-                    if (isHidden) {
-                        dropdownMenu.classList.remove('hidden');
-                    }
-                });
-            });
-
-            // Close dropdowns when clicking outside
-            window.addEventListener('click', () => {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-            });
-
-            // Mobile menu toggle
-            document.getElementById('mobile-menu-button').addEventListener('click', () => {
-                document.getElementById('mobile-menu').classList.toggle('hidden');
-            });
-
-            // Mobile menu accordion
-            document.querySelectorAll('.mobile-accordion').forEach(button => {
-                button.addEventListener('click', () => {
-                    const content = button.nextElementSibling;
-                    content.classList.toggle('hidden');
-                });
-            });
-
-            const firebaseConfig = {
-              apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
-              authDomain: "redsracing-a7f8b.firebaseapp.com",
-              projectId: "redsracing-a7f8b",
-              storageBucket: "redsracing-a7f8b.firebasestorage.app",
-              messagingSenderId: "517034606151",
-              appId: "1:517034606151:web:24cae262e1d98832757b62"
-            };
-            const app = initializeApp(firebaseConfig);
+            const app = initializeApp(firebaseConfig, "qnaApp");
             const auth = getAuth(app);
             const db = getFirestore(app);
 
             const qnaContainer = document.getElementById('qna-container');
-            const qnaFormContainer = document.getElementById('qna-form-container');
             const qnaForm = document.getElementById('qna-form');
             const qnaQuestionInput = document.getElementById('qna-question');
             const qnaFormStatus = document.getElementById('qna-form-status');
-
-            const authLink = document.getElementById('auth-link');
-            const authLinkMobile = document.getElementById('auth-link-mobile');
-            onAuthStateChanged(auth, user => {
-                if (user) {
-                    qnaFormContainer.style.display = 'block';
-                    authLink.textContent = 'Dashboard';
-                    authLink.href = 'dashboard.html';
-                    authLinkMobile.textContent = 'Dashboard';
-                    authLinkMobile.href = 'dashboard.html';
-                } else {
-                    qnaFormContainer.style.display = 'none';
-                    authLink.textContent = 'DRIVER LOGIN';
-                    authLink.href = 'login.html';
-                    authLinkMobile.textContent = 'DRIVER LOGIN';
-                    authLinkMobile.href = 'login.html';
-                }
-            });
 
             if (qnaForm) {
                 qnaForm.addEventListener('submit', async (e) => {
@@ -229,6 +174,7 @@
             }
 
             const renderQAs = () => {
+                if (!qnaContainer) return;
                 const q = query(collection(db, "qna_submissions"), where("status", "==", "published"), orderBy("answeredAt", "desc"));
                 onSnapshot(q, (snapshot) => {
                     qnaContainer.innerHTML = '';
@@ -250,7 +196,9 @@
                 });
             };
             renderQAs();
-        });
+        }
+
+        initializeQna();
     </script>
 </body>
 </html>
