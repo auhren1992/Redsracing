@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "redsracing-a7f8b",
     "public": ".",
     "ignore": [
       "firebase.json",
