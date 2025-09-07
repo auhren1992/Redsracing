@@ -1,7 +1,6 @@
 {
   "projects": {
     "default": "redsracing-a7f8b"
-    
   },
   "targets": {
     "redsracing-a7f8b": {
@@ -13,7 +12,3 @@
     }
   }
 }
-
-  }
-}
-
