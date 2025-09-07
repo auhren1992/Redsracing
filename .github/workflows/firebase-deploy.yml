@@ -43,8 +43,14 @@ jobs:
           node-version: 20
       - name: Install Firebase CLI
         run: npm i -g firebase-tools
-      - name: Install Functions Dependencies
+      - name: Install Node.js Functions Dependencies
         run: npm ci --prefix functions
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install Python Functions Dependencies
+        run: pip install -r functions_python/requirements.txt
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
