@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "redsracing-a7f8b",
+    "target": "production",
     "public": ".",
     "ignore": [
       "firebase.json",
@@ -8,9 +8,7 @@
       "storage.rules",
       ".firebaserc",
       ".github/**",
-      ".git/**",
-      "functions/**",
-      "functions_python/**"
+      ".git/**"
     ],
     "rewrites": [
       {
