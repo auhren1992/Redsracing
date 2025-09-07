@@ -19,7 +19,7 @@ async function main() {
             feedbackStatus.classList.remove('text-red-500', 'text-green-500');
 
             try {
-                const response = await fetch('/send_feedback_email', {
+                const response = await fetch('/handleSendFeedback', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
