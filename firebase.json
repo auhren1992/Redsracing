@@ -1,0 +1,50 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "firestore.rules",
+      "storage.rules",
+      ".firebaserc",
+      ".github/**",
+      ".git/**",
+      "functions/**",
+      "functions_python/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/add_subscriber",
+        "function": {
+          "functionId": "handleAddSubscriber",
+          "codebase": "python-api"
+        }
+      },
+      {
+        "source": "/send_feedback_email",
+        "function": {
+          "functionId": "handleSendFeedback",
+          "codebase": "python-api"
+        }
+      },
+      {
+        "source": "/send_sponsorship_email",
+        "function": {
+          "functionId": "handleSendSponsorship",
+          "codebase": "python-api"
+        }
+      }
+    ]
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "nodejs20"
+    },
+    {
+      "source": "functions_python",
+      "codebase": "python-api",
+      "runtime": "python312"
+    }
+  ]
+}
