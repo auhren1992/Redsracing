@@ -172,12 +172,16 @@ body {
 .dropdown-menu {
     background-color: #1e293b; /* slate-800 */
     border-radius: 0.375rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
     margin-top: 0.5rem;
     padding: 0.25rem 0;
     width: 12rem;
-    z-index: 50;
+    z-index: 9999; /* Increased z-index to ensure it appears above all content */
     position: absolute;
+    border: 1px solid #475569; /* slate-600 - adds definition */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    min-width: max-content; /* Ensures content fits */
 }
 
 .dropdown-menu a {
@@ -186,11 +190,82 @@ body {
     font-size: 0.875rem;
     color: #cbd5e1; /* slate-300 */
     text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap; /* Prevents text wrapping */
 }
 
-.dropdown-menu a:hover {
+.dropdown-menu a:hover,
+.dropdown-menu a:focus {
     background-color: #334155; /* slate-700 */
-    color: #ffffff;
+    color: #f7ff00; /* neon-yellow for better visibility */
+    transform: translateX(2px);
+    outline: none;
+}
+
+/* Enhanced dropdown positioning */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Ensure dropdowns don't get cut off at screen edges */
+.dropdown-menu.dropdown-menu-right {
+    right: 0;
+    left: auto;
+}
+
+/* Mobile accordion improvements */
+.mobile-accordion-content {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.mobile-accordion-content:not(.hidden) {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        max-height: 0;
+        opacity: 0;
+    }
+    to {
+        max-height: 200px;
+        opacity: 1;
+    }
+}
+
+/* Improve button focus states for accessibility */
+.dropdown-toggle:focus,
+.mobile-accordion:focus,
+#mobile-menu-button:focus {
+    outline: 2px solid #f7ff00;
+    outline-offset: 2px;
+}
+
+/* Touch device optimizations */
+@media (hover: none) {
+    .dropdown-menu {
+        margin-top: 0.75rem; /* More space for finger tapping */
+    }
+    
+    .dropdown-menu a {
+        padding: 0.75rem 1rem; /* Larger tap targets */
+        font-size: 1rem; /* Slightly larger text */
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .dropdown-menu {
+        border: 2px solid #ffffff;
+    }
+    
+    .dropdown-menu a:hover,
+    .dropdown-menu a:focus {
+        background-color: #000000;
+        color: #ffffff;
+    }
 }
 
 .relative {
