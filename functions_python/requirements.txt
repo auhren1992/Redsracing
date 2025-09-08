@@ -1,6 +1,12 @@
-# For sending feedback emails
-sendgrid
+# For Firebase Cloud Functions Python runtime
+firebase-functions>=0.1.0
+firebase-admin>=6.0.0
 
-# For Firebase integration
-firebase-functions
-firebase-admin
+# For sending emails
+sendgrid>=6.0.0
+
+# For HTTP request handling (used by Firebase Functions)
+flask>=2.0.0
+
+# For data validation and processing
+functions-framework>=3.0.0

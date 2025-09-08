@@ -14,7 +14,7 @@ initialize_app()
 db = firestore.client()
 
 @https_fn.on_request()
-def handleAddSubscriber(req: Request) -> dict:
+def handleAddSubscriber(req: Request):
     """
     Handles email subscription requests.
     Stores subscriber email in Firestore and returns success/error response.
@@ -73,7 +73,7 @@ def handleAddSubscriber(req: Request) -> dict:
 
 
 @https_fn.on_request()
-def handleSendFeedback(req: Request) -> dict:
+def handleSendFeedback(req: Request):
     """
     Handles feedback form submissions.
     Sends email via SendGrid and returns success/error response.
@@ -164,7 +164,7 @@ def handleSendFeedback(req: Request) -> dict:
 
 
 @https_fn.on_request()
-def handleSendSponsorship(req: Request) -> dict:
+def handleSendSponsorship(req: Request):
     """
     Handles sponsorship inquiry form submissions.
     Sends email via SendGrid and returns success/error response.
