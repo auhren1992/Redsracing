@@ -529,25 +529,51 @@
             }
             photos.forEach(photo => {
                 const item = document.createElement('div');
-                item.className = 'p-4 bg-slate-800 rounded-md flex items-center justify-between';
+                item.className = 'p-4 bg-slate-800 rounded-md space-y-4';
+                
+                // Display current tags
+                const currentTags = photo.tags || [];
+                const tagsHTML = currentTags.length > 0 
+                    ? currentTags.map(tag => `<span class="bg-blue-600 text-white text-xs px-2 py-1 rounded-full mr-1">${tag}</span>`).join('')
+                    : '<span class="text-slate-400 text-xs">No tags</span>';
+                
                 item.innerHTML = `
-                    <div class="flex items-center">
-                        <img src="${photo.imageUrl}" class="w-16 h-16 object-cover rounded-md mr-4" alt="Thumbnail">
-                        <div>
-                            <p class="text-white">${photo.uploaderEmail || 'Unknown Uploader'}</p>
-                            <p class="text-sm text-slate-400">${new Date(photo.createdAt.seconds * 1000).toLocaleString()}</p>
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-start">
+                            <img src="${photo.imageUrl}" class="w-16 h-16 object-cover rounded-md mr-4" alt="Thumbnail">
+                            <div>
+                                <p class="text-white">${photo.uploaderEmail || 'Unknown Uploader'}</p>
+                                <p class="text-sm text-slate-400">${new Date(photo.createdAt.seconds * 1000).toLocaleString()}</p>
+                                <div class="mt-2">
+                                    <p class="text-sm text-slate-300 mb-1">Tags:</p>
+                                    <div class="tags-display">${tagsHTML}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="approve-photo-btn bg-green-600 text-white px-3 py-1 rounded text-sm" data-id="${photo.id}">Approve</button>
+                            <button class="delete-photo-btn bg-red-600 text-white px-3 py-1 rounded text-sm" data-id="${photo.id}" data-url="${photo.imageUrl}">Delete</button>
                         </div>
                     </div>
-                    <div class="flex space-x-2">
-                        <button class="approve-photo-btn bg-green-600 text-white px-3 py-1 rounded text-sm" data-id="${photo.id}">Approve</button>
-                        <button class="delete-photo-btn bg-red-600 text-white px-3 py-1 rounded text-sm" data-id="${photo.id}" data-url="${photo.imageUrl}">Delete</button>
+                    <div class="border-t border-slate-700 pt-3">
+                        <div class="flex items-center space-x-2">
+                            <input 
+                                type="text" 
+                                class="tag-input flex-1 bg-slate-700 border border-slate-600 rounded-md px-3 py-1 text-sm text-white" 
+                                placeholder="Add tags (comma-separated, e.g. racing, track, victory)"
+                                data-id="${photo.id}"
+                                value="${currentTags.join(', ')}"
+                            >
+                            <button class="save-tags-btn bg-blue-600 text-white px-3 py-1 rounded text-sm" data-id="${photo.id}">Save Tags</button>
+                        </div>
                     </div>
                 `;
-                unapprovedPhotosList.appendChild(item);
+                container.appendChild(item);
             });
 
             document.querySelectorAll('.approve-photo-btn').forEach(btn => btn.addEventListener('click', () => approvePhoto(btn.dataset.id)));
             document.querySelectorAll('.delete-photo-btn').forEach(btn => btn.addEventListener('click', () => deletePhoto(btn.dataset.id, btn.dataset.url)));
+            document.querySelectorAll('.save-tags-btn').forEach(btn => btn.addEventListener('click', () => savePhotoTags(btn.dataset.id)));
         };
 
         const getUnapprovedPhotos = async (category, container) => {
@@ -608,6 +634,33 @@
             } catch (error) {
                 console.error("Error deleting photo:", error);
                 alert("Failed to delete photo. It may have already been deleted from storage.");
+            }
+        };
+
+        const savePhotoTags = async (id) => {
+            try {
+                const tagInput = document.querySelector(`input.tag-input[data-id="${id}"]`);
+                if (!tagInput) return;
+
+                const tagString = tagInput.value.trim();
+                const tags = tagString ? tagString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
+
+                const photoRef = doc(db, 'gallery_images', id);
+                await updateDoc(photoRef, { tags: tags });
+
+                // Show feedback
+                const originalBg = tagInput.style.backgroundColor;
+                tagInput.style.backgroundColor = '#22c55e';
+                setTimeout(() => {
+                    tagInput.style.backgroundColor = originalBg;
+                }, 1000);
+
+                // Refresh the lists to show updated tags
+                getUnapprovedPhotos(null, unapprovedPhotosList);
+                getUnapprovedPhotos('jonny', jonnyUnapprovedPhotosList);
+            } catch (error) {
+                console.error("Error saving photo tags:", error);
+                alert("Failed to save photo tags.");
             }
         };
 
