@@ -120,18 +120,69 @@ async function main() {
             snapshot.forEach(doc => {
                 const image = doc.data();
                 const galleryItem = document.createElement('div');
-                galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
+                galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group cursor-pointer';
                 galleryItem.innerHTML = `
                     <img src="${image.imageUrl}" alt="User uploaded photo of Jonny Kirsch" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                    <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                        <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderDisplayName || 'Anonymous'}</p>
-                    </div>
                 `;
+                
+                // Add click handler to open image in modal
+                galleryItem.addEventListener('click', () => {
+                    openImageModal(image.imageUrl);
+                });
+                
                 galleryContainer.appendChild(galleryItem);
             });
         });
     };
     renderGallery();
+
+    // --- Modal functionality for viewing full-size images ---
+    function openImageModal(imageUrl) {
+        // Create modal if it doesn't exist
+        let modal = document.getElementById('image-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'image-modal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 hidden';
+            modal.innerHTML = `
+                <div class="relative max-w-4xl max-h-screen p-4">
+                    <button id="close-modal" class="absolute top-2 right-2 text-white hover:text-neon-red text-3xl font-bold z-10">&times;</button>
+                    <img id="modal-image" src="" alt="Full size photo of Jonny Kirsch" class="max-w-full max-h-full object-contain rounded-lg">
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Add close functionality
+            const closeBtn = modal.querySelector('#close-modal');
+            closeBtn.addEventListener('click', closeImageModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeImageModal();
+                }
+            });
+
+            // Add escape key listener
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                    closeImageModal();
+                }
+            });
+        }
+
+        // Show modal with the image
+        const modalImage = modal.querySelector('#modal-image');
+        modalImage.src = imageUrl;
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    function closeImageModal() {
+        const modal = document.getElementById('image-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+    }
 }
 
 main();
