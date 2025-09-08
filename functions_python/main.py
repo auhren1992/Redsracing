@@ -1,7 +1,7 @@
 import firebase_admin
 from firebase_admin import firestore, initialize_app
 from firebase_functions import https_fn, options
-from mailgun import Mailgun
+from mailgun.client import Client as MailgunClient
 import os
 
 # Initialize Firebase Admin SDK via the before_request decorator.
@@ -16,7 +16,7 @@ def init_firebase():
 # Set the Mailgun API key from environment variables/secrets.
 # This is crucial for security. The secret name is 'MAILGUN_API_KEY'.
 options.set_global_options(secrets=["MAILGUN_API_KEY"])
-mg = Mailgun(api_key=os.environ.get("MAILGUN_API_KEY"))
+mg = MailgunClient(auth=("api", os.environ.get("MAILGUN_API_KEY")))
 
 # Define a default CORS policy to allow requests from any origin.
 CORS_OPTIONS = options.CorsOptions(cors_origins="*", cors_methods=["get", "post", "options"])
@@ -65,12 +65,14 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
         email_body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
 
         # IMPORTANT: Replace with your actual Mailgun domain and recipient email.
-        mg.send_email(
-            from_email="feedback@mg.redsracing.org",
-            to_emails=["aaron@redsracing.org"],
-            subject=email_subject,
-            text=email_body
-        )
+        data = {
+            "from": "feedback@mg.redsracing.org",
+            "to": "aaron@redsracing.org",
+            "subject": email_subject,
+            "text": email_body
+        }
+        
+        response = mg.messages.create(data=data, domain="mg.redsracing.org")
         return https_fn.Response("Feedback sent successfully!", status=200)
     except Exception as e:
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
@@ -107,12 +109,14 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
         )
 
         # IMPORTANT: Replace with your actual Mailgun domain and recipient email.
-        mg.send_email(
-            from_email="sponsorship@mg.redsracing.org",
-            to_emails=["aaron@redsracing.org"],
-            subject=email_subject,
-            text=email_body
-        )
+        data = {
+            "from": "sponsorship@mg.redsracing.org",
+            "to": "aaron@redsracing.org",
+            "subject": email_subject,
+            "text": email_body
+        }
+        
+        response = mg.messages.create(data=data, domain="mg.redsracing.org")
         return https_fn.Response("Sponsorship inquiry sent successfully!", status=200)
     except Exception as e:
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
