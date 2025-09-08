@@ -102,109 +102,35 @@ async function main() {
     const galleryContainer = document.getElementById('dynamic-gallery-container');
     const renderGallery = () => {
         if(!galleryContainer) return;
-        
-        // Add demo placeholder divs to showcase the new clean display
-        const demoColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#6C5CE7'];
-        
-        galleryContainer.innerHTML = '';
-        
-        // Create demo gallery items to show the clean layout
-        demoColors.forEach((color, index) => {
-            const galleryItem = document.createElement('div');
-            galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group cursor-pointer';
-            galleryItem.innerHTML = `
-                <div class="w-full h-full flex items-center justify-center text-white font-bold text-lg group-hover:scale-110 transition-transform duration-300" 
-                     style="background: linear-gradient(135deg, ${color}, ${color}88);">
-                    Photo ${index + 1}
-                </div>
-            `;
-            
-            // Add click handler to open image in modal
-            galleryItem.addEventListener('click', () => {
-                openImageModal(`data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="100%" height="100%" fill="${color}"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="white" font-size="24" font-family="Arial">Demo Photo ${index + 1}</text></svg>`);
-            });
-            
-            galleryContainer.appendChild(galleryItem);
-        });
-        
-        // Try to load Firebase images if available
-        try {
-            const q = query(collection(db, "gallery_images"), where("approved", "==", true), orderBy("createdAt", "desc"));
-            onSnapshot(q, (snapshot) => {
-                // Only clear demo images if we have real images
-                if (!snapshot.empty) {
-                    galleryContainer.innerHTML = '';
+        const q = query(collection(db, "gallery_images"), where("approved", "==", true), orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            galleryContainer.innerHTML = '';
+            if (snapshot.empty) {
+                galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos yet. Be the first to upload one!</p>`;
+                return;
+            }
+            snapshot.forEach(doc => {
+                const image = doc.data();
+                const galleryItem = document.createElement('div');
+                galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
+                let tagsHTML = '';
+                if (image.tags && image.tags.length > 0) {
+                    tagsHTML = image.tags.slice(0, 3).map(tag => `<span class="bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join(' ');
                 }
-                
-                snapshot.forEach(doc => {
-                    const image = doc.data();
-                    const galleryItem = document.createElement('div');
-                    galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group cursor-pointer';
-                    galleryItem.innerHTML = `
-                        <img src="${image.imageUrl}" alt="Race photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                    `;
-                    
-                    // Add click handler to open image in modal
-                    galleryItem.addEventListener('click', () => {
-                        openImageModal(image.imageUrl);
-                    });
-                    
-                    galleryContainer.appendChild(galleryItem);
-                });
+                galleryItem.innerHTML = `
+                    <img src="${image.imageUrl}" alt="User uploaded race photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                    <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                        <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderDisplayName || 'Anonymous'}</p>
+                        <div class="mt-2">
+                            ${tagsHTML}
+                        </div>
+                    </div>
+                `;
+                galleryContainer.appendChild(galleryItem);
             });
-        } catch (error) {
-            console.log('Firebase not available, showing demo images only');
-        }
+        });
     };
     renderGallery();
-
-    // --- Modal functionality for viewing full-size images ---
-    function openImageModal(imageUrl) {
-        // Create modal if it doesn't exist
-        let modal = document.getElementById('image-modal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'image-modal';
-            modal.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 hidden';
-            modal.innerHTML = `
-                <div class="relative max-w-4xl max-h-screen p-4">
-                    <button id="close-modal" class="absolute top-2 right-2 text-white hover:text-neon-yellow text-3xl font-bold z-10">&times;</button>
-                    <img id="modal-image" src="" alt="Full size race photo" class="max-w-full max-h-full object-contain rounded-lg">
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            // Add close functionality
-            const closeBtn = modal.querySelector('#close-modal');
-            closeBtn.addEventListener('click', closeImageModal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeImageModal();
-                }
-            });
-
-            // Add escape key listener
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-                    closeImageModal();
-                }
-            });
-        }
-
-        // Show modal with the image
-        const modalImage = modal.querySelector('#modal-image');
-        modalImage.src = imageUrl;
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    }
-
-    function closeImageModal() {
-        const modal = document.getElementById('image-modal');
-        if (modal) {
-            modal.classList.add('hidden');
-            document.body.style.overflow = ''; // Restore scrolling
-        }
-    }
 }
 
 main();
