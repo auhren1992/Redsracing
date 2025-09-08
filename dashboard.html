@@ -164,6 +164,24 @@
         </div>
     </footer>
 
+    <script>
+        // Ensure modals are hidden on page load to prevent unwanted popups
+        document.addEventListener('DOMContentLoaded', () => {
+            const raceModal = document.getElementById('race-modal');
+            const qnaModal = document.getElementById('qna-modal');
+            
+            // Force hide the modals by removing flex class and adding hidden class
+            if (raceModal) {
+                raceModal.classList.add('hidden');
+                raceModal.classList.remove('flex');
+            }
+            if (qnaModal) {
+                qnaModal.classList.add('hidden');
+                qnaModal.classList.remove('flex');
+            }
+        });
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, sendEmailVerification, RecaptchaVerifier, linkWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -338,10 +356,12 @@
             }
             toggleRaceTypeFields();
             raceModal.classList.remove('hidden');
+            raceModal.classList.add('flex');
         };
 
         const closeRaceModal = () => {
             raceModal.classList.add('hidden');
+            raceModal.classList.remove('flex');
             // Clear form when closing
             raceForm.reset();
         };
@@ -449,10 +469,12 @@
             qnaIdInput.value = submission.id;
             qnaModalQuestion.textContent = submission.question;
             qnaModal.classList.remove('hidden');
+            qnaModal.classList.add('flex');
         };
 
         const closeQnaModal = () => {
             qnaModal.classList.add('hidden');
+            qnaModal.classList.remove('flex');
             // Clear form when closing
             qnaAnswerForm.reset();
         };
