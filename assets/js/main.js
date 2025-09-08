@@ -1,65 +1,76 @@
+// Initialize navigation functionality immediately (no Firebase dependency)
+function initNavigation() {
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    if(mobileMenuButton) {
+        mobileMenuButton.addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+    }
+
+    // Mobile menu accordion
+    document.querySelectorAll('.mobile-accordion').forEach(button => {
+        button.addEventListener('click', () => {
+            const content = button.nextElementSibling;
+            content.classList.toggle('hidden');
+        });
+    });
+
+    // Desktop dropdowns
+    document.querySelectorAll('.dropdown-toggle').forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const dropdownMenu = button.nextElementSibling;
+            const isHidden = dropdownMenu.classList.contains('hidden');
+
+            // Close all other dropdowns
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.classList.add('hidden');
+            });
+
+            // Toggle the current dropdown
+            if (isHidden) {
+                dropdownMenu.classList.remove('hidden');
+            }
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    window.addEventListener('click', () => {
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+            menu.classList.add('hidden');
+        });
+    });
+
+    // Set current year in footer
+    const yearEl = document.getElementById('year');
+    if (yearEl) {
+        yearEl.textContent = new Date().getFullYear();
+    }
+}
+
+// Initialize navigation when DOM is ready (independent of Firebase)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNavigation);
+} else {
+    initNavigation();
+}
+
+// Firebase-dependent functionality
 import { getFirebaseConfig } from './firebase-config.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, query, onSnapshot, where, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-async function main() {
-    // Get Firebase config
-    const firebaseConfig = await getFirebaseConfig();
+async function initFirebase() {
+    try {
+        // Get Firebase config
+        const firebaseConfig = await getFirebaseConfig();
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-
-    document.addEventListener('DOMContentLoaded', () => {
-        // Mobile menu toggle
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        if(mobileMenuButton) {
-            mobileMenuButton.addEventListener('click', () => {
-                document.getElementById('mobile-menu').classList.toggle('hidden');
-            });
-        }
-
-        // Mobile menu accordion
-        document.querySelectorAll('.mobile-accordion').forEach(button => {
-            button.addEventListener('click', () => {
-                const content = button.nextElementSibling;
-                content.classList.toggle('hidden');
-            });
-        });
-
-        // Desktop dropdowns
-        document.querySelectorAll('.dropdown-toggle').forEach(button => {
-            button.addEventListener('click', (event) => {
-                event.stopPropagation();
-                const dropdownMenu = button.nextElementSibling;
-                const isHidden = dropdownMenu.classList.contains('hidden');
-
-                // Close all other dropdowns
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.add('hidden');
-                });
-
-                // Toggle the current dropdown
-                if (isHidden) {
-                    dropdownMenu.classList.remove('hidden');
-                }
-            });
-        });
-
-        // Close dropdowns when clicking outside
-        window.addEventListener('click', () => {
-            document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                menu.classList.add('hidden');
-            });
-        });
-
-        const yearEl = document.getElementById('year');
-        if (yearEl) {
-            yearEl.textContent = new Date().getFullYear();
-        }
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
         // UI Elements
         const authLink = document.getElementById('auth-link');
@@ -141,7 +152,11 @@ async function main() {
                 }
             });
         }
-    });
+    } catch (error) {
+        console.error('Firebase initialization failed:', error);
+        // Firebase functionality will not be available, but navigation still works
+    }
 }
 
-main();
+// Initialize Firebase functionality
+initFirebase();
