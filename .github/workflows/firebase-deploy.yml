@@ -22,8 +22,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install Firebase CLI
         run: npm i -g firebase-tools
+      - name: Install Node.js Functions Dependencies
+        run: npm ci --prefix functions
+      - name: Install Python Functions Dependencies
+        run: pip install -r functions_python/requirements.txt
       - name: Deploy to Firebase Hosting preview
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -41,14 +48,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install Firebase CLI
         run: npm i -g firebase-tools
-      - name: Install Functions Dependencies
+      - name: Install Node.js Functions Dependencies
         run: npm ci --prefix functions
+      - name: Install Python Functions Dependencies
+        run: pip install -r functions_python/requirements.txt
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_REDS_RACING_A7F8B }}
           projectId: redsracing-a7f8b
           channelId: live
-          target: hosting,functions
