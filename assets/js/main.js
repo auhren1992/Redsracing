@@ -103,12 +103,12 @@ async function main() {
             });
         }
 
-        // Subscribe Form Logic
-        const subscribeForm = document.getElementById('subscribeForm');
-        const subscribeStatus = document.getElementById('subscribeStatus');
-        const emailInput = document.getElementById('emailInput');
+        // Subscribe Form Logic - handle both form variations
+        const subscribeForm = document.getElementById('subscribeForm') || document.getElementById('subscribe-form');
+        const subscribeStatus = document.getElementById('subscribeStatus') || document.getElementById('subscribe-message');
+        const emailInput = document.getElementById('emailInput') || document.getElementById('subscribe-email');
 
-        if (subscribeForm) {
+        if (subscribeForm && subscribeStatus && emailInput) {
             subscribeForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = emailInput.value;
@@ -117,7 +117,7 @@ async function main() {
                 subscribeStatus.classList.remove('text-red-500', 'text-green-500');
 
                 try {
-                    const response = await fetch('/handleAddSubscriber', {
+                    const response = await fetch('/add_subscriber', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
