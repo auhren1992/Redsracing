@@ -342,6 +342,8 @@
 
         const closeRaceModal = () => {
             raceModal.classList.add('hidden');
+            // Clear form when closing
+            raceForm.reset();
         };
 
         const toggleRaceTypeFields = () => {
@@ -400,6 +402,15 @@
         addRaceBtn.addEventListener('click', () => openRaceModal());
         cancelRaceBtn.addEventListener('click', closeRaceModal);
         raceTypeInput.addEventListener('change', toggleRaceTypeFields);
+        
+        // Add click outside modal to close functionality for race modal
+        raceModal.addEventListener('click', (e) => {
+            if (e.target === raceModal) {
+                closeRaceModal();
+            }
+        });
+        
+        // Add ESC key support (already covered above for both modals)
 
         // --- Q&A Management Functions ---
         const renderQnaSubmissions = (submissions) => {
@@ -442,6 +453,8 @@
 
         const closeQnaModal = () => {
             qnaModal.classList.add('hidden');
+            // Clear form when closing
+            qnaAnswerForm.reset();
         };
 
         qnaAnswerForm.addEventListener('submit', async (e) => {
@@ -488,6 +501,24 @@
         };
 
         cancelQnaBtn.addEventListener('click', closeQnaModal);
+        
+        // Add click outside modal to close functionality
+        qnaModal.addEventListener('click', (e) => {
+            if (e.target === qnaModal) {
+                closeQnaModal();
+            }
+        });
+        
+        // Add ESC key to close modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (!qnaModal.classList.contains('hidden')) {
+                    closeQnaModal();
+                } else if (!raceModal.classList.contains('hidden')) {
+                    closeRaceModal();
+                }
+            }
+        });
 
         // --- Photo Approval Functions ---
         const renderUnapprovedPhotos = (photos, container, category) => {
@@ -520,19 +551,31 @@
         };
 
         const getUnapprovedPhotos = async (category, container) => {
-            const constraints = [where("approved", "==", false), orderBy("createdAt", "asc")];
+            let photos = [];
             if (category) {
-                constraints.push(where("category", "==", category));
+                // Query for specific category (e.g., "jonny")
+                const q = query(
+                    collection(db, "gallery_images"), 
+                    where("category", "==", category),
+                    where("approved", "==", false), 
+                    orderBy("createdAt", "asc")
+                );
+                const snapshot = await getDocs(q);
+                photos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             } else {
-                // This is a workaround to find documents that DON'T have the 'jonny' category.
-                // Firestore doesn't have a direct "not equals" query, so we query for anything
-                // that is not null, which implicitly excludes documents without the field.
-                // A better long-term solution might be to explicitly add `category: 'main'` to other photos.
-                constraints.push(where("category", "!=", "jonny"));
+                // Query for main gallery photos (those without jonny category or with explicit main category)
+                // First get all unapproved photos, then filter client-side to avoid complex index requirements
+                const q = query(
+                    collection(db, "gallery_images"), 
+                    where("approved", "==", false), 
+                    orderBy("createdAt", "asc")
+                );
+                const snapshot = await getDocs(q);
+                // Filter out photos with "jonny" category client-side
+                photos = snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .filter(photo => !photo.category || photo.category !== "jonny");
             }
-            const q = query(collection(db, "gallery_images"), ...constraints);
-            const snapshot = await getDocs(q);
-            const photos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderUnapprovedPhotos(photos, container, category);
         };
 
