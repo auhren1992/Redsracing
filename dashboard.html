@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Driver Dashboard - RedsRacing #8</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles/tailwind.css">
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/main.css">
 </head>
@@ -449,6 +449,11 @@
             const id = qnaIdInput.value;
             const answer = qnaAnswerInput.value.trim();
             if (!answer) return;
+            if (!id) {
+                console.error("Error publishing answer: Missing question ID");
+                alert("Error: Missing question ID. Please try again.");
+                return;
+            }
 
             try {
                 const qnaRef = doc(db, 'qna_submissions', id);
@@ -466,6 +471,11 @@
         });
 
         const deleteQnaSubmission = async (id) => {
+            if (!id) {
+                console.error("Error deleting question: Missing question ID");
+                alert("Error: Missing question ID. Please try again.");
+                return;
+            }
             if (confirm('Are you sure you want to delete this question permanently?')) {
                 try {
                     await deleteDoc(doc(db, 'qna_submissions', id));
