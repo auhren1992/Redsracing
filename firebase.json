@@ -36,5 +36,9 @@
       "codebase": "python-api",
       "runtime": "python312"
     }
-  ]
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
 }
