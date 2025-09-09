@@ -78,7 +78,7 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
             "text": email_body
         }
         
-        response = mg.send_message(data)
+        response = mg.messages.create(data=data, domain="mg.redsracing.org")
         return https_fn.Response("Feedback sent successfully!", status=200)
     except Exception as e:
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
@@ -122,7 +122,7 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
             "text": email_body
         }
         
-        response = mg.send_message(data)
+        response = mg.messages.create(data=data, domain="mg.redsracing.org")
         return https_fn.Response("Sponsorship inquiry sent successfully!", status=200)
     except Exception as e:
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
