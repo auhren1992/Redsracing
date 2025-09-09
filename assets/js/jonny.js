@@ -376,9 +376,20 @@ async function autoAwardAchievement(userId, actionType, actionData = {}) {
                 showAchievementNotification(result.awardedAchievements);
             }
             return result;
+        } else if (response.status === 404) {
+            console.log('Achievement endpoint not available. This is expected if Cloud Functions are not deployed.');
+            return null;
+        } else {
+            console.warn('Achievement request failed:', response.statusText);
+            return null;
         }
     } catch (error) {
-        console.error('Error auto-awarding achievement:', error);
+        if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+            console.log('Achievement backend not available, skipping auto-award');
+        } else {
+            console.error('Error auto-awarding achievement:', error);
+        }
+        return null;
     }
 }
 

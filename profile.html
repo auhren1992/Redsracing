@@ -293,13 +293,22 @@
                         await loadAchievementProgress(userId);
                     }
                 } else if (response.status === 404) {
+                    console.log('Profile not found, creating default profile...');
                     await createDefaultProfile(userId, userToken);
                 } else {
-                    throw new Error(`Failed to load profile: ${response.statusText}`);
+                    console.error(`Failed to load profile: ${response.status} ${response.statusText}`);
+                    // Show error state but don't fail completely
+                    showErrorState();
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
-                showErrorState();
+                if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+                    console.log('Backend endpoints may not be available. This is expected if Cloud Functions are not deployed.');
+                    // Try to create a minimal profile display
+                    displayMinimalProfile(userId);
+                } else {
+                    showErrorState();
+                }
             }
         }
 
@@ -330,12 +339,20 @@
                     
                     // Reload profile after creation
                     await loadUserProfile(userId, userToken);
+                } else if (response.status === 404) {
+                    console.log('Profile creation endpoint not available. Using basic profile display.');
+                    displayProfile(defaultProfile);
                 } else {
                     throw new Error('Failed to create default profile');
                 }
             } catch (error) {
                 console.error('Error creating default profile:', error);
-                showErrorState();
+                if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+                    console.log('Backend not available, showing basic profile');
+                    displayProfile(defaultProfile);
+                } else {
+                    showErrorState();
+                }
             }
         }
 
@@ -389,6 +406,27 @@
 
         // Load achievements
         let userAchievementsData = []; // Store achievements data for filtering
+
+        // Display minimal profile when backend is not available
+        function displayMinimalProfile(userId) {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            // Create a basic profile from available user data
+            const basicProfile = {
+                username: user.email ? user.email.split('@')[0] : 'unknown',
+                displayName: user.displayName || 'Anonymous User',
+                bio: 'Profile backend not available',
+                avatarUrl: user.photoURL || '',
+                favoriteCars: [],
+                joinDate: new Date().toISOString()
+            };
+            
+            displayProfile(basicProfile);
+            loadAchievements([]); // Load empty achievements
+            
+            console.log('Displayed minimal profile due to backend unavailability');
+        }
 
         function loadAchievements(achievements) {
             userAchievementsData = achievements; // Store for filtering
@@ -482,9 +520,20 @@
                         showAchievementNotification(result.awardedAchievements);
                     }
                     return result;
+                } else if (response.status === 404) {
+                    console.log('Achievement endpoint not available. This is expected if Cloud Functions are not deployed.');
+                    return null;
+                } else {
+                    console.warn('Achievement request failed:', response.statusText);
+                    return null;
                 }
             } catch (error) {
-                console.error('Error auto-awarding achievement:', error);
+                if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+                    console.log('Achievement backend not available, skipping auto-award');
+                } else {
+                    console.error('Error auto-awarding achievement:', error);
+                }
+                return null;
             }
         }
 
@@ -730,11 +779,16 @@
                 if (response.ok) {
                     const achievements = await response.json();
                     displayAllAchievements(achievements);
+                } else if (response.status === 404) {
+                    console.log('Achievements endpoint not available. This may be expected if backend functions are not deployed.');
+                    displayAllAchievements([]); // Show empty state
                 } else {
-                    console.error('Failed to load achievements');
+                    console.error('Failed to load achievements:', response.statusText);
+                    displayAllAchievements([]); // Show empty state
                 }
             } catch (error) {
                 console.error('Error loading achievements:', error);
+                displayAllAchievements([]); // Show empty state
             }
         }
 

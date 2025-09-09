@@ -43,7 +43,7 @@ async function initFirebase() {
             if (sessionStorage.getItem(sessionKey)) return;
             
             try {
-                await fetch('/auto_award_achievement', {
+                const response = await fetch('/auto_award_achievement', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -54,9 +54,22 @@ async function initFirebase() {
                     })
                 });
                 
+                if (response.ok) {
+                    console.log('First login achievement checked successfully');
+                } else if (response.status === 404) {
+                    console.log('Achievement endpoint not available. This is expected if Cloud Functions are not deployed.');
+                } else {
+                    console.warn('Achievement check failed:', response.statusText);
+                }
+                
                 sessionStorage.setItem(sessionKey, 'true');
             } catch (error) {
-                console.error('Error checking first login achievement:', error);
+                if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+                    console.log('Achievement backend not available, skipping first login achievement check');
+                } else {
+                    console.error('Error checking first login achievement:', error);
+                }
+                sessionStorage.setItem(sessionKey, 'true'); // Mark as attempted to avoid retries
             }
         }
 
