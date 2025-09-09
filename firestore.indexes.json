@@ -93,10 +93,24 @@
       ]
     },
     {
+      "collectionGroup": "gallery_images",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "approved",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "category",
+          "order": "ASCENDING"
+        },
+        {
+
       "collectionGroup": "jonny_videos",
       "queryScope": "COLLECTION",
       "fields": [
         {
+
           "fieldPath": "createdAt",
           "order": "DESCENDING"
         }
