@@ -46,6 +46,10 @@
       {
         "source": "/auto_award_achievement",
         "function": "handleAutoAwardAchievement@python-api"
+      },
+      {
+        "source": "/achievement_progress/**",
+        "function": "handleGetAchievementProgress@python-api"
       }
     ]
   },

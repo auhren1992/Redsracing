@@ -183,6 +183,14 @@
                             </div>
                         </div>
 
+                        <!-- Achievement Progress -->
+                        <div id="achievement-progress-section" class="card rounded-lg p-6 hidden">
+                            <h2 class="text-2xl font-racing text-white uppercase mb-4">Progress <span class="neon-yellow">Tracker</span></h2>
+                            <div id="achievement-progress" class="space-y-4">
+                                <p class="text-slate-400">Loading progress...</p>
+                            </div>
+                        </div>
+
                         <!-- All Achievements (if admin) -->
                         <div id="admin-achievements" class="card rounded-lg p-6 hidden">
                             <h2 class="text-2xl font-racing text-white uppercase mb-4">Manage <span class="neon-yellow">Achievements</span></h2>
@@ -279,6 +287,11 @@
                     const profileData = await response.json();
                     displayProfile(profileData);
                     loadAchievements(profileData.achievements || []);
+                    
+                    // Load achievement progress for current user's profile
+                    if (isCurrentUserProfile) {
+                        await loadAchievementProgress(userId);
+                    }
                 } else if (response.status === 404) {
                     await createDefaultProfile(userId, userToken);
                 } else {
@@ -500,6 +513,68 @@
                     }
                 }, 5000);
             });
+        }
+
+        // Load achievement progress
+        async function loadAchievementProgress(userId) {
+            try {
+                const response = await fetch(`/achievement_progress/${userId}`);
+                if (response.ok) {
+                    const progressData = await response.json();
+                    displayAchievementProgress(progressData);
+                }
+            } catch (error) {
+                console.error('Error loading achievement progress:', error);
+            }
+        }
+
+        // Display achievement progress
+        function displayAchievementProgress(progressData) {
+            const progressSection = document.getElementById('achievement-progress-section');
+            const progressContainer = document.getElementById('achievement-progress');
+            
+            if (Object.keys(progressData).length === 0) {
+                progressSection.classList.add('hidden');
+                return;
+            }
+            
+            progressSection.classList.remove('hidden');
+            
+            const progressItems = Object.entries(progressData).map(([achievementId, progress]) => {
+                return `
+                    <div class="bg-slate-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-bold text-white">${getAchievementName(achievementId)}</h4>
+                            <span class="text-sm text-slate-400">${progress.current}/${progress.target}</span>
+                        </div>
+                        <p class="text-sm text-slate-400 mb-3">${progress.description}</p>
+                        <div class="w-full bg-slate-600 rounded-full h-2">
+                            <div class="bg-neon-yellow h-2 rounded-full transition-all duration-300" 
+                                 style="width: ${progress.percentage}%"></div>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">${Math.round(progress.percentage)}% complete</div>
+                    </div>
+                `;
+            }).join('');
+            
+            progressContainer.innerHTML = progressItems;
+        }
+
+        // Get achievement display name
+        function getAchievementName(achievementId) {
+            const achievementNames = {
+                'photographer': '📸 Photographer',
+                'fan_favorite': '❤️ Fan Favorite', 
+                'community_member': '👥 Community Member',
+                'first_race': '🏁 First Race',
+                'speed_demon': '⚡ Speed Demon',
+                'consistent_racer': '🎯 Consistent Racer',
+                'podium_finish': '🏆 Podium Finish',
+                'clean_racer': '✨ Clean Racer',
+                'season_veteran': '🗓️ Season Veteran',
+                'track_master': '🏅 Track Master'
+            };
+            return achievementNames[achievementId] || achievementId;
         }
 
         // Show error state

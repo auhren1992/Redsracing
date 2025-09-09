@@ -541,3 +541,81 @@ def handleAutoAwardAchievement(req: https_fn.Request) -> https_fn.Response:
     
     except Exception as e:
         return https_fn.Response(f"An error occurred: {e}", status=500)
+
+@https_fn.on_request(cors=CORS_OPTIONS)
+def handleGetAchievementProgress(req: https_fn.Request) -> https_fn.Response:
+    """Get achievement progress for a user."""
+    if req.method == "OPTIONS":
+        return https_fn.Response("", status=204)
+    if req.method != "GET":
+        return https_fn.Response("Method not allowed", status=405)
+
+    # Extract user_id from URL path
+    path_parts = req.path.strip("/").split("/")
+    if len(path_parts) < 2 or path_parts[0] != "achievement_progress":
+        return https_fn.Response("Invalid URL format. Use /achievement_progress/<user_id>", status=400)
+    
+    user_id = path_parts[1]
+
+    try:
+        db = firestore.client()
+        
+        # Get user's current achievements
+        user_achievements_query = db.collection("user_achievements").where("userId", "==", user_id).stream()
+        user_achievement_ids = {doc.to_dict()["achievementId"] for doc in user_achievements_query}
+        
+        # Define progress tracking for specific achievements
+        progress_data = {}
+        
+        # Photographer achievement progress (upload 5 photos)
+        if "photographer" not in user_achievement_ids:
+            try:
+                photos_query = db.collection("gallery_images").where("uploaderUid", "==", user_id).stream()
+                photo_count = sum(1 for _ in photos_query)
+                progress_data["photographer"] = {
+                    "current": photo_count,
+                    "target": 5,
+                    "percentage": min((photo_count / 5) * 100, 100),
+                    "completed": photo_count >= 5,
+                    "description": f"Upload {photo_count}/5 photos to the gallery"
+                }
+            except Exception as e:
+                print(f"Error getting photo count: {e}")
+        
+        # Fan Favorite achievement progress (get 10 total likes)
+        if "fan_favorite" not in user_achievement_ids:
+            try:
+                user_photos_query = db.collection("gallery_images").where("uploaderUid", "==", user_id).stream()
+                total_likes = 0
+                for photo_doc in user_photos_query:
+                    photo_data = photo_doc.to_dict()
+                    total_likes += photo_data.get("likeCount", 0)
+                
+                progress_data["fan_favorite"] = {
+                    "current": total_likes,
+                    "target": 10,
+                    "percentage": min((total_likes / 10) * 100, 100),
+                    "completed": total_likes >= 10,
+                    "description": f"Receive {total_likes}/10 total likes on your photos"
+                }
+            except Exception as e:
+                print(f"Error getting like count: {e}")
+        
+        # Community Member achievement (already earned or not)
+        if "community_member" not in user_achievement_ids:
+            progress_data["community_member"] = {
+                "current": 0,
+                "target": 1,
+                "percentage": 0,
+                "completed": False,
+                "description": "Join the RedsRacing community (automatic on login)"
+            }
+        
+        return https_fn.Response(
+            json.dumps(progress_data, default=str),
+            status=200,
+            headers={"Content-Type": "application/json"}
+        )
+    
+    except Exception as e:
+        return https_fn.Response(f"An error occurred: {e}", status=500)
