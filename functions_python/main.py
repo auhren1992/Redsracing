@@ -12,7 +12,19 @@ initialize_app()
 # Set the Mailgun API key from environment variables/secrets.
 # This is crucial for security. The secret name is 'MAILGUN_API_KEY'.
 options.set_global_options(secrets=["MAILGUN_API_KEY"])
-mg = Client(api_key=os.environ.get("MAILGUN_API_KEY"), domain="mg.redsracing.org")
+
+# Initialize Mailgun client lazily to avoid import failures if API key is missing
+mg = None
+
+def get_mailgun_client():
+    """Get or initialize the Mailgun client."""
+    global mg
+    if mg is None:
+        api_key = os.environ.get("MAILGUN_API_KEY")
+        if not api_key:
+            raise ValueError("MAILGUN_API_KEY environment variable is required for email functionality")
+        mg = Client(api_key=api_key, domain="mg.redsracing.org")
+    return mg
 
 # Define a default CORS policy to allow requests from any origin.
 CORS_OPTIONS = options.CorsOptions(cors_origins="*", cors_methods=["get", "post", "put", "options"])
@@ -68,7 +80,7 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
             "text": email_body
         }
         
-        response = mg.messages.create(data=data, domain="mg.redsracing.org")
+        response = get_mailgun_client().messages.create(data=data, domain="mg.redsracing.org")
         return https_fn.Response("Feedback sent successfully!", status=200)
     except Exception as e:
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
@@ -112,7 +124,7 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
             "text": email_body
         }
         
-        response = mg.messages.create(data=data, domain="mg.redsracing.org")
+        response = get_mailgun_client().messages.create(data=data, domain="mg.redsracing.org")
         return https_fn.Response("Sponsorship inquiry sent successfully!", status=200)
     except Exception as e:
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
