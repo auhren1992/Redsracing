@@ -70,5 +70,30 @@ service cloud.firestore {
     match /invitation_codes/{codeId} {
         allow read, write: if false;
     }
+
+    // USER_PROFILES: User profile data
+    // Read: Anyone can read public profiles
+    // Write: User can create/update their own profile, team members can update any profile
+    match /user_profiles/{userId} {
+      allow read;
+      allow create, update: if request.auth.uid == userId || isTeamMember();
+      allow delete: if isTeamMember();
+    }
+
+    // ACHIEVEMENTS: Available achievements/badges
+    // Read: Anyone can read achievements
+    // Write: Only team members can manage achievements
+    match /achievements/{achievementId} {
+      allow read;
+      allow write: if isTeamMember();
+    }
+
+    // USER_ACHIEVEMENTS: User-earned achievements
+    // Read: Anyone can read user achievements (for displaying on profiles)
+    // Write: Only team members can assign achievements
+    match /user_achievements/{userAchievementId} {
+      allow read;
+      allow write: if isTeamMember();
+    }
   }
 }

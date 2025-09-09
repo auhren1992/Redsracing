@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - RedsRacing #8</title>
+    <link rel="stylesheet" href="styles/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+            </a>
+            <div class="flex items-center space-x-6 font-bold">
+                <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
+                <a href="jonny.html" class="hover:text-neon-yellow transition duration-300">Jonny's Page</a>
+                <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Full Schedule</a>
+                <a href="dashboard.html" class="hover:text-neon-yellow transition duration-300">Dashboard</a>
+                <a id="logout-button" href="#" class="bg-red-600 text-white py-2 px-5 rounded-md hover:bg-red-500 transition duration-300">
+                    Logout
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-6 py-12">
+        <!-- Loading State -->
+        <div id="loading-state" class="flex flex-col items-center justify-center text-center py-20">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-neon-yellow"></div>
+            <p class="text-2xl mt-4 font-racing uppercase tracking-wider">Loading Profile...</p>
+        </div>
+
+        <!-- Profile Content -->
+        <div id="profile-content" class="hidden">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-5xl font-racing uppercase mb-2">User <span class="neon-yellow">Profile</span></h1>
+                <p class="text-slate-400 mb-8">Manage your profile and view your achievements</p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Profile Info -->
+                    <div class="lg:col-span-2 space-y-8">
+                        <!-- Profile Card -->
+                        <div class="card rounded-lg p-6">
+                            <div class="flex items-start justify-between mb-6">
+                                <h2 class="text-3xl font-racing text-white uppercase">Profile <span class="neon-yellow">Info</span></h2>
+                                <button id="edit-profile-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
+                                    Edit Profile
+                                </button>
+                            </div>
+
+                            <!-- Profile Display -->
+                            <div id="profile-display" class="space-y-4">
+                                <div class="flex items-center space-x-4 mb-6">
+                                    <div class="w-20 h-20 rounded-full overflow-hidden bg-slate-600 flex items-center justify-center">
+                                        <img id="profile-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
+                                        <span id="profile-avatar-placeholder" class="text-2xl font-bold text-slate-300">?</span>
+                                    </div>
+                                    <div>
+                                        <h3 id="profile-display-name" class="text-2xl font-bold text-white">Loading...</h3>
+                                        <p id="profile-username" class="text-slate-400">@loading</p>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-300 mb-2">Bio</label>
+                                    <p id="profile-bio" class="text-slate-400">No bio provided.</p>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-300 mb-2">Favorite Cars</label>
+                                    <div id="profile-favorite-cars" class="flex flex-wrap gap-2">
+                                        <span class="text-slate-400">No favorite cars added.</span>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-300 mb-2">Member Since</label>
+                                    <p id="profile-join-date" class="text-slate-400">Loading...</p>
+                                </div>
+                            </div>
+
+                            <!-- Profile Edit Form -->
+                            <div id="profile-edit-form" class="hidden space-y-4">
+                                <div>
+                                    <label for="edit-username" class="block text-sm font-bold text-slate-300 mb-2">Username</label>
+                                    <input type="text" id="edit-username" class="w-full p-3 rounded-md bg-slate-700 text-white border border-slate-600 focus:border-neon-yellow focus:outline-none">
+                                </div>
+                                
+                                <div>
+                                    <label for="edit-display-name" class="block text-sm font-bold text-slate-300 mb-2">Display Name</label>
+                                    <input type="text" id="edit-display-name" class="w-full p-3 rounded-md bg-slate-700 text-white border border-slate-600 focus:border-neon-yellow focus:outline-none">
+                                </div>
+                                
+                                <div>
+                                    <label for="edit-bio" class="block text-sm font-bold text-slate-300 mb-2">Bio</label>
+                                    <textarea id="edit-bio" rows="3" class="w-full p-3 rounded-md bg-slate-700 text-white border border-slate-600 focus:border-neon-yellow focus:outline-none" placeholder="Tell us about yourself..."></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label for="edit-avatar-url" class="block text-sm font-bold text-slate-300 mb-2">Avatar URL</label>
+                                    <input type="url" id="edit-avatar-url" class="w-full p-3 rounded-md bg-slate-700 text-white border border-slate-600 focus:border-neon-yellow focus:outline-none" placeholder="https://...">
+                                </div>
+                                
+                                <div>
+                                    <label for="edit-favorite-cars" class="block text-sm font-bold text-slate-300 mb-2">Favorite Cars (comma separated)</label>
+                                    <input type="text" id="edit-favorite-cars" class="w-full p-3 rounded-md bg-slate-700 text-white border border-slate-600 focus:border-neon-yellow focus:outline-none" placeholder="Porsche 911, BMW M3, McLaren 720S">
+                                </div>
+                                
+                                <div class="flex space-x-4">
+                                    <button id="save-profile-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-500 transition">
+                                        Save Changes
+                                    </button>
+                                    <button id="cancel-edit-btn" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Achievements Sidebar -->
+                    <div class="space-y-8">
+                        <div class="card rounded-lg p-6">
+                            <h2 class="text-2xl font-racing text-white uppercase mb-4">Your <span class="neon-yellow">Achievements</span></h2>
+                            <div id="user-achievements" class="space-y-3">
+                                <p class="text-slate-400">Loading achievements...</p>
+                            </div>
+                        </div>
+
+                        <!-- All Achievements (if admin) -->
+                        <div id="admin-achievements" class="card rounded-lg p-6 hidden">
+                            <h2 class="text-2xl font-racing text-white uppercase mb-4">Manage <span class="neon-yellow">Achievements</span></h2>
+                            <button id="create-achievement-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition w-full mb-4">
+                                Create Achievement
+                            </button>
+                            <div id="all-achievements" class="space-y-3">
+                                <p class="text-slate-400">Loading all achievements...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="hidden text-center py-20">
+            <h2 class="text-3xl font-racing text-red-400 mb-4">Profile Not Found</h2>
+            <p class="text-slate-400 mb-6">The requested profile could not be found or you don't have permission to view it.</p>
+            <a href="dashboard.html" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
+                Go to Dashboard
+            </a>
+        </div>
+    </main>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth,
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirebaseConfig } from "./assets/js/firebase-config.js";
+
+        // Initialize Firebase
+        const firebaseConfig = await getFirebaseConfig();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // UI Elements
+        const loadingState = document.getElementById('loading-state');
+        const profileContent = document.getElementById('profile-content');
+        const errorState = document.getElementById('error-state');
+        const logoutButton = document.getElementById('logout-button');
+        
+        // Profile elements
+        const profileAvatar = document.getElementById('profile-avatar');
+        const profileAvatarPlaceholder = document.getElementById('profile-avatar-placeholder');
+        const profileDisplayName = document.getElementById('profile-display-name');
+        const profileUsername = document.getElementById('profile-username');
+        const profileBio = document.getElementById('profile-bio');
+        const profileFavoriteCars = document.getElementById('profile-favorite-cars');
+        const profileJoinDate = document.getElementById('profile-join-date');
+        
+        // Form elements
+        const editProfileBtn = document.getElementById('edit-profile-btn');
+        const profileDisplay = document.getElementById('profile-display');
+        const profileEditForm = document.getElementById('profile-edit-form');
+        const editUsername = document.getElementById('edit-username');
+        const editDisplayName = document.getElementById('edit-display-name');
+        const editBio = document.getElementById('edit-bio');
+        const editAvatarUrl = document.getElementById('edit-avatar-url');
+        const editFavoriteCars = document.getElementById('edit-favorite-cars');
+        const saveProfileBtn = document.getElementById('save-profile-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        
+        // Achievement elements
+        const userAchievements = document.getElementById('user-achievements');
+        const adminAchievements = document.getElementById('admin-achievements');
+        
+        let currentUser = null;
+        let isEditing = false;
+        let isCurrentUserProfile = false;
+
+        // Get user ID from URL or use current user
+        function getUserIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
+        // Load user profile
+        async function loadUserProfile(userId, userToken) {
+            try {
+                const response = await fetch(`/profile/${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const profileData = await response.json();
+                    displayProfile(profileData);
+                    loadAchievements(profileData.achievements || []);
+                } else if (response.status === 404) {
+                    await createDefaultProfile(userId, userToken);
+                } else {
+                    throw new Error(`Failed to load profile: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showErrorState();
+            }
+        }
+
+        // Create default profile for new users
+        async function createDefaultProfile(userId, userToken) {
+            const defaultProfile = {
+                username: currentUser.email.split('@')[0], // Use email username as default
+                displayName: currentUser.displayName || 'Anonymous User',
+                bio: '',
+                avatarUrl: '',
+                favoriteCars: [],
+                joinDate: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch(`/update_profile/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(defaultProfile)
+                });
+
+                if (response.ok) {
+                    // Reload profile after creation
+                    await loadUserProfile(userId, userToken);
+                } else {
+                    throw new Error('Failed to create default profile');
+                }
+            } catch (error) {
+                console.error('Error creating default profile:', error);
+                showErrorState();
+            }
+        }
+
+        // Display profile data
+        function displayProfile(profileData) {
+            profileDisplayName.textContent = profileData.displayName || 'Anonymous User';
+            profileUsername.textContent = `@${profileData.username || 'unknown'}`;
+            profileBio.textContent = profileData.bio || 'No bio provided.';
+            
+            // Handle avatar
+            if (profileData.avatarUrl) {
+                profileAvatar.src = profileData.avatarUrl;
+                profileAvatar.classList.remove('hidden');
+                profileAvatarPlaceholder.classList.add('hidden');
+            } else {
+                profileAvatar.classList.add('hidden');
+                profileAvatarPlaceholder.classList.remove('hidden');
+                profileAvatarPlaceholder.textContent = (profileData.displayName || 'U').charAt(0).toUpperCase();
+            }
+
+            // Handle favorite cars
+            if (profileData.favoriteCars && profileData.favoriteCars.length > 0) {
+                profileFavoriteCars.innerHTML = profileData.favoriteCars
+                    .map(car => `<span class="bg-slate-700 text-slate-300 px-2 py-1 rounded-md text-sm">${car}</span>`)
+                    .join('');
+            } else {
+                profileFavoriteCars.innerHTML = '<span class="text-slate-400">No favorite cars added.</span>';
+            }
+
+            // Handle join date
+            if (profileData.joinDate) {
+                const joinDate = new Date(profileData.joinDate);
+                profileJoinDate.textContent = joinDate.toLocaleDateString();
+            } else {
+                profileJoinDate.textContent = 'Unknown';
+            }
+
+            // Pre-fill edit form
+            editUsername.value = profileData.username || '';
+            editDisplayName.value = profileData.displayName || '';
+            editBio.value = profileData.bio || '';
+            editAvatarUrl.value = profileData.avatarUrl || '';
+            editFavoriteCars.value = profileData.favoriteCars ? profileData.favoriteCars.join(', ') : '';
+
+            // Show edit button only for current user's profile
+            editProfileBtn.style.display = isCurrentUserProfile ? 'block' : 'none';
+
+            loadingState.classList.add('hidden');
+            profileContent.classList.remove('hidden');
+        }
+
+        // Load achievements
+        function loadAchievements(achievements) {
+            if (achievements.length === 0) {
+                userAchievements.innerHTML = '<p class="text-slate-400">No achievements yet. Keep racing!</p>';
+                return;
+            }
+
+            userAchievements.innerHTML = achievements.map(achievement => `
+                <div class="flex items-center space-x-3 p-3 bg-slate-700 rounded-md">
+                    <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                        ${achievement.icon || '🏆'}
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-white">${achievement.name}</h4>
+                        <p class="text-sm text-slate-400">${achievement.description}</p>
+                        ${achievement.dateEarned ? `<p class="text-xs text-slate-500">Earned: ${new Date(achievement.dateEarned.seconds * 1000).toLocaleDateString()}</p>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Show error state
+        function showErrorState() {
+            loadingState.classList.add('hidden');
+            profileContent.classList.add('hidden');
+            errorState.classList.remove('hidden');
+        }
+
+        // Toggle edit mode
+        function toggleEditMode() {
+            isEditing = !isEditing;
+            if (isEditing) {
+                profileDisplay.classList.add('hidden');
+                profileEditForm.classList.remove('hidden');
+                editProfileBtn.textContent = 'Cancel';
+            } else {
+                profileDisplay.classList.remove('hidden');
+                profileEditForm.classList.add('hidden');
+                editProfileBtn.textContent = 'Edit Profile';
+            }
+        }
+
+        // Save profile changes
+        async function saveProfile() {
+            if (!currentUser) return;
+
+            const userToken = await currentUser.getIdToken();
+            const profileData = {
+                username: editUsername.value.trim(),
+                displayName: editDisplayName.value.trim(),
+                bio: editBio.value.trim(),
+                avatarUrl: editAvatarUrl.value.trim(),
+                favoriteCars: editFavoriteCars.value.split(',').map(car => car.trim()).filter(car => car)
+            };
+
+            try {
+                const response = await fetch(`/update_profile/${currentUser.uid}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(profileData)
+                });
+
+                if (response.ok) {
+                    // Reload profile to show updated data
+                    await loadUserProfile(currentUser.uid, userToken);
+                    toggleEditMode();
+                } else {
+                    throw new Error(`Failed to save profile: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                alert('Failed to save profile. Please try again.');
+            }
+        }
+
+        // Event listeners
+        editProfileBtn.addEventListener('click', toggleEditMode);
+        cancelEditBtn.addEventListener('click', toggleEditMode);
+        saveProfileBtn.addEventListener('click', saveProfile);
+        
+        logoutButton.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = 'login.html';
+            });
+        });
+
+        // Auth state change handler
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const targetUserId = getUserIdFromUrl() || user.uid;
+                isCurrentUserProfile = (targetUserId === user.uid);
+                
+                const userToken = await user.getIdToken();
+                await loadUserProfile(targetUserId, userToken);
+
+                // Check if user is admin for achievements management
+                const tokenResult = await user.getIdTokenResult();
+                const isAdmin = tokenResult.claims.role === 'team-member';
+                if (isAdmin) {
+                    adminAchievements.classList.remove('hidden');
+                    await loadAllAchievements();
+                }
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Admin functions for achievement management
+        async function loadAllAchievements() {
+            try {
+                const response = await fetch('/achievements');
+                if (response.ok) {
+                    const achievements = await response.json();
+                    displayAllAchievements(achievements);
+                } else {
+                    console.error('Failed to load achievements');
+                }
+            } catch (error) {
+                console.error('Error loading achievements:', error);
+            }
+        }
+
+        function displayAllAchievements(achievements) {
+            const allAchievements = document.getElementById('all-achievements');
+            if (achievements.length === 0) {
+                allAchievements.innerHTML = '<p class="text-slate-400">No achievements available.</p>';
+                return;
+            }
+
+            allAchievements.innerHTML = achievements.map(achievement => `
+                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-md">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-sm">
+                            ${achievement.icon || '🏆'}
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${achievement.name}</h4>
+                            <p class="text-xs text-slate-400">${achievement.description}</p>
+                            <p class="text-xs text-slate-500">${achievement.category} • ${achievement.points || 0} pts</p>
+                        </div>
+                    </div>
+                    <button onclick="assignAchievementToUser('${achievement.id}')" class="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-500 transition">
+                        Assign
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Global function for assigning achievements (called from HTML)
+        window.assignAchievementToUser = async function(achievementId) {
+            const targetUserId = getUserIdFromUrl();
+            if (!targetUserId || !currentUser) {
+                alert('Cannot assign achievement: No target user or current user not authenticated');
+                return;
+            }
+
+            if (targetUserId === currentUser.uid) {
+                alert('Cannot assign achievement to yourself');
+                return;
+            }
+
+            const confirmAssign = confirm(`Assign this achievement to the user?`);
+            if (!confirmAssign) return;
+
+            try {
+                const userToken = await currentUser.getIdToken();
+                const response = await fetch('/assign_achievement', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: targetUserId,
+                        achievementId: achievementId
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Achievement assigned successfully!');
+                    // Reload user profile to show new achievement
+                    await loadUserProfile(targetUserId, userToken);
+                } else if (response.status === 400) {
+                    alert('User already has this achievement or invalid data');
+                } else {
+                    throw new Error(`Failed to assign achievement: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error assigning achievement:', error);
+                alert('Failed to assign achievement. Please try again.');
+            }
+        };
+    </script>
+</body>
+</html>
