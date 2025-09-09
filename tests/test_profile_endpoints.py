@@ -157,7 +157,7 @@ class TestProfileEndpoints(unittest.TestCase):
         
         request = MockRequest(
             method='PUT',
-            path='/profile/test_user_123',
+            path='/update_profile/test_user_123',
             headers={'Authorization': 'Bearer valid_token'},
             json_data=profile_data
         )
@@ -179,7 +179,7 @@ class TestProfileEndpoints(unittest.TestCase):
         
         request = MockRequest(
             method='PUT',
-            path='/profile/test_user_123',
+            path='/update_profile/test_user_123',
             headers={'Authorization': 'Bearer valid_token'},
             json_data={'displayName': 'New Name'}
         )
