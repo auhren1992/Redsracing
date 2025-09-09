@@ -163,7 +163,10 @@
 
                 // Add hover support for desktop (but not on touch devices)
                 if (window.matchMedia && !window.matchMedia('(hover: none)').matches) {
-                    newButton.addEventListener('mouseenter', () => {
+                    const dropdown = newButton.closest('.dropdown');
+                    
+                    // Handle mouse enter on the entire dropdown container
+                    dropdown.addEventListener('mouseenter', () => {
                         const dropdownMenu = newButton.nextElementSibling;
                         if (dropdownMenu) {
                             // Close other dropdowns
@@ -174,8 +177,8 @@
                             });
                             
                             // Show current dropdown after a short delay
-                            clearTimeout(newButton.hoverTimeout);
-                            newButton.hoverTimeout = setTimeout(() => {
+                            clearTimeout(dropdown.hoverTimeout);
+                            dropdown.hoverTimeout = setTimeout(() => {
                                 if (!dropdownMenu.classList.contains('hidden')) return;
                                 dropdownMenu.classList.remove('hidden');
                                 dropdownMenu.setAttribute('aria-hidden', 'false');
@@ -184,15 +187,17 @@
                         }
                     });
 
-                    newButton.addEventListener('mouseleave', () => {
-                        clearTimeout(newButton.hoverTimeout);
+                    // Handle mouse leave on the entire dropdown container
+                    dropdown.addEventListener('mouseleave', () => {
+                        clearTimeout(dropdown.hoverTimeout);
                         const dropdownMenu = newButton.nextElementSibling;
                         if (dropdownMenu) {
-                            newButton.hoverTimeout = setTimeout(() => {
+                            // Longer timeout to allow users to move mouse to menu items
+                            dropdown.hoverTimeout = setTimeout(() => {
                                 dropdownMenu.classList.add('hidden');
                                 dropdownMenu.setAttribute('aria-hidden', 'true');
                                 newButton.setAttribute('aria-expanded', 'false');
-                            }, 300);
+                            }, 500);
                         }
                     });
                 }
