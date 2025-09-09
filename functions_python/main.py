@@ -6,15 +6,8 @@ import os
 import json
 from datetime import datetime
 
-# Initialize Firebase Admin SDK via the before_request decorator.
-# This ensures it only runs once per server instance.
-# NOTE: Commented out due to compatibility issues with current firebase-functions version
-# @https_fn.before_request
-def init_firebase():
-    try:
-        firebase_admin.get_app()
-    except ValueError:
-        initialize_app()
+# Initialize Firebase Admin SDK.
+initialize_app()
 
 # Set the Mailgun API key from environment variables/secrets.
 # This is crucial for security. The secret name is 'MAILGUN_API_KEY'.
@@ -31,9 +24,6 @@ def handleAddSubscriber(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response("", status=204)
     if req.method != "POST":
         return https_fn.Response("Method not allowed", status=405)
-
-    # Initialize Firebase Admin SDK
-    init_firebase()
 
     data = req.get_json(silent=True)
     if not data or not data.get("email"):
@@ -157,9 +147,6 @@ def handleGetProfile(req: https_fn.Request) -> https_fn.Response:
     if req.method != "GET":
         return https_fn.Response("Method not allowed", status=405)
 
-    # Initialize Firebase Admin SDK
-    init_firebase()
-    
     # Extract user_id from URL path
     path_parts = req.path.strip("/").split("/")
     if len(path_parts) < 2 or path_parts[0] != "profile":
@@ -210,9 +197,6 @@ def handleUpdateProfile(req: https_fn.Request) -> https_fn.Response:
     if req.method != "PUT":
         return https_fn.Response("Method not allowed", status=405)
 
-    # Initialize Firebase Admin SDK
-    init_firebase()
-    
     # Extract user_id from URL path
     path_parts = req.path.strip("/").split("/")
     if len(path_parts) < 2 or path_parts[0] != "update_profile":
@@ -312,9 +296,6 @@ def handleGetAchievements(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response("", status=204)
     if req.method != "GET":
         return https_fn.Response("Method not allowed", status=405)
-
-    # Initialize Firebase Admin SDK
-    init_firebase()
 
     try:
         db = firestore.client()
