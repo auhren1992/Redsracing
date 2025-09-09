@@ -365,12 +365,37 @@
         async function saveProfile() {
             if (!currentUser) return;
 
+            // Basic validation
+            const username = editUsername.value.trim();
+            const displayName = editDisplayName.value.trim();
+            
+            if (!username || !displayName) {
+                alert('Username and Display Name are required.');
+                return;
+            }
+
+            // Validate username format (alphanumeric and underscores only)
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                alert('Username can only contain letters, numbers, and underscores.');
+                return;
+            }
+
+            // Validate avatar URL if provided
+            const avatarUrl = editAvatarUrl.value.trim();
+            if (avatarUrl && !isValidUrl(avatarUrl)) {
+                alert('Please enter a valid avatar URL.');
+                return;
+            }
+
+            saveProfileBtn.disabled = true;
+            saveProfileBtn.textContent = 'Saving...';
+
             const userToken = await currentUser.getIdToken();
             const profileData = {
-                username: editUsername.value.trim(),
-                displayName: editDisplayName.value.trim(),
+                username: username,
+                displayName: displayName,
                 bio: editBio.value.trim(),
-                avatarUrl: editAvatarUrl.value.trim(),
+                avatarUrl: avatarUrl,
                 favoriteCars: editFavoriteCars.value.split(',').map(car => car.trim()).filter(car => car)
             };
 
@@ -388,12 +413,28 @@
                     // Reload profile to show updated data
                     await loadUserProfile(currentUser.uid, userToken);
                     toggleEditMode();
+                } else if (response.status === 400) {
+                    const errorText = await response.text();
+                    alert(`Failed to save profile: ${errorText}`);
                 } else {
                     throw new Error(`Failed to save profile: ${response.statusText}`);
                 }
             } catch (error) {
                 console.error('Error saving profile:', error);
                 alert('Failed to save profile. Please try again.');
+            } finally {
+                saveProfileBtn.disabled = false;
+                saveProfileBtn.textContent = 'Save Changes';
+            }
+        }
+
+        // Helper function to validate URLs
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
             }
         }
 

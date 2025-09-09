@@ -229,7 +229,53 @@ def handleUpdateProfile(req: https_fn.Request) -> https_fn.Response:
     
     for field in allowed_fields:
         if field in data:
-            profile_data[field] = data[field]
+            value = data[field]
+            
+            # Validate field types and constraints
+            if field == "username":
+                if not isinstance(value, str) or not value.strip():
+                    return https_fn.Response("Username is required and must be a string", status=400)
+                # Username validation: alphanumeric and underscores only, 3-30 chars
+                username = value.strip().lower()
+                if not username.replace('_', '').isalnum() or len(username) < 3 or len(username) > 30:
+                    return https_fn.Response("Username must be 3-30 characters, alphanumeric and underscores only", status=400)
+                profile_data[field] = username
+                
+            elif field == "displayName":
+                if not isinstance(value, str) or not value.strip():
+                    return https_fn.Response("Display name is required and must be a string", status=400)
+                display_name = value.strip()
+                if len(display_name) > 100:
+                    return https_fn.Response("Display name must be 100 characters or less", status=400)
+                profile_data[field] = display_name
+                
+            elif field == "bio":
+                if isinstance(value, str):
+                    bio = value.strip()
+                    if len(bio) > 500:
+                        return https_fn.Response("Bio must be 500 characters or less", status=400)
+                    profile_data[field] = bio
+                    
+            elif field == "avatarUrl":
+                if isinstance(value, str):
+                    avatar_url = value.strip()
+                    if avatar_url:  # Only validate if not empty
+                        if not avatar_url.startswith(('http://', 'https://')):
+                            return https_fn.Response("Avatar URL must be a valid HTTP/HTTPS URL", status=400)
+                        if len(avatar_url) > 500:
+                            return https_fn.Response("Avatar URL must be 500 characters or less", status=400)
+                    profile_data[field] = avatar_url
+                    
+            elif field == "favoriteCars":
+                if isinstance(value, list):
+                    # Validate each car name
+                    validated_cars = []
+                    for car in value[:10]:  # Limit to 10 cars
+                        if isinstance(car, str):
+                            car_name = car.strip()
+                            if car_name and len(car_name) <= 50:  # Max 50 chars per car name
+                                validated_cars.append(car_name)
+                    profile_data[field] = validated_cars
     
     if not profile_data:
         return https_fn.Response("No valid fields provided for update", status=400)
