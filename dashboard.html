@@ -185,23 +185,89 @@
     </script>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, sendEmailVerification, RecaptchaVerifier, linkWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        // Wrap everything in an async function to allow early returns
+        (async function() {
+        // Add immediate loading timeout as backup
+        let loadingTimeout = setTimeout(() => {
+            console.warn('Loading timeout reached, showing fallback content');
+            hideLoadingAndShowFallback();
+        }, 5000); // 5 second timeout
 
-        const firebaseConfig = {
-          apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
-          authDomain: "redsracing-a7f8b.firebaseapp.com",
-          projectId: "redsracing-a7f8b",
-          storageBucket: "redsracing-a7f8b.appspot.com",
-          messagingSenderId: "517034606151",
-          appId: "1:517034606151:web:24cae262e1d98832757b62"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
+        function hideLoadingAndShowFallback() {
+            const loadingState = document.getElementById('loading-state');
+            const dashboardContent = document.getElementById('dashboard-content');
+            
+            if (loadingState) {
+                loadingState.style.display = 'none';
+            }
+            
+            if (dashboardContent) {
+                dashboardContent.innerHTML = `
+                    <div class="text-center py-20">
+                        <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
+                        <div class="text-yellow-400 mb-6">
+                            <h2 class="text-2xl font-bold">Dashboard Temporarily Unavailable</h2>
+                            <p class="mt-2">Our services are currently unavailable.</p>
+                            <p class="text-sm text-slate-400 mt-2">This could be due to network issues or temporary service downtime.</p>
+                            <p class="text-sm text-slate-400 mt-1">Please check your internet connection and try again.</p>
+                        </div>
+                        <div class="space-x-4">
+                            <button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
+                                Try Again
+                            </button>
+                            <a href="index.html" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">
+                                Go Home
+                            </a>
+                        </div>
+                    </div>
+                `;
+                dashboardContent.classList.remove('hidden');
+            }
+            
+            if (loadingTimeout) {
+                clearTimeout(loadingTimeout);
+                loadingTimeout = null;
+            }
+        }
+
+        // Try to load Firebase, but catch any import errors
+        let firebaseLoaded = false;
+        let app, auth, db, storage;
+        
+        try {
+            // Import Firebase modules
+            const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+            const { getAuth, onAuthStateChanged, signOut, sendEmailVerification, RecaptchaVerifier, linkWithPhoneNumber } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+            const { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, where } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+            const { getStorage, ref, deleteObject } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js");
+
+            const firebaseConfig = {
+              apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+              authDomain: "redsracing-a7f8b.firebaseapp.com",
+              projectId: "redsracing-a7f8b",
+              storageBucket: "redsracing-a7f8b.appspot.com",
+              messagingSenderId: "517034606151",
+              appId: "1:517034606151:web:24cae262e1d98832757b62"
+            };
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            storage = getStorage(app);
+            
+            firebaseLoaded = true;
+            console.log('Firebase modules loaded successfully');
+
+        } catch (importError) {
+            console.error('Failed to load Firebase modules:', importError);
+            hideLoadingAndShowFallback();
+            console.log('Showing fallback content due to Firebase loading failure');
+        }
+
+        // Only proceed with Firebase functionality if modules loaded successfully
+        if (!firebaseLoaded) {
+            console.log('Firebase not available, dashboard will show fallback content');
+            return;
+        }
 
         const loadingState = document.getElementById('loading-state');
         const dashboardContent = document.getElementById('dashboard-content');
@@ -786,101 +852,141 @@
             }
         };
 
+        // Reset loading timeout to prevent infinite loading
+        if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+        }
+        loadingTimeout = setTimeout(() => {
+            console.warn('Loading timeout reached, hiding loading state');
+            hideLoadingAndShowContent();
+        }, 10000); // 10 second timeout
+
+        function hideLoadingAndShowContent() {
+            loadingState.style.display = 'none';
+            dashboardContent.classList.remove('hidden');
+            if (loadingTimeout) {
+                clearTimeout(loadingTimeout);
+                loadingTimeout = null;
+            }
+        }
+
         // Auth State Change Listener
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                try {
-                    userEmailEl.textContent = user.displayName || user.email;
+            try {
+                if (user) {
+                    try {
+                        userEmailEl.textContent = user.displayName || user.email;
 
-                    if (!user.emailVerified) {
-                        emailVerificationNotice.classList.remove('hidden');
+                        if (!user.emailVerified) {
+                            emailVerificationNotice.classList.remove('hidden');
 
-                        // Handle resending the verification email
-                        resendVerificationBtn.addEventListener('click', async () => {
-                            try {
-                                await sendEmailVerification(user);
-                                alert('Verification email sent! Please check your inbox.');
-                            } catch (error) {
-                                console.error('Error resending verification email:', error);
-                                alert('Failed to resend verification email. Please try again later.');
-                            }
-                        });
-
-                        // Handle checking the verification status
-                        const refreshStatusBtn = document.getElementById('refresh-status-btn');
-                        refreshStatusBtn.addEventListener('click', async () => {
-                            // Force a reload of the user's profile from Firebase servers
-                            await auth.currentUser.reload();
-
-                            // Check the new status
-                            if (auth.currentUser.emailVerified) {
-                                emailVerificationNotice.classList.add('hidden');
-                                alert('Thank you for verifying your email!');
-                            } else {
-                                alert('Your email is still not verified. Please check your inbox for the verification link.');
-                            }
-                        });
-                    }
-
-                    await getRaceData();
-
-                    const idTokenResult = await user.getIdTokenResult();
-                    console.log("User's custom claims:", idTokenResult.claims);
-                    const userRole = idTokenResult.claims.role;
-
-                    if (userRole === 'team-member') {
-                        driverNotesCard.classList.remove('hidden');
-                        raceManagementCard.style.display = 'block';
-                        qnaManagementCard.style.display = 'block';
-                        photoApprovalCard.style.display = 'block';
-                        jonnyPhotoApprovalCard.style.display = 'block';
-                        mfaCard.style.display = 'block';
-
-                        getQnaSubmissions();
-                        getUnapprovedPhotos(null, unapprovedPhotosList); // Main gallery
-                        getUnapprovedPhotos('jonny', jonnyUnapprovedPhotosList); // Jonny's gallery
-                        getJonnyVideos();
-
-                        const userNotesRef = doc(db, "driver_notes", user.uid);
-                        const docSnap = await getDoc(userNotesRef);
-                        if (docSnap.exists()) {
-                            driverNotesEl.value = docSnap.data().notes;
-                        }
-                        driverNotesEl.addEventListener('keyup', () => {
-                            notesStatusEl.textContent = 'Saving...';
-                            clearTimeout(notesSaveTimeout);
-                            notesSaveTimeout = setTimeout(async () => {
+                            // Handle resending the verification email
+                            resendVerificationBtn.addEventListener('click', async () => {
                                 try {
-                                    await setDoc(userNotesRef, { notes: driverNotesEl.value }, { merge: true });
-                                    notesStatusEl.textContent = 'Saved!';
-                                } catch (e) {
-                                    notesStatusEl.textContent = 'Error saving notes.';
+                                    await sendEmailVerification(user);
+                                    alert('Verification email sent! Please check your inbox.');
+                                } catch (error) {
+                                    console.error('Error resending verification email:', error);
+                                    alert('Failed to resend verification email. Please try again later.');
                                 }
-                                setTimeout(() => { notesStatusEl.textContent = ''; }, 2000);
-                            }, 1000);
-                        });
-                    } else {
-                        driverNotesCard.classList.add('hidden');
-                    }
+                            });
 
-                    if (userRole === 'team-member') {
-                        setupMfa(user);
+                            // Handle checking the verification status
+                            const refreshStatusBtn = document.getElementById('refresh-status-btn');
+                            refreshStatusBtn.addEventListener('click', async () => {
+                                // Force a reload of the user's profile from Firebase servers
+                                await auth.currentUser.reload();
+
+                                // Check the new status
+                                if (auth.currentUser.emailVerified) {
+                                    emailVerificationNotice.classList.add('hidden');
+                                    alert('Thank you for verifying your email!');
+                                } else {
+                                    alert('Your email is still not verified. Please check your inbox for the verification link.');
+                                }
+                            });
+                        }
+
+                        await getRaceData();
+
+                        const idTokenResult = await user.getIdTokenResult();
+                        console.log("User's custom claims:", idTokenResult.claims);
+                        const userRole = idTokenResult.claims.role;
+
+                        if (userRole === 'team-member') {
+                            driverNotesCard.classList.remove('hidden');
+                            raceManagementCard.style.display = 'block';
+                            qnaManagementCard.style.display = 'block';
+                            photoApprovalCard.style.display = 'block';
+                            jonnyPhotoApprovalCard.style.display = 'block';
+                            mfaCard.style.display = 'block';
+
+                            getQnaSubmissions();
+                            getUnapprovedPhotos(null, unapprovedPhotosList); // Main gallery
+                            getUnapprovedPhotos('jonny', jonnyUnapprovedPhotosList); // Jonny's gallery
+                            getJonnyVideos();
+
+                            const userNotesRef = doc(db, "driver_notes", user.uid);
+                            const docSnap = await getDoc(userNotesRef);
+                            if (docSnap.exists()) {
+                                driverNotesEl.value = docSnap.data().notes;
+                            }
+                            driverNotesEl.addEventListener('keyup', () => {
+                                notesStatusEl.textContent = 'Saving...';
+                                clearTimeout(notesSaveTimeout);
+                                notesSaveTimeout = setTimeout(async () => {
+                                    try {
+                                        await setDoc(userNotesRef, { notes: driverNotesEl.value }, { merge: true });
+                                        notesStatusEl.textContent = 'Saved!';
+                                    } catch (e) {
+                                        notesStatusEl.textContent = 'Error saving notes.';
+                                    }
+                                    setTimeout(() => { notesStatusEl.textContent = ''; }, 2000);
+                                }, 1000);
+                            });
+                        } else {
+                            driverNotesCard.classList.add('hidden');
+                        }
+
+                        if (userRole === 'team-member') {
+                            setupMfa(user);
+                        }
+                    } catch (error) {
+                        console.error("Failed to load dashboard content:", error);
+                        // Show fallback content when Firebase services fail
+                        dashboardContent.innerHTML = `<div class="text-center py-20">
+                            <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
+                            <div class="text-red-400 mb-4">
+                                <h2 class="text-2xl font-bold">Dashboard Temporarily Unavailable</h2>
+                                <p class="mt-2">There was a problem connecting to our services.</p>
+                                <p class="text-sm text-slate-400 mt-2">This could be due to network issues or temporary service downtime.</p>
+                            </div>
+                            <button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
+                                Try Again
+                            </button>
+                        </div>`;
                     }
-                } catch (error) {
-                    console.error("Failed to load dashboard content:", error);
-                    // Optionally, show an error message to the user
-                    dashboardContent.innerHTML = `<div class="text-center text-red-400 py-20">
-                        <h2 class="text-3xl font-bold font-racing uppercase">Error Loading Dashboard</h2>
-                        <p class="mt-2">There was a problem fetching dashboard data.</p>
-                        <p class="text-sm text-slate-500 mt-4">Please try refreshing the page. If the problem persists, contact support.</p>
-                    </div>`;
-                } finally {
-                    loadingState.style.display = 'none';
-                    dashboardContent.classList.remove('hidden');
+                } else {
+                    // User not authenticated, redirect to login
+                    window.location.href = 'login.html';
                 }
-
-            } else {
-                window.location.href = 'login.html';
+            } catch (authError) {
+                console.error("Authentication error:", authError);
+                // Show fallback content for auth errors
+                dashboardContent.innerHTML = `<div class="text-center py-20">
+                    <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
+                    <div class="text-red-400 mb-4">
+                        <h2 class="text-2xl font-bold">Authentication Error</h2>
+                        <p class="mt-2">Unable to verify your identity.</p>
+                        <p class="text-sm text-slate-400 mt-2">Please try logging in again.</p>
+                    </div>
+                    <a href="login.html" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
+                        Go to Login
+                    </a>
+                </div>`;
+            } finally {
+                // Always hide loading and show content
+                hideLoadingAndShowContent();
             }
         });
 
@@ -890,6 +996,14 @@
         });
 
         document.getElementById('year').textContent = new Date().getFullYear();
+        
+        // Clear the loading timeout since we successfully loaded
+        if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+            loadingTimeout = null;
+        }
+        
+        })(); // End of async function wrapper
 
     </script>
 
