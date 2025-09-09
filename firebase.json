@@ -22,6 +22,22 @@
       {
         "source": "/send_sponsorship_email",
         "function": "handleSendSponsorship@python-api"
+      },
+      {
+        "source": "/profile/**",
+        "function": "handleGetProfile@python-api"
+      },
+      {
+        "source": "/update_profile/**",
+        "function": "handleUpdateProfile@python-api"
+      },
+      {
+        "source": "/achievements",
+        "function": "handleGetAchievements@python-api"
+      },
+      {
+        "source": "/assign_achievement",
+        "function": "handleAssignAchievement@python-api"
       }
     ]
   },
