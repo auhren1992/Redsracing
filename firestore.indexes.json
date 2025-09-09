@@ -105,12 +105,16 @@
           "order": "ASCENDING"
         },
         {
-
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "jonny_videos",
       "queryScope": "COLLECTION",
       "fields": [
         {
-
           "fieldPath": "createdAt",
           "order": "DESCENDING"
         }
