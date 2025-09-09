@@ -7,6 +7,23 @@
     <link rel="stylesheet" href="styles/tailwind.css">
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .category-filter-btn {
+            @apply text-xs px-3 py-2 rounded-full border border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700 transition cursor-pointer;
+        }
+        .category-filter-btn.active {
+            @apply bg-neon-yellow text-black border-neon-yellow font-bold;
+        }
+        .achievement-item {
+            @apply transition-all duration-300 ease-in-out;
+        }
+        .achievement-item.hidden-category {
+            @apply hidden;
+        }
+        .achievement-category-badge {
+            @apply text-xs px-2 py-1 rounded-full bg-slate-600 text-slate-300;
+        }
+    </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
@@ -20,6 +37,7 @@
                 <a href="jonny.html" class="hover:text-neon-yellow transition duration-300">Jonny's Page</a>
                 <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Full Schedule</a>
                 <a href="dashboard.html" class="hover:text-neon-yellow transition duration-300">Dashboard</a>
+                <a href="leaderboard.html" class="hover:text-neon-yellow transition duration-300">Leaderboard</a>
                 <a id="logout-button" href="#" class="bg-red-600 text-white py-2 px-5 rounded-md hover:bg-red-500 transition duration-300">
                     Logout
                 </a>
@@ -126,8 +144,50 @@
                     <div class="space-y-8">
                         <div class="card rounded-lg p-6">
                             <h2 class="text-2xl font-racing text-white uppercase mb-4">Your <span class="neon-yellow">Achievements</span></h2>
+                            
+                            <!-- Achievement Summary -->
+                            <div id="achievement-summary" class="grid grid-cols-2 gap-4 mb-4 hidden">
+                                <div class="text-center p-3 bg-slate-700 rounded-lg">
+                                    <div class="text-lg font-racing text-neon-yellow" id="total-points">0</div>
+                                    <div class="text-xs text-slate-400">Total Points</div>
+                                </div>
+                                <div class="text-center p-3 bg-slate-700 rounded-lg">
+                                    <div class="text-lg font-racing text-neon-yellow" id="total-achievements-count">0</div>
+                                    <div class="text-xs text-slate-400">Achievements</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Category Filter -->
+                            <div id="category-filter" class="mb-4 hidden">
+                                <div class="flex flex-wrap gap-2">
+                                    <button class="category-filter-btn active" data-category="all">
+                                        All
+                                    </button>
+                                    <button class="category-filter-btn" data-category="racing">
+                                        🏁 Racing
+                                    </button>
+                                    <button class="category-filter-btn" data-category="performance">
+                                        ⚡ Performance
+                                    </button>
+                                    <button class="category-filter-btn" data-category="community">
+                                        👥 Community
+                                    </button>
+                                    <button class="category-filter-btn" data-category="sportsmanship">
+                                        ✨ Fair Play
+                                    </button>
+                                </div>
+                            </div>
+                            
                             <div id="user-achievements" class="space-y-3">
                                 <p class="text-slate-400">Loading achievements...</p>
+                            </div>
+                        </div>
+
+                        <!-- Achievement Progress -->
+                        <div id="achievement-progress-section" class="card rounded-lg p-6 hidden">
+                            <h2 class="text-2xl font-racing text-white uppercase mb-4">Progress <span class="neon-yellow">Tracker</span></h2>
+                            <div id="achievement-progress" class="space-y-4">
+                                <p class="text-slate-400">Loading progress...</p>
                             </div>
                         </div>
 
@@ -227,6 +287,11 @@
                     const profileData = await response.json();
                     displayProfile(profileData);
                     loadAchievements(profileData.achievements || []);
+                    
+                    // Load achievement progress for current user's profile
+                    if (isCurrentUserProfile) {
+                        await loadAchievementProgress(userId);
+                    }
                 } else if (response.status === 404) {
                     await createDefaultProfile(userId, userToken);
                 } else {
@@ -260,6 +325,9 @@
                 });
 
                 if (response.ok) {
+                    // Award community member achievement for profile creation
+                    await autoAwardAchievement(userId, 'profile_created');
+                    
                     // Reload profile after creation
                     await loadUserProfile(userId, userToken);
                 } else {
@@ -320,24 +388,193 @@
         }
 
         // Load achievements
+        let userAchievementsData = []; // Store achievements data for filtering
+
         function loadAchievements(achievements) {
+            userAchievementsData = achievements; // Store for filtering
+            
             if (achievements.length === 0) {
                 userAchievements.innerHTML = '<p class="text-slate-400">No achievements yet. Keep racing!</p>';
+                document.getElementById('achievement-summary').classList.add('hidden');
+                document.getElementById('category-filter').classList.add('hidden');
+                return;
+            }
+
+            // Show achievement summary and filter
+            document.getElementById('achievement-summary').classList.remove('hidden');
+            document.getElementById('category-filter').classList.remove('hidden');
+
+            // Calculate total points
+            const totalPoints = achievements.reduce((sum, achievement) => sum + (achievement.points || 0), 0);
+            document.getElementById('total-points').textContent = totalPoints;
+            document.getElementById('total-achievements-count').textContent = achievements.length;
+
+            // Render achievements
+            renderAchievements(achievements);
+        }
+
+        function renderAchievements(achievements) {
+            if (achievements.length === 0) {
+                userAchievements.innerHTML = '<p class="text-slate-400">No achievements in this category.</p>';
                 return;
             }
 
             userAchievements.innerHTML = achievements.map(achievement => `
-                <div class="flex items-center space-x-3 p-3 bg-slate-700 rounded-md">
+                <div class="achievement-item flex items-center space-x-3 p-3 bg-slate-700 rounded-md" data-category="${achievement.category || 'uncategorized'}">
                     <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
                         ${achievement.icon || '🏆'}
                     </div>
                     <div class="flex-1">
-                        <h4 class="font-bold text-white">${achievement.name}</h4>
+                        <div class="flex items-center justify-between mb-1">
+                            <h4 class="font-bold text-white">${achievement.name}</h4>
+                            <div class="flex items-center space-x-2">
+                                <span class="achievement-category-badge">${getCategoryDisplayName(achievement.category || 'uncategorized')}</span>
+                                <span class="text-xs font-racing text-neon-yellow">${achievement.points || 0}pts</span>
+                            </div>
+                        </div>
                         <p class="text-sm text-slate-400">${achievement.description}</p>
                         ${achievement.dateEarned ? `<p class="text-xs text-slate-500">Earned: ${new Date(achievement.dateEarned.seconds * 1000).toLocaleDateString()}</p>` : ''}
                     </div>
                 </div>
             `).join('');
+        }
+
+        function getCategoryDisplayName(category) {
+            const categoryMap = {
+                'racing': '🏁 Racing',
+                'performance': '⚡ Performance', 
+                'community': '👥 Community',
+                'sportsmanship': '✨ Fair Play',
+                'uncategorized': '📋 Other'
+            };
+            return categoryMap[category] || '📋 Other';
+        }
+
+        function filterAchievementsByCategory(category) {
+            if (category === 'all') {
+                renderAchievements(userAchievementsData);
+            } else {
+                const filteredAchievements = userAchievementsData.filter(achievement => achievement.category === category);
+                renderAchievements(filteredAchievements);
+            }
+        }
+
+        // Auto award achievement helper function
+        async function autoAwardAchievement(userId, actionType, actionData = {}) {
+            try {
+                const response = await fetch('/auto_award_achievement', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        actionType: actionType,
+                        actionData: actionData
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.awardedAchievements && result.awardedAchievements.length > 0) {
+                        console.log('Achievements awarded:', result.awardedAchievements);
+                        // Optionally show a notification to the user
+                        showAchievementNotification(result.awardedAchievements);
+                    }
+                    return result;
+                }
+            } catch (error) {
+                console.error('Error auto-awarding achievement:', error);
+            }
+        }
+
+        // Show achievement notification
+        function showAchievementNotification(achievements) {
+            achievements.forEach(achievement => {
+                // Create a simple toast notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-neon-yellow text-black p-4 rounded-lg shadow-lg z-50 animate-pulse';
+                notification.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">🏆</div>
+                        <div>
+                            <h4 class="font-bold">Achievement Unlocked!</h4>
+                            <p class="text-sm">${achievement.name}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Remove after 5 seconds
+                setTimeout(() => {
+                    if (notification && notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 5000);
+            });
+        }
+
+        // Load achievement progress
+        async function loadAchievementProgress(userId) {
+            try {
+                const response = await fetch(`/achievement_progress/${userId}`);
+                if (response.ok) {
+                    const progressData = await response.json();
+                    displayAchievementProgress(progressData);
+                }
+            } catch (error) {
+                console.error('Error loading achievement progress:', error);
+            }
+        }
+
+        // Display achievement progress
+        function displayAchievementProgress(progressData) {
+            const progressSection = document.getElementById('achievement-progress-section');
+            const progressContainer = document.getElementById('achievement-progress');
+            
+            if (Object.keys(progressData).length === 0) {
+                progressSection.classList.add('hidden');
+                return;
+            }
+            
+            progressSection.classList.remove('hidden');
+            
+            const progressItems = Object.entries(progressData).map(([achievementId, progress]) => {
+                return `
+                    <div class="bg-slate-700 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-bold text-white">${getAchievementName(achievementId)}</h4>
+                            <span class="text-sm text-slate-400">${progress.current}/${progress.target}</span>
+                        </div>
+                        <p class="text-sm text-slate-400 mb-3">${progress.description}</p>
+                        <div class="w-full bg-slate-600 rounded-full h-2">
+                            <div class="bg-neon-yellow h-2 rounded-full transition-all duration-300" 
+                                 style="width: ${progress.percentage}%"></div>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">${Math.round(progress.percentage)}% complete</div>
+                    </div>
+                `;
+            }).join('');
+            
+            progressContainer.innerHTML = progressItems;
+        }
+
+        // Get achievement display name
+        function getAchievementName(achievementId) {
+            const achievementNames = {
+                'photographer': '📸 Photographer',
+                'fan_favorite': '❤️ Fan Favorite', 
+                'community_member': '👥 Community Member',
+                'first_race': '🏁 First Race',
+                'speed_demon': '⚡ Speed Demon',
+                'consistent_racer': '🎯 Consistent Racer',
+                'podium_finish': '🏆 Podium Finish',
+                'clean_racer': '✨ Clean Racer',
+                'season_veteran': '🗓️ Season Veteran',
+                'track_master': '🏅 Track Master'
+            };
+            return achievementNames[achievementId] || achievementId;
         }
 
         // Show error state
@@ -442,6 +679,21 @@
         editProfileBtn.addEventListener('click', toggleEditMode);
         cancelEditBtn.addEventListener('click', toggleEditMode);
         saveProfileBtn.addEventListener('click', saveProfile);
+        
+        // Category filter event listeners
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('category-filter-btn')) {
+                // Update active state
+                document.querySelectorAll('.category-filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                e.target.classList.add('active');
+                
+                // Filter achievements
+                const category = e.target.dataset.category;
+                filterAchievementsByCategory(category);
+            }
+        });
         
         logoutButton.addEventListener('click', () => {
             signOut(auth).then(() => {

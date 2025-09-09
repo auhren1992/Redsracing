@@ -373,3 +373,249 @@ def handleAssignAchievement(req: https_fn.Request) -> https_fn.Response:
     
     except Exception as e:
         return https_fn.Response(f"An error occurred: {e}", status=500)
+
+@https_fn.on_request(cors=CORS_OPTIONS)
+def handleGetLeaderboard(req: https_fn.Request) -> https_fn.Response:
+    """Get user leaderboard sorted by achievement points."""
+    if req.method == "OPTIONS":
+        return https_fn.Response("", status=204)
+    if req.method != "GET":
+        return https_fn.Response("Method not allowed", status=405)
+
+    try:
+        db = firestore.client()
+        
+        # Get all user achievements and calculate total points
+        user_achievements = db.collection("user_achievements").stream()
+        achievements_data = {}
+        
+        # First get all achievements to know their point values
+        for doc in db.collection("achievements").stream():
+            achievements_data[doc.id] = doc.to_dict()
+        
+        # Calculate total points per user
+        user_points = {}
+        user_achievement_counts = {}
+        
+        for doc in user_achievements:
+            data = doc.to_dict()
+            user_id = data["userId"]
+            achievement_id = data["achievementId"]
+            
+            if user_id not in user_points:
+                user_points[user_id] = 0
+                user_achievement_counts[user_id] = 0
+            
+            if achievement_id in achievements_data:
+                user_points[user_id] += achievements_data[achievement_id].get("points", 0)
+                user_achievement_counts[user_id] += 1
+        
+        # Get user profile data for leaderboard display
+        leaderboard = []
+        for user_id, total_points in user_points.items():
+            try:
+                profile_doc = db.collection("user_profiles").document(user_id).get()
+                if profile_doc.exists:
+                    profile_data = profile_doc.to_dict()
+                    leaderboard.append({
+                        "userId": user_id,
+                        "displayName": profile_data.get("displayName", "Anonymous User"),
+                        "username": profile_data.get("username", ""),
+                        "avatarUrl": profile_data.get("avatarUrl", ""),
+                        "totalPoints": total_points,
+                        "achievementCount": user_achievement_counts[user_id]
+                    })
+            except:
+                # Skip users with missing profiles
+                continue
+        
+        # Sort by total points descending
+        leaderboard.sort(key=lambda x: x["totalPoints"], reverse=True)
+        
+        # Limit to top 50 users
+        leaderboard = leaderboard[:50]
+        
+        # Add rank numbers
+        for i, user in enumerate(leaderboard):
+            user["rank"] = i + 1
+        
+        return https_fn.Response(
+            json.dumps(leaderboard, default=str), 
+            status=200, 
+            headers={"Content-Type": "application/json"}
+        )
+    
+    except Exception as e:
+        return https_fn.Response(f"An error occurred: {e}", status=500)
+
+@https_fn.on_request(cors=CORS_OPTIONS)
+def handleAutoAwardAchievement(req: https_fn.Request) -> https_fn.Response:
+    """Automatically award achievements based on user actions."""
+    if req.method == "OPTIONS":
+        return https_fn.Response("", status=204)
+    if req.method != "POST":
+        return https_fn.Response("Method not allowed", status=405)
+
+    # This endpoint can be called internally or by authenticated users
+    data = req.get_json(silent=True)
+    if not data:
+        return https_fn.Response("Invalid request body", status=400)
+    
+    user_id = data.get("userId")
+    action_type = data.get("actionType")
+    action_data = data.get("actionData", {})
+    
+    if not all([user_id, action_type]):
+        return https_fn.Response("Missing required fields: userId, actionType", status=400)
+
+    try:
+        db = firestore.client()
+        
+        # Get all achievements to check which ones to award
+        achievements_query = db.collection("achievements").stream()
+        achievements = {}
+        
+        for doc in achievements_query:
+            achievement_data = doc.to_dict()
+            achievement_data["id"] = doc.id
+            achievements[doc.id] = achievement_data
+        
+        # Get user's current achievements
+        user_achievements_query = db.collection("user_achievements").where("userId", "==", user_id).stream()
+        user_achievement_ids = {doc.to_dict()["achievementId"] for doc in user_achievements_query}
+        
+        # Determine which achievements to award based on action type
+        achievements_to_award = []
+        
+        if action_type == "first_login":
+            if "community_member" not in user_achievement_ids:
+                achievements_to_award.append("community_member")
+        
+        elif action_type == "photo_upload":
+            # Check for photographer achievement (5 photos)
+            if "photographer" not in user_achievement_ids:
+                photo_count = action_data.get("totalPhotos", 1)
+                if photo_count >= 5:
+                    achievements_to_award.append("photographer")
+        
+        elif action_type == "photo_liked":
+            # Check for fan favorite achievement (10 total likes across all photos)
+            if "fan_favorite" not in user_achievement_ids:
+                total_likes = action_data.get("totalLikes", 1)
+                if total_likes >= 10:
+                    achievements_to_award.append("fan_favorite")
+        
+        elif action_type == "profile_created":
+            if "community_member" not in user_achievement_ids:
+                achievements_to_award.append("community_member")
+        
+        # Award the achievements
+        awarded_achievements = []
+        for achievement_id in achievements_to_award:
+            if achievement_id in achievements:
+                user_achievement_data = {
+                    "userId": user_id,
+                    "achievementId": achievement_id,
+                    "dateEarned": firestore.SERVER_TIMESTAMP,
+                    "assignedBy": "system",
+                    "autoAwarded": True,
+                    "actionType": action_type
+                }
+                
+                db.collection("user_achievements").add(user_achievement_data)
+                awarded_achievements.append({
+                    "id": achievement_id,
+                    "name": achievements[achievement_id]["name"],
+                    "description": achievements[achievement_id]["description"],
+                    "points": achievements[achievement_id]["points"]
+                })
+        
+        return https_fn.Response(
+            json.dumps({
+                "awardedAchievements": awarded_achievements,
+                "message": f"Awarded {len(awarded_achievements)} achievement(s)"
+            }, default=str),
+            status=200,
+            headers={"Content-Type": "application/json"}
+        )
+    
+    except Exception as e:
+        return https_fn.Response(f"An error occurred: {e}", status=500)
+
+@https_fn.on_request(cors=CORS_OPTIONS)
+def handleGetAchievementProgress(req: https_fn.Request) -> https_fn.Response:
+    """Get achievement progress for a user."""
+    if req.method == "OPTIONS":
+        return https_fn.Response("", status=204)
+    if req.method != "GET":
+        return https_fn.Response("Method not allowed", status=405)
+
+    # Extract user_id from URL path
+    path_parts = req.path.strip("/").split("/")
+    if len(path_parts) < 2 or path_parts[0] != "achievement_progress":
+        return https_fn.Response("Invalid URL format. Use /achievement_progress/<user_id>", status=400)
+    
+    user_id = path_parts[1]
+
+    try:
+        db = firestore.client()
+        
+        # Get user's current achievements
+        user_achievements_query = db.collection("user_achievements").where("userId", "==", user_id).stream()
+        user_achievement_ids = {doc.to_dict()["achievementId"] for doc in user_achievements_query}
+        
+        # Define progress tracking for specific achievements
+        progress_data = {}
+        
+        # Photographer achievement progress (upload 5 photos)
+        if "photographer" not in user_achievement_ids:
+            try:
+                photos_query = db.collection("gallery_images").where("uploaderUid", "==", user_id).stream()
+                photo_count = sum(1 for _ in photos_query)
+                progress_data["photographer"] = {
+                    "current": photo_count,
+                    "target": 5,
+                    "percentage": min((photo_count / 5) * 100, 100),
+                    "completed": photo_count >= 5,
+                    "description": f"Upload {photo_count}/5 photos to the gallery"
+                }
+            except Exception as e:
+                print(f"Error getting photo count: {e}")
+        
+        # Fan Favorite achievement progress (get 10 total likes)
+        if "fan_favorite" not in user_achievement_ids:
+            try:
+                user_photos_query = db.collection("gallery_images").where("uploaderUid", "==", user_id).stream()
+                total_likes = 0
+                for photo_doc in user_photos_query:
+                    photo_data = photo_doc.to_dict()
+                    total_likes += photo_data.get("likeCount", 0)
+                
+                progress_data["fan_favorite"] = {
+                    "current": total_likes,
+                    "target": 10,
+                    "percentage": min((total_likes / 10) * 100, 100),
+                    "completed": total_likes >= 10,
+                    "description": f"Receive {total_likes}/10 total likes on your photos"
+                }
+            except Exception as e:
+                print(f"Error getting like count: {e}")
+        
+        # Community Member achievement (already earned or not)
+        if "community_member" not in user_achievement_ids:
+            progress_data["community_member"] = {
+                "current": 0,
+                "target": 1,
+                "percentage": 0,
+                "completed": False,
+                "description": "Join the RedsRacing community (automatic on login)"
+            }
+        
+        return https_fn.Response(
+            json.dumps(progress_data, default=str),
+            status=200,
+            headers={"Content-Type": "application/json"}
+        )
+    
+    except Exception as e:
+        return https_fn.Response(f"An error occurred: {e}", status=500)

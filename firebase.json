@@ -38,6 +38,18 @@
       {
         "source": "/assign_achievement",
         "function": "handleAssignAchievement@python-api"
+      },
+      {
+        "source": "/leaderboard",
+        "function": "handleGetLeaderboard@python-api"
+      },
+      {
+        "source": "/auto_award_achievement",
+        "function": "handleAutoAwardAchievement@python-api"
+      },
+      {
+        "source": "/achievement_progress/**",
+        "function": "handleGetAchievementProgress@python-api"
       }
     ]
   },

@@ -25,6 +25,9 @@ async function initFirebase() {
                 if(authLink) authLink.href = 'dashboard.html';
                 if(authLinkMobile) authLinkMobile.textContent = 'Dashboard';
                 if(authLinkMobile) authLinkMobile.href = 'dashboard.html';
+                
+                // Check for first login achievement
+                checkFirstLoginAchievement(user.uid);
             } else {
                 if(authLink) authLink.textContent = 'DRIVER LOGIN';
                 if(authLink) authLink.href = 'login.html';
@@ -32,6 +35,30 @@ async function initFirebase() {
                 if(authLinkMobile) authLinkMobile.href = 'login.html';
             }
         });
+
+        // Check and award first login achievement
+        async function checkFirstLoginAchievement(userId) {
+            // Only run this check once per session to avoid repeated calls
+            const sessionKey = `firstLoginCheck_${userId}`;
+            if (sessionStorage.getItem(sessionKey)) return;
+            
+            try {
+                await fetch('/auto_award_achievement', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        actionType: 'first_login'
+                    })
+                });
+                
+                sessionStorage.setItem(sessionKey, 'true');
+            } catch (error) {
+                console.error('Error checking first login achievement:', error);
+            }
+        }
 
         // Live Timing Banner
         const liveBanner = document.getElementById('live-banner');
