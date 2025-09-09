@@ -95,7 +95,8 @@
     </div>
 
     <script type="module">
-        // Import Firebase modules
+        // Import Firebase modules and config
+        import { getFirebaseConfig } from './assets/js/firebase-config.js';
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, 
@@ -110,20 +111,22 @@
             PhoneMultiFactorGenerator
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Your web app's Firebase configuration from the main page
-        const firebaseConfig = {
-          apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
-          authDomain: "redsracing-a7f8b.firebaseapp.com",
-          projectId: "redsracing-a7f8b",
-          storageBucket: "redsracing-a7f8b.appspot.com",
-          messagingSenderId: "517034606151",
-          appId: "1:517034606151:web:24cae262e1d98832757b62"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const googleProvider = new GoogleAuthProvider();
+        // Initialize Firebase with config
+        let app, auth, googleProvider;
+        
+        async function initializeFirebase() {
+            try {
+                const firebaseConfig = await getFirebaseConfig();
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                googleProvider = new GoogleAuthProvider();
+                return true;
+            } catch (error) {
+                console.error('Firebase initialization failed:', error);
+                showMessage('Failed to initialize authentication system. Please refresh the page.');
+                return false;
+            }
+        }
 
         // Get form elements
         const emailInput = document.getElementById('email');
@@ -150,6 +153,72 @@
             errorBox.classList.remove('hidden');
         }
 
+        // Function to hide messages
+        function hideMessage() {
+            errorBox.classList.add('hidden');
+        }
+
+        // Function to validate email format
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Function to validate form inputs
+        function validateLoginForm(email, password) {
+            if (!email || !password) {
+                showMessage('Please fill in all required fields.');
+                return false;
+            }
+            
+            if (!isValidEmail(email)) {
+                showMessage('Please enter a valid email address.');
+                return false;
+            }
+            
+            if (password.length < 6) {
+                showMessage('Password must be at least 6 characters long.');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Function to set loading state
+        function setLoadingState(button, isLoading, originalText) {
+            if (isLoading) {
+                button.disabled = true;
+                button.textContent = 'Signing In...';
+                button.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                button.disabled = false;
+                button.textContent = originalText;
+                button.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // Function to get user-friendly error message
+        function getFriendlyErrorMessage(error) {
+            switch (error.code) {
+                case 'auth/user-not-found':
+                    return 'No account found with this email address. Please check your email or sign up for a new account.';
+                case 'auth/wrong-password':
+                    return 'Incorrect password. Please try again or use "Forgot password?" to reset it.';
+                case 'auth/invalid-email':
+                    return 'Please enter a valid email address.';
+                case 'auth/user-disabled':
+                    return 'This account has been disabled. Please contact support for assistance.';
+                case 'auth/too-many-requests':
+                    return 'Too many failed login attempts. Please wait a moment and try again.';
+                case 'auth/network-request-failed':
+                    return 'Network error. Please check your internet connection and try again.';
+                case 'auth/invalid-credential':
+                    return 'Invalid email or password. Please check your credentials and try again.';
+                default:
+                    return error.message || 'An unexpected error occurred. Please try again.';
+            }
+        }
+
         // Function to handle successful login
         function handleSuccess() {
             // Redirect to the main page after successful login/signup
@@ -157,89 +226,142 @@
         }
 
         // Event listener for Sign In button
-        signinButton.addEventListener('click', () => {
-            const email = emailInput.value;
+        signinButton.addEventListener('click', async () => {
+            const email = emailInput.value.trim();
             const password = passwordInput.value;
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // Standard login successful
-                    handleSuccess();
-                })
-                .catch((error) => {
-                    if (error.code === 'auth/multi-factor-required') {
-                        // The user has MFA enabled.
-                        showMessage("2-Step Verification required. Sending code...", false);
-                        const resolver = error.resolver;
-                        const phoneInfoOptions = {
-                            multiFactorHint: resolver.hints[0],
-                            session: resolver.session
-                        };
-                        const phoneAuthProvider = new PhoneAuthProvider(auth);
 
+            // Hide any previous messages
+            hideMessage();
+
+            // Validate form inputs
+            if (!validateLoginForm(email, password)) {
+                return;
+            }
+
+            // Set loading state
+            setLoadingState(signinButton, true, 'Sign In');
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                // Standard login successful
+                showMessage('Login successful! Redirecting...', false);
+                handleSuccess();
+            } catch (error) {
+                if (error.code === 'auth/multi-factor-required') {
+                    // The user has MFA enabled.
+                    showMessage("2-Step Verification required. Sending code...", false);
+                    const resolver = error.resolver;
+                    const phoneInfoOptions = {
+                        multiFactorHint: resolver.hints[0],
+                        session: resolver.session
+                    };
+                    const phoneAuthProvider = new PhoneAuthProvider(auth);
+
+                    try {
                         // Send the verification code
-                        phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, window.recaptchaVerifier)
-                            .then((verificationId) => {
-                                // Show the code input form
-                                document.getElementById('login-form').classList.add('hidden');
-                                document.getElementById('phone-auth-container').classList.remove('hidden');
-                                phoneForm.classList.add('hidden');
-                                codeForm.classList.remove('hidden');
+                        const verificationId = await phoneAuthProvider.verifyPhoneNumber(phoneInfoOptions, window.recaptchaVerifier);
+                        
+                        // Show the code input form
+                        document.getElementById('login-form').classList.add('hidden');
+                        document.getElementById('phone-auth-container').classList.remove('hidden');
+                        phoneForm.classList.add('hidden');
+                        codeForm.classList.remove('hidden');
 
-                                // Override the verify button's behavior for MFA
-                                verifyCodeButton.onclick = () => {
-                                    const cred = PhoneMultiFactorGenerator.credential({
-                                        verificationId: verificationId,
-                                        verificationCode: verificationCodeInput.value
-                                    });
-                                    resolver.resolveSignIn(cred)
-                                        .then((userCredential) => handleSuccess())
-                                        .catch((err) => showMessage("Invalid 2-step verification code."));
-                                };
-                            }).catch((err) => {
-                                showMessage("Could not send 2-step verification code. Please try again.");
+                        // Override the verify button's behavior for MFA
+                        verifyCodeButton.onclick = async () => {
+                            const cred = PhoneMultiFactorGenerator.credential({
+                                verificationId: verificationId,
+                                verificationCode: verificationCodeInput.value
                             });
-                    } else {
-                        // Handle other errors like wrong password
-                        showMessage(error.message);
+                            try {
+                                await resolver.resolveSignIn(cred);
+                                handleSuccess();
+                            } catch (err) {
+                                showMessage("Invalid 2-step verification code. Please try again.");
+                            }
+                        };
+                    } catch (err) {
+                        showMessage("Could not send 2-step verification code. Please try again.");
                     }
-                });
-        });
-
-        // --- Phone Auth Logic ---
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            'size': 'invisible',
-            'callback': (response) => {
-                // reCAPTCHA solved, allow signInWithPhoneNumber.
+                } else {
+                    // Handle other authentication errors
+                    showMessage(getFriendlyErrorMessage(error));
+                }
+            } finally {
+                // Reset loading state
+                setLoadingState(signinButton, false, 'Sign In');
             }
         });
 
-        sendCodeButton.addEventListener('click', () => {
-            const phoneNumber = phoneNumberInput.value;
-            const appVerifier = window.recaptchaVerifier;
-            signInWithPhoneNumber(auth, phoneNumber, appVerifier)
-                .then((confirmationResult) => {
-                    // SMS sent. Save confirmation result to resolve later.
-                    window.confirmationResult = confirmationResult;
-                    showMessage("Verification code sent!", false);
-                    phoneForm.classList.add('hidden');
-                    codeForm.classList.remove('hidden');
-                }).catch((error) => {
-                    // Error; SMS not sent
-                    showMessage(error.message);
-                    // Reset reCAPTCHA so user can try again
-                    grecaptcha.reset(window.recaptchaWidgetId);
-                });
+        // Initialize everything after Firebase is ready
+        async function initializeLoginApp() {
+            const firebaseReady = await initializeFirebase();
+            if (!firebaseReady) {
+                return;
+            }
+
+            // --- Phone Auth Logic ---
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response) => {
+                    // reCAPTCHA solved, allow signInWithPhoneNumber.
+                }
+            });
+        }
+
+        sendCodeButton.addEventListener('click', async () => {
+            const phoneNumber = phoneNumberInput.value.trim();
+            
+            if (!phoneNumber) {
+                showMessage("Please enter a valid phone number.");
+                return;
+            }
+
+            setLoadingState(sendCodeButton, true, 'Send Verification Code');
+
+            try {
+                const appVerifier = window.recaptchaVerifier;
+                const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+                // SMS sent. Save confirmation result to resolve later.
+                window.confirmationResult = confirmationResult;
+                showMessage("Verification code sent to your phone!", false);
+                phoneForm.classList.add('hidden');
+                codeForm.classList.remove('hidden');
+            } catch (error) {
+                // Error; SMS not sent
+                showMessage(getFriendlyErrorMessage(error));
+                // Reset reCAPTCHA so user can try again
+                if (window.recaptchaVerifier) {
+                    try {
+                        await window.recaptchaVerifier.render();
+                    } catch (e) {
+                        console.error('Error resetting recaptcha:', e);
+                    }
+                }
+            } finally {
+                setLoadingState(sendCodeButton, false, 'Send Verification Code');
+            }
         });
 
-        verifyCodeButton.addEventListener('click', () => {
-            const code = verificationCodeInput.value;
-            window.confirmationResult.confirm(code).then((result) => {
-                // User signed in successfully.
+        verifyCodeButton.addEventListener('click', async () => {
+            const code = verificationCodeInput.value.trim();
+            
+            if (!code) {
+                showMessage("Please enter the verification code.");
+                return;
+            }
+
+            setLoadingState(verifyCodeButton, true, 'Verify and Sign In');
+
+            try {
+                await window.confirmationResult.confirm(code);
+                showMessage("Phone verification successful! Redirecting...", false);
                 handleSuccess();
-            }).catch((error) => {
-                // User couldn't sign in.
+            } catch (error) {
                 showMessage("Invalid verification code. Please try again.");
-            });
+            } finally {
+                setLoadingState(verifyCodeButton, false, 'Verify and Sign In');
+            }
         });
 
         // Event listener for Sign Up button (redirects to signup page)
@@ -248,31 +370,68 @@
         });
 
         // Event listener for Forgot Password
-        forgotPasswordLink.addEventListener('click', (e) => {
+        forgotPasswordLink.addEventListener('click', async (e) => {
             e.preventDefault();
-            const email = emailInput.value;
+            const email = emailInput.value.trim();
+            
             if (!email) {
                 showMessage("Please enter your email address above, then click 'Forgot password?'.");
+                emailInput.focus();
                 return;
             }
-            sendPasswordResetEmail(auth, email)
-                .then(() => {
-                    showMessage("Password reset email sent! Please check your inbox.", false);
-                })
-                .catch((error) => {
-                    showMessage(error.message);
-                });
+            
+            if (!isValidEmail(email)) {
+                showMessage("Please enter a valid email address.");
+                emailInput.focus();
+                return;
+            }
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showMessage("Password reset email sent! Please check your inbox and spam folder.", false);
+            } catch (error) {
+                showMessage(getFriendlyErrorMessage(error));
+            }
         });
 
         // Event listener for Google Sign In button
-        googleSigninButton.addEventListener('click', () => {
-            signInWithPopup(auth, googleProvider)
-                .then((result) => {
-                    handleSuccess();
-                }).catch((error) => {
-                    showMessage(error.message);
-                });
+        googleSigninButton.addEventListener('click', async () => {
+            setLoadingState(googleSigninButton, true, 'Sign in with Google');
+
+            try {
+                await signInWithPopup(auth, googleProvider);
+                showMessage("Google sign-in successful! Redirecting...", false);
+                handleSuccess();
+            } catch (error) {
+                if (error.code !== 'auth/popup-closed-by-user') {
+                    showMessage(getFriendlyErrorMessage(error));
+                }
+            } finally {
+                setLoadingState(googleSigninButton, false, 'Sign in with Google');
+            }
         });
+        // Add real-time input validation
+        emailInput.addEventListener('blur', () => {
+            const email = emailInput.value.trim();
+            if (email && !isValidEmail(email)) {
+                emailInput.classList.add('border-red-500');
+                emailInput.classList.remove('border-gray-300');
+            } else {
+                emailInput.classList.remove('border-red-500');
+                emailInput.classList.add('border-gray-300');
+            }
+        });
+
+        emailInput.addEventListener('input', () => {
+            hideMessage();
+        });
+
+        passwordInput.addEventListener('input', () => {
+            hideMessage();
+        });
+
+        // Initialize the application
+        initializeLoginApp().catch(console.error);
     </script>
 </body>
 </html>
