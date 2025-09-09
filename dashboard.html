@@ -672,10 +672,20 @@
         };
 
         const getJonnyVideos = async () => {
-            const q = query(collection(db, "jonny_videos"), orderBy("createdAt", "desc"));
-            const snapshot = await getDocs(q);
-            const videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderJonnyVideos(videos);
+            try {
+                const q = query(collection(db, "jonny_videos"), orderBy("createdAt", "desc"));
+                const snapshot = await getDocs(q);
+                const videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderJonnyVideos(videos);
+            } catch (error) {
+                console.error("Error loading Jonny videos:", error);
+                if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+                    console.log("Insufficient permissions to access Jonny videos. User may not be a team member or authentication token needs refresh.");
+                    renderJonnyVideos([]); // Render empty list to prevent UI issues
+                } else {
+                    throw error; // Re-throw other errors
+                }
+            }
         };
 
         const deleteJonnyVideo = async (id) => {
