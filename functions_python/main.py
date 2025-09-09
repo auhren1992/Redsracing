@@ -1,7 +1,7 @@
 import firebase_admin
 from firebase_admin import firestore, initialize_app, auth
 from firebase_functions import https_fn, options
-from mailgun.client import Client as MailgunClient
+from mailgun.client import Client
 import os
 import json
 from datetime import datetime
@@ -19,7 +19,7 @@ def init_firebase():
 # Set the Mailgun API key from environment variables/secrets.
 # This is crucial for security. The secret name is 'MAILGUN_API_KEY'.
 options.set_global_options(secrets=["MAILGUN_API_KEY"])
-mg = MailgunClient(auth=("api", os.environ.get("MAILGUN_API_KEY")))
+mg = Client(api_key=os.environ.get("MAILGUN_API_KEY"), domain="mg.redsracing.org")
 
 # Define a default CORS policy to allow requests from any origin.
 CORS_OPTIONS = options.CorsOptions(cors_origins="*", cors_methods=["get", "post", "put", "options"])
@@ -78,7 +78,7 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
             "text": email_body
         }
         
-        response = mg.messages.create(data=data, domain="mg.redsracing.org")
+        response = mg.send_message(data)
         return https_fn.Response("Feedback sent successfully!", status=200)
     except Exception as e:
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
@@ -122,7 +122,7 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
             "text": email_body
         }
         
-        response = mg.messages.create(data=data, domain="mg.redsracing.org")
+        response = mg.send_message(data)
         return https_fn.Response("Sponsorship inquiry sent successfully!", status=200)
     except Exception as e:
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
