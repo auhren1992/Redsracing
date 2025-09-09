@@ -566,7 +566,7 @@
                         <button class="delete-photo-btn bg-red-600 text-white px-3 py-1 rounded text-sm" data-id="${photo.id}" data-url="${photo.imageUrl}">Delete</button>
                     </div>
                 `;
-                unapprovedPhotosList.appendChild(item);
+                container.appendChild(item);
             });
 
             document.querySelectorAll('.approve-photo-btn').forEach(btn => btn.addEventListener('click', () => approvePhoto(btn.dataset.id)));
@@ -778,84 +778,94 @@
         // Auth State Change Listener
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                userEmailEl.textContent = user.displayName || user.email;
+                try {
+                    userEmailEl.textContent = user.displayName || user.email;
 
-                if (!user.emailVerified) {
-                    emailVerificationNotice.classList.remove('hidden');
+                    if (!user.emailVerified) {
+                        emailVerificationNotice.classList.remove('hidden');
 
-                    // Handle resending the verification email
-                    resendVerificationBtn.addEventListener('click', async () => {
-                        try {
-                            await sendEmailVerification(user);
-                            alert('Verification email sent! Please check your inbox.');
-                        } catch (error) {
-                            console.error('Error resending verification email:', error);
-                            alert('Failed to resend verification email. Please try again later.');
-                        }
-                    });
-
-                    // Handle checking the verification status
-                    const refreshStatusBtn = document.getElementById('refresh-status-btn');
-                    refreshStatusBtn.addEventListener('click', async () => {
-                        // Force a reload of the user's profile from Firebase servers
-                        await auth.currentUser.reload();
-
-                        // Check the new status
-                        if (auth.currentUser.emailVerified) {
-                            emailVerificationNotice.classList.add('hidden');
-                             alert('Thank you for verifying your email!');
-                        } else {
-                            alert('Your email is still not verified. Please check your inbox for the verification link.');
-                        }
-                    });
-                }
-
-                await getRaceData();
-
-                const idTokenResult = await user.getIdTokenResult();
-                console.log("User's custom claims:", idTokenResult.claims);
-                const userRole = idTokenResult.claims.role;
-
-                if (userRole === 'team-member') {
-                   driverNotesCard.classList.remove('hidden');
-                    raceManagementCard.style.display = 'block';
-                    qnaManagementCard.style.display = 'block';
-                    photoApprovalCard.style.display = 'block';
-                    jonnyPhotoApprovalCard.style.display = 'block';
-                    mfaCard.style.display = 'block';
-
-                    getQnaSubmissions();
-                    getUnapprovedPhotos(null, unapprovedPhotosList); // Main gallery
-                    getUnapprovedPhotos('jonny', jonnyUnapprovedPhotosList); // Jonny's gallery
-                    getJonnyVideos();
-
-                    const userNotesRef = doc(db, "driver_notes", user.uid);
-                    const docSnap = await getDoc(userNotesRef);
-                    if (docSnap.exists()) {
-                        driverNotesEl.value = docSnap.data().notes;
-                    }
-                    driverNotesEl.addEventListener('keyup', () => {
-                        notesStatusEl.textContent = 'Saving...';
-                        clearTimeout(notesSaveTimeout);
-                        notesSaveTimeout = setTimeout(async () => {
+                        // Handle resending the verification email
+                        resendVerificationBtn.addEventListener('click', async () => {
                             try {
-                                await setDoc(userNotesRef, { notes: driverNotesEl.value }, { merge: true });
-                                notesStatusEl.textContent = 'Saved!';
-                            } catch (e) {
-                                notesStatusEl.textContent = 'Error saving notes.';
+                                await sendEmailVerification(user);
+                                alert('Verification email sent! Please check your inbox.');
+                            } catch (error) {
+                                console.error('Error resending verification email:', error);
+                                alert('Failed to resend verification email. Please try again later.');
                             }
-                            setTimeout(() => { notesStatusEl.textContent = ''; }, 2000);
-                        }, 1000);
-                    });
-                } else {
-                             driverNotesCard.classList.add('hidden');
-                }
+                        });
 
-                loadingState.classList.add('hidden');
-                dashboardContent.classList.remove('hidden');
+                        // Handle checking the verification status
+                        const refreshStatusBtn = document.getElementById('refresh-status-btn');
+                        refreshStatusBtn.addEventListener('click', async () => {
+                            // Force a reload of the user's profile from Firebase servers
+                            await auth.currentUser.reload();
 
-                if (userRole === 'team-member') {
-                    setupMfa(user);
+                            // Check the new status
+                            if (auth.currentUser.emailVerified) {
+                                emailVerificationNotice.classList.add('hidden');
+                                alert('Thank you for verifying your email!');
+                            } else {
+                                alert('Your email is still not verified. Please check your inbox for the verification link.');
+                            }
+                        });
+                    }
+
+                    await getRaceData();
+
+                    const idTokenResult = await user.getIdTokenResult();
+                    console.log("User's custom claims:", idTokenResult.claims);
+                    const userRole = idTokenResult.claims.role;
+
+                    if (userRole === 'team-member') {
+                        driverNotesCard.classList.remove('hidden');
+                        raceManagementCard.style.display = 'block';
+                        qnaManagementCard.style.display = 'block';
+                        photoApprovalCard.style.display = 'block';
+                        jonnyPhotoApprovalCard.style.display = 'block';
+                        mfaCard.style.display = 'block';
+
+                        getQnaSubmissions();
+                        getUnapprovedPhotos(null, unapprovedPhotosList); // Main gallery
+                        getUnapprovedPhotos('jonny', jonnyUnapprovedPhotosList); // Jonny's gallery
+                        getJonnyVideos();
+
+                        const userNotesRef = doc(db, "driver_notes", user.uid);
+                        const docSnap = await getDoc(userNotesRef);
+                        if (docSnap.exists()) {
+                            driverNotesEl.value = docSnap.data().notes;
+                        }
+                        driverNotesEl.addEventListener('keyup', () => {
+                            notesStatusEl.textContent = 'Saving...';
+                            clearTimeout(notesSaveTimeout);
+                            notesSaveTimeout = setTimeout(async () => {
+                                try {
+                                    await setDoc(userNotesRef, { notes: driverNotesEl.value }, { merge: true });
+                                    notesStatusEl.textContent = 'Saved!';
+                                } catch (e) {
+                                    notesStatusEl.textContent = 'Error saving notes.';
+                                }
+                                setTimeout(() => { notesStatusEl.textContent = ''; }, 2000);
+                            }, 1000);
+                        });
+                    } else {
+                        driverNotesCard.classList.add('hidden');
+                    }
+
+                    if (userRole === 'team-member') {
+                        setupMfa(user);
+                    }
+                } catch (error) {
+                    console.error("Failed to load dashboard content:", error);
+                    // Optionally, show an error message to the user
+                    dashboardContent.innerHTML = `<div class="text-center text-red-400 py-20">
+                        <h2 class="text-3xl font-bold font-racing uppercase">Error Loading Dashboard</h2>
+                        <p class="mt-2">There was a problem fetching dashboard data.</p>
+                        <p class="text-sm text-slate-500 mt-4">Please try refreshing the page. If the problem persists, contact support.</p>
+                    </div>`;
+                } finally {
+                    loadingState.classList.add('hidden');
+                    dashboardContent.classList.remove('hidden');
                 }
 
             } else {
