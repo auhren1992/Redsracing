@@ -95,5 +95,11 @@ service cloud.firestore {
       allow read;
       allow write: if isTeamMember();
     }
+
+    // JONNY_VIDEOS: Jonny's video collection for team management
+    // Read/Write/Delete: Only team members can manage Jonny's videos
+    match /jonny_videos/{videoId} {
+      allow read, write, delete: if isTeamMember();
+    }
   }
 }
