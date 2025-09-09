@@ -42,6 +42,10 @@
       {
         "source": "/leaderboard",
         "function": "handleGetLeaderboard@python-api"
+      },
+      {
+        "source": "/auto_award_achievement",
+        "function": "handleAutoAwardAchievement@python-api"
       }
     ]
   },

@@ -84,6 +84,21 @@ async function main() {
                             likes: [],
                             likeCount: 0
                         });
+                        
+                        // Check for photographer achievement
+                        try {
+                            const userPhotosQuery = query(
+                                collection(db, 'gallery_images'),
+                                where('uploaderUid', '==', userId)
+                            );
+                            const userPhotos = await getDocs(userPhotosQuery);
+                            await autoAwardAchievement(userId, 'photo_upload', { 
+                                totalPhotos: userPhotos.size 
+                            });
+                        } catch (error) {
+                            console.error('Error checking for photo achievements:', error);
+                        }
+                        
                         if(uploadStatus) {
                             uploadStatus.textContent = 'Upload complete! Waiting for approval.';
                             uploadStatus.style.color = '#22c55e';
@@ -184,6 +199,32 @@ async function main() {
                     likes: arrayUnion(userId),
                     likeCount: increment(1)
                 });
+                
+                // Check if this was a like on someone else's photo for fan favorite achievement
+                if (imageData.uploaderUid && imageData.uploaderUid !== userId) {
+                    try {
+                        // Get all photos by the photo owner
+                        const ownerPhotosQuery = query(
+                            collection(db, 'gallery_images'),
+                            where('uploaderUid', '==', imageData.uploaderUid)
+                        );
+                        const ownerPhotos = await getDocs(ownerPhotosQuery);
+                        
+                        // Calculate total likes across all their photos
+                        let totalLikes = 0;
+                        ownerPhotos.docs.forEach(photoDoc => {
+                            const photoData = photoDoc.data();
+                            totalLikes += photoData.likeCount || 0;
+                        });
+                        
+                        // Award fan favorite achievement if threshold reached
+                        await autoAwardAchievement(imageData.uploaderUid, 'photo_liked', { 
+                            totalLikes: totalLikes + 1 // +1 for the new like we just added
+                        });
+                    } catch (error) {
+                        console.error('Error checking for like achievements:', error);
+                    }
+                }
             }
         } catch (error) {
             console.error('Error toggling like:', error);
@@ -311,6 +352,60 @@ async function main() {
     });
     
     renderGallery();
+}
+
+// Auto award achievement helper function
+async function autoAwardAchievement(userId, actionType, actionData = {}) {
+    try {
+        const response = await fetch('/auto_award_achievement', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: userId,
+                actionType: actionType,
+                actionData: actionData
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.awardedAchievements && result.awardedAchievements.length > 0) {
+                console.log('Achievements awarded:', result.awardedAchievements);
+                showAchievementNotification(result.awardedAchievements);
+            }
+            return result;
+        }
+    } catch (error) {
+        console.error('Error auto-awarding achievement:', error);
+    }
+}
+
+// Show achievement notification
+function showAchievementNotification(achievements) {
+    achievements.forEach(achievement => {
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-neon-yellow text-black p-4 rounded-lg shadow-lg z-50 animate-pulse';
+        notification.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">🏆</div>
+                <div>
+                    <h4 class="font-bold">Achievement Unlocked!</h4>
+                    <p class="text-sm">${achievement.name}</p>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            if (notification && notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 5000);
+    });
 }
 
 main();

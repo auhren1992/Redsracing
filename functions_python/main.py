@@ -447,3 +447,97 @@ def handleGetLeaderboard(req: https_fn.Request) -> https_fn.Response:
     
     except Exception as e:
         return https_fn.Response(f"An error occurred: {e}", status=500)
+
+@https_fn.on_request(cors=CORS_OPTIONS)
+def handleAutoAwardAchievement(req: https_fn.Request) -> https_fn.Response:
+    """Automatically award achievements based on user actions."""
+    if req.method == "OPTIONS":
+        return https_fn.Response("", status=204)
+    if req.method != "POST":
+        return https_fn.Response("Method not allowed", status=405)
+
+    # This endpoint can be called internally or by authenticated users
+    data = req.get_json(silent=True)
+    if not data:
+        return https_fn.Response("Invalid request body", status=400)
+    
+    user_id = data.get("userId")
+    action_type = data.get("actionType")
+    action_data = data.get("actionData", {})
+    
+    if not all([user_id, action_type]):
+        return https_fn.Response("Missing required fields: userId, actionType", status=400)
+
+    try:
+        db = firestore.client()
+        
+        # Get all achievements to check which ones to award
+        achievements_query = db.collection("achievements").stream()
+        achievements = {}
+        
+        for doc in achievements_query:
+            achievement_data = doc.to_dict()
+            achievement_data["id"] = doc.id
+            achievements[doc.id] = achievement_data
+        
+        # Get user's current achievements
+        user_achievements_query = db.collection("user_achievements").where("userId", "==", user_id).stream()
+        user_achievement_ids = {doc.to_dict()["achievementId"] for doc in user_achievements_query}
+        
+        # Determine which achievements to award based on action type
+        achievements_to_award = []
+        
+        if action_type == "first_login":
+            if "community_member" not in user_achievement_ids:
+                achievements_to_award.append("community_member")
+        
+        elif action_type == "photo_upload":
+            # Check for photographer achievement (5 photos)
+            if "photographer" not in user_achievement_ids:
+                photo_count = action_data.get("totalPhotos", 1)
+                if photo_count >= 5:
+                    achievements_to_award.append("photographer")
+        
+        elif action_type == "photo_liked":
+            # Check for fan favorite achievement (10 total likes across all photos)
+            if "fan_favorite" not in user_achievement_ids:
+                total_likes = action_data.get("totalLikes", 1)
+                if total_likes >= 10:
+                    achievements_to_award.append("fan_favorite")
+        
+        elif action_type == "profile_created":
+            if "community_member" not in user_achievement_ids:
+                achievements_to_award.append("community_member")
+        
+        # Award the achievements
+        awarded_achievements = []
+        for achievement_id in achievements_to_award:
+            if achievement_id in achievements:
+                user_achievement_data = {
+                    "userId": user_id,
+                    "achievementId": achievement_id,
+                    "dateEarned": firestore.SERVER_TIMESTAMP,
+                    "assignedBy": "system",
+                    "autoAwarded": True,
+                    "actionType": action_type
+                }
+                
+                db.collection("user_achievements").add(user_achievement_data)
+                awarded_achievements.append({
+                    "id": achievement_id,
+                    "name": achievements[achievement_id]["name"],
+                    "description": achievements[achievement_id]["description"],
+                    "points": achievements[achievement_id]["points"]
+                })
+        
+        return https_fn.Response(
+            json.dumps({
+                "awardedAchievements": awarded_achievements,
+                "message": f"Awarded {len(awarded_achievements)} achievement(s)"
+            }, default=str),
+            status=200,
+            headers={"Content-Type": "application/json"}
+        )
+    
+    except Exception as e:
+        return https_fn.Response(f"An error occurred: {e}", status=500)
