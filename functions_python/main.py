@@ -373,3 +373,77 @@ def handleAssignAchievement(req: https_fn.Request) -> https_fn.Response:
     
     except Exception as e:
         return https_fn.Response(f"An error occurred: {e}", status=500)
+
+@https_fn.on_request(cors=CORS_OPTIONS)
+def handleGetLeaderboard(req: https_fn.Request) -> https_fn.Response:
+    """Get user leaderboard sorted by achievement points."""
+    if req.method == "OPTIONS":
+        return https_fn.Response("", status=204)
+    if req.method != "GET":
+        return https_fn.Response("Method not allowed", status=405)
+
+    try:
+        db = firestore.client()
+        
+        # Get all user achievements and calculate total points
+        user_achievements = db.collection("user_achievements").stream()
+        achievements_data = {}
+        
+        # First get all achievements to know their point values
+        for doc in db.collection("achievements").stream():
+            achievements_data[doc.id] = doc.to_dict()
+        
+        # Calculate total points per user
+        user_points = {}
+        user_achievement_counts = {}
+        
+        for doc in user_achievements:
+            data = doc.to_dict()
+            user_id = data["userId"]
+            achievement_id = data["achievementId"]
+            
+            if user_id not in user_points:
+                user_points[user_id] = 0
+                user_achievement_counts[user_id] = 0
+            
+            if achievement_id in achievements_data:
+                user_points[user_id] += achievements_data[achievement_id].get("points", 0)
+                user_achievement_counts[user_id] += 1
+        
+        # Get user profile data for leaderboard display
+        leaderboard = []
+        for user_id, total_points in user_points.items():
+            try:
+                profile_doc = db.collection("user_profiles").document(user_id).get()
+                if profile_doc.exists:
+                    profile_data = profile_doc.to_dict()
+                    leaderboard.append({
+                        "userId": user_id,
+                        "displayName": profile_data.get("displayName", "Anonymous User"),
+                        "username": profile_data.get("username", ""),
+                        "avatarUrl": profile_data.get("avatarUrl", ""),
+                        "totalPoints": total_points,
+                        "achievementCount": user_achievement_counts[user_id]
+                    })
+            except:
+                # Skip users with missing profiles
+                continue
+        
+        # Sort by total points descending
+        leaderboard.sort(key=lambda x: x["totalPoints"], reverse=True)
+        
+        # Limit to top 50 users
+        leaderboard = leaderboard[:50]
+        
+        # Add rank numbers
+        for i, user in enumerate(leaderboard):
+            user["rank"] = i + 1
+        
+        return https_fn.Response(
+            json.dumps(leaderboard, default=str), 
+            status=200, 
+            headers={"Content-Type": "application/json"}
+        )
+    
+    except Exception as e:
+        return https_fn.Response(f"An error occurred: {e}", status=500)

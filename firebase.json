@@ -38,6 +38,10 @@
       {
         "source": "/assign_achievement",
         "function": "handleAssignAchievement@python-api"
+      },
+      {
+        "source": "/leaderboard",
+        "function": "handleGetLeaderboard@python-api"
       }
     ]
   },
