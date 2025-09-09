@@ -1,4 +1,4 @@
 firebase-functions==0.4.3
 firebase-admin==7.1.0
 flask>=3.1.2
-mailgun-sdk
+mailgun==1.1.0
