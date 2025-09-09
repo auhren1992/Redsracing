@@ -199,6 +199,10 @@
             
             if (loadingState) {
                 loadingState.style.display = 'none';
+                loadingState.style.visibility = 'hidden';
+                loadingState.classList.add('hidden');
+                loadingState.setAttribute('hidden', 'true');
+                console.log('Loading state hidden');
             }
             
             if (dashboardContent) {
@@ -222,6 +226,8 @@
                     </div>
                 `;
                 dashboardContent.classList.remove('hidden');
+                console.log('Fallback content shown');
+            }
             }
             
             if (loadingTimeout) {

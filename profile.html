@@ -230,7 +230,11 @@
             const profileContent = document.getElementById('profile-content');
             
             if (loadingState) {
+                loadingState.style.display = 'none';
+                loadingState.style.visibility = 'hidden';
                 loadingState.classList.add('hidden');
+                loadingState.setAttribute('hidden', 'true');
+                console.log('Profile loading state hidden');
             }
             
             if (profileContent) {
@@ -254,6 +258,8 @@
                     </div>
                 `;
                 profileContent.classList.remove('hidden');
+                console.log('Profile fallback content shown');
+            }
             }
             
             if (loadingTimeout) {
