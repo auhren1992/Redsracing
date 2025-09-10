@@ -181,6 +181,34 @@
                 qnaModal.classList.add('hidden');
                 qnaModal.classList.remove('flex');
             }
+
+            // Fallback timeout in case module fails to load
+            setTimeout(() => {
+                const loadingState = document.getElementById('loading-state');
+                const dashboardContent = document.getElementById('dashboard-content');
+                
+                // Only show fallback if still loading
+                if (loadingState && !loadingState.classList.contains('hidden')) {
+                    loadingState.classList.remove('flex', 'flex-col', 'items-center', 'justify-center');
+                    loadingState.classList.add('hidden');
+                    loadingState.style.display = 'none';
+                    if (dashboardContent) {
+                        dashboardContent.innerHTML = `<div class="text-center py-20">
+                            <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
+                            <div class="text-yellow-400 mb-6">
+                                <h2 class="text-2xl font-bold">Dashboard Temporarily Unavailable</h2>
+                                <p class="mt-2">Our services are currently unavailable.</p>
+                                <p class="text-sm text-slate-400 mt-2">Please check your connection and try again.</p>
+                            </div>
+                            <div class="space-x-4">
+                                <button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Try Again</button>
+                                <a href="index.html" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">Go Home</a>
+                            </div>
+                        </div>`;
+                        dashboardContent.classList.remove('hidden');
+                    }
+                }
+            }, 8000);
         });
     </script>
 

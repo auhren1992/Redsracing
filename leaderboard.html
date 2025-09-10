@@ -129,49 +129,27 @@
     <script src="assets/js/main.js" type="module"></script>
     
     <script type="module">
-        // Import Firebase modules
-        import { getFirebaseConfig } from './assets/js/firebase-config.js';
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { initFirebase } from './assets/js/firebase-init.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         let auth;
 
-        // Initialize Firebase and load leaderboard
         async function initApp() {
             try {
-                const firebaseConfig = await getFirebaseConfig();
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-
-                // Update auth state
+                const { auth: a } = await initFirebase();
+                auth = a;
                 onAuthStateChanged(auth, user => {
                     const authLink = document.getElementById('auth-link');
                     const authLinkMobile = document.getElementById('auth-link-mobile');
-                    
-                    if (user) {
-                        if (authLink) {
-                            authLink.textContent = 'Dashboard';
-                            authLink.href = 'dashboard.html';
-                        }
-                        if (authLinkMobile) {
-                            authLinkMobile.textContent = 'Dashboard';
-                            authLinkMobile.href = 'dashboard.html';
-                        }
-                    } else {
-                        if (authLink) {
-                            authLink.textContent = 'DRIVER LOGIN';
-                            authLink.href = 'login.html';
-                        }
-                        if (authLinkMobile) {
-                            authLinkMobile.textContent = 'DRIVER LOGIN';
-                            authLinkMobile.href = 'login.html';
-                        }
-                    }
+                    const setLinks = (text, href) => {
+                        if (authLink) { authLink.textContent = text; authLink.href = href; }
+                        if (authLinkMobile) { authLinkMobile.textContent = text; authLinkMobile.href = href; }
+                    };
+                    if (user) setLinks('Dashboard', 'dashboard.html'); else setLinks('DRIVER LOGIN', 'login.html');
                 });
-
                 await loadLeaderboard();
-            } catch (error) {
-                console.error('Failed to initialize app:', error);
+            } catch (e) {
+                console.error('Failed to initialize app:', e);
                 showError();
             }
         }

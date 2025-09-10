@@ -1,5 +1,5 @@
 // Importing Firebase services and specific functions
-import { auth, db, storage } from './firebase-config.js';
+import { initFirebase } from './firebase-init.js';
 import { onAuthStateChanged, signOut, sendEmailVerification, RecaptchaVerifier, linkWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
@@ -10,7 +10,7 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
     let loadingTimeout = setTimeout(() => {
         console.warn('Loading timeout reached, showing fallback content');
         hideLoadingAndShowFallback();
-    }, 5000); // 5 second timeout
+    }, 8000); // 8 second timeout
 
     function hideLoadingAndShowFallback() {
         const loadingState = document.getElementById('loading-state');
@@ -658,6 +658,19 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
             clearTimeout(loadingTimeout);
             loadingTimeout = null;
         }
+    }
+
+    // Initialize Firebase services before using them
+    let auth, db, storage;
+    try {
+        const services = await initFirebase();
+        auth = services.auth;
+        db = services.db;
+        storage = services.storage;
+    } catch (error) {
+        console.error('Firebase initialization failed:', error);
+        hideLoadingAndShowFallback();
+        return;
     }
 
     // Auth State Change Listener
