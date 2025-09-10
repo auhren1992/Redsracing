@@ -19,5 +19,10 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
+// Function to get Firebase configuration
+export async function getFirebaseConfig() {
+    return firebaseConfig;
+}
+
 // Export the initialized services
 export { app, auth, db, storage };
