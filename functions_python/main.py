@@ -1,7 +1,8 @@
 import firebase_admin
 from firebase_admin import firestore, initialize_app, auth
 from firebase_functions import https_fn, options
-from mailgun.client import Client
+import sendgrid
+from sendgrid.helpers.mail import Mail
 import os
 import json
 from datetime import datetime
@@ -9,22 +10,22 @@ from datetime import datetime
 # Initialize Firebase Admin SDK.
 initialize_app()
 
-# Set the Mailgun API key from environment variables/secrets.
-# This is crucial for security. The secret name is 'MAILGUN_API_KEY'.
-options.set_global_options(secrets=["MAILGUN_API_KEY"])
+# Set the SendGrid API key from environment variables/secrets.
+# This is crucial for security. The secret name is 'SENDGRID_API_KEY'.
+options.set_global_options(secrets=["SENDGRID_API_KEY"])
 
-# Initialize Mailgun client lazily to avoid import failures if API key is missing
-mg = None
+# Initialize SendGrid client lazily to avoid import failures if API key is missing
+sg = None
 
-def get_mailgun_client():
-    """Get or initialize the Mailgun client."""
-    global mg
-    if mg is None:
-        api_key = os.environ.get("MAILGUN_API_KEY")
+def get_sendgrid_client():
+    """Get or initialize the SendGrid client."""
+    global sg
+    if sg is None:
+        api_key = os.environ.get("SENDGRID_API_KEY")
         if not api_key:
-            raise ValueError("MAILGUN_API_KEY environment variable is required for email functionality")
-        mg = Client(api_key=api_key, domain="mg.redsracing.org")
-    return mg
+            raise ValueError("SENDGRID_API_KEY environment variable is required for email functionality")
+        sg = sendgrid.SendGridAPIClient(api_key=api_key)
+    return sg
 
 # Define a default CORS policy to allow requests from any origin.
 CORS_OPTIONS = options.CorsOptions(cors_origins="*", cors_methods=["get", "post", "put", "options"])
@@ -51,7 +52,7 @@ def handleAddSubscriber(req: https_fn.Request) -> https_fn.Response:
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
-    """Sends feedback from a user as an email via Mailgun."""
+    """Sends feedback from a user as an email via SendGrid."""
     if req.method == "OPTIONS":
         return https_fn.Response("", status=204)
     if req.method != "POST":
@@ -63,31 +64,36 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
 
     name = data.get("name")
     email = data.get("email")
-    message = data.get("message")
+    message_content = data.get("message")
 
-    if not all([name, email, message]):
+    if not all([name, email, message_content]):
         return https_fn.Response("Missing required fields: name, email, message", status=400)
 
     try:
         email_subject = f"New Feedback from {name}"
-        email_body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
+        email_body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message_content}"
 
-        # IMPORTANT: Replace with your actual Mailgun domain and recipient email.
-        data = {
-            "from": "feedback@mg.redsracing.org",
-            "to": "aaron@redsracing.org",
-            "subject": email_subject,
-            "text": email_body
-        }
+        message = Mail(
+            from_email='feedback@redsracing.org',  # Must be a verified sender in SendGrid
+            to_emails='aaron@redsracing.org',
+            subject=email_subject,
+            plain_text_content=email_body
+        )
         
-        response = get_mailgun_client().messages.create(data=data, domain="mg.redsracing.org")
-        return https_fn.Response("Feedback sent successfully!", status=200)
+        sg_client = get_sendgrid_client()
+        response = sg_client.send(message)
+
+        if response.status_code >= 200 and response.status_code < 300:
+            return https_fn.Response("Feedback sent successfully!", status=200)
+        else:
+            return https_fn.Response(f"Error sending email: {response.body}", status=response.status_code)
+
     except Exception as e:
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
-    """Sends a sponsorship inquiry as an email via Mailgun."""
+    """Sends a sponsorship inquiry as an email via SendGrid."""
     if req.method == "OPTIONS":
         return https_fn.Response("", status=204)
     if req.method != "POST":
@@ -101,9 +107,9 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
     name = data.get("name")
     email = data.get("email")
     phone = data.get("phone", "N/A")
-    message = data.get("message")
+    message_content = data.get("message")
 
-    if not all([name, email, message]):
+    if not all([name, email, message_content]):
         return https_fn.Response("Missing required fields: name, email, message", status=400)
 
     try:
@@ -113,19 +119,24 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
             f"Contact Name: {name}\n"
             f"Email: {email}\n"
             f"Phone: {phone}\n\n"
-            f"Message:\n{message}"
+            f"Message:\n{message_content}"
         )
 
-        # IMPORTANT: Replace with your actual Mailgun domain and recipient email.
-        data = {
-            "from": "sponsorship@mg.redsracing.org",
-            "to": "aaron@redsracing.org",
-            "subject": email_subject,
-            "text": email_body
-        }
+        message = Mail(
+            from_email='sponsorship@redsracing.org', # Must be a verified sender in SendGrid
+            to_emails='aaron@redsracing.org',
+            subject=email_subject,
+            plain_text_content=email_body
+        )
         
-        response = get_mailgun_client().messages.create(data=data, domain="mg.redsracing.org")
-        return https_fn.Response("Sponsorship inquiry sent successfully!", status=200)
+        sg_client = get_sendgrid_client()
+        response = sg_client.send(message)
+
+        if response.status_code >= 200 and response.status_code < 300:
+            return https_fn.Response("Sponsorship inquiry sent successfully!", status=200)
+        else:
+            return https_fn.Response(f"Error sending email: {response.body}", status=response.status_code)
+
     except Exception as e:
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
 
