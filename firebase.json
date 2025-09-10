@@ -34,52 +34,31 @@
       },
       {
         "source": "/profile/**",
-        "run": {
-          "serviceId": "handleGetProfile",
-          "region": "us-central1"
-        }
+        "function": "handleGetProfile"
       },
       {
         "source": "/update_profile/**",
-        "run": {
-          "serviceId": "handleUpdateProfile",
-          "region": "us-central1"
-        }
+        "function": "handleUpdateProfile"
       },
       {
         "source": "/achievements",
-        "run": {
-          "serviceId": "handleGetAchievements",
-          "region": "us-central1"
-        }
+        "function": "handleGetAchievements"
       },
       {
         "source": "/assign_achievement",
-        "run": {
-          "serviceId": "handleAssignAchievement",
-          "region": "us-central1"
-        }
+        "function": "handleAssignAchievement"
       },
       {
         "source": "/leaderboard",
-        "run": {
-          "serviceId": "handleGetLeaderboard",
-          "region": "us-central1"
-        }
+        "function": "handleGetLeaderboard"
       },
       {
         "source": "/auto_award_achievement",
-        "run": {
-          "serviceId": "handleAutoAwardAchievement",
-          "region": "us-central1"
-        }
+        "function": "handleAutoAwardAchievement"
       },
       {
         "source": "/achievement_progress/**",
-        "run": {
-          "serviceId": "handleGetAchievementProgress",
-          "region": "us-central1"
-        }
+        "function": "handleGetAchievementProgress"
       }
     ]
   },
