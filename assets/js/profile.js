@@ -152,11 +152,18 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
                     } catch (error) {
                         console.error("Failed to load profile:", error);
                         if (error.code === 'not-found') {
-                            console.log('Profile not found, creating default profile...');
-                            await createDefaultProfile(user.uid);
+                            // Only create default profile for current user's own profile
+                            if (isCurrentUserProfile) {
+                                console.log('Profile not found, creating default profile...');
+                                await createDefaultProfile(user.uid);
+                            } else {
+                                // For other users' missing profiles, show minimal profile
+                                console.log('Other user profile not found, showing minimal profile...');
+                                displayMinimalProfile(targetUserId);
+                            }
                         } else {
                             // Show minimal profile as fallback
-                            displayMinimalProfile(user.uid);
+                            displayMinimalProfile(isCurrentUserProfile ? user.uid : targetUserId);
                         }
                     }
                 } else {
@@ -337,12 +344,13 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
             return;
         }
 
-        // Create a basic profile from available user data
+        // Create a basic profile - if viewing current user, use their data; otherwise show generic profile
+        const isViewingOwnProfile = (userId === user.uid);
         const basicProfile = {
-            username: user.email ? user.email.split('@')[0] : 'unknown',
-            displayName: user.displayName || 'Anonymous User',
-            bio: 'Profile backend not available',
-            avatarUrl: user.photoURL || '',
+            username: isViewingOwnProfile && user.email ? user.email.split('@')[0] : 'unknown',
+            displayName: isViewingOwnProfile && user.displayName ? user.displayName : 'User Not Found',
+            bio: isViewingOwnProfile ? 'Profile backend not available' : 'This user profile could not be loaded',
+            avatarUrl: isViewingOwnProfile ? (user.photoURL || '') : '',
             favoriteCars: [],
             joinDate: new Date().toISOString()
         };
@@ -350,7 +358,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
         displayProfile(basicProfile);
         loadAchievements([]); // Load empty achievements
 
-        console.log('Displayed minimal profile due to backend unavailability');
+        console.log(`Displayed minimal profile due to ${isViewingOwnProfile ? 'backend unavailability' : 'user not found'}`);
     }
 
     function loadAchievements(achievements) {
