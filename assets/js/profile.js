@@ -241,7 +241,15 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
             throw error;
         }
         
-        return response.json();
+        // Check Content-Type header to determine how to parse response
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            return response.json();
+        } else {
+            // Fallback to text and wrap in object for consistency
+            const textResponse = await response.text();
+            return { message: textResponse };
+        }
     }
 
     // Load user profile
