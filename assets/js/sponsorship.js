@@ -21,12 +21,12 @@ async function main() {
             sponsorshipStatus.classList.remove('text-red-500', 'text-green-500');
 
             try {
-                const response = await fetch('/handleSendSponsorship', {
+                const response = await fetch('/send_sponsorship_email', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ companyName, contactName, email, phone, message }),
+                    body: JSON.stringify({ company: companyName, name: contactName, email, phone, message }),
                 });
 
                 const result = await response.json();

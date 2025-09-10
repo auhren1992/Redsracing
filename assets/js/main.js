@@ -110,7 +110,7 @@ async function initFirebase() {
                 subscribeStatus.classList.remove('text-red-500', 'text-green-500');
 
                 try {
-                    const response = await fetch('/handleAddSubscriber', {
+                    const response = await fetch('/add_subscriber', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
