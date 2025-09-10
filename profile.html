@@ -217,19 +217,91 @@
     </main>
 
     <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth,
-            onAuthStateChanged,
-            signOut
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirebaseConfig } from "./assets/js/firebase-config.js";
+        // Wrap everything in an async function to allow early returns
+        (async function() {
+        // Add immediate loading timeout as backup
+        let loadingTimeout = setTimeout(() => {
+            console.warn('Loading timeout reached, showing fallback content');
+            hideLoadingAndShowFallback();
+        }, 5000); // 5 second timeout
 
-        // Initialize Firebase
-        const firebaseConfig = await getFirebaseConfig();
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        function hideLoadingAndShowFallback() {
+            const loadingState = document.getElementById('loading-state');
+            const profileContent = document.getElementById('profile-content');
+            
+            if (loadingState) {
+                loadingState.style.display = 'none';
+                loadingState.style.visibility = 'hidden';
+                loadingState.classList.add('hidden');
+                loadingState.setAttribute('hidden', 'true');
+                console.log('Profile loading state hidden');
+            }
+            
+            if (profileContent) {
+                profileContent.innerHTML = `
+                    <div class="text-center py-20">
+                        <h1 class="text-5xl font-racing uppercase mb-2">User <span class="neon-yellow">Profile</span></h1>
+                        <div class="text-yellow-400 mb-6">
+                            <h2 class="text-2xl font-bold">Profile Temporarily Unavailable</h2>
+                            <p class="mt-2">Our services are currently unavailable.</p>
+                            <p class="text-sm text-slate-400 mt-2">This could be due to network issues or temporary service downtime.</p>
+                            <p class="text-sm text-slate-400 mt-1">Please check your internet connection and try again.</p>
+                        </div>
+                        <div class="space-x-4">
+                            <button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
+                                Try Again
+                            </button>
+                            <a href="index.html" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">
+                                Go Home
+                            </a>
+                        </div>
+                    </div>
+                `;
+                profileContent.classList.remove('hidden');
+                console.log('Profile fallback content shown');
+            }
+            }
+            
+            if (loadingTimeout) {
+                clearTimeout(loadingTimeout);
+                loadingTimeout = null;
+            }
+        }
+
+        // Try to load Firebase, but catch any import errors
+        let firebaseLoaded = false;
+        let app, auth;
+        
+        try {
+            // Import Firebase modules
+            const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+            const { 
+                getAuth,
+                onAuthStateChanged,
+                signOut
+            } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+            const { getFirebaseConfig } = await import("./assets/js/firebase-config.js");
+
+            // Initialize Firebase
+            const firebaseConfig = await getFirebaseConfig();
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            
+            firebaseLoaded = true;
+            console.log('Firebase modules loaded successfully');
+            
+        } catch (importError) {
+            console.error('Failed to load Firebase modules:', importError);
+            hideLoadingAndShowFallback();
+            console.log('Showing fallback content due to Firebase loading failure');
+            return; // Exit early if Firebase can't be loaded
+        }
+
+        // Only proceed with Firebase functionality if modules loaded successfully
+        if (!firebaseLoaded) {
+            console.log('Firebase not available, profile will show fallback content');
+            return;
+        }
 
         // UI Elements
         const loadingState = document.getElementById('loading-state');
@@ -265,6 +337,37 @@
         let currentUser = null;
         let isEditing = false;
         let isCurrentUserProfile = false;
+
+        // Add loading timeout to prevent infinite loading
+        function setupLoadingTimeout() {
+            if (loadingTimeout) clearTimeout(loadingTimeout);
+            loadingTimeout = setTimeout(() => {
+                console.warn('Loading timeout reached, hiding loading state');
+                hideLoadingAndShowContent();
+            }, 10000); // 10 second timeout
+        }
+
+        function hideLoadingAndShowContent() {
+            loadingState.classList.add('hidden');
+            profileContent.classList.remove('hidden');
+            if (loadingTimeout) {
+                clearTimeout(loadingTimeout);
+                loadingTimeout = null;
+            }
+        }
+
+        function showErrorState() {
+            loadingState.classList.add('hidden');
+            profileContent.classList.add('hidden');
+            errorState.classList.remove('hidden');
+            if (loadingTimeout) {
+                clearTimeout(loadingTimeout);
+                loadingTimeout = null;
+            }
+        }
+
+        // Start the loading timeout immediately
+        setupLoadingTimeout();
 
         // Get user ID from URL or use current user
         function getUserIdFromUrl() {
@@ -400,8 +503,7 @@
             // Show edit button only for current user's profile
             editProfileBtn.style.display = isCurrentUserProfile ? 'block' : 'none';
 
-            loadingState.classList.add('hidden');
-            profileContent.classList.remove('hidden');
+            hideLoadingAndShowContent();
         }
 
         // Load achievements
@@ -631,6 +733,10 @@
             loadingState.classList.add('hidden');
             profileContent.classList.add('hidden');
             errorState.classList.remove('hidden');
+            if (loadingTimeout) {
+                clearTimeout(loadingTimeout);
+                loadingTimeout = null;
+            }
         }
 
         // Toggle edit mode
@@ -752,23 +858,35 @@
 
         // Auth state change handler
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                const targetUserId = getUserIdFromUrl() || user.uid;
-                isCurrentUserProfile = (targetUserId === user.uid);
-                
-                const userToken = await user.getIdToken();
-                await loadUserProfile(targetUserId, userToken);
+            try {
+                if (user) {
+                    currentUser = user;
+                    const targetUserId = getUserIdFromUrl() || user.uid;
+                    isCurrentUserProfile = (targetUserId === user.uid);
+                    
+                    try {
+                        const userToken = await user.getIdToken();
+                        await loadUserProfile(targetUserId, userToken);
 
-                // Check if user is admin for achievements management
-                const tokenResult = await user.getIdTokenResult();
-                const isAdmin = tokenResult.claims.role === 'team-member';
-                if (isAdmin) {
-                    adminAchievements.classList.remove('hidden');
-                    await loadAllAchievements();
+                        // Check if user is admin for achievements management
+                        const tokenResult = await user.getIdTokenResult();
+                        const isAdmin = tokenResult.claims.role === 'team-member';
+                        if (isAdmin) {
+                            adminAchievements.classList.remove('hidden');
+                            await loadAllAchievements();
+                        }
+                    } catch (error) {
+                        console.error("Failed to load profile:", error);
+                        // Show minimal profile as fallback
+                        displayMinimalProfile(user.uid);
+                    }
+                } else {
+                    window.location.href = 'login.html';
                 }
-            } else {
-                window.location.href = 'login.html';
+            } catch (authError) {
+                console.error("Authentication error:", authError);
+                // Show error state for authentication failures
+                showErrorState();
             }
         });
 
@@ -862,6 +980,15 @@
                 alert('Failed to assign achievement. Please try again.');
             }
         };
+        
+        // Clear the loading timeout since we successfully loaded
+        if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+            loadingTimeout = null;
+        }
+        
+        })(); // End of async function wrapper
+        
     </script>
 </body>
 </html>
