@@ -1,9 +1,14 @@
 // Importing Firebase services and specific functions
+// Importing Firebase services and specific functions
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 
 // Wrap everything in an async function to allow early returns
 (async function() {
+    const functions = getFunctions();
+    const getProfile = httpsCallable(functions, 'getProfile');
+    const updateProfile = httpsCallable(functions, 'updateProfile');
     // Add immediate loading timeout as backup
     let loadingTimeout = setTimeout(() => {
         console.warn('Loading timeout reached, showing fallback content');
@@ -113,8 +118,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
                     isCurrentUserProfile = (targetUserId === user.uid);
 
                     try {
-                        const userToken = await user.getIdToken();
-                        await loadUserProfile(targetUserId, userToken);
+                        await loadUserProfile(targetUserId);
 
                         // Check if user is admin for achievements management
                         const tokenResult = await user.getIdTokenResult();
@@ -125,8 +129,13 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
                         }
                     } catch (error) {
                         console.error("Failed to load profile:", error);
-                        // Show minimal profile as fallback
-                        displayMinimalProfile(user.uid);
+                        if (error.code === 'not-found') {
+                            console.log('Profile not found, creating default profile...');
+                            await createDefaultProfile(user.uid);
+                        } else {
+                            // Show minimal profile as fallback
+                            displayMinimalProfile(user.uid);
+                        }
                     }
                 } else {
                     window.location.href = 'login.html';
@@ -177,47 +186,25 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
     }
 
     // Load user profile
-    async function loadUserProfile(userId, userToken) {
+    async function loadUserProfile(userId) {
         try {
-            const response = await fetch(`/profile/${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${userToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const result = await getProfile({ userId });
+            const profileData = result.data;
+            displayProfile(profileData);
+            loadAchievements(profileData.achievements || []);
 
-            if (response.ok) {
-                const profileData = await response.json();
-                displayProfile(profileData);
-                loadAchievements(profileData.achievements || []);
-
-                // Load achievement progress for current user's profile
-                if (isCurrentUserProfile) {
-                    await loadAchievementProgress(userId);
-                }
-            } else if (response.status === 404) {
-                console.log('Profile not found, creating default profile...');
-                await createDefaultProfile(userId, userToken);
-            } else {
-                console.error(`Failed to load profile: ${response.status} ${response.statusText}`);
-                // Show error state but don't fail completely
-                showErrorState();
+            // Load achievement progress for current user's profile
+            if (isCurrentUserProfile) {
+                await loadAchievementProgress(userId);
             }
         } catch (error) {
             console.error('Error loading profile:', error);
-            if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-                console.log('Backend endpoints may not be available. This is expected if Cloud Functions are not deployed.');
-                // Try to create a minimal profile display
-                displayMinimalProfile(userId);
-            } else {
-                showErrorState();
-            }
+            throw error; // Re-throw to be caught by the auth state change handler
         }
     }
 
     // Create default profile for new users
-    async function createDefaultProfile(userId, userToken) {
+    async function createDefaultProfile(userId) {
         const defaultProfile = {
             username: currentUser.email.split('@')[0], // Use email username as default
             displayName: currentUser.displayName || 'Anonymous User',
@@ -228,35 +215,15 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
         };
 
         try {
-            const response = await fetch(`/update_profile/${userId}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${userToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(defaultProfile)
-            });
+            await updateProfile({ userId, profileData: defaultProfile });
+            // Award community member achievement for profile creation
+            await autoAwardAchievement(userId, 'profile_created');
 
-            if (response.ok) {
-                // Award community member achievement for profile creation
-                await autoAwardAchievement(userId, 'profile_created');
-
-                // Reload profile after creation
-                await loadUserProfile(userId, userToken);
-            } else if (response.status === 404) {
-                console.log('Profile creation endpoint not available. Using basic profile display.');
-                displayProfile(defaultProfile);
-            } else {
-                throw new Error('Failed to create default profile');
-            }
+            // Reload profile after creation
+            await loadUserProfile(userId);
         } catch (error) {
             console.error('Error creating default profile:', error);
-            if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-                console.log('Backend not available, showing basic profile');
-                displayProfile(defaultProfile);
-            } else {
-                showErrorState();
-            }
+            showErrorState();
         }
     }
 
@@ -583,7 +550,6 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
         saveProfileBtn.disabled = true;
         saveProfileBtn.textContent = 'Saving...';
 
-        const userToken = await currentUser.getIdToken();
         const profileData = {
             username: username,
             displayName: displayName,
@@ -593,25 +559,10 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
         };
 
         try {
-            const response = await fetch(`/update_profile/${currentUser.uid}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${userToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(profileData)
-            });
-
-            if (response.ok) {
-                // Reload profile to show updated data
-                await loadUserProfile(currentUser.uid, userToken);
-                toggleEditMode();
-            } else if (response.status === 400) {
-                const errorText = await response.text();
-                alert(`Failed to save profile: ${errorText}`);
-            } else {
-                throw new Error(`Failed to save profile: ${response.statusText}`);
-            }
+            await updateProfile({ userId: currentUser.uid, profileData });
+            // Reload profile to show updated data
+            await loadUserProfile(currentUser.uid);
+            toggleEditMode();
         } catch (error) {
             console.error('Error saving profile:', error);
             alert('Failed to save profile. Please try again.');

@@ -188,3 +188,93 @@ exports.generateTags = onObjectFinalized({
     // This helps in debugging and re-triggering failed jobs.
   }
 });
+
+/**
+ * Fetches a user's profile data.
+ *
+ * This function is designed to be called from the client-side to retrieve
+ * public profile information for any user. It requires authentication to prevent
+ * abuse.
+ *
+ * @param {object} data The data passed to the function.
+ * @param {string} data.userId The UID of the user profile to fetch.
+ * @returns {Promise<object>} A promise that resolves with the user's profile data.
+ */
+exports.getProfile = onCall(async (request) => {
+  if (!request.auth) {
+    logger.error("getProfile called by unauthenticated user.");
+    throw new HttpsError("unauthenticated", "You must be logged in to view profiles.");
+  }
+
+  const {userId} = request.data;
+  if (!userId) {
+    logger.error("getProfile called without a userId.");
+    throw new HttpsError("invalid-argument", "The function must be called with a 'userId'.");
+  }
+
+  logger.info(`Fetching profile for user ${userId}`);
+  const db = getFirestore();
+
+  try {
+    const userDocRef = db.collection("users").doc(userId);
+    const userDoc = await userDocRef.get();
+
+    if (!userDoc.exists) {
+      logger.warn(`Profile for user ${userId} not found.`);
+      throw new HttpsError("not-found", "User profile not found.");
+    }
+
+    return userDoc.data();
+  } catch (error) {
+    logger.error(`Error fetching profile for user ${userId}:`, error);
+    if (error.code === "not-found") {
+      throw error; // Re-throw HttpsError
+    }
+    throw new HttpsError("internal", "An internal error occurred while fetching the profile.", error);
+  }
+});
+
+/**
+ * Creates or updates a user's profile data.
+ *
+ * This function allows a user to update their own profile information.
+ * It ensures that users can only modify their own data.
+ *
+ * @param {object} data The data passed to the function.
+ * @param {string} data.userId The UID of the user profile to update.
+ * @param {object} data.profileData The new profile data.
+ * @returns {Promise<object>} A promise that resolves with the result of the operation.
+ */
+exports.updateProfile = onCall(async (request) => {
+  if (!request.auth) {
+    logger.error("updateProfile called by unauthenticated user.");
+    throw new HttpsError("unauthenticated", "You must be logged in to update your profile.");
+  }
+
+  const {userId, profileData} = request.data;
+  const callerUid = request.auth.uid;
+
+  if (!userId || !profileData) {
+    logger.error("updateProfile called with missing data.", {userId, profileData});
+    throw new HttpsError("invalid-argument", "The function must be called with 'userId' and 'profileData'.");
+  }
+
+  // Security check: Ensure users can only update their own profile
+  if (userId !== callerUid) {
+    logger.error(`User ${callerUid} attempted to update profile of user ${userId}.`);
+    throw new HttpsError("permission-denied", "You do not have permission to update this profile.");
+  }
+
+  logger.info(`Updating profile for user ${userId}`);
+  const db = getFirestore();
+
+  try {
+    const userDocRef = db.collection("users").doc(userId);
+    await userDocRef.set(profileData, {merge: true}); // Use merge to avoid overwriting fields
+    logger.info(`Profile for user ${userId} updated successfully.`);
+    return {status: "success", message: "Profile updated successfully."};
+  } catch (error) {
+    logger.error(`Error updating profile for user ${userId}:`, error);
+    throw new HttpsError("internal", "An internal error occurred while updating the profile.", error);
+  }
+});
