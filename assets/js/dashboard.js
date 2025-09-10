@@ -647,8 +647,13 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
     }, 10000); // 10 second timeout
 
     function hideLoadingAndShowContent() {
-        loadingState.style.display = 'none';
-        dashboardContent.classList.remove('hidden');
+        if (loadingState) {
+            loadingState.style.display = 'none';
+            loadingState.setAttribute('hidden', 'true');
+        }
+        if (dashboardContent) {
+            dashboardContent.classList.remove('hidden');
+        }
         if (loadingTimeout) {
             clearTimeout(loadingTimeout);
             loadingTimeout = null;
