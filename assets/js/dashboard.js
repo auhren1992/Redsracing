@@ -114,6 +114,12 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
     const videoTitleInput = document.getElementById('video-title');
     const jonnyVideosList = document.getElementById('jonny-videos-list');
 
+    function classifyFirestoreError(err) {
+      if (!err) return 'Unknown Firestore error';
+      if (err.code) return `Firestore error ${err.code}: ${err.message}`;
+      return err.message || String(err);
+    }
+
     let notesSaveTimeout;
     let countdownInterval;
 
