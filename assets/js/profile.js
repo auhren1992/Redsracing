@@ -225,7 +225,13 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
         const response = await fetch(endpoint, options);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = new Error(`HTTP error! status: ${response.status}`);
+            error.status = response.status;
+            // Add a code property for 404 errors to match the expected error handling
+            if (response.status === 404) {
+                error.code = 'not-found';
+            }
+            throw error;
         }
         
         return response.json();
