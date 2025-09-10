@@ -7,12 +7,14 @@ import { getFirebaseConfig } from './firebase-config.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
 // Cache for initialized Firebase services
 let firebaseCache = {
     app: null,
     auth: null,
     db: null,
+    storage: null,
     initialized: false,
     initPromise: null
 };
@@ -46,7 +48,8 @@ export async function initializeFirebaseCore() {
         return {
             app: firebaseCache.app,
             auth: firebaseCache.auth,
-            db: firebaseCache.db
+            db: firebaseCache.db,
+            storage: firebaseCache.storage
         };
     }
 
@@ -71,11 +74,13 @@ export async function initializeFirebaseCore() {
             const app = initializeApp(config);
             const auth = getAuth(app);
             const db = getFirestore(app);
+            const storage = getStorage(app);
 
             // Cache the services
             firebaseCache.app = app;
             firebaseCache.auth = auth;
             firebaseCache.db = db;
+            firebaseCache.storage = storage;
             firebaseCache.initialized = true;
 
             console.log(`[Firebase Core] Initialized successfully for project: ${config.projectId}`);
@@ -83,7 +88,8 @@ export async function initializeFirebaseCore() {
             return {
                 app,
                 auth,
-                db
+                db,
+                storage
             };
             
         } catch (error) {
@@ -93,6 +99,7 @@ export async function initializeFirebaseCore() {
             firebaseCache.app = null;
             firebaseCache.auth = null;
             firebaseCache.db = null;
+            firebaseCache.storage = null;
             firebaseCache.initialized = false;
             firebaseCache.initPromise = null;
             
@@ -140,6 +147,18 @@ export function getFirebaseDb() {
 }
 
 /**
+ * Gets cached Firebase storage instance (must be called after initialization)
+ * @returns {Object|null} - Firebase storage instance or null if not initialized
+ */
+export function getFirebaseStorage() {
+    if (!firebaseCache.initialized) {
+        console.warn('[Firebase Core] Storage requested before initialization');
+        return null;
+    }
+    return firebaseCache.storage;
+}
+
+/**
  * Checks if Firebase is initialized
  * @returns {boolean} - True if Firebase is initialized
  */
@@ -154,6 +173,7 @@ export function clearFirebaseCache() {
     firebaseCache.app = null;
     firebaseCache.auth = null;
     firebaseCache.db = null;
+    firebaseCache.storage = null;
     firebaseCache.initialized = false;
     firebaseCache.initPromise = null;
     console.log('[Firebase Core] Cache cleared');
