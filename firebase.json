@@ -13,73 +13,52 @@
     "rewrites": [
       {
         "source": "/add_subscriber",
-        "function": {
-          "functionId": "handleAddSubscriber@python-api",
+        "run": {
+          "serviceId": "handleAddSubscriber",
           "region": "us-central1"
         }
       },
       {
         "source": "/send_feedback_email",
-        "function": {
-          "functionId": "handleSendFeedback@python-api",
+        "run": {
+          "serviceId": "handleSendFeedback",
           "region": "us-central1"
         }
       },
       {
         "source": "/send_sponsorship_email",
-        "function": {
-          "functionId": "handleSendSponsorship@python-api",
+        "run": {
+          "serviceId": "handleSendSponsorship",
           "region": "us-central1"
         }
       },
       {
         "source": "/profile/**",
-        "function": {
-          "functionId": "handleGetProfile@python-api",
-          "region": "us-central1"
-        }
+        "function": "handleGetProfile"
       },
       {
         "source": "/update_profile/**",
-        "function": {
-          "functionId": "handleUpdateProfile@python-api",
-          "region": "us-central1"
-        }
+        "function": "handleUpdateProfile"
       },
       {
         "source": "/achievements",
-        "function": {
-          "functionId": "handleGetAchievements@python-api",
-          "region": "us-central1"
-        }
+        "function": "handleGetAchievements"
       },
       {
         "source": "/assign_achievement",
-        "function": {
-          "functionId": "handleAssignAchievement@python-api",
-          "region": "us-central1"
-        }
+        "function": "handleAssignAchievement"
       },
       {
         "source": "/leaderboard",
-        "function": {
-          "functionId": "handleGetLeaderboard@python-api",
-          "region": "us-central1"
-        }
+        "function": "handleGetLeaderboard"
       },
       {
         "source": "/auto_award_achievement",
-        "function": {
-          "functionId": "handleAutoAwardAchievement@python-api",
-          "region": "us-central1"
-        }
+        "function": "handleAutoAwardAchievement"
       },
       {
         "source": "/achievement_progress/**",
-        "function": {
-          "functionId": "handleGetAchievementProgress@python-api",
-          "region": "us-central1"
-        }
+        "function": "handleGetAchievementProgress"
       }
     ]
   },
