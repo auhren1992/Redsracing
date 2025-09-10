@@ -161,7 +161,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
             } catch (authError) {
                 console.error("Authentication error:", authError);
                 // Show error state for authentication failures
-                showErrorState();
+                showErrorState('authentication error');
             }
         });
     }
@@ -241,7 +241,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
             await loadUserProfile(userId);
         } catch (error) {
             console.error('Error creating default profile:', error);
-            showErrorState();
+            showErrorState('network error');
         }
     }
 
@@ -514,10 +514,32 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         return achievementNames[achievementId] || achievementId;
     }
 
-    // Show error state
-    function showErrorState() {
+    // Show error state with specific message
+    function showErrorState(errorMessage = null) {
         loadingState.classList.add('hidden');
         profileContent.classList.add('hidden');
+        
+        // Update error message if provided
+        if (errorMessage) {
+            const errorStateElement = document.getElementById('error-state');
+            const errorTitle = errorStateElement.querySelector('h2');
+            const errorDescription = errorStateElement.querySelector('p');
+            
+            if (errorMessage.includes('authentication') || errorMessage.includes('login')) {
+                errorTitle.textContent = 'Authentication Required';
+                errorDescription.textContent = 'Please log in to view this profile.';
+            } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+                errorTitle.textContent = 'Connection Error';
+                errorDescription.textContent = 'Unable to load profile due to network issues. Please check your connection and try again.';
+            } else if (errorMessage.includes('not-found') || errorMessage.includes('404')) {
+                errorTitle.textContent = 'Profile Not Found';
+                errorDescription.textContent = 'The requested profile could not be found or you don\'t have permission to view it.';
+            } else {
+                errorTitle.textContent = 'Profile Unavailable';
+                errorDescription.textContent = 'Unable to load profile at this time. This could be due to server issues or network problems.';
+            }
+        }
+        
         errorState.classList.remove('hidden');
         if (loadingTimeout) {
             clearTimeout(loadingTimeout);
