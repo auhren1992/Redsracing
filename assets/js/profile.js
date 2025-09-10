@@ -139,32 +139,15 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
                     const targetUserId = getUserIdFromUrl() || user.uid;
                     isCurrentUserProfile = (targetUserId === user.uid);
 
-                    try {
-                        await loadUserProfile(targetUserId);
+                    // Load the user profile (error handling is now done inside loadUserProfile)
+                    await loadUserProfile(targetUserId);
 
-                        // Check if user is admin for achievements management
-                        const tokenResult = await user.getIdTokenResult();
-                        const isAdmin = tokenResult.claims.role === 'team-member';
-                        if (isAdmin && adminAchievements) {
-                            adminAchievements.classList.remove('hidden');
-                            await loadAllAchievements();
-                        }
-                    } catch (error) {
-                        console.error("Failed to load profile:", error);
-                        if (error.code === 'not-found') {
-                            // Only create default profile for current user's own profile
-                            if (isCurrentUserProfile) {
-                                console.log('Profile not found, creating default profile...');
-                                await createDefaultProfile(user.uid);
-                            } else {
-                                // For other users' missing profiles, show minimal profile
-                                console.log('Other user profile not found, showing minimal profile...');
-                                displayMinimalProfile(targetUserId);
-                            }
-                        } else {
-                            // Show minimal profile as fallback
-                            displayMinimalProfile(isCurrentUserProfile ? user.uid : targetUserId);
-                        }
+                    // Check if user is admin for achievements management
+                    const tokenResult = await user.getIdTokenResult();
+                    const isAdmin = tokenResult.claims.role === 'team-member';
+                    if (isAdmin && adminAchievements) {
+                        adminAchievements.classList.remove('hidden');
+                        await loadAllAchievements();
                     }
                 } else {
                     window.location.href = 'login.html';
@@ -187,18 +170,24 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
     }
 
     function hideLoadingAndShowContent() {
-        loadingState.classList.add('hidden');
-        profileContent.classList.remove('hidden');
+        if (loadingState) {
+            loadingState.classList.add('hidden');
+        }
+        if (profileContent) {
+            profileContent.classList.remove('hidden');
+        }
         if (loadingTimeout) {
             clearTimeout(loadingTimeout);
             loadingTimeout = null;
         }
     }
 
-    function showErrorState() {
-        loadingState.classList.add('hidden');
-        profileContent.classList.add('hidden');
-        errorState.classList.remove('hidden');
+    // Helper function to centralize loading state cleanup
+    function finalizeProfileLoad() {
+        console.log('[Profile] Finalizing profile load, clearing loading state');
+        if (loadingState) {
+            loadingState.classList.add('hidden');
+        }
         if (loadingTimeout) {
             clearTimeout(loadingTimeout);
             loadingTimeout = null;
@@ -229,23 +218,45 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
             options.body = JSON.stringify(data);
         }
         
-        const response = await fetch(endpoint, options);
+        console.log(`[Profile] Calling API: ${method} ${endpoint}${idToken ? ' (authenticated)' : ' (unauthenticated)'}`);
+        
+        let response = await fetch(endpoint, options);
+        
+        // For GET requests, retry without auth if we get 401/403 (for public profile viewing)
+        if (!response.ok && method === 'GET' && (response.status === 401 || response.status === 403) && idToken) {
+            console.log(`[Profile] Retrying ${endpoint} without authentication for public access`);
+            const publicOptions = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                    // No Authorization header for public retry
+                }
+            };
+            response = await fetch(endpoint, publicOptions);
+        }
         
         if (!response.ok) {
             const error = new Error(`HTTP error! status: ${response.status}`);
             error.status = response.status;
-            // Add a code property for 404 errors to match the expected error handling
+            console.log(`[Profile] API call failed: ${response.status} ${response.statusText}`);
+            // Add error codes for better error handling
             if (response.status === 404) {
                 error.code = 'not-found';
+            } else if (response.status === 401) {
+                error.code = 'unauthorized';
+            } else if (response.status === 403) {
+                error.code = 'forbidden';
             }
             throw error;
         }
         
+        console.log(`[Profile] API call successful: ${method} ${endpoint}`);
         return response.json();
     }
 
     // Load user profile
     async function loadUserProfile(userId) {
+        console.log(`[Profile] Loading profile for user: ${userId}`);
         try {
             const profileData = await callProfileAPI(`/profile/${userId}`);
             displayProfile(profileData);
@@ -255,9 +266,41 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
             if (isCurrentUserProfile) {
                 await loadAchievementProgress(userId);
             }
+            console.log(`[Profile] Successfully loaded profile for user: ${userId}`);
         } catch (error) {
-            console.error('Error loading profile:', error);
-            throw error; // Re-throw to be caught by the auth state change handler
+            console.error(`[Profile] Error loading profile for ${userId}:`, error);
+            
+            // Distinguish between different error types and handle appropriately
+            if (error.code === 'not-found') {
+                console.log(`[Profile] Profile not found for ${userId}`);
+                if (isCurrentUserProfile) {
+                    console.log('[Profile] Creating default profile for current user');
+                    try {
+                        await createDefaultProfile(userId);
+                        return; // Successfully created and loaded profile
+                    } catch (createError) {
+                        console.error('[Profile] Failed to create default profile:', createError);
+                        displayMinimalProfile(userId);
+                        finalizeProfileLoad();
+                        return;
+                    }
+                } else {
+                    console.log('[Profile] Showing minimal profile for other user');
+                    displayMinimalProfile(userId);
+                    finalizeProfileLoad();
+                    return;
+                }
+            } else if (error.code === 'unauthorized' || error.code === 'forbidden') {
+                console.log(`[Profile] Access denied (${error.code}) for ${userId}, showing minimal profile`);
+                displayMinimalProfile(userId);
+                finalizeProfileLoad();
+                return;
+            } else {
+                console.error(`[Profile] Network or server error for ${userId}:`, error);
+                displayMinimalProfile(userId);
+                finalizeProfileLoad();
+                return;
+            }
         }
     }
 
@@ -273,15 +316,17 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
         };
 
         try {
+            console.log(`[Profile] Creating default profile for user ${userId}`);
             await callProfileAPI(`/update_profile/${userId}`, 'PUT', defaultProfile);
             // Award community member achievement for profile creation
             await autoAwardAchievement(userId, 'profile_created');
 
-            // Reload profile after creation
+            // Reload profile after creation - this will handle loading state
             await loadUserProfile(userId);
         } catch (error) {
-            console.error('Error creating default profile:', error);
-            showErrorState();
+            console.error('[Profile] Error creating default profile:', error);
+            displayMinimalProfile(userId);
+            finalizeProfileLoad();
         }
     }
 
@@ -327,9 +372,12 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
         editFavoriteCars.value = profileData.favoriteCars ? profileData.favoriteCars.join(', ') : '';
 
         // Show edit button only for current user's profile
-        editProfileBtn.style.display = isCurrentUserProfile ? 'block' : 'none';
+        if (editProfileBtn) {
+            editProfileBtn.style.display = isCurrentUserProfile ? 'block' : 'none';
+        }
 
         hideLoadingAndShowContent();
+        finalizeProfileLoad();
     }
 
     // Load achievements
@@ -337,6 +385,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 
     // Display minimal profile when backend is not available
     function displayMinimalProfile(userId) {
+        console.log(`[Profile] Displaying minimal profile for user: ${userId}`);
         const user = auth?.currentUser;
         if (!user) {
             console.warn('[Profile] Cannot display minimal profile - no authenticated user');
@@ -349,7 +398,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
         const basicProfile = {
             username: isViewingOwnProfile && user.email ? user.email.split('@')[0] : 'unknown',
             displayName: isViewingOwnProfile && user.displayName ? user.displayName : 'User Not Found',
-            bio: isViewingOwnProfile ? 'Profile backend not available' : 'This user profile could not be loaded',
+            bio: isViewingOwnProfile ? 'Profile backend not available. Some features may not work correctly.' : 'This user profile could not be loaded',
             avatarUrl: isViewingOwnProfile ? (user.photoURL || '') : '',
             favoriteCars: [],
             joinDate: new Date().toISOString()
@@ -358,7 +407,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
         displayProfile(basicProfile);
         loadAchievements([]); // Load empty achievements
 
-        console.log(`Displayed minimal profile due to ${isViewingOwnProfile ? 'backend unavailability' : 'user not found'}`);
+        console.log(`[Profile] Displayed minimal profile due to ${isViewingOwnProfile ? 'backend unavailability' : 'user not found/access denied'}`);
     }
 
     function loadAchievements(achievements) {
@@ -561,13 +610,17 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 
     // Show error state
     function showErrorState() {
-        loadingState.classList.add('hidden');
-        profileContent.classList.add('hidden');
-        errorState.classList.remove('hidden');
-        if (loadingTimeout) {
-            clearTimeout(loadingTimeout);
-            loadingTimeout = null;
+        console.log('[Profile] Showing error state');
+        if (loadingState) {
+            loadingState.classList.add('hidden');
         }
+        if (profileContent) {
+            profileContent.classList.add('hidden');
+        }
+        if (errorState) {
+            errorState.classList.remove('hidden');
+        }
+        finalizeProfileLoad();
     }
 
     // Toggle edit mode
@@ -645,10 +698,16 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
         }
     }
 
-    // Event listeners
-    editProfileBtn.addEventListener('click', toggleEditMode);
-    cancelEditBtn.addEventListener('click', toggleEditMode);
-    saveProfileBtn.addEventListener('click', saveProfile);
+    // Event listeners with null checks
+    if (editProfileBtn) {
+        editProfileBtn.addEventListener('click', toggleEditMode);
+    }
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', toggleEditMode);
+    }
+    if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', saveProfile);
+    }
 
     // Category filter event listeners
     document.addEventListener('click', (e) => {
