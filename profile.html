@@ -290,6 +290,9 @@
             firebaseLoaded = true;
             console.log('Firebase modules loaded successfully');
             
+            // Set up event listeners now that Firebase is loaded
+            setupFirebaseEventListeners(onAuthStateChanged, signOut);
+            
         } catch (importError) {
             console.error('Failed to load Firebase modules:', importError);
             hideLoadingAndShowFallback();
@@ -337,6 +340,58 @@
         let currentUser = null;
         let isEditing = false;
         let isCurrentUserProfile = false;
+
+        // Function to set up Firebase-dependent event listeners
+        function setupFirebaseEventListeners(authStateChangedFn, signOutFn) {
+            // Logout button handler
+            logoutButton.addEventListener('click', () => {
+                if (signOutFn && auth) {
+                    signOutFn(auth).then(() => {
+                        window.location.href = 'login.html';
+                    }).catch((error) => {
+                        console.error('Error signing out:', error);
+                        window.location.href = 'login.html';
+                    });
+                } else {
+                    console.log('Firebase not available, redirecting to login');
+                    window.location.href = 'login.html';
+                }
+            });
+
+            // Auth state change handler
+            authStateChangedFn(auth, async (user) => {
+                try {
+                    if (user) {
+                        currentUser = user;
+                        const targetUserId = getUserIdFromUrl() || user.uid;
+                        isCurrentUserProfile = (targetUserId === user.uid);
+                        
+                        try {
+                            const userToken = await user.getIdToken();
+                            await loadUserProfile(targetUserId, userToken);
+
+                            // Check if user is admin for achievements management
+                            const tokenResult = await user.getIdTokenResult();
+                            const isAdmin = tokenResult.claims.role === 'team-member';
+                            if (isAdmin) {
+                                adminAchievements.classList.remove('hidden');
+                                await loadAllAchievements();
+                            }
+                        } catch (error) {
+                            console.error("Failed to load profile:", error);
+                            // Show minimal profile as fallback
+                            displayMinimalProfile(user.uid);
+                        }
+                    } else {
+                        window.location.href = 'login.html';
+                    }
+                } catch (authError) {
+                    console.error("Authentication error:", authError);
+                    // Show error state for authentication failures
+                    showErrorState();
+                }
+            });
+        }
 
         // Add loading timeout to prevent infinite loading
         function setupLoadingTimeout() {
@@ -850,46 +905,6 @@
             }
         });
         
-        logoutButton.addEventListener('click', () => {
-            signOut(auth).then(() => {
-                window.location.href = 'login.html';
-            });
-        });
-
-        // Auth state change handler
-        onAuthStateChanged(auth, async (user) => {
-            try {
-                if (user) {
-                    currentUser = user;
-                    const targetUserId = getUserIdFromUrl() || user.uid;
-                    isCurrentUserProfile = (targetUserId === user.uid);
-                    
-                    try {
-                        const userToken = await user.getIdToken();
-                        await loadUserProfile(targetUserId, userToken);
-
-                        // Check if user is admin for achievements management
-                        const tokenResult = await user.getIdTokenResult();
-                        const isAdmin = tokenResult.claims.role === 'team-member';
-                        if (isAdmin) {
-                            adminAchievements.classList.remove('hidden');
-                            await loadAllAchievements();
-                        }
-                    } catch (error) {
-                        console.error("Failed to load profile:", error);
-                        // Show minimal profile as fallback
-                        displayMinimalProfile(user.uid);
-                    }
-                } else {
-                    window.location.href = 'login.html';
-                }
-            } catch (authError) {
-                console.error("Authentication error:", authError);
-                // Show error state for authentication failures
-                showErrorState();
-            }
-        });
-
         // Admin functions for achievement management
         async function loadAllAchievements() {
             try {

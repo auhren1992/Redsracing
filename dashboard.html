@@ -235,6 +235,11 @@
             }
         }
 
+        // Firebase function declarations - hoisted to function scope
+        let onAuthStateChanged, signOut, sendEmailVerification, RecaptchaVerifier, linkWithPhoneNumber;
+        let doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, where;
+        let ref, deleteObject;
+        
         // Try to load Firebase, but catch any import errors
         let firebaseLoaded = false;
         let app, auth, db, storage;
@@ -242,9 +247,31 @@
         try {
             // Import Firebase modules
             const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
-            const { getAuth, onAuthStateChanged, signOut, sendEmailVerification, RecaptchaVerifier, linkWithPhoneNumber } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
-            const { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, where } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
-            const { getStorage, ref, deleteObject } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js");
+            const firebaseAuth = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+            const firebaseFirestore = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+            const firebaseStorage = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js");
+            
+            // Assign Firebase functions to top-level variables
+            onAuthStateChanged = firebaseAuth.onAuthStateChanged;
+            signOut = firebaseAuth.signOut;
+            sendEmailVerification = firebaseAuth.sendEmailVerification;
+            RecaptchaVerifier = firebaseAuth.RecaptchaVerifier;
+            linkWithPhoneNumber = firebaseAuth.linkWithPhoneNumber;
+            
+            doc = firebaseFirestore.doc;
+            getDoc = firebaseFirestore.getDoc;
+            setDoc = firebaseFirestore.setDoc;
+            collection = firebaseFirestore.collection;
+            getDocs = firebaseFirestore.getDocs;
+            query = firebaseFirestore.query;
+            orderBy = firebaseFirestore.orderBy;
+            addDoc = firebaseFirestore.addDoc;
+            updateDoc = firebaseFirestore.updateDoc;
+            deleteDoc = firebaseFirestore.deleteDoc;
+            where = firebaseFirestore.where;
+            
+            ref = firebaseStorage.ref;
+            deleteObject = firebaseStorage.deleteObject;
 
             const firebaseConfig = {
               apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
@@ -255,9 +282,9 @@
               appId: "1:517034606151:web:24cae262e1d98832757b62"
             };
             app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            storage = getStorage(app);
+            auth = firebaseAuth.getAuth(app);
+            db = firebaseFirestore.getFirestore(app);
+            storage = firebaseStorage.getStorage(app);
             
             firebaseLoaded = true;
             console.log('Firebase modules loaded successfully');
