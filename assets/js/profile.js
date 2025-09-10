@@ -62,6 +62,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
     const profileContent = document.getElementById('profile-content');
     const errorState = document.getElementById('error-state');
     const logoutButton = document.getElementById('logout-button');
+    const logoutButtonMobile = document.getElementById('logout-button-mobile');
 
     // Profile elements
     const profileAvatar = document.getElementById('profile-avatar');
@@ -108,6 +109,23 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
                 window.location.href = 'login.html';
             }
         });
+
+        // Mobile logout button handler
+        if (logoutButtonMobile) {
+            logoutButtonMobile.addEventListener('click', () => {
+                if (signOutFn && auth) {
+                    signOutFn(auth).then(() => {
+                        window.location.href = 'login.html';
+                    }).catch((error) => {
+                        console.error('Error signing out:', error);
+                        window.location.href = 'login.html';
+                    });
+                } else {
+                    console.log('Firebase not available, redirecting to login');
+                    window.location.href = 'login.html';
+                }
+            });
+        }
 
         // Auth state change handler
         authStateChangedFn(auth, async (user) => {

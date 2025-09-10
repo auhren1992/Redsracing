@@ -15,7 +15,7 @@
             <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
                 <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
             </a>
-            <div class="flex items-center space-x-6 font-bold">
+            <div class="hidden md:flex items-center space-x-6 font-bold">
                 <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
                 <a href="jonny.html" class="hover:text-neon-yellow transition duration-300">Jonny's Page</a>
                 <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Full Schedule</a>
@@ -25,7 +25,26 @@
                     Logout
                 </a>
             </div>
+            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
         </nav>
+        
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
+            <div class="px-6 pt-2 pb-3 space-y-1">
+                <a href="index.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Home</a>
+                <a href="jonny.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Jonny's Page</a>
+                <a href="schedule.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Full Schedule</a>
+                <a href="profile.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Profile</a>
+                <a href="leaderboard.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Leaderboard</a>
+                <a id="logout-button-mobile" href="#" class="block py-2 bg-red-600 text-white text-center rounded-md hover:bg-red-500 transition duration-300">
+                    Logout
+                </a>
+            </div>
+        </div>
     </header>
 
     <main class="flex-grow container mx-auto px-6 py-12">
@@ -260,5 +279,10 @@
             </form>
         </div>
     </div>
+
+    <!-- Navigation Script -->
+    <script src="assets/js/navigation.js"></script>
+    <!-- Dashboard Script -->
+    <script type="module" src="assets/js/dashboard.js"></script>
 </body>
 </html>

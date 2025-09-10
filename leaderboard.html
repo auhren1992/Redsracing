@@ -27,7 +27,7 @@
                 </a>
             </div>
             <!-- Mobile menu button -->
-            <button id="mobile-menu-toggle" class="md:hidden text-white">
+            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
@@ -126,6 +126,7 @@
     </footer>
 
     <!-- Firebase and App Scripts -->
+    <script src="assets/js/navigation.js"></script>
     <script src="assets/js/main.js" type="module"></script>
     
     <script type="module">
@@ -339,11 +340,8 @@
             loadLeaderboard();
         });
 
-        // Mobile menu toggle
-        document.getElementById('mobile-menu-toggle').addEventListener('click', () => {
-            const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenu.classList.toggle('hidden');
-        });
+        // Mobile menu toggle - let navigation.js handle this
+        // document.getElementById('mobile-menu-button') is handled by navigation.js
 
         // Initialize the app
         initApp();

@@ -58,6 +58,7 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
     const dashboardContent = document.getElementById('dashboard-content');
     const userEmailEl = document.getElementById('user-email');
     const logoutButton = document.getElementById('logout-button');
+    const logoutButtonMobile = document.getElementById('logout-button-mobile');
     const emailVerificationNotice = document.getElementById('email-verification-notice');
     const resendVerificationBtn = document.getElementById('resend-verification-btn');
     const driverNotesCard = document.getElementById('driver-notes-card');
@@ -784,6 +785,14 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
         e.preventDefault();
         signOut(auth).catch(error => console.error('Logout Error:', error));
     });
+
+    // Handle mobile logout button
+    if (logoutButtonMobile) {
+        logoutButtonMobile.addEventListener('click', (e) => {
+            e.preventDefault();
+            signOut(auth).catch(error => console.error('Logout Error:', error));
+        });
+    }
 
     document.getElementById('year').textContent = new Date().getFullYear();
 
