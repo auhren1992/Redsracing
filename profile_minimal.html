@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - RedsRacing #8</title>
+    <link rel="stylesheet" href="styles/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body class="flex flex-col min-h-screen">
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+            </a>
+            <div class="flex items-center space-x-6 font-bold">
+                <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
+                <a href="jonny.html" class="hover:text-neon-yellow transition duration-300">Jonny's Page</a>
+                <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Full Schedule</a>
+                <a href="dashboard.html" class="hover:text-neon-yellow transition duration-300">Dashboard</a>
+                <a href="leaderboard.html" class="hover:text-neon-yellow transition duration-300">Leaderboard</a>
+                <a id="logout-button" href="#" class="bg-red-600 text-white py-2 px-5 rounded-md hover:bg-red-500 transition duration-300">
+                    Logout
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-6 py-12">
+        <div id="loading-state" class="flex flex-col items-center justify-center text-center py-20">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-neon-yellow"></div>
+            <p class="text-2xl mt-4 font-racing uppercase tracking-wider">Loading Profile...</p>
+        </div>
+    </main>
+
+    <script type="module">
+        console.log('Testing minimal profile script...');
+        
+        // Just test basic JavaScript - no Firebase imports
+        (async function() {
+            console.log('Async function started');
+            
+            let test = 'Hello World';
+            console.log('Test variable:', test);
+            
+            function testFunction() {
+                return 'Function works';
+            }
+            
+            console.log('Function result:', testFunction());
+            console.log('Minimal test completed successfully');
+        })();
+    </script>
+</body>
+</html>
