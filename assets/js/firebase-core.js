@@ -85,6 +85,9 @@ export async function initializeFirebaseCore() {
 
             console.log(`[Firebase Core] Initialized successfully for project: ${config.projectId}`);
             
+            // Bridge legacy exports in firebase-config.js for backward compatibility
+            await bridgeLegacyExports(app, auth, db, storage);
+            
             return {
                 app,
                 auth,
@@ -177,4 +180,41 @@ export function clearFirebaseCache() {
     firebaseCache.initialized = false;
     firebaseCache.initPromise = null;
     console.log('[Firebase Core] Cache cleared');
+}
+
+/**
+ * Bridge legacy exports in firebase-config.js after successful initialization
+ * This ensures any remaining legacy imports get live instances instead of null
+ * @private
+ */
+async function bridgeLegacyExports(app, auth, db, storage) {
+    try {
+        // Dynamically import firebase-config to update its exports
+        const firebaseConfig = await import('./firebase-config.js');
+        
+        // Update the exported variables (note: this works because they're let variables)
+        if (typeof firebaseConfig.app !== 'undefined') firebaseConfig.app = app;
+        if (typeof firebaseConfig.auth !== 'undefined') firebaseConfig.auth = auth;
+        if (typeof firebaseConfig.db !== 'undefined') firebaseConfig.db = db;
+        if (typeof firebaseConfig.storage !== 'undefined') firebaseConfig.storage = storage;
+        
+        console.log('[Firebase Core] Legacy exports bridged successfully');
+    } catch (error) {
+        console.warn('[Firebase Core] Could not bridge legacy exports:', error.message);
+        // Not critical - this is just for backward compatibility
+    }
+}
+
+/**
+ * Convenience helper to ensure Firebase is initialized before use
+ * Returns services object or throws error with helpful message
+ * @returns {Promise<Object>} - Object containing initialized Firebase services
+ */
+export async function ensureFirebaseInitialized() {
+    try {
+        return await initializeFirebaseCore();
+    } catch (error) {
+        console.error('[Firebase Core] Initialization required but failed:', error.message);
+        throw new Error(`Firebase is not available: ${error.message}. Please check your internet connection and Firebase configuration.`);
+    }
 }

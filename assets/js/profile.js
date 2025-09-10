@@ -1,14 +1,36 @@
 // Importing Firebase services and specific functions
-// Importing Firebase services and specific functions
-import { auth } from './firebase-config.js';
+// Using centralized Firebase initialization from firebase-core
+import { initializeFirebaseCore, getFirebaseAuth, getFirebaseApp } from './firebase-core.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 
 // Wrap everything in an async function to allow early returns
 (async function() {
-    const functions = getFunctions();
-    const getProfile = httpsCallable(functions, 'getProfile');
-    const updateProfile = httpsCallable(functions, 'updateProfile');
+    let auth = null;
+    let app = null;
+    let functions = null;
+    let getProfile = null;
+    let updateProfile = null;
+    
+    // Initialize Firebase before using any services
+    try {
+        console.log('[Profile] Initializing Firebase...');
+        const firebaseServices = await initializeFirebaseCore();
+        auth = firebaseServices.auth;
+        app = firebaseServices.app;
+        
+        // Initialize Functions with explicit app instance
+        functions = getFunctions(app);
+        getProfile = httpsCallable(functions, 'getProfile');
+        updateProfile = httpsCallable(functions, 'updateProfile');
+        
+        console.log('[Profile] Firebase initialized successfully');
+    } catch (error) {
+        console.error('[Profile] Firebase initialization failed:', error);
+        // Show fallback UI immediately if Firebase fails to initialize
+        hideLoadingAndShowFallback();
+        return; // Exit early if Firebase can't be initialized
+    }
     // Add immediate loading timeout as backup
     let loadingTimeout = setTimeout(() => {
         console.warn('Loading timeout reached, showing fallback content');
@@ -94,20 +116,29 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 
     // Function to set up Firebase-dependent event listeners
     function setupFirebaseEventListeners(authStateChangedFn, signOutFn) {
+        // Only set up listeners if Firebase is available
+        if (!auth || !authStateChangedFn || !signOutFn) {
+            console.error('[Profile] Cannot setup Firebase listeners - services not available');
+            hideLoadingAndShowFallback();
+            return;
+        }
+        
         // Logout button handler
-        logoutButton.addEventListener('click', () => {
-            if (signOutFn && auth) {
-                signOutFn(auth).then(() => {
+        if (logoutButton) {
+            logoutButton.addEventListener('click', () => {
+                if (signOutFn && auth) {
+                    signOutFn(auth).then(() => {
+                        window.location.href = 'login.html';
+                    }).catch((error) => {
+                        console.error('Error signing out:', error);
+                        window.location.href = 'login.html';
+                    });
+                } else {
+                    console.log('Firebase not available, redirecting to login');
                     window.location.href = 'login.html';
-                }).catch((error) => {
-                    console.error('Error signing out:', error);
-                    window.location.href = 'login.html';
-                });
-            } else {
-                console.log('Firebase not available, redirecting to login');
-                window.location.href = 'login.html';
-            }
-        });
+                }
+            });
+        }
 
         // Auth state change handler
         authStateChangedFn(auth, async (user) => {
@@ -123,7 +154,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
                         // Check if user is admin for achievements management
                         const tokenResult = await user.getIdTokenResult();
                         const isAdmin = tokenResult.claims.role === 'team-member';
-                        if (isAdmin) {
+                        if (isAdmin && adminAchievements) {
                             adminAchievements.classList.remove('hidden');
                             await loadAllAchievements();
                         }
@@ -279,8 +310,12 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 
     // Display minimal profile when backend is not available
     function displayMinimalProfile(userId) {
-        const user = auth.currentUser;
-        if (!user) return;
+        const user = auth?.currentUser;
+        if (!user) {
+            console.warn('[Profile] Cannot display minimal profile - no authenticated user');
+            hideLoadingAndShowFallback();
+            return;
+        }
 
         // Create a basic profile from available user data
         const basicProfile = {
@@ -693,7 +728,13 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         }
     };
 
-    setupFirebaseEventListeners(onAuthStateChanged, signOut);
+    // Only setup Firebase event listeners if initialization was successful
+    if (auth && onAuthStateChanged && signOut) {
+        setupFirebaseEventListeners(onAuthStateChanged, signOut);
+    } else {
+        console.error('[Profile] Cannot setup Firebase event listeners - services not available');
+        hideLoadingAndShowFallback();
+    }
 
     // Clear the loading timeout since we successfully loaded
     if (loadingTimeout) {
