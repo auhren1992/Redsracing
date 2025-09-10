@@ -522,16 +522,44 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
         });
     };
 
+    // Helper function to debug authentication issues
+    const debugAuthToken = async (context) => {
+        if (auth.currentUser) {
+            try {
+                const idTokenResult = await auth.currentUser.getIdTokenResult();
+                console.log(`[${context}] Current user ID token:`, {
+                    uid: idTokenResult.claims.sub,
+                    role: idTokenResult.claims.role,
+                    authTime: new Date(idTokenResult.claims.auth_time * 1000).toISOString(),
+                    issuedAt: new Date(idTokenResult.issuedAtTime).toISOString(),
+                    expirationTime: new Date(idTokenResult.expirationTime).toISOString()
+                });
+            } catch (error) {
+                console.error(`[${context}] Error getting ID token:`, error);
+            }
+        } else {
+            console.log(`[${context}] No current user`);
+        }
+    };
+
     const getJonnyVideos = async () => {
         try {
+            // Force token refresh to ensure custom claims are up to date
+            if (auth.currentUser) {
+                await auth.currentUser.getIdToken(true); // true forces refresh
+            }
+            
             const q = query(collection(db, "jonny_videos"), orderBy("createdAt", "desc"));
             const snapshot = await getDocs(q);
             const videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderJonnyVideos(videos);
         } catch (error) {
             console.error("Error loading Jonny videos:", error);
+            
             if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
                 console.log("Insufficient permissions to access Jonny videos. User may not be a team member or authentication token needs refresh.");
+                // Debug the current authentication state
+                await debugAuthToken('getJonnyVideos permission denied');
                 renderJonnyVideos([]); // Render empty list to prevent UI issues
             } else {
                 throw error; // Re-throw other errors
@@ -542,6 +570,11 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
     const deleteJonnyVideo = async (id) => {
          if (confirm('Are you sure you want to delete this video?')) {
             try {
+                // Force token refresh to ensure custom claims are up to date
+                if (auth.currentUser) {
+                    await auth.currentUser.getIdToken(true);
+                }
+                
                 await deleteDoc(doc(db, 'jonny_videos', id));
                 getJonnyVideos(); // Refresh the list
             } catch (error) {
@@ -563,6 +596,11 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
         }
 
         try {
+            // Force token refresh to ensure custom claims are up to date
+            if (auth.currentUser) {
+                await auth.currentUser.getIdToken(true);
+            }
+            
             await addDoc(collection(db, "jonny_videos"), {
                 youtubeId: videoId,
                 title: title,
@@ -712,7 +750,8 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
 
                     await getRaceData();
 
-                    const idTokenResult = await user.getIdTokenResult();
+                    // Force token refresh to ensure custom claims are up to date
+                    const idTokenResult = await user.getIdToken(true).then(() => user.getIdTokenResult());
                     console.log("User's custom claims:", idTokenResult.claims);
                     const userRole = idTokenResult.claims.role;
 

@@ -2,15 +2,11 @@
 // Using centralized Firebase initialization from firebase-core
 import { initializeFirebaseCore, getFirebaseAuth, getFirebaseApp } from './firebase-core.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 
 // Wrap everything in an async function to allow early returns
 (async function() {
     let auth = null;
     let app = null;
-    let functions = null;
-    let getProfile = null;
-    let updateProfile = null;
     
     // Initialize Firebase before using any services
     try {
@@ -18,11 +14,6 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         const firebaseServices = await initializeFirebaseCore();
         auth = firebaseServices.auth;
         app = firebaseServices.app;
-        
-        // Initialize Functions with explicit app instance
-        functions = getFunctions(app);
-        getProfile = httpsCallable(functions, 'getProfile');
-        updateProfile = httpsCallable(functions, 'updateProfile');
         
         console.log('[Profile] Firebase initialized successfully');
     } catch (error) {
@@ -216,11 +207,34 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         return urlParams.get('id');
     }
 
+    // Helper function to call profile API endpoints
+    async function callProfileAPI(endpoint, method = 'GET', data = null) {
+        const idToken = currentUser ? await currentUser.getIdToken() : null;
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                ...(idToken && { 'Authorization': `Bearer ${idToken}` })
+            }
+        };
+        
+        if (data && method !== 'GET') {
+            options.body = JSON.stringify(data);
+        }
+        
+        const response = await fetch(endpoint, options);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response.json();
+    }
+
     // Load user profile
     async function loadUserProfile(userId) {
         try {
-            const result = await getProfile({ userId });
-            const profileData = result.data;
+            const profileData = await callProfileAPI(`/profile/${userId}`);
             displayProfile(profileData);
             loadAchievements(profileData.achievements || []);
 
@@ -246,7 +260,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         };
 
         try {
-            await updateProfile({ userId, profileData: defaultProfile });
+            await callProfileAPI(`/update_profile/${userId}`, 'PUT', defaultProfile);
             // Award community member achievement for profile creation
             await autoAwardAchievement(userId, 'profile_created');
 
@@ -594,7 +608,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
         };
 
         try {
-            await updateProfile({ userId: currentUser.uid, profileData });
+            await callProfileAPI(`/update_profile/${currentUser.uid}`, 'PUT', profileData);
             // Reload profile to show updated data
             await loadUserProfile(currentUser.uid);
             toggleEditMode();
