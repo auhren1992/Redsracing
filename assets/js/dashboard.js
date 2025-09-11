@@ -16,6 +16,14 @@ import {
     getCurrentUser
 } from './auth-utils.js';
 
+// Import invitation code utilities
+import { 
+    userNeedsInvitationCode, 
+    getPendingInvitationCode, 
+    setPendingInvitationCode, 
+    applyPendingInvitationCode 
+} from './invitation-codes.js';
+
 // Wrap everything in an async function to allow early returns
 (async function() {
     // Enhanced error handling and retry logic
@@ -392,6 +400,12 @@ import {
     const invitationCodesCard = document.getElementById('invitation-codes-card');
     const invitationCodesTableBody = document.getElementById('invitation-codes-table-body');
     const refreshCodesBtn = document.getElementById('refresh-codes-btn');
+
+    // Invitation Code Prompt elements
+    const invitationCodePrompt = document.getElementById('invitation-code-prompt');
+    const inlineInvitationCodeInput = document.getElementById('inline-invitation-code');
+    const applyInvitationCodeBtn = document.getElementById('apply-invitation-code-btn');
+    const invitationCodeMessage = document.getElementById('invitation-code-message');
 
     function classifyFirestoreError(err) {
       if (!err) return 'Unknown Firestore error';
@@ -983,6 +997,110 @@ import {
     }
 
 
+    // --- Invitation Code Prompt Handling ---
+    const handleInvitationCodePrompt = async (user) => {
+        try {
+            // Check if user needs an invitation code and there's no pending code
+            const needsCode = await userNeedsInvitationCode({ currentUser: user });
+            const pendingCode = getPendingInvitationCode();
+            
+            if (needsCode && !pendingCode && invitationCodePrompt) {
+                console.log('[Dashboard:InvitationCode] Showing invitation code prompt for user without role');
+                invitationCodePrompt.classList.remove('hidden');
+                
+                // Set up the apply button handler
+                if (applyInvitationCodeBtn && !applyInvitationCodeBtn.hasAttribute('data-listener')) {
+                    applyInvitationCodeBtn.setAttribute('data-listener', 'true');
+                    applyInvitationCodeBtn.addEventListener('click', async () => {
+                        const code = inlineInvitationCodeInput?.value?.trim();
+                        if (!code) {
+                            showInvitationCodeMessage('Please enter an invitation code.', 'error');
+                            return;
+                        }
+
+                        applyInvitationCodeBtn.disabled = true;
+                        applyInvitationCodeBtn.textContent = 'Applying...';
+                        showInvitationCodeMessage('Processing invitation code...', 'info');
+
+                        try {
+                            // Store the code and apply it
+                            setPendingInvitationCode(code);
+                            const result = await applyPendingInvitationCode({ currentUser: user });
+
+                            if (result.success) {
+                                showInvitationCodeMessage(`Success! Role assigned: ${result.role || 'team-member'}`, 'success');
+                                // Hide the prompt after success
+                                setTimeout(() => {
+                                    invitationCodePrompt.classList.add('hidden');
+                                    // Refresh the page to update UI with new role
+                                    window.location.reload();
+                                }, 2000);
+                            } else {
+                                showInvitationCodeMessage(result.error || 'Failed to apply invitation code', 'error');
+                                if (!result.retryable) {
+                                    // Clear the input for non-retryable errors
+                                    inlineInvitationCodeInput.value = '';
+                                }
+                            }
+                        } catch (error) {
+                            console.error('[Dashboard:InvitationCode] Error applying code:', error);
+                            showInvitationCodeMessage('An error occurred. Please try again.', 'error');
+                        } finally {
+                            applyInvitationCodeBtn.disabled = false;
+                            applyInvitationCodeBtn.textContent = 'Apply Code';
+                        }
+                    });
+                }
+            } else {
+                // Hide the prompt if not needed
+                if (invitationCodePrompt) {
+                    invitationCodePrompt.classList.add('hidden');
+                }
+            }
+        } catch (error) {
+            console.error('[Dashboard:InvitationCode] Error handling invitation code prompt:', error);
+            // Don't show prompt if there's an error checking
+            if (invitationCodePrompt) {
+                invitationCodePrompt.classList.add('hidden');
+            }
+        }
+    };
+
+    // Helper function to show messages in the invitation code prompt
+    const showInvitationCodeMessage = (message, type) => {
+        if (!invitationCodeMessage) return;
+        
+        // Clear existing classes
+        invitationCodeMessage.className = 'mt-2 text-sm';
+        
+        // Add appropriate styling based on type
+        switch (type) {
+            case 'error':
+                invitationCodeMessage.className += ' text-red-400';
+                break;
+            case 'success':
+                invitationCodeMessage.className += ' text-green-400';
+                break;
+            case 'info':
+                invitationCodeMessage.className += ' text-blue-400';
+                break;
+            default:
+                invitationCodeMessage.className += ' text-gray-400';
+        }
+        
+        invitationCodeMessage.textContent = message;
+        
+        // Clear message after 5 seconds for non-error messages
+        if (type !== 'error') {
+            setTimeout(() => {
+                if (invitationCodeMessage) {
+                    invitationCodeMessage.textContent = '';
+                }
+            }, 5000);
+        }
+    };
+
+
     // --- MFA Setup ---
     const setupMfa = (user) => {
         const hasPhoneNumber = user.providerData.some(p => p.providerId === 'phone');
@@ -1155,6 +1273,9 @@ import {
                     if (jonnyPhotoApprovalCard) jonnyPhotoApprovalCard.classList.add('hidden');
                     if (jonnyVideoManagementCard) jonnyVideoManagementCard.classList.add('hidden');
                 }
+
+                // Check if user needs invitation code prompt
+                await handleInvitationCodePrompt(user);
 
                 // Show driver notes for all authenticated users
                 if (driverNotesCard) {
