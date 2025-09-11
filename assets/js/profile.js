@@ -1,7 +1,8 @@
 // Importing Firebase services and specific functions
 // Using centralized Firebase initialization from firebase-core
-import { initializeFirebaseCore, getFirebaseAuth, getFirebaseApp } from './firebase-core.js';
+import { initializeFirebaseCore, getFirebaseAuth, getFirebaseApp, getFirebaseDb } from './firebase-core.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Import centralized authentication utilities
 import { 
@@ -315,6 +316,66 @@ import {
 
     // Helper function to call profile API endpoints
     async function callProfileAPI(endpoint, method = 'GET', data = null) {
+        const db = getFirebaseDb();
+
+        // Firestore fallback: GET /profile/:id
+        const profileGet = endpoint.match(/^\/profile\/([^/]+)$/);
+        if (db && method === 'GET' && profileGet) {
+            const userId = profileGet[1];
+            const profileRef = doc(db, 'profiles', userId);
+            const snap = await getDoc(profileRef);
+
+            if (!snap.exists()) {
+                const error = new Error('Profile not found');
+                error.code = 'not-found';
+                throw error;
+            }
+
+            const profile = snap.data() || {};
+
+            // Load achievements subcollection (optional)
+            let achievements = [];
+            try {
+                const achRef = collection(db, 'profiles', userId, 'achievements');
+                const achSnap = await getDocs(achRef);
+                achievements = achSnap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
+            } catch (_) { /* ignore if missing */ }
+
+            return { ...profile, achievements };
+        }
+
+        // Firestore fallback: PUT/PATCH /update_profile/:id
+        const profilePut = endpoint.match(/^\/update_profile\/([^/]+)$/);
+        if (db && (method === 'PUT' || method === 'PATCH') && profilePut) {
+            const userId = profilePut[1];
+            const profileRef = doc(db, 'profiles', userId);
+
+            const payload = {
+                username: data?.username || '',
+                displayName: data?.displayName || 'Anonymous User',
+                bio: data?.bio || '',
+                avatarUrl: data?.avatarUrl || '',
+                favoriteCars: Array.isArray(data?.favoriteCars) ? data.favoriteCars : [],
+                joinDate: data?.joinDate || new Date().toISOString(),
+                totalPoints: typeof data?.totalPoints === 'number' ? data.totalPoints : 0,
+                achievementCount: typeof data?.achievementCount === 'number' ? data.achievementCount : 0,
+            };
+
+            await setDoc(profileRef, payload, { merge: true });
+            const saved = await getDoc(profileRef);
+            return saved.exists() ? saved.data() : payload;
+        }
+
+        // Optional Firestore fallback placeholders
+        const progressGet = endpoint.match(/^\/achievement_progress\/([^/]+)$/);
+        if (db && method === 'GET' && progressGet) {
+            return {};
+        }
+        if (db && method === 'POST' && endpoint === '/auto_award_achievement') {
+            return { awardedAchievements: [] };
+        }
+
+        // Original network flow retained for future backend
         let tokenValidation = null;
         let options = {};
 
