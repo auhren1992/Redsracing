@@ -191,7 +191,7 @@ def handleGetProfile(req: https_fn.Request) -> https_fn.Response:
         db = firestore.client()
         
         # Get user profile
-        profile_doc = db.collection("user_profiles").document(user_id).get()
+        profile_doc = db.collection("users").document(user_id).get()
         if not profile_doc.exists:
             return https_fn.Response("Profile not found", status=404)
         
@@ -316,7 +316,7 @@ def handleUpdateProfile(req: https_fn.Request) -> https_fn.Response:
         profile_data["lastUpdated"] = firestore.SERVER_TIMESTAMP
         
         # Update profile document
-        profile_ref = db.collection("user_profiles").document(user_id)
+        profile_ref = db.collection("users").document(user_id)
         profile_ref.set(profile_data, merge=True)
         
         return https_fn.Response("Profile updated successfully", status=200)
@@ -443,7 +443,7 @@ def handleGetLeaderboard(req: https_fn.Request) -> https_fn.Response:
         leaderboard = []
         for user_id, total_points in user_points.items():
             try:
-                profile_doc = db.collection("user_profiles").document(user_id).get()
+                profile_doc = db.collection("users").document(user_id).get()
                 if profile_doc.exists:
                     profile_data = profile_doc.to_dict()
                     leaderboard.append({
