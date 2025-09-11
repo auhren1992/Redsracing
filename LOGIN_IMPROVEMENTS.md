@@ -179,6 +179,105 @@ The improvements use modern JavaScript features but maintain compatibility:
 3. **Remember Me**: Optional session persistence
 4. **Social Login**: Enhanced Google/OAuth integration
 5. **Two-Factor Authentication**: MFA flow improvements
+6. **Invitation Code Integration**: Automatic code capture and application
+
+## Invitation Code System
+
+### Overview
+The invitation code system provides a seamless way for users to gain elevated access to team features through invitation codes. This system is fully integrated into the authentication flow.
+
+### Features
+
+#### 1. URL Parameter Capture
+- **Automatic Detection**: Invitation codes are automatically captured from URL parameters (`?invite=code` or `?code=code`)
+- **Cross-Page Support**: Works on any page that loads the main.js or schedule.js modules
+- **URL Cleanup**: Parameters are automatically removed from the URL after capture to maintain clean URLs
+
+#### 2. Login Form Integration
+- **Optional Input Field**: Login page includes an optional "Invitation Code" field
+- **Manual Entry**: Users can enter codes directly during the login process
+- **Seamless Processing**: Codes are stored and applied automatically after successful authentication
+
+#### 3. Dashboard Fallback Prompt
+- **Smart Detection**: Shows invitation code prompt only for users without elevated roles
+- **Inline Application**: Users can enter and apply codes directly from the dashboard
+- **Real-time Feedback**: Immediate success/error messages and automatic UI updates
+
+#### 4. Persistent Storage
+- **localStorage Management**: Pending codes are stored locally until successfully applied
+- **Error Recovery**: Codes are retained for retryable errors (network issues) but cleared for permanent failures
+- **Cross-Session**: Codes persist across browser sessions until applied or invalidated
+
+### Technical Implementation
+
+#### Core Module: `assets/js/invitation-codes.js`
+```javascript
+// Key functions available:
+captureInvitationCodeFromURL()     // Extract from URL parameters
+setPendingInvitationCode(code)     // Store code for later application
+getPendingInvitationCode()         // Retrieve stored code
+clearPendingInvitationCode()       // Remove stored code
+applyPendingInvitationCode(auth)   // Process code via Cloud Function
+userNeedsInvitationCode(auth)      // Check if user needs a code
+```
+
+#### Integration Points
+1. **Global Capture**: `main.js` and `schedule.js` capture URL codes on page load
+2. **Auth State Handling**: Pending codes are automatically applied when users sign in
+3. **Manual Entry**: Login form and dashboard prompt allow direct code entry
+4. **Error Handling**: Graceful degradation when Cloud Functions are unavailable
+
+#### Error Handling
+- **Network Errors**: Codes are retained for retry when connectivity returns
+- **Invalid Codes**: Non-retryable errors (expired, already used) clear the code immediately
+- **Development Mode**: Graceful handling when Cloud Functions aren't deployed locally
+- **User Feedback**: Clear, actionable error messages for all failure scenarios
+
+#### Cloud Function Integration
+- **Secure Processing**: All code validation happens server-side via `processInvitationCode`
+- **Token Refresh**: Automatic ID token refresh after successful code application
+- **Event System**: Custom events dispatched for success/failure notifications
+- **Role Assignment**: Automatic assignment of team-member or other configured roles
+
+### Usage Examples
+
+#### URL-based Invitation
+```
+https://yourdomain.com/?invite=adam123
+https://yourdomain.com/dashboard.html?code=team2024
+```
+
+#### Manual Code Entry
+1. User logs in without a code
+2. Dashboard shows invitation prompt for users with default roles
+3. User enters code and clicks "Apply Code"
+4. System processes code and updates role immediately
+
+### Error Scenarios & Recovery
+- **Expired Codes**: User sees clear message, code is cleared
+- **Already Used**: User notified, code cleared to prevent confusion
+- **Network Issues**: Code retained, automatic retry on next auth state change
+- **Invalid Format**: User prompted to check code format
+- **Service Unavailable**: Graceful fallback with retry logic
+
+### Security Considerations
+- **Server-Side Validation**: All code verification happens in Cloud Functions
+- **UID Verification**: Users can only apply codes to their own accounts
+- **No Direct Database Access**: Frontend never directly queries invitation_codes collection
+- **Rate Limiting**: Built-in Firebase Functions rate limiting prevents abuse
+- **Secure Claims**: Role assignments use Firebase Custom Claims system
+
+### Testing
+- **End-to-End**: Test URL capture → login → code application → role assignment
+- **Error Scenarios**: Test with invalid, expired, and already-used codes
+- **Network Failures**: Test behavior during offline/online transitions
+- **Cross-Browser**: Verify localStorage persistence across different browsers
+
+### Monitoring
+- **Console Logging**: Detailed logs for debugging invitation code flow
+- **Custom Events**: `invitation-code-applied` and `invitation-code-failed` events
+- **Error Classification**: Retryable vs. non-retryable error categorization
+- **User Feedback**: Real-time status messages throughout the process
 
 ## Deployment Notes
 
