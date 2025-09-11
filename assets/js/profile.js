@@ -439,8 +439,13 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
             return;
         }
 
-        userAchievements.innerHTML = achievements.map(achievement => `
-            <div class="achievement-item flex items-center space-x-3 p-3 bg-slate-700 rounded-md" data-category="${achievement.category || 'uncategorized'}">
+        userAchievements.innerHTML = achievements.map(achievement => {
+            // Ensure category defaults to 'uncategorized' if missing
+            const category = achievement.category || 'uncategorized';
+            const dateEarnedText = achievement.dateEarned ? formatFirestoreTimestamp(achievement.dateEarned) : '';
+            
+            return `
+            <div class="achievement-item flex items-center space-x-3 p-3 bg-slate-700 rounded-md" data-category="${category}">
                 <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
                     ${achievement.icon || '🏆'}
                 </div>
@@ -448,15 +453,16 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
                     <div class="flex items-center justify-between mb-1">
                         <h4 class="font-bold text-white">${achievement.name}</h4>
                         <div class="flex items-center space-x-2">
-                            <span class="achievement-category-badge">${getCategoryDisplayName(achievement.category || 'uncategorized')}</span>
+                            <span class="achievement-category-badge">${getCategoryDisplayName(category)}</span>
                             <span class="text-xs font-racing text-neon-yellow">${achievement.points || 0}pts</span>
                         </div>
                     </div>
                     <p class="text-sm text-slate-400">${achievement.description}</p>
-                    ${achievement.dateEarned ? `<p class="text-xs text-slate-500">Earned: ${new Date(achievement.dateEarned.seconds * 1000).toLocaleDateString()}</p>` : ''}
+                    ${dateEarnedText ? `<p class="text-xs text-slate-500">Earned: ${dateEarnedText}</p>` : ''}
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 
     function getCategoryDisplayName(category) {
@@ -695,6 +701,32 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
             return true;
         } catch (_) {
             return false;
+        }
+    }
+
+    // Helper function to format Firestore timestamps in various formats
+    function formatFirestoreTimestamp(ts) {
+        try {
+            // Handle Firestore Timestamp-like objects: {seconds, nanoseconds}
+            if (ts && typeof ts === 'object' && ts.seconds !== undefined) {
+                return new Date(ts.seconds * 1000).toLocaleDateString();
+            }
+            // Handle JS Date instances
+            if (ts instanceof Date) {
+                return ts.toLocaleDateString();
+            }
+            // Handle ISO/parsable strings
+            if (typeof ts === 'string') {
+                const date = new Date(ts);
+                if (!isNaN(date.getTime())) {
+                    return date.toLocaleDateString();
+                }
+            }
+            // Return empty string on failure
+            return '';
+        } catch (error) {
+            console.warn('Failed to format timestamp:', ts, error);
+            return '';
         }
     }
 

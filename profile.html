@@ -9,19 +9,36 @@
     <link rel="stylesheet" href="styles/main.css">
     <style>
         .category-filter-btn {
-            @apply text-xs px-3 py-2 rounded-full border border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700 transition cursor-pointer;
+            font-size: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 9999px;
+            border: 1px solid rgb(71 85 105);
+            background-color: rgb(30 41 59);
+            color: rgb(203 213 225);
+            transition: all 0.15s ease-in-out;
+            cursor: pointer;
+        }
+        .category-filter-btn:hover {
+            background-color: rgb(51 65 85);
         }
         .category-filter-btn.active {
-            @apply bg-neon-yellow text-black border-neon-yellow font-bold;
+            background-color: var(--neon-yellow, #ffff00);
+            color: black;
+            border-color: var(--neon-yellow, #ffff00);
+            font-weight: bold;
         }
         .achievement-item {
-            @apply transition-all duration-300 ease-in-out;
+            transition: all 300ms ease-in-out;
         }
         .achievement-item.hidden-category {
-            @apply hidden;
+            display: none;
         }
         .achievement-category-badge {
-            @apply text-xs px-2 py-1 rounded-full bg-slate-600 text-slate-300;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            background-color: rgb(71 85 105);
+            color: rgb(203 213 225);
         }
     </style>
 </head>
