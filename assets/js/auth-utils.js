@@ -4,7 +4,7 @@
  */
 
 import { getFirebaseAuth } from './firebase-core.js';
-import { getAuthErrorMessage, requiresReauth, isNetworkError, isRetryableError } from './auth-errors.js';
+import { getFriendlyAuthError, requiresReauth, isNetworkError, isRetryableError } from './auth-errors.js';
 
 // Authentication state and configuration
 const AUTH_CONFIG = {
@@ -343,7 +343,7 @@ function classifyAuthError(error) {
         return {
             code: error.code,
             message: error.message,
-            userMessage: getAuthErrorMessage(error.code),
+            userMessage: getFriendlyAuthError(error),
             requiresReauth: requiresReauth(error.code),
             retryable: isRetryableError(error.code)
         };

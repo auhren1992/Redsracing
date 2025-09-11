@@ -1086,7 +1086,6 @@ import {
                 // Show driver notes for all authenticated users
                 if (driverNotesCard) {
                     driverNotesCard.classList.remove('hidden');
-                    await loadDriverNotes(user.uid);
                 }
 
                 // Set up MFA for verified users
