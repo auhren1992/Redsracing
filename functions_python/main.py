@@ -30,6 +30,16 @@ def get_sendgrid_client():
 # Define a default CORS policy to allow requests from any origin.
 CORS_OPTIONS = options.CorsOptions(cors_origins="*", cors_methods=["get", "post", "put", "options"])
 
+def ts_to_dict(value):
+    """Helper function to convert datetime objects to Firestore-like timestamp format."""
+    if isinstance(value, datetime):
+        # Convert to {seconds: int, nanoseconds: int} format
+        timestamp = value.timestamp()
+        seconds = int(timestamp)
+        nanoseconds = int((timestamp - seconds) * 1_000_000) * 1000  # Convert microseconds to nanoseconds
+        return {"seconds": seconds, "nanoseconds": nanoseconds}
+    return value
+
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleAddSubscriber(req: https_fn.Request) -> https_fn.Response:
     """Adds a subscriber's email to the Firestore 'subscribers' collection."""
@@ -198,7 +208,9 @@ def handleGetProfile(req: https_fn.Request) -> https_fn.Response:
             achievement_doc = achievement_ref.get()
             if achievement_doc.exists:
                 achievement_details = achievement_doc.to_dict()
-                achievement_details["dateEarned"] = ach_data.get("dateEarned")
+                # Convert dateEarned to Firestore-like format if it's a datetime
+                date_earned = ach_data.get("dateEarned")
+                achievement_details["dateEarned"] = ts_to_dict(date_earned) if date_earned else None
                 user_achievements.append(achievement_details)
         
         # Combine profile with achievements
@@ -207,7 +219,7 @@ def handleGetProfile(req: https_fn.Request) -> https_fn.Response:
             "achievements": user_achievements
         }
         
-        return https_fn.Response(json.dumps(result, default=str), status=200, headers={"Content-Type": "application/json"})
+        return https_fn.Response(json.dumps(result, default=ts_to_dict), status=200, headers={"Content-Type": "application/json"})
     
     except Exception as e:
         return https_fn.Response(f"An error occurred: {e}", status=500)
