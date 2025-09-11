@@ -32,7 +32,8 @@ import {
         stage: (stage, message) => console.log(`[Dashboard:${stage}] ${message}`),
         error: (stage, error, context = {}) => console.error(`[Dashboard:${stage}] Error:`, error, context),
         retry: (attempt, maxAttempts, delay) => console.warn(`[Dashboard:Retry] Attempt ${attempt}/${maxAttempts}, delay: ${delay}ms`),
-        success: (stage, message) => console.log(`[Dashboard:${stage}] ✓ ${message}`)
+        success: (stage, message) => console.log(`[Dashboard:${stage}] ✓ ${message}`),
+        info: (stage, message, ...args) => console.log(`[Dashboard:${stage}] ${message}`, ...args)
     };
     
     // Network connectivity detection
