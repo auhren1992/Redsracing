@@ -197,6 +197,47 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
     // Start the loading timeout immediately
     setupLoadingTimeout();
 
+    // Helper function to safely format timestamps from various sources
+    function formatFirestoreTimestamp(timestamp, fallback = 'Unknown') {
+        if (!timestamp) {
+            return fallback;
+        }
+
+        try {
+            // Handle Firestore Timestamp objects with .seconds property
+            if (timestamp && typeof timestamp === 'object' && timestamp.seconds) {
+                return new Date(timestamp.seconds * 1000).toLocaleDateString();
+            }
+            
+            // Handle Date objects
+            if (timestamp instanceof Date) {
+                return timestamp.toLocaleDateString();
+            }
+            
+            // Handle string representations
+            if (typeof timestamp === 'string') {
+                const date = new Date(timestamp);
+                if (!isNaN(date.getTime())) {
+                    return date.toLocaleDateString();
+                }
+            }
+            
+            // Handle numeric timestamps (milliseconds)
+            if (typeof timestamp === 'number') {
+                const date = new Date(timestamp);
+                if (!isNaN(date.getTime())) {
+                    return date.toLocaleDateString();
+                }
+            }
+            
+            console.warn('Unable to parse timestamp:', timestamp);
+            return fallback;
+        } catch (error) {
+            console.error('Error formatting timestamp:', error, timestamp);
+            return fallback;
+        }
+    }
+
     // Get user ID from URL or use current user
     function getUserIdFromUrl() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -358,8 +399,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 
         // Handle join date
         if (profileData.joinDate) {
-            const joinDate = new Date(profileData.joinDate);
-            profileJoinDate.textContent = joinDate.toLocaleDateString();
+            profileJoinDate.textContent = formatFirestoreTimestamp(profileData.joinDate);
         } else {
             profileJoinDate.textContent = 'Unknown';
         }
@@ -458,7 +498,11 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
                         </div>
                     </div>
                     <p class="text-sm text-slate-400">${achievement.description}</p>
+
+                    ${achievement.dateEarned ? `<p class="text-xs text-slate-500">Earned: ${formatFirestoreTimestamp(achievement.dateEarned)}</p>` : ''}
+
                     ${dateEarnedText ? `<p class="text-xs text-slate-500">Earned: ${dateEarnedText}</p>` : ''}
+
                 </div>
             </div>
         `;
@@ -480,7 +524,10 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
         if (category === 'all') {
             renderAchievements(userAchievementsData);
         } else {
-            const filteredAchievements = userAchievementsData.filter(achievement => achievement.category === category);
+            const filteredAchievements = userAchievementsData.filter(achievement => {
+                const achievementCategory = achievement.category || 'uncategorized';
+                return achievementCategory === category;
+            });
             renderAchievements(filteredAchievements);
         }
     }
