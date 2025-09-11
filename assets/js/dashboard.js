@@ -4,6 +4,18 @@ import { onAuthStateChanged, signOut, sendEmailVerification, RecaptchaVerifier, 
 import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
+// Import centralized authentication utilities
+import { 
+    validateAndRefreshToken, 
+    validateUserClaims, 
+    safeFirestoreOperation, 
+    retryAuthOperation,
+    showAuthError,
+    clearAuthError,
+    monitorAuthState,
+    getCurrentUser
+} from './auth-utils.js';
+
 // Wrap everything in an async function to allow early returns
 (async function() {
     // Enhanced error handling and retry logic
@@ -299,6 +311,29 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
             clearTimeout(loadingTimeout);
             loadingTimeout = null;
         }
+    }
+
+    // Initialize Firebase services with enhanced error handling
+    let auth, db, storage;
+    
+    try {
+        dashboardLogger.stage('Initialization', 'Initializing Firebase services');
+        const firebaseServices = await retryAuthOperation(initFirebase, 'Firebase initialization');
+        auth = firebaseServices.auth;
+        db = firebaseServices.db;
+        storage = firebaseServices.storage;
+        dashboardLogger.success('Initialization', 'Firebase services initialized successfully');
+    } catch (error) {
+        dashboardLogger.error('Initialization', 'Critical Firebase initialization failure', error);
+        showAuthError({
+            code: 'firebase-init-failed',
+            message: 'Firebase initialization failed',
+            userMessage: 'Unable to connect to our services. Please refresh the page and try again.',
+            requiresReauth: false,
+            retryable: true
+        });
+        showServiceErrorFallback('service', 'Unable to connect to our services. Please refresh the page and try again.');
+        return; // Exit early if Firebase can't be initialized
     }
 
     const loadingState = document.getElementById('loading-state');
@@ -802,46 +837,46 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
     };
 
     const getJonnyVideos = async () => {
-        try {
+        const operation = async () => {
             dashboardLogger.stage('VideoData', 'Loading Jonny videos');
-            // Force token refresh to ensure custom claims are up to date
-            if (auth.currentUser) {
-                await auth.currentUser.getIdToken(true); // true forces refresh
-            }
-            
             const q = query(collection(db, "jonny_videos"), orderBy("createdAt", "desc"));
             const snapshot = await getDocs(q);
             const videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderJonnyVideos(videos);
             dashboardLogger.success('VideoData', `Loaded ${videos.length} Jonny videos`);
-        } catch (error) {
-            const errorInfo = classifyError(error, 'Jonny videos loading');
-            dashboardLogger.error('VideoData', 'Error loading Jonny videos', errorInfo);
+            return videos;
+        };
+
+        const result = await safeFirestoreOperation(operation, ['team-member'], 'Load Jonny videos');
+        
+        if (!result.success) {
+            dashboardLogger.error('VideoData', 'Error loading Jonny videos', result.error);
+            showAuthError(result.error, 'jonny-videos-error');
             
-            if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
-                dashboardLogger.stage('VideoData', 'Insufficient permissions to access Jonny videos. User may not be a team member or authentication token needs refresh.');
-                // Debug the current authentication state
+            // Debug authentication issues if permission denied
+            if (result.error.code === 'permission-denied') {
                 await debugAuthToken('getJonnyVideos permission denied');
-                renderJonnyVideos([]); // Render empty list to prevent UI issues
-            } else {
-                throw error; // Re-throw other errors for retry logic
             }
+            
+            renderJonnyVideos([]); // Render empty list to prevent UI issues
         }
+        
+        return result.success ? result.data : [];
     };
 
     const deleteJonnyVideo = async (id) => {
-         if (confirm('Are you sure you want to delete this video?')) {
-            try {
-                // Force token refresh to ensure custom claims are up to date
-                if (auth.currentUser) {
-                    await auth.currentUser.getIdToken(true);
-                }
-                
+        if (confirm('Are you sure you want to delete this video?')) {
+            const operation = async () => {
                 await deleteDoc(doc(db, 'jonny_videos', id));
                 getJonnyVideos(); // Refresh the list
-            } catch (error) {
-                console.error("Error deleting video:", error);
-                alert("Failed to delete video.");
+            };
+
+            const result = await safeFirestoreOperation(operation, ['team-member'], 'Delete Jonny video');
+            
+            if (!result.success) {
+                console.error("Error deleting video:", result.error);
+                showAuthError(result.error, 'delete-video-error');
+                alert(`Failed to delete video: ${result.error.userMessage}`);
             }
         }
     };
@@ -965,6 +1000,124 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
             window.location.href = 'login.html';
         }
     });
+
+    // Set up authentication state monitoring with enhanced error handling
+    dashboardLogger.stage('AuthSetup', 'Setting up authentication state monitoring');
+    
+    const authUnsubscribe = monitorAuthState(
+        async (user, validToken) => {
+            clearAuthError(); // Clear any previous auth errors
+            
+            if (user && validToken) {
+                dashboardLogger.success('AuthSetup', 'User authenticated successfully', {
+                    uid: user.uid,
+                    email: user.email,
+                    emailVerified: user.emailVerified
+                });
+
+                // Set user email in UI
+                if (userEmailEl) {
+                    userEmailEl.textContent = user.email;
+                }
+
+                // Check if email is verified
+                if (!user.emailVerified && emailVerificationNotice) {
+                    emailVerificationNotice.classList.remove('hidden');
+                    
+                    // Set up resend verification handler
+                    if (resendVerificationBtn) {
+                        resendVerificationBtn.addEventListener('click', async () => {
+                            try {
+                                await sendEmailVerification(user);
+                                alert('Verification email sent! Please check your inbox.');
+                            } catch (error) {
+                                console.error('Error sending verification email:', error);
+                                alert('Failed to send verification email. Please try again later.');
+                            }
+                        });
+                    }
+                }
+
+                // Validate user permissions for dashboard features
+                const claimsResult = await validateUserClaims(['team-member']);
+                const isTeamMember = claimsResult.success && claimsResult.claims.role === 'team-member';
+
+                dashboardLogger.info('AuthSetup', 'User role validation', {
+                    isTeamMember,
+                    role: claimsResult.claims?.role,
+                    hasPermissions: claimsResult.success
+                });
+
+                // Show/hide admin features based on role
+                if (isTeamMember) {
+                    // Show admin cards
+                    if (raceManagementCard) raceManagementCard.classList.remove('hidden');
+                    if (qnaManagementCard) qnaManagementCard.classList.remove('hidden');
+                    if (photoApprovalCard) photoApprovalCard.classList.remove('hidden');
+                    if (jonnyPhotoApprovalCard) jonnyPhotoApprovalCard.classList.remove('hidden');
+                    if (jonnyVideoManagementCard) jonnyVideoManagementCard.classList.remove('hidden');
+                    
+                    // Load admin data with error handling
+                    try {
+                        await getRaceData();
+                        await getQnaSubmissions();
+                        await getUnapprovedPhotos(null, unapprovedPhotosList);
+                        await getUnapprovedPhotos('jonny', jonnyUnapprovedPhotosList);
+                        await getJonnyVideos();
+                    } catch (error) {
+                        dashboardLogger.error('AuthSetup', 'Error loading admin data', error);
+                        showAuthError({
+                            code: 'data-load-failed',
+                            message: 'Failed to load dashboard data',
+                            userMessage: 'Some dashboard features may not be available. Please refresh the page.',
+                            requiresReauth: false,
+                            retryable: true
+                        });
+                    }
+                } else {
+                    // Hide admin cards for non-team members
+                    if (raceManagementCard) raceManagementCard.classList.add('hidden');
+                    if (qnaManagementCard) qnaManagementCard.classList.add('hidden');
+                    if (photoApprovalCard) photoApprovalCard.classList.add('hidden');
+                    if (jonnyPhotoApprovalCard) jonnyPhotoApprovalCard.classList.add('hidden');
+                    if (jonnyVideoManagementCard) jonnyVideoManagementCard.classList.add('hidden');
+                }
+
+                // Show driver notes for all authenticated users
+                if (driverNotesCard) {
+                    driverNotesCard.classList.remove('hidden');
+                    await loadDriverNotes(user.uid);
+                }
+
+                // Set up MFA for verified users
+                if (user.emailVerified && mfaCard) {
+                    mfaCard.classList.remove('hidden');
+                    await setupMfa(user);
+                }
+
+                // Hide loading and show content
+                hideLoadingAndShowContent();
+
+            } else {
+                dashboardLogger.warn('AuthSetup', 'User not authenticated, redirecting to login');
+                window.location.href = 'login.html';
+            }
+        },
+        (error) => {
+            dashboardLogger.error('AuthSetup', 'Authentication error', error);
+            showAuthError(error);
+            
+            if (error.requiresReauth) {
+                // Redirect to login for auth errors that require re-authentication
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 3000);
+            } else {
+                // Show service error for other auth issues
+                showServiceErrorFallback('auth', error.userMessage);
+            }
+        }
+    );
 
     document.getElementById('year').textContent = new Date().getFullYear();
 

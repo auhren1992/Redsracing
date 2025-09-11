@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Test - Redsracing</title>
+    <link rel="stylesheet" href="styles/tailwind.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0c4a6e 0%, #1e293b 100%);
+            color: #f1f5f9;
+        }
+        .neon-yellow { color: #facc15; text-shadow: 0 0 5px #facc15; }
+        .font-racing { font-family: 'Racing Sans One', cursive; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="bg-black/50 backdrop-blur-sm border-b border-slate-700 sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-racing uppercase neon-yellow">Authentication Test</h1>
+                <button id="back-btn" class="bg-slate-600 text-white px-4 py-2 rounded hover:bg-slate-500 transition">
+                    Back to Dashboard
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-6 py-12">
+        <!-- Error container -->
+        <div id="auth-error-container" class="mb-6"></div>
+        
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl font-racing uppercase mb-8">Authentication <span class="neon-yellow">Test Suite</span></h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Token Validation Test -->
+                <div class="bg-slate-800 p-6 rounded-lg">
+                    <h2 class="text-xl font-bold mb-4">Token Validation</h2>
+                    <button id="test-token-validation" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 transition w-full">
+                        Test Token Validation
+                    </button>
+                    <div id="token-validation-result" class="mt-4 p-3 bg-slate-700 rounded text-sm"></div>
+                </div>
+
+                <!-- Claims Validation Test -->
+                <div class="bg-slate-800 p-6 rounded-lg">
+                    <h2 class="text-xl font-bold mb-4">Claims Validation</h2>
+                    <button id="test-claims-validation" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 transition w-full">
+                        Test Claims Validation
+                    </button>
+                    <div id="claims-validation-result" class="mt-4 p-3 bg-slate-700 rounded text-sm"></div>
+                </div>
+
+                <!-- Safe Firestore Operation Test -->
+                <div class="bg-slate-800 p-6 rounded-lg">
+                    <h2 class="text-xl font-bold mb-4">Safe Firestore Operation</h2>
+                    <button id="test-firestore-operation" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-500 transition w-full">
+                        Test Firestore Operation
+                    </button>
+                    <div id="firestore-operation-result" class="mt-4 p-3 bg-slate-700 rounded text-sm"></div>
+                </div>
+
+                <!-- Network Error Simulation -->
+                <div class="bg-slate-800 p-6 rounded-lg">
+                    <h2 class="text-xl font-bold mb-4">Error Handling Test</h2>
+                    <button id="test-error-handling" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500 transition w-full">
+                        Test Error Handling
+                    </button>
+                    <div id="error-handling-result" class="mt-4 p-3 bg-slate-700 rounded text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Authentication Status -->
+            <div class="mt-8 bg-slate-800 p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4">Authentication Status</h2>
+                <div id="auth-status" class="space-y-2"></div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        // Import authentication utilities
+        import { 
+            validateAndRefreshToken, 
+            validateUserClaims, 
+            safeFirestoreOperation, 
+            showAuthError,
+            clearAuthError,
+            monitorAuthState,
+            getCurrentUser
+        } from './assets/js/auth-utils.js';
+        
+        import { initializeFirebaseCore } from './assets/js/firebase-core.js';
+        import { collection, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Initialize Firebase
+        let db;
+        try {
+            const firebaseServices = await initializeFirebaseCore();
+            db = firebaseServices.db;
+            console.log('Firebase initialized for testing');
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+            document.getElementById('auth-status').innerHTML = '<p class="text-red-400">Firebase initialization failed</p>';
+        }
+
+        // Back button
+        document.getElementById('back-btn').addEventListener('click', () => {
+            window.location.href = 'dashboard.html';
+        });
+
+        // Update authentication status
+        function updateAuthStatus() {
+            const user = getCurrentUser();
+            const statusEl = document.getElementById('auth-status');
+            
+            if (user) {
+                statusEl.innerHTML = `
+                    <p><strong>User:</strong> ${user.email}</p>
+                    <p><strong>UID:</strong> ${user.uid}</p>
+                    <p><strong>Email Verified:</strong> ${user.emailVerified}</p>
+                `;
+            } else {
+                statusEl.innerHTML = '<p class="text-yellow-400">Not authenticated</p>';
+            }
+        }
+
+        // Test functions
+        document.getElementById('test-token-validation').addEventListener('click', async () => {
+            const resultEl = document.getElementById('token-validation-result');
+            resultEl.innerHTML = 'Testing...';
+            
+            try {
+                const result = await validateAndRefreshToken(true); // Force refresh
+                resultEl.innerHTML = `
+                    <p><strong>Success:</strong> ${result.success}</p>
+                    <p><strong>Token:</strong> ${result.token ? 'Present' : 'None'}</p>
+                    ${result.error ? `<p><strong>Error:</strong> ${result.error.message}</p>` : ''}
+                `;
+                resultEl.className = 'mt-4 p-3 bg-green-900 rounded text-sm';
+            } catch (error) {
+                resultEl.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
+                resultEl.className = 'mt-4 p-3 bg-red-900 rounded text-sm';
+            }
+        });
+
+        document.getElementById('test-claims-validation').addEventListener('click', async () => {
+            const resultEl = document.getElementById('claims-validation-result');
+            resultEl.innerHTML = 'Testing...';
+            
+            try {
+                const result = await validateUserClaims(['team-member']);
+                resultEl.innerHTML = `
+                    <p><strong>Success:</strong> ${result.success}</p>
+                    <p><strong>Role:</strong> ${result.claims?.role || 'None'}</p>
+                    <p><strong>Has Team Member Role:</strong> ${result.success}</p>
+                    ${result.error ? `<p><strong>Error:</strong> ${result.error.message}</p>` : ''}
+                `;
+                resultEl.className = `mt-4 p-3 ${result.success ? 'bg-green-900' : 'bg-yellow-900'} rounded text-sm`;
+            } catch (error) {
+                resultEl.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
+                resultEl.className = 'mt-4 p-3 bg-red-900 rounded text-sm';
+            }
+        });
+
+        document.getElementById('test-firestore-operation').addEventListener('click', async () => {
+            const resultEl = document.getElementById('firestore-operation-result');
+            resultEl.innerHTML = 'Testing...';
+            
+            try {
+                const operation = async () => {
+                    const q = query(collection(db, 'races'), limit(1));
+                    const snapshot = await getDocs(q);
+                    return snapshot.docs.length;
+                };
+
+                const result = await safeFirestoreOperation(operation, [], 'Test operation');
+                resultEl.innerHTML = `
+                    <p><strong>Success:</strong> ${result.success}</p>
+                    <p><strong>Data:</strong> ${result.data !== null ? `Found ${result.data} documents` : 'None'}</p>
+                    ${result.error ? `<p><strong>Error:</strong> ${result.error.message}</p>` : ''}
+                `;
+                resultEl.className = `mt-4 p-3 ${result.success ? 'bg-green-900' : 'bg-red-900'} rounded text-sm`;
+            } catch (error) {
+                resultEl.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
+                resultEl.className = 'mt-4 p-3 bg-red-900 rounded text-sm';
+            }
+        });
+
+        document.getElementById('test-error-handling').addEventListener('click', async () => {
+            const resultEl = document.getElementById('error-handling-result');
+            resultEl.innerHTML = 'Testing...';
+            
+            // Test error display
+            showAuthError({
+                code: 'test-error',
+                message: 'This is a test error',
+                userMessage: 'This is a test error message to verify error display functionality.',
+                requiresReauth: false,
+                retryable: true
+            });
+
+            resultEl.innerHTML = '<p>Error displayed above. Check for error message in the error container.</p>';
+            resultEl.className = 'mt-4 p-3 bg-blue-900 rounded text-sm';
+
+            // Clear error after 5 seconds
+            setTimeout(() => {
+                clearAuthError();
+                resultEl.innerHTML += '<br><p>Error cleared after 5 seconds.</p>';
+            }, 5000);
+        });
+
+        // Monitor auth state and update status
+        monitorAuthState(
+            (user, token) => {
+                updateAuthStatus();
+                console.log('Auth state changed:', user ? 'signed in' : 'signed out');
+            },
+            (error) => {
+                console.error('Auth error:', error);
+                showAuthError(error);
+            }
+        );
+
+        // Initial status update
+        updateAuthStatus();
+    </script>
+</body>
+</html>
