@@ -388,6 +388,11 @@ import {
     const videoTitleInput = document.getElementById('video-title');
     const jonnyVideosList = document.getElementById('jonny-videos-list');
 
+    // Invitation Codes elements
+    const invitationCodesCard = document.getElementById('invitation-codes-card');
+    const invitationCodesTableBody = document.getElementById('invitation-codes-table-body');
+    const refreshCodesBtn = document.getElementById('refresh-codes-btn');
+
     function classifyFirestoreError(err) {
       if (!err) return 'Unknown Firestore error';
       if (err.code) return `Firestore error ${err.code}: ${err.message}`;
@@ -904,6 +909,80 @@ import {
     });
 
 
+    // --- Invitation Codes Management ---
+    const getInvitationCodes = async () => {
+        console.log('[Dashboard:InvitationCodes] Loading invitation codes from Firebase Functions');
+        
+        try {
+            // Import Functions module
+            const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js");
+            const functions = getFunctions();
+            const getInvitationCodesFunction = httpsCallable(functions, 'getInvitationCodes');
+            
+            const result = await getInvitationCodesFunction();
+            
+            if (result.data.status === 'success') {
+                renderInvitationCodes(result.data.codes);
+                console.log('[Dashboard:InvitationCodes] Successfully loaded invitation codes');
+            } else {
+                console.error('[Dashboard:InvitationCodes] Error from function:', result.data.message);
+                showAuthError({
+                    code: 'invitation-codes-failed',
+                    message: result.data.message
+                }, 'invitation-codes-error');
+            }
+        } catch (error) {
+            console.error('[Dashboard:InvitationCodes] Error loading invitation codes:', error);
+            showAuthError(error, 'invitation-codes-error');
+        }
+    };
+
+    const renderInvitationCodes = (codes) => {
+        if (!invitationCodesTableBody) return;
+        
+        invitationCodesTableBody.innerHTML = '';
+        
+        if (!codes || codes.length === 0) {
+            invitationCodesTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center p-4 text-slate-400">No invitation codes found</td>
+                </tr>
+            `;
+            return;
+        }
+        
+        codes.forEach(code => {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-slate-700 hover:bg-slate-800/50';
+            
+            const formatDate = (timestamp) => {
+                if (!timestamp) return '-';
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            };
+            
+            const statusText = code.used ? 'Used' : 'Available';
+            const statusClass = code.used ? 'text-red-400' : 'text-green-400';
+            
+            row.innerHTML = `
+                <td class="p-2 font-mono text-sm">${code.id}</td>
+                <td class="p-2">${code.role}</td>
+                <td class="p-2 ${statusClass} font-bold">${statusText}</td>
+                <td class="p-2">${code.usedBy || '-'}</td>
+                <td class="p-2 text-sm">${formatDate(code.usedAt)}</td>
+                <td class="p-2 text-sm">${formatDate(code.expiresAt)}</td>
+            `;
+            
+            invitationCodesTableBody.appendChild(row);
+        });
+    };
+
+    // Add event listener for refresh button
+    if (refreshCodesBtn) {
+        refreshCodesBtn.addEventListener('click', getInvitationCodes);
+    }
+
+
     // --- MFA Setup ---
     const setupMfa = (user) => {
         const hasPhoneNumber = user.providerData.some(p => p.providerId === 'phone');
@@ -1048,6 +1127,7 @@ import {
                     if (photoApprovalCard) photoApprovalCard.classList.remove('hidden');
                     if (jonnyPhotoApprovalCard) jonnyPhotoApprovalCard.classList.remove('hidden');
                     if (jonnyVideoManagementCard) jonnyVideoManagementCard.classList.remove('hidden');
+                    if (invitationCodesCard) invitationCodesCard.classList.remove('hidden');
                     
                     // Load admin data with error handling
                     try {
@@ -1056,6 +1136,7 @@ import {
                         await getUnapprovedPhotos(null, unapprovedPhotosList);
                         await getUnapprovedPhotos('jonny', jonnyUnapprovedPhotosList);
                         await getJonnyVideos();
+                        await getInvitationCodes();
                     } catch (error) {
                         console.error('[Dashboard:AuthSetup] Error:', 'Error loading admin data', error);
                         showAuthError({
