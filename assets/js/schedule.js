@@ -3,7 +3,13 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+// Import invitation code utilities
+import { captureInvitationCodeFromURL, applyPendingInvitationCode } from './invitation-codes.js';
+
 async function main() {
+    // Capture invitation code from URL as early as possible
+    captureInvitationCodeFromURL();
+
     const firebaseConfig = await getFirebaseConfig();
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -14,12 +20,20 @@ async function main() {
     const authLinkMobile = document.getElementById('auth-link-mobile');
 
     // Auth State Change
-    onAuthStateChanged(auth, user => {
+    onAuthStateChanged(auth, async user => {
         if (user) {
             if(authLink) authLink.textContent = 'Dashboard';
             if(authLink) authLink.href = 'dashboard.html';
             if(authLinkMobile) authLinkMobile.textContent = 'Dashboard';
             if(authLinkMobile) authLinkMobile.href = 'dashboard.html';
+            
+            // Apply pending invitation code if available
+            try {
+                await applyPendingInvitationCode(auth);
+            } catch (error) {
+                console.warn('[Schedule] Failed to apply pending invitation code:', error);
+                // Don't block the auth flow for invitation code errors
+            }
         } else {
             if(authLink) authLink.textContent = 'DRIVER LOGIN';
             if(authLink) authLink.href = 'login.html';
