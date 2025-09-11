@@ -142,6 +142,32 @@
                         </div>
                     </div>
 
+                    <!-- Invitation Codes Management -->
+                    <div id="invitation-codes-card" class="card rounded-lg p-6" style="display: none;">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Invitation <span class="neon-yellow">Codes</span></h2>
+                        <p class="text-slate-400 mb-4">Manage team invitation codes and track usage.</p>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="border-b border-slate-600">
+                                        <th class="p-2">Code</th>
+                                        <th class="p-2">Role</th>
+                                        <th class="p-2">Status</th>
+                                        <th class="p-2">Used By</th>
+                                        <th class="p-2">Used At</th>
+                                        <th class="p-2">Expires</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invitation-codes-table-body">
+                                    <!-- Invitation codes will be inserted here by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <button id="refresh-codes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Refresh Codes</button>
+                        </div>
+                    </div>
+
                     <!-- 2-Step Verification -->
                     <div id="mfa-card" class="card rounded-lg p-6" style="display: none;">
                         <h2 class="text-3xl font-racing text-white uppercase mb-4">2-Step <span class="neon-yellow">Verification</span></h2>
