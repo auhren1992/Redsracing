@@ -3,6 +3,18 @@
 import { initializeFirebaseCore, getFirebaseAuth, getFirebaseApp } from './firebase-core.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
+// Import centralized authentication utilities
+import { 
+    validateAndRefreshToken, 
+    validateUserClaims, 
+    safeFirestoreOperation, 
+    retryAuthOperation,
+    showAuthError,
+    clearAuthError,
+    monitorAuthState,
+    getCurrentUser
+} from './auth-utils.js';
+
 // Wrap everything in an async function to allow early returns
 (async function() {
     let auth = null;
@@ -105,57 +117,114 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
     let isEditing = false;
     let isCurrentUserProfile = false;
 
-    // Function to set up Firebase-dependent event listeners
-    function setupFirebaseEventListeners(authStateChangedFn, signOutFn) {
-        // Only set up listeners if Firebase is available
-        if (!auth || !authStateChangedFn || !signOutFn) {
-            console.error('[Profile] Cannot setup Firebase listeners - services not available');
-            hideLoadingAndShowFallback();
-            return;
-        }
-        
-        // Logout button handler
-        if (logoutButton) {
-            logoutButton.addEventListener('click', () => {
-                if (signOutFn && auth) {
-                    signOutFn(auth).then(() => {
-                        window.location.href = 'login.html';
-                    }).catch((error) => {
-                        console.error('Error signing out:', error);
-                        window.location.href = 'login.html';
-                    });
-                } else {
-                    console.log('Firebase not available, redirecting to login');
-                    window.location.href = 'login.html';
-                }
-            });
-        }
+    // Set up authentication state monitoring with enhanced error handling
+    console.log('[Profile] Setting up authentication state monitoring');
+    
+    const authUnsubscribe = monitorAuthState(
+        async (user, validToken) => {
+            clearAuthError(); // Clear any previous auth errors
+            
+            if (user && validToken) {
+                console.log('[Profile] User authenticated successfully', {
+                    uid: user.uid,
+                    email: user.email,
+                    emailVerified: user.emailVerified
+                });
 
-        // Auth state change handler
-        authStateChangedFn(auth, async (user) => {
-            try {
-                if (user) {
-                    currentUser = user;
-                    const targetUserId = getUserIdFromUrl() || user.uid;
-                    isCurrentUserProfile = (targetUserId === user.uid);
+                currentUser = user;
+                const targetUserId = getUserIdFromUrl() || user.uid;
+                isCurrentUserProfile = (targetUserId === user.uid);
 
-                    // Load the user profile (error handling is now done inside loadUserProfile)
+                // Load the user profile with enhanced error handling
+                try {
                     await loadUserProfile(targetUserId);
+                } catch (profileError) {
+                    console.error('[Profile] Error loading profile:', profileError);
+                    showAuthError({
+                        code: 'profile-load-failed',
+                        message: 'Failed to load user profile',
+                        userMessage: 'Unable to load profile data. Please refresh the page and try again.',
+                        requiresReauth: false,
+                        retryable: true
+                    });
+                    showErrorState();
+                    return;
+                }
 
-                    // Check if user is admin for achievements management
-                    const tokenResult = await user.getIdTokenResult();
-                    const isAdmin = tokenResult.claims.role === 'team-member';
+                // Check if user is admin for achievements management using new validation
+                try {
+                    const claimsResult = await validateUserClaims(['team-member']);
+                    const isAdmin = claimsResult.success && claimsResult.claims.role === 'team-member';
+                    
+                    console.log('[Profile] User role validation', {
+                        isAdmin,
+                        role: claimsResult.claims?.role,
+                        hasPermissions: claimsResult.success
+                    });
+
                     if (isAdmin && adminAchievements) {
                         adminAchievements.classList.remove('hidden');
-                        await loadAllAchievements();
+                        
+                        // Load achievements with safe operation wrapper
+                        const achievementsResult = await safeFirestoreOperation(
+                            loadAllAchievements,
+                            ['team-member'],
+                            'Load achievements for admin'
+                        );
+                        
+                        if (!achievementsResult.success) {
+                            console.error('[Profile] Error loading achievements:', achievementsResult.error);
+                            showAuthError(achievementsResult.error);
+                        }
                     }
-                } else {
-                    window.location.href = 'login.html';
+                } catch (claimsError) {
+                    console.error('[Profile] Error validating user claims:', claimsError);
+                    // Don't show error for claims validation failure - just hide admin features
                 }
-            } catch (authError) {
-                console.error("Authentication error:", authError);
-                // Show error state for authentication failures
+
+                // Hide loading and show content
+                hideLoadingAndShowContent();
+
+            } else {
+                console.log('[Profile] User not authenticated, redirecting to login');
+                window.location.href = 'login.html';
+            }
+        },
+        (error) => {
+            console.error('[Profile] Authentication error:', error);
+            showAuthError(error);
+            
+            if (error.requiresReauth) {
+                // Redirect to login for auth errors that require re-authentication
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 3000);
+            } else {
+                // Show error state for other auth issues
                 showErrorState();
+            }
+        }
+    );
+
+    // Set up logout button with enhanced error handling
+    if (logoutButton) {
+        logoutButton.addEventListener('click', async () => {
+            try {
+                console.log('[Profile] Signing out user');
+                await signOut(auth);
+                console.log('[Profile] User signed out successfully');
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('[Profile] Error signing out:', error);
+                showAuthError({
+                    code: 'logout-failed',
+                    message: 'Logout failed',
+                    userMessage: 'Failed to sign out. Redirecting to login page.',
+                    requiresReauth: false,
+                    retryable: false
+                });
+                // Still redirect even if logout fails
+                window.location.href = 'login.html';
             }
         });
     }
@@ -246,31 +315,62 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 
     // Helper function to call profile API endpoints
     async function callProfileAPI(endpoint, method = 'GET', data = null) {
-        const idToken = currentUser ? await currentUser.getIdToken() : null;
-        const options = {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-                ...(idToken && { 'Authorization': `Bearer ${idToken}` })
+        let tokenValidation = null;
+        let options = {};
+
+        // For authenticated requests, validate and refresh token
+        if (currentUser) {
+            tokenValidation = await validateAndRefreshToken();
+            
+            if (!tokenValidation.success) {
+                console.error('[Profile] Token validation failed for API call:', tokenValidation.error);
+                
+                // For GET requests, we might still try without auth for public profile viewing
+                if (method === 'GET') {
+                    console.log(`[Profile] Attempting ${endpoint} without authentication for public access`);
+                    options = {
+                        method,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    };
+                } else {
+                    throw new Error(`Authentication failed: ${tokenValidation.error.userMessage}`);
+                }
+            } else {
+                options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${tokenValidation.token}`
+                    }
+                };
             }
-        };
+        } else {
+            // Unauthenticated request
+            options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+        }
         
         if (data && method !== 'GET') {
             options.body = JSON.stringify(data);
         }
         
-        console.log(`[Profile] Calling API: ${method} ${endpoint}${idToken ? ' (authenticated)' : ' (unauthenticated)'}`);
+        console.log(`[Profile] Calling API: ${method} ${endpoint}${tokenValidation?.success ? ' (authenticated with validated token)' : ' (unauthenticated)'}`);
         
         let response = await fetch(endpoint, options);
         
         // For GET requests, retry without auth if we get 401/403 (for public profile viewing)
-        if (!response.ok && method === 'GET' && (response.status === 401 || response.status === 403) && idToken) {
+        if (!response.ok && method === 'GET' && (response.status === 401 || response.status === 403) && tokenValidation?.success) {
             console.log(`[Profile] Retrying ${endpoint} without authentication for public access`);
             const publicOptions = {
                 method,
                 headers: {
                     'Content-Type': 'application/json'
-                    // No Authorization header for public retry
                 }
             };
             response = await fetch(endpoint, publicOptions);
@@ -279,15 +379,39 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
         if (!response.ok) {
             const error = new Error(`HTTP error! status: ${response.status}`);
             error.status = response.status;
-            console.log(`[Profile] API call failed: ${response.status} ${response.statusText}`);
-            // Add error codes for better error handling
+            console.error(`[Profile] API call failed: ${response.status} ${response.statusText}`);
+            
+            // Handle specific authentication errors with user feedback
             if (response.status === 404) {
                 error.code = 'not-found';
             } else if (response.status === 401) {
                 error.code = 'unauthorized';
+                showAuthError({
+                    code: 'api-unauthorized',
+                    message: 'API call unauthorized',
+                    userMessage: 'Your session has expired. Please sign in again.',
+                    requiresReauth: true,
+                    retryable: false
+                });
             } else if (response.status === 403) {
                 error.code = 'forbidden';
+                showAuthError({
+                    code: 'api-forbidden',
+                    message: 'API call forbidden',
+                    userMessage: 'You do not have permission to perform this action.',
+                    requiresReauth: false,
+                    retryable: false
+                });
+            } else if (response.status >= 500) {
+                showAuthError({
+                    code: 'server-error',
+                    message: 'Server error',
+                    userMessage: 'Server error occurred. Please try again later.',
+                    requiresReauth: false,
+                    retryable: true
+                });
             }
+            
             throw error;
         }
         
@@ -895,8 +1019,9 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
     };
 
     // Only setup Firebase event listeners if initialization was successful
-    if (auth && onAuthStateChanged && signOut) {
-        setupFirebaseEventListeners(onAuthStateChanged, signOut);
+    if (auth) {
+        console.log('[Profile] Firebase services available, authentication monitoring already set up above');
+        // The authentication state monitoring is now handled above with monitorAuthState
     } else {
         console.error('[Profile] Cannot setup Firebase event listeners - services not available');
         hideLoadingAndShowFallback();
