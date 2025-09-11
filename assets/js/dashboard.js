@@ -1,5 +1,5 @@
 // Importing Firebase services and specific functions
-import { initFirebase } from './firebase-init.js';
+import { initializeFirebaseCore } from './firebase-core.js';
 import { onAuthStateChanged, signOut, sendEmailVerification, RecaptchaVerifier, linkWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
@@ -27,14 +27,6 @@ import {
     let retryCount = 0;
     let currentLoadingStage = 'initializing';
     
-    // Enhanced logging utility
-    const dashboardLogger = {
-        stage: (stage, message) => console.log(`[Dashboard:${stage}] ${message}`),
-        error: (stage, error, context = {}) => console.error(`[Dashboard:${stage}] Error:`, error, context),
-        retry: (attempt, maxAttempts, delay) => console.warn(`[Dashboard:Retry] Attempt ${attempt}/${maxAttempts}, delay: ${delay}ms`),
-        success: (stage, message) => console.log(`[Dashboard:${stage}] ✓ ${message}`)
-    };
-    
     // Network connectivity detection
     const checkNetworkConnectivity = async () => {
         try {
@@ -51,9 +43,9 @@ import {
             return true;
         } catch (error) {
             if (error.name === 'AbortError') {
-                dashboardLogger.error('NetworkCheck', 'Network connectivity timeout');
+                console.error('[Dashboard:NetworkCheck] Error:', 'Network connectivity timeout');
             } else {
-                dashboardLogger.error('NetworkCheck', 'Network connectivity failed', error);
+                console.error('[Dashboard:NetworkCheck] Error:', 'Network connectivity failed', error);
             }
             return false;
         }
@@ -124,12 +116,12 @@ import {
             try {
                 const result = await fn();
                 if (attempt > 1) {
-                    dashboardLogger.success('Retry', `${context} succeeded on attempt ${attempt}`);
+                    console.log(`[Dashboard:Retry] ✓ ${context} succeeded on attempt ${attempt}`);
                 }
                 return result;
             } catch (error) {
                 const errorInfo = classifyError(error, context);
-                dashboardLogger.error('Retry', `${context} failed on attempt ${attempt}`, errorInfo);
+                console.error(`[Dashboard:Retry] Error:`, `${context} failed on attempt ${attempt}`, errorInfo);
                 
                 // Don't retry non-retryable errors
                 if (!errorInfo.retryable || attempt === maxRetries) {
@@ -138,7 +130,7 @@ import {
                 
                 // Calculate exponential backoff delay
                 const delay = RETRY_BASE_DELAY * Math.pow(2, attempt - 1) + Math.random() * 1000;
-                dashboardLogger.retry(attempt, maxRetries, Math.round(delay));
+                console.warn(`[Dashboard:Retry] Attempt ${attempt}/${maxRetries}, delay: ${Math.round(delay)}ms`);
                 
                 // Update UI to show retry status
                 updateRetryStatus(attempt, maxRetries, context);
@@ -166,7 +158,7 @@ import {
     const startLoadingTimeout = () => {
         if (loadingTimeout) clearTimeout(loadingTimeout);
         loadingTimeout = setTimeout(async () => {
-            dashboardLogger.error('Timeout', `Loading timeout reached after ${INITIAL_TIMEOUT}ms, checking network and showing fallback`);
+            console.error('[Dashboard:Timeout] Error:', `Loading timeout reached after ${INITIAL_TIMEOUT}ms, checking network and showing fallback`);
             
             // Before showing fallback, check if it's a network issue
             const isOnline = await checkNetworkConnectivity();
@@ -183,7 +175,7 @@ import {
 
     // Enhanced fallback display functions
     function showNetworkErrorFallback() {
-        dashboardLogger.error('Network', 'Network connectivity issue detected, showing network error fallback');
+        console.error('[Dashboard:Network] Error:', 'Network connectivity issue detected, showing network error fallback');
         const loadingState = document.getElementById('loading-state');
         const dashboardContent = document.getElementById('dashboard-content');
 
@@ -221,7 +213,7 @@ import {
     }
 
     function showServiceErrorFallback(errorType = 'service', userMessage = null) {
-        dashboardLogger.error('Service', `Service error detected: ${errorType}, showing service error fallback`);
+        console.error('[Dashboard:Service] Error:', `Service error detected: ${errorType}, showing service error fallback`);
         const loadingState = document.getElementById('loading-state');
         const dashboardContent = document.getElementById('dashboard-content');
 
@@ -268,7 +260,7 @@ import {
     }
 
     function hideLoadingAndShowFallback() {
-        dashboardLogger.error('Fallback', 'Showing generic fallback due to unspecified error');
+        console.error('[Dashboard:Fallback] Error:', 'Showing generic fallback due to unspecified error');
         const loadingState = document.getElementById('loading-state');
         const dashboardContent = document.getElementById('dashboard-content');
 
@@ -317,14 +309,14 @@ import {
     let auth, db, storage;
     
     try {
-        dashboardLogger.stage('Initialization', 'Initializing Firebase services');
-        const firebaseServices = await retryAuthOperation(initFirebase, 'Firebase initialization');
+        console.log('[Dashboard:Initialization] Initializing Firebase services');
+        const firebaseServices = await retryAuthOperation(initializeFirebaseCore, 'Firebase initialization');
         auth = firebaseServices.auth;
         db = firebaseServices.db;
         storage = firebaseServices.storage;
-        dashboardLogger.success('Initialization', 'Firebase services initialized successfully');
+        console.log('[Dashboard:Initialization] ✓ Firebase services initialized successfully');
     } catch (error) {
-        dashboardLogger.error('Initialization', 'Critical Firebase initialization failure', error);
+        console.error('[Dashboard:Initialization] Error:', 'Critical Firebase initialization failure', error);
         showAuthError({
             code: 'firebase-init-failed',
             message: 'Firebase initialization failed',
@@ -463,7 +455,7 @@ import {
 
     // Enhanced data loading functions with retry logic
     const getRaceData = async () => {
-        dashboardLogger.stage('RaceData', 'Loading race data from Firestore');
+        console.log('[Dashboard:RaceData] Loading race data from Firestore');
         const racesCol = collection(db, "races");
         const q = query(racesCol, orderBy("date", "asc"));
         const raceSnapshot = await getDocs(q);
@@ -471,7 +463,7 @@ import {
 
         renderRacesTable(raceList);
         startCountdown(raceList);
-        dashboardLogger.success('RaceData', `Loaded ${raceList.length} races successfully`);
+        console.log(`[Dashboard:RaceData] ✓ Loaded ${raceList.length} races successfully`);
     };
 
     // 2. CREATE/UPDATE Races
@@ -601,12 +593,12 @@ import {
     };
 
     const getQnaSubmissions = async () => {
-        dashboardLogger.stage('QnAData', 'Loading Q&A submissions');
+        console.log('[Dashboard:QnAData] Loading Q&A submissions');
         const q = query(collection(db, "qna_submissions"), where("status", "==", "submitted"), orderBy("submittedAt", "asc"));
         const snapshot = await getDocs(q);
         const submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderQnaSubmissions(submissions);
-        dashboardLogger.success('QnAData', `Loaded ${submissions.length} Q&A submissions`);
+        console.log(`[Dashboard:QnAData] ✓ Loaded ${submissions.length} Q&A submissions`);
     };
 
     const openQnaModal = (submission) => {
@@ -718,7 +710,7 @@ import {
     };
 
     const getUnapprovedPhotos = async (category, container) => {
-        dashboardLogger.stage('PhotoData', `Loading unapproved photos for category: ${category || 'main'}`);
+        console.log(`[Dashboard:PhotoData] Loading unapproved photos for category: ${category || 'main'}`);
         let photos = [];
         if (category) {
             // Query for specific category (e.g., "jonny")
@@ -745,7 +737,7 @@ import {
                 .filter(photo => !photo.category || photo.category !== "jonny");
         }
         renderUnapprovedPhotos(photos, container, category);
-        dashboardLogger.success('PhotoData', `Loaded ${photos.length} unapproved photos for ${category || 'main'} gallery`);
+        console.log(`[Dashboard:PhotoData] ✓ Loaded ${photos.length} unapproved photos for ${category || 'main'} gallery`);
     };
 
     const approvePhoto = async (id) => {
@@ -838,19 +830,19 @@ import {
 
     const getJonnyVideos = async () => {
         const operation = async () => {
-            dashboardLogger.stage('VideoData', 'Loading Jonny videos');
+            console.log('[Dashboard:VideoData] Loading Jonny videos');
             const q = query(collection(db, "jonny_videos"), orderBy("createdAt", "desc"));
             const snapshot = await getDocs(q);
             const videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderJonnyVideos(videos);
-            dashboardLogger.success('VideoData', `Loaded ${videos.length} Jonny videos`);
+            console.log(`[Dashboard:VideoData] ✓ Loaded ${videos.length} Jonny videos`);
             return videos;
         };
 
         const result = await safeFirestoreOperation(operation, ['team-member'], 'Load Jonny videos');
         
         if (!result.success) {
-            dashboardLogger.error('VideoData', 'Error loading Jonny videos', result.error);
+            console.error('[Dashboard:VideoData] Error:', 'Error loading Jonny videos', result.error);
             showAuthError(result.error, 'jonny-videos-error');
             
             // Debug authentication issues if permission denied
@@ -974,7 +966,7 @@ import {
 
     // Enhanced loading completion handler
     function hideLoadingAndShowContent() {
-        dashboardLogger.stage('UI', 'Hiding loading state and showing dashboard content');
+        console.log('[Dashboard:UI] Hiding loading state and showing dashboard content');
         if (loadingState) {
             loadingState.style.display = 'none';
             loadingState.setAttribute('hidden', 'true');
@@ -983,33 +975,33 @@ import {
             dashboardContent.classList.remove('hidden');
         }
         clearLoadingTimeout();
-        dashboardLogger.success('UI', 'Dashboard content displayed successfully');
+        console.log('[Dashboard:UI] ✓ Dashboard content displayed successfully');
     }
 
     // Logout handler with error handling
     logoutButton.addEventListener('click', async (e) => {
         e.preventDefault();
         try {
-            dashboardLogger.stage('Logout', 'Signing out user');
+            console.log('[Dashboard:Logout] Signing out user');
             await signOut(auth);
-            dashboardLogger.success('Logout', 'User signed out successfully');
+            console.log('[Dashboard:Logout] ✓ User signed out successfully');
         } catch (error) {
             const errorInfo = classifyError(error, 'Logout');
-            dashboardLogger.error('Logout', 'Error during logout', errorInfo);
+            console.error('[Dashboard:Logout] Error:', 'Error during logout', errorInfo);
             // Still try to redirect even if logout fails
             window.location.href = 'login.html';
         }
     });
 
     // Set up authentication state monitoring with enhanced error handling
-    dashboardLogger.stage('AuthSetup', 'Setting up authentication state monitoring');
+    console.log('[Dashboard:AuthSetup] Setting up authentication state monitoring');
     
     const authUnsubscribe = monitorAuthState(
         async (user, validToken) => {
             clearAuthError(); // Clear any previous auth errors
             
             if (user && validToken) {
-                dashboardLogger.success('AuthSetup', 'User authenticated successfully', {
+                console.log('[Dashboard:AuthSetup] ✓ User authenticated successfully', {
                     uid: user.uid,
                     email: user.email,
                     emailVerified: user.emailVerified
@@ -1042,7 +1034,7 @@ import {
                 const claimsResult = await validateUserClaims(['team-member']);
                 const isTeamMember = claimsResult.success && claimsResult.claims.role === 'team-member';
 
-                dashboardLogger.info('AuthSetup', 'User role validation', {
+                console.log('[Dashboard:AuthSetup] User role validation', {
                     isTeamMember,
                     role: claimsResult.claims?.role,
                     hasPermissions: claimsResult.success
@@ -1065,7 +1057,7 @@ import {
                         await getUnapprovedPhotos('jonny', jonnyUnapprovedPhotosList);
                         await getJonnyVideos();
                     } catch (error) {
-                        dashboardLogger.error('AuthSetup', 'Error loading admin data', error);
+                        console.error('[Dashboard:AuthSetup] Error:', 'Error loading admin data', error);
                         showAuthError({
                             code: 'data-load-failed',
                             message: 'Failed to load dashboard data',
@@ -1098,12 +1090,12 @@ import {
                 hideLoadingAndShowContent();
 
             } else {
-                dashboardLogger.warn('AuthSetup', 'User not authenticated, redirecting to login');
+                console.warn('[Dashboard:AuthSetup] User not authenticated, redirecting to login');
                 window.location.href = 'login.html';
             }
         },
         (error) => {
-            dashboardLogger.error('AuthSetup', 'Authentication error', error);
+            console.error('[Dashboard:AuthSetup] Error:', 'Authentication error', error);
             showAuthError(error);
             
             if (error.requiresReauth) {
@@ -1122,6 +1114,6 @@ import {
 
     // Clear the loading timeout since we successfully initialized
     clearLoadingTimeout();
-    dashboardLogger.success('Complete', 'Dashboard initialization completed successfully');
+    console.log('[Dashboard:Complete] ✓ Dashboard initialization completed successfully');
 
 })(); // End of async function wrapper
