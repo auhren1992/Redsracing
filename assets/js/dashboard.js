@@ -6,13 +6,172 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
 
 // Wrap everything in an async function to allow early returns
 (async function() {
-    // Add immediate loading timeout as backup
-    let loadingTimeout = setTimeout(() => {
-        console.warn('Loading timeout reached, showing fallback content');
-        hideLoadingAndShowFallback();
-    }, 8000); // 8 second timeout
+    // Enhanced error handling and retry logic
+    const INITIAL_TIMEOUT = 15000; // Extended to 15 seconds to allow for retries
+    const MAX_RETRIES = 3;
+    const RETRY_BASE_DELAY = 1000; // 1 second base delay for exponential backoff
+    
+    let loadingTimeout = null;
+    let retryCount = 0;
+    let currentLoadingStage = 'initializing';
+    
+    // Enhanced logging utility
+    const dashboardLogger = {
+        stage: (stage, message) => console.log(`[Dashboard:${stage}] ${message}`),
+        error: (stage, error, context = {}) => console.error(`[Dashboard:${stage}] Error:`, error, context),
+        retry: (attempt, maxAttempts, delay) => console.warn(`[Dashboard:Retry] Attempt ${attempt}/${maxAttempts}, delay: ${delay}ms`),
+        success: (stage, message) => console.log(`[Dashboard:${stage}] ✓ ${message}`)
+    };
+    
+    // Network connectivity detection
+    const checkNetworkConnectivity = async () => {
+        try {
+            // Try to fetch a small resource with a short timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+            
+            const response = await fetch('https://www.google.com/favicon.ico', {
+                method: 'HEAD',
+                mode: 'no-cors',
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            return true;
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                dashboardLogger.error('NetworkCheck', 'Network connectivity timeout');
+            } else {
+                dashboardLogger.error('NetworkCheck', 'Network connectivity failed', error);
+            }
+            return false;
+        }
+    };
+    
+    // Error classification utility
+    const classifyError = (error, context = '') => {
+        if (!error) return { type: 'unknown', message: 'Unknown error occurred', retryable: false };
+        
+        // Network connectivity issues
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            return { 
+                type: 'network', 
+                message: 'Network connection failed',
+                userMessage: 'Please check your internet connection and try again.',
+                retryable: true
+            };
+        }
+        
+        // Firebase-specific errors
+        if (error.code) {
+            switch (error.code) {
+                case 'unavailable':
+                case 'deadline-exceeded':
+                    return {
+                        type: 'firebase-service',
+                        message: `Firebase service temporarily unavailable: ${error.code}`,
+                        userMessage: 'Our services are temporarily unavailable. Please try again in a moment.',
+                        retryable: true
+                    };
+                case 'permission-denied':
+                case 'unauthenticated':
+                    return {
+                        type: 'auth',
+                        message: `Authentication error: ${error.code}`,
+                        userMessage: 'Authentication failed. Please log in again.',
+                        retryable: false
+                    };
+                case 'failed-precondition':
+                    return {
+                        type: 'config',
+                        message: `Configuration error: ${error.code}`,
+                        userMessage: 'Service configuration issue. Please contact support.',
+                        retryable: false
+                    };
+                default:
+                    return {
+                        type: 'firebase-other',
+                        message: `Firebase error: ${error.code} - ${error.message}`,
+                        userMessage: 'A service error occurred. Please try again.',
+                        retryable: true
+                    };
+            }
+        }
+        
+        // Generic errors
+        return {
+            type: 'generic',
+            message: error.message || String(error),
+            userMessage: 'An unexpected error occurred. Please try again.',
+            retryable: true
+        };
+    };
+    
+    // Enhanced retry logic with exponential backoff
+    const retryWithBackoff = async (fn, maxRetries = MAX_RETRIES, context = 'operation') => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const result = await fn();
+                if (attempt > 1) {
+                    dashboardLogger.success('Retry', `${context} succeeded on attempt ${attempt}`);
+                }
+                return result;
+            } catch (error) {
+                const errorInfo = classifyError(error, context);
+                dashboardLogger.error('Retry', `${context} failed on attempt ${attempt}`, errorInfo);
+                
+                // Don't retry non-retryable errors
+                if (!errorInfo.retryable || attempt === maxRetries) {
+                    throw error;
+                }
+                
+                // Calculate exponential backoff delay
+                const delay = RETRY_BASE_DELAY * Math.pow(2, attempt - 1) + Math.random() * 1000;
+                dashboardLogger.retry(attempt, maxRetries, Math.round(delay));
+                
+                // Update UI to show retry status
+                updateRetryStatus(attempt, maxRetries, context);
+                
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    };
+    
+    // Update loading UI with retry information
+    const updateRetryStatus = (attempt, maxAttempts, context) => {
+        const loadingState = document.getElementById('loading-state');
+        if (loadingState && !loadingState.classList.contains('hidden')) {
+            const loadingText = loadingState.querySelector('p');
+            if (loadingText) {
+                loadingText.innerHTML = `
+                    Loading Dashboard...<br>
+                    <span class="text-sm text-yellow-400">Retrying connection (${attempt}/${maxAttempts})...</span>
+                `;
+            }
+        }
+    };
+    
+    // Set up enhanced loading timeout
+    const startLoadingTimeout = () => {
+        if (loadingTimeout) clearTimeout(loadingTimeout);
+        loadingTimeout = setTimeout(async () => {
+            dashboardLogger.error('Timeout', `Loading timeout reached after ${INITIAL_TIMEOUT}ms, checking network and showing fallback`);
+            
+            // Before showing fallback, check if it's a network issue
+            const isOnline = await checkNetworkConnectivity();
+            
+            if (!isOnline) {
+                showNetworkErrorFallback();
+            } else {
+                hideLoadingAndShowFallback();
+            }
+        }, INITIAL_TIMEOUT);
+    };
+    
+    startLoadingTimeout();
 
-    function hideLoadingAndShowFallback() {
+    // Enhanced fallback display functions
+    function showNetworkErrorFallback() {
+        dashboardLogger.error('Network', 'Network connectivity issue detected, showing network error fallback');
         const loadingState = document.getElementById('loading-state');
         const dashboardContent = document.getElementById('dashboard-content');
 
@@ -21,7 +180,91 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
             loadingState.style.visibility = 'hidden';
             loadingState.classList.add('hidden');
             loadingState.setAttribute('hidden', 'true');
-            console.log('Loading state hidden');
+        }
+
+        if (dashboardContent) {
+            dashboardContent.innerHTML = `
+                <div class="text-center py-20">
+                    <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
+                    <div class="text-red-400 mb-6">
+                        <div class="text-6xl mb-4">🌐</div>
+                        <h2 class="text-2xl font-bold">No Internet Connection</h2>
+                        <p class="mt-2">Please check your internet connection and try again.</p>
+                        <p class="text-sm text-slate-400 mt-2">Make sure you're connected to WiFi or cellular data.</p>
+                    </div>
+                    <div class="space-x-4">
+                        <button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
+                            Check Connection & Retry
+                        </button>
+                        <a href="index.html" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">
+                            Go Home
+                        </a>
+                    </div>
+                </div>
+            `;
+            dashboardContent.classList.remove('hidden');
+        }
+
+        clearLoadingTimeout();
+    }
+
+    function showServiceErrorFallback(errorType = 'service', userMessage = null) {
+        dashboardLogger.error('Service', `Service error detected: ${errorType}, showing service error fallback`);
+        const loadingState = document.getElementById('loading-state');
+        const dashboardContent = document.getElementById('dashboard-content');
+
+        if (loadingState) {
+            loadingState.style.display = 'none';
+            loadingState.style.visibility = 'hidden';
+            loadingState.classList.add('hidden');
+            loadingState.setAttribute('hidden', 'true');
+        }
+
+        if (dashboardContent) {
+            const defaultMessage = 'Our services are temporarily unavailable.';
+            const displayMessage = userMessage || defaultMessage;
+            const icon = errorType === 'auth' ? '🔐' : '⚠️';
+            
+            dashboardContent.innerHTML = `
+                <div class="text-center py-20">
+                    <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
+                    <div class="text-yellow-400 mb-6">
+                        <div class="text-6xl mb-4">${icon}</div>
+                        <h2 class="text-2xl font-bold">Service Temporarily Unavailable</h2>
+                        <p class="mt-2">${displayMessage}</p>
+                        <p class="text-sm text-slate-400 mt-2">This appears to be a temporary service issue.</p>
+                        ${errorType === 'auth' ? 
+                            '<p class="text-sm text-slate-400 mt-1">You may need to log in again.</p>' : 
+                            '<p class="text-sm text-slate-400 mt-1">Please try again in a few moments.</p>'
+                        }
+                    </div>
+                    <div class="space-x-4">
+                        ${errorType === 'auth' ? 
+                            '<a href="login.html" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Go to Login</a>' :
+                            '<button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Try Again</button>'
+                        }
+                        <a href="index.html" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">
+                            Go Home
+                        </a>
+                    </div>
+                </div>
+            `;
+            dashboardContent.classList.remove('hidden');
+        }
+
+        clearLoadingTimeout();
+    }
+
+    function hideLoadingAndShowFallback() {
+        dashboardLogger.error('Fallback', 'Showing generic fallback due to unspecified error');
+        const loadingState = document.getElementById('loading-state');
+        const dashboardContent = document.getElementById('dashboard-content');
+
+        if (loadingState) {
+            loadingState.style.display = 'none';
+            loadingState.style.visibility = 'hidden';
+            loadingState.classList.add('hidden');
+            loadingState.setAttribute('hidden', 'true');
         }
 
         if (dashboardContent) {
@@ -29,8 +272,9 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
                 <div class="text-center py-20">
                     <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
                     <div class="text-yellow-400 mb-6">
+                        <div class="text-6xl mb-4">⚠️</div>
                         <h2 class="text-2xl font-bold">Dashboard Temporarily Unavailable</h2>
-                        <p class="mt-2">Our services are currently unavailable.</p>
+                        <p class="mt-2">We're experiencing technical difficulties loading the dashboard.</p>
                         <p class="text-sm text-slate-400 mt-2">This could be due to network issues or temporary service downtime.</p>
                         <p class="text-sm text-slate-400 mt-1">Please check your internet connection and try again.</p>
                     </div>
@@ -45,9 +289,12 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
                 </div>
             `;
             dashboardContent.classList.remove('hidden');
-            console.log('Fallback content shown');
         }
 
+        clearLoadingTimeout();
+    }
+    
+    function clearLoadingTimeout() {
         if (loadingTimeout) {
             clearTimeout(loadingTimeout);
             loadingTimeout = null;
@@ -179,8 +426,9 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
         document.querySelectorAll('.delete-race-btn').forEach(btn => btn.addEventListener('click', () => deleteRace(btn.dataset.id)));
     };
 
-    // Fetch race data from Firestore
+    // Enhanced data loading functions with retry logic
     const getRaceData = async () => {
+        dashboardLogger.stage('RaceData', 'Loading race data from Firestore');
         const racesCol = collection(db, "races");
         const q = query(racesCol, orderBy("date", "asc"));
         const raceSnapshot = await getDocs(q);
@@ -188,6 +436,7 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
 
         renderRacesTable(raceList);
         startCountdown(raceList);
+        dashboardLogger.success('RaceData', `Loaded ${raceList.length} races successfully`);
     };
 
     // 2. CREATE/UPDATE Races
@@ -317,10 +566,12 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
     };
 
     const getQnaSubmissions = async () => {
+        dashboardLogger.stage('QnAData', 'Loading Q&A submissions');
         const q = query(collection(db, "qna_submissions"), where("status", "==", "submitted"), orderBy("submittedAt", "asc"));
         const snapshot = await getDocs(q);
         const submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderQnaSubmissions(submissions);
+        dashboardLogger.success('QnAData', `Loaded ${submissions.length} Q&A submissions`);
     };
 
     const openQnaModal = (submission) => {
@@ -432,6 +683,7 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
     };
 
     const getUnapprovedPhotos = async (category, container) => {
+        dashboardLogger.stage('PhotoData', `Loading unapproved photos for category: ${category || 'main'}`);
         let photos = [];
         if (category) {
             // Query for specific category (e.g., "jonny")
@@ -458,6 +710,7 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
                 .filter(photo => !photo.category || photo.category !== "jonny");
         }
         renderUnapprovedPhotos(photos, container, category);
+        dashboardLogger.success('PhotoData', `Loaded ${photos.length} unapproved photos for ${category || 'main'} gallery`);
     };
 
     const approvePhoto = async (id) => {
@@ -550,6 +803,7 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
 
     const getJonnyVideos = async () => {
         try {
+            dashboardLogger.stage('VideoData', 'Loading Jonny videos');
             // Force token refresh to ensure custom claims are up to date
             if (auth.currentUser) {
                 await auth.currentUser.getIdToken(true); // true forces refresh
@@ -559,16 +813,18 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
             const snapshot = await getDocs(q);
             const videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderJonnyVideos(videos);
+            dashboardLogger.success('VideoData', `Loaded ${videos.length} Jonny videos`);
         } catch (error) {
-            console.error("Error loading Jonny videos:", error);
+            const errorInfo = classifyError(error, 'Jonny videos loading');
+            dashboardLogger.error('VideoData', 'Error loading Jonny videos', errorInfo);
             
             if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
-                console.log("Insufficient permissions to access Jonny videos. User may not be a team member or authentication token needs refresh.");
+                dashboardLogger.stage('VideoData', 'Insufficient permissions to access Jonny videos. User may not be a team member or authentication token needs refresh.');
                 // Debug the current authentication state
                 await debugAuthToken('getJonnyVideos permission denied');
                 renderJonnyVideos([]); // Render empty list to prevent UI issues
             } else {
-                throw error; // Re-throw other errors
+                throw error; // Re-throw other errors for retry logic
             }
         }
     };
@@ -681,16 +937,9 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
         }
     };
 
-    // Reset loading timeout to prevent infinite loading
-    if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
-    }
-    loadingTimeout = setTimeout(() => {
-        console.warn('Loading timeout reached, hiding loading state');
-        hideLoadingAndShowContent();
-    }, 10000); // 10 second timeout
-
+    // Enhanced loading completion handler
     function hideLoadingAndShowContent() {
+        dashboardLogger.stage('UI', 'Hiding loading state and showing dashboard content');
         if (loadingState) {
             loadingState.style.display = 'none';
             loadingState.setAttribute('hidden', 'true');
@@ -698,157 +947,29 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/fir
         if (dashboardContent) {
             dashboardContent.classList.remove('hidden');
         }
-        if (loadingTimeout) {
-            clearTimeout(loadingTimeout);
-            loadingTimeout = null;
-        }
+        clearLoadingTimeout();
+        dashboardLogger.success('UI', 'Dashboard content displayed successfully');
     }
 
-    // Initialize Firebase services before using them
-    let auth, db, storage;
-    try {
-        const services = await initFirebase();
-        auth = services.auth;
-        db = services.db;
-        storage = services.storage;
-    } catch (error) {
-        console.error('Firebase initialization failed:', error);
-        hideLoadingAndShowFallback();
-        return;
-    }
-
-    // Auth State Change Listener
-    onAuthStateChanged(auth, async (user) => {
-        try {
-            if (user) {
-                try {
-                    userEmailEl.textContent = user.displayName || user.email;
-
-                    if (!user.emailVerified) {
-                        emailVerificationNotice.classList.remove('hidden');
-
-                        // Handle resending the verification email
-                        resendVerificationBtn.addEventListener('click', async () => {
-                            try {
-                                await sendEmailVerification(user);
-                                alert('Verification email sent! Please check your inbox.');
-                            } catch (error) {
-                                console.error('Error resending verification email:', error);
-                                alert('Failed to resend verification email. Please try again later.');
-                            }
-                        });
-
-                        // Handle checking the verification status
-                        const refreshStatusBtn = document.getElementById('refresh-status-btn');
-                        refreshStatusBtn.addEventListener('click', async () => {
-                            // Force a reload of the user's profile from Firebase servers
-                            await auth.currentUser.reload();
-
-                            // Check the new status
-                            if (auth.currentUser.emailVerified) {
-                                emailVerificationNotice.classList.add('hidden');
-                                alert('Thank you for verifying your email!');
-                            } else {
-                                alert('Your email is still not verified. Please check your inbox for the verification link.');
-                            }
-                        });
-                    }
-
-                    await getRaceData();
-
-                    // Force token refresh to ensure custom claims are up to date
-                    const idTokenResult = await user.getIdToken(true).then(() => user.getIdTokenResult());
-                    console.log("User's custom claims:", idTokenResult.claims);
-                    const userRole = idTokenResult.claims.role;
-
-                    if (userRole === 'team-member') {
-                        driverNotesCard.classList.remove('hidden');
-                        raceManagementCard.style.display = 'block';
-                        qnaManagementCard.style.display = 'block';
-                        photoApprovalCard.style.display = 'block';
-                        jonnyPhotoApprovalCard.style.display = 'block';
-                        mfaCard.style.display = 'block';
-
-                        getQnaSubmissions();
-                        getUnapprovedPhotos(null, unapprovedPhotosList); // Main gallery
-                        getUnapprovedPhotos('jonny', jonnyUnapprovedPhotosList); // Jonny's gallery
-                        getJonnyVideos();
-
-                        const userNotesRef = doc(db, "driver_notes", user.uid);
-                        const docSnap = await getDoc(userNotesRef);
-                        if (docSnap.exists()) {
-                            driverNotesEl.value = docSnap.data().notes;
-                        }
-                        driverNotesEl.addEventListener('keyup', () => {
-                            notesStatusEl.textContent = 'Saving...';
-                            clearTimeout(notesSaveTimeout);
-                            notesSaveTimeout = setTimeout(async () => {
-                                try {
-                                    await setDoc(userNotesRef, { notes: driverNotesEl.value }, { merge: true });
-                                    notesStatusEl.textContent = 'Saved!';
-                                } catch (e) {
-                                    notesStatusEl.textContent = 'Error saving notes.';
-                                }
-                                setTimeout(() => { notesStatusEl.textContent = ''; }, 2000);
-                            }, 1000);
-                        });
-                    } else {
-                        driverNotesCard.classList.add('hidden');
-                    }
-
-                    if (userRole === 'team-member') {
-                        setupMfa(user);
-                    }
-                } catch (error) {
-                    console.error("Failed to load dashboard content:", error);
-                    // Show fallback content when Firebase services fail
-                    dashboardContent.innerHTML = `<div class="text-center py-20">
-                        <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
-                        <div class="text-red-400 mb-4">
-                            <h2 class="text-2xl font-bold">Dashboard Temporarily Unavailable</h2>
-                            <p class="mt-2">There was a problem connecting to our services.</p>
-                            <p class="text-sm text-slate-400 mt-2">This could be due to network issues or temporary service downtime.</p>
-                        </div>
-                        <button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
-                            Try Again
-                        </button>
-                    </div>`;
-                }
-            } else {
-                // User not authenticated, redirect to login
-                window.location.href = 'login.html';
-            }
-        } catch (authError) {
-            console.error("Authentication error:", authError);
-            // Show fallback content for auth errors
-            dashboardContent.innerHTML = `<div class="text-center py-20">
-                <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
-                <div class="text-red-400 mb-4">
-                    <h2 class="text-2xl font-bold">Authentication Error</h2>
-                    <p class="mt-2">Unable to verify your identity.</p>
-                    <p class="text-sm text-slate-400 mt-2">Please try logging in again.</p>
-                </div>
-                <a href="login.html" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
-                    Go to Login
-                </a>
-            </div>`;
-        } finally {
-            // Always hide loading and show content
-            hideLoadingAndShowContent();
-        }
-    });
-
-    logoutButton.addEventListener('click', (e) => {
+    // Logout handler with error handling
+    logoutButton.addEventListener('click', async (e) => {
         e.preventDefault();
-        signOut(auth).catch(error => console.error('Logout Error:', error));
+        try {
+            dashboardLogger.stage('Logout', 'Signing out user');
+            await signOut(auth);
+            dashboardLogger.success('Logout', 'User signed out successfully');
+        } catch (error) {
+            const errorInfo = classifyError(error, 'Logout');
+            dashboardLogger.error('Logout', 'Error during logout', errorInfo);
+            // Still try to redirect even if logout fails
+            window.location.href = 'login.html';
+        }
     });
 
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Clear the loading timeout since we successfully loaded
-    if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
-        loadingTimeout = null;
-    }
+    // Clear the loading timeout since we successfully initialized
+    clearLoadingTimeout();
+    dashboardLogger.success('Complete', 'Dashboard initialization completed successfully');
 
 })(); // End of async function wrapper
