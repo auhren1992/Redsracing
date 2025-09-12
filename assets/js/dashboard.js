@@ -170,18 +170,21 @@ import { navigateToInternal } from './navigation-helpers.js';
     };
     
     // Update loading UI with retry information
-    const updateRetryStatus = (attempt, maxAttempts, context) => {
-        const loadingState = document.getElementById('loading-state');
-        if (loadingState && !loadingState.classList.contains('hidden')) {
-            const loadingText = loadingState.querySelector('p');
-            if (loadingText) {
-                safeSetHTML(loadingText, sanitizeHTML(html`Loading Dashboard...<br><span class="text-sm text-yellow-400">Retrying connection (${attempt}/${maxAttempts})...</span>`));
-                    Loading Dashboard...<br>
-                    <span class="text-sm text-yellow-400">Retrying connection (${attempt}/${maxAttempts})...</span>
-                `);
-            }
+const updateRetryStatus = (attempt, maxAttempts, context) => {
+    const loadingState = document.getElementById('loading-state');
+    if (loadingState && !loadingState.classList.contains('hidden')) {
+        const loadingText = loadingState.querySelector('p');
+        if (loadingText) {
+            safeSetHTML(
+                loadingText,
+                html`Loading Dashboard...<br>
+                    <span class="text-sm text-yellow-400">
+                        Retrying connection (${attempt}/${maxAttempts})...
+                    </span>`
+            );
         }
-    };
+    }
+};
     
     // Set up enhanced loading timeout
     const startLoadingTimeout = () => {
