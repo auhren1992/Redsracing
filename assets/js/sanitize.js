@@ -55,7 +55,7 @@ export function safeSetHTML(element, htmlString) {
         }
     } catch (e) {
         // Fallback to basic innerHTML if anything fails
-        element.innerHTML = htmlString;
+        element.innerHTML = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(htmlString) : htmlString;
     }
 }
 
