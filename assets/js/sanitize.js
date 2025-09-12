@@ -46,7 +46,7 @@ export function safeSetHTML(element, htmlString) {
     
     try {
         // Check if DOMPurify is available before using it
-        const cleanHTML = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(htmlString) : htmlString;
+        /* global DOMPurify */ 
         element.innerHTML = '';
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = cleanHTML;
