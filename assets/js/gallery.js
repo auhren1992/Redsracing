@@ -4,6 +4,9 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, increment, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
+// Import sanitization utilities
+import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js';
+
 async function main() {
     const firebaseConfig = await getFirebaseConfig();
     const app = initializeApp(firebaseConfig);
@@ -117,32 +120,40 @@ async function main() {
                 const imageId = docSnapshot.id;
                 const galleryItem = document.createElement('div');
                 galleryItem.className = 'gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group';
-                let tagsHTML = '';
+                
+                // Build tags safely
+                const tagsContainer = document.createElement('div');
                 if (image.tags && image.tags.length > 0) {
-                    tagsHTML = image.tags.slice(0, 3).map(tag => `<span class="bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join(' ');
+                    image.tags.slice(0, 3).forEach(tag => {
+                        const tagSpan = createSafeElement('span', tag, 'bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full');
+                        tagsContainer.appendChild(tagSpan);
+                    });
                 }
                 
                 const currentUser = auth.currentUser;
                 const isLiked = currentUser && image.likes && image.likes.includes(currentUser.uid);
                 const likeCount = image.likeCount || 0;
                 
-                galleryItem.innerHTML = `
+                const likeButtonClass = isLiked ? 'text-red-400' : 'text-slate-400';
+                const fillValue = isLiked ? 'currentColor' : 'none';
+                const disabledAttr = !currentUser ? 'disabled' : '';
+                
+                const galleryHTML = html`
                     <img src="${image.imageUrl}" alt="User uploaded race photo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                     <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
                         <p class="text-sm text-slate-300">Uploaded by: ${image.uploaderDisplayName || 'Anonymous'}</p>
-                        <div class="mt-2">
-                            ${tagsHTML}
+                        <div class="mt-2" id="tags-container-${imageId}">
                         </div>
                         <div class="mt-3 flex items-center justify-between">
-                            <button class="like-btn flex items-center space-x-1 text-xs ${isLiked ? 'text-red-400' : 'text-slate-400'} hover:text-red-400 transition" 
-                                    data-image-id="${imageId}" ${!currentUser ? 'disabled' : ''}>
-                                <svg class="w-4 h-4" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
+                            <button class="like-btn flex items-center space-x-1 text-xs ${likeButtonClass} hover:text-red-400 transition" 
+                                    data-image-id="${imageId}" ${disabledAttr}>
+                                <svg class="w-4 h-4" fill="${fillValue}" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 000-6.364 4.5 4.5 0 00-6.364 0L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                 </svg>
                                 <span class="like-count">${likeCount}</span>
                             </button>
                             <button class="comment-btn flex items-center space-x-1 text-xs text-slate-400 hover:text-blue-400 transition" 
-                                    data-image-id="${imageId}" ${!currentUser ? 'disabled' : ''}>
+                                    data-image-id="${imageId}" ${disabledAttr}>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                                 </svg>
@@ -151,6 +162,17 @@ async function main() {
                         </div>
                     </div>
                 `;
+                
+                safeSetHTML(galleryItem, galleryHTML);
+                
+                // Add tags safely to the tags container
+                const tagsContainerInDOM = galleryItem.querySelector(`#tags-container-${imageId}`);
+                if (tagsContainerInDOM && tagsContainer.children.length > 0) {
+                    while (tagsContainer.firstChild) {
+                        tagsContainerInDOM.appendChild(tagsContainer.firstChild);
+                    }
+                }
+                
                 galleryContainer.appendChild(galleryItem);
             });
         });

@@ -19,6 +19,9 @@ import {
 // Import sanitization utilities
 import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js';
 
+// Import navigation helpers
+import { navigateToInternal } from './navigation-helpers.js';
+
 // Wrap everything in an async function to allow early returns
 (async function() {
     let auth = null;

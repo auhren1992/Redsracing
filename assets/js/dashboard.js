@@ -30,6 +30,9 @@ import { html, safeSetHTML, setSafeText } from './sanitize.js';
 // Import secure random utilities
 import { secureJitter } from './secure-random.js';
 
+// Import navigation helpers
+import { navigateToInternal } from './navigation-helpers.js';
+
 // Wrap everything in an async function to allow early returns
 (async function() {
     // Enhanced error handling and retry logic
@@ -1206,7 +1209,7 @@ import { secureJitter } from './secure-random.js';
             const errorInfo = classifyError(error, 'Logout');
             console.error('[Dashboard:Logout] Error:', 'Error during logout', errorInfo);
             // Still try to redirect even if logout fails
-            window.location.href = 'login.html';
+            navigateToInternal('/login.html');
         }
     });
 
