@@ -17,6 +17,9 @@ import {
     PhoneMultiFactorGenerator
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
+// Import navigation helpers
+import { navigateToInternal } from './navigation-helpers.js';
+
 /**
  * Login Page Controller Class
  * Manages the complete login lifecycle with proper initialization sequence
@@ -527,7 +530,7 @@ class LoginPageController {
      * Handle sign up redirect
      */
     handleSignUpRedirect() {
-        window.location.href = 'signup.html';
+        navigateToInternal('/signup.html');
     }
 
     /**
@@ -542,7 +545,7 @@ class LoginPageController {
         }
 
         setTimeout(() => {
-            window.location.href = 'dashboard.html';
+            navigateToInternal('/dashboard.html');
         }, 1500);
     }
 }

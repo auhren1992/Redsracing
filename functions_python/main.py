@@ -454,8 +454,9 @@ def handleGetLeaderboard(req: https_fn.Request) -> https_fn.Response:
                         "totalPoints": total_points,
                         "achievementCount": user_achievement_counts[user_id]
                     })
-            except:
+            except Exception as e:
                 # Skip users with missing profiles
+                print(f"Warning: Skipping user {user_id} due to missing profile data: {str(e)}")
                 continue
         
         # Sort by total points descending

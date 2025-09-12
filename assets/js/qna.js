@@ -3,6 +3,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+// Import sanitization utilities
+import { html, safeSetHTML } from './sanitize.js';
+
 async function main() {
     const firebaseConfig = await getFirebaseConfig();
     const app = initializeApp(firebaseConfig);
@@ -74,11 +77,14 @@ async function main() {
                 const qna = doc.data();
                 const qnaItem = document.createElement('div');
                 qnaItem.className = 'card p-6 rounded-lg';
-                qnaItem.innerHTML = `
+                
+                const qnaHTML = html`
                     <p class="text-lg text-slate-400 font-semibold">Q: ${qna.question}</p>
                     <p class="text-lg text-white mt-4 pl-4 border-l-4 border-neon-yellow">${qna.answer}</p>
                     <p class="text-sm text-slate-500 text-right mt-4">- Asked by ${qna.submitterName}</p>
                 `;
+                
+                safeSetHTML(qnaItem, qnaHTML);
                 qnaContainer.appendChild(qnaItem);
             });
         });

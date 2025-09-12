@@ -8,10 +8,32 @@
 const fs = require('fs');
 const path = require('path');
 
+/**
+ * Safely resolves a path within a base directory to prevent path traversal
+ * @param {string} baseDir - The base directory to constrain paths to
+ * @param {string} candidate - The candidate path to resolve
+ * @returns {string} The resolved safe path
+ * @throws {Error} If the path escapes the base directory
+ */
+function resolveSafe(baseDir, candidate) {
+    if (!path.isAbsolute(baseDir)) throw new Error(`Invalid base directory: ${baseDir}`);
+    const resolvedCandidate = path.resolve(resolvedBase, path.normalize(candidate));
+    
+    // Ensure the resolved path starts with the base directory
+    if (!resolvedCandidate.startsWith(resolvedBase + path.sep) && resolvedCandidate !== resolvedBase) {
+        throw new Error(`Path traversal attempt detected: ${candidate}`);
+    }
+    
+    return resolvedCandidate;
+}
+
 console.log('🔍 Validating Authentication Improvements...\n');
 
+// Define base directory for security
+const baseDir = __dirname;
+
 // Check if auth-utils.js exists and has required functions
-const authUtilsPath = path.join(__dirname, 'assets/js/auth-utils.js');
+const authUtilsPath = resolveSafe(baseDir, 'assets/js/auth-utils.js');
 const authUtilsExists = fs.existsSync(authUtilsPath);
 
 console.log(`📁 Auth Utils Module: ${authUtilsExists ? '✅ Found' : '❌ Missing'}`);
@@ -39,7 +61,7 @@ if (authUtilsExists) {
 }
 
 // Check if dashboard.js is updated
-const dashboardPath = path.join(__dirname, 'assets/js/dashboard.js');
+const dashboardPath = resolveSafe(baseDir, 'assets/js/dashboard.js');
 const dashboardExists = fs.existsSync(dashboardPath);
 
 console.log(`\n📁 Dashboard Module: ${dashboardExists ? '✅ Found' : '❌ Missing'}`);
@@ -56,7 +78,7 @@ if (dashboardExists) {
 }
 
 // Check if profile.js is updated
-const profilePath = path.join(__dirname, 'assets/js/profile.js');
+const profilePath = resolveSafe(baseDir, 'assets/js/profile.js');
 const profileExists = fs.existsSync(profilePath);
 
 console.log(`\n📁 Profile Module: ${profileExists ? '✅ Found' : '❌ Missing'}`);
@@ -73,8 +95,8 @@ if (profileExists) {
 }
 
 // Check if HTML files have error containers
-const dashboardHtmlPath = path.join(__dirname, 'dashboard.html');
-const profileHtmlPath = path.join(__dirname, 'profile.html');
+const dashboardHtmlPath = encodeURIComponent(resolveSafe(baseDir, 'dashboard.html'));
+const profileHtmlPath = htmlEncode(resolveSafe(baseDir, 'profile.html'));
 
 console.log('\n🌐 HTML Error Containers:');
 
@@ -91,13 +113,13 @@ if (fs.existsSync(profileHtmlPath)) {
 }
 
 // Check if test file exists
-const testPath = path.join(__dirname, 'test_auth_improvements.html');
+const testPath = resolveSafe(baseDir, 'test_auth_improvements.html');
 const testExists = fs.existsSync(testPath);
 
 console.log(`\n🧪 Test Suite: ${testExists ? '✅ Found' : '❌ Missing'}`);
 
 // Check documentation
-const docsPath = path.join(__dirname, 'AUTH_IMPROVEMENTS_DOCUMENTATION.md');
+const docsPath = resolveSafe(baseDir, 'AUTH_IMPROVEMENTS_DOCUMENTATION.md');
 const docsExist = fs.existsSync(docsPath);
 
 console.log(`\n📚 Documentation: ${docsExist ? '✅ Found' : '❌ Missing'}`);
