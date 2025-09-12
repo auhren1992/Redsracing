@@ -21,7 +21,7 @@ export function secureRandomFloat() {
     // Note: This is NOT cryptographically secure and should only be used
     // when crypto.getRandomValues is not available
     console.warn('crypto.getRandomValues not available, falling back to Math.random() - NOT SECURE');
-    return Math.random();
+    throw new Error('crypto.getRandomValues not available and secure random generation is required');
 }
 
 /**
