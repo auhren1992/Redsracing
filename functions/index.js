@@ -12,6 +12,7 @@ const {onObjectFinalized} = require("firebase-functions/v2/storage");
 const {initializeApp} = require("firebase-admin/app");
 const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const {getAuth} = require("firebase-admin/auth");
+import {getStorage} from "firebase-admin/storage";
 const logger = require("firebase-functions/logger");
 const vision = require("@google-cloud/vision");
 
@@ -90,7 +91,7 @@ exports.processInvitationCode = onCall(async (request) => {
     await codeDoc.ref.update({
       used: true,
       usedBy: uid,
-      usedAt: new Date()
+      usedAt: FieldValue.serverTimestamp()
     });
     logger.info(`Marked invitation code '${code}' as used by ${uid}.`);
 
@@ -133,6 +134,12 @@ exports.generateTags = onObjectFinalized({
 
   logger.info(`New image uploaded: ${filePath} in bucket: ${fileBucket}`);
 
+  // Defensive checks for contentType and filePath
+  if (!contentType || !filePath) {
+    logger.error("Missing contentType or filePath in event data");
+    return;
+  }
+
   // Exit if this is triggered on a file that isn't an image.
   if (!contentType.startsWith("image/")) {
     return logger.log("This is not an image.");
@@ -160,30 +167,66 @@ exports.generateTags = onObjectFinalized({
       return;
     }
 
-    // Extract the descriptions of the labels
+    // Extract the descriptions of the labels and create compact visionLabels array
     const tags = labels.map((label) => label.description.toLowerCase());
+    const visionLabels = labels.slice(0, 10).map((label) => ({
+      description: label.description,
+      score: label.score
+    }));
     logger.info(`Generated tags for ${filePath}:`, tags);
 
-    // Find the corresponding Firestore document to update.
-    // We construct the download URL and query for it. This is a robust way
-    // to link the storage object to its Firestore record.
-    const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${fileBucket}/o/${encodeURIComponent(filePath)}?alt=media`;
+    // Find the corresponding Firestore document to update using improved URL matching.
+    // We construct both variants of the download URL to handle token scenarios.
+    const storage = getStorage();
+    
+    // Get file metadata to obtain firebaseStorageDownloadTokens
+    let downloadToken = null;
+    try {
+      const file = storage.bucket(fileBucket).file(filePath);
+      const [metadata] = await file.getMetadata();
+      downloadToken = metadata.metadata && metadata.metadata.firebaseStorageDownloadTokens;
+    } catch (metadataError) {
+      logger.warn(`Could not fetch metadata for ${filePath}:`, metadataError);
+    }
+
+    // Build both URL variants
+    const baseUrl = `https://firebasestorage.googleapis.com/v0/b/${fileBucket}/o/${encodeURIComponent(filePath)}?alt=media`;
+    const tokenUrl = downloadToken ? `${baseUrl}&token=${downloadToken}` : null;
 
     const galleryRef = db.collection("gallery_images");
-    const q = galleryRef.where("imageUrl", "==", downloadUrl).limit(1);
-    const querySnapshot = await q.get();
+    let querySnapshot = null;
+    let imageDoc = null;
 
-    if (querySnapshot.empty) {
-      logger.error(`No Firestore document found for image URL: ${downloadUrl}`);
+    // Try to find the document by imageUrl using token URL first, then fallback to no-token URL
+    if (tokenUrl) {
+      const qWithToken = galleryRef.where("imageUrl", "==", tokenUrl).limit(1);
+      querySnapshot = await qWithToken.get();
+      if (!querySnapshot.empty) {
+        imageDoc = querySnapshot.docs[0];
+        logger.info(`Found Firestore document using token URL: ${tokenUrl}`);
+      }
+    }
+
+    // Fallback to no-token URL if not found with token
+    if (!imageDoc) {
+      const qNoToken = galleryRef.where("imageUrl", "==", baseUrl).limit(1);
+      querySnapshot = await qNoToken.get();
+      if (!querySnapshot.empty) {
+        imageDoc = querySnapshot.docs[0];
+        logger.info(`Found Firestore document using base URL: ${baseUrl}`);
+      }
+    }
+
+    if (!imageDoc) {
+      logger.error(`No Firestore document found for image URLs: ${tokenUrl || 'N/A'} or ${baseUrl}`);
       return;
     }
 
-    // Update the found document with the generated tags
-    const imageDoc = querySnapshot.docs[0];
+    // Update the found document with the generated tags and compact vision data
     await imageDoc.ref.update({
       tags: tags,
-      processed: true, // Mark as processed
-      visionApiResults: result, // Optional: store the full API response
+      visionLabels: visionLabels, // Store compact array instead of full API response
+      processedAt: FieldValue.serverTimestamp()
     });
 
     logger.info(`Successfully updated Firestore document ${imageDoc.id} with tags.`);
