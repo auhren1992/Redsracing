@@ -29,7 +29,7 @@ export function escapeHTML(str) {
 export function html(strings, ...values) {
     let result = strings[0];
     for (let i = 0; i < values.length; i++) {
-        result += escapeHTML(values[i]) + strings[i + 1];
+        result += escapeHTML(String(values[i])) + strings[i + 1];
     }
     return result;
 }
