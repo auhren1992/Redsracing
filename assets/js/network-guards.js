@@ -88,7 +88,7 @@ export async function safeFetch(input, init = {}) {
         headers: headers
     };
     
-    return fetch(input, safeInit);
+    if (!isSafeUrl(input)) throw new Error('Unsafe URL'); return fetch(input, safeInit);
 }
 
 /**
