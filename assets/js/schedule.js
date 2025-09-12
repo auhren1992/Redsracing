@@ -7,7 +7,7 @@ import { getFirestore, collection, query, onSnapshot, orderBy } from "https://ww
 import { captureInvitationCodeFromURL, applyPendingInvitationCode } from './invitation-codes.js';
 
 // Import sanitization utilities
-import { html, safeSetHTML, createSafeElement } from './sanitize.js';
+import { html, safeSetHTML } from './sanitize.js';
 
 async function main() {
     // Capture invitation code from URL as early as possible
