@@ -6,6 +6,9 @@
 import { getFirebaseAuth } from './firebase-core.js';
 import { getFriendlyAuthError, requiresReauth, isNetworkError, isRetryableError } from './auth-errors.js';
 
+// Import sanitization utilities
+import { html, safeSetHTML } from './sanitize.js';
+
 // Authentication state and configuration
 const AUTH_CONFIG = {
     TOKEN_REFRESH_THRESHOLD: 5 * 60 * 1000, // Refresh if token expires in 5 minutes
@@ -436,18 +439,24 @@ export function showAuthError(errorInfo, containerId = 'auth-error-container') {
         return;
     }
 
-    container.innerHTML = `
+    const reauthHTML = errorInfo.requiresReauth ? 
+        '<p class="mt-2 text-sm"><a href="login.html" class="underline">Please sign in again</a></p>' : 
+        '';
+    
+    const retryHTML = errorInfo.retryable ? 
+        '<p class="mt-2 text-sm">You can try again in a moment.</p>' : 
+        '';
+
+    const errorHTML = html`
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
             <strong class="font-bold">Error: </strong>
             <span class="block sm:inline">${errorInfo.userMessage}</span>
-            ${errorInfo.requiresReauth ? 
-                '<p class="mt-2 text-sm"><a href="login.html" class="underline">Please sign in again</a></p>' : 
-                ''}
-            ${errorInfo.retryable ? 
-                '<p class="mt-2 text-sm">You can try again in a moment.</p>' : 
-                ''}
+            ${reauthHTML}
+            ${retryHTML}
         </div>
     `;
+
+    safeSetHTML(container, errorHTML);
     
     container.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }

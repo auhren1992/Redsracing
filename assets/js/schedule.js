@@ -6,6 +6,9 @@ import { getFirestore, collection, query, onSnapshot, orderBy } from "https://ww
 // Import invitation code utilities
 import { captureInvitationCodeFromURL, applyPendingInvitationCode } from './invitation-codes.js';
 
+// Import sanitization utilities
+import { html, safeSetHTML, createSafeElement } from './sanitize.js';
+
 async function main() {
     // Capture invitation code from URL as early as possible
     captureInvitationCodeFromURL();
@@ -62,15 +65,17 @@ async function main() {
             let recapHTML = '';
             if (isPast && (race.results || race.summary)) {
                 cardClass += ' cursor-pointer';
+                const resultsHTML = race.results ? html`<p class="font-bold text-lg text-neon-yellow">Result: ${race.results}</p>` : '';
+                const summaryHTML = race.summary ? html`<p class="text-slate-300 mt-2">${race.summary}</p>` : '';
                 recapHTML = `
                     <div class="race-recap hidden mt-4 pt-4 border-t border-slate-700">
-                        ${race.results ? `<p class="font-bold text-lg text-neon-yellow">Result: ${race.results}</p>` : ''}
-                        ${race.summary ? `<p class="text-slate-300 mt-2">${race.summary}</p>` : ''}
+                        ${resultsHTML}
+                        ${summaryHTML}
                     </div>
                 `;
             }
 
-            const cardHTML = `
+            const cardHTML = html`
                 <div class="schedule-card p-4 rounded-lg ${cardClass}" data-race-id="${race.id}">
                     <div class="flex justify-between items-center">
                         <div><p class="font-bold text-lg text-white">${race.name}</p><p class="text-sm text-slate-400">${race.special || `Race ${race.race}`}</p></div>
@@ -79,10 +84,14 @@ async function main() {
                     ${recapHTML}
                 </div>`;
 
+            const cardElement = document.createElement('div');
+            safeSetHTML(cardElement, cardHTML);
+            const card = cardElement.firstElementChild;
+
             if (race.type === 'specialEvent') {
-                if(specialEventsContainer) specialEventsContainer.innerHTML += cardHTML;
+                if(specialEventsContainer) specialEventsContainer.appendChild(card);
             } else {
-                if(superCupsContainer) superCupsContainer.innerHTML += cardHTML;
+                if(superCupsContainer) superCupsContainer.appendChild(card);
             }
         });
 

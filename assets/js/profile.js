@@ -204,7 +204,7 @@ import { navigateToInternal } from './navigation-helpers.js';
             if (error.requiresReauth) {
                 // Redirect to login for auth errors that require re-authentication
                 setTimeout(() => {
-                    window.location.href = 'login.html';
+                    navigateToInternal('/login.html');
                 }, 3000);
             } else {
                 // Show error state for other auth issues
