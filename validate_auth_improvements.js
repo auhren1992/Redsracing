@@ -17,7 +17,7 @@ const path = require('path');
  */
 function resolveSafe(baseDir, candidate) {
     const resolvedBase = path.resolve(baseDir);
-    const resolvedCandidate = path.resolve(baseDir, candidate);
+    const resolvedCandidate = path.resolve(baseDir, path.normalize(candidate));
     
     // Ensure the resolved path starts with the base directory
     if (!resolvedCandidate.startsWith(resolvedBase + path.sep) && resolvedCandidate !== resolvedBase) {
