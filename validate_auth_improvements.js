@@ -95,7 +95,7 @@ if (profileExists) {
 }
 
 // Check if HTML files have error containers
-const dashboardHtmlPath = resolveSafe(baseDir, 'dashboard.html');
+const dashboardHtmlPath = encodeURIComponent(resolveSafe(baseDir, 'dashboard.html'));
 const profileHtmlPath = resolveSafe(baseDir, 'profile.html');
 
 console.log('\n🌐 HTML Error Containers:');
