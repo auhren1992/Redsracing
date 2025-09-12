@@ -4,7 +4,7 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Import sanitization utilities
-import { html, safeSetHTML, setSafeText } from './sanitize.js';
+import { html, safeSetHTML } from './sanitize.js';
 
 async function main() {
     const firebaseConfig = await getFirebaseConfig();
