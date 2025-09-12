@@ -1,5 +1,7 @@
 # RedsRacing #8 Frontend
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2d5b68276e0d4578aa15849e86243806)](https://app.codacy.com/gh/auhren1992/Redsracing?utm_source=github.com&utm_medium=referral&utm_content=auhren1992/Redsracing&utm_campaign=Badge_Grade)
+
 This is the official website for RedsRacing #8, featuring Jon's racing journey.
 
 ## Development Setup
