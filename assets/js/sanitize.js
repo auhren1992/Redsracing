@@ -49,7 +49,7 @@ export function safeSetHTML(element, htmlString) {
         /* global DOMPurify */ 
         element.innerHTML = '';
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = cleanHTML;
+        tempDiv.appendChild(document.createRange().createContextualFragment(cleanHTML));
         while (tempDiv.firstChild) {
             element.appendChild(tempDiv.firstChild);
         }
