@@ -175,10 +175,10 @@ import { navigateToInternal } from './navigation-helpers.js';
         if (loadingState && !loadingState.classList.contains('hidden')) {
             const loadingText = loadingState.querySelector('p');
             if (loadingText) {
-                safeSetHTML(loadingText, sanitizeHTML(html`Loading Dashboard...<br><span class="text-sm text-yellow-400">Retrying connection (${attempt}/${maxAttempts})...</span>`));
-                    Loading Dashboard...<br>
-                    <span class="text-sm text-yellow-400">Retrying connection (${attempt}/${maxAttempts})...</span>
-                `);
+                safeSetHTML(
+                    loadingText,
+                    html`Loading Dashboard...<br><span class="text-sm text-yellow-400">Retrying connection (${attempt}/${maxAttempts})...</span>`
+                );
             }
         }
     };
