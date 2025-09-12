@@ -46,7 +46,7 @@ export function safeSetHTML(element, htmlString) {
     
     // Additional safety check - remove any script tags
     const cleanHTML = DOMPurify.sanitize(htmlString);
-    element.innerHTML = cleanHTML;
+    element.innerHTML = ''; const tempDiv = document.createElement('div'); tempDiv.innerHTML = cleanHTML; while (tempDiv.firstChild) { element.appendChild(tempDiv.firstChild); }
 }
 
 /**
