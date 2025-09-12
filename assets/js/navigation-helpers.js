@@ -47,7 +47,7 @@ export function navigateToInternal(path, replace = false) {
     
     try {
         if (replace) {
-            window.location.replace(path);
+            window.location.replace(safeInternalPath(path));
         } else {
             if (isSafeInternalPath(path)) window.location.href = path;
         }
