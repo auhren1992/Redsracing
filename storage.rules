@@ -2,6 +2,12 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    
+    // Team-members have full access to everything
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.token.role == 'team-member';
+    }
+    
     // Match files within a user-specific folder in the gallery.
     // This allows us to secure uploads on a per-user basis.
     match /gallery/{userId}/{imageId} {
@@ -19,5 +25,11 @@ service firebase.storage {
                       request.resource.size < 5 * 1024 * 1024 &&
                       request.resource.contentType.matches('image/.*');
     }
+
+    // Optional: Public photos path for future use (currently disabled for non-team-members)
+    // match /public/photos/{imageId} {
+    //   allow read;
+    //   allow write: if false; // Disabled for non team-members
+    // }
   }
 }
