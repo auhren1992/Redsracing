@@ -1,9 +1,8 @@
 import { initializeFirebaseCore } from './firebase-core.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 async function init() {
-  const { auth, db } = await initializeFirebaseCore();
+  const { auth } = await initializeFirebaseCore();
 
   // Toggle nav auth link
   onAuthStateChanged(auth, user => {
@@ -31,33 +30,35 @@ async function init() {
     retryBtn.addEventListener('click', () => {
       document.getElementById('error-state')?.classList.add('hidden');
       document.getElementById('loading-state')?.classList.remove('hidden');
-      loadLeaderboard(db).catch(showError);
+      loadLeaderboard().catch(showError);
     });
   }
 
   // Load leaderboard
-  await loadLeaderboard(db);
+  await loadLeaderboard();
 }
 
-async function loadLeaderboard(db) {
+async function loadLeaderboard() {
   try {
-    const leaderboardRef = collection(db, 'profiles');
-    const q = query(leaderboardRef, orderBy('totalPoints', 'desc'), limit(50));
-    const snap = await getDocs(q);
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-    const leaderboard = [];
-    let rank = 1;
-    snap.forEach(doc => {
-      const d = doc.data() || {};
-      leaderboard.push({
-        rank: rank++,
-        displayName: d.displayName || 'Anonymous User',
-        username: d.username || '',
-        avatarUrl: d.avatarUrl || '',
-        totalPoints: typeof d.totalPoints === 'number' ? d.totalPoints : 0,
-        achievementCount: typeof d.achievementCount === 'number' ? d.achievementCount : 0,
-      });
+    const response = await fetch('/leaderboard', {
+      method: 'GET',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const leaderboard = await response.json();
 
     if (leaderboard.length === 0) {
       showEmptyState();
@@ -68,7 +69,7 @@ async function loadLeaderboard(db) {
     document.getElementById('loading-state')?.classList.add('hidden');
     document.getElementById('leaderboard-content')?.classList.remove('hidden');
   } catch (err) {
-    console.error('Error loading Firestore leaderboard:', err);
+    console.error('Error loading leaderboard:', err);
     showError();
   }
 }
