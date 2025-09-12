@@ -74,12 +74,12 @@ export async function initializeFirebaseCore() {
             const app = initializeApp(config);
             const auth = getAuth(app);
             const db = initializeFirestore(app, {
-                experimentalAutoDetectLongPolling: true,
+                experimentalForceLongPolling: true,
                 useFetchStreams: false
             });
             const storage = getStorage(app);
 
-            console.log('[Firebase Core] Firestore transport configured (auto-detected long polling, fetch streams disabled)');
+            console.log('[Firebase Core] Firestore transport configured (forced long polling, fetch streams disabled)');
 
             // Cache the services
             firebaseCache.app = app;
