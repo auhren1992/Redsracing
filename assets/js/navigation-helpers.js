@@ -49,7 +49,7 @@ export function navigateToInternal(path, replace = false) {
         if (replace) {
             window.location.replace(path);
         } else {
-            window.location.href = path;
+            if (isSafeInternalPath(path)) window.location.href = path;
         }
     } catch (error) {
         console.error('Navigation failed:', error);
