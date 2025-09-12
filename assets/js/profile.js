@@ -516,7 +516,7 @@ import {
                     finalizeProfileLoad();
                     return;
                 }
-            } else if (error.code === 'unauthorized' || error.code === 'forbidden') {
+            } else if (error.code === 'unauthorized' || error.code === 'forbidden' || error.code === 'permission-denied' || error.code === 'unauthenticated') {
                 console.log(`[Profile] Access denied (${error.code}) for ${userId}, showing minimal profile`);
                 displayMinimalProfile(userId);
                 finalizeProfileLoad();
