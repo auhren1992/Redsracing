@@ -45,7 +45,7 @@ export function safeSetHTML(element, htmlString) {
     }
     
     // Additional safety check - remove any script tags
-    const cleanHTML = htmlString.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    const cleanHTML = DOMPurify.sanitize(htmlString);
     element.innerHTML = cleanHTML;
 }
 
