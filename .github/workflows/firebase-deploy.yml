@@ -32,7 +32,7 @@ jobs:
       - name: Install Python Functions Dependencies
         run: pip install -r functions_python/requirements.txt
       - name: Deploy to Firebase Hosting preview
-        uses: FirebaseExtended/action-hosting-deploy@v0
+        uses: FirebaseExtended/action-hosting-deploy@7e6baf1bf0c0ac4a70cc86d15e06fb88e24aba05  # v0 as of 2024-12-09
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_REDS_RACING_A7F8B }}
@@ -58,7 +58,7 @@ jobs:
       - name: Install Python Functions Dependencies
         run: pip install -r functions_python/requirements.txt
       - name: Deploy to Firebase
-        uses: FirebaseExtended/action-hosting-deploy@v0
+        uses: FirebaseExtended/action-hosting-deploy@7e6baf1bf0c0ac4a70cc86d15e06fb88e24aba05  # v0 as of 2024-12-09
         with:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_REDS_RACING_A7F8B }}
           projectId: redsracing-a7f8b

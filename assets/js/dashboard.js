@@ -24,6 +24,12 @@ import {
     applyPendingInvitationCode 
 } from './invitation-codes.js';
 
+// Import sanitization utilities
+import { html, safeSetHTML, setSafeText } from './sanitize.js';
+
+// Import secure random utilities
+import { secureJitter } from './secure-random.js';
+
 // Wrap everything in an async function to allow early returns
 (async function() {
     // Enhanced error handling and retry logic
@@ -147,8 +153,9 @@ import {
                     throw error;
                 }
                 
-                // Calculate exponential backoff delay
-                const delay = RETRY_BASE_DELAY * Math.pow(2, attempt - 1) + Math.random() * 1000;
+                // Calculate exponential backoff delay with secure jitter
+                const baseDelay = RETRY_BASE_DELAY * Math.pow(2, attempt - 1);
+                const delay = secureJitter(baseDelay, 0.3); // 30% jitter
                 console.warn(`[Dashboard:Retry] Attempt ${attempt}/${maxRetries}, delay: ${Math.round(delay)}ms`);
                 
                 // Update UI to show retry status
@@ -165,10 +172,10 @@ import {
         if (loadingState && !loadingState.classList.contains('hidden')) {
             const loadingText = loadingState.querySelector('p');
             if (loadingText) {
-                loadingText.innerHTML = `
+                safeSetHTML(loadingText, html`
                     Loading Dashboard...<br>
                     <span class="text-sm text-yellow-400">Retrying connection (${attempt}/${maxAttempts})...</span>
-                `;
+                `);
             }
         }
     };
@@ -206,7 +213,7 @@ import {
         }
 
         if (dashboardContent) {
-            dashboardContent.innerHTML = `
+            safeSetHTML(dashboardContent, `
                 <div class="text-center py-20">
                     <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
                     <div class="text-red-400 mb-6">
@@ -224,7 +231,7 @@ import {
                         </a>
                     </div>
                 </div>
-            `;
+            `);
             dashboardContent.classList.remove('hidden');
         }
 
@@ -248,7 +255,15 @@ import {
             const displayMessage = userMessage || defaultMessage;
             const icon = errorType === 'auth' ? '🔐' : '⚠️';
             
-            dashboardContent.innerHTML = `
+            const authMessage = errorType === 'auth' ? 
+                '<p class="text-sm text-slate-400 mt-1">You may need to log in again.</p>' : 
+                '<p class="text-sm text-slate-400 mt-1">Please try again in a few moments.</p>';
+            
+            const actionButton = errorType === 'auth' ? 
+                '<a href="login.html" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Go to Login</a>' :
+                '<button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Try Again</button>';
+            
+            safeSetHTML(dashboardContent, html`
                 <div class="text-center py-20">
                     <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
                     <div class="text-yellow-400 mb-6">
@@ -256,22 +271,16 @@ import {
                         <h2 class="text-2xl font-bold">Service Temporarily Unavailable</h2>
                         <p class="mt-2">${displayMessage}</p>
                         <p class="text-sm text-slate-400 mt-2">This appears to be a temporary service issue.</p>
-                        ${errorType === 'auth' ? 
-                            '<p class="text-sm text-slate-400 mt-1">You may need to log in again.</p>' : 
-                            '<p class="text-sm text-slate-400 mt-1">Please try again in a few moments.</p>'
-                        }
+                        ${authMessage}
                     </div>
                     <div class="space-x-4">
-                        ${errorType === 'auth' ? 
-                            '<a href="login.html" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Go to Login</a>' :
-                            '<button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Try Again</button>'
-                        }
+                        ${actionButton}
                         <a href="index.html" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">
                             Go Home
                         </a>
                     </div>
                 </div>
-            `;
+            `);
             dashboardContent.classList.remove('hidden');
         }
 

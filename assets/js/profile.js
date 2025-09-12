@@ -16,6 +16,9 @@ import {
     getCurrentUser
 } from './auth-utils.js';
 
+// Import sanitization utilities
+import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js';
+
 // Wrap everything in an async function to allow early returns
 (async function() {
     let auth = null;
@@ -575,11 +578,16 @@ import {
 
         // Handle favorite cars
         if (profileData.favoriteCars && profileData.favoriteCars.length > 0) {
-            profileFavoriteCars.innerHTML = profileData.favoriteCars
-                .map(car => `<span class="bg-slate-700 text-slate-300 px-2 py-1 rounded-md text-sm">${car}</span>`)
-                .join('');
+            // Clear existing content
+            profileFavoriteCars.innerHTML = '';
+            // Create safe elements for each car
+            profileData.favoriteCars.forEach(car => {
+                const span = createSafeElement('span', car, 'bg-slate-700 text-slate-300 px-2 py-1 rounded-md text-sm');
+                profileFavoriteCars.appendChild(span);
+            });
         } else {
-            profileFavoriteCars.innerHTML = '<span class="text-slate-400">No favorite cars added.</span>';
+            setSafeText(profileFavoriteCars, 'No favorite cars added.');
+            profileFavoriteCars.className = 'text-slate-400';
         }
 
         // Handle join date
@@ -664,12 +672,15 @@ import {
             return;
         }
 
-        userAchievements.innerHTML = achievements.map(achievement => {
+        // Clear existing content
+        userAchievements.innerHTML = '';
+        
+        achievements.forEach(achievement => {
             // Ensure category defaults to 'uncategorized' if missing
             const category = achievement.category || 'uncategorized';
             const dateEarnedText = achievement.dateEarned ? formatFirestoreTimestamp(achievement.dateEarned) : '';
             
-            return `
+            const achievementHTML = html`
             <div class="achievement-item flex items-center space-x-3 p-3 bg-slate-700 rounded-md" data-category="${category}">
                 <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
                     ${achievement.icon || '🏆'}
@@ -683,15 +694,15 @@ import {
                         </div>
                     </div>
                     <p class="text-sm text-slate-400">${achievement.description}</p>
-
-                    ${achievement.dateEarned ? `<p class="text-xs text-slate-500">Earned: ${formatFirestoreTimestamp(achievement.dateEarned)}</p>` : ''}
-
-                    ${dateEarnedText ? `<p class="text-xs text-slate-500">Earned: ${dateEarnedText}</p>` : ''}
-
+                    ${dateEarnedText ? html`<p class="text-xs text-slate-500">Earned: ${dateEarnedText}</p>` : ''}
                 </div>
             </div>
-        `;
-        }).join('');
+            `;
+            
+            const achievementElement = document.createElement('div');
+            safeSetHTML(achievementElement, achievementHTML);
+            userAchievements.appendChild(achievementElement.firstElementChild);
+        });
     }
 
     function getCategoryDisplayName(category) {
