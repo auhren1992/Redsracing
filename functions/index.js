@@ -12,12 +12,12 @@ const {onObjectFinalized} = require("firebase-functions/v2/storage");
 const {initializeApp} = require("firebase-admin/app");
 const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const {getAuth} = require("firebase-admin/auth");
-import {getStorage} from "firebase-admin/storage";
+const {getStorage} = require("firebase-admin/storage");
 const logger = require("firebase-functions/logger");
 const vision = require("@google-cloud/vision");
 
 // Initialize Firebase Admin SDK
-initializeApp();
+initializeApp({ storageBucket: "redsracing-a7f8b.appspot.com" });
 
 /**
  * Processes an invitation code upon user signup.
@@ -189,36 +189,41 @@ exports.generateTags = onObjectFinalized({
       logger.warn(`Could not fetch metadata for ${filePath}:`, metadataError);
     }
 
-    // Build both URL variants
-    const baseUrl = `https://firebasestorage.googleapis.com/v0/b/${fileBucket}/o/${encodeURIComponent(filePath)}?alt=media`;
-    const tokenUrl = downloadToken ? `${baseUrl}&token=${downloadToken}` : null;
+    // Build candidate URLs for both googleapis and firebasestorage.app domains
+    const candidateUrls = [];
+    
+    // googleapis domain URLs
+    const googleapisBaseUrl = `https://firebasestorage.googleapis.com/v0/b/${fileBucket}/o/${encodeURIComponent(filePath)}?alt=media`;
+    candidateUrls.push(googleapisBaseUrl);
+    if (downloadToken) {
+      candidateUrls.push(`${googleapisBaseUrl}&token=${downloadToken}`);
+    }
+    
+    // firebasestorage.app domain URLs  
+    const appDomainBaseUrl = `https://${fileBucket}.firebasestorage.app/o/${encodeURIComponent(filePath)}?alt=media`;
+    candidateUrls.push(appDomainBaseUrl);
+    if (downloadToken) {
+      candidateUrls.push(`${appDomainBaseUrl}&token=${downloadToken}`);
+    }
 
     const galleryRef = db.collection("gallery_images");
-    let querySnapshot = null;
     let imageDoc = null;
+    let matchedUrl = null;
 
-    // Try to find the document by imageUrl using token URL first, then fallback to no-token URL
-    if (tokenUrl) {
-      const qWithToken = galleryRef.where("imageUrl", "==", tokenUrl).limit(1);
-      querySnapshot = await qWithToken.get();
+    // Try to find the document by iterating through all candidate URLs
+    for (const url of candidateUrls) {
+      const query = galleryRef.where("imageUrl", "==", url).limit(1);
+      const querySnapshot = await query.get();
       if (!querySnapshot.empty) {
         imageDoc = querySnapshot.docs[0];
-        logger.info(`Found Firestore document using token URL: ${tokenUrl}`);
-      }
-    }
-
-    // Fallback to no-token URL if not found with token
-    if (!imageDoc) {
-      const qNoToken = galleryRef.where("imageUrl", "==", baseUrl).limit(1);
-      querySnapshot = await qNoToken.get();
-      if (!querySnapshot.empty) {
-        imageDoc = querySnapshot.docs[0];
-        logger.info(`Found Firestore document using base URL: ${baseUrl}`);
+        matchedUrl = url;
+        logger.info(`Found Firestore document using URL: ${url}`);
+        break;
       }
     }
 
     if (!imageDoc) {
-      logger.error(`No Firestore document found for image URLs: ${tokenUrl || 'N/A'} or ${baseUrl}`);
+      logger.error(`No Firestore document found for image. Attempted URLs: ${candidateUrls.join(', ')}`);
       return;
     }
 
@@ -226,7 +231,8 @@ exports.generateTags = onObjectFinalized({
     await imageDoc.ref.update({
       tags: tags,
       visionLabels: visionLabels, // Store compact array instead of full API response
-      processedAt: FieldValue.serverTimestamp()
+      processedAt: FieldValue.serverTimestamp(),
+      processed: true
     });
 
     logger.info(`Successfully updated Firestore document ${imageDoc.id} with tags.`);
