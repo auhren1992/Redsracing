@@ -5,7 +5,7 @@ import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, se
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
 // Import sanitization utilities
-import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js';
+import { html, safeSetHTML, createSafeElement } from './sanitize.js';
 
 async function main() {
     const firebaseConfig = await getFirebaseConfig();
