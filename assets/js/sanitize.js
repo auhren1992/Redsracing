@@ -44,9 +44,19 @@ export function safeSetHTML(element, htmlString) {
         return;
     }
     
-    // Additional safety check - remove any script tags
-    const cleanHTML = DOMPurify.sanitize(htmlString);
-    element.innerHTML = ''; const tempDiv = document.createElement('div'); tempDiv.innerHTML = cleanHTML; while (tempDiv.firstChild) { element.appendChild(tempDiv.firstChild); }
+    try {
+        // Check if DOMPurify is available before using it
+        const cleanHTML = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(htmlString) : htmlString;
+        element.innerHTML = '';
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = cleanHTML;
+        while (tempDiv.firstChild) {
+            element.appendChild(tempDiv.firstChild);
+        }
+    } catch (e) {
+        // Fallback to basic innerHTML if anything fails
+        element.innerHTML = htmlString;
+    }
 }
 
 /**
