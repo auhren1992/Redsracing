@@ -1,5 +1,5 @@
 // Importing Firebase services and specific functions
-import { initFirebase } from './firebase-init.js';
+import { initializeFirebaseCore } from './firebase-core.js';
 import { onAuthStateChanged, signOut, sendEmailVerification, RecaptchaVerifier, linkWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
@@ -16,6 +16,14 @@ import {
     getCurrentUser
 } from './auth-utils.js';
 
+// Import invitation code utilities
+import { 
+    userNeedsInvitationCode, 
+    getPendingInvitationCode, 
+    setPendingInvitationCode, 
+    applyPendingInvitationCode 
+} from './invitation-codes.js';
+
 // Wrap everything in an async function to allow early returns
 (async function() {
     // Enhanced error handling and retry logic
@@ -27,6 +35,7 @@ import {
     let retryCount = 0;
     let currentLoadingStage = 'initializing';
     
+
     // Enhanced logging utility
     const dashboardLogger = {
         stage: (stage, message) => console.log(`[Dashboard:${stage}] ${message}`),
@@ -36,6 +45,7 @@ import {
         info: (stage, message, ...args) => console.log(`[Dashboard:${stage}] ${message}`, ...args)
     };
     
+
     // Network connectivity detection
     const checkNetworkConnectivity = async () => {
         try {
@@ -52,9 +62,9 @@ import {
             return true;
         } catch (error) {
             if (error.name === 'AbortError') {
-                dashboardLogger.error('NetworkCheck', 'Network connectivity timeout');
+                console.error('[Dashboard:NetworkCheck] Error:', 'Network connectivity timeout');
             } else {
-                dashboardLogger.error('NetworkCheck', 'Network connectivity failed', error);
+                console.error('[Dashboard:NetworkCheck] Error:', 'Network connectivity failed', error);
             }
             return false;
         }
@@ -125,12 +135,12 @@ import {
             try {
                 const result = await fn();
                 if (attempt > 1) {
-                    dashboardLogger.success('Retry', `${context} succeeded on attempt ${attempt}`);
+                    console.log(`[Dashboard:Retry] ✓ ${context} succeeded on attempt ${attempt}`);
                 }
                 return result;
             } catch (error) {
                 const errorInfo = classifyError(error, context);
-                dashboardLogger.error('Retry', `${context} failed on attempt ${attempt}`, errorInfo);
+                console.error(`[Dashboard:Retry] Error:`, `${context} failed on attempt ${attempt}`, errorInfo);
                 
                 // Don't retry non-retryable errors
                 if (!errorInfo.retryable || attempt === maxRetries) {
@@ -139,7 +149,7 @@ import {
                 
                 // Calculate exponential backoff delay
                 const delay = RETRY_BASE_DELAY * Math.pow(2, attempt - 1) + Math.random() * 1000;
-                dashboardLogger.retry(attempt, maxRetries, Math.round(delay));
+                console.warn(`[Dashboard:Retry] Attempt ${attempt}/${maxRetries}, delay: ${Math.round(delay)}ms`);
                 
                 // Update UI to show retry status
                 updateRetryStatus(attempt, maxRetries, context);
@@ -167,7 +177,7 @@ import {
     const startLoadingTimeout = () => {
         if (loadingTimeout) clearTimeout(loadingTimeout);
         loadingTimeout = setTimeout(async () => {
-            dashboardLogger.error('Timeout', `Loading timeout reached after ${INITIAL_TIMEOUT}ms, checking network and showing fallback`);
+            console.error('[Dashboard:Timeout] Error:', `Loading timeout reached after ${INITIAL_TIMEOUT}ms, checking network and showing fallback`);
             
             // Before showing fallback, check if it's a network issue
             const isOnline = await checkNetworkConnectivity();
@@ -184,7 +194,7 @@ import {
 
     // Enhanced fallback display functions
     function showNetworkErrorFallback() {
-        dashboardLogger.error('Network', 'Network connectivity issue detected, showing network error fallback');
+        console.error('[Dashboard:Network] Error:', 'Network connectivity issue detected, showing network error fallback');
         const loadingState = document.getElementById('loading-state');
         const dashboardContent = document.getElementById('dashboard-content');
 
@@ -222,7 +232,7 @@ import {
     }
 
     function showServiceErrorFallback(errorType = 'service', userMessage = null) {
-        dashboardLogger.error('Service', `Service error detected: ${errorType}, showing service error fallback`);
+        console.error('[Dashboard:Service] Error:', `Service error detected: ${errorType}, showing service error fallback`);
         const loadingState = document.getElementById('loading-state');
         const dashboardContent = document.getElementById('dashboard-content');
 
@@ -269,7 +279,7 @@ import {
     }
 
     function hideLoadingAndShowFallback() {
-        dashboardLogger.error('Fallback', 'Showing generic fallback due to unspecified error');
+        console.error('[Dashboard:Fallback] Error:', 'Showing generic fallback due to unspecified error');
         const loadingState = document.getElementById('loading-state');
         const dashboardContent = document.getElementById('dashboard-content');
 
@@ -318,14 +328,14 @@ import {
     let auth, db, storage;
     
     try {
-        dashboardLogger.stage('Initialization', 'Initializing Firebase services');
-        const firebaseServices = await retryAuthOperation(initFirebase, 'Firebase initialization');
+        console.log('[Dashboard:Initialization] Initializing Firebase services');
+        const firebaseServices = await retryAuthOperation(initializeFirebaseCore, 'Firebase initialization');
         auth = firebaseServices.auth;
         db = firebaseServices.db;
         storage = firebaseServices.storage;
-        dashboardLogger.success('Initialization', 'Firebase services initialized successfully');
+        console.log('[Dashboard:Initialization] ✓ Firebase services initialized successfully');
     } catch (error) {
-        dashboardLogger.error('Initialization', 'Critical Firebase initialization failure', error);
+        console.error('[Dashboard:Initialization] Error:', 'Critical Firebase initialization failure', error);
         showAuthError({
             code: 'firebase-init-failed',
             message: 'Firebase initialization failed',
@@ -397,6 +407,17 @@ import {
     const videoTitleInput = document.getElementById('video-title');
     const jonnyVideosList = document.getElementById('jonny-videos-list');
 
+    // Invitation Codes elements
+    const invitationCodesCard = document.getElementById('invitation-codes-card');
+    const invitationCodesTableBody = document.getElementById('invitation-codes-table-body');
+    const refreshCodesBtn = document.getElementById('refresh-codes-btn');
+
+    // Invitation Code Prompt elements
+    const invitationCodePrompt = document.getElementById('invitation-code-prompt');
+    const inlineInvitationCodeInput = document.getElementById('inline-invitation-code');
+    const applyInvitationCodeBtn = document.getElementById('apply-invitation-code-btn');
+    const invitationCodeMessage = document.getElementById('invitation-code-message');
+
     function classifyFirestoreError(err) {
       if (!err) return 'Unknown Firestore error';
       if (err.code) return `Firestore error ${err.code}: ${err.message}`;
@@ -464,7 +485,7 @@ import {
 
     // Enhanced data loading functions with retry logic
     const getRaceData = async () => {
-        dashboardLogger.stage('RaceData', 'Loading race data from Firestore');
+        console.log('[Dashboard:RaceData] Loading race data from Firestore');
         const racesCol = collection(db, "races");
         const q = query(racesCol, orderBy("date", "asc"));
         const raceSnapshot = await getDocs(q);
@@ -472,7 +493,7 @@ import {
 
         renderRacesTable(raceList);
         startCountdown(raceList);
-        dashboardLogger.success('RaceData', `Loaded ${raceList.length} races successfully`);
+        console.log(`[Dashboard:RaceData] ✓ Loaded ${raceList.length} races successfully`);
     };
 
     // 2. CREATE/UPDATE Races
@@ -602,12 +623,12 @@ import {
     };
 
     const getQnaSubmissions = async () => {
-        dashboardLogger.stage('QnAData', 'Loading Q&A submissions');
+        console.log('[Dashboard:QnAData] Loading Q&A submissions');
         const q = query(collection(db, "qna_submissions"), where("status", "==", "submitted"), orderBy("submittedAt", "asc"));
         const snapshot = await getDocs(q);
         const submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderQnaSubmissions(submissions);
-        dashboardLogger.success('QnAData', `Loaded ${submissions.length} Q&A submissions`);
+        console.log(`[Dashboard:QnAData] ✓ Loaded ${submissions.length} Q&A submissions`);
     };
 
     const openQnaModal = (submission) => {
@@ -719,7 +740,7 @@ import {
     };
 
     const getUnapprovedPhotos = async (category, container) => {
-        dashboardLogger.stage('PhotoData', `Loading unapproved photos for category: ${category || 'main'}`);
+        console.log(`[Dashboard:PhotoData] Loading unapproved photos for category: ${category || 'main'}`);
         let photos = [];
         if (category) {
             // Query for specific category (e.g., "jonny")
@@ -746,7 +767,7 @@ import {
                 .filter(photo => !photo.category || photo.category !== "jonny");
         }
         renderUnapprovedPhotos(photos, container, category);
-        dashboardLogger.success('PhotoData', `Loaded ${photos.length} unapproved photos for ${category || 'main'} gallery`);
+        console.log(`[Dashboard:PhotoData] ✓ Loaded ${photos.length} unapproved photos for ${category || 'main'} gallery`);
     };
 
     const approvePhoto = async (id) => {
@@ -839,19 +860,19 @@ import {
 
     const getJonnyVideos = async () => {
         const operation = async () => {
-            dashboardLogger.stage('VideoData', 'Loading Jonny videos');
+            console.log('[Dashboard:VideoData] Loading Jonny videos');
             const q = query(collection(db, "jonny_videos"), orderBy("createdAt", "desc"));
             const snapshot = await getDocs(q);
             const videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderJonnyVideos(videos);
-            dashboardLogger.success('VideoData', `Loaded ${videos.length} Jonny videos`);
+            console.log(`[Dashboard:VideoData] ✓ Loaded ${videos.length} Jonny videos`);
             return videos;
         };
 
         const result = await safeFirestoreOperation(operation, ['team-member'], 'Load Jonny videos');
         
         if (!result.success) {
-            dashboardLogger.error('VideoData', 'Error loading Jonny videos', result.error);
+            console.error('[Dashboard:VideoData] Error:', 'Error loading Jonny videos', result.error);
             showAuthError(result.error, 'jonny-videos-error');
             
             // Debug authentication issues if permission denied
@@ -911,6 +932,184 @@ import {
             alert("Failed to add video.");
         }
     });
+
+
+    // --- Invitation Codes Management ---
+    const getInvitationCodes = async () => {
+        console.log('[Dashboard:InvitationCodes] Loading invitation codes from Firebase Functions');
+        
+        try {
+            // Import Functions module
+            const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js");
+            const functions = getFunctions();
+            const getInvitationCodesFunction = httpsCallable(functions, 'getInvitationCodes');
+            
+            const result = await getInvitationCodesFunction();
+            
+            if (result.data.status === 'success') {
+                renderInvitationCodes(result.data.codes);
+                console.log('[Dashboard:InvitationCodes] Successfully loaded invitation codes');
+            } else {
+                console.error('[Dashboard:InvitationCodes] Error from function:', result.data.message);
+                showAuthError({
+                    code: 'invitation-codes-failed',
+                    message: result.data.message
+                }, 'invitation-codes-error');
+            }
+        } catch (error) {
+            console.error('[Dashboard:InvitationCodes] Error loading invitation codes:', error);
+            showAuthError(error, 'invitation-codes-error');
+        }
+    };
+
+    const renderInvitationCodes = (codes) => {
+        if (!invitationCodesTableBody) return;
+        
+        invitationCodesTableBody.innerHTML = '';
+        
+        if (!codes || codes.length === 0) {
+            invitationCodesTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center p-4 text-slate-400">No invitation codes found</td>
+                </tr>
+            `;
+            return;
+        }
+        
+        codes.forEach(code => {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-slate-700 hover:bg-slate-800/50';
+            
+            const formatDate = (timestamp) => {
+                if (!timestamp) return '-';
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            };
+            
+            const statusText = code.used ? 'Used' : 'Available';
+            const statusClass = code.used ? 'text-red-400' : 'text-green-400';
+            
+            row.innerHTML = `
+                <td class="p-2 font-mono text-sm">${code.id}</td>
+                <td class="p-2">${code.role}</td>
+                <td class="p-2 ${statusClass} font-bold">${statusText}</td>
+                <td class="p-2">${code.usedBy || '-'}</td>
+                <td class="p-2 text-sm">${formatDate(code.usedAt)}</td>
+                <td class="p-2 text-sm">${formatDate(code.expiresAt)}</td>
+            `;
+            
+            invitationCodesTableBody.appendChild(row);
+        });
+    };
+
+    // Add event listener for refresh button
+    if (refreshCodesBtn) {
+        refreshCodesBtn.addEventListener('click', getInvitationCodes);
+    }
+
+
+    // --- Invitation Code Prompt Handling ---
+    const handleInvitationCodePrompt = async (user) => {
+        try {
+            // Check if user needs an invitation code and there's no pending code
+            const needsCode = await userNeedsInvitationCode({ currentUser: user });
+            const pendingCode = getPendingInvitationCode();
+            
+            if (needsCode && !pendingCode && invitationCodePrompt) {
+                console.log('[Dashboard:InvitationCode] Showing invitation code prompt for user without role');
+                invitationCodePrompt.classList.remove('hidden');
+                
+                // Set up the apply button handler
+                if (applyInvitationCodeBtn && !applyInvitationCodeBtn.hasAttribute('data-listener')) {
+                    applyInvitationCodeBtn.setAttribute('data-listener', 'true');
+                    applyInvitationCodeBtn.addEventListener('click', async () => {
+                        const code = inlineInvitationCodeInput?.value?.trim();
+                        if (!code) {
+                            showInvitationCodeMessage('Please enter an invitation code.', 'error');
+                            return;
+                        }
+
+                        applyInvitationCodeBtn.disabled = true;
+                        applyInvitationCodeBtn.textContent = 'Applying...';
+                        showInvitationCodeMessage('Processing invitation code...', 'info');
+
+                        try {
+                            // Store the code and apply it
+                            setPendingInvitationCode(code);
+                            const result = await applyPendingInvitationCode({ currentUser: user });
+
+                            if (result.success) {
+                                showInvitationCodeMessage(`Success! Role assigned: ${result.role || 'team-member'}`, 'success');
+                                // Hide the prompt after success
+                                setTimeout(() => {
+                                    invitationCodePrompt.classList.add('hidden');
+                                    // Refresh the page to update UI with new role
+                                    window.location.reload();
+                                }, 2000);
+                            } else {
+                                showInvitationCodeMessage(result.error || 'Failed to apply invitation code', 'error');
+                                if (!result.retryable) {
+                                    // Clear the input for non-retryable errors
+                                    inlineInvitationCodeInput.value = '';
+                                }
+                            }
+                        } catch (error) {
+                            console.error('[Dashboard:InvitationCode] Error applying code:', error);
+                            showInvitationCodeMessage('An error occurred. Please try again.', 'error');
+                        } finally {
+                            applyInvitationCodeBtn.disabled = false;
+                            applyInvitationCodeBtn.textContent = 'Apply Code';
+                        }
+                    });
+                }
+            } else {
+                // Hide the prompt if not needed
+                if (invitationCodePrompt) {
+                    invitationCodePrompt.classList.add('hidden');
+                }
+            }
+        } catch (error) {
+            console.error('[Dashboard:InvitationCode] Error handling invitation code prompt:', error);
+            // Don't show prompt if there's an error checking
+            if (invitationCodePrompt) {
+                invitationCodePrompt.classList.add('hidden');
+            }
+        }
+    };
+
+    // Helper function to show messages in the invitation code prompt
+    const showInvitationCodeMessage = (message, type) => {
+        if (!invitationCodeMessage) return;
+        
+        // Clear existing classes
+        invitationCodeMessage.className = 'mt-2 text-sm';
+        
+        // Add appropriate styling based on type
+        switch (type) {
+            case 'error':
+                invitationCodeMessage.className += ' text-red-400';
+                break;
+            case 'success':
+                invitationCodeMessage.className += ' text-green-400';
+                break;
+            case 'info':
+                invitationCodeMessage.className += ' text-blue-400';
+                break;
+            default:
+                invitationCodeMessage.className += ' text-gray-400';
+        }
+        
+        invitationCodeMessage.textContent = message;
+        
+        // Clear message after 5 seconds for non-error messages
+        if (type !== 'error') {
+            setTimeout(() => {
+                if (invitationCodeMessage) {
+                    invitationCodeMessage.textContent = '';
+                }
+            }, 5000);
+        }
+    };
 
 
     // --- MFA Setup ---
@@ -975,7 +1174,7 @@ import {
 
     // Enhanced loading completion handler
     function hideLoadingAndShowContent() {
-        dashboardLogger.stage('UI', 'Hiding loading state and showing dashboard content');
+        console.log('[Dashboard:UI] Hiding loading state and showing dashboard content');
         if (loadingState) {
             loadingState.style.display = 'none';
             loadingState.setAttribute('hidden', 'true');
@@ -984,33 +1183,33 @@ import {
             dashboardContent.classList.remove('hidden');
         }
         clearLoadingTimeout();
-        dashboardLogger.success('UI', 'Dashboard content displayed successfully');
+        console.log('[Dashboard:UI] ✓ Dashboard content displayed successfully');
     }
 
     // Logout handler with error handling
     logoutButton.addEventListener('click', async (e) => {
         e.preventDefault();
         try {
-            dashboardLogger.stage('Logout', 'Signing out user');
+            console.log('[Dashboard:Logout] Signing out user');
             await signOut(auth);
-            dashboardLogger.success('Logout', 'User signed out successfully');
+            console.log('[Dashboard:Logout] ✓ User signed out successfully');
         } catch (error) {
             const errorInfo = classifyError(error, 'Logout');
-            dashboardLogger.error('Logout', 'Error during logout', errorInfo);
+            console.error('[Dashboard:Logout] Error:', 'Error during logout', errorInfo);
             // Still try to redirect even if logout fails
             window.location.href = 'login.html';
         }
     });
 
     // Set up authentication state monitoring with enhanced error handling
-    dashboardLogger.stage('AuthSetup', 'Setting up authentication state monitoring');
+    console.log('[Dashboard:AuthSetup] Setting up authentication state monitoring');
     
     const authUnsubscribe = monitorAuthState(
         async (user, validToken) => {
             clearAuthError(); // Clear any previous auth errors
             
             if (user && validToken) {
-                dashboardLogger.success('AuthSetup', 'User authenticated successfully', {
+                console.log('[Dashboard:AuthSetup] ✓ User authenticated successfully', {
                     uid: user.uid,
                     email: user.email,
                     emailVerified: user.emailVerified
@@ -1043,7 +1242,7 @@ import {
                 const claimsResult = await validateUserClaims(['team-member']);
                 const isTeamMember = claimsResult.success && claimsResult.claims.role === 'team-member';
 
-                dashboardLogger.info('AuthSetup', 'User role validation', {
+                console.log('[Dashboard:AuthSetup] User role validation', {
                     isTeamMember,
                     role: claimsResult.claims?.role,
                     hasPermissions: claimsResult.success
@@ -1057,6 +1256,7 @@ import {
                     if (photoApprovalCard) photoApprovalCard.classList.remove('hidden');
                     if (jonnyPhotoApprovalCard) jonnyPhotoApprovalCard.classList.remove('hidden');
                     if (jonnyVideoManagementCard) jonnyVideoManagementCard.classList.remove('hidden');
+                    if (invitationCodesCard) invitationCodesCard.classList.remove('hidden');
                     
                     // Load admin data with error handling
                     try {
@@ -1065,8 +1265,9 @@ import {
                         await getUnapprovedPhotos(null, unapprovedPhotosList);
                         await getUnapprovedPhotos('jonny', jonnyUnapprovedPhotosList);
                         await getJonnyVideos();
+                        await getInvitationCodes();
                     } catch (error) {
-                        dashboardLogger.error('AuthSetup', 'Error loading admin data', error);
+                        console.error('[Dashboard:AuthSetup] Error:', 'Error loading admin data', error);
                         showAuthError({
                             code: 'data-load-failed',
                             message: 'Failed to load dashboard data',
@@ -1084,6 +1285,9 @@ import {
                     if (jonnyVideoManagementCard) jonnyVideoManagementCard.classList.add('hidden');
                 }
 
+                // Check if user needs invitation code prompt
+                await handleInvitationCodePrompt(user);
+
                 // Show driver notes for all authenticated users
                 if (driverNotesCard) {
                     driverNotesCard.classList.remove('hidden');
@@ -1099,12 +1303,12 @@ import {
                 hideLoadingAndShowContent();
 
             } else {
-                dashboardLogger.warn('AuthSetup', 'User not authenticated, redirecting to login');
+                console.warn('[Dashboard:AuthSetup] User not authenticated, redirecting to login');
                 window.location.href = 'login.html';
             }
         },
         (error) => {
-            dashboardLogger.error('AuthSetup', 'Authentication error', error);
+            console.error('[Dashboard:AuthSetup] Error:', 'Authentication error', error);
             showAuthError(error);
             
             if (error.requiresReauth) {
@@ -1123,6 +1327,6 @@ import {
 
     // Clear the loading timeout since we successfully initialized
     clearLoadingTimeout();
-    dashboardLogger.success('Complete', 'Dashboard initialization completed successfully');
+    console.log('[Dashboard:Complete] ✓ Dashboard initialization completed successfully');
 
 })(); // End of async function wrapper

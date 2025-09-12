@@ -19,7 +19,7 @@ export function initFirebase() {
     }
 
     const db = initializeFirestore(app, {
-      experimentalAutoDetectLongPolling: true,
+      experimentalForceLongPolling: true,
       useFetchStreams: false,
       localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager()

@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
     <link rel="stylesheet" href="styles/tailwind.css">
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/main.css">
@@ -39,6 +43,13 @@
                         <a href="#" id="forgot-password-link" class="text-sm text-slate-400 hover:text-neon-yellow">Forgot password?</a>
                     </div>
                     <input type="password" id="password" name="password" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm">
+                </div>
+                
+                <!-- Optional Invitation Code Field -->
+                <div>
+                    <label for="invitation-code" class="block text-sm font-medium text-gray-300">Invitation Code (optional)</label>
+                    <input type="text" id="invitation-code" name="invitation-code" class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" placeholder="Enter invitation code if you have one">
+                    <p class="text-xs text-gray-400 mt-1">Enter an invitation code to access additional features.</p>
                 </div>
                 
                 <div class="flex flex-col space-y-4">

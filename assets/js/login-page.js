@@ -5,6 +5,7 @@
 
 import { initializeFirebaseCore, getFirebaseAuth } from './firebase-core.js';
 import { getFriendlyAuthError } from './auth-errors.js';
+import { setPendingInvitationCode } from './invitation-codes.js';
 import { 
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
@@ -81,6 +82,7 @@ class LoginPageController {
             // Form inputs
             emailInput: document.getElementById('email'),
             passwordInput: document.getElementById('password'),
+            invitationCodeInput: document.getElementById('invitation-code'),
             phoneNumberInput: document.getElementById('phone-number'),
             verificationCodeInput: document.getElementById('verification-code'),
             
@@ -532,6 +534,13 @@ class LoginPageController {
      * Handle successful authentication
      */
     handleSuccess() {
+        // Capture invitation code from form if entered
+        const invitationCode = this.elements.invitationCodeInput?.value?.trim();
+        if (invitationCode) {
+            setPendingInvitationCode(invitationCode);
+            console.log('[Login] Stored invitation code for post-login processing');
+        }
+
         setTimeout(() => {
             window.location.href = 'dashboard.html';
         }, 1500);

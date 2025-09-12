@@ -6,7 +6,7 @@
 import { getFirebaseConfig } from './firebase-config.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { initializeFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
 // Cache for initialized Firebase services
@@ -73,8 +73,13 @@ export async function initializeFirebaseCore() {
             // Initialize Firebase app
             const app = initializeApp(config);
             const auth = getAuth(app);
-            const db = getFirestore(app);
+            const db = initializeFirestore(app, {
+                experimentalForceLongPolling: true,
+                useFetchStreams: false
+            });
             const storage = getStorage(app);
+
+            console.log('[Firebase Core] Firestore transport configured (forced long polling, fetch streams disabled)');
 
             // Cache the services
             firebaseCache.app = app;

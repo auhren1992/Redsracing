@@ -46,6 +46,12 @@ exports.processInvitationCode = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "The function must be called with a 'code' and 'uid'.");
   }
 
+  // Security check: Enforce that users can only use codes for themselves
+  if (uid !== request.auth.uid) {
+    logger.error(`User ${request.auth.uid} attempted to use invitation code for user ${uid}.`);
+    throw new HttpsError("permission-denied", "You can only use invitation codes for your own account.");
+  }
+
   const db = getFirestore();
   const auth = getAuth();
   const codesRef = db.collection("invitation_codes");
@@ -63,16 +69,16 @@ exports.processInvitationCode = onCall(async (request) => {
     }
     const codeData = codeDoc.data();
 
-    // 2. Check if the code is still valid (not expired or fully used)
+    // 2. Check if the code is still valid (not expired and not already used)
     const now = new Date();
     if (codeData.expiresAt && codeData.expiresAt.toDate() < now) {
       logger.warn(`Expired invitation code '${code}' used by ${uid}.`);
       return {status: "error", message: "This invitation code has expired."};
     }
 
-    if (codeData.usesLeft !== undefined && codeData.usesLeft <= 0) {
-      logger.warn(`Depleted invitation code '${code}' used by ${uid}.`);
-      return {status: "error", message: "This invitation code has no uses left."};
+    if (codeData.used === true) {
+      logger.warn(`Already used invitation code '${code}' attempted by ${uid}.`);
+      return {status: "error", message: "This invitation code has already been used."};
     }
 
     // 3. Assign the custom role to the user
@@ -80,14 +86,13 @@ exports.processInvitationCode = onCall(async (request) => {
     logger.info(`Assigning role '${roleToAssign}' to user ${uid}.`);
     await auth.setCustomUserClaims(uid, {role: roleToAssign});
 
-    // 4. Update the invitation code document (decrement usesLeft)
-    if (codeData.usesLeft) {
-      await codeDoc.ref.update({
-        usesLeft: FieldValue.increment(-1),
-        usersWhoClaimed: FieldValue.arrayUnion({uid: uid, claimedAt: new Date()}),
-      });
-      logger.info(`Decremented uses for code '${code}'.`);
-    }
+    // 4. Mark the invitation code as used with tracking information
+    await codeDoc.ref.update({
+      used: true,
+      usedBy: uid,
+      usedAt: new Date()
+    });
+    logger.info(`Marked invitation code '${code}' as used by ${uid}.`);
 
     // 5. Update user's public profile with the new role
     // This is useful for client-side checks without needing to refresh the ID token
@@ -276,5 +281,55 @@ exports.updateProfile = onCall(async (request) => {
   } catch (error) {
     logger.error(`Error updating profile for user ${userId}:`, error);
     throw new HttpsError("internal", "An internal error occurred while updating the profile.", error);
+  }
+});
+
+/**
+ * Gets invitation codes for team member administration.
+ *
+ * This function allows team members to view all invitation codes
+ * and their usage status for administrative purposes.
+ *
+ * @returns {Promise<object>} A promise that resolves with the codes data.
+ */
+exports.getInvitationCodes = onCall(async (request) => {
+  // Check if the user is authenticated
+  if (!request.auth) {
+    logger.error("getInvitationCodes called by unauthenticated user.");
+    throw new HttpsError("unauthenticated", "You must be logged in to view invitation codes.");
+  }
+
+  // Check if the user has team-member role
+  const userRole = request.auth.token.role;
+  if (userRole !== 'team-member') {
+    logger.error(`getInvitationCodes called by user ${request.auth.uid} with role '${userRole}'.`);
+    throw new HttpsError("permission-denied", "You must be a team member to view invitation codes.");
+  }
+
+  logger.info(`Getting invitation codes for team member ${request.auth.uid}`);
+  const db = getFirestore();
+
+  try {
+    const codesRef = db.collection("invitation_codes");
+    const snapshot = await codesRef.get();
+    
+    const codes = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      codes.push({
+        id: doc.id,
+        role: data.role,
+        used: data.used || false,
+        usedBy: data.usedBy || null,
+        usedAt: data.usedAt || null,
+        expiresAt: data.expiresAt || null
+      });
+    });
+
+    logger.info(`Retrieved ${codes.length} invitation codes for team member ${request.auth.uid}`);
+    return {status: "success", codes: codes};
+  } catch (error) {
+    logger.error(`Error retrieving invitation codes for user ${request.auth.uid}:`, error);
+    throw new HttpsError("internal", "An internal error occurred while retrieving invitation codes.", error);
   }
 });
