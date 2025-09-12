@@ -16,7 +16,7 @@ const path = require('path');
  * @throws {Error} If the path escapes the base directory
  */
 function resolveSafe(baseDir, candidate) {
-    const resolvedBase = path.resolve(baseDir);
+    const resolvedBase = path.resolve(path.normalize(baseDir));
     const resolvedCandidate = path.resolve(baseDir, path.normalize(candidate));
     
     // Ensure the resolved path starts with the base directory
