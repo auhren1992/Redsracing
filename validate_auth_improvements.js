@@ -17,7 +17,7 @@ const path = require('path');
  */
 function resolveSafe(baseDir, candidate) {
     if (!path.isAbsolute(baseDir)) throw new Error(`Invalid base directory: ${baseDir}`);
-    const resolvedCandidate = path.resolve(baseDir, path.normalize(candidate));
+    const resolvedCandidate = path.resolve(resolvedBase, path.normalize(candidate));
     
     // Ensure the resolved path starts with the base directory
     if (!resolvedCandidate.startsWith(resolvedBase + path.sep) && resolvedCandidate !== resolvedBase) {
