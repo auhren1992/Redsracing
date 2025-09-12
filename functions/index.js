@@ -12,7 +12,7 @@ const {onObjectFinalized} = require("firebase-functions/v2/storage");
 const {initializeApp} = require("firebase-admin/app");
 const {getFirestore, FieldValue} = require("firebase-admin/firestore");
 const {getAuth} = require("firebase-admin/auth");
-const {getStorage} = require("firebase-admin/storage");
+import {getStorage} from "firebase-admin/storage";
 const logger = require("firebase-functions/logger");
 const vision = require("@google-cloud/vision");
 
