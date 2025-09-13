@@ -10,7 +10,7 @@ import { recaptchaService } from './recaptcha-enterprise.js';
 import { 
     createUserWithEmailAndPassword,
     sendEmailVerification,
-    signInWithEmailAndPassword,
+    -    signInWithEmailAndPassword,
     GoogleAuthProvider,
     signInWithPopup,
     updateProfile
