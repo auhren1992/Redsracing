@@ -22,6 +22,9 @@ import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js
 // Import navigation helpers
 import { navigateToInternal } from './navigation-helpers.js';
 
+// Import reCAPTCHA Enterprise
+import { recaptchaService } from './recaptcha-enterprise.js';
+
 // Wrap everything in an async function to allow early returns
 (async function() {
     let auth = null;
@@ -889,7 +892,7 @@ import { navigateToInternal } from './navigation-helpers.js';
         }
     }
 
-    // Save profile changes
+    // Save profile changes with reCAPTCHA Enterprise protection
     async function saveProfile() {
         if (!currentUser) return;
 
@@ -927,10 +930,27 @@ import { navigateToInternal } from './navigation-helpers.js';
         };
 
         try {
-            await callProfileAPI(`/update_profile/${currentUser.uid}`, 'PUT', profileData);
-            // Reload profile to show updated data
-            await loadUserProfile(currentUser.uid);
-            toggleEditMode();
+            // Protected action with reCAPTCHA Enterprise
+            await recaptchaService.protectedAction(
+                'PROFILE_UPDATE',
+                async (recaptchaData) => {
+                    // Merge reCAPTCHA data with profile data
+                    const requestData = { ...profileData, ...recaptchaData };
+                    
+                    // Call the protected profile update endpoint
+                    await callProfileAPI(`/update_profile/${currentUser.uid}`, 'PUT', requestData);
+                    
+                    // Reload profile to show updated data
+                    await loadUserProfile(currentUser.uid);
+                    toggleEditMode();
+                },
+                currentUser, // pass user object for identifier
+                {
+                    fallbackOnError: true,
+                    showUserMessage: false // we'll handle messages manually
+                }
+            );
+            
         } catch (error) {
             console.error('Error saving profile:', error);
             alert('Failed to save profile. Please try again.');

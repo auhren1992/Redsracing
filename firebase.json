@@ -33,28 +33,40 @@
         }
       },
       {
-        "source": "/profile/**",
+        "source": "/auth_action",
+        "function": {
+          "functionId": "handleAuthAction",
+          "codebase": "python-api"
+        }
+      },
+      {
+        "source": "/password_reset",
+        "function": {
+          "functionId": "handlePasswordReset",
+          "codebase": "python-api"
+        }
+      },
         "function": {
           "functionId": "handleGetProfile",
           "codebase": "python-api"
         }
       },
       {
-        "source": "/update_profile/**",
+        "source": "/profile/**",
         "function": {
           "functionId": "handleUpdateProfile",
           "codebase": "python-api"
         }
       },
       {
-        "source": "/achievements",
+        "source": "/update_profile/**",
         "function": {
           "functionId": "handleGetAchievements",
           "codebase": "python-api"
         }
       },
       {
-        "source": "/assign_achievement",
+        "source": "/achievements",
         "function": {
           "functionId": "handleAssignAchievement",
           "codebase": "python-api"
