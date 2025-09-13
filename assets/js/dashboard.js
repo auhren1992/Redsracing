@@ -28,7 +28,7 @@ import {
 import { html, safeSetHTML, setSafeText } from './sanitize.js';
 
 // Import reCAPTCHA Enterprise
-import { recaptchaService } from './recaptcha-enterprise.js'; // Remove this line
+// import { recaptchaService } from './recaptcha-enterprise.js'; // Remove this line
 
 // Import secure random utilities
 import { secureJitter } from './secure-random.js';
