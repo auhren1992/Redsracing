@@ -26,9 +26,44 @@ export function isNetworkError(error) {
   }
 }
 
+return ['captcha', 'recaptcha'].some(keyword => code.includes(keyword) || message.includes(keyword));
+  try {
+    if (!error) return false;
+    
+    const code = (error.code || '').toString().toLowerCase();
+    const message = (error.message || String(error)).toLowerCase();
+    
+    return (
+      code.includes('captcha') ||
+      code.includes('recaptcha') ||
+      message.includes('captcha') ||
+      message.includes('recaptcha') ||
+      code === 'auth/captcha-check-failed' ||
+      code === 'auth/invalid-app-credential'
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function isRetryableError(error) {
   try {
     if (isNetworkError(error)) return true;
+
+    // reCAPTCHA errors are generally retryable unless it's a configuration issue
+    if (isRecaptchaError(error)) {
+      const code = (error.code || '').toString().toLowerCase();
+      const message = (error.message || String(error)).toLowerCase();
+      
+      // These reCAPTCHA errors are not retryable
+      if (code === 'auth/invalid-app-credential' || 
+          message.includes('invalid site key') ||
+          message.includes('invalid domain')) {
+        return false;
+      }
+      
+      return true; // Most reCAPTCHA errors are retryable
+    }
 
     // HTTP-like errors
     const status = Number(error?.status ?? error?.response?.status ?? NaN);
@@ -66,6 +101,7 @@ export function getFriendlyAuthError(error) {
   const net = isNetworkError(error);
   const reauth = requiresReauth(error);
   const retryable = isRetryableError(error);
+  const recaptcha = isRecaptchaError(error);
   const code = error?.code || '';
   const rawMessage = error?.message || String(error || '');
 
@@ -88,6 +124,58 @@ export function getFriendlyAuthError(error) {
       icon: '🔒',
       requiresReauth: true,
       retryable: false,
+      code,
+      rawMessage
+    };
+  }
+
+  // reCAPTCHA-specific errors with user-friendly messaging
+  if (recaptcha) {
+    const message = rawMessage.toLowerCase();
+    
+    if (message.includes('timeout')) {
+      return {
+        title: 'Security verification timed out',
+        userMessage: 'Security verification took too long. You can continue without phone verification.',
+        icon: '⏱️',
+        requiresReauth: false,
+        retryable: true,
+        code,
+        rawMessage
+      };
+    }
+    
+    if (code === 'auth/captcha-check-failed') {
+      return {
+        title: 'Security verification failed',
+        userMessage: 'Security verification failed. Please try again or continue without phone verification.',
+        icon: '🛡️',
+        requiresReauth: false,
+        retryable: true,
+        code,
+        rawMessage
+      };
+    }
+    
+    if (code.includes('quota-exceeded')) {
+      return {
+        title: 'Service temporarily unavailable',
+        userMessage: 'Security verification is temporarily unavailable. Please continue without phone verification.',
+        icon: '⏸️',
+        requiresReauth: false,
+        retryable: false,
+        code,
+        rawMessage
+      };
+    }
+    
+    // Generic reCAPTCHA error
+    return {
+      title: 'Security verification unavailable',
+      userMessage: 'Security verification is currently unavailable. You can continue without phone verification.',
+      icon: '🛡️',
+      requiresReauth: false,
+      retryable,
       code,
       rawMessage
     };
