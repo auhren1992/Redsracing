@@ -1,11 +1,12 @@
 /**
  * Login Page Controller
- * Centralized login flow management with deferred UI enablement, MFA support, and phone auth
+ * Centralized login flow management with deferred UI enablement, MFA support, and reCAPTCHA Enterprise
  */
 
 import { initializeFirebaseCore, getFirebaseAuth } from './firebase-core.js';
 import { getFriendlyAuthError } from './auth-errors.js';
 import { setPendingInvitationCode } from './invitation-codes.js';
+import { recaptchaService } from './recaptcha-enterprise.js';
 import { 
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
@@ -296,7 +297,7 @@ class LoginPageController {
     }
 
     /**
-     * Handle email/password sign in
+     * Handle email/password sign in with reCAPTCHA Enterprise protection
      */
     async handleEmailSignIn() {
         if (!this.isInitialized) {
@@ -316,9 +317,29 @@ class LoginPageController {
         this.setLoadingState(this.elements.signinButton, true, 'Sign In');
 
         try {
-            await signInWithEmailAndPassword(this.auth, email, password);
-            this.showMessage('Login successful! Redirecting...', false);
-            this.handleSuccess();
+            // Protected action with reCAPTCHA Enterprise
+            await recaptchaService.protectedAction(
+                'LOGIN',
+                async (recaptchaData) => {
+                    // First verify with backend if reCAPTCHA token is present
+                    if (recaptchaData.recaptchaToken) {
+                        await this.verifyAuthAction('login', { 
+                            ...recaptchaData, 
+                            email 
+                        });
+                    }
+                    
+                    // Perform Firebase authentication
+                    await signInWithEmailAndPassword(this.auth, email, password);
+                    this.showMessage('Login successful! Redirecting...', false);
+                    this.handleSuccess();
+                },
+                null, // no user object yet
+                {
+                    fallbackOnError: true,
+                    showUserMessage: true
+                }
+            );
             
         } catch (error) {
             if (error.code === 'auth/multi-factor-required') {
@@ -400,7 +421,38 @@ class LoginPageController {
     }
 
     /**
-     * Handle Google sign in
+     * Verify authentication action with backend reCAPTCHA assessment
+     */
+    async verifyAuthAction(actionType, data) {
+        try {
+            const response = await fetch('/auth_action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    actionType,
+                    ...data
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Authentication verification failed: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log(`[Login Controller] Auth verification passed for ${actionType}:`, result.assessment);
+            return result;
+
+        } catch (error) {
+            console.error(`[Login Controller] Auth verification failed for ${actionType}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Handle Google sign in with reCAPTCHA Enterprise protection
      */
     async handleGoogleSignIn() {
         if (!this.isInitialized) {
@@ -411,9 +463,28 @@ class LoginPageController {
         this.setLoadingState(this.elements.googleSigninButton, true, 'Sign in with Google');
 
         try {
-            await signInWithPopup(this.auth, this.googleProvider);
-            this.showMessage('Google sign-in successful! Redirecting...', false);
-            this.handleSuccess();
+            // Protected action with reCAPTCHA Enterprise
+            await recaptchaService.protectedAction(
+                'LOGIN',
+                async (recaptchaData) => {
+                    // First verify with backend if reCAPTCHA token is present
+                    if (recaptchaData.recaptchaToken) {
+                        await this.verifyAuthAction('login', { 
+                            ...recaptchaData 
+                        });
+                    }
+                    
+                    // Perform Google authentication
+                    await signInWithPopup(this.auth, this.googleProvider);
+                    this.showMessage('Google sign-in successful! Redirecting...', false);
+                    this.handleSuccess();
+                },
+                null, // no user object yet
+                {
+                    fallbackOnError: true,
+                    showUserMessage: true
+                }
+            );
             
         } catch (error) {
             if (error.code !== 'auth/popup-closed-by-user') {
@@ -498,7 +569,7 @@ class LoginPageController {
     }
 
     /**
-     * Handle forgot password
+     * Handle forgot password with reCAPTCHA Enterprise protection
      */
     async handleForgotPassword(e) {
         e.preventDefault();
@@ -519,10 +590,59 @@ class LoginPageController {
         }
 
         try {
-            await sendPasswordResetEmail(this.auth, email);
-            this.showMessage('Password reset email sent! Please check your inbox and spam folder.', false);
+            // Protected action with reCAPTCHA Enterprise
+            await recaptchaService.protectedAction(
+                'PASSWORD_RESET',
+                async (recaptchaData) => {
+                    // Verify with backend if reCAPTCHA token is present
+                    if (recaptchaData.recaptchaToken) {
+                        await this.verifyPasswordReset({ 
+                            ...recaptchaData, 
+                            email 
+                        });
+                    }
+                    
+                    // Send password reset email
+                    await sendPasswordResetEmail(this.auth, email);
+                    this.showMessage('Password reset email sent! Please check your inbox and spam folder.', false);
+                },
+                null, // no user object yet
+                {
+                    fallbackOnError: true,
+                    showUserMessage: true
+                }
+            );
+            
         } catch (error) {
             this.showMessage(getFriendlyAuthError(error));
+        }
+    }
+
+    /**
+     * Verify password reset action with backend
+     */
+    async verifyPasswordReset(data) {
+        try {
+            const response = await fetch('/password_reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Password reset verification failed: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('[Login Controller] Password reset verification passed:', result.assessment);
+            return result;
+
+        } catch (error) {
+            console.error('[Login Controller] Password reset verification failed:', error);
+            throw error;
         }
     }
 
