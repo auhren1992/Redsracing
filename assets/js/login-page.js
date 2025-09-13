@@ -118,6 +118,22 @@ class LoginPageController {
 
     /**
      * Setup reCAPTCHA verifier for phone authentication
+     * 
+     * CRITICAL FIXES IMPLEMENTED:
+     * ===========================
+     * 1. ✅ Timeout Protection: 8-second timeout prevents indefinite hanging
+     * 2. ✅ Graceful Degradation: Phone auth disabled when reCAPTCHA unavailable  
+     * 3. ✅ User Feedback: Clear messages about reCAPTCHA status
+     * 4. ✅ Non-blocking: Login page remains functional regardless of reCAPTCHA status
+     * 5. ✅ Error Classification: Distinguishes between different reCAPTCHA failure types
+     * 6. ✅ UI State Management: Enables/disables phone auth based on reCAPTCHA availability
+     * 7. ✅ Resource Management: Uses RecaptchaManager for proper cleanup
+     * 
+     * BEHAVIOR:
+     * - If reCAPTCHA loads successfully: Phone auth enabled  
+     * - If reCAPTCHA fails/times out: Phone auth disabled with user-friendly message
+     * - Email and Google auth remain unaffected by reCAPTCHA status
+     * 
      * Uses RecaptchaManager for proper timeout and error handling
      */
     async setupRecaptcha() {

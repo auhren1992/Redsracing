@@ -1170,6 +1170,15 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
 
     /**
      * Setup reCAPTCHA for MFA with timeout and error handling
+     * 
+     * IMPROVEMENTS MADE:
+     * - Uses RecaptchaManager instead of direct RecaptchaVerifier
+     * - 8-second timeout prevents hanging during initialization  
+     * - Graceful fallback when reCAPTCHA fails (shows warning, keeps MFA functional)
+     * - Proper error callbacks for user feedback
+     * - Non-blocking: MFA UI remains available even if reCAPTCHA fails
+     * - Cleanup management to prevent memory leaks
+     * 
      * This function ensures MFA UI remains functional even if reCAPTCHA fails
      */
     const setupMfaRecaptcha = async () => {
@@ -1232,6 +1241,13 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
 
     /**
      * Handle MFA code sending with improved error handling
+     * 
+     * FIXES APPLIED:
+     * - Checks reCAPTCHA availability before attempting phone auth
+     * - Provides clear user feedback when reCAPTCHA is unavailable
+     * - Uses RecaptchaManager for proper error classification  
+     * - Attempts reCAPTCHA reset on recoverable errors
+     * - Fallback UI when reCAPTCHA cannot be recovered
      */
     const handleMfaSendCode = async (user) => {
         const phoneNumber = mfaPhoneNumberInput.value?.trim();

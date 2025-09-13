@@ -1,18 +1,61 @@
 /**
  * RecaptchaManager - Centralized reCAPTCHA handling with timeout and error management
  * 
- * This utility provides:
- * - Timeout handling for reCAPTCHA initialization
- * - Graceful fallback when reCAPTCHA fails to load
- * - Proper cleanup of RecaptchaVerifier instances
- * - User-friendly error messaging
- * - Prevention of UI blocking when reCAPTCHA fails
+ * FIXES IMPLEMENTED:
+ * ==================
+ * 1. ✅ Timeout handling - reCAPTCHA initialization has configurable timeout (default 10s)
+ * 2. ✅ Graceful fallback - Returns null instead of throwing errors when reCAPTCHA fails
+ * 3. ✅ Proper cleanup - Manages RecaptchaVerifier lifecycle and prevents memory leaks  
+ * 4. ✅ User-friendly messaging - Provides clear error messages for different failure scenarios
+ * 5. ✅ Non-blocking errors - UI remains functional even when reCAPTCHA is unavailable
+ * 6. ✅ Resource management - Prevents global variable pollution and handles multiple instances
+ * 7. ✅ Error classification - Distinguishes between retryable and non-retryable reCAPTCHA errors
  * 
- * Usage:
+ * BEST PRACTICES FOR reCAPTCHA:
+ * =============================
+ * 1. Always use timeouts when initializing reCAPTCHA (8-10 seconds recommended)
+ * 2. Never block critical UI functionality if reCAPTCHA fails to load
+ * 3. Provide clear user feedback when reCAPTCHA is unavailable
+ * 4. Clean up reCAPTCHA instances when components are destroyed
+ * 5. Use invisible reCAPTCHA for better UX where possible
+ * 6. Handle network issues gracefully (common cause of reCAPTCHA failures)
+ * 7. Test your app with reCAPTCHA blocked (ad blockers, corporate firewalls)
+ * 
+ * USAGE PATTERNS:
+ * ===============
+ * 
+ * // Basic usage with automatic cleanup
  * const manager = new RecaptchaManager();
- * const verifier = await manager.createVerifier(auth, containerId, options);
- * // ... use verifier ...
- * manager.cleanup(); // Always call cleanup when done
+ * const verifier = await manager.createVerifier(auth, 'container-id', options);
+ * if (verifier) {
+ *   // reCAPTCHA is ready, proceed with phone auth
+ *   const result = await signInWithPhoneNumber(auth, phoneNumber, verifier);
+ * } else {
+ *   // reCAPTCHA failed, show fallback UI or disable phone auth
+ *   showPhoneAuthUnavailable();
+ * }
+ * // Always cleanup when done
+ * manager.cleanup();
+ * 
+ * // With error handling callbacks
+ * manager.onError((error) => {
+ *   showUserFriendlyMessage('Security verification unavailable');
+ *   disablePhoneAuthUI();
+ * });
+ * 
+ * manager.onExpired(() => {
+ *   showUserFriendlyMessage('Please try again');
+ * });
+ * 
+ * COMMON FAILURE SCENARIOS HANDLED:
+ * =================================
+ * 1. Network timeouts (corporate firewalls, slow connections)
+ * 2. Ad blockers blocking reCAPTCHA resources  
+ * 3. Missing DOM containers
+ * 4. Invalid Firebase configuration
+ * 5. reCAPTCHA quota exceeded
+ * 6. Browser compatibility issues
+ * 7. Third-party script loading failures
  */
 
 import { RecaptchaVerifier } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
