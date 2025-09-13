@@ -10,9 +10,9 @@ from datetime import datetime
 # Initialize Firebase Admin SDK.
 initialize_app()
 
-# Set the SendGrid API key from environment variables/secrets.
-# This is crucial for security. The secret name is 'SENDGRID_API_KEY'.
-options.set_global_options(secrets=["SENDGRID_API_KEY"])
+# Configure secrets for email functionality
+# The SENDGRID_API_KEY secret should be configured in Google Cloud Secret Manager
+# If the secret is not available or empty, email functions will fail at runtime with proper error messages
 
 # Initialize SendGrid client lazily to avoid import failures if API key is missing
 sg = None
@@ -22,8 +22,8 @@ def get_sendgrid_client():
     global sg
     if sg is None:
         api_key = os.environ.get("SENDGRID_API_KEY")
-        if not api_key:
-            raise ValueError("SENDGRID_API_KEY environment variable is required for email functionality")
+        if not api_key or api_key.strip() == "":
+            raise ValueError("SENDGRID_API_KEY is not configured or is empty. Please configure the secret in Google Cloud Secret Manager.")
         sg = sendgrid.SendGridAPIClient(api_key=api_key)
     return sg
 
@@ -60,7 +60,7 @@ def handleAddSubscriber(req: https_fn.Request) -> https_fn.Response:
     except Exception as e:
         return https_fn.Response(f"An error occurred: {e}", status=500)
 
-@https_fn.on_request(cors=CORS_OPTIONS)
+@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY"])
 def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
     """Sends feedback from a user as an email via SendGrid."""
     if req.method == "OPTIONS":
@@ -98,10 +98,13 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
         else:
             return https_fn.Response(f"Error sending email: {response.body}", status=response.status_code)
 
+    except ValueError as ve:
+        # Handle specifically the case where SendGrid API key is not configured
+        return https_fn.Response(f"Email service not configured: {ve}", status=503)
     except Exception as e:
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
 
-@https_fn.on_request(cors=CORS_OPTIONS)
+@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY"])
 def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
     """Sends a sponsorship inquiry as an email via SendGrid."""
     if req.method == "OPTIONS":
@@ -147,6 +150,9 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
         else:
             return https_fn.Response(f"Error sending email: {response.body}", status=response.status_code)
 
+    except ValueError as ve:
+        # Handle specifically the case where SendGrid API key is not configured
+        return https_fn.Response(f"Email service not configured: {ve}", status=503)
     except Exception as e:
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
 
