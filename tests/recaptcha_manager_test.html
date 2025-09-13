@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecaptchaManager Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1a1a1a;
+            color: #fff;
+        }
+        .test-section {
+            background-color: #2a2a2a;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #3a3a3a;
+        }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .warning { color: #fbbf24; }
+        .info { color: #60a5fa; }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #2563eb; }
+        button:disabled { 
+            background-color: #6b7280; 
+            cursor: not-allowed; 
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .test-container {
+            border: 1px solid #4a5568;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>RecaptchaManager Test Suite</h1>
+    <p>This test validates the RecaptchaManager functionality and error handling.</p>
+
+    <div class="test-section">
+        <h2>Test 1: RecaptchaManager Creation and Timeout Handling</h2>
+        <div id="test1-container" class="test-container"></div>
+        <div id="test1-results"></div>
+        <button onclick="runTest1()">Run Test 1</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Error Handling and Graceful Fallback</h2>
+        <div id="test2-container" class="test-container"></div>
+        <div id="test2-results"></div>
+        <button onclick="runTest2()">Run Test 2</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Cleanup and Resource Management</h2>
+        <div id="test3-results"></div>
+        <button onclick="runTest3()">Run Test 3</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Auth Error Enhancement</h2>
+        <div id="test4-results"></div>
+        <button onclick="runTest4()">Run Test 4</button>
+    </div>
+
+    <script type="module">
+        // Import our modules
+        import { RecaptchaManager } from '/assets/js/recaptcha-manager.js';
+        import { getFriendlyAuthError, isRecaptchaError } from '/assets/js/auth-errors.js';
+
+        // Make functions available globally for onclick handlers
+        window.RecaptchaManager = RecaptchaManager;
+        window.getFriendlyAuthError = getFriendlyAuthError;
+        window.isRecaptchaError = isRecaptchaError;
+
+        function logResult(containerId, message, isSuccess = null) {
+            const container = document.getElementById(containerId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'test-result';
+            
+            if (isSuccess === true) {
+                resultDiv.classList.add('success');
+                resultDiv.innerHTML = `✅ ${message}`;
+            } else if (isSuccess === false) {
+                resultDiv.classList.add('error');
+                resultDiv.innerHTML = `❌ ${message}`;
+            } else {
+                resultDiv.classList.add('info');
+                resultDiv.innerHTML = `ℹ️ ${message}`;
+            }
+            
+            container.appendChild(resultDiv);
+            console.log(message);
+        }
+
+        // Test 1: Basic functionality and timeout handling
+        window.runTest1 = async function() {
+            const results = document.getElementById('test1-results');
+            results.innerHTML = '';
+            
+            logResult('test1-results', 'Starting RecaptchaManager timeout test...');
+            
+            try {
+                const manager = new RecaptchaManager();
+                logResult('test1-results', 'RecaptchaManager created successfully', true);
+                
+                // Test timeout with non-existent container
+                const startTime = Date.now();
+                const verifier = await manager.createVerifier(
+                    null, // No auth object
+                    'non-existent-container',
+                    {},
+                    2000 // 2 second timeout
+                );
+                const elapsed = Date.now() - startTime;
+                
+                if (verifier === null && elapsed >= 1500 && elapsed <= 3000) {
+                    logResult('test1-results', `Timeout handled correctly (${elapsed}ms)`, true);
+                } else {
+                    logResult('test1-results', `Timeout behavior unexpected: verifier=${verifier}, elapsed=${elapsed}ms`, false);
+                }
+                
+                // Test cleanup
+                manager.cleanup();
+                logResult('test1-results', 'Cleanup completed without errors', true);
+                
+                // Test state after cleanup
+                if (!manager.isReady() && !manager.hasExpired()) {
+                    logResult('test1-results', 'Manager state reset correctly after cleanup', true);
+                } else {
+                    logResult('test1-results', 'Manager state not reset properly after cleanup', false);
+                }
+                
+            } catch (error) {
+                logResult('test1-results', `Test 1 failed with error: ${error.message}`, false);
+            }
+        };
+
+        // Test 2: Error handling and graceful fallback
+        window.runTest2 = async function() {
+            const results = document.getElementById('test2-results');
+            results.innerHTML = '';
+            
+            logResult('test2-results', 'Starting error handling test...');
+            
+            try {
+                const manager = new RecaptchaManager();
+                
+                // Test with missing container
+                const verifier1 = await manager.createVerifier(null, 'missing-container', {}, 1000);
+                if (verifier1 === null) {
+                    logResult('test2-results', 'Gracefully handled missing container', true);
+                } else {
+                    logResult('test2-results', 'Did not handle missing container gracefully', false);
+                }
+                
+                // Test error message utility
+                const timeoutError = new Error('reCAPTCHA initialization timeout');
+                const message = RecaptchaManager.getErrorMessage(timeoutError);
+                if (message.includes('timeout') && message.includes('continue without')) {
+                    logResult('test2-results', 'Timeout error message is user-friendly', true);
+                } else {
+                    logResult('test2-results', 'Timeout error message not user-friendly', false);
+                }
+                
+                // Test shouldBlockOnError utility
+                const networkError = { code: 'network-error', message: 'failed to fetch' };
+                const criticalError = { code: 'auth/invalid-api-key', message: 'Invalid API key' };
+                
+                if (!RecaptchaManager.shouldBlockOnError(networkError) && 
+                    RecaptchaManager.shouldBlockOnError(criticalError)) {
+                    logResult('test2-results', 'shouldBlockOnError works correctly', true);
+                } else {
+                    logResult('test2-results', 'shouldBlockOnError logic incorrect', false);
+                }
+                
+                manager.cleanup();
+                
+            } catch (error) {
+                logResult('test2-results', `Test 2 failed with error: ${error.message}`, false);
+            }
+        };
+
+        // Test 3: Resource management
+        window.runTest3 = async function() {
+            const results = document.getElementById('test3-results');
+            results.innerHTML = '';
+            
+            logResult('test3-results', 'Starting resource management test...');
+            
+            try {
+                // Test multiple managers
+                const manager1 = new RecaptchaManager();
+                const manager2 = new RecaptchaManager();
+                
+                logResult('test3-results', 'Multiple managers created', true);
+                
+                // Test callback registration
+                let expiredCalled = false;
+                let errorCalled = false;
+                
+                manager1.onExpired(() => { expiredCalled = true; });
+                manager1.onError(() => { errorCalled = true; });
+                
+                // Trigger internal notifications
+                manager1._notifyExpired();
+                manager1._notifyError(new Error('test'));
+                
+                if (expiredCalled && errorCalled) {
+                    logResult('test3-results', 'Callback system works correctly', true);
+                } else {
+                    logResult('test3-results', 'Callback system failed', false);
+                }
+                
+                // Test cleanup
+                manager1.cleanup();
+                manager2.cleanup();
+                
+                logResult('test3-results', 'All managers cleaned up successfully', true);
+                
+            } catch (error) {
+                logResult('test3-results', `Test 3 failed with error: ${error.message}`, false);
+            }
+        };
+
+        // Test 4: Auth error enhancements
+        window.runTest4 = async function() {
+            const results = document.getElementById('test4-results');
+            results.innerHTML = '';
+            
+            logResult('test4-results', 'Starting auth error enhancement test...');
+            
+            try {
+                // Test reCAPTCHA error detection
+                const recaptchaErrors = [
+                    { code: 'auth/captcha-check-failed', message: 'Captcha check failed' },
+                    { code: 'auth/invalid-app-credential', message: 'Invalid app credential' },
+                    { message: 'reCAPTCHA verification failed' }
+                ];
+                
+                const nonRecaptchaErrors = [
+                    { code: 'auth/user-not-found', message: 'User not found' },
+                    { code: 'network-error', message: 'Network failed' }
+                ];
+                
+                let recaptchaDetectionWorking = true;
+                
+                recaptchaErrors.forEach(error => {
+                    if (!isRecaptchaError(error)) {
+                        recaptchaDetectionWorking = false;
+                    }
+                });
+                
+                nonRecaptchaErrors.forEach(error => {
+                    if (isRecaptchaError(error)) {
+                        recaptchaDetectionWorking = false;
+                    }
+                });
+                
+                if (recaptchaDetectionWorking) {
+                    logResult('test4-results', 'reCAPTCHA error detection works correctly', true);
+                } else {
+                    logResult('test4-results', 'reCAPTCHA error detection failed', false);
+                }
+                
+                // Test friendly error messages for reCAPTCHA
+                const timeoutError = { message: 'reCAPTCHA initialization timeout' };
+                const friendlyError = getFriendlyAuthError(timeoutError);
+                
+                if (friendlyError.title.includes('timeout') && 
+                    friendlyError.userMessage.includes('continue without') &&
+                    friendlyError.icon === '⏱️') {
+                    logResult('test4-results', 'Friendly reCAPTCHA error messages work correctly', true);
+                } else {
+                    logResult('test4-results', 'Friendly reCAPTCHA error messages failed', false);
+                }
+                
+                // Test quota exceeded error
+                const quotaError = { code: 'auth/quota-exceeded' };
+                const quotaFriendly = getFriendlyAuthError(quotaError);
+                
+                if (quotaFriendly.userMessage.includes('temporarily unavailable')) {
+                    logResult('test4-results', 'Quota exceeded error handled correctly', true);
+                } else {
+                    logResult('test4-results', 'Quota exceeded error not handled correctly', false);
+                }
+                
+            } catch (error) {
+                logResult('test4-results', `Test 4 failed with error: ${error.message}`, false);
+            }
+        };
+
+        // Auto-run all tests after a delay
+        setTimeout(() => {
+            logResult('test1-results', 'Auto-running all tests...', null);
+            runTest1().then(() => runTest2()).then(() => runTest3()).then(() => runTest4());
+        }, 1000);
+    </script>
+</body>
+</html>
