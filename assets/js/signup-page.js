@@ -333,7 +333,7 @@ class SignupPageController {
                     
                     // Perform Google authentication
                     const result = await signInWithPopup(this.auth, this.googleProvider);
-                    const { user } = await signInWithPopup(this.auth, this.googleProvider);
+                    const result = await signInWithPopup(this.auth, this.googleProvider);
 
                     // Handle invitation code if provided
                     const invitationCode = this.elements.invitationCodeInput?.value.trim();
