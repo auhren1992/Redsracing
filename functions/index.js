@@ -17,7 +17,7 @@ const logger = require("firebase-functions/logger");
 const vision = require("@google-cloud/vision");
 
 // Initialize Firebase Admin SDK
-initializeApp({ storageBucket: "redsracing-a7f8b.appspot.com" });
+initializeApp({ storageBucket: "redsracing-a7f8b.firebasestorage.app" });
 
 /**
  * Processes an invitation code upon user signup.
@@ -123,7 +123,7 @@ exports.processInvitationCode = onCall(async (request) => {
  */
 exports.generateTags = onObjectFinalized({
   region: "us-central1", // Explicitly specify the function's region
-  bucket: "redsracing-a7f8b.appspot.com", // Use the correct GCS bucket name
+  bucket: "redsracing-a7f8b.firebasestorage.app", // Use the correct GCS bucket name
   cpu: 2, // Allocate more CPU
   memory: "1GiB", // Allocate more memory
   timeoutSeconds: 300, // Extend timeout
