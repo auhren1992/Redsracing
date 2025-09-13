@@ -26,7 +26,7 @@ export function isNetworkError(error) {
   }
 }
 
-export function isRecaptchaError(error) {
+return ['captcha', 'recaptcha'].some(keyword => code.includes(keyword) || message.includes(keyword));
   try {
     if (!error) return false;
     
