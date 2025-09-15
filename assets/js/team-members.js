@@ -35,7 +35,7 @@ import { navigateToInternal } from './navigation-helpers.js';
 // Wrap in async function for proper initialization
 (async function() {
     let auth, db;
-    let currentUser = null;
+    // let currentUser = null;
     let isTeamMember = false;
     let members = [];
     // let currentQuery = null;
