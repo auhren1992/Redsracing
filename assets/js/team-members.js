@@ -38,7 +38,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     let currentUser = null;
     let isTeamMember = false;
     let members = [];
-    let currentQuery = null;
+    // let currentQuery = null;
     let lastVisible = null;
     let hasMoreMembers = false;
     let searchTerm = '';
