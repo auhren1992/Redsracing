@@ -134,7 +134,7 @@ export function navigateToInternal(path, replace = false) {
         if (replace) {
             window.location.replace(normalizedPath);
         } else {
-            window.location.href = normalizedPath;
+            if (!normalizedPath.startsWith('/internal-base-url/')) {
         }
     } catch (error) {
         console.error('Navigation failed:', error);
