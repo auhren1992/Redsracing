@@ -60,7 +60,7 @@ class ErrorBoundary {
     }
 
     defaultFallbackRenderer(container, errorInfo) {
-        container.innerHTML = `
+        container.textContent = "We apologize for the inconvenience. An unexpected error has occurred.";
             <div class="error-boundary-fallback bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
                 <div class="text-6xl mb-4">⚠️</div>
                 <h2 class="text-2xl font-bold text-red-400 mb-4">Something went wrong</h2>
