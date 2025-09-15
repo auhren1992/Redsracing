@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Components Test - RedsRacing #8</title>
+    <link rel="stylesheet" href="../styles/tailwind.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <style>
+        body { background: #0f172a; color: white; }
+        .test-section { margin: 2rem 0; padding: 2rem; border: 1px solid #334155; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-6 py-12">
+        <h1 class="text-4xl font-bold mb-8">UI Components Test</h1>
+        
+        <div class="test-section">
+            <h2 class="text-2xl font-bold mb-4">Loading Component</h2>
+            <div id="loading-test" class="bg-slate-800 p-4 rounded"></div>
+            <button onclick="testLoading()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">Test Loading</button>
+        </div>
+
+        <div class="test-section">
+            <h2 class="text-2xl font-bold mb-4">Empty State Component</h2>
+            <div id="empty-test" class="bg-slate-800 p-4 rounded"></div>
+            <button onclick="testEmpty()" class="mt-4 bg-green-600 text-white px-4 py-2 rounded">Test Empty State</button>
+        </div>
+
+        <div class="test-section">
+            <h2 class="text-2xl font-bold mb-4">Error State Component</h2>
+            <div id="error-test" class="bg-slate-800 p-4 rounded"></div>
+            <button onclick="testError()" class="mt-4 bg-red-600 text-white px-4 py-2 rounded">Test Error State</button>
+        </div>
+
+        <div class="test-section">
+            <h2 class="text-2xl font-bold mb-4">Error Boundary Test</h2>
+            <div id="error-boundary-test" class="bg-slate-800 p-4 rounded">
+                <p>This section is protected by an error boundary.</p>
+                <button onclick="triggerError()" class="mt-2 bg-yellow-600 text-white px-4 py-2 rounded">Trigger Error</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { UIState } from '../assets/js/ui-components.js';
+        import { ErrorBoundary } from '../assets/js/error-boundary.js';
+
+        // Make functions globally available
+        window.testLoading = () => {
+            const container = document.getElementById('loading-test');
+            const loader = UIState.loading(container, {
+                message: 'Loading test data...',
+                timeout: 5000,
+                onTimeout: () => {
+                    UIState.error(container, {
+                        type: 'timeout',
+                        title: 'Loading Failed',
+                        message: 'Test loading timed out after 5 seconds.'
+                    });
+                }
+            });
+            
+            // Complete loading after 3 seconds
+            setTimeout(() => {
+                loader.complete();
+                container.innerHTML = '<p class="text-green-400">✓ Loading completed successfully!</p>';
+            }, 3000);
+        };
+
+        window.testEmpty = () => {
+            const container = document.getElementById('empty-test');
+            UIState.empty(container, {
+                icon: '📋',
+                title: 'No Test Data',
+                message: 'This is a test of the empty state component.',
+                actionText: 'Reload Test',
+                onAction: () => {
+                    container.innerHTML = '<p class="text-blue-400">✓ Empty state action triggered!</p>';
+                }
+            });
+        };
+
+        window.testError = () => {
+            const container = document.getElementById('error-test');
+            UIState.error(container, {
+                type: 'network',
+                title: 'Test Error',
+                message: 'This is a test of the error state component.',
+                onRetry: () => {
+                    container.innerHTML = '<p class="text-green-400">✓ Error retry action triggered!</p>';
+                }
+            });
+        };
+
+        window.triggerError = () => {
+            // This will be caught by the error boundary
+            throw new Error('Test error for error boundary');
+        };
+
+        // Set up error boundary for the test section
+        const errorBoundarySection = document.getElementById('error-boundary-test');
+        new ErrorBoundary(errorBoundarySection);
+
+        console.log('UI Components test page loaded successfully');
+    </script>
+</body>
+</html>
