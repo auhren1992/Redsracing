@@ -1065,7 +1065,7 @@ import { recaptchaService } from './recaptcha-enterprise.js';
         // Show error in the admin achievements section if it exists
         const allAchievements = document.getElementById('all-achievements');
         if (allAchievements) {
-            allAchievements.innerHTML = `<p class="text-red-400">${message}</p>`;
+            allAchievements.textContent = message;
         }
         
         // Also log for debugging
