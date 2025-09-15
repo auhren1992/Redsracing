@@ -60,31 +60,24 @@ class ErrorBoundary {
     }
 
     defaultFallbackRenderer(container, errorInfo) {
-        container.textContent = "We apologize for the inconvenience. An unexpected error has occurred.";
+        const showDevDetails = ['localhost', '127.0.0.1'].includes(location.hostname);
+        const escapeHtml = (str) => String(str).replace(/[&<>"']/g, (s) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s]));
+        const detailsSection = (showDevDetails && errorInfo) ? `
+            <details class="mt-4 text-left text-sm">
+                <summary class="cursor-pointer text-gray-400">Error Details (Development)</summary>
+                <pre class="mt-2 p-2 bg-gray-800 rounded text-red-300 overflow-auto">${escapeHtml(JSON.stringify(errorInfo, null, 2))}</pre>
+            </details>
+        ` : '';
+        container.innerHTML = `
             <div class="error-boundary-fallback bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
                 <div class="text-6xl mb-4">⚠️</div>
                 <h2 class="text-2xl font-bold text-red-400 mb-4">Something went wrong</h2>
-                <p class="text-gray-300 mb-4">
-                    We apologize for the inconvenience. An unexpected error has occurred.
-                </p>
+                <p class="text-gray-300 mb-4">We apologize for the inconvenience. An unexpected error has occurred.</p>
                 <div class="space-x-4">
-                    <button onclick="window.location.reload()" 
-                            class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
-                        Reload Page
-                    </button>
-                    <a href="index.html" 
-                       class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">
-                        Go Home
-                    </a>
+                    <button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Reload Page</button>
+                    <a href="index.html" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">Go Home</a>
                 </div>
-                ${errorInfo && process.env.NODE_ENV === 'development' ? `
-                    <details class="mt-4 text-left text-sm">
-                        <summary class="cursor-pointer text-gray-400">Error Details (Development)</summary>
-                        <pre class="mt-2 p-2 bg-gray-800 rounded text-red-300 overflow-auto">
-                            ${JSON.stringify(errorInfo, null, 2)}
-                        </pre>
-                    </details>
-                ` : ''}
+                ${detailsSection}
             </div>
         `;
     }
