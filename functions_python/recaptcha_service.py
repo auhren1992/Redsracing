@@ -37,8 +37,8 @@ class RecaptchaService:
                 logger.error(f"Failed to initialize reCAPTCHA Enterprise client: {e}")
                 raise
         return self.client
-    
-    # TODO: Refactor this method to reduce complexity and improve readability.
+
+    def create_assessment(
         self,
         token: str,
         action: str,
