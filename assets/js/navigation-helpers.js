@@ -4,24 +4,79 @@
  */
 
 /**
- * Validates that a path is safe for internal navigation
- * @param {string} path - The path to validate
- * @returns {boolean} True if the path is safe for internal navigation
+ * Allowlist of safe internal paths
  */
-function isSafeInternalPath(path) {
+const ALLOWED_PATHS = new Set([
+    '/',
+    '/dashboard',
+    '/dashboard.html',
+    '/login.html',
+    '/signup.html',
+    '/profile.html',
+    '/gallery.html',
+    '/schedule.html',
+    '/leaderboard.html',
+    '/team-members.html',
+    '/sponsorship.html',
+    '/feedback.html',
+    '/qna.html',
+    '/videos.html',
+    '/jonny.html',
+    '/driver.html',
+    'dashboard.html',
+    'login.html',
+    'signup.html',
+    'profile.html',
+    'gallery.html',
+    'schedule.html',
+    'leaderboard.html',
+    'team-members.html',
+    'sponsorship.html',
+    'feedback.html',
+    'qna.html',
+    'videos.html',
+    'jonny.html',
+    'driver.html'
+]);
+
+/**
+ * Normalize and validate a path for internal navigation
+ * @param {string} path - The path to normalize and validate
+ * @returns {string|null} Normalized path if safe, null if unsafe
+ */
+function normalizeAndValidatePath(path) {
     if (!path || typeof path !== 'string') {
-        return false;
+        return null;
     }
     
     // Remove leading/trailing whitespace
     path = path.trim();
     
-    // Must start with / for relative paths, or be a known internal page
-    if (!path.startsWith('/')) {
-        return false;
+    // Handle absolute URLs by extracting pathname if same-origin
+    try {
+        if (path.includes('://')) {
+            const urlObj = new URL(path);
+            // Only allow same-origin URLs
+            if (urlObj.origin !== window.location.origin) {
+                return null;
+            }
+            path = urlObj.pathname + urlObj.search + urlObj.hash;
+        }
+    } catch {
+        // If URL parsing fails and contains ://, it's likely malformed
+        if (path.includes('://')) {
+            return null;
+        }
     }
     
-    // Reject paths that could be dangerous
+    // Decode any URL encoding to prevent bypasses
+    try {
+        path = decodeURIComponent(path);
+    } catch {
+        return null; // Invalid encoding
+    }
+    
+    // Reject paths with dangerous patterns
     const dangerousPatterns = [
         /javascript:/i,
         /data:/i,
@@ -29,9 +84,38 @@ function isSafeInternalPath(path) {
         /file:/i,
         /\/\//,  // Protocol-relative URLs
         /\.\./,  // Path traversal
+        /%2e%2e/i, // Encoded path traversal
+        /%2f/i,    // Encoded slash
+        /\\x/i,    // Hex encoding
+        /\\/       // Backslashes
     ];
     
-    return !dangerousPatterns.some(pattern => pattern.test(path));
+    if (dangerousPatterns.some(pattern => pattern.test(path))) {
+        return null;
+    }
+    
+    // Normalize path - ensure leading slash for relative paths
+    if (!path.startsWith('/') && !path.includes('.html')) {
+        path = '/' + path;
+    }
+    
+    return path;
+}
+
+/**
+ * Validates that a path is safe for internal navigation
+ * @param {string} path - The path to validate
+ * @returns {boolean} True if the path is safe for internal navigation
+ */
+function isSafeInternalPath(path) {
+    const normalizedPath = normalizeAndValidatePath(path);
+    if (!normalizedPath) {
+        return false;
+    }
+    
+    // Check against allowlist
+    return ALLOWED_PATHS.has(normalizedPath) || 
+           ALLOWED_PATHS.has(normalizedPath.replace(/^\//, ''));
 }
 
 /**
@@ -41,15 +125,16 @@ function isSafeInternalPath(path) {
  * @throws {Error} If the path is not safe for internal navigation
  */
 export function navigateToInternal(path, replace = false) {
-    if (!isSafeInternalPath(path)) {
+    const normalizedPath = normalizeAndValidatePath(path);
+    if (!normalizedPath || !isSafeInternalPath(normalizedPath)) {
         throw new Error(`Unsafe navigation path: ${path}`);
     }
     
     try {
         if (replace) {
-            window.location.replace(safeInternalPath(path));
+            window.location.replace(normalizedPath);
         } else {
-            if (isSafeInternalPath(path)) window.location.href = path;
+            window.location.href = normalizedPath;
         }
     } catch (error) {
         console.error('Navigation failed:', error);
@@ -73,29 +158,14 @@ export function safeRedirect(path) {
  * @returns {string} A safe internal path
  */
 export function validateRedirectUrl(url, fallbackPath = '/') {
-    if (!url || typeof url !== 'string') {
+    const normalizedPath = normalizeAndValidatePath(url);
+    if (!normalizedPath) {
+        console.warn('Invalid redirect URL:', url);
         return fallbackPath;
     }
     
-    // Remove leading/trailing whitespace
-    url = url.trim();
-    
-    // Handle URL objects or absolute URLs by extracting pathname
-    try {
-        const urlObj = new URL(url, window.location.origin);
-        // Only allow same-origin redirects
-        if (urlObj.origin !== window.location.origin) {
-            console.warn('Cross-origin redirect blocked:', url);
-            return fallbackPath;
-        }
-        url = urlObj.pathname + urlObj.search + urlObj.hash;
-    } catch {
-        // If URL parsing fails, treat as relative path
-    }
-    
-    // Validate the resulting path
-    if (isSafeInternalPath(url)) {
-        return url;
+    if (isSafeInternalPath(normalizedPath)) {
+        return normalizedPath;
     }
     
     console.warn('Unsafe redirect URL blocked:', url);
