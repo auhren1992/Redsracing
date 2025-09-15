@@ -1356,21 +1356,6 @@ const showMfaRecaptchaFallback = (message) => {
     }
 };
 
-const hideMfaRecaptchaError = () => {
-    const container = document.getElementById('mfa-recaptcha-container');
-    if (container) {
-        // Clear any error messages but keep the reCAPTCHA
-        const errorDiv = container.querySelector('.bg-yellow-900');
-        if (errorDiv) {
-            errorDiv.remove();
-        }
-    }
-};
-
-// ... everything after (including hideMfaRecaptchaError, etc.) unchanged ...
-    /**
-     * Hide reCAPTCHA error message for MFA
-     */
     const hideMfaRecaptchaError = () => {
         const container = document.getElementById('mfa-recaptcha-container');
         if (container) {
