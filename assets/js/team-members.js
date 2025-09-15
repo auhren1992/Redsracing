@@ -412,7 +412,7 @@ import { navigateToInternal } from './navigation-helpers.js';
             'supporter': 'Supporter'
         };
 
-        return roleMap[role] || role.charAt(0).toUpperCase() + role.slice(1);
+        return roleMap.hasOwnProperty(role) ? roleMap[role] : role.charAt(0).toUpperCase() + role.slice(1);
     }
 
     // Debounced search function
