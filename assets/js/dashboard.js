@@ -1342,11 +1342,6 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
         }
     };
 
-    // ... everything above unchanged ...
-
-/**
- * Show reCAPTCHA fallback message for MFA
- */
 const showMfaRecaptchaFallback = (message) => {
     const container = document.getElementById('mfa-recaptcha-container');
     if (container) {
@@ -1358,6 +1353,17 @@ const showMfaRecaptchaFallback = (message) => {
         noticeDiv.className = 'bg-yellow-900 border border-yellow-600 text-yellow-200 px-3 py-2 rounded-md text-sm';
         noticeDiv.innerHTML = `<span class="font-medium">⚠️ Notice:</span> ${message}`;
         container.appendChild(noticeDiv);
+    }
+};
+
+const hideMfaRecaptchaError = () => {
+    const container = document.getElementById('mfa-recaptcha-container');
+    if (container) {
+        // Clear any error messages but keep the reCAPTCHA
+        const errorDiv = container.querySelector('.bg-yellow-900');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
     }
 };
 
