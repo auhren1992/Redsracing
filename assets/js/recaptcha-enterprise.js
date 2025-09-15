@@ -85,42 +85,83 @@ class RecaptchaEnterpriseService {
     }
 
     /**
-     * Execute reCAPTCHA for a specific action
+     * Execute reCAPTCHA for a specific action with timeout and retry support
      * @param {string} action - Action name (LOGIN, REGISTRATION, PASSWORD_RESET, etc.)
-     * @param {number} timeout - Timeout in milliseconds (default: 5000)
+     * @param {number} timeout - Timeout in milliseconds (default: 120000)
+     * @param {number} maxRetries - Maximum retry attempts for timeouts (default: 1)
      * @returns {Promise<string|null>} reCAPTCHA token or null if failed
      */
-    async executeAction(action, timeout = 5000) {
-        try {
-            if (!this.isLoaded || !window.grecaptcha || !window.grecaptcha.enterprise) {
-                console.warn('[reCAPTCHA] reCAPTCHA Enterprise not loaded, using fallback');
-                return null;
+    async executeAction(action, timeout = 120000, maxRetries = 1) {
+        let attempt = 0;
+        let lastError = null;
+        
+        while (attempt <= maxRetries) {
+            try {
+                if (!this.isLoaded || !window.grecaptcha || !window.grecaptcha.enterprise) {
+                    console.warn('[reCAPTCHA] reCAPTCHA Enterprise not loaded, using fallback');
+                    return null;
+                }
+
+                if (!this.siteKey) {
+                    console.warn('[reCAPTCHA] Site key not configured');
+                    return null;
+                }
+
+                console.log(`[reCAPTCHA] Executing action: ${action} (attempt ${attempt + 1}/${maxRetries + 1})`);
+
+                // Create AbortController for timeout handling
+                const abortController = new AbortController();
+                let timeoutId;
+
+                try {
+                    // Create a timeout promise
+                    const timeoutPromise = new Promise((_, reject) => {
+                        timeoutId = setTimeout(() => {
+                            abortController.abort();
+                            reject(new Error('reCAPTCHA timeout'));
+                        }, timeout);
+                    });
+
+                    // Execute reCAPTCHA with timeout
+                    const executePromise = window.grecaptcha.enterprise.execute(this.siteKey, { action });
+                    
+                    const token = await Promise.race([executePromise, timeoutPromise]);
+                    
+                    // Clear timeout if we get a successful result
+                    if (timeoutId) {
+                        clearTimeout(timeoutId);
+                    }
+                    
+                    console.log(`[reCAPTCHA] Successfully executed action: ${action}`);
+                    return token;
+
+                } finally {
+                    // Always clean up timeout
+                    if (timeoutId) {
+                        clearTimeout(timeoutId);
+                    }
+                }
+
+            } catch (error) {
+                lastError = error;
+                console.warn(`[reCAPTCHA] Attempt ${attempt + 1} failed for action ${action}:`, error);
+                
+                // Only retry on timeout errors, not other failures
+                if ((error.message === 'reCAPTCHA timeout' || error.message.includes('timeout')) && attempt < maxRetries) {
+                    attempt++;
+                    console.log(`[reCAPTCHA] Retrying action ${action} due to timeout...`);
+                    // Small delay before retry
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                } else {
+                    break;
+                }
             }
-
-            if (!this.siteKey) {
-                console.warn('[reCAPTCHA] Site key not configured');
-                return null;
-            }
-
-            // Create a timeout promise
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('reCAPTCHA timeout')), timeout);
-            });
-
-            // Execute reCAPTCHA with timeout
-            const executePromise = window.grecaptcha.enterprise.execute(this.siteKey, { action });
-            
-            const token = await Promise.race([executePromise, timeoutPromise]);
-            
-            console.log(`[reCAPTCHA] Successfully executed action: ${action}`);
-            return token;
-
-        } catch (error) {
-            console.warn(`[reCAPTCHA] Failed to execute action ${action}:`, error);
-            
-            // Return null for fallback handling
-            return null;
         }
+        
+        // All attempts failed
+        console.warn(`[reCAPTCHA] All attempts failed for action ${action}:`, lastError);
+        return null;
     }
 
     /**
@@ -158,7 +199,7 @@ class RecaptchaEnterpriseService {
     }
 
     /**
-     * Handle reCAPTCHA protected action
+     * Handle reCAPTCHA protected action with improved timeout and error handling
      * @param {string} action - Action name
      * @param {Function} actionCallback - Function to execute if reCAPTCHA passes
      * @param {Object} user - Firebase user object (optional)
@@ -169,15 +210,20 @@ class RecaptchaEnterpriseService {
         const { 
             fallbackOnError = true,
             showUserMessage = true,
-            timeout = 5000 
+            timeout = 120000,
+            maxRetries = 1
         } = options;
 
         try {
-            // Execute reCAPTCHA
-            const token = await this.executeAction(action, timeout);
+            // Execute reCAPTCHA with retry support
+            const token = await this.executeAction(action, timeout, maxRetries);
             
             if (!token && !fallbackOnError) {
-                throw new Error('reCAPTCHA verification required but failed');
+                const errorMsg = 'reCAPTCHA verification required but failed';
+                if (showUserMessage) {
+                    this._showUserMessage('Security verification failed. Please try again.', true);
+                }
+                throw new Error(errorMsg);
             }
 
             // Prepare data for the action
@@ -189,12 +235,22 @@ class RecaptchaEnterpriseService {
         } catch (error) {
             console.error(`[reCAPTCHA] Protected action ${action} failed:`, error);
             
+            // Handle specific error types
+            if (error.message === 'reCAPTCHA timeout' || error.message.includes('timeout')) {
+                if (showUserMessage) {
+                    this._showUserMessage('Security verification timed out. Please try again.', true);
+                }
+                if (!fallbackOnError) {
+                    throw new Error('reCAPTCHA verification timed out');
+                }
+            }
+            
             if (fallbackOnError) {
                 console.warn(`[reCAPTCHA] Attempting fallback for action: ${action}`);
                 // Execute action without reCAPTCHA data
                 return await actionCallback({});
             } else {
-                if (showUserMessage) {
+                if (showUserMessage && error.message !== 'reCAPTCHA timeout') {
                     this._showUserMessage('Security verification failed. Please try again.', true);
                 }
                 throw error;
