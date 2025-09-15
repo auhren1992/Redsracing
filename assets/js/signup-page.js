@@ -297,7 +297,9 @@ class SignupPageController {
                 null, // no user object yet
                 {
                     fallbackOnError: true,
-                    showUserMessage: true
+                    showUserMessage: true,
+                    timeout: 120000,
+                    maxRetries: 1
                 }
             );
             
@@ -347,7 +349,9 @@ class SignupPageController {
                 null, // no user object yet
                 {
                     fallbackOnError: true,
-                    showUserMessage: true
+                    showUserMessage: true,
+                    timeout: 120000,
+                    maxRetries: 1
                 }
             );
             
@@ -364,15 +368,15 @@ class SignupPageController {
      * Handle sign in redirect
      */
     handleSignInRedirect() {
-        navigateToInternal('login.html');
+        navigateToInternal('/login.html');
     }
 
     /**
      * Handle successful registration
      */
     handleSuccess() {
-        // Redirect to dashboard
-        navigateToInternal('dashboard.html');
+        // Redirect to dashboard using the preferred route
+        navigateToInternal('/dashboard');
     }
 }
 
