@@ -42,7 +42,7 @@ import { useUserData } from './async-data-hook.js';
     // Initialize error boundary for profile page
     const profileErrorBoundary = new ErrorBoundary(
         document.querySelector('main'),
-        (container, errorInfo) => {
+                    (container) => {
             container.innerHTML = `
                 <div class="text-center py-20">
                     <h1 class="text-5xl font-racing uppercase mb-2">User <span class="neon-yellow">Profile</span></h1>
