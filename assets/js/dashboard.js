@@ -1644,7 +1644,7 @@ const showMfaRecaptchaFallback = (message) => {
                                             title: 'Failed to Load Races',
                                             message: 'Unable to load race data. Please try refreshing.',
                                             showHome: false,
-                                            onRetry: () => getRaceData()
+                                            const retryGetRaceData = () => getRaceData();
                                         });
                                     }
                                 }
