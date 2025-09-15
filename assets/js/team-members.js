@@ -91,12 +91,14 @@ import { navigateToInternal } from './navigation-helpers.js';
     // const errorBoundary = new ErrorBoundary(document.querySelector('main'));
 
     // Show different states
-    showLoadingState();
-        loadingState.classList.remove('hidden');
-        teamContent.classList.add('hidden');
-        errorState.classList.add('hidden');
-        permissionDeniedState.classList.add('hidden');
+    function showLoadingState() {
+        if (loadingState) loadingState.classList.remove('hidden');
+        if (teamContent) teamContent.classList.add('hidden');
+        if (errorState) errorState.classList.add('hidden');
+        if (permissionDeniedState) permissionDeniedState.classList.add('hidden');
     }
+
+    showLoadingState();
 
     function showTeamContent() {
         loadingState.classList.add('hidden');
