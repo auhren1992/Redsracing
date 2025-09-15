@@ -44,7 +44,7 @@ const ALLOWED_PATHS = new Set([
  * @param {string} path - The path to normalize and validate
  * @returns {string|null} Normalized path if safe, null if unsafe
  */
-function normalizeAndValidatePath(path) {
+if (!path || typeof path !== 'string') return null;
     if (!path || typeof path !== 'string') {
         return null;
     }
