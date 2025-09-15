@@ -1342,20 +1342,26 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
         }
     };
 
-    /**
-     * Show reCAPTCHA fallback message for MFA
-     */
-    const showMfaRecaptchaFallback = (message) => {
-        const container = document.getElementById('mfa-recaptcha-container');
-        if (container) {
-            const noticeDiv = document.createElement('div'); noticeDiv.className = 'bg-yellow-900 border border-yellow-600 text-yellow-200 px-3 py-2 rounded-md text-sm'; noticeDiv.textContent = `⚠️ Notice: ${message}`; container.appendChild(noticeDiv);
-                <div class="bg-yellow-900 border border-yellow-600 text-yellow-200 px-3 py-2 rounded-md text-sm">
-                    <span class="font-medium">⚠️ Notice:</span> ${message}
-                </div>
-            `;
-        }
-    };
+    // ... everything above unchanged ...
 
+/**
+ * Show reCAPTCHA fallback message for MFA
+ */
+const showMfaRecaptchaFallback = (message) => {
+    const container = document.getElementById('mfa-recaptcha-container');
+    if (container) {
+        // Remove any existing notice
+        const existing = container.querySelector('.bg-yellow-900');
+        if (existing) existing.remove();
+
+        const noticeDiv = document.createElement('div');
+        noticeDiv.className = 'bg-yellow-900 border border-yellow-600 text-yellow-200 px-3 py-2 rounded-md text-sm';
+        noticeDiv.innerHTML = `<span class="font-medium">⚠️ Notice:</span> ${message}`;
+        container.appendChild(noticeDiv);
+    }
+};
+
+// ... everything after (including hideMfaRecaptchaError, etc.) unchanged ...
     /**
      * Hide reCAPTCHA error message for MFA
      */
