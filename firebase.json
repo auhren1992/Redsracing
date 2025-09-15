@@ -46,11 +46,6 @@
           "codebase": "python-api"
         }
       },
-        "function": {
-          "functionId": "handleGetProfile",
-          "codebase": "python-api"
-        }
-      },
       {
         "source": "/profile/**",
         "function": {
