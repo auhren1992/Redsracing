@@ -88,7 +88,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     const cancelInvite = document.getElementById('cancel-invite');
 
     // Error boundary for the page
-    const errorBoundary = new ErrorBoundary(document.querySelector('main'));
+    // const errorBoundary = new ErrorBoundary(document.querySelector('main'));
 
     // Show different states
     function showLoadingState() {
