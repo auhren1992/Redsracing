@@ -84,7 +84,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     const memberModalContent = document.getElementById('member-modal-content');
     const closeMemberModal = document.getElementById('close-member-modal');
     const inviteModal = document.getElementById('invite-modal');
-    const inviteForm = document.getElementById('invite-form');
+    // const inviteForm = document.getElementById('invite-form');
     const cancelInvite = document.getElementById('cancel-invite');
 
     // Error boundary for the page
