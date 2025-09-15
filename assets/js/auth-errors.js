@@ -26,13 +26,13 @@ export function isNetworkError(error) {
   }
 }
 
-return ['captcha', 'recaptcha'].some(keyword => code.includes(keyword) || message.includes(keyword));
+export function isRecaptchaError(error) {
   try {
     if (!error) return false;
-    
+
     const code = (error.code || '').toString().toLowerCase();
     const message = (error.message || String(error)).toLowerCase();
-    
+
     return (
       code.includes('captcha') ||
       code.includes('recaptcha') ||
@@ -54,14 +54,16 @@ export function isRetryableError(error) {
     if (isRecaptchaError(error)) {
       const code = (error.code || '').toString().toLowerCase();
       const message = (error.message || String(error)).toLowerCase();
-      
+
       // These reCAPTCHA errors are not retryable
-      if (code === 'auth/invalid-app-credential' || 
-          message.includes('invalid site key') ||
-          message.includes('invalid domain')) {
+      if (
+        code === 'auth/invalid-app-credential' ||
+        message.includes('invalid site key') ||
+        message.includes('invalid domain')
+      ) {
         return false;
       }
-      
+
       return true; // Most reCAPTCHA errors are retryable
     }
 
@@ -132,7 +134,7 @@ export function getFriendlyAuthError(error) {
   // reCAPTCHA-specific errors with user-friendly messaging
   if (recaptcha) {
     const message = rawMessage.toLowerCase();
-    
+
     if (message.includes('timeout')) {
       return {
         title: 'Security verification timed out',
@@ -144,7 +146,7 @@ export function getFriendlyAuthError(error) {
         rawMessage
       };
     }
-    
+
     if (code === 'auth/captcha-check-failed') {
       return {
         title: 'Security verification failed',
@@ -156,7 +158,7 @@ export function getFriendlyAuthError(error) {
         rawMessage
       };
     }
-    
+
     if (code.includes('quota-exceeded')) {
       return {
         title: 'Service temporarily unavailable',
@@ -168,7 +170,7 @@ export function getFriendlyAuthError(error) {
         rawMessage
       };
     }
-    
+
     // Generic reCAPTCHA error
     return {
       title: 'Security verification unavailable',
