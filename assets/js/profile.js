@@ -1025,21 +1025,51 @@ import { recaptchaService } from './recaptcha-enterprise.js';
     // Admin functions for achievement management
     async function loadAllAchievements() {
         try {
-            const response = await fetch('/achievements');
-            if (response.ok) {
-                const achievements = await response.json();
-                displayAllAchievements(achievements);
-            } else if (response.status === 404) {
-                console.log('Achievements endpoint not available. This may be expected if backend functions are not deployed.');
-                displayAllAchievements([]); // Show empty state
-            } else {
-                console.error('Failed to load achievements:', response.statusText);
-                displayAllAchievements([]); // Show empty state
+            const db = getFirebaseDb();
+            
+            if (!db) {
+                console.error('Firestore database not available');
+                displayAllAchievements([]);
+                showUserFriendlyError('Unable to connect to database. Please check your connection and try again.');
+                return;
             }
+
+            console.log('[Profile] Loading achievements from Firestore...');
+            const achievementsRef = collection(db, 'achievements');
+            const achievementsSnapshot = await getDocs(achievementsRef);
+            
+            const achievements = achievementsSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            console.log(`[Profile] Successfully loaded ${achievements.length} achievements from Firestore`);
+            displayAllAchievements(achievements);
         } catch (error) {
-            console.error('Error loading achievements:', error);
-            displayAllAchievements([]); // Show empty state
+            console.error('Error loading achievements from Firestore:', error);
+            displayAllAchievements([]);
+            
+            // Provide user-friendly error message based on error type
+            if (error.code === 'permission-denied') {
+                showUserFriendlyError('You do not have permission to view achievements. Please check your account status.');
+            } else if (error.code === 'unavailable') {
+                showUserFriendlyError('Achievement service is temporarily unavailable. Please try again later.');
+            } else {
+                showUserFriendlyError('Failed to load achievements. Please refresh the page and try again.');
+            }
         }
+    }
+
+    // Helper function to show user-friendly error messages
+    function showUserFriendlyError(message) {
+        // Show error in the admin achievements section if it exists
+        const allAchievements = document.getElementById('all-achievements');
+        if (allAchievements) {
+            allAchievements.textContent = message;
+        }
+        
+        // Also log for debugging
+        console.warn('[Profile] User-friendly error shown:', message);
     }
 
     function displayAllAchievements(achievements) {
