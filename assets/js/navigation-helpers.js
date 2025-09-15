@@ -44,14 +44,12 @@ const ALLOWED_PATHS = new Set([
  * @param {string} path - The path to normalize and validate
  * @returns {string|null} Normalized path if safe, null if unsafe
  */
-if (!path || typeof path !== 'string') return null;
-    if (!path || typeof path !== 'string') {
-        return null;
-    }
-    
+function normalizeAndValidatePath(path) {
+    if (!path || typeof path !== 'string') return null;
+
     // Remove leading/trailing whitespace
     path = path.trim();
-    
+
     // Handle absolute URLs by extracting pathname if same-origin
     try {
         if (path.includes('://')) {
@@ -68,14 +66,14 @@ if (!path || typeof path !== 'string') return null;
             return null;
         }
     }
-    
+
     // Decode any URL encoding to prevent bypasses
     try {
         path = decodeURIComponent(path);
     } catch {
         return null; // Invalid encoding
     }
-    
+
     // Reject paths with dangerous patterns
     const dangerousPatterns = [
         /javascript:/i,
@@ -89,16 +87,16 @@ if (!path || typeof path !== 'string') return null;
         /\\x/i,    // Hex encoding
         /\\/       // Backslashes
     ];
-    
+
     if (dangerousPatterns.some(pattern => pattern.test(path))) {
         return null;
     }
-    
+
     // Normalize path - ensure leading slash for relative paths
     if (!path.startsWith('/') && !path.includes('.html')) {
         path = '/' + path;
     }
-    
+
     return path;
 }
 
@@ -112,9 +110,8 @@ function isSafeInternalPath(path) {
     if (!normalizedPath) {
         return false;
     }
-    
-    // Check against allowlist
-    return ALLOWED_PATHS.has(normalizedPath) || 
+    // Check against allowlist with or without leading slash
+    return ALLOWED_PATHS.has(normalizedPath) ||
            ALLOWED_PATHS.has(normalizedPath.replace(/^\//, ''));
 }
 
@@ -129,12 +126,12 @@ export function navigateToInternal(path, replace = false) {
     if (!normalizedPath || !isSafeInternalPath(normalizedPath)) {
         throw new Error(`Unsafe navigation path: ${path}`);
     }
-    
+
     try {
         if (replace) {
             window.location.replace(normalizedPath);
         } else {
-            if (!normalizedPath.startsWith('/internal-base-url/')) {
+            window.location.href = normalizedPath;
         }
     } catch (error) {
         console.error('Navigation failed:', error);
@@ -163,11 +160,11 @@ export function validateRedirectUrl(url, fallbackPath = '/') {
         console.warn('Invalid redirect URL:', url);
         return fallbackPath;
     }
-    
+
     if (isSafeInternalPath(normalizedPath)) {
         return normalizedPath;
     }
-    
+
     console.warn('Unsafe redirect URL blocked:', url);
     return fallbackPath;
 }
@@ -181,20 +178,22 @@ export function safeOpenLink(url, newTab = false) {
     if (!url || typeof url !== 'string') {
         throw new Error('Invalid URL provided');
     }
-    
+
     try {
         const urlObj = new URL(url, window.location.origin);
-        
+
         // For external URLs, always open in new tab with security attributes
         if (urlObj.origin !== window.location.origin) {
             const link = document.createElement('a');
             link.href = url;
             link.target = '_blank';
             link.rel = 'noopener noreferrer';
-            link.click();
+            // Use MouseEvent to simulate a click in a way that works in all browsers
+            const event = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
+            link.dispatchEvent(event);
             return;
         }
-        
+
         // For internal URLs, use safe navigation
         const path = urlObj.pathname + urlObj.search + urlObj.hash;
         if (newTab) {

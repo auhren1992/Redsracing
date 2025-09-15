@@ -20,11 +20,6 @@ service cloud.firestore {
 
   match /databases/{database}/documents {
 
-    // Team-members have full access to everything
-    match /{document=**} {
-      allow read, write: if isTeamMember();
-    }
-
     // USERS: Private user records
     // Read/Write: Owner-only access to their own user record
     match /users/{userId} {
@@ -147,6 +142,11 @@ service cloud.firestore {
     // Read/Write/Delete: Only team members can manage Jonny's videos
     match /jonny_videos/{videoId} {
       allow get, list, write, delete: if isTeamMember();
+    }
+
+    // Team-members have full access to everything else not matched above
+    match /{document=**} {
+      allow read, write: if isTeamMember();
     }
   }
 }

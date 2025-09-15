@@ -1,30 +1,27 @@
 /**
  * Team Members Page Script
- * 
  * Handles team member listing, search, filtering, and management
  * with proper error handling and loading states
  */
 
 import { initializeFirebaseCore } from './firebase-core.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { 
-    collection, 
-    query, 
-    where, 
-    orderBy, 
-    limit, 
-    startAfter, 
-    getDocs, 
-    doc, 
-    getDoc 
+import {
+    collection,
+    query,
+    where,
+    orderBy,
+    limit,
+    startAfter,
+    getDocs,
+    doc,
+    getDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-// Import utilities
-import { 
-    validateUserClaims, 
-    showAuthError, 
+import {
+    validateUserClaims,
+    showAuthError,
     clearAuthError,
-    monitorAuthState 
+    monitorAuthState
 } from './auth-utils.js';
 import { useFirestoreQuery } from './async-data-hook.js';
 import { UIState } from './ui-components.js';
@@ -32,19 +29,16 @@ import { ErrorBoundary } from './error-boundary.js';
 import { safeSetHTML, setSafeText } from './sanitize.js';
 import { navigateToInternal } from './navigation-helpers.js';
 
-// Wrap in async function for proper initialization
 (async function() {
     let auth, db;
-    // let currentUser = null;
+    let currentUser = null;
     let isTeamMember = false;
     let members = [];
-    // let currentQuery = null;
     let lastVisible = null;
     let hasMoreMembers = false;
     let searchTerm = '';
     let roleFilter = '';
 
-    // Page size for pagination
     const PAGE_SIZE = 12;
 
     // Initialize Firebase
@@ -84,11 +78,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     const memberModalContent = document.getElementById('member-modal-content');
     const closeMemberModal = document.getElementById('close-member-modal');
     const inviteModal = document.getElementById('invite-modal');
-    // const inviteForm = document.getElementById('invite-form');
     const cancelInvite = document.getElementById('cancel-invite');
-
-    // Error boundary for the page
-    // const errorBoundary = new ErrorBoundary(document.querySelector('main'));
 
     // Show different states
     function showLoadingState() {
@@ -98,25 +88,23 @@ import { navigateToInternal } from './navigation-helpers.js';
         if (permissionDeniedState) permissionDeniedState.classList.add('hidden');
     }
 
-    showLoadingState();
-
     function showTeamContent() {
-        loadingState.classList.add('hidden');
-        teamContent.classList.remove('hidden');
-        errorState.classList.add('hidden');
-        permissionDeniedState.classList.add('hidden');
+        if (loadingState) loadingState.classList.add('hidden');
+        if (teamContent) teamContent.classList.remove('hidden');
+        if (errorState) errorState.classList.add('hidden');
+        if (permissionDeniedState) permissionDeniedState.classList.add('hidden');
     }
 
     function showErrorState(type = 'generic', message = null) {
-        loadingState.classList.add('hidden');
-        teamContent.classList.add('hidden');
-        permissionDeniedState.classList.add('hidden');
-        
+        if (loadingState) loadingState.classList.add('hidden');
+        if (teamContent) teamContent.classList.add('hidden');
+        if (permissionDeniedState) permissionDeniedState.classList.add('hidden');
+
         if (type === 'permission') {
-            permissionDeniedState.classList.remove('hidden');
+            if (permissionDeniedState) permissionDeniedState.classList.remove('hidden');
         } else {
-            errorState.classList.remove('hidden');
-            if (message) {
+            if (errorState) errorState.classList.remove('hidden');
+            if (message && errorState) {
                 const errorMessage = errorState.querySelector('p');
                 if (errorMessage) {
                     setSafeText(errorMessage, message);
@@ -142,7 +130,7 @@ import { navigateToInternal } from './navigation-helpers.js';
 
             // Build query
             let q = collection(db, 'user_profiles');
-            
+
             // Apply role filter if specified
             if (roleFilter) {
                 q = query(q, where('role', '==', roleFilter));
@@ -169,7 +157,7 @@ import { navigateToInternal } from './navigation-helpers.js';
             let filteredMembers = newMembers;
             if (searchTerm) {
                 const lowerSearchTerm = searchTerm.toLowerCase();
-                filteredMembers = newMembers.filter(member => 
+                filteredMembers = newMembers.filter(member =>
                     (member.displayName?.toLowerCase().includes(lowerSearchTerm)) ||
                     (member.username?.toLowerCase().includes(lowerSearchTerm)) ||
                     (member.email?.toLowerCase().includes(lowerSearchTerm))
@@ -194,7 +182,7 @@ import { navigateToInternal } from './navigation-helpers.js';
 
         } catch (error) {
             console.error('[TeamMembers] Error loading members:', error);
-            
+
             if (error.code === 'permission-denied') {
                 showErrorState('permission');
             } else {
@@ -217,8 +205,8 @@ import { navigateToInternal } from './navigation-helpers.js';
                 message: searchTerm || roleFilter ? 'Try adjusting your search or filter criteria.' : 'No team members have been added yet.',
                 actionText: searchTerm || roleFilter ? 'Clear Filters' : null,
                 onAction: () => {
-                    searchInput.value = '';
-                    roleFilterSelect.value = '';
+                    if (searchInput) searchInput.value = '';
+                    if (roleFilterSelect) roleFilterSelect.value = '';
                     searchTerm = '';
                     roleFilter = '';
                     loadTeamMembers();
@@ -240,17 +228,17 @@ import { navigateToInternal } from './navigation-helpers.js';
         const card = document.createElement('div');
         card.className = 'card rounded-lg p-6 hover:bg-slate-800/50 transition-colors cursor-pointer';
 
-        const avatarImg = member.avatarUrl ? 
+        const avatarImg = member.avatarUrl ?
             `<img src="${member.avatarUrl}" alt="${member.displayName || 'Member'}" class="w-full h-full object-cover">` :
             `<span class="text-2xl font-bold text-slate-300">${(member.displayName || member.username || '?')[0].toUpperCase()}</span>`;
 
-        const joinDate = member.createdAt ? 
+        const joinDate = member.createdAt ?
             formatDate(member.createdAt) : 'Unknown';
 
-        const roleDisplay = member.role ? 
+        const roleDisplay = member.role ?
             formatRole(member.role) : 'Member';
 
-        const lastActive = member.lastActiveAt ? 
+        const lastActive = member.lastActiveAt ?
             formatRelativeTime(member.lastActiveAt) : 'Unknown';
 
         safeSetHTML(card, `
@@ -284,11 +272,11 @@ import { navigateToInternal } from './navigation-helpers.js';
 
     // Show member details in modal
     function showMemberDetails(member) {
-        const avatarImg = member.avatarUrl ? 
+        const avatarImg = member.avatarUrl ?
             `<img src="${member.avatarUrl}" alt="${member.displayName || 'Member'}" class="w-full h-full object-cover">` :
             `<span class="text-4xl font-bold text-slate-300">${(member.displayName || member.username || '?')[0].toUpperCase()}</span>`;
 
-        const favoriteCars = member.favoriteCars ? 
+        const favoriteCars = member.favoriteCars ?
             member.favoriteCars.map(car => `<span class="bg-slate-700 px-2 py-1 rounded text-sm">${car}</span>`).join(' ') :
             '<span class="text-slate-400">None specified</span>';
 
@@ -305,20 +293,17 @@ import { navigateToInternal } from './navigation-helpers.js';
                     <p class="text-neon-yellow font-bold">${formatRole(member.role)}</p>
                 </div>
             </div>
-            
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-bold text-slate-300 mb-2">Bio</label>
                     <p class="text-slate-400">${bio}</p>
                 </div>
-                
                 <div>
                     <label class="block text-sm font-bold text-slate-300 mb-2">Favorite Cars</label>
                     <div class="flex flex-wrap gap-2">
                         ${favoriteCars}
                     </div>
                 </div>
-                
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-bold text-slate-300 mb-2">Member Since</label>
@@ -329,7 +314,6 @@ import { navigateToInternal } from './navigation-helpers.js';
                         <p class="text-slate-400">${formatRelativeTime(member.lastActiveAt)}</p>
                     </div>
                 </div>
-                
                 ${member.achievements && member.achievements.length > 0 ? `
                     <div>
                         <label class="block text-sm font-bold text-slate-300 mb-2">Recent Achievements</label>
@@ -346,16 +330,18 @@ import { navigateToInternal } from './navigation-helpers.js';
             </div>
         `);
 
-        memberModal.classList.remove('hidden');
-        memberModal.classList.add('flex');
+        if (memberModal) {
+            memberModal.classList.remove('hidden');
+            memberModal.classList.add('flex');
+        }
     }
 
     // Update load more button visibility
     function updateLoadMoreButton() {
         if (hasMoreMembers && members.length > 0) {
-            loadMoreContainer.classList.remove('hidden');
+            if (loadMoreContainer) loadMoreContainer.classList.remove('hidden');
         } else {
-            loadMoreContainer.classList.add('hidden');
+            if (loadMoreContainer) loadMoreContainer.classList.add('hidden');
         }
     }
 
@@ -371,15 +357,15 @@ import { navigateToInternal } from './navigation-helpers.js';
             return lastActive >= thisMonth;
         }).length;
 
-        const newMembers = members.filter(member => {
+        const newMembersCount = members.filter(member => {
             if (!member.createdAt) return false;
             const joinDate = member.createdAt.toDate ? member.createdAt.toDate() : new Date(member.createdAt);
             return joinDate >= thisMonth;
         }).length;
 
-        setSafeText(totalMembersEl, total.toString());
-        setSafeText(activeMembersEl, active.toString());
-        setSafeText(newMembersEl, newMembers.toString());
+        if (totalMembersEl) setSafeText(totalMembersEl, total.toString());
+        if (activeMembersEl) setSafeText(activeMembersEl, active.toString());
+        if (newMembersEl) setSafeText(newMembersEl, newMembersCount.toString());
     }
 
     // Utility functions
@@ -406,7 +392,7 @@ import { navigateToInternal } from './navigation-helpers.js';
 
     function formatRole(role) {
         if (!role) return 'Member';
-        
+
         const roleMap = {
             'team-member': 'Team Member',
             'driver': 'Driver',
@@ -427,7 +413,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     }
 
     const debouncedSearch = debounceSearch(() => {
-        searchTerm = searchInput.value.trim();
+        searchTerm = searchInput ? searchInput.value.trim() : '';
         loadTeamMembers();
     }, 300);
 
@@ -454,8 +440,10 @@ import { navigateToInternal } from './navigation-helpers.js';
     // Modal event listeners
     if (closeMemberModal) {
         closeMemberModal.addEventListener('click', () => {
-            memberModal.classList.add('hidden');
-            memberModal.classList.remove('flex');
+            if (memberModal) {
+                memberModal.classList.add('hidden');
+                memberModal.classList.remove('flex');
+            }
         });
     }
 
@@ -468,11 +456,28 @@ import { navigateToInternal } from './navigation-helpers.js';
         });
     }
 
+    // Invite modal event listeners
+    if (cancelInvite) {
+        cancelInvite.addEventListener('click', () => {
+            if (inviteModal) {
+                inviteModal.classList.add('hidden');
+                inviteModal.classList.remove('flex');
+            }
+        });
+    }
+    if (inviteModal) {
+        inviteModal.addEventListener('click', (e) => {
+            if (e.target === inviteModal) {
+                inviteModal.classList.add('hidden');
+                inviteModal.classList.remove('flex');
+            }
+        });
+    }
+
     // Authentication monitoring
     monitorAuthState(
         async (user, validToken) => {
             clearAuthError();
-            
             if (user && validToken) {
                 console.log('[TeamMembers] User authenticated successfully');
                 currentUser = user;
@@ -481,14 +486,12 @@ import { navigateToInternal } from './navigation-helpers.js';
                     // Check if user has permission to view team members
                     const claimsResult = await validateUserClaims(['team-member']);
                     isTeamMember = claimsResult.success && claimsResult.claims.role === 'team-member';
-                    
+
                     console.log('[TeamMembers] Permission check:', { isTeamMember });
 
-                    if (isTeamMember) {
-                        // Show admin features
-                        if (inviteMemberBtn) {
-                            inviteMemberBtn.classList.remove('hidden');
-                        }
+                    // Show admin features
+                    if (isTeamMember && inviteMemberBtn) {
+                        inviteMemberBtn.classList.remove('hidden');
                     }
 
                     // Load team members
@@ -512,7 +515,7 @@ import { navigateToInternal } from './navigation-helpers.js';
         (error) => {
             console.error('[TeamMembers] Authentication error:', error);
             showAuthError(error);
-            
+
             if (error.requiresReauth) {
                 setTimeout(() => navigateToInternal('/login.html'), 3000);
             } else {
@@ -536,6 +539,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     }
 
     // Set current year
-    document.getElementById('year').textContent = new Date().getFullYear();
+    const yearEl = document.getElementById('year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 })();
