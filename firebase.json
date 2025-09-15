@@ -49,21 +49,21 @@
       {
         "source": "/profile/**",
         "function": {
-          "functionId": "handleUpdateProfile",
+          "functionId": "handleGetProfile",
           "codebase": "python-api"
         }
       },
       {
         "source": "/update_profile/**",
         "function": {
-          "functionId": "handleGetAchievements",
+          "functionId": "handleUpdateProfile",
           "codebase": "python-api"
         }
       },
       {
         "source": "/achievements",
         "function": {
-          "functionId": "handleAssignAchievement",
+          "functionId": "handleGetAchievements",
           "codebase": "python-api"
         }
       },
