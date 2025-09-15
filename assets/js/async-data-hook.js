@@ -9,7 +9,7 @@
  * - Permission validation
  */
 
-import { validateUserClaims, safeFirestoreOperation } from './auth-utils.js';
+import { validateUserClaims } from './auth-utils.js';
 import { secureJitter } from './secure-random.js';
 
 class AsyncDataHook {
