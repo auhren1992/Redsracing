@@ -26,10 +26,47 @@ import { navigateToInternal } from './navigation-helpers.js';
 import { RecaptchaManager } from './recaptcha-manager.js';
 import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
+// Import new shared components
+import { ErrorBoundary } from './error-boundary.js';
+import { UIState } from './ui-components.js';
+import { useUserData } from './async-data-hook.js';
+
 // Wrap everything in an async function to allow early returns
 (async function() {
     let auth = null;
     let app = null;
+    let db = null;
+    let userDataHook = null;
+    let activeListeners = [];
+    
+    // Initialize error boundary for profile page
+    const profileErrorBoundary = new ErrorBoundary(
+        document.querySelector('main'),
+        (container, errorInfo) => {
+            container.innerHTML = `
+                <div class="text-center py-20">
+                    <h1 class="text-5xl font-racing uppercase mb-2">User <span class="neon-yellow">Profile</span></h1>
+                    <div class="error-boundary-fallback bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
+                        <div class="text-6xl mb-4">⚠️</div>
+                        <h2 class="text-2xl font-bold text-red-400 mb-4">Profile Error</h2>
+                        <p class="text-gray-300 mb-4">
+                            An unexpected error occurred while loading your profile.
+                        </p>
+                        <div class="space-x-4">
+                            <button onclick="window.location.reload()" 
+                                    class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
+                                Reload Profile
+                            </button>
+                            <a href="index.html" 
+                               class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">
+                                Go Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    );
     
     // Initialize Firebase before using any services
     try {
@@ -37,60 +74,96 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         const firebaseServices = await initializeFirebaseCore();
         auth = firebaseServices.auth;
         app = firebaseServices.app;
+        db = firebaseServices.db;
         
         console.log('[Profile] Firebase initialized successfully');
     } catch (error) {
         console.error('[Profile] Firebase initialization failed:', error);
         // Show fallback UI immediately if Firebase fails to initialize
-        hideLoadingAndShowFallback();
+        showErrorState('service', 'Unable to connect to our services. Please refresh the page and try again.');
         return; // Exit early if Firebase can't be initialized
     }
+
     // Add immediate loading timeout as backup
     let loadingTimeout = setTimeout(() => {
-        console.warn('Loading timeout reached, showing fallback content');
-        hideLoadingAndShowFallback();
-    }, 5000); // 5 second timeout
-
-    function hideLoadingAndShowFallback() {
-        const loadingState = document.getElementById('loading-state');
-        const profileContent = document.getElementById('profile-content');
-
-        if (loadingState) {
-            loadingState.style.display = 'none';
-            loadingState.style.visibility = 'hidden';
-            loadingState.classList.add('hidden');
-            loadingState.setAttribute('hidden', 'true');
-            console.log('Profile loading state hidden');
+        console.warn('[Profile] Loading timeout reached, showing fallback content');
+        showErrorState('timeout', 'Profile loading is taking longer than expected. Please try refreshing the page.');
+    }, 30000); // 30 second timeout for profile loading
+    
+    // Cleanup function for all listeners and hooks
+    function cleanupProfile() {
+        console.log('[Profile] Starting cleanup...');
+        
+        // Clean up user data hook
+        if (userDataHook) {
+            userDataHook.cleanup();
+            userDataHook = null;
         }
 
+        // Clean up any active listeners
+        activeListeners.forEach(unsubscribe => {
+            try {
+                if (typeof unsubscribe === 'function') {
+                    unsubscribe();
+                }
+            } catch (error) {
+                console.warn('[Profile] Error cleaning up listener:', error);
+            }
+        });
+        activeListeners = [];
+
+        // Clear timeout
+        if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+            loadingTimeout = null;
+        }
+
+        console.log('[Profile] ✓ Cleanup completed');
+    }
+
+    function showErrorState(type = 'generic', customMessage = null) {
+        const loadingState = document.getElementById('loading-state');
+        const profileContent = document.getElementById('profile-content');
+        const errorState = document.getElementById('error-state');
+
+        // Hide loading and profile content
+        if (loadingState) {
+            loadingState.classList.add('hidden');
+        }
         if (profileContent) {
-            profileContent.innerHTML = `
-                <div class="text-center py-20">
-                    <h1 class="text-5xl font-racing uppercase mb-2">User <span class="neon-yellow">Profile</span></h1>
-                    <div class="text-yellow-400 mb-6">
-                        <h2 class="text-2xl font-bold">Profile Temporarily Unavailable</h2>
-                        <p class="mt-2">Our services are currently unavailable.</p>
-                        <p class="text-sm text-slate-400 mt-2">This could be due to network issues or temporary service downtime.</p>
-                        <p class="text-sm text-slate-400 mt-1">Please check your internet connection and try again.</p>
-                    </div>
-                    <div class="space-x-4">
-                        <button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
-                            Try Again
-                        </button>
-                        <a href="index.html" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">
-                            Go Home
-                        </a>
-                    </div>
-                </div>
-            `;
-            profileContent.classList.remove('hidden');
-            console.log('Profile fallback content shown');
+            profileContent.classList.add('hidden');
+        }
+
+        if (errorState) {
+            // Update error message if custom message provided
+            if (customMessage) {
+                const errorMessage = errorState.querySelector('p');
+                if (errorMessage) {
+                    setSafeText(errorMessage, customMessage);
+                }
+            }
+            errorState.classList.remove('hidden');
+        } else {
+            // Fallback: create error state inline
+            const main = document.querySelector('main');
+            if (main) {
+                UIState.error(main, {
+                    type: type,
+                    title: type === 'permission' ? 'Access Denied' : 'Profile Unavailable',
+                    message: customMessage || 'Unable to load profile information.',
+                    onRetry: () => window.location.reload()
+                });
+            }
         }
 
         if (loadingTimeout) {
             clearTimeout(loadingTimeout);
             loadingTimeout = null;
         }
+    }
+
+    function hideLoadingAndShowFallback() {
+        showErrorState('timeout', 'Profile loading is taking longer than expected. Please try refreshing the page.');
     }
 
     // UI Elements
@@ -147,19 +220,37 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
                 const targetUserId = getUserIdFromUrl() || user.uid;
                 isCurrentUserProfile = (targetUserId === user.uid);
 
+                // Initialize user data hook with proper configuration
+                userDataHook = useUserData(targetUserId, {
+                    timeout: 15000,
+                    maxRetries: 3,
+                    enableCache: true,
+                    cacheTTL: 1 * 60 * 1000 // 1 minute cache for profile data
+                });
+
                 // Load the user profile with enhanced error handling
                 try {
-                    await loadUserProfile(targetUserId);
-                } catch (profileError) {
-                    console.error('[Profile] Error loading profile:', profileError);
-                    showAuthError({
-                        code: 'profile-load-failed',
-                        message: 'Failed to load user profile',
-                        userMessage: 'Unable to load profile data. Please refresh the page and try again.',
-                        requiresReauth: false,
-                        retryable: true
+                    const { data: profileData, error: profileError } = await userDataHook.execute(async () => {
+                        return await loadUserProfile(targetUserId);
                     });
-                    showErrorState();
+
+                    if (profileError) {
+                        console.error('[Profile] Error loading profile:', profileError);
+                        
+                        if (profileError.type === 'permission' || profileError.code === 'permission-denied') {
+                            showErrorState('permission', 'You don\'t have permission to view this profile.');
+                        } else if (profileError.type === 'not-found') {
+                            showErrorState('generic', 'This profile could not be found.');
+                        } else {
+                            showErrorState('generic', 'Unable to load profile data. Please refresh the page and try again.');
+                        }
+                        return;
+                    }
+
+                    console.log('[Profile] ✓ Profile loaded successfully');
+                } catch (profileError) {
+                    console.error('[Profile] Critical error loading profile:', profileError);
+                    showErrorState('generic', 'A critical error occurred while loading the profile.');
                     return;
                 }
 
@@ -213,10 +304,13 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
                 }, 3000);
             } else {
                 // Show error state for other auth issues
-                showErrorState();
+                showErrorState('auth', 'Authentication failed. Please log in again.');
             }
         }
     );
+
+    // Store auth unsubscribe for cleanup
+    activeListeners.push(authUnsubscribe);
 
     // Set up logout button with enhanced error handling
     if (logoutButton) {
@@ -1178,13 +1272,31 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         // The authentication state monitoring is now handled above with monitorAuthState
     } else {
         console.error('[Profile] Cannot setup Firebase event listeners - services not available');
-        hideLoadingAndShowFallback();
+        showErrorState('service', 'Firebase services are not available. Please refresh the page.');
+        return;
     }
 
-    // Clear the loading timeout since we successfully loaded
+    // Clear the loading timeout since we successfully set up auth monitoring
     if (loadingTimeout) {
         clearTimeout(loadingTimeout);
         loadingTimeout = null;
     }
+    
+    console.log('[Profile] ✓ Profile page initialization completed successfully');
+
+    // Cleanup resources on page unload
+    window.addEventListener('beforeunload', () => {
+        console.log('[Profile] Page unloading, cleaning up resources');
+        cleanupProfile();
+    });
+
+    // Handle page visibility changes
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            console.log('[Profile] Page hidden');
+        } else {
+            console.log('[Profile] Page visible');
+        }
+    });
 
 })(); // End of async function wrapper
