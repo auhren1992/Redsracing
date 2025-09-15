@@ -22,8 +22,9 @@ import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js
 // Import navigation helpers
 import { navigateToInternal } from './navigation-helpers.js';
 
-// Import reCAPTCHA Enterprise
-import { recaptchaService } from './recaptcha-enterprise.js';
+// Import reCAPTCHA manager and error handling utilities
+import { RecaptchaManager } from './recaptcha-manager.js';
+import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
 // Wrap everything in an async function to allow early returns
 (async function() {
@@ -126,6 +127,7 @@ import { recaptchaService } from './recaptcha-enterprise.js';
     let currentUser = null;
     let isEditing = false;
     let isCurrentUserProfile = false;
+    let profileRecaptchaManager = null;
 
     // Set up authentication state monitoring with enhanced error handling
     console.log('[Profile] Setting up authentication state monitoring');
@@ -879,16 +881,44 @@ import { recaptchaService } from './recaptcha-enterprise.js';
     }
 
     // Toggle edit mode
-    function toggleEditMode() {
+    async function toggleEditMode() {
         isEditing = !isEditing;
         if (isEditing) {
             profileDisplay.classList.add('hidden');
             profileEditForm.classList.remove('hidden');
             editProfileBtn.textContent = 'Cancel';
+            await setupProfileRecaptcha();
         } else {
             profileDisplay.classList.remove('hidden');
             profileEditForm.classList.add('hidden');
             editProfileBtn.textContent = 'Edit Profile';
+            if (profileRecaptchaManager) {
+                profileRecaptchaManager.cleanup();
+                profileRecaptchaManager = null;
+            }
+        }
+    }
+
+    async function setupProfileRecaptcha() {
+        if (profileRecaptchaManager) {
+            profileRecaptchaManager.cleanup();
+        }
+        profileRecaptchaManager = new RecaptchaManager();
+
+        try {
+            await profileRecaptchaManager.createVerifier(
+                auth,
+                'profile-recaptcha-container',
+                { size: 'invisible' },
+                8000 // 8-second timeout
+            );
+        } catch (error) {
+            console.warn('[Profile] reCAPTCHA setup failed:', error);
+            // Don't block saving, but show a warning
+            const container = document.getElementById('profile-recaptcha-container');
+            if (container) {
+                container.innerHTML = `<p class="text-xs text-yellow-400">Security verification is temporarily unavailable.</p>`;
+            }
         }
     }
 
@@ -930,26 +960,25 @@ import { recaptchaService } from './recaptcha-enterprise.js';
         };
 
         try {
-            // Protected action with reCAPTCHA Enterprise
-            await recaptchaService.protectedAction(
-                'PROFILE_UPDATE',
-                async (recaptchaData) => {
-                    // Merge reCAPTCHA data with profile data
-                    const requestData = { ...profileData, ...recaptchaData };
-                    
-                    // Call the protected profile update endpoint
-                    await callProfileAPI(`/update_profile/${currentUser.uid}`, 'PUT', requestData);
-                    
-                    // Reload profile to show updated data
-                    await loadUserProfile(currentUser.uid);
-                    toggleEditMode();
-                },
-                currentUser, // pass user object for identifier
-                {
-                    fallbackOnError: true,
-                    showUserMessage: false // we'll handle messages manually
+            let recaptchaToken = null;
+            if (profileRecaptchaManager && profileRecaptchaManager.isReady()) {
+                try {
+                    recaptchaToken = await profileRecaptchaManager.getToken();
+                } catch (error) {
+                    console.warn("Could not get reCAPTCHA token", error);
+                    alert("Could not verify security token. Please try again.");
+                    saveProfileBtn.disabled = false;
+                    saveProfileBtn.textContent = 'Save Changes';
+                    return;
                 }
-            );
+            }
+
+            const requestData = { ...profileData, recaptchaToken };
+
+            await callProfileAPI(`/update_profile/${currentUser.uid}`, 'PUT', requestData);
+
+            await loadUserProfile(currentUser.uid);
+            await toggleEditMode();
             
         } catch (error) {
             console.error('Error saving profile:', error);
