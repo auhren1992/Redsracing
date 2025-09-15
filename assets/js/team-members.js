@@ -91,7 +91,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     // const errorBoundary = new ErrorBoundary(document.querySelector('main'));
 
     // Show different states
-    function showLoadingState() {
+    showLoadingState();
         loadingState.classList.remove('hidden');
         teamContent.classList.add('hidden');
         errorState.classList.add('hidden');
