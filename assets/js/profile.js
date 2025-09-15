@@ -74,7 +74,7 @@ import { useUserData } from './async-data-hook.js';
         const firebaseServices = await initializeFirebaseCore();
         auth = firebaseServices.auth;
         app = firebaseServices.app;
-        db = firebaseServices.db;
+        // db = firebaseServices.db; // Remove this line since 'db' is unused
         
         console.log('[Profile] Firebase initialized successfully');
     } catch (error) {
