@@ -77,29 +77,6 @@
                 </button>
             </div>
 
-            <!-- Phone Sign-in Form -->
-            <div id="phone-auth-container" class="mt-6">
-                 <div class="relative my-6">
-                    <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t border-slate-600"></div>
-                    </div>
-                    <div class="relative flex justify-center text-sm">
-                        <span class="px-2 bg-slate-800 text-gray-400">Or sign in with phone</span>
-                    </div>
-                </div>
-                <div id="phone-form" class="space-y-4">
-                    <label for="phone-number" class="block text-sm font-medium text-gray-300">Phone Number</label>
-                    <input type="tel" id="phone-number" name="phone-number" class="form-input block w-full px-3 py-2 rounded-md" placeholder="+1 555-555-5555">
-                    <button type="button" id="send-code-button" class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition">Send Verification Code</button>
-                </div>
-
-                <div id="code-form" class="hidden space-y-4 mt-4">
-                    <label for="verification-code" class="block text-sm font-medium text-gray-300">Verification Code</label>
-                    <input type="text" id="verification-code" name="verification-code" class="form-input block w-full px-3 py-2 rounded-md" placeholder="Enter 6-digit code">
-                    <button type="button" id="verify-code-button" class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition">Verify and Sign In</button>
-                </div>
-                <div id="recaptcha-container" class="mt-4"></div>
-            </div>
         </div>
         <p class="text-center text-gray-500 text-sm mt-6">
             Don't have an account? <a href="signup.html" class="font-semibold neon-yellow hover:text-yellow-300">Sign up</a>.
