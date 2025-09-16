@@ -34,7 +34,7 @@ async function initFirebase() {
                 
                 // Apply pending invitation code if available
                 try {
-                    await applyPendingInvitationCode({ currentUser: user });
+                    await applyPendingInvitationCode(user);
                 } catch (error) {
                     console.warn('[Main] Failed to apply pending invitation code:', error);
                     // Don't block the auth flow for invitation code errors

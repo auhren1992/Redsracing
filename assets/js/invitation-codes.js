@@ -63,7 +63,7 @@ export function clearPendingInvitationCode() {
     sessionStorage.removeItem('pendingInvitationCode');
 }
 
-export async function applyPendingInvitationCode({ currentUser }) {
+export async function applyPendingInvitationCode(currentUser) {
     const code = getPendingInvitationCode();
     if (!code || !currentUser) {
         return { success: false, error: 'No pending code or user.' };
@@ -84,7 +84,7 @@ export async function applyPendingInvitationCode({ currentUser }) {
     }
 }
 
-export async function userNeedsInvitationCode({ currentUser }) {
+export async function userNeedsInvitationCode(currentUser) {
     if (!currentUser) return false;
 
     const idTokenResult = await currentUser.getIdTokenResult();

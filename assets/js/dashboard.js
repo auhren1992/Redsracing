@@ -1040,7 +1040,7 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
     const handleInvitationCodePrompt = async (user) => {
         try {
             // Check if user needs an invitation code and there's no pending code
-            const needsCode = await userNeedsInvitationCode({ currentUser: user });
+            const needsCode = await userNeedsInvitationCode(user);
             const pendingCode = getPendingInvitationCode();
             
             if (needsCode && !pendingCode && invitationCodePrompt) {
