@@ -317,7 +317,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         const profileGet = endpoint.match(/^\/profile\/([^/]+)$/);
         if (db && method === 'GET' && profileGet) {
             const userId = profileGet[1];
-            const profileRef = doc(db, 'profiles', userId);
+            const profileRef = doc(db, 'users', userId);
             const snap = await getDoc(profileRef);
 
             if (!snap.exists()) {
@@ -343,7 +343,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         const profilePut = endpoint.match(/^\/update_profile\/([^/]+)$/);
         if (db && (method === 'PUT' || method === 'PATCH') && profilePut) {
             const userId = profilePut[1];
-            const profileRef = doc(db, 'profiles', userId);
+            const profileRef = doc(db, 'users', userId);
 
             const payload = {
                 username: data?.username || '',

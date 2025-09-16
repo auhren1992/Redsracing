@@ -6,7 +6,7 @@ import { validateInvitationCode, processInvitationCode, captureInvitationCodeFro
 async function createDefaultProfile(user) {
     try {
         const db = getFirebaseDb();
-        const profileRef = doc(db, 'profiles', user.uid);
+        const profileRef = doc(db, 'users', user.uid);
         const defaultProfile = {
             username: user.email.split('@')[0],
             displayName: user.displayName || user.email.split('@')[0],
