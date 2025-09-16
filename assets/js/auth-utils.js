@@ -502,8 +502,12 @@ export function monitorAuthState(onAuthChange, onError) {
                     emailVerified: user.emailVerified
                 });
 
-                // Validate token when user state changes
-                const tokenValidation = await validateAndRefreshToken();
+                // For new users, force a token refresh to get custom claims immediately.
+                // For existing users, use the standard validation (which might be cached).
+                const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+                authLogger.info('AuthMonitor', `User is ${isNewUser ? 'new' : 'existing'}.`);
+
+                const tokenValidation = await validateAndRefreshToken(isNewUser);
                 if (tokenValidation.success) {
                     onAuthChange(user, tokenValidation.token);
                 } else {
