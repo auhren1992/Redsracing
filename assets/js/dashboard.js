@@ -1,6 +1,6 @@
 // Importing Firebase services and specific functions
 import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage } from './firebase-core.js';
-import { onAuthStateChanged, signOut, sendEmailVerification, linkWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { onAuthStateChanged, signOut, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
@@ -36,8 +36,6 @@ import { secureJitter } from './secure-random.js';
 // Import navigation helpers
 import { navigateToInternal } from './navigation-helpers.js';
 
-// Import reCAPTCHA manager
-import { RecaptchaManager } from './recaptcha-manager.js';
 
 // Import error handling utilities
 import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
@@ -52,10 +50,6 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     let loadingTimeout = null;
     let retryCount = 0;
     let currentLoadingStage = 'initializing';
-    
-    // Global variables for dashboard state
-    let mfaRecaptchaManager = null; // Managed reCAPTCHA instance for MFA
-    let confirmationResult = null; // Store MFA confirmation result
     
 
     // Enhanced logging utility
@@ -368,14 +362,6 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
     const raceManagementCard = document.getElementById('race-management-card');
     const driverNotesEl = document.getElementById('driver-notes');
     const notesStatusEl = document.getElementById('notes-status');
-    const mfaCard = document.getElementById('mfa-card');
-    const mfaStatus = document.getElementById('mfa-status');
-    const mfaEnrollForm = document.getElementById('mfa-enroll-form');
-    const mfaVerifyForm = document.getElementById('mfa-verify-form');
-    const mfaPhoneNumberInput = document.getElementById('mfa-phone-number');
-    const mfaSendCodeBtn = document.getElementById('mfa-send-code-btn');
-    const mfaVerificationCodeInput = document.getElementById('mfa-verification-code');
-    const mfaVerifyBtn = document.getElementById('mfa-verify-btn');
 
     // Modal elements
     const raceModal = document.getElementById('race-modal');
@@ -1123,232 +1109,6 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
     };
 
 
-    // --- MFA Setup with improved reCAPTCHA handling ---
-    const setupMfa = async (user) => {
-        const hasPhoneNumber = user.providerData.some(p => p.providerId === 'phone');
-
-        if (hasPhoneNumber) {
-            mfaStatus.innerHTML = `<p class="text-green-400 font-bold">2-Step Verification is enabled.</p>`;
-            mfaEnrollForm.style.display = 'none';
-            mfaVerifyForm.style.display = 'none';
-            // Clean up reCAPTCHA if it exists
-            if (mfaRecaptchaManager) {
-                mfaRecaptchaManager.cleanup();
-                mfaRecaptchaManager = null;
-            }
-        } else {
-            mfaStatus.innerHTML = `<p class="text-yellow-400 font-bold">2-Step Verification is not enabled.</p>`;
-            mfaEnrollForm.style.display = 'block';
-            mfaVerifyForm.style.display = 'none';
-
-            // Setup reCAPTCHA for MFA with proper error handling
-            await setupMfaRecaptcha();
-
-            mfaSendCodeBtn.onclick = async () => {
-                await handleMfaSendCode(user);
-            };
-
-            mfaVerifyBtn.onclick = async () => {
-                await handleMfaVerifyCode(user);
-            };
-        }
-    };
-
-    /**
-     * Setup reCAPTCHA for MFA with timeout and error handling
-     * 
-     * IMPROVEMENTS MADE:
-     * - Uses RecaptchaManager instead of direct RecaptchaVerifier
-     * - 8-second timeout prevents hanging during initialization  
-     * - Graceful fallback when reCAPTCHA fails (shows warning, keeps MFA functional)
-     * - Proper error callbacks for user feedback
-     * - Non-blocking: MFA UI remains available even if reCAPTCHA fails
-     * - Cleanup management to prevent memory leaks
-     * 
-     * This function ensures MFA UI remains functional even if reCAPTCHA fails
-     */
-    const setupMfaRecaptcha = async () => {
-        try {
-            console.log('[Dashboard:MFA] Setting up reCAPTCHA for MFA enrollment');
-            
-            // Clean up any existing reCAPTCHA manager
-            if (mfaRecaptchaManager) {
-                mfaRecaptchaManager.cleanup();
-            }
-
-            mfaRecaptchaManager = new RecaptchaManager();
-
-            // Set up error handling callbacks
-            mfaRecaptchaManager.onError((error) => {
-                console.warn('[Dashboard:MFA] reCAPTCHA error:', error);
-                showMfaRecaptchaFallback('reCAPTCHA verification failed. MFA enrollment may not work properly.');
-            });
-
-            mfaRecaptchaManager.onExpired(() => {
-                console.warn('[Dashboard:MFA] reCAPTCHA expired');
-                showMfaRecaptchaFallback('Security verification expired. Please try again.');
-            });
-
-            // Try to create verifier with 8-second timeout
-            const verifier = await mfaRecaptchaManager.createVerifier(
-                auth,
-                'mfa-recaptcha-container',
-                {
-                    'size': 'invisible',
-                    'callback': () => {
-                        console.log('[Dashboard:MFA] reCAPTCHA solved');
-                    },
-                    'expired-callback': () => {
-                        console.log('[Dashboard:MFA] reCAPTCHA expired in callback');
-                    }
-                },
-                8000 // 8 second timeout
-            );
-
-            if (verifier) {
-                console.log('[Dashboard:MFA] ✓ reCAPTCHA initialized successfully for MFA');
-                hideMfaRecaptchaError();
-            } else {
-                console.warn('[Dashboard:MFA] reCAPTCHA not available for MFA');
-                showMfaRecaptchaFallback('Security verification is temporarily unavailable. MFA enrollment may not work.');
-            }
-
-        } catch (error) {
-            console.warn('[Dashboard:MFA] reCAPTCHA setup failed:', error.message);
-            
-            // Don't block the dashboard - just show a warning
-            if (isRecaptchaError(error)) {
-                showMfaRecaptchaFallback('Security verification is temporarily unavailable. MFA enrollment may not work.');
-            } else {
-                showMfaRecaptchaFallback('Unable to setup security verification for MFA enrollment.');
-            }
-        }
-    };
-
-    /**
-     * Handle MFA code sending with improved error handling
-     * 
-     * FIXES APPLIED:
-     * - Checks reCAPTCHA availability before attempting phone auth
-     * - Provides clear user feedback when reCAPTCHA is unavailable
-     * - Uses RecaptchaManager for proper error classification  
-     * - Attempts reCAPTCHA reset on recoverable errors
-     * - Fallback UI when reCAPTCHA cannot be recovered
-     */
-    const handleMfaSendCode = async (user) => {
-        const phoneNumber = mfaPhoneNumberInput.value?.trim();
-        
-        if (!phoneNumber) {
-            alert('Please enter a valid phone number.');
-            return;
-        }
-
-        // Check if reCAPTCHA is available
-        if (!mfaRecaptchaManager || !mfaRecaptchaManager.isReady()) {
-            alert('Security verification is required for MFA but is currently unavailable. Please try again later.');
-            return;
-        }
-
-        try {
-            mfaSendCodeBtn.disabled = true;
-            mfaSendCodeBtn.textContent = 'Sending...';
-            
-            confirmationResult = await linkWithPhoneNumber(
-                user, 
-                phoneNumber, 
-                mfaRecaptchaManager.getVerifier()
-            );
-            
-            mfaEnrollForm.style.display = 'none';
-            mfaVerifyForm.style.display = 'block';
-            alert('Verification code sent!');
-            
-        } catch (error) {
-            console.error('[Dashboard:MFA] Error sending MFA code:', error);
-            
-            // Provide user-friendly error messages
-            if (isRecaptchaError(error)) {
-                const friendlyError = getFriendlyAuthError(error);
-                alert(friendlyError.userMessage);
-                
-                // Try to reset reCAPTCHA
-                if (mfaRecaptchaManager) {
-                    try {
-                        await mfaRecaptchaManager.reset();
-                    } catch (resetError) {
-                        console.warn('[Dashboard:MFA] Error resetting reCAPTCHA:', resetError);
-                        showMfaRecaptchaFallback('Security verification needs to be reloaded. Please refresh the page.');
-                    }
-                }
-            } else {
-                alert(`Error: ${error.message}`);
-            }
-        } finally {
-            mfaSendCodeBtn.disabled = false;
-            mfaSendCodeBtn.textContent = 'Send Code';
-        }
-    };
-
-    /**
-     * Handle MFA code verification
-     */
-    const handleMfaVerifyCode = async (user) => {
-        const code = mfaVerificationCodeInput.value?.trim();
-        
-        if (!code) {
-            alert('Please enter the verification code.');
-            return;
-        }
-        
-        if (!confirmationResult) {
-            alert('Please request a verification code first.');
-            return;
-        }
-
-        try {
-            mfaVerifyBtn.disabled = true;
-            mfaVerifyBtn.textContent = 'Verifying...';
-            
-            await confirmationResult.confirm(code);
-            alert('2-Step Verification enabled successfully!');
-            
-            // Refresh MFA setup to show new status
-            await setupMfa(user);
-            
-        } catch (error) {
-            console.error('[Dashboard:MFA] Error verifying MFA code:', error);
-            const friendlyError = getFriendlyAuthError(error);
-            alert(friendlyError.userMessage || `Error: ${error.message}`);
-        } finally {
-            mfaVerifyBtn.disabled = false;
-            mfaVerifyBtn.textContent = 'Verify & Enable';
-        }
-    };
-
-const showMfaRecaptchaFallback = (message) => {
-    const container = document.getElementById('mfa-recaptcha-container');
-    if (container) {
-        // Remove any existing notice
-        const existing = container.querySelector('.bg-yellow-900');
-        if (existing) existing.remove();
-
-        const noticeDiv = document.createElement('div');
-        noticeDiv.className = 'bg-yellow-900 border border-yellow-600 text-yellow-200 px-3 py-2 rounded-md text-sm';
-        noticeDiv.innerHTML = `<span class="font-medium">⚠️ Notice:</span> ${message}`;
-        container.appendChild(noticeDiv);
-    }
-};
-
-    const hideMfaRecaptchaError = () => {
-        const container = document.getElementById('mfa-recaptcha-container');
-        if (container) {
-            // Clear any error messages but keep the reCAPTCHA
-            const errorDiv = container.querySelector('.bg-yellow-900');
-            if (errorDiv) {
-                errorDiv.remove();
-            }
-        }
-    };
 
     // Enhanced loading completion handler
     function hideLoadingAndShowContent() {
@@ -1471,11 +1231,6 @@ const showMfaRecaptchaFallback = (message) => {
                     driverNotesCard.classList.remove('hidden');
                 }
 
-                // Set up MFA for verified users
-                if (user.emailVerified && mfaCard) {
-                    mfaCard.classList.remove('hidden');
-                    await setupMfa(user);
-                }
 
                 // Hide loading and show content
                 hideLoadingAndShowContent();
@@ -1507,13 +1262,5 @@ const showMfaRecaptchaFallback = (message) => {
     clearLoadingTimeout();
     console.log('[Dashboard:Complete] ✓ Dashboard initialization completed successfully');
 
-    // Cleanup reCAPTCHA resources on page unload
-    window.addEventListener('beforeunload', () => {
-        if (mfaRecaptchaManager) {
-            console.log('[Dashboard:Cleanup] Cleaning up MFA reCAPTCHA resources');
-            mfaRecaptchaManager.cleanup();
-            mfaRecaptchaManager = null;
-        }
-    });
 
 })(); // End of async function wrapper
