@@ -22,7 +22,7 @@ import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js
 // Import navigation helpers
 import { navigateToInternal } from './navigation-helpers.js';
 
-// Import reCAPTCHA manager and error handling utilities
+// Import error handling utilities
 import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
 // Wrap everything in an async function to allow early returns

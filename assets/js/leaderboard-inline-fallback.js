@@ -25,7 +25,7 @@
         '  <div class="text-yellow-400 mb-6">' +
         '    <div class="text-6xl mb-4">⚠️</div>' +
         '    <h2 class="text-2xl font-bold">Leaderboard Temporarily Unavailable</h2>' +
-        '    <p class="mt-2">We're unable to load the leaderboard right now.</p>' +
+        '    <p class="mt-2">We\'re unable to load the leaderboard right now.</p>' +
         '    <p class="text-sm text-slate-400 mt-2">This could be a temporary connectivity or service issue.</p>' +
         '  </div>' +
         '  <div class="space-x-4">' +
