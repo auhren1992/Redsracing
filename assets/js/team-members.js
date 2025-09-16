@@ -1,5 +1,6 @@
 /**
  * Team Members Page Script
+ *
  * Handles team member listing, search, filtering, and management
  * with proper error handling and loading states
  */
@@ -17,6 +18,8 @@ import {
     doc,
     getDoc
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+// Import utilities
 import {
     validateUserClaims,
     showAuthError,
@@ -29,16 +32,19 @@ import { ErrorBoundary } from './error-boundary.js';
 import { safeSetHTML, setSafeText } from './sanitize.js';
 import { navigateToInternal } from './navigation-helpers.js';
 
+// Wrap in async function for proper initialization
 (async function() {
     let auth, db;
     let currentUser = null;
     let isTeamMember = false;
     let members = [];
+    // let currentQuery = null;
     let lastVisible = null;
     let hasMoreMembers = false;
     let searchTerm = '';
     let roleFilter = '';
 
+    // Page size for pagination
     const PAGE_SIZE = 12;
 
     // Initialize Firebase
@@ -78,7 +84,11 @@ import { navigateToInternal } from './navigation-helpers.js';
     const memberModalContent = document.getElementById('member-modal-content');
     const closeMemberModal = document.getElementById('close-member-modal');
     const inviteModal = document.getElementById('invite-modal');
+    // const inviteForm = document.getElementById('invite-form');
     const cancelInvite = document.getElementById('cancel-invite');
+
+    // Error boundary for the page
+    // const errorBoundary = new ErrorBoundary(document.querySelector('main'));
 
     // Show different states
     function showLoadingState() {
@@ -88,23 +98,25 @@ import { navigateToInternal } from './navigation-helpers.js';
         if (permissionDeniedState) permissionDeniedState.classList.add('hidden');
     }
 
+    showLoadingState();
+
     function showTeamContent() {
-        if (loadingState) loadingState.classList.add('hidden');
-        if (teamContent) teamContent.classList.remove('hidden');
-        if (errorState) errorState.classList.add('hidden');
-        if (permissionDeniedState) permissionDeniedState.classList.add('hidden');
+        loadingState.classList.add('hidden');
+        teamContent.classList.remove('hidden');
+        errorState.classList.add('hidden');
+        permissionDeniedState.classList.add('hidden');
     }
 
     function showErrorState(type = 'generic', message = null) {
-        if (loadingState) loadingState.classList.add('hidden');
-        if (teamContent) teamContent.classList.add('hidden');
-        if (permissionDeniedState) permissionDeniedState.classList.add('hidden');
+        loadingState.classList.add('hidden');
+        teamContent.classList.add('hidden');
+        permissionDeniedState.classList.add('hidden');
 
         if (type === 'permission') {
-            if (permissionDeniedState) permissionDeniedState.classList.remove('hidden');
+            permissionDeniedState.classList.remove('hidden');
         } else {
-            if (errorState) errorState.classList.remove('hidden');
-            if (message && errorState) {
+            errorState.classList.remove('hidden');
+            if (message) {
                 const errorMessage = errorState.querySelector('p');
                 if (errorMessage) {
                     setSafeText(errorMessage, message);
@@ -205,8 +217,8 @@ import { navigateToInternal } from './navigation-helpers.js';
                 message: searchTerm || roleFilter ? 'Try adjusting your search or filter criteria.' : 'No team members have been added yet.',
                 actionText: searchTerm || roleFilter ? 'Clear Filters' : null,
                 onAction: () => {
-                    if (searchInput) searchInput.value = '';
-                    if (roleFilterSelect) roleFilterSelect.value = '';
+                    searchInput.value = '';
+                    roleFilterSelect.value = '';
                     searchTerm = '';
                     roleFilter = '';
                     loadTeamMembers();
@@ -293,17 +305,20 @@ import { navigateToInternal } from './navigation-helpers.js';
                     <p class="text-neon-yellow font-bold">${formatRole(member.role)}</p>
                 </div>
             </div>
+
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-bold text-slate-300 mb-2">Bio</label>
                     <p class="text-slate-400">${bio}</p>
                 </div>
+
                 <div>
                     <label class="block text-sm font-bold text-slate-300 mb-2">Favorite Cars</label>
                     <div class="flex flex-wrap gap-2">
                         ${favoriteCars}
                     </div>
                 </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-bold text-slate-300 mb-2">Member Since</label>
@@ -314,6 +329,7 @@ import { navigateToInternal } from './navigation-helpers.js';
                         <p class="text-slate-400">${formatRelativeTime(member.lastActiveAt)}</p>
                     </div>
                 </div>
+
                 ${member.achievements && member.achievements.length > 0 ? `
                     <div>
                         <label class="block text-sm font-bold text-slate-300 mb-2">Recent Achievements</label>
@@ -330,18 +346,16 @@ import { navigateToInternal } from './navigation-helpers.js';
             </div>
         `);
 
-        if (memberModal) {
-            memberModal.classList.remove('hidden');
-            memberModal.classList.add('flex');
-        }
+        memberModal.classList.remove('hidden');
+        memberModal.classList.add('flex');
     }
 
     // Update load more button visibility
     function updateLoadMoreButton() {
         if (hasMoreMembers && members.length > 0) {
-            if (loadMoreContainer) loadMoreContainer.classList.remove('hidden');
+            loadMoreContainer.classList.remove('hidden');
         } else {
-            if (loadMoreContainer) loadMoreContainer.classList.add('hidden');
+            loadMoreContainer.classList.add('hidden');
         }
     }
 
@@ -357,15 +371,15 @@ import { navigateToInternal } from './navigation-helpers.js';
             return lastActive >= thisMonth;
         }).length;
 
-        const newMembersCount = members.filter(member => {
+        const newMembers = members.filter(member => {
             if (!member.createdAt) return false;
             const joinDate = member.createdAt.toDate ? member.createdAt.toDate() : new Date(member.createdAt);
             return joinDate >= thisMonth;
         }).length;
 
-        if (totalMembersEl) setSafeText(totalMembersEl, total.toString());
-        if (activeMembersEl) setSafeText(activeMembersEl, active.toString());
-        if (newMembersEl) setSafeText(newMembersEl, newMembersCount.toString());
+        setSafeText(totalMembersEl, total.toString());
+        setSafeText(activeMembersEl, active.toString());
+        setSafeText(newMembersEl, newMembers.toString());
     }
 
     // Utility functions
@@ -413,7 +427,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     }
 
     const debouncedSearch = debounceSearch(() => {
-        searchTerm = searchInput ? searchInput.value.trim() : '';
+        searchTerm = searchInput.value.trim();
         loadTeamMembers();
     }, 300);
 
@@ -440,10 +454,8 @@ import { navigateToInternal } from './navigation-helpers.js';
     // Modal event listeners
     if (closeMemberModal) {
         closeMemberModal.addEventListener('click', () => {
-            if (memberModal) {
-                memberModal.classList.add('hidden');
-                memberModal.classList.remove('flex');
-            }
+            memberModal.classList.add('hidden');
+            memberModal.classList.remove('flex');
         });
     }
 
@@ -459,10 +471,8 @@ import { navigateToInternal } from './navigation-helpers.js';
     // Invite modal event listeners
     if (cancelInvite) {
         cancelInvite.addEventListener('click', () => {
-            if (inviteModal) {
-                inviteModal.classList.add('hidden');
-                inviteModal.classList.remove('flex');
-            }
+            inviteModal.classList.add('hidden');
+            inviteModal.classList.remove('flex');
         });
     }
     if (inviteModal) {
@@ -478,6 +488,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     monitorAuthState(
         async (user, validToken) => {
             clearAuthError();
+
             if (user && validToken) {
                 console.log('[TeamMembers] User authenticated successfully');
                 currentUser = user;
@@ -489,9 +500,11 @@ import { navigateToInternal } from './navigation-helpers.js';
 
                     console.log('[TeamMembers] Permission check:', { isTeamMember });
 
-                    // Show admin features
-                    if (isTeamMember && inviteMemberBtn) {
-                        inviteMemberBtn.classList.remove('hidden');
+                    if (isTeamMember) {
+                        // Show admin features
+                        if (inviteMemberBtn) {
+                            inviteMemberBtn.classList.remove('hidden');
+                        }
                     }
 
                     // Load team members
@@ -537,9 +550,5 @@ import { navigateToInternal } from './navigation-helpers.js';
             }
         });
     }
-
-    // Set current year
-    const yearEl = document.getElementById('year');
-    if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 })();

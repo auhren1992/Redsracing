@@ -1,41 +1,59 @@
-import { getAuth, createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { validateInvitationCode, processInvitationCode, captureInvitationCodeFromURL } from './invitation-codes.js';
+import { getFirebaseAuth } from '/assets/js/firebase-core.js';
+import { createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { validateInvitationCode, processInvitationCode, captureInvitationCodeFromURL } from '/assets/js/invitation-codes.js';
 
-export async function handleSignup(email, password, displayName, inviteCode) {
+export async function handleSignup(email, password, inviteCode) {
     if (!inviteCode) {
-        throw new Error('Invite code required');
+        throw new Error("Invitation code is required.");
     }
-    const isValid = await validateInvitationCode(inviteCode);
-    if (!isValid) {
-        throw new Error('Invalid or expired invite code');
+
+    try {
+        const auth = getFirebaseAuth();
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Process invitation code
+        await processInvitationCode(inviteCode, user.uid);
+
+        // Send email verification
+        await sendEmailVerification(user);
+
+        return user;
+    } catch (error) {
+        console.error("Signup failed:", error);
+        throw error;
     }
-    const auth = getAuth();
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    await updateProfile(user, { displayName });
-    await processInvitationCode(inviteCode, user.uid);
-    await sendEmailVerification(user);
-    return userCredential;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const inviteCodeInput = document.getElementById('invitation-code');
-    const captured = captureInvitationCodeFromURL();
-    if (inviteCodeInput && captured) inviteCodeInput.value = captured;
-    const form = document.getElementById('signup-form');
-    const errorDiv = document.getElementById('signup-error');
-    form?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        errorDiv.textContent = "";
-        const email = form.email.value.trim();
-        const password = form.password.value;
-        const displayName = form['display-name'].value.trim();
-        const inviteCode = form['invitation-code'].value.trim();
-        try {
-            await handleSignup(email, password, displayName, inviteCode);
-            window.location.href = '/dashboard.html';
-        } catch (err) {
-            errorDiv.textContent = err.message || "Signup failed.";
+    const signupForm = document.getElementById('signup-form');
+    const signupError = document.getElementById('signup-error');
+
+    if (signupForm) {
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            signupError.textContent = '';
+
+            const email = signupForm.email.value;
+            const password = signupForm.password.value;
+            const inviteCode = signupForm['invite-code'].value;
+
+            try {
+                await handleSignup(email, password, inviteCode);
+                // Redirect to a success page or login page
+                window.location.href = '/login.html';
+            } catch (error) {
+                signupError.textContent = error.message;
+            }
+        });
+    }
+
+    // Capture invite code from URL
+    const capturedCode = captureInvitationCodeFromURL();
+    if (capturedCode) {
+        const inviteCodeInput = document.getElementById('invite-code');
+        if (inviteCodeInput) {
+            inviteCodeInput.value = capturedCode;
         }
-    });
+    }
 });

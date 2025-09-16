@@ -45,7 +45,9 @@ const ALLOWED_PATHS = new Set([
  * @returns {string|null} Normalized path if safe, null if unsafe
  */
 function normalizeAndValidatePath(path) {
-    if (!path || typeof path !== 'string') return null;
+    if (!path || typeof path !== 'string') {
+        return null;
+    }
 
     // Remove leading/trailing whitespace
     path = path.trim();
@@ -110,7 +112,8 @@ function isSafeInternalPath(path) {
     if (!normalizedPath) {
         return false;
     }
-    // Check against allowlist with or without leading slash
+
+    // Check against allowlist
     return ALLOWED_PATHS.has(normalizedPath) ||
            ALLOWED_PATHS.has(normalizedPath.replace(/^\//, ''));
 }
@@ -188,9 +191,7 @@ export function safeOpenLink(url, newTab = false) {
             link.href = url;
             link.target = '_blank';
             link.rel = 'noopener noreferrer';
-            // Use MouseEvent to simulate a click in a way that works in all browsers
-            const event = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
-            link.dispatchEvent(event);
+            link.click();
             return;
         }
 

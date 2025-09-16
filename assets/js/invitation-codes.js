@@ -1,5 +1,5 @@
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
-import { getFirebaseApp } from './firebase-core.js';
+import { getFirebaseApp, getFirebaseAuth, getFirebaseDb } from '/assets/js/firebase-core.js';
 
 const DEFAULT_PARAM_NAMES = ['invite', 'code'];
 
@@ -28,8 +28,8 @@ export function captureInvitationCodeFromURL(paramNames = DEFAULT_PARAM_NAMES, s
         }
         return null;
     } catch (error) {
-        console.error('[InvitationCodes] Error capturing code from URL:', error);
-        return null;
+        console.error("Error processing invitation code:", error);
+        throw error;
     }
 }
 

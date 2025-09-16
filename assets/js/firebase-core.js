@@ -1,15 +1,9 @@
-/**
- * Firebase Core Module
- * Centralized Firebase initialization with config validation, caching, and error handling
- */
-
-import { getFirebaseConfig } from './firebase-config.js';
+import { getFirebaseConfig } from '/assets/js/firebase-config.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { initializeFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-// Cache for initialized Firebase services
 let firebaseCache = {
     app: null,
     auth: null,
@@ -19,58 +13,16 @@ let firebaseCache = {
     initPromise: null
 };
 
-/**
- * Validates Firebase configuration
- * @param {Object} config - Firebase configuration object
- * @returns {boolean} - True if config is valid
- */
-function validateFirebaseConfig(config) {
-    const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'];
-    
-    for (const key of requiredKeys) {
-        if (!config[key] || typeof config[key] !== 'string' || config[key].trim() === '') {
-            console.error(`[Firebase Core] Missing or invalid required config key: ${key}`);
-            return false;
-        }
-    }
-    
-    return true;
-}
-
-/**
- * Initializes Firebase with validation and caching
- * @returns {Promise<Object>} - Object containing initialized Firebase services
- */
 export async function initializeFirebaseCore() {
-    // Return cached services if already initialized
     if (firebaseCache.initialized) {
-        console.log('[Firebase Core] Using cached Firebase services');
-        return {
-            app: firebaseCache.app,
-            auth: firebaseCache.auth,
-            db: firebaseCache.db,
-            storage: firebaseCache.storage
-        };
+        return firebaseCache;
     }
-
-    // Return existing initialization promise if in progress
     if (firebaseCache.initPromise) {
-        console.log('[Firebase Core] Firebase initialization in progress, waiting...');
         return firebaseCache.initPromise;
     }
-
-    // Create new initialization promise
     firebaseCache.initPromise = (async () => {
         try {
-            console.log('[Firebase Core] Initializing Firebase...');
-            
-            // Get and validate configuration
             const config = await getFirebaseConfig();
-            if (!validateFirebaseConfig(config)) {
-                throw new Error('Invalid Firebase configuration');
-            }
-
-            // Initialize Firebase app
             const app = initializeApp(config);
             const auth = getAuth(app);
             const db = initializeFirestore(app, {
@@ -79,147 +31,40 @@ export async function initializeFirebaseCore() {
             });
             const storage = getStorage(app);
 
-            console.log('[Firebase Core] Firestore transport configured (forced long polling, fetch streams disabled)');
-
-            // Cache the services
-            firebaseCache.app = app;
-            firebaseCache.auth = auth;
-            firebaseCache.db = db;
-            firebaseCache.storage = storage;
-            firebaseCache.initialized = true;
-
-            console.log(`[Firebase Core] Initialized successfully for project: ${config.projectId}`);
-            
-            // Bridge legacy exports in firebase-config.js for backward compatibility
-            await bridgeLegacyExports(app, auth, db, storage);
-            
-            return {
-                app,
-                auth,
-                db,
-                storage
-            };
-            
+            firebaseCache = { app, auth, db, storage, initialized: true, initPromise: null };
+            return firebaseCache;
         } catch (error) {
-            console.error('[Firebase Core] Initialization failed:', error);
-            
-            // Reset cache on failure
-            firebaseCache.app = null;
-            firebaseCache.auth = null;
-            firebaseCache.db = null;
-            firebaseCache.storage = null;
-            firebaseCache.initialized = false;
             firebaseCache.initPromise = null;
-            
-            throw new Error(`Firebase initialization failed: ${error.message}`);
+            throw error;
         }
     })();
-
     return firebaseCache.initPromise;
 }
 
-/**
- * Gets cached Firebase auth instance (must be called after initialization)
- * @returns {Object|null} - Firebase auth instance or null if not initialized
- */
-export function getFirebaseAuth() {
-    if (!firebaseCache.initialized) {
-        console.warn('[Firebase Core] Auth requested before initialization');
-        return null;
-    }
-    return firebaseCache.auth;
-}
-
-/**
- * Gets cached Firebase app instance (must be called after initialization)
- * @returns {Object|null} - Firebase app instance or null if not initialized
- */
 export function getFirebaseApp() {
     if (!firebaseCache.initialized) {
-        console.warn('[Firebase Core] App requested before initialization');
-        return null;
+        throw new Error("Firebase not initialized");
     }
     return firebaseCache.app;
 }
 
-/**
- * Gets cached Firestore instance (must be called after initialization)
- * @returns {Object|null} - Firestore instance or null if not initialized
- */
+export function getFirebaseAuth() {
+    if (!firebaseCache.initialized) {
+        throw new Error("Firebase not initialized");
+    }
+    return firebaseCache.auth;
+}
+
 export function getFirebaseDb() {
     if (!firebaseCache.initialized) {
-        console.warn('[Firebase Core] Database requested before initialization');
-        return null;
+        throw new Error("Firebase not initialized");
     }
     return firebaseCache.db;
 }
 
-/**
- * Gets cached Firebase storage instance (must be called after initialization)
- * @returns {Object|null} - Firebase storage instance or null if not initialized
- */
 export function getFirebaseStorage() {
     if (!firebaseCache.initialized) {
-        console.warn('[Firebase Core] Storage requested before initialization');
-        return null;
+        throw new Error("Firebase not initialized");
     }
     return firebaseCache.storage;
-}
-
-/**
- * Checks if Firebase is initialized
- * @returns {boolean} - True if Firebase is initialized
- */
-export function isFirebaseInitialized() {
-    return firebaseCache.initialized;
-}
-
-/**
- * Clears Firebase cache (for testing purposes)
- */
-export function clearFirebaseCache() {
-    firebaseCache.app = null;
-    firebaseCache.auth = null;
-    firebaseCache.db = null;
-    firebaseCache.storage = null;
-    firebaseCache.initialized = false;
-    firebaseCache.initPromise = null;
-    console.log('[Firebase Core] Cache cleared');
-}
-
-/**
- * Bridge legacy exports in firebase-config.js after successful initialization
- * This ensures any remaining legacy imports get live instances instead of null
- * @private
- */
-async function bridgeLegacyExports(app, auth, db, storage) {
-    try {
-        // Dynamically import firebase-config to update its exports
-        const firebaseConfig = await import('./firebase-config.js');
-        
-        // Update the exported variables (note: this works because they're let variables)
-        if (typeof firebaseConfig.app !== 'undefined') firebaseConfig.app = app;
-        if (typeof firebaseConfig.auth !== 'undefined') firebaseConfig.auth = auth;
-        if (typeof firebaseConfig.db !== 'undefined') firebaseConfig.db = db;
-        if (typeof firebaseConfig.storage !== 'undefined') firebaseConfig.storage = storage;
-        
-        console.log('[Firebase Core] Legacy exports bridged successfully');
-    } catch (error) {
-        console.warn('[Firebase Core] Could not bridge legacy exports:', error.message);
-        // Not critical - this is just for backward compatibility
-    }
-}
-
-/**
- * Convenience helper to ensure Firebase is initialized before use
- * Returns services object or throws error with helpful message
- * @returns {Promise<Object>} - Object containing initialized Firebase services
- */
-export async function ensureFirebaseInitialized() {
-    try {
-        return await initializeFirebaseCore();
-    } catch (error) {
-        console.error('[Firebase Core] Initialization required but failed:', error.message);
-        throw new Error(`Firebase is not available: ${error.message}. Please check your internet connection and Firebase configuration.`);
-    }
 }

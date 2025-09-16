@@ -27,6 +27,9 @@ import {
 // Import sanitization utilities
 import { html, safeSetHTML, setSafeText } from './sanitize.js';
 
+// Import reCAPTCHA Enterprise
+// import { recaptchaService } from './recaptcha-enterprise.js'; // Remove this line
+
 // Import secure random utilities
 import { secureJitter } from './secure-random.js';
 
@@ -39,15 +42,10 @@ import { RecaptchaManager } from './recaptcha-manager.js';
 // Import error handling utilities
 import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
-// Import new shared components
-import { ErrorBoundary } from './error-boundary.js';
-import { UIState } from './ui-components.js';
-import { useFirestoreQuery } from './async-data-hook.js';
-
 // Wrap everything in an async function to allow early returns
 (async function() {
     // Enhanced error handling and retry logic
-    const INITIAL_TIMEOUT = 30000; // Extended to 30 seconds to allow for retries
+    const INITIAL_TIMEOUT = 15000; // Extended to 15 seconds to allow for retries
     const MAX_RETRIES = 3;
     const RETRY_BASE_DELAY = 1000; // 1 second base delay for exponential backoff
     
@@ -58,44 +56,6 @@ import { useFirestoreQuery } from './async-data-hook.js';
     // Global variables for dashboard state
     let mfaRecaptchaManager = null; // Managed reCAPTCHA instance for MFA
     let confirmationResult = null; // Store MFA confirmation result
-    
-    // Data hooks for async operations
-    let raceDataHook = null;
-    let qnaDataHook = null;
-    let photosDataHook = null;
-    let videosDataHook = null;
-    
-    // Active listeners for cleanup
-    let activeListeners = [];
-    
-    // Initialize error boundary for dashboard
-    const dashboardErrorBoundary = new ErrorBoundary(
-        document.querySelector('main'),
-        (container, errorInfo) => {
-            container.innerHTML = `
-                <div class="text-center py-20">
-                    <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
-                    <div class="error-boundary-fallback bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
-                        <div class="text-6xl mb-4">⚠️</div>
-                        <h2 class="text-2xl font-bold text-red-400 mb-4">Dashboard Error</h2>
-                        <p class="text-gray-300 mb-4">
-                            An unexpected error occurred while loading the dashboard.
-                        </p>
-                        <div class="space-x-4">
-                            <button onclick="window.location.reload()" 
-                                    class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
-                                Reload Dashboard
-                            </button>
-                            <a href="index.html" 
-                               class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">
-                                Go Home
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-    );
     
 
     // Enhanced logging utility
@@ -551,71 +511,17 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
         document.querySelectorAll('.delete-race-btn').forEach(btn => btn.addEventListener('click', () => deleteRace(btn.dataset.id)));
     };
 
-    // Enhanced data loading functions with retry logic using async hooks
-    const initializeDataHooks = () => {
-        // Initialize data hooks with proper configuration
-        raceDataHook = useFirestoreQuery({
-            timeout: 15000,
-            maxRetries: 3,
-            requiredRoles: ['team-member'],
-            enableCache: true,
-            cacheKey: 'dashboard_races',
-            cacheTTL: 2 * 60 * 1000 // 2 minutes cache
-        });
-
-        qnaDataHook = useFirestoreQuery({
-            timeout: 10000,
-            maxRetries: 2,
-            requiredRoles: ['team-member'],
-            enableCache: true,
-            cacheKey: 'dashboard_qna'
-        });
-
-        photosDataHook = useFirestoreQuery({
-            timeout: 15000,
-            maxRetries: 2,
-            requiredRoles: ['team-member'],
-            enableCache: true,
-            cacheKey: 'dashboard_photos'
-        });
-
-        videosDataHook = useFirestoreQuery({
-            timeout: 10000,
-            maxRetries: 2,
-            requiredRoles: ['team-member'],
-            enableCache: true,
-            cacheKey: 'dashboard_videos'
-        });
-
-        console.log('[Dashboard:DataHooks] ✓ Data hooks initialized');
-    };
-
+    // Enhanced data loading functions with retry logic
     const getRaceData = async () => {
         console.log('[Dashboard:RaceData] Loading race data from Firestore');
-        
-        if (!raceDataHook) {
-            throw new Error('Race data hook not initialized');
-        }
+        const racesCol = collection(db, "races");
+        const q = query(racesCol, orderBy("date", "asc"));
+        const raceSnapshot = await getDocs(q);
+        const raceList = raceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        const { data: raceList, error } = await raceDataHook.execute(async () => {
-            const racesCol = collection(db, "races");
-            const q = query(racesCol, orderBy("date", "asc"));
-            const raceSnapshot = await getDocs(q);
-            return raceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        });
-
-        if (error) {
-            console.error('[Dashboard:RaceData] Error loading races:', error);
-            throw error;
-        }
-
-        if (raceList) {
-            renderRacesTable(raceList);
-            startCountdown(raceList);
-            console.log(`[Dashboard:RaceData] ✓ Loaded ${raceList.length} races successfully`);
-        }
-
-        return raceList;
+        renderRacesTable(raceList);
+        startCountdown(raceList);
+        console.log(`[Dashboard:RaceData] ✓ Loaded ${raceList.length} races successfully`);
     };
 
     // 2. CREATE/UPDATE Races
@@ -746,39 +652,11 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
 
     const getQnaSubmissions = async () => {
         console.log('[Dashboard:QnAData] Loading Q&A submissions');
-        
-        if (!qnaDataHook) {
-            throw new Error('Q&A data hook not initialized');
-        }
-
-        const { data: submissions, error } = await qnaDataHook.execute(async () => {
-            const q = query(collection(db, "qna_submissions"), where("status", "==", "submitted"), orderBy("submittedAt", "asc"));
-            const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        });
-
-        if (error) {
-            console.error('[Dashboard:QnAData] Error loading Q&A submissions:', error);
-            
-            // Show error state in Q&A list
-            if (qnaList) {
-                UIState.error(qnaList, {
-                    type: error.type || 'generic',
-                    title: 'Failed to Load Questions',
-                    message: 'Unable to load Q&A submissions. Please try again.',
-                    showHome: false,
-                    onRetry: () => getQnaSubmissions()
-                });
-            }
-            throw error;
-        }
-
-        if (submissions) {
-            renderQnaSubmissions(submissions);
-            console.log(`[Dashboard:QnAData] ✓ Loaded ${submissions.length} Q&A submissions`);
-        }
-
-        return submissions;
+        const q = query(collection(db, "qna_submissions"), where("status", "==", "submitted"), orderBy("submittedAt", "asc"));
+        const snapshot = await getDocs(q);
+        const submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderQnaSubmissions(submissions);
+        console.log(`[Dashboard:QnAData] ✓ Loaded ${submissions.length} Q&A submissions`);
     };
 
     const openQnaModal = (submission) => {
@@ -1503,56 +1381,6 @@ const showMfaRecaptchaFallback = (message) => {
         console.log('[Dashboard:UI] ✓ Dashboard content displayed successfully');
     }
 
-    // Cleanup function for all listeners and hooks
-    function cleanupDashboard() {
-        console.log('[Dashboard:Cleanup] Starting cleanup...');
-        
-        // Clean up data hooks
-        if (raceDataHook) {
-            raceDataHook.cleanup();
-            raceDataHook = null;
-        }
-        if (qnaDataHook) {
-            qnaDataHook.cleanup();
-            qnaDataHook = null;
-        }
-        if (photosDataHook) {
-            photosDataHook.cleanup();
-            photosDataHook = null;
-        }
-        if (videosDataHook) {
-            videosDataHook.cleanup();
-            videosDataHook = null;
-        }
-
-        // Clean up any active listeners
-        activeListeners.forEach(unsubscribe => {
-            try {
-                if (typeof unsubscribe === 'function') {
-                    unsubscribe();
-                }
-            } catch (error) {
-                console.warn('[Dashboard:Cleanup] Error cleaning up listener:', error);
-            }
-        });
-        activeListeners = [];
-
-        // Clean up MFA reCAPTCHA
-        if (mfaRecaptchaManager) {
-            mfaRecaptchaManager.cleanup();
-            mfaRecaptchaManager = null;
-        }
-
-        // Clear timeouts
-        clearLoadingTimeout();
-        if (countdownInterval) {
-            clearInterval(countdownInterval);
-            countdownInterval = null;
-        }
-
-        console.log('[Dashboard:Cleanup] ✓ Cleanup completed');
-    }
-
     // Logout handler with error handling
     logoutButton.addEventListener('click', async (e) => {
         e.preventDefault();
@@ -1570,9 +1398,6 @@ const showMfaRecaptchaFallback = (message) => {
 
     // Set up authentication state monitoring with enhanced error handling
     console.log('[Dashboard:AuthSetup] Setting up authentication state monitoring');
-    
-    // Initialize data hooks before authentication
-    initializeDataHooks();
     
     const authUnsubscribe = monitorAuthState(
         async (user, validToken) => {
@@ -1628,76 +1453,19 @@ const showMfaRecaptchaFallback = (message) => {
                     if (jonnyVideoManagementCard) jonnyVideoManagementCard.classList.remove('hidden');
                     if (invitationCodesCard) invitationCodesCard.classList.remove('hidden');
                     
-                    // Load admin data with enhanced error handling
-                    const loadPromises = [];
-                    
+                    // Load admin data with error handling
                     try {
-                        // Load races data
-                        loadPromises.push(
-                            getRaceData().catch(error => {
-                                console.error('[Dashboard:AuthSetup] Error loading race data:', error);
-                                if (raceManagementCard) {
-                                    const racesTableBody = document.getElementById('races-table-body');
-                                    if (racesTableBody) {
-                                        UIState.error(racesTableBody.parentElement, {
-                                            type: error.type || 'generic',
-                                            title: 'Failed to Load Races',
-                                            message: 'Unable to load race data. Please try refreshing.',
-                                            showHome: false,
-                                            onRetry: () => getRaceData()
-                                        });
-                                    }
-                                }
-                                return null;
-                            })
-                        );
-
-                        // Load Q&A submissions
-                        loadPromises.push(
-                            getQnaSubmissions().catch(error => {
-                                console.error('[Dashboard:AuthSetup] Error loading Q&A submissions:', error);
-                                return null;
-                            })
-                        );
-
-                        // Load other admin data with error handling
-                        loadPromises.push(
-                            getUnapprovedPhotos(null, unapprovedPhotosList).catch(error => {
-                                console.error('[Dashboard:AuthSetup] Error loading photos:', error);
-                                return null;
-                            })
-                        );
-
-                        loadPromises.push(
-                            getUnapprovedPhotos('jonny', jonnyUnapprovedPhotosList).catch(error => {
-                                console.error('[Dashboard:AuthSetup] Error loading Jonny photos:', error);
-                                return null;
-                            })
-                        );
-
-                        loadPromises.push(
-                            getJonnyVideos().catch(error => {
-                                console.error('[Dashboard:AuthSetup] Error loading videos:', error);
-                                return null;
-                            })
-                        );
-
-                        loadPromises.push(
-                            getInvitationCodes().catch(error => {
-                                console.error('[Dashboard:AuthSetup] Error loading invitation codes:', error);
-                                return null;
-                            })
-                        );
-
-                        // Wait for all loads to complete (allowing some to fail)
-                        await Promise.allSettled(loadPromises);
-                        console.log('[Dashboard:AuthSetup] ✓ Admin data loading completed');
-
+                        await getRaceData();
+                        await getQnaSubmissions();
+                        await getUnapprovedPhotos(null, unapprovedPhotosList);
+                        await getUnapprovedPhotos('jonny', jonnyUnapprovedPhotosList);
+                        await getJonnyVideos();
+                        await getInvitationCodes();
                     } catch (error) {
-                        console.error('[Dashboard:AuthSetup] Error during admin data loading:', error);
+                        console.error('[Dashboard:AuthSetup] Error:', 'Error loading admin data', error);
                         showAuthError({
                             code: 'data-load-failed',
-                            message: 'Failed to load some dashboard data',
+                            message: 'Failed to load dashboard data',
                             userMessage: 'Some dashboard features may not be available. Please refresh the page.',
                             requiresReauth: false,
                             retryable: true
@@ -1750,29 +1518,18 @@ const showMfaRecaptchaFallback = (message) => {
         }
     );
 
-    // Store auth unsubscribe for cleanup
-    activeListeners.push(authUnsubscribe);
-
     document.getElementById('year').textContent = new Date().getFullYear();
 
     // Clear the loading timeout since we successfully initialized
     clearLoadingTimeout();
     console.log('[Dashboard:Complete] ✓ Dashboard initialization completed successfully');
 
-    // Cleanup resources on page unload
+    // Cleanup reCAPTCHA resources on page unload
     window.addEventListener('beforeunload', () => {
-        console.log('[Dashboard:Unload] Page unloading, cleaning up resources');
-        cleanupDashboard();
-    });
-
-    // Handle page visibility changes to pause/resume operations
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            console.log('[Dashboard:Visibility] Page hidden, pausing operations');
-            // Pause any ongoing operations if needed
-        } else {
-            console.log('[Dashboard:Visibility] Page visible, resuming operations');
-            // Resume operations if needed
+        if (mfaRecaptchaManager) {
+            console.log('[Dashboard:Cleanup] Cleaning up MFA reCAPTCHA resources');
+            mfaRecaptchaManager.cleanup();
+            mfaRecaptchaManager = null;
         }
     });
 
