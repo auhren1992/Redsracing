@@ -4,59 +4,91 @@ import { getFirebaseApp, getFirebaseAuth, getFirebaseDb } from '/assets/js/fireb
 const DEFAULT_PARAM_NAMES = ['invite', 'code'];
 
 export function captureInvitationCodeFromURL(paramNames = DEFAULT_PARAM_NAMES, stripFromUrl = true) {
-    try {
-        const urlParams = new URLSearchParams(window.location.search);
-        let capturedCode = null;
-        let foundParam = null;
-        for (const paramName of paramNames) {
-            const code = urlParams.get(paramName);
-            if (code && code.trim()) {
-                capturedCode = code.trim();
-                foundParam = paramName;
-                break;
-            }
-        }
-        if (capturedCode) {
-            if (stripFromUrl && foundParam) {
-                urlParams.delete(foundParam);
-                const newUrl = window.location.pathname +
-                    (urlParams.toString() ? '?' + urlParams.toString() : '') +
-                    window.location.hash;
+    const urlParams = new URLSearchParams(window.location.search);
+    let capturedCode = null;
+
+    for (const name of paramNames) {
+        if (urlParams.has(name)) {
+            capturedCode = urlParams.get(name);
+            if (stripFromUrl) {
+                urlParams.delete(name);
+                const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
                 window.history.replaceState({}, '', newUrl);
             }
-            return capturedCode;
+            break;
         }
-        return null;
+    }
+    return capturedCode;
+}
+
+export async function validateInvitationCode(code) {
+    if (!code) {
+        return { valid: false, message: "No code provided." };
+    }
+    // This function would typically call a backend endpoint to validate the code
+    // For now, we'll just do a basic client-side check
+    if (code.length < 6) {
+        return { valid: false, message: "Invalid invitation code." };
+    }
+    return { valid: true };
+}
+
+export async function processInvitationCode(code, uid) {
+    if (!code || !uid) {
+        throw new Error("Both code and UID are required to process an invitation.");
+    }
+
+    try {
+        const functions = getFunctions(getFirebaseApp());
+        const processCode = httpsCallable(functions, 'processInvitationCode');
+        const result = await processCode({ code, uid });
+        return result.data;
     } catch (error) {
         console.error("Error processing invitation code:", error);
         throw error;
     }
 }
 
-export async function validateInvitationCode(code) {
-    if (!code || typeof code !== 'string') return false;
-    const app = getFirebaseApp();
-    const functions = getFunctions(app);
-    const validate = httpsCallable(functions, 'validateInvitationCode');
-    try {
-        const result = await validate({ code });
-        return result.data && result.data.status === 'valid';
-    } catch (err) {
-        console.error('[InvitationCodes] Invite code validation failed:', err);
-        return false;
+export function setPendingInvitationCode(code) {
+    if (code) {
+        sessionStorage.setItem('pendingInvitationCode', code);
     }
 }
 
-export async function processInvitationCode(code, uid) {
-    if (!code || !uid) throw new Error('Invite code and UID required.');
-    const app = getFirebaseApp();
-    const functions = getFunctions(app);
-    const process = httpsCallable(functions, 'processInvitationCode');
-    try {
-        const result = await process({ code, uid });
-        return result.data;
-    } catch (err) {
-        console.error('[InvitationCodes] Error processing invitation code:', err);
-        throw err;
+export function getPendingInvitationCode() {
+    return sessionStorage.getItem('pendingInvitationCode');
+}
+
+export function clearPendingInvitationCode() {
+    sessionStorage.removeItem('pendingInvitationCode');
+}
+
+export async function applyPendingInvitationCode({ currentUser }) {
+    const code = getPendingInvitationCode();
+    if (!code || !currentUser) {
+        return { success: false, error: 'No pending code or user.' };
     }
+
+    try {
+        const result = await processInvitationCode(code, currentUser.uid);
+        if (result.status === 'success') {
+            clearPendingInvitationCode();
+            // Force a token refresh to get the new custom claims
+            await currentUser.getIdToken(true);
+            return { success: true, role: result.role };
+        } else {
+            return { success: false, error: result.message, retryable: false };
+        }
+    } catch (error) {
+        return { success: false, error: error.message, retryable: true };
+    }
+}
+
+export async function userNeedsInvitationCode({ currentUser }) {
+    if (!currentUser) return false;
+
+    const idTokenResult = await currentUser.getIdTokenResult();
+    const userRole = idTokenResult.claims.role;
+
+    return !userRole || userRole === 'public-fan';
 }

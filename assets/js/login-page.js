@@ -6,11 +6,7 @@
 import { initializeFirebaseCore, getFirebaseAuth } from './firebase-core.js';
 import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 import { setPendingInvitationCode } from './invitation-codes.js';
-
-import { recaptchaService } from './recaptcha-enterprise.js';
-
 import { RecaptchaManager } from './recaptcha-manager.js';
-
 import { 
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
@@ -20,8 +16,6 @@ import {
     PhoneAuthProvider,
     PhoneMultiFactorGenerator
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-// Import navigation helpers
 import { navigateToInternal } from './navigation-helpers.js';
 
 /**
