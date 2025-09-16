@@ -164,6 +164,15 @@ exports.processInvitationCode = onCall(async (request) => {
     }, {merge: true});
     logger.info(`Set role '${roleToAssign}' in user's public profile (users/${uid}).`);
 
+    // 6. Award the "Community Member" achievement to get them on the leaderboard
+    const achievementData = {
+        userId: uid,
+        achievementId: "community_member", // This is a default achievement
+        dateEarned: FieldValue.serverTimestamp(),
+        assignedBy: "system"
+    };
+    await db.collection("user_achievements").add(achievementData);
+    logger.info(`Awarded 'community_member' achievement to user ${uid}.`);
 
     return {status: "success", message: `Role '${roleToAssign}' assigned successfully.`};
   } catch (error) {
