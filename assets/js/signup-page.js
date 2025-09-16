@@ -1,5 +1,5 @@
 import { getFirebaseAuth } from '/assets/js/firebase-core.js';
-import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { validateInvitationCode, processInvitationCode, captureInvitationCodeFromURL } from '/assets/js/invitation-codes.js';
 
 export async function handleSignup(email, password, inviteCode) {
