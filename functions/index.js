@@ -15,7 +15,6 @@ const {getAuth} = require("firebase-admin/auth");
 const {getStorage} = require("firebase-admin/storage");
 const logger = require("firebase-functions/logger");
 const vision = require("@google-cloud/vision");
-const {RecaptchaEnterpriseServiceClient} = require("@google-cloud/recaptcha-enterprise");
 
 // Initialize Firebase Admin SDK
 initializeApp({ storageBucket: "redsracing-a7f8b.firebasestorage.app" });
@@ -381,64 +380,5 @@ exports.getInvitationCodes = onCall(async (request) => {
   } catch (error) {
     logger.error(`Error retrieving invitation codes for user ${request.auth.uid}:`, error);
     throw new HttpsError("internal", "An internal error occurred while retrieving invitation codes.", error);
-  }
-});
-
-/**
- * Create an assessment to analyze the risk of a UI action.
- * @param {object} data The data passed to the function.
- * @param {string} data.token The reCAPTCHA token generated on the client.
- * @param {string} data.recaptchaAction The action name associated with the token.
- * @returns {Promise<object>} A promise that resolves with the assessment result.
- */
-exports.createAssessment = onCall(async (request) => {
-  const {token, recaptchaAction} = request.data;
-  const projectID = "redsracing-a7f8b";
-  const recaptchaKey = "6Lefz8orAAAAAFKJygPHNO4_3ppt8G4j-bB8Qp5E";
-
-  if (!token || !recaptchaAction) {
-    logger.error("createAssessment called without a token or recaptchaAction.");
-    throw new HttpsError("invalid-argument", "The function must be called with a 'token' and 'recaptchaAction'.");
-  }
-
-  try {
-    const client = new RecaptchaEnterpriseServiceClient();
-    const projectPath = client.projectPath(projectID);
-
-    const assessmentRequest = {
-      assessment: {
-        event: {
-          token: token,
-          siteKey: recaptchaKey,
-        },
-      },
-      parent: projectPath,
-    };
-
-    const [response] = await client.createAssessment(assessmentRequest);
-
-    if (!response.tokenProperties.valid) {
-      logger.error(`The CreateAssessment call failed because the token was: ${response.tokenProperties.invalidReason}`);
-      throw new HttpsError("permission-denied", `reCAPTCHA token is invalid: ${response.tokenProperties.invalidReason}`);
-    }
-
-    if (response.tokenProperties.action !== recaptchaAction) {
-      logger.error(`reCAPTCHA action mismatch. Expected: ${recaptchaAction}, Got: ${response.tokenProperties.action}`);
-      throw new HttpsError("permission-denied", "reCAPTCHA action mismatch.");
-    }
-
-    logger.info(`reCAPTCHA score for action ${recaptchaAction}: ${response.riskAnalysis.score}`);
-
-    // Return the score and any other relevant details to the client.
-    return {
-      score: response.riskAnalysis.score,
-      reasons: response.riskAnalysis.reasons,
-    };
-  } catch (error) {
-    logger.error("Error creating reCAPTCHA assessment:", error);
-    if (error.code) { // Re-throw HttpsError
-        throw error;
-    }
-    throw new HttpsError("internal", "An internal error occurred while creating the assessment.", error);
   }
 });
