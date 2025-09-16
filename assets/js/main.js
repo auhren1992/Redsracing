@@ -87,28 +87,6 @@ async function initFirebase() {
             }
         }
 
-        // Live Timing Banner
-        const liveBanner = document.getElementById('live-banner');
-        const liveTimingLink = document.getElementById('live-timing-link');
-        const header = document.querySelector('header');
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        if(liveBanner) {
-            const qRaces = query(collection(db, "races"), where("date", "==", today.toISOString().split('T')[0]), limit(1));
-            onSnapshot(qRaces, (snapshot) => {
-                if (!snapshot.empty) {
-                    const race = snapshot.docs[0].data();
-                    if (race.liveTimingLink) {
-                        liveTimingLink.href = race.liveTimingLink;
-                        liveBanner.classList.remove('hidden');
-                        if(header) {
-                            header.style.top = liveBanner.offsetHeight + 'px';
-                        }
-                    }
-                }
-            });
-        }
 
         // Subscribe Form Logic
         const subscribeForm = document.getElementById('subscribeForm');
