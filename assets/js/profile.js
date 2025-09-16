@@ -331,7 +331,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
             // Load achievements subcollection (optional)
             let achievements = [];
             try {
-                const achRef = collection(db, 'profiles', userId, 'achievements');
+                const achRef = collection(db, 'users', userId, 'achievements');
                 const achSnap = await getDocs(achRef);
                 achievements = achSnap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
             } catch (_) { /* ignore if missing */ }
