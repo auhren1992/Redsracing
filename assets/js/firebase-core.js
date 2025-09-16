@@ -31,10 +31,16 @@ export async function initializeFirebaseCore() {
             });
             const storage = getStorage(app);
 
-            firebaseCache = { app, auth, db, storage, initialized: true, initPromise: null };
+            firebaseCache.app = app;
+            firebaseCache.auth = auth;
+            firebaseCache.db = db;
+            firebaseCache.storage = storage;
+            firebaseCache.initialized = true;
+            firebaseCache.initPromise = null;
+
             return firebaseCache;
         } catch (error) {
-            firebaseCache.initPromise = null;
+            firebaseCache.initPromise = null; // Also clear on failure
             throw error;
         }
     })();
