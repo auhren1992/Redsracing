@@ -1015,6 +1015,45 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
             if (needsCode && !pendingCode && invitationCodePrompt) {
                 console.log('[Dashboard:InvitationCode] Showing invitation code prompt for user without role');
                 invitationCodePrompt.classList.remove('hidden');
+
+                const refreshRoleStatusBtn = document.getElementById('refresh-role-status-btn');
+                if (refreshRoleStatusBtn && !refreshRoleStatusBtn.hasAttribute('data-listener-refresh')) {
+                    refreshRoleStatusBtn.setAttribute('data-listener-refresh', 'true');
+                    refreshRoleStatusBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        const user = getCurrentUser();
+                        if (user) {
+                            refreshRoleStatusBtn.textContent = 'Refreshing...';
+                            refreshRoleStatusBtn.disabled = true;
+
+                            try {
+                                console.log('[Dashboard:InvitationCode] Forcing token refresh to check for updated roles.');
+                                await user.getIdToken(true); // Force refresh
+
+                                // Manually re-validate claims for immediate feedback
+                                const claimsResult = await validateUserClaims(['team-member']);
+
+                                if (claimsResult.success) {
+                                    showInvitationCodeMessage('Status updated! You now have access. Reloading page...', 'success');
+                                    setTimeout(() => window.location.reload(), 1500);
+                                } else {
+                                    showInvitationCodeMessage('Your user status has not been updated yet. Please try again in a moment.', 'info');
+                                    if (refreshRoleStatusBtn) {
+                                        refreshRoleStatusBtn.textContent = 'Refresh status';
+                                        refreshRoleStatusBtn.disabled = false;
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('[Dashboard:InvitationCode] Error refreshing token:', error);
+                                showInvitationCodeMessage('Error refreshing status. Please try again.', 'error');
+                                if (refreshRoleStatusBtn) {
+                                    refreshRoleStatusBtn.textContent = 'Refresh status';
+                                    refreshRoleStatusBtn.disabled = false;
+                                }
+                            }
+                        }
+                    });
+                }
                 
                 // Set up the apply button handler
                 if (applyInvitationCodeBtn && !applyInvitationCodeBtn.hasAttribute('data-listener')) {
