@@ -20,95 +20,11 @@ service cloud.firestore {
 
   match /databases/{database}/documents {
 
-    // USERS: Private user records
-    // Read/Write: Owner-only access to their own user record
+    // USERS: Publicly readable user profiles.
+    // Read: Anyone can read.
+    // Create/Update: Owner-only.
+    // Delete: Team members only.
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    // SUBSCRIBERS: Email subscriptions
-    // Create: Anyone can create (subscribe).
-    // Read/Update/Delete: No one on the client-side.
-    match /subscribers/{subId} {
-      allow create;
-      allow read, update, delete: if false;
-    }
-
-    // RACES: Race schedule and results
-    // Read/Write: Only team members can access races
-    match /races/{raceId} {
-      allow read, write: if isTeamMember();
-    }
-
-    // DRIVER_NOTES: Private notes for team members
-    // Read/Write: Only team members can access driver notes
-    match /driver_notes/{userId} {
-      allow read, write: if isTeamMember();
-    }
-
-    // GALLERY_IMAGES: User-submitted photos
-    // Read: Approved photos are publicly readable; pending/rejected readable by owner and team members
-    // Create: Authenticated users can submit photos (always pending status)
-    // Update: Owners can edit their own pending photos; team members can update any photo
-    // Delete: Owners can delete their own pending photos; team members can delete any photo
-    match /gallery_images/{imageId} {
-      allow read: if isApproved(resource.data) || 
-                     (signedIn() && isOwner(resource.data.uploaderUid));
-      allow create: if signedIn() && 
-                       request.resource.data.uploaderUid == request.auth.uid &&
-                       request.resource.data.approved == false;
-      allow update: if (signedIn() && isOwner(resource.data.uploaderUid) && 
-                       resource.data.approved == false);
-      allow delete: if (signedIn() && isOwner(resource.data.uploaderUid) && 
-                       resource.data.approved == false);
-
-      // Comments subcollection
-      // Read: Aligned with parent image visibility (approved public, or owner/team-member for pending)
-      // Create: Authenticated users can comment on images they can view
-      // Update/Delete: Comment authors can modify their own comments
-      match /comments/{commentId} {
-        allow read: if isApproved(get(/databases/$(database)/documents/gallery_images/$(imageId)).data) || 
-                       (signedIn() && isOwner(get(/databases/$(database)/documents/gallery_images/$(imageId)).data.uploaderUid));
-        allow create: if signedIn() && 
-                         request.resource.data.authorUid == request.auth.uid &&
-                         (isApproved(get(/databases/$(database)/documents/gallery_images/$(imageId)).data) || 
-                          isOwner(get(/databases/$(database)/documents/gallery_images/$(imageId)).data.uploaderUid));
-        allow update, delete: if signedIn() && isOwner(resource.data.authorUid);
-      }
-
-      // Likes subcollection  
-      // Read: Aligned with parent image visibility
-      // Create/Delete: Users can like/unlike images they can view
-      match /likes/{likeId} {
-        allow read: if isApproved(get(/databases/$(database)/documents/gallery_images/$(imageId)).data) || 
-                       (signedIn() && isOwner(get(/databases/$(database)/documents/gallery_images/$(imageId)).data.uploaderUid));
-        allow create, delete: if signedIn() && isOwner(likeId) &&
-                                  (isApproved(get(/databases/$(database)/documents/gallery_images/$(imageId)).data) || 
-                                   isOwner(get(/databases/$(database)/documents/gallery_images/$(imageId)).data.uploaderUid));
-      }
-    }
-
-    // QNA_SUBMISSIONS: Fan questions and answers
-    // Read: Anyone can read published Q&As.
-    // Create: Any authenticated user can submit a question.
-    // Update/Delete: Only team members can manage submissions (answer, publish, delete).
-    match /qna_submissions/{qnaId} {
-      allow read: if resource.data.status == 'published' || isTeamMember();
-      allow create: if request.auth != null;
-      allow update, delete: if isTeamMember();
-    }
-
-    // INVITATION_CODES: Special codes for team access
-    // Read/Write: Only team members can access invitation codes
-    match /invitation_codes/{codeId} {
-      allow read, write: if isTeamMember();
-    }
-
-    // USER_PROFILES: User profile data  
-    // Read: Public read access
-    // Create/Update: Owners can manage their own profile
-    // Delete: Team members only
-    match /user_profiles/{userId} {
       allow read;
       allow create, update: if isOwner(userId);
       allow delete: if isTeamMember();
@@ -122,31 +38,94 @@ service cloud.firestore {
       }
     }
 
+    // SUBSCRIBERS: Email subscriptions
+    // Create: Anyone can create (subscribe).
+    // Read/Update/Delete: No one on the client-side.
+    match /subscribers/{subId} {
+      allow create;
+      allow read, update, delete: if false;
+    }
+
+    // RACES: Race schedule and results
+    // Read: Anyone can read.
+    // Write: Only team members can manage races.
+    match /races/{raceId} {
+      allow read;
+      allow write: if isTeamMember();
+    }
+
+    // DRIVER_NOTES: Private notes for team members
+    // Read/Write: Only the owner of the notes can access them.
+    match /driver_notes/{userId} {
+      allow read, write: if signedIn() && isOwner(userId);
+    }
+
+    // GALLERY_IMAGES: User-submitted photos
+    // Read: Approved photos are public; unapproved are visible to owner and team members.
+    // Create: Authenticated users can submit photos.
+    // Update: Owner can edit their unapproved photos; team members can edit any.
+    // Delete: Owner can delete their unapproved photos; team members can delete any.
+    match /gallery_images/{imageId} {
+      allow read: if isApproved(resource.data) || 
+                     (signedIn() && isOwner(resource.data.uploaderUid)) ||
+                     isTeamMember();
+      allow create: if signedIn() && 
+                       request.resource.data.uploaderUid == request.auth.uid &&
+                       request.resource.data.approved == false;
+      allow update: if (signedIn() && isOwner(resource.data.uploaderUid) && resource.data.approved == false) ||
+                       isTeamMember();
+      allow delete: if (signedIn() && isOwner(resource.data.uploaderUid) && resource.data.approved == false) ||
+                       isTeamMember();
+
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if isApproved(get(/databases/$(database)/documents/gallery_images/$(imageId)).data) || 
+                       (signedIn() && isOwner(get(/databases/$(database)/documents/gallery_images/$(imageId)).data.uploaderUid)) ||
+                       isTeamMember();
+        allow create: if signedIn() && 
+                         request.resource.data.authorUid == request.auth.uid;
+        allow update, delete: if signedIn() && (isOwner(resource.data.authorUid) || isTeamMember());
+      }
+
+      // Likes subcollection  
+      match /likes/{likeId} {
+        allow read: if isApproved(get(/databases/$(database)/documents/gallery_images/$(imageId)).data) || 
+                       (signedIn() && isOwner(get(/databases/$(database)/documents/gallery_images/$(imageId)).data.uploaderUid)) ||
+                       isTeamMember();
+        allow create, delete: if signedIn() && isOwner(likeId);
+      }
+    }
+
+    // QNA_SUBMISSIONS: Fan questions and answers
+    // Read: Published Q&As are public.
+    // Create: Any authenticated user can submit a question.
+    // Update/Delete: Only team members can manage submissions.
+    match /qna_submissions/{qnaId} {
+      allow read: if resource.data.status == 'published' || isTeamMember();
+      allow create: if signedIn();
+      allow update, delete: if isTeamMember();
+    }
+
+    // INVITATION_CODES: Special codes for team access
+    // Read/Write: Only team members can manage invitation codes.
+    match /invitation_codes/{codeId} {
+      allow read, write: if isTeamMember();
+    }
+
     // ACHIEVEMENTS: Available achievements/badges
-    // Read: Anyone can read achievements
-    // Write: Only team members can manage achievements
+    // Read: Anyone can read achievements.
+    // Write: Only team members can manage achievements.
     match /achievements/{achievementId} {
       allow read;
       allow write: if isTeamMember();
     }
 
-    // USER_ACHIEVEMENTS: User-earned achievements
-    // Read: Anyone can read user achievements (for displaying on profiles)
-    // Write: Only team members can assign achievements
-    match /user_achievements/{userAchievementId} {
+    // JONNY_VIDEOS: Jonny's video collection for team management
+    // Read: Publicly readable.
+    // Write: Only team members can manage Jonny's videos.
+    match /jonny_videos/{videoId} {
       allow read;
       allow write: if isTeamMember();
-    }
-
-    // JONNY_VIDEOS: Jonny's video collection for team management
-    // Read/Write/Delete: Only team members can manage Jonny's videos
-    match /jonny_videos/{videoId} {
-      allow get, list, write, delete: if isTeamMember();
-    }
-
-    // Team-members have full access to everything else not matched above
-    match /{document=**} {
-      allow read, write: if isTeamMember();
     }
   }
 }
