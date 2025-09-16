@@ -5,7 +5,7 @@
  * with proper error handling and loading states
  */
 
-import { initializeFirebaseCore } from './firebase-core.js';
+import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
     collection,
@@ -47,18 +47,10 @@ import { navigateToInternal } from './navigation-helpers.js';
     // Page size for pagination
     const PAGE_SIZE = 12;
 
-    // Initialize Firebase
-    try {
-        console.log('[TeamMembers] Initializing Firebase...');
-        const firebaseServices = await initializeFirebaseCore();
-        auth = firebaseServices.auth;
-        db = firebaseServices.db;
-        console.log('[TeamMembers] Firebase initialized successfully');
-    } catch (error) {
-        console.error('[TeamMembers] Firebase initialization failed:', error);
-        showErrorState('service', 'Unable to connect to our services. Please refresh the page and try again.');
-        return;
-    }
+    // Get Firebase services
+    auth = getFirebaseAuth();
+    db = getFirebaseDb();
+    console.log('[TeamMembers] Firebase services obtained successfully');
 
     // UI Elements
     const loadingState = document.getElementById('loading-state');

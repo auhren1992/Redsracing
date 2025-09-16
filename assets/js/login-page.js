@@ -3,7 +3,7 @@
  * Centralized login flow management with deferred UI enablement, MFA support, and reCAPTCHA Enterprise
  */
 
-import { initializeFirebaseCore, getFirebaseAuth } from './firebase-core.js';
+import { getFirebaseAuth } from './firebase-core.js';
 import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 import { setPendingInvitationCode } from './invitation-codes.js';
 import { RecaptchaManager } from './recaptcha-manager.js';
@@ -53,9 +53,8 @@ class LoginPageController {
             // Disable UI initially
             this.disableUI();
             
-            // Initialize Firebase
-            const { auth } = await initializeFirebaseCore();
-            this.auth = auth;
+            // Get Firebase auth instance
+            this.auth = getFirebaseAuth();
             this.googleProvider = new GoogleAuthProvider();
             
             // Setup reCAPTCHA for phone auth (non-blocking)

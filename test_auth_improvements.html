@@ -95,19 +95,12 @@
             getCurrentUser
         } from './assets/js/auth-utils.js';
         
-        import { initializeFirebaseCore } from './assets/js/firebase-core.js';
+        import { getFirebaseDb } from './assets/js/firebase-core.js';
         import { collection, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Initialize Firebase
-        let db;
-        try {
-            const firebaseServices = await initializeFirebaseCore();
-            db = firebaseServices.db;
-            console.log('Firebase initialized for testing');
-        } catch (error) {
-            console.error('Firebase initialization failed:', error);
-            document.getElementById('auth-status').innerHTML = '<p class="text-red-400">Firebase initialization failed</p>';
-        }
+        // Get Firebase DB instance
+        const db = getFirebaseDb();
+        console.log('Firebase services obtained for testing');
 
         // Back button
         document.getElementById('back-btn').addEventListener('click', () => {

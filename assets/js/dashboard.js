@@ -1,5 +1,5 @@
 // Importing Firebase services and specific functions
-import { initializeFirebaseCore } from './firebase-core.js';
+import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage } from './firebase-core.js';
 import { onAuthStateChanged, signOut, sendEmailVerification, linkWithPhoneNumber } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, addDoc, updateDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
@@ -352,28 +352,11 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
         }
     }
 
-    // Initialize Firebase services with enhanced error handling
-    let auth, db, storage;
-    
-    try {
-        console.log('[Dashboard:Initialization] Initializing Firebase services');
-        const firebaseServices = await retryAuthOperation(initializeFirebaseCore, 'Firebase initialization');
-        auth = firebaseServices.auth;
-        db = firebaseServices.db;
-        storage = firebaseServices.storage;
-        console.log('[Dashboard:Initialization] ✓ Firebase services initialized successfully');
-    } catch (error) {
-        console.error('[Dashboard:Initialization] Error:', 'Critical Firebase initialization failure', error);
-        showAuthError({
-            code: 'firebase-init-failed',
-            message: 'Firebase initialization failed',
-            userMessage: 'Unable to connect to our services. Please refresh the page and try again.',
-            requiresReauth: false,
-            retryable: true
-        });
-        showServiceErrorFallback('service', 'Unable to connect to our services. Please refresh the page and try again.');
-        return; // Exit early if Firebase can't be initialized
-    }
+    // Get Firebase services
+    const auth = getFirebaseAuth();
+    const db = getFirebaseDb();
+    const storage = getFirebaseStorage();
+    console.log('[Dashboard:Initialization] ✓ Firebase services obtained successfully');
 
     const loadingState = document.getElementById('loading-state');
     const dashboardContent = document.getElementById('dashboard-content');
