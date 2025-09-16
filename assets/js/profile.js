@@ -1,6 +1,6 @@
 // Importing Firebase services and specific functions
 // Using centralized Firebase initialization from firebase-core
-import { initializeFirebaseCore, getFirebaseAuth, getFirebaseApp, getFirebaseDb } from './firebase-core.js';
+import { getFirebaseAuth, getFirebaseApp, getFirebaseDb } from './firebase-core.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -28,23 +28,9 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
 // Wrap everything in an async function to allow early returns
 (async function() {
-    let auth = null;
-    let app = null;
-    
-    // Initialize Firebase before using any services
-    try {
-        console.log('[Profile] Initializing Firebase...');
-        const firebaseServices = await initializeFirebaseCore();
-        auth = firebaseServices.auth;
-        app = firebaseServices.app;
-        
-        console.log('[Profile] Firebase initialized successfully');
-    } catch (error) {
-        console.error('[Profile] Firebase initialization failed:', error);
-        // Show fallback UI immediately if Firebase fails to initialize
-        hideLoadingAndShowFallback();
-        return; // Exit early if Firebase can't be initialized
-    }
+    const auth = getFirebaseAuth();
+    const app = getFirebaseApp();
+    console.log('[Profile] Firebase services obtained successfully');
     // Add immediate loading timeout as backup
     let loadingTimeout = setTimeout(() => {
         console.warn('Loading timeout reached, showing fallback content');

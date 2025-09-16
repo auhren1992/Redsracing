@@ -1,11 +1,11 @@
-import { initializeFirebaseCore } from './firebase-core.js';
+import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 // Import sanitization utilities
 import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js';
 
 async function init() {
-  const { auth } = await initializeFirebaseCore();
+  const auth = getFirebaseAuth();
 
   // Toggle nav auth link
   onAuthStateChanged(auth, user => {

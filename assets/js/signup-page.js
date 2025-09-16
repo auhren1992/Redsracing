@@ -1,4 +1,4 @@
-import { getFirebaseAuth, initializeFirebaseCore } from '/assets/js/firebase-core.js';
+import { getFirebaseAuth } from '/assets/js/firebase-core.js';
 import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { validateInvitationCode, processInvitationCode, captureInvitationCodeFromURL } from '/assets/js/invitation-codes.js';
 
@@ -25,14 +25,7 @@ export async function handleSignup(email, password, inviteCode) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        await initializeFirebaseCore();
-    } catch (error) {
-        console.error("Firebase initialization failed:", error);
-        // Optionally, display a message to the user
-    }
-
+document.addEventListener('DOMContentLoaded', () => {
     const signupForm = document.getElementById('signup-form');
     const signupError = document.getElementById('signup-error');
 
