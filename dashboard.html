@@ -188,6 +188,22 @@
                         </div>
                     </div>
 
+                    <!-- 2-Step Verification -->
+                    <div id="mfa-card" class="card rounded-lg p-6" style="display: none;">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">2-Step <span class="neon-yellow">Verification</span></h2>
+                        <div id="mfa-status"></div>
+                        <div id="mfa-enroll-form" class="space-y-4">
+                            <p class="text-slate-400">Add your phone number to secure your account.</p>
+                            <input type="tel" id="mfa-phone-number" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2" placeholder="+1 555-555-5555">
+                            <button id="mfa-send-code-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Send Code</button>
+                        </div>
+                         <div id="mfa-verify-form" class="hidden space-y-4">
+                            <p class="text-slate-400">Enter the code sent to your phone.</p>
+                            <input type="text" id="mfa-verification-code" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2" placeholder="6-digit code">
+                             <button id="mfa-verify-btn" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-500 transition">Verify & Enable</button>
+                        </div>
+                        <div id="mfa-recaptcha-container" class="mt-4"></div>
+                    </div>
                 </div>
             </div>
         </div>

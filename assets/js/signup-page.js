@@ -1,6 +1,29 @@
-import { getFirebaseAuth } from '/assets/js/firebase-core.js';
+import { getFirebaseAuth, getFirebaseDb } from '/assets/js/firebase-core.js';
 import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { validateInvitationCode, processInvitationCode, captureInvitationCodeFromURL } from '/assets/js/invitation-codes.js';
+
+async function createDefaultProfile(user) {
+    try {
+        const db = getFirebaseDb();
+        const profileRef = doc(db, 'profiles', user.uid);
+        const defaultProfile = {
+            username: user.email.split('@')[0],
+            displayName: user.displayName || user.email.split('@')[0],
+            bio: 'New member of the RedsRacing community!',
+            avatarUrl: user.photoURL || '',
+            favoriteCars: [],
+            joinDate: new Date().toISOString(),
+            totalPoints: 0,
+            achievementCount: 0
+        };
+        await setDoc(profileRef, defaultProfile);
+        console.log(`[Signup] Default profile created for user: ${user.uid}`);
+    } catch (error) {
+        console.error("Failed to create default profile:", error);
+        // This error should be logged, but we don't want to fail the whole signup process
+    }
+}
 
 export async function handleSignup(email, password, inviteCode) {
     if (!inviteCode) {
@@ -14,6 +37,9 @@ export async function handleSignup(email, password, inviteCode) {
 
         // Process invitation code
         await processInvitationCode(inviteCode, user.uid);
+
+        // Create a default profile document in Firestore
+        await createDefaultProfile(user);
 
         // Send email verification
         await sendEmailVerification(user);
