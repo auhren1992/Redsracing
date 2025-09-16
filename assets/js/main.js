@@ -5,7 +5,7 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { getFirestore, collection, query, onSnapshot, where, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Import invitation code utilities
-import { captureInvitationCodeFromURL, applyPendingInvitationCode } from './invitation-codes.js';
+import { captureInvitationCodeFromURL } from './invitation-codes.js'; // Removed applyPendingInvitationCode
 
 async function initFirebase() {
     try {
@@ -32,13 +32,7 @@ async function initFirebase() {
                 if(authLinkMobile) authLinkMobile.textContent = 'Dashboard';
                 if(authLinkMobile) authLinkMobile.href = 'dashboard.html';
                 
-                // Apply pending invitation code if available
-                try {
-                    await applyPendingInvitationCode(auth);
-                } catch (error) {
-                    console.warn('[Main] Failed to apply pending invitation code:', error);
-                    // Don't block the auth flow for invitation code errors
-                }
+                // Invitation code is now processed at signup, not here.
                 
                 // Check for first login achievement
                 checkFirstLoginAchievement(user.uid);
