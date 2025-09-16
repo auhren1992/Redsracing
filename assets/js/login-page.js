@@ -291,7 +291,6 @@ class LoginPageController {
         this.setLoadingState(this.elements.signinButton, true, 'Sign In');
 
         try {
-            // Protected action with reCAPTCHA Enterprise
             await recaptchaService.protectedAction(
                 'LOGIN',
                 async (recaptchaData) => {
@@ -305,14 +304,12 @@ class LoginPageController {
                 null,
                 { fallbackOnError: false, showUserMessage: true }
             );
-            
         } catch (error) {
             this.showMessage(getFriendlyAuthError(error));
         } finally {
             this.setLoadingState(this.elements.signinButton, false, 'Sign In');
         }
     }
-
 
     /**
      * Handle Google sign in with reCAPTCHA Enterprise protection
@@ -326,7 +323,6 @@ class LoginPageController {
         this.setLoadingState(this.elements.googleSigninButton, true, 'Sign in with Google');
 
         try {
-            // Protected action with reCAPTCHA Enterprise
             await recaptchaService.protectedAction(
                 'LOGIN',
                 async (recaptchaData) => {
@@ -350,7 +346,6 @@ class LoginPageController {
         }
     }
 
-
     /**
      * Handle forgot password with reCAPTCHA Enterprise protection
      */
@@ -373,7 +368,6 @@ class LoginPageController {
         }
 
         try {
-            // Protected action with reCAPTCHA Enterprise
             await recaptchaService.protectedAction(
                 'PASSWORD_RESET',
                 async (recaptchaData) => {
@@ -391,7 +385,6 @@ class LoginPageController {
             this.showMessage(getFriendlyAuthError(error));
         }
     }
-
 
     /**
      * Handle sign up redirect
@@ -421,11 +414,6 @@ class LoginPageController {
 document.addEventListener('DOMContentLoaded', async () => {
     const loginController = new LoginPageController();
     await loginController.initialize();
-    
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-        loginController.cleanup();
-    });
 });
 
 // Also initialize if DOM is already loaded
@@ -435,9 +423,4 @@ if (document.readyState === 'loading') {
     // DOM is already loaded
     const loginController = new LoginPageController();
     await loginController.initialize();
-    
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-        loginController.cleanup();
-    });
 }
