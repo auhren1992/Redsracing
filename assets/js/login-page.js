@@ -3,10 +3,11 @@
  * Centralized login flow management with deferred UI enablement, MFA support, and reCAPTCHA Enterprise
  */
 
-import { getFirebaseAuth } from './firebase-core.js';
+import { getFirebaseAuth, getFirebaseApp } from './firebase-core.js';
 import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 import { setPendingInvitationCode } from './invitation-codes.js';
 import { RecaptchaManager } from './recaptcha-manager.js';
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 import { 
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
@@ -17,6 +18,7 @@ import {
     PhoneMultiFactorGenerator
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { navigateToInternal } from './navigation-helpers.js';
+import { recaptchaService } from './recaptcha-enterprise.js';
 
 /**
  * Login Page Controller Class
@@ -400,30 +402,21 @@ class LoginPageController {
         this.setLoadingState(this.elements.signinButton, true, 'Sign In');
 
         try {
-            // Protected action with reCAPTCHA Enterprise
+            // This is the new logic using the recaptchaService
             await recaptchaService.protectedAction(
                 'LOGIN',
                 async (recaptchaData) => {
-                    // First verify with backend if reCAPTCHA token is present
                     if (recaptchaData.recaptchaToken) {
-                        await this.verifyAuthAction('login', { 
-                            ...recaptchaData, 
-                            email 
-                        });
+                        await this.verifyRecaptcha('LOGIN', recaptchaData.recaptchaToken);
                     }
-                    
-                    // Perform Firebase authentication
+                    // Perform Firebase authentication after reCAPTCHA check
                     await signInWithEmailAndPassword(this.auth, email, password);
                     this.showMessage('Login successful! Redirecting...', false);
                     this.handleSuccess();
                 },
-                null, // no user object yet
-                {
-                    fallbackOnError: true,
-                    showUserMessage: true
-                }
+                null,
+                { fallbackOnError: false, showUserMessage: true }
             );
-            
         } catch (error) {
             if (error.code === 'auth/multi-factor-required') {
                 await this.handleMFARequired(error);
@@ -432,6 +425,32 @@ class LoginPageController {
             }
         } finally {
             this.setLoadingState(this.elements.signinButton, false, 'Sign In');
+        }
+    }
+
+    /**
+     * Verify reCAPTCHA token with the backend
+     * @param {string} action - The action name
+     * @param {string} token - The reCAPTCHA token
+     */
+    async verifyRecaptcha(action, token) {
+        try {
+            const functions = getFunctions(getFirebaseApp());
+            const createAssessment = httpsCallable(functions, 'createAssessment');
+            const result = await createAssessment({
+                recaptchaAction: action,
+                token: token,
+            });
+
+            // You can add logic here to check the score if needed
+            console.log(`[Login Controller] reCAPTCHA assessment score: ${result.data.score}`);
+            if (result.data.score < 0.5) { // Example threshold
+                 throw new Error("Low reCAPTCHA score. Please try again.");
+            }
+        } catch (error) {
+            console.error('[Login Controller] reCAPTCHA verification failed:', error);
+            // Re-throw a user-friendly error to be caught by the calling function
+            throw new Error('Security verification failed. Please try again.');
         }
     }
 
