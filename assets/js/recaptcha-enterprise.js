@@ -265,7 +265,7 @@ const recaptchaService = new RecaptchaEnterpriseService();
 
 // Auto-initialize with default site key from environment
 // In production, this should be loaded from a secure configuration
-const RECAPTCHA_SITE_KEY = '6Lefz8orAAAAAFKJygPHNO4_3ppt8G4j-bB8Qp5E'; // Replace with actual site key
+const RECAPTCHA_SITE_KEY = '6Lefz8orAAAAAFKJygPHNO4_3ppt8G4j-bB8Qp5E';
 
 // Initialize on DOM ready
 if (document.readyState === 'loading') {
