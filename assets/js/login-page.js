@@ -421,11 +421,6 @@ class LoginPageController {
 document.addEventListener('DOMContentLoaded', async () => {
     const loginController = new LoginPageController();
     await loginController.initialize();
-
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-        loginController.cleanup();
-    });
 });
 
 // Also initialize if DOM is already loaded
@@ -435,9 +430,4 @@ if (document.readyState === 'loading') {
     // DOM is already loaded
     const loginController = new LoginPageController();
     await loginController.initialize();
-
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-        loginController.cleanup();
-    });
 }
