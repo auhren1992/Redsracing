@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Loading Test - RedsRacing #8</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-container { background: white; padding: 20px; border-radius: 8px; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 4px; font-size: 1.2em; font-weight: bold; }
+        .pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .fail { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Loading Test</h1>
+    <p>This test verifies that the dashboard page loads correctly and does not get stuck in an infinite loading loop.</p>
+
+    <div class="test-container">
+        <h2>Test Result</h2>
+        <div id="test-results">
+            <div class="test-result info">Test running... Please wait.</div>
+        </div>
+    </div>
+
+    <!-- Minimal DOM structure from dashboard.html required for the test -->
+    <div id="loading-state" class="flex">
+        <!-- Loading spinner content -->
+    </div>
+    <div id="dashboard-content" class="hidden">
+        <!-- Dashboard content -->
+    </div>
+    <div id="auth-error-container"></div>
+    <span id="user-email"></span>
+    <div id="email-verification-notice" class="hidden"></div>
+    <div id="invitation-code-prompt" class="hidden"></div>
+    <div id="driver-notes-card" class="hidden"></div>
+
+    <!-- The script under test -->
+    <script type="module" src="../assets/js/dashboard.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const resultsContainer = document.getElementById('test-results');
+
+            // Wait for 5 seconds to allow the dashboard script to execute
+            setTimeout(() => {
+                const loadingState = document.getElementById('loading-state');
+                const dashboardContent = document.getElementById('dashboard-content');
+                const errorContainer = document.getElementById('auth-error-container');
+
+                let passed = false;
+                let message = '';
+
+                // The test passes if the loading state is hidden and the dashboard content is shown.
+                // Note: Since this is an unauthenticated test, we expect to be redirected.
+                // The dashboard.js script redirects to login.html if the user is not authenticated.
+                // A more robust test would involve mocking the Firebase auth state.
+                // For now, we will check if the loading state is hidden.
+                // The script should hide the loading spinner regardless of the auth state.
+                // A timeout will occur and a fallback will be shown if the script fails.
+
+                if (loadingState.classList.contains('hidden') || loadingState.style.display === 'none') {
+                    passed = true;
+                    message = 'The loading spinner was successfully hidden. This indicates that the dashboard script ran without a fatal error.';
+
+                    // Extra check: see if the fallback UI was shown (which is expected for unauthenticated test)
+                    if (dashboardContent.textContent.includes("Dashboard Temporarily Unavailable")) {
+                         message += '<br>The fallback UI was correctly displayed for an unauthenticated session.';
+                    } else if (errorContainer.textContent.includes("Authentication failed")) {
+                        message += '<br>An authentication error was correctly displayed.';
+                    }
+
+                } else {
+                    passed = false;
+                    message = 'The loading spinner is still visible. The dashboard script likely failed to execute correctly.';
+                }
+
+                resultsContainer.innerHTML = `
+                    <div class="test-result ${passed ? 'pass' : 'fail'}">
+                        Test ${passed ? 'PASS' : 'FAIL'}<br>
+                        ${message}
+                    </div>
+                `;
+
+            }, 5000); // 5 second timeout for the test
+        });
+    </script>
+</body>
+</html>
