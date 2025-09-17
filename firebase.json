@@ -14,77 +14,77 @@
       {
         "source": "/add_subscriber",
         "function": {
-          "functionId": "handleAddSubscriber",
+          "functionId": "handleaddsubscriber",
           "codebase": "python-api"
         }
       },
       {
         "source": "/send_feedback_email",
         "function": {
-          "functionId": "handleSendFeedback",
+          "functionId": "handlesendfeedback",
           "codebase": "python-api"
         }
       },
       {
         "source": "/send_sponsorship_email",
         "function": {
-          "functionId": "handleSendSponsorship",
+          "functionId": "handlesendsponsorship",
           "codebase": "python-api"
         }
       },
       {
         "source": "/auth_action",
         "function": {
-          "functionId": "handleAuthAction",
+          "functionId": "handleauthaction",
           "codebase": "python-api"
         }
       },
       {
         "source": "/password_reset",
         "function": {
-          "functionId": "handlePasswordReset",
+          "functionId": "handlepasswordreset",
           "codebase": "python-api"
         }
       },
       {
         "source": "/profile/**",
         "function": {
-          "functionId": "handleGetProfile",
+          "functionId": "handlegetprofile",
           "codebase": "python-api"
         }
       },
       {
         "source": "/update_profile/**",
         "function": {
-          "functionId": "handleUpdateProfile",
+          "functionId": "handleupdateprofile",
           "codebase": "python-api"
         }
       },
       {
         "source": "/achievements",
         "function": {
-          "functionId": "handleGetAchievements",
+          "functionId": "handlegetachievements",
           "codebase": "python-api"
         }
       },
       {
         "source": "/leaderboard",
         "function": {
-          "functionId": "handleGetLeaderboard",
+          "functionId": "handlegetleaderboard",
           "codebase": "python-api"
         }
       },
       {
         "source": "/auto_award_achievement",
         "function": {
-          "functionId": "handleAutoAwardAchievement",
+          "functionId": "handleautoawardachievement",
           "codebase": "python-api"
         }
       },
       {
         "source": "/achievement_progress/**",
         "function": {
-          "functionId": "handleGetAchievementProgress",
+          "functionId": "handlegetachievementprogress",
           "codebase": "python-api"
         }
       }
