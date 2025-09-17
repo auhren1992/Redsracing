@@ -16,14 +16,6 @@ import {
     getCurrentUser
 } from './auth-utils.js';
 
-// Import invitation code utilities
-import { 
-    userNeedsInvitationCode, 
-    getPendingInvitationCode, 
-    setPendingInvitationCode, 
-    applyPendingInvitationCode 
-} from './invitation-codes.js';
-
 // Import sanitization utilities
 import { html, safeSetHTML, setSafeText } from './sanitize.js';
 
@@ -408,12 +400,6 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
     const invitationCodesCard = document.getElementById('invitation-codes-card');
     const invitationCodesTableBody = document.getElementById('invitation-codes-table-body');
     const refreshCodesBtn = document.getElementById('refresh-codes-btn');
-
-    // Invitation Code Prompt elements
-    const invitationCodePrompt = document.getElementById('invitation-code-prompt');
-    const inlineInvitationCodeInput = document.getElementById('inline-invitation-code');
-    const applyInvitationCodeBtn = document.getElementById('apply-invitation-code-btn');
-    const invitationCodeMessage = document.getElementById('invitation-code-message');
 
     function classifyFirestoreError(err) {
       if (!err) return 'Unknown Firestore error';
@@ -1005,6 +991,8 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
     }
 
 
+<<<<<<< bugfix/comprehensive-auth-flow-fixes
+=======
     // --- Invitation Code Prompt Handling ---
     const handleInvitationCodePrompt = async (user) => {
         try {
@@ -1149,6 +1137,7 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
 
 
 
+>>>>>>> main
     // Enhanced loading completion handler
     function hideLoadingAndShowContent() {
         console.log('[Dashboard:UI] Hiding loading state and showing dashboard content');
@@ -1228,12 +1217,12 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
                 // Show/hide admin features based on role
                 if (isTeamMember) {
                     // Show admin cards
-                    if (raceManagementCard) raceManagementCard.classList.remove('hidden');
-                    if (qnaManagementCard) qnaManagementCard.classList.remove('hidden');
-                    if (photoApprovalCard) photoApprovalCard.classList.remove('hidden');
-                    if (jonnyPhotoApprovalCard) jonnyPhotoApprovalCard.classList.remove('hidden');
-                    if (jonnyVideoManagementCard) jonnyVideoManagementCard.classList.remove('hidden');
-                    if (invitationCodesCard) invitationCodesCard.classList.remove('hidden');
+                    if (raceManagementCard) raceManagementCard.style.display = 'block';
+                    if (qnaManagementCard) qnaManagementCard.style.display = 'block';
+                    if (photoApprovalCard) photoApprovalCard.style.display = 'block';
+                    if (jonnyPhotoApprovalCard) jonnyPhotoApprovalCard.style.display = 'block';
+                    if (jonnyVideoManagementCard) jonnyVideoManagementCard.style.display = 'block';
+                    if (invitationCodesCard) invitationCodesCard.style.display = 'block';
                     
                     // Load admin data with error handling
                     try {
@@ -1255,15 +1244,12 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
                     }
                 } else {
                     // Hide admin cards for non-team members
-                    if (raceManagementCard) raceManagementCard.classList.add('hidden');
-                    if (qnaManagementCard) qnaManagementCard.classList.add('hidden');
-                    if (photoApprovalCard) photoApprovalCard.classList.add('hidden');
-                    if (jonnyPhotoApprovalCard) jonnyPhotoApprovalCard.classList.add('hidden');
-                    if (jonnyVideoManagementCard) jonnyVideoManagementCard.classList.add('hidden');
+                    if (raceManagementCard) raceManagementCard.style.display = 'none';
+                    if (qnaManagementCard) qnaManagementCard.style.display = 'none';
+                    if (photoApprovalCard) photoApprovalCard.style.display = 'none';
+                    if (jonnyPhotoApprovalCard) jonnyPhotoApprovalCard.style.display = 'none';
+                    if (jonnyVideoManagementCard) jonnyVideoManagementCard.style.display = 'none';
                 }
-
-                // Check if user needs invitation code prompt
-                await handleInvitationCodePrompt(user);
 
                 // Show driver notes for all authenticated users
                 if (driverNotesCard) {
@@ -1303,3 +1289,4 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
 
 
 })(); // End of async function wrapper
+```", False)

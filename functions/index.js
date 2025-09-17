@@ -151,7 +151,7 @@ exports.processInvitationCode = onCall(async (request) => {
     }
 
     // 3. Assign the custom role to the user
-    const roleToAssign = codeData.role; // Default role if not specified
+    const roleToAssign = codeData.role; // No more fallback
     logger.info(`Assigning role '${roleToAssign}' to user ${uid}.`);
     await auth.setCustomUserClaims(uid, {role: roleToAssign});
 
