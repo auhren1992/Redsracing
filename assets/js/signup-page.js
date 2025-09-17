@@ -1,7 +1,7 @@
-import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
+import { getFirebaseAuth, getFirebaseDb } from '/assets/js/firebase-core.js';
 import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { validateInvitationCode, processInvitationCode, captureInvitationCodeFromURL } from './invitation-codes.js';
+import { validateInvitationCode, processInvitationCode, captureInvitationCodeFromURL } from '/assets/js/invitation-codes.js';
 
 async function createDefaultProfile(user) {
     try {
@@ -26,15 +26,17 @@ async function createDefaultProfile(user) {
 }
 
 export async function handleSignup(email, password, inviteCode) {
+    if (!inviteCode) {
+        throw new Error("Invitation code is required.");
+    }
+
     try {
         const auth = getFirebaseAuth();
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Process invitation code if provided
-        if (inviteCode) {
-            await processInvitationCode(inviteCode, user.uid);
-        }
+        // Process invitation code
+        await processInvitationCode(inviteCode, user.uid);
 
         // Create a default profile document in Firestore
         await createDefaultProfile(user);
