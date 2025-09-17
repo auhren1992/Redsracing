@@ -3,16 +3,17 @@
  * Centralized login flow management with deferred UI enablement, MFA support, and reCAPTCHA Enterprise
  */
 
-import { getFirebaseAuth, getFirebaseApp } from './firebase-core.js';
+import { getFirebaseAuth } from './firebase-core.js';
 import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 import { setPendingInvitationCode } from './invitation-codes.js';
-import { recaptchaService } from './recaptcha-enterprise.js';
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 import { 
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
     GoogleAuthProvider,
-    signInWithPopup
+    signInWithPopup,
+    signInWithPhoneNumber,
+    PhoneAuthProvider,
+    PhoneMultiFactorGenerator
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { navigateToInternal } from './navigation-helpers.js';
 
@@ -31,7 +32,9 @@ class LoginPageController {
         // UI state management
         this.uiState = {
             buttonsEnabled: false,
+            currentFlow: 'email', // 'email', 'phone', 'mfa'
             loadingButton: null,
+            recaptchaAvailable: false
         };
     }
 
@@ -76,17 +79,25 @@ class LoginPageController {
             emailInput: document.getElementById('email'),
             passwordInput: document.getElementById('password'),
             invitationCodeInput: document.getElementById('invitation-code'),
+            phoneNumberInput: document.getElementById('phone-number'),
+            verificationCodeInput: document.getElementById('verification-code'),
             
             // Buttons
             signinButton: document.getElementById('signin-button'),
             signupButton: document.getElementById('signup-button'),
             googleSigninButton: document.getElementById('google-signin-button'),
+            sendCodeButton: document.getElementById('send-code-button'),
+            verifyCodeButton: document.getElementById('verify-code-button'),
             forgotPasswordLink: document.getElementById('forgot-password-link'),
             
             // UI containers
             errorBox: document.getElementById('error-box'),
             errorText: document.getElementById('error-text'),
             loginForm: document.getElementById('login-form'),
+            phoneAuthContainer: document.getElementById('phone-auth-container'),
+            phoneForm: document.getElementById('phone-form'),
+            codeForm: document.getElementById('code-form'),
+            recaptchaContainer: document.getElementById('recaptcha-container')
         };
 
         // Validate all elements exist
@@ -129,6 +140,8 @@ class LoginPageController {
             this.elements.signinButton,
             this.elements.signupButton,
             this.elements.googleSigninButton,
+            this.elements.sendCodeButton,
+            this.elements.verifyCodeButton
         ];
 
         buttons.forEach(button => {
@@ -150,6 +163,8 @@ class LoginPageController {
             this.elements.signinButton,
             this.elements.signupButton,
             this.elements.googleSigninButton,
+            this.elements.sendCodeButton,
+            this.elements.verifyCodeButton
         ];
 
         buttons.forEach(button => {
@@ -247,30 +262,6 @@ class LoginPageController {
     }
 
     /**
-     * Verify reCAPTCHA token with the backend Cloud Function
-     * @param {string} action - The action name
-     * @param {string} token - The reCAPTCHA token
-     */
-    async verifyRecaptcha(action, token) {
-        try {
-            const functions = getFunctions(getFirebaseApp());
-            const createAssessment = httpsCallable(functions, 'createAssessment');
-            const result = await createAssessment({
-                recaptchaAction: action,
-                token: token,
-            });
-
-            console.log(`[Login Controller] reCAPTCHA assessment score: ${result.data.score}`);
-            if (result.data.score < 0.5) { // Example threshold from main branch
-                 throw new Error("Low reCAPTCHA score. Please try again.");
-            }
-        } catch (error) {
-            console.error('[Login Controller] reCAPTCHA verification failed:', error);
-            throw new Error('Security verification failed. Please try again.');
-        }
-    }
-
-    /**
      * Handle email/password sign in with reCAPTCHA Enterprise protection
      */
     async handleEmailSignIn() {
@@ -295,24 +286,67 @@ class LoginPageController {
             await recaptchaService.protectedAction(
                 'LOGIN',
                 async (recaptchaData) => {
+                    // First verify with backend if reCAPTCHA token is present
                     if (recaptchaData.recaptchaToken) {
-                        await this.verifyRecaptcha('LOGIN', recaptchaData.recaptchaToken);
+                        await this.verifyAuthAction('login', {
+                            ...recaptchaData,
+                            email
+                        });
                     }
+
+                    // Perform Firebase authentication
                     await signInWithEmailAndPassword(this.auth, email, password);
                     this.showMessage('Login successful! Redirecting...', false);
                     this.handleSuccess();
                 },
-                null,
-                { fallbackOnError: false, showUserMessage: true }
+                null, // no user object yet
+                {
+                    fallbackOnError: true,
+                    showUserMessage: true
+                }
             );
 
         } catch (error) {
-            this.showMessage(getFriendlyAuthError(error));
+            if (error.code === 'auth/multi-factor-required') {
+                await this.handleMFARequired(error);
+            } else {
+                this.showMessage(getFriendlyAuthError(error));
+            }
         } finally {
             this.setLoadingState(this.elements.signinButton, false, 'Sign In');
         }
     }
 
+    /**
+     * Verify authentication action with backend reCAPTCHA assessment
+     */
+    async verifyAuthAction(actionType, data) {
+        try {
+            const response = await fetch('/auth_action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    actionType,
+                    ...data
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Authentication verification failed: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log(`[Login Controller] Auth verification passed for ${actionType}:`, result.assessment);
+            return result;
+
+        } catch (error) {
+            console.error(`[Login Controller] Auth verification failed for ${actionType}:`, error);
+            throw error;
+        }
+    }
 
     /**
      * Handle Google sign in with reCAPTCHA Enterprise protection
@@ -330,15 +364,23 @@ class LoginPageController {
             await recaptchaService.protectedAction(
                 'LOGIN',
                 async (recaptchaData) => {
+                    // First verify with backend if reCAPTCHA token is present
                     if (recaptchaData.recaptchaToken) {
-                        await this.verifyRecaptcha('LOGIN', recaptchaData.recaptchaToken);
+                        await this.verifyAuthAction('login', {
+                            ...recaptchaData
+                        });
                     }
+
+                    // Perform Google authentication
                     await signInWithPopup(this.auth, this.googleProvider);
                     this.showMessage('Google sign-in successful! Redirecting...', false);
                     this.handleSuccess();
                 },
-                null,
-                { fallbackOnError: true, showUserMessage: true }
+                null, // no user object yet
+                {
+                    fallbackOnError: true,
+                    showUserMessage: true
+                }
             );
             
         } catch (error) {
@@ -349,7 +391,6 @@ class LoginPageController {
             this.setLoadingState(this.elements.googleSigninButton, false, 'Sign in with Google');
         }
     }
-
 
     /**
      * Handle forgot password with reCAPTCHA Enterprise protection
@@ -377,14 +418,23 @@ class LoginPageController {
             await recaptchaService.protectedAction(
                 'PASSWORD_RESET',
                 async (recaptchaData) => {
+                    // Verify with backend if reCAPTCHA token is present
                     if (recaptchaData.recaptchaToken) {
-                        await this.verifyRecaptcha('PASSWORD_RESET', recaptchaData.recaptchaToken);
+                        await this.verifyPasswordReset({
+                            ...recaptchaData,
+                            email
+                        });
                     }
+
+                    // Send password reset email
                     await sendPasswordResetEmail(this.auth, email);
                     this.showMessage('Password reset email sent! Please check your inbox and spam folder.', false);
                 },
-                null,
-                { fallbackOnError: true, showUserMessage: true }
+                null, // no user object yet
+                {
+                    fallbackOnError: true,
+                    showUserMessage: true
+                }
             );
             
         } catch (error) {
@@ -392,6 +442,33 @@ class LoginPageController {
         }
     }
 
+    /**
+     * Verify password reset action with backend
+     */
+    async verifyPasswordReset(data) {
+        try {
+            const response = await fetch('/password_reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Password reset verification failed: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('[Login Controller] Password reset verification passed:', result.assessment);
+            return result;
+
+        } catch (error) {
+            console.error('[Login Controller] Password reset verification failed:', error);
+            throw error;
+        }
+    }
 
     /**
      * Handle sign up redirect

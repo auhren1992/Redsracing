@@ -991,6 +991,153 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
     }
 
 
+<<<<<<< bugfix/comprehensive-auth-flow-fixes
+=======
+    // --- Invitation Code Prompt Handling ---
+    const handleInvitationCodePrompt = async (user) => {
+        try {
+            // Check if user needs an invitation code and there's no pending code
+            const needsCode = await userNeedsInvitationCode(user);
+            const pendingCode = getPendingInvitationCode();
+            
+            if (needsCode && !pendingCode && invitationCodePrompt) {
+                console.log('[Dashboard:InvitationCode] Showing invitation code prompt for user without role');
+                invitationCodePrompt.classList.remove('hidden');
+
+                const refreshRoleStatusBtn = document.getElementById('refresh-role-status-btn');
+                if (refreshRoleStatusBtn && !refreshRoleStatusBtn.hasAttribute('data-listener-refresh')) {
+                    refreshRoleStatusBtn.setAttribute('data-listener-refresh', 'true');
+                    refreshRoleStatusBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        const user = getCurrentUser();
+                        if (user) {
+                            refreshRoleStatusBtn.textContent = 'Refreshing...';
+                            refreshRoleStatusBtn.disabled = true;
+
+                            try {
+                                console.log('[Dashboard:InvitationCode] Forcing token refresh to check for updated roles.');
+                                await user.getIdToken(true); // Force refresh
+
+                                // Manually re-validate claims for immediate feedback
+                                const claimsResult = await validateUserClaims(['team-member']);
+
+                                if (claimsResult.success) {
+                                    showInvitationCodeMessage('Status updated! You now have access. Reloading page...', 'success');
+                                    setTimeout(() => window.location.reload(), 1500);
+                                } else {
+                                    showInvitationCodeMessage('Your user status has not been updated yet. Please try again in a moment.', 'info');
+                                    if (refreshRoleStatusBtn) {
+                                        refreshRoleStatusBtn.textContent = 'Refresh status';
+                                        refreshRoleStatusBtn.disabled = false;
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('[Dashboard:InvitationCode] Error refreshing token:', error);
+                                showInvitationCodeMessage('Error refreshing status. Please try again.', 'error');
+                                if (refreshRoleStatusBtn) {
+                                    refreshRoleStatusBtn.textContent = 'Refresh status';
+                                    refreshRoleStatusBtn.disabled = false;
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Set up the apply button handler
+                if (applyInvitationCodeBtn && !applyInvitationCodeBtn.hasAttribute('data-listener')) {
+                    applyInvitationCodeBtn.setAttribute('data-listener', 'true');
+                    applyInvitationCodeBtn.addEventListener('click', async () => {
+                        const code = inlineInvitationCodeInput?.value?.trim();
+                        if (!code) {
+                            showInvitationCodeMessage('Please enter an invitation code.', 'error');
+                            return;
+                        }
+
+                        applyInvitationCodeBtn.disabled = true;
+                        applyInvitationCodeBtn.textContent = 'Applying...';
+                        showInvitationCodeMessage('Processing invitation code...', 'info');
+
+                        try {
+                            // Store the code and apply it
+                            setPendingInvitationCode(code);
+                            const result = await applyPendingInvitationCode({ currentUser: user });
+
+                            if (result.success) {
+                                showInvitationCodeMessage(`Success! Role assigned: ${result.role || 'team-member'}`, 'success');
+                                // Hide the prompt after success
+                                setTimeout(() => {
+                                    invitationCodePrompt.classList.add('hidden');
+                                    // Refresh the page to update UI with new role
+                                    window.location.reload();
+                                }, 2000);
+                            } else {
+                                showInvitationCodeMessage(result.error || 'Failed to apply invitation code', 'error');
+                                if (!result.retryable) {
+                                    // Clear the input for non-retryable errors
+                                    inlineInvitationCodeInput.value = '';
+                                }
+                            }
+                        } catch (error) {
+                            console.error('[Dashboard:InvitationCode] Error applying code:', error);
+                            showInvitationCodeMessage('An error occurred. Please try again.', 'error');
+                        } finally {
+                            applyInvitationCodeBtn.disabled = false;
+                            applyInvitationCodeBtn.textContent = 'Apply Code';
+                        }
+                    });
+                }
+            } else {
+                // Hide the prompt if not needed
+                if (invitationCodePrompt) {
+                    invitationCodePrompt.classList.add('hidden');
+                }
+            }
+        } catch (error) {
+            console.error('[Dashboard:InvitationCode] Error handling invitation code prompt:', error);
+            // Don't show prompt if there's an error checking
+            if (invitationCodePrompt) {
+                invitationCodePrompt.classList.add('hidden');
+            }
+        }
+    };
+
+    // Helper function to show messages in the invitation code prompt
+    const showInvitationCodeMessage = (message, type) => {
+        if (!invitationCodeMessage) return;
+        
+        // Clear existing classes
+        invitationCodeMessage.className = 'mt-2 text-sm';
+        
+        // Add appropriate styling based on type
+        switch (type) {
+            case 'error':
+                invitationCodeMessage.className += ' text-red-400';
+                break;
+            case 'success':
+                invitationCodeMessage.className += ' text-green-400';
+                break;
+            case 'info':
+                invitationCodeMessage.className += ' text-blue-400';
+                break;
+            default:
+                invitationCodeMessage.className += ' text-gray-400';
+        }
+        
+        invitationCodeMessage.textContent = message;
+        
+        // Clear message after 5 seconds for non-error messages
+        if (type !== 'error') {
+            setTimeout(() => {
+                if (invitationCodeMessage) {
+                    invitationCodeMessage.textContent = '';
+                }
+            }, 5000);
+        }
+    };
+
+
+
+>>>>>>> main
     // Enhanced loading completion handler
     function hideLoadingAndShowContent() {
         console.log('[Dashboard:UI] Hiding loading state and showing dashboard content');
