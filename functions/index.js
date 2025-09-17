@@ -132,6 +132,12 @@ exports.processInvitationCode = onCall(async (request) => {
     }
     const codeData = codeDoc.data();
 
+    if (!codeData.role) {
+      logger.info(`Invitation code '${code}' is missing a role. Defaulting to 'team-member' and updating the document.`);
+      await codeDoc.ref.update({ role: "team-member" });
+      codeData.role = "team-member"; // Update the local copy as well
+    }
+
     // 2. Check if the code is still valid (not expired and not already used)
     const now = new Date();
     if (codeData.expiresAt && codeData.expiresAt.toDate() < now) {
@@ -145,7 +151,7 @@ exports.processInvitationCode = onCall(async (request) => {
     }
 
     // 3. Assign the custom role to the user
-    const roleToAssign = codeData.role || "public-fan"; // Default role if not specified
+    const roleToAssign = codeData.role; // No more fallback
     logger.info(`Assigning role '${roleToAssign}' to user ${uid}.`);
     await auth.setCustomUserClaims(uid, {role: roleToAssign});
 
@@ -164,6 +170,16 @@ exports.processInvitationCode = onCall(async (request) => {
     }, {merge: true});
     logger.info(`Set role '${roleToAssign}' in user's public profile (users/${uid}).`);
 
+
+    // 6. Award the "Community Member" achievement to get them on the leaderboard
+    const achievementData = {
+        userId: uid,
+        achievementId: "community_member", // This is a default achievement
+        dateEarned: FieldValue.serverTimestamp(),
+        assignedBy: "system"
+    };
+    await db.collection("user_achievements").add(achievementData);
+    logger.info(`Awarded 'community_member' achievement to user ${uid}.`);
 
     return {status: "success", message: `Role '${roleToAssign}' assigned successfully.`};
   } catch (error) {
