@@ -6,7 +6,6 @@
 import { getFirebaseAuth } from './firebase-core.js';
 import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 import { setPendingInvitationCode } from './invitation-codes.js';
-import { RecaptchaManager } from './recaptcha-manager.js';
 import { 
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
@@ -26,7 +25,6 @@ class LoginPageController {
     constructor() {
         this.auth = null;
         this.googleProvider = null;
-        this.recaptchaManager = null;
         this.confirmationResult = null;
         this.isInitialized = false;
         this.elements = {};
@@ -57,9 +55,6 @@ class LoginPageController {
             this.auth = getFirebaseAuth();
             this.googleProvider = new GoogleAuthProvider();
             
-            // Setup reCAPTCHA for phone auth (non-blocking)
-            await this.setupRecaptcha();
-
             // Bind event listeners
             this.bindEvents();
             
@@ -114,115 +109,6 @@ class LoginPageController {
     }
 
     /**
-     * Setup reCAPTCHA verifier for phone authentication
-     *
-     * CRITICAL FIXES IMPLEMENTED:
-     * ===========================
-     * 1. ✅ Timeout Protection: 8-second timeout prevents indefinite hanging
-     * 2. ✅ Graceful Degradation: Phone auth disabled when reCAPTCHA unavailable
-     * 3. ✅ User Feedback: Clear messages about reCAPTCHA status
-     * 4. ✅ Non-blocking: Login page remains functional regardless of reCAPTCHA status
-     * 5. ✅ Error Classification: Distinguishes between different reCAPTCHA failure types
-     * 6. ✅ UI State Management: Enables/disables phone auth based on reCAPTCHA availability
-     * 7. ✅ Resource Management: Uses RecaptchaManager for proper cleanup
-     *
-     * BEHAVIOR:
-     * - If reCAPTCHA loads successfully: Phone auth enabled
-     * - If reCAPTCHA fails/times out: Phone auth disabled with user-friendly message
-     * - Email and Google auth remain unaffected by reCAPTCHA status
-     *
-     * Uses RecaptchaManager for proper timeout and error handling
-     */
-    async setupRecaptcha() {
-        try {
-            if (this.elements.recaptchaContainer) {
-                console.log('[Login Controller] Setting up reCAPTCHA with timeout protection');
-
-                this.recaptchaManager = new RecaptchaManager();
-
-                // Set up error and expiration callbacks
-                this.recaptchaManager.onError((error) => {
-                    console.warn('[Login Controller] reCAPTCHA error:', error);
-                    this.showMessage('Security verification is temporarily unavailable. Phone authentication has been disabled.');
-                    this.uiState.recaptchaAvailable = false;
-                    this._disablePhoneAuth();
-                });
-
-                this.recaptchaManager.onExpired(() => {
-                    console.warn('[Login Controller] reCAPTCHA expired');
-                    this.showMessage('Security verification expired. Please try again or use email authentication.');
-                    this.uiState.recaptchaAvailable = false;
-                });
-
-                // Try to create verifier with 8-second timeout
-                const verifier = await this.recaptchaManager.createVerifier(
-                    this.auth,
-                    'recaptcha-container',
-                    {
-                        'size': 'invisible',
-                        'callback': (response) => {
-                            console.log('[Login Controller] reCAPTCHA solved');
-                        },
-                        'expired-callback': () => {
-                            console.log('[Login Controller] reCAPTCHA expired');
-                            this.showMessage('Security verification expired. Please try again.');
-                        }
-                    },
-                    8000 // 8 second timeout
-                );
-
-                if (verifier) {
-                    this.uiState.recaptchaAvailable = true;
-                    console.log('[Login Controller] ✓ reCAPTCHA verifier initialized successfully');
-                    this._enablePhoneAuth();
-                } else {
-                    console.log('[Login Controller] reCAPTCHA not available, phone auth disabled');
-                    this.uiState.recaptchaAvailable = false;
-                    this._disablePhoneAuth();
-                }
-            } else {
-                console.log('[Login Controller] reCAPTCHA container not found, phone auth disabled');
-                this._disablePhoneAuth();
-            }
-        } catch (error) {
-            console.warn('[Login Controller] reCAPTCHA setup failed:', error.message);
-            this.uiState.recaptchaAvailable = false;
-            this._disablePhoneAuth();
-
-            // Only show error if it's not a timeout/network issue
-            if (!isRecaptchaError(error)) {
-                this.showMessage('Security verification setup failed. Phone authentication has been disabled.');
-            }
-        }
-    }
-
-    /**
-     * Disable phone authentication UI when reCAPTCHA is unavailable
-     */
-    _disablePhoneAuth() {
-        const phoneButton = this.elements.sendCodeButton;
-        if (phoneButton) {
-            phoneButton.disabled = true;
-            phoneButton.textContent = 'Phone Auth Unavailable';
-            phoneButton.classList.add('opacity-50', 'cursor-not-allowed');
-            phoneButton.title = 'Security verification is required for phone authentication but is currently unavailable';
-        }
-    }
-
-    /**
-     * Enable phone authentication UI when reCAPTCHA is available
-     */
-    _enablePhoneAuth() {
-        const phoneButton = this.elements.sendCodeButton;
-        if (phoneButton) {
-            phoneButton.disabled = false;
-            phoneButton.textContent = 'Send Verification Code';
-            phoneButton.classList.remove('opacity-50', 'cursor-not-allowed');
-            phoneButton.title = '';
-        }
-    }
-
-    /**
      * Bind event listeners to UI elements
      */
     bindEvents() {
@@ -235,10 +121,6 @@ class LoginPageController {
         // Google sign in
         this.elements.googleSigninButton?.addEventListener('click', () => this.handleGoogleSignIn());
         
-        // Phone authentication
-        this.elements.sendCodeButton?.addEventListener('click', () => this.handleSendPhoneCode());
-        this.elements.verifyCodeButton?.addEventListener('click', () => this.handleVerifyPhoneCode());
-
         // Password reset
         this.elements.forgotPasswordLink?.addEventListener('click', (e) => this.handleForgotPassword(e));
         
@@ -436,89 +318,6 @@ class LoginPageController {
     }
 
     /**
-     * Handle MFA requirement
-     */
-    async handleMFARequired(error) {
-        try {
-            this.showMessage('2-Step Verification required. Sending code...', false);
-            const resolver = error.resolver;
-            const phoneInfoOptions = {
-                multiFactorHint: resolver.hints[0],
-                session: resolver.session
-            };
-            const phoneAuthProvider = new PhoneAuthProvider(this.auth);
-
-            // Check if reCAPTCHA is available for MFA
-            if (!this.recaptchaManager || !this.recaptchaManager.isReady()) {
-                this.showMessage('2-Step Verification requires security verification, but it is currently unavailable. Please try email authentication.');
-                return;
-            }
-
-            const verificationId = await phoneAuthProvider.verifyPhoneNumber(
-                phoneInfoOptions,
-                this.recaptchaManager.getVerifier()
-            );
-
-            // Switch to MFA code input mode
-            this.switchToMFAMode(verificationId, resolver);
-
-        } catch (err) {
-            console.error('[Login Controller] MFA setup failed:', err);
-
-            // Provide user-friendly error message based on error type
-            if (isRecaptchaError(err)) {
-                this.showMessage('2-Step Verification is temporarily unavailable due to security verification issues. Please try email authentication.');
-            } else {
-                this.showMessage('Could not send 2-step verification code. Please try again.');
-            }
-        }
-    }
-
-    /**
-     * Switch UI to MFA code input mode
-     */
-    switchToMFAMode(verificationId, resolver) {
-        this.uiState.currentFlow = 'mfa';
-
-        // Hide login form and show code verification
-        this.elements.loginForm?.classList.add('hidden');
-        this.elements.phoneAuthContainer?.classList.remove('hidden');
-        this.elements.phoneForm?.classList.add('hidden');
-        this.elements.codeForm?.classList.remove('hidden');
-
-        // Override verify button for MFA
-        const verifyMFACode = async () => {
-            const code = this.elements.verificationCodeInput?.value.trim();
-
-            if (!code) {
-                this.showMessage('Please enter the verification code.');
-                return;
-            }
-
-            this.setLoadingState(this.elements.verifyCodeButton, true, 'Verify and Sign In');
-
-            try {
-                const cred = PhoneMultiFactorGenerator.credential({
-                    verificationId: verificationId,
-                    verificationCode: code
-                });
-
-                await resolver.resolveSignIn(cred);
-                this.handleSuccess();
-
-            } catch (err) {
-                this.showMessage(getFriendlyAuthError(err));
-            } finally {
-                this.setLoadingState(this.elements.verifyCodeButton, false, 'Verify and Sign In');
-            }
-        };
-
-        // Replace event listener for MFA flow
-        this.elements.verifyCodeButton?.removeEventListener('click', this.handleVerifyPhoneCode);
-        this.elements.verifyCodeButton?.addEventListener('click', verifyMFACode);
-    }
-
-    /**
      * Verify authentication action with backend reCAPTCHA assessment
      */
     async verifyAuthAction(actionType, data) {
@@ -590,101 +389,6 @@ class LoginPageController {
             }
         } finally {
             this.setLoadingState(this.elements.googleSigninButton, false, 'Sign in with Google');
-        }
-    }
-
-    /**
-     * Handle phone code sending
-     */
-    async handleSendPhoneCode() {
-        if (!this.isInitialized) {
-            this.showMessage('Please wait for the page to load completely.');
-            return;
-        }
-
-        // Check if reCAPTCHA is available
-        if (!this.uiState.recaptchaAvailable || !this.recaptchaManager || !this.recaptchaManager.isReady()) {
-            this.showMessage('Phone authentication requires security verification, which is currently unavailable. Please use email authentication instead.');
-            return;
-        }
-
-        const phoneNumber = this.elements.phoneNumberInput?.value.trim();
-
-        if (!phoneNumber) {
-            this.showMessage('Please enter a valid phone number.');
-            return;
-        }
-
-        this.setLoadingState(this.elements.sendCodeButton, true, 'Send Verification Code');
-
-        try {
-            this.confirmationResult = await signInWithPhoneNumber(
-                this.auth,
-                phoneNumber,
-                this.recaptchaManager.getVerifier()
-            );
-
-            this.showMessage('Verification code sent to your phone!', false);
-
-            // Switch to code verification UI
-            this.elements.phoneForm?.classList.add('hidden');
-            this.elements.codeForm?.classList.remove('hidden');
-            this.uiState.currentFlow = 'phone';
-
-        } catch (error) {
-            console.error('[Login Controller] Phone code sending failed:', error);
-
-            // Handle reCAPTCHA-specific errors gracefully
-            if (isRecaptchaError(error)) {
-                const friendlyError = getFriendlyAuthError(error);
-                this.showMessage(friendlyError.userMessage);
-
-                // Try to reset reCAPTCHA for next attempt
-                if (this.recaptchaManager) {
-                    try {
-                        await this.recaptchaManager.reset();
-                    } catch (resetError) {
-                        console.warn('[Login Controller] Error resetting reCAPTCHA:', resetError);
-                        // If reset fails, disable phone auth
-                        this.uiState.recaptchaAvailable = false;
-                        this._disablePhoneAuth();
-                    }
-                }
-            } else {
-                this.showMessage(getFriendlyAuthError(error).userMessage);
-            }
-        } finally {
-            this.setLoadingState(this.elements.sendCodeButton, false, 'Send Verification Code');
-        }
-    }
-
-    /**
-     * Handle phone code verification
-     */
-    async handleVerifyPhoneCode() {
-        if (!this.confirmationResult) {
-            this.showMessage('Please request a verification code first.');
-            return;
-        }
-
-        const code = this.elements.verificationCodeInput?.value.trim();
-
-        if (!code) {
-            this.showMessage('Please enter the verification code.');
-            return;
-        }
-
-        this.setLoadingState(this.elements.verifyCodeButton, true, 'Verify and Sign In');
-
-        try {
-            await this.confirmationResult.confirm(code);
-            this.showMessage('Phone verification successful! Redirecting...', false);
-            this.handleSuccess();
-
-        } catch (error) {
-            this.showMessage(getFriendlyAuthError(error));
-        } finally {
-            this.setLoadingState(this.elements.verifyCodeButton, false, 'Verify and Sign In');
         }
     }
 
@@ -777,9 +481,6 @@ class LoginPageController {
      * Handle successful authentication
      */
     handleSuccess() {
-        // Cleanup reCAPTCHA resources before navigation
-        this.cleanup();
-
         // Capture invitation code from form if entered
         const invitationCode = this.elements.invitationCodeInput?.value?.trim();
         if (invitationCode) {
@@ -791,29 +492,12 @@ class LoginPageController {
             navigateToInternal('/dashboard.html');
         }, 1500);
     }
-
-    /**
-     * Cleanup resources when done
-     */
-    cleanup() {
-        if (this.recaptchaManager) {
-            console.log('[Login Controller] Cleaning up reCAPTCHA resources');
-            this.recaptchaManager.cleanup();
-            this.recaptchaManager = null;
-        }
-        this.uiState.recaptchaAvailable = false;
-    }
 }
 
 // Initialize login controller when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
     const loginController = new LoginPageController();
     await loginController.initialize();
-
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-        loginController.cleanup();
-    });
 });
 
 // Also initialize if DOM is already loaded
@@ -823,9 +507,4 @@ if (document.readyState === 'loading') {
     // DOM is already loaded
     const loginController = new LoginPageController();
     await loginController.initialize();
-
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-        loginController.cleanup();
-    });
 }
