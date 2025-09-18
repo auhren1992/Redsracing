@@ -35,7 +35,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 // Wrap everything in an async function to allow early returns
 (async function() {
     // Enhanced error handling and retry logic
-    const INITIAL_TIMEOUT = 15000; // Extended to 15 seconds to allow for retries
+    const INITIAL_TIMEOUT = 30000; // Extended to 30 seconds to allow for retries
     const MAX_RETRIES = 3;
     const RETRY_BASE_DELAY = 1000; // 1 second base delay for exponential backoff
     
