@@ -46,7 +46,8 @@ export function safeSetHTML(element, htmlString) {
     
     try {
         // Check if DOMPurify is available before using it
-        /* global DOMPurify */ 
+        /* global DOMPurify */
+        const cleanHTML = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(htmlString) : htmlString;
         element.innerHTML = '';
         const tempDiv = document.createElement('div');
         tempDiv.appendChild(document.createRange().createContextualFragment(cleanHTML));
