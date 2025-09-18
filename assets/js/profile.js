@@ -1127,10 +1127,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         hideLoadingAndShowFallback();
     }
 
-    // Clear the loading timeout since we successfully loaded
-    if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
-        loadingTimeout = null;
-    }
+    // The loading timeout is now cleared only when content is shown or a fallback is triggered.
+    // console.log('[Profile] ✓ Profile initialization setup complete');
 
 })(); // End of async function wrapper

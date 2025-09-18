@@ -1136,9 +1136,8 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
 
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Clear the loading timeout since we successfully initialized
-    clearLoadingTimeout();
-    console.log('[Dashboard:Complete] ✓ Dashboard initialization completed successfully');
+    // The loading timeout is now cleared only when content is shown or a fallback is triggered.
+    // console.log('[Dashboard:Complete] ✓ Dashboard initialization setup complete');
 
 
 })(); // End of async function wrapper
