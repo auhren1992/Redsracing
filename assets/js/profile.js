@@ -496,15 +496,9 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
                 console.log(`[Profile] Profile not found for ${userId}`);
                 if (isCurrentUserProfile) {
                     console.log('[Profile] Creating default profile for current user');
-                    try {
-                        await createDefaultProfile(userId);
-                        return; // Successfully created and loaded profile
-                    } catch (createError) {
-                        console.error('[Profile] Failed to create default profile:', createError);
-                        displayMinimalProfile(userId);
-                        finalizeProfileLoad();
-                        return;
-                    }
+                    // createDefaultProfile now handles its own success/failure display, so we just call it.
+                    await createDefaultProfile(userId);
+                    return; // Exit after attempting to create a profile.
                 } else {
                     console.log('[Profile] Showing minimal profile for other user');
                     displayMinimalProfile(userId);
@@ -533,19 +527,30 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
             bio: '',
             avatarUrl: '',
             favoriteCars: [],
-            joinDate: new Date().toISOString()
+            joinDate: new Date().toISOString(),
+            achievements: [] // Start with an empty array of achievements
         };
 
         try {
             console.log(`[Profile] Creating default profile for user ${userId}`);
             await callProfileAPI(`/update_profile/${userId}`, 'PUT', defaultProfile);
-            // Award community member achievement for profile creation
-            await autoAwardAchievement(userId, 'profile_created');
 
-            // Reload profile after creation - this will handle loading state
-            await loadUserProfile(userId);
+            // Award community member achievement for profile creation
+            const awardResult = await autoAwardAchievement(userId, 'profile_created');
+
+            // If an achievement was awarded, add it to the local profile object
+            if(awardResult && awardResult.awardedAchievements && awardResult.awardedAchievements.length > 0) {
+                defaultProfile.achievements.push(...awardResult.awardedAchievements);
+            }
+
+            // Directly display the newly created profile instead of reloading
+            console.log('[Profile] Default profile created successfully, displaying it directly.');
+            displayProfile(defaultProfile);
+            loadAchievements(defaultProfile.achievements);
+
         } catch (error) {
             console.error('[Profile] Error creating default profile:', error);
+            // If creation fails, show a minimal profile and stop.
             displayMinimalProfile(userId);
             finalizeProfileLoad();
         }
