@@ -416,7 +416,7 @@ function classifyAuthError(error) {
         message: error.message || String(error),
         userMessage: 'An unexpected error occurred. Please try again.',
         requiresReauth: false,
-        retryable: true
+        retryable: false
     };
 }
 
