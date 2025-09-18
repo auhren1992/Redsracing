@@ -413,31 +413,53 @@ const updateRetryStatus = (attempt, maxAttempts, context) => {
     // Countdown function
     const startCountdown = (races) => {
         if (countdownInterval) clearInterval(countdownInterval);
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const nextRace = races.find(race => new Date(race.date + 'T00:00:00') >= today);
+
+        let nextRace = null;
+        for (const race of races) {
+            // Validate that the race date is a valid, parseable string
+            if (race && race.date && !isNaN(new Date(race.date + 'T00:00:00'))) {
+                const raceDate = new Date(race.date + 'T00:00:00');
+                if (raceDate >= today) {
+                    nextRace = race;
+                    break; // Found the first upcoming valid race
+                }
+            }
+        }
 
         if (!nextRace) {
-            document.getElementById('next-race-name').textContent = "Season Complete!";
-            document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-2xl font-racing'>Thanks for a great season!</div>";
+            safeSetHTML(document.getElementById('next-race-name'), html`Season Complete!`);
+            safeSetHTML(document.getElementById('countdown-timer'), html`<div class='col-span-4 text-2xl font-racing'>Thanks for a great season!</div>`);
             return;
         }
 
-        document.getElementById('next-race-name').textContent = nextRace.name;
+        safeSetHTML(document.getElementById('next-race-name'), html`${nextRace.name}`);
         const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
+
+        // Final check to ensure the date is valid before starting the interval
+        if (isNaN(nextRaceDate)) {
+            console.error(`[Dashboard:Countdown] Error: Invalid date for next race:`, nextRace);
+            safeSetHTML(document.getElementById('countdown-timer'), html`<div class='col-span-4 text-red-500'>Error: Invalid race date</div>`);
+            return;
+        }
 
         countdownInterval = setInterval(() => {
             const now = new Date().getTime();
             const distance = nextRaceDate - now;
+
             if (distance < 0) {
                 clearInterval(countdownInterval);
-                document.getElementById('countdown-timer').innerHTML = "<div class='col-span-4 text-3xl font-racing neon-yellow'>RACE DAY!</div>";
+                safeSetHTML(document.getElementById('countdown-timer'), html`<div class='col-span-4 text-3xl font-racing neon-yellow'>RACE DAY!</div>`);
                 return;
             }
-            document.getElementById('days').textContent = Math.floor(distance / (1000 * 60 * 60 * 24));
-            document.getElementById('hours').textContent = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            document.getElementById('minutes').textContent = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            document.getElementById('seconds').textContent = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Use setSafeText for performance and security
+            setSafeText(document.getElementById('days'), Math.floor(distance / (1000 * 60 * 60 * 24)));
+            setSafeText(document.getElementById('hours'), Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+            setSafeText(document.getElementById('minutes'), Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)));
+            setSafeText(document.getElementById('seconds'), Math.floor((distance % (1000 * 60)) / 1000));
         }, 1000);
     };
 
