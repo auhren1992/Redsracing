@@ -176,8 +176,39 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         }, 1000);
     }
 
+    function openRaceModal(race = null) {
+        if (race) {
+            modalTitle.textContent = 'Edit Race';
+            raceIdInput.value = race.id || '';
+            raceDateInput.value = race.date || '';
+            raceNameInput.value = race.name || '';
+            raceTypeInput.value = race.type || 'standard';
+            raceResultsInput.value = race.results || '';
+            raceSummaryInput.value = race.summary || '';
+            liveTimingLinkInput.value = race.liveTimingLink || '';
+
+            if (race.type === 'special') {
+                raceNumberContainer.style.display = 'none';
+                specialNameContainer.style.display = 'block';
+                specialNameInput.value = race.specialName || '';
+            } else {
+                specialNameContainer.style.display = 'none';
+                raceNumberContainer.style.display = 'block';
+                raceNumberInput.value = race.raceNumber || '';
+            }
+        } else {
+            modalTitle.textContent = 'Add New Race';
+            raceForm.reset();
+            raceIdInput.value = '';
+            specialNameContainer.style.display = 'none';
+            raceNumberContainer.style.display = 'block';
+        }
+        raceModal.classList.remove('hidden');
+    }
+
     function renderRacesTable(races) {
         const tableBody = document.getElementById('races-table-body');
+        if (!tableBody) return;
         tableBody.innerHTML = '';
         races.forEach(race => {
             const row = document.createElement('tr');
