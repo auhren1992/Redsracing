@@ -47,7 +47,7 @@ async function loadLeaderboard() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-    const response = await fetch('/leaderboard', {
+    const response = await fetch('https://handlegetleaderboard-r7f4oo4gjq-uc.a.run.app', {
       method: 'GET',
       signal: controller.signal,
       headers: {
