@@ -31,7 +31,6 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
 // Main IIFE to encapsulate dashboard logic
 (async function() {
-    console.log('[DEBUG] Dashboard script started.');
     // --- Start of Variable Declarations ---
     
     const INITIAL_TIMEOUT = 30000;
@@ -99,6 +98,22 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
     // --- Start of Function Declarations ---
 
+    function checkNetworkConnectivity() {
+        return navigator.onLine;
+    }
+
+    function showNetworkErrorFallback() {
+        if (loadingState) loadingState.style.display = 'none';
+        const fallback = document.getElementById('network-error-fallback');
+        if (fallback) fallback.style.display = 'block';
+    }
+
+    function hideLoadingAndShowFallback() {
+        if (loadingState) loadingState.style.display = 'none';
+        const fallback = document.getElementById('generic-error-fallback');
+        if (fallback) fallback.style.display = 'block';
+    }
+
     function startLoadingTimeout() {
         if (loadingTimeout) clearTimeout(loadingTimeout);
         loadingTimeout = setTimeout(async () => {
@@ -136,7 +151,6 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     }
 
     function startCountdown(races) {
-        console.log('[DEBUG] startCountdown called.');
         if (countdownInterval) clearInterval(countdownInterval);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -208,7 +222,6 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     }
 
     function renderRacesTable(races) {
-        console.log('[DEBUG] renderRacesTable called with', races.length, 'races.');
         const tableBody = document.getElementById('races-table-body');
         if (!tableBody) return;
         tableBody.innerHTML = '';
@@ -223,7 +236,6 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     }
 
     async function getRaceData() {
-        console.log('[DEBUG] getRaceData called.');
         const racesCol = collection(db, "races");
         const q = query(racesCol, orderBy("date", "asc"));
         const raceSnapshot = await getDocs(q);
@@ -242,7 +254,6 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     // Setup auth listener
     monitorAuthState(
         async (user, validToken) => {
-            console.log('[DEBUG] monitorAuthState callback. User:', user ? user.uid : 'null', 'Token:', validToken);
             clearAuthError();
             if (user && validToken) {
                 if (userEmailEl) userEmailEl.textContent = user.email;
