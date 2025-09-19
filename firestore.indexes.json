@@ -111,16 +111,6 @@
       ]
     },
     {
-      "collectionGroup": "races",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "date",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
       "collectionGroup": "jonny_videos",
       "queryScope": "COLLECTION",
       "fields": [
