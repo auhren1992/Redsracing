@@ -99,6 +99,22 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
     // --- Start of Function Declarations ---
 
+    function startLoadingTimeout() {
+        if (loadingTimeout) clearTimeout(loadingTimeout);
+        loadingTimeout = setTimeout(async () => {
+            console.error('[Dashboard:Timeout] Error:', `Loading timeout reached after ${INITIAL_TIMEOUT}ms, checking network and showing fallback`);
+
+            // Before showing fallback, check if it's a network issue
+            const isOnline = await checkNetworkConnectivity();
+
+            if (!isOnline) {
+                showNetworkErrorFallback();
+            } else {
+                hideLoadingAndShowFallback();
+            }
+        }, INITIAL_TIMEOUT);
+    }
+
     function clearLoadingTimeout() {
         if (loadingTimeout) {
             clearTimeout(loadingTimeout);
