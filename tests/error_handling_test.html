@@ -116,19 +116,18 @@
         }
 
         function checkFirestoreIndexes() {
-            // Mock test for index configuration 
+            // Mock test for index configuration to ensure unnecessary indexes are removed
             fetch('/firestore.indexes.json')
                 .then(response => response.json())
                 .then(data => {
                     const hasJonnyVideosIndex = data.indexes.some(index => 
-                        index.collectionGroup === 'jonny_videos' &&
-                        index.fields.some(field => field.fieldPath === 'createdAt' && field.order === 'DESCENDING')
+                        index.collectionGroup === 'jonny_videos'
                     );
                     
                     if (hasJonnyVideosIndex) {
-                        logResult('firestore-results', '✅ jonny_videos createdAt DESC index found in configuration', true);
+                        logResult('firestore-results', '❌ Unnecessary jonny_videos index found in configuration.', false);
                     } else {
-                        logResult('firestore-results', '❌ jonny_videos createdAt DESC index missing from configuration', false);
+                        logResult('firestore-results', '✅ Unnecessary jonny_videos index successfully removed.', true);
                     }
                 })
                 .catch(error => {
