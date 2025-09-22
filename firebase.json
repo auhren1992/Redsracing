@@ -69,10 +69,7 @@
       },
       {
         "source": "/leaderboard",
-        "function": {
-          "functionId": "handlegetleaderboard",
-          "codebase": "python-api"
-        }
+        "function": "handlegetleaderboard"
       },
       {
         "source": "/auto_award_achievement",
