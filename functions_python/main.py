@@ -157,6 +157,16 @@ def handleAddSubscriber(req: https_fn.Request) -> https_fn.Response:
     except Exception as e:
         return https_fn.Response(f"An error occurred: {e}", status=500)
 
+@https_fn.on_request(cors=CORS_OPTIONS)
+def handleTest(req: https_fn.Request) -> https_fn.Response:
+    """A simple test function to verify rewrite functionality."""
+    print("handleTest function was invoked.")
+    return https_fn.Response(
+        json.dumps({"status": "success", "message": "Hello from the test function!"}),
+        status=200,
+        headers={"Content-Type": "application/json"}
+    )
+
 @https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY"])
 def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
     """Sends feedback from a user as an email via SendGrid."""

@@ -68,6 +68,10 @@
         }
       },
       {
+        "source": "/test",
+        "function": "handletest"
+      },
+      {
         "source": "/leaderboard",
         "function": {
           "functionId": "handlegetleaderboard",
