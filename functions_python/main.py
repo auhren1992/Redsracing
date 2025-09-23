@@ -6,7 +6,6 @@ from sendgrid.helpers.mail import Mail
 import os
 import json
 from datetime import datetime
-from recaptcha_service import recaptcha_service
 
 # Initialize Firebase Admin SDK.
 initialize_app()
@@ -52,77 +51,6 @@ def get_user_agent(req):
     """Extract user agent from request headers."""
     return req.headers.get("User-Agent", "unknown")
 
-def assess_recaptcha_action(req, action, user_id=None, email=None):
-    """
-    Perform reCAPTCHA assessment for the given action.
-    
-    Args:
-        req: The request object
-        action: Action name (LOGIN, REGISTRATION, PASSWORD_RESET, etc.)
-        user_id: Optional user ID
-        email: Optional email address
-        
-    Returns:
-        Tuple of (assessment_result, error_response)
-        If error_response is not None, return it immediately
-    """
-    try:
-        # Extract reCAPTCHA data from request
-        data = req.get_json(silent=True) or {}
-        recaptcha_token = data.get("recaptchaToken")
-        recaptcha_action = data.get("recaptchaAction", action)
-        
-        if not recaptcha_token:
-            # Allow requests without reCAPTCHA token for backward compatibility
-            # In production, you might want to make this mandatory
-            return {
-                "success": False,
-                "decision": "ALLOW",
-                "fallback": True,
-                "reasons": ["No reCAPTCHA token provided"]
-            }, None
-        
-        # Get client information
-        client_ip = get_client_ip(req)
-        user_agent = get_user_agent(req)
-        
-        # Create assessment
-        assessment_result = recaptcha_service.create_assessment(
-            token=recaptcha_token,
-            action=recaptcha_action,
-            user_ip=client_ip,
-            user_agent=user_agent,
-            user_id=user_id,
-            email=email
-        )
-        
-        # Check if action should be blocked
-        if assessment_result["decision"] == "BLOCK":
-            return assessment_result, https_fn.Response(
-                json.dumps({
-                    "error": "Security verification failed",
-                    "message": "This action appears suspicious and has been blocked for security.",
-                    "details": assessment_result.get("reasons", [])
-                }),
-                status=403,
-                headers={"Content-Type": "application/json"}
-            )
-        
-        # Log challenge decisions for monitoring
-        if assessment_result["decision"] == "CHALLENGE":
-            print(f"reCAPTCHA challenge for action {action}: {assessment_result.get('reasons', [])}")
-        
-        return assessment_result, None
-        
-    except Exception as e:
-        print(f"reCAPTCHA assessment error for action {action}: {e}")
-        # On error, allow the action but log the issue
-        return {
-            "success": False,
-            "decision": "ALLOW",
-            "fallback": True,
-            "reasons": [f"Assessment error: {str(e)}"]
-        }, None
 
 # Define a default CORS policy to allow requests from any origin.
 CORS_OPTIONS = options.CorsOptions(cors_origins="*", cors_methods=["get", "post", "put", "options"])
@@ -339,7 +267,7 @@ def handleGetProfile(req: https_fn.Request) -> https_fn.Response:
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleAuthAction(req: https_fn.Request) -> https_fn.Response:
-    """Handle authentication actions with reCAPTCHA protection."""
+    """Handle authentication actions."""
     if req.method == "OPTIONS":
         return https_fn.Response("", status=204)
     if req.method != "POST":
@@ -353,44 +281,15 @@ def handleAuthAction(req: https_fn.Request) -> https_fn.Response:
     if not action_type:
         return https_fn.Response("Missing actionType", status=400)
     
-    # Map action types to reCAPTCHA actions
-    recaptcha_action_map = {
-        "login": "LOGIN",
-        "signup": "REGISTRATION", 
-        "password_reset": "PASSWORD_RESET",
-        "mfa_setup": "MFA_SETUP",
-        "mfa_verify": "MFA_VERIFY"
-    }
-    
-    recaptcha_action = recaptcha_action_map.get(action_type)
-    if not recaptcha_action:
+    # This function now only validates that the action type is known
+    # and returns a success message. The actual auth logic is on the client.
+    known_actions = ["login", "signup", "password_reset", "mfa_setup", "mfa_verify"]
+    if action_type not in known_actions:
         return https_fn.Response(f"Unknown action type: {action_type}", status=400)
     
-    # Extract user information
-    user_id = data.get("userId")
-    email = data.get("email")
-    
-    # Perform reCAPTCHA assessment
-    assessment_result, error_response = assess_recaptcha_action(
-        req, recaptcha_action, user_id, email
-    )
-    
-    if error_response:
-        return error_response
-    
-    # Log successful assessment
-    print(f"reCAPTCHA assessment for {action_type}: {assessment_result['decision']}")
-    
-    # For auth actions, we just validate and return the assessment
-    # The actual auth logic is handled by Firebase Auth on the frontend
     response_data = {
         "success": True,
-        "message": f"Security verification passed for {action_type}",
-        "assessment": {
-            "decision": assessment_result["decision"],
-            "score": assessment_result.get("score", 0.5),
-            "assessmentName": assessment_result.get("assessment_name")
-        }
+        "message": f"Action '{action_type}' acknowledged."
     }
     
     return https_fn.Response(
@@ -401,7 +300,7 @@ def handleAuthAction(req: https_fn.Request) -> https_fn.Response:
 
 @https_fn.on_request(cors=CORS_OPTIONS) 
 def handlePasswordReset(req: https_fn.Request) -> https_fn.Response:
-    """Handle password reset requests with reCAPTCHA protection."""
+    """Handle password reset requests."""
     if req.method == "OPTIONS":
         return https_fn.Response("", status=204)
     if req.method != "POST":
@@ -415,30 +314,11 @@ def handlePasswordReset(req: https_fn.Request) -> https_fn.Response:
     if not email:
         return https_fn.Response("Email is required", status=400)
     
-    # Perform reCAPTCHA assessment
-    assessment_result, error_response = assess_recaptcha_action(
-        req, "PASSWORD_RESET", None, email
-    )
-    
-    if error_response:
-        return error_response
-    
-    # Annotate assessment after successful verification
-    assessment_name = assessment_result.get("assessment_name")
-    if assessment_name:
-        recaptcha_service.annotate_assessment(
-            assessment_name, 
-            "SUCCESSFUL_PASSWORD_RESET",
-            f"Password reset requested for {email}"
-        )
-    
+    # The client-side code handles sending the password reset email.
+    # This endpoint now serves as a simple acknowledgment.
     response_data = {
         "success": True,
-        "message": "Password reset verification passed",
-        "assessment": {
-            "decision": assessment_result["decision"],
-            "score": assessment_result.get("score", 0.5)
-        }
+        "message": "Password reset request acknowledged."
     }
     
     return https_fn.Response(
@@ -449,7 +329,7 @@ def handlePasswordReset(req: https_fn.Request) -> https_fn.Response:
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleUpdateProfile(req: https_fn.Request) -> https_fn.Response:
-    """Update the authenticated user's profile with reCAPTCHA protection."""
+    """Update the authenticated user's profile."""
     if req.method == "OPTIONS":
         return https_fn.Response("", status=204)
     if req.method != "PUT":
@@ -470,14 +350,6 @@ def handleUpdateProfile(req: https_fn.Request) -> https_fn.Response:
     # Users can only update their own profile
     if decoded_token["uid"] != user_id:
         return https_fn.Response("Forbidden: Can only update your own profile", status=403)
-    
-    # Perform reCAPTCHA assessment for profile updates
-    assessment_result, error_response = assess_recaptcha_action(
-        req, "PROFILE_UPDATE", user_id, decoded_token.get("email")
-    )
-    
-    if error_response:
-        return error_response
     
     data = req.get_json(silent=True)
     if not data:
@@ -550,27 +422,9 @@ def handleUpdateProfile(req: https_fn.Request) -> https_fn.Response:
         profile_ref = db.collection("users").document(user_id)
         profile_ref.set(profile_data, merge=True)
         
-        # Annotate reCAPTCHA assessment as successful
-        assessment_name = assessment_result.get("assessment_name")
-        if assessment_name:
-            recaptcha_service.annotate_assessment(
-                assessment_name,
-                "SUCCESSFUL_PROFILE_UPDATE",
-                f"Profile updated for user {user_id}"
-            )
-        
         return https_fn.Response("Profile updated successfully", status=200)
     
     except Exception as e:
-        # Annotate assessment as failed on error
-        assessment_name = assessment_result.get("assessment_name")
-        if assessment_name:
-            recaptcha_service.annotate_assessment(
-                assessment_name,
-                "FAILED_PROFILE_UPDATE",
-                f"Profile update failed for user {user_id}: {str(e)}"
-            )
-        
         return https_fn.Response(f"An error occurred: {e}", status=500)
 
 @https_fn.on_request(cors=CORS_OPTIONS)

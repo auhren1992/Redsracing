@@ -27,22 +27,24 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
 // Wrap everything in an async function to allow early returns
 (async function() {
+    console.log('[Profile:Module] Starting profile module execution.');
     
     // Track initialization and cleanup state
     let isInitialized = false;
     let isDestroyed = false;
     let loadingTimeout = null;
     let authStateUnsubscribe = null;
+    let isProcessingAuth = false; // Guard against re-entrant auth calls
 
     const auth = getFirebaseAuth();
     const app = getFirebaseApp();
     const db = getFirebaseDb();
     
-    console.log('[Profile:Init] Firebase services obtained successfully');
+    console.log('[Profile:Init] Firebase services obtained successfully.');
 
     // Check if Firebase services are available
     if (!auth || !app || !db) {
-        console.error('[Profile:Init] Firebase services not available');
+        console.error('[Profile:Init] Firebase services not available. Aborting initialization.');
         hideLoadingAndShowFallback();
         return;
     }
@@ -344,23 +346,27 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
     // Load user profile
     async function loadUserProfile(userId) {
-        if (isDestroyed) return;
+        if (isDestroyed) {
+            console.log(`[Profile:Load] Aborted: component destroyed.`);
+            return;
+        }
         
-        console.log(`[Profile:Load] Loading profile for user: ${userId}`);
+        console.log(`[Profile:Load] Starting profile load for user: ${userId}`);
         try {
             const profileData = await callProfileAPI(`/profile/${userId}`);
+            console.log(`[Profile:Load] API call successful for user: ${userId}. Displaying profile.`);
             displayProfile(profileData);
             loadAchievements(profileData.achievements || []);
 
-            console.log(`[Profile:Load] Successfully loaded profile for user: ${userId}`);
+            console.log(`[Profile:Load] Successfully finished loading profile for user: ${userId}`);
         } catch (error) {
-            console.error(`[Profile:Load] Error loading profile for ${userId}:`, error);
+            console.error(`[Profile:Load] Caught error loading profile for ${userId}:`, error);
 
             // Distinguish between different error types and handle appropriately
             if (error.code === 'not-found') {
-                console.log(`[Profile:Load] Profile not found for ${userId}`);
+                console.log(`[Profile:Load] Profile not found for ${userId}. Checking if it's the current user.`);
                 if (isCurrentUserProfile) {
-                    console.log('[Profile:Load] Creating default profile for current user');
+                    console.log('[Profile:Load] Current user profile not found. Attempting to create a default profile.');
                     try {
                         await createDefaultProfile(userId);
                         return; // Successfully created and loaded profile
@@ -371,19 +377,19 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
                         return;
                     }
                 } else {
-                    console.log('[Profile:Load] Showing minimal profile for other user');
+                    console.log('[Profile:Load] Other user profile not found. Showing minimal profile.');
                     displayMinimalProfile(userId);
                     hideLoadingAndShowContent();
                     return;
                 }
             } else if (error.code === 'unauthorized' || error.code === 'forbidden' || 
                       error.code === 'permission-denied' || error.code === 'unauthenticated') {
-                console.log(`[Profile:Load] Access denied (${error.code}) for ${userId}, showing minimal profile`);
+                console.log(`[Profile:Load] Access denied (${error.code}) for ${userId}. Showing minimal profile.`);
                 displayMinimalProfile(userId);
                 hideLoadingAndShowContent();
                 return;
             } else {
-                console.error(`[Profile:Load] Network or server error for ${userId}:`, error);
+                console.error(`[Profile:Load] A network or server error occurred for ${userId}. Showing minimal profile.`);
                 displayMinimalProfile(userId);
                 hideLoadingAndShowContent();
                 return;
@@ -393,7 +399,10 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
     // Create default profile for new users
     async function createDefaultProfile(userId) {
-        if (isDestroyed) return;
+        if (isDestroyed) {
+            console.log(`[Profile:Create] Aborted: component destroyed.`);
+            return;
+        }
         
         const defaultProfile = {
             username: currentUser.email.split('@')[0], // Use email username as default
@@ -405,13 +414,14 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         };
 
         try {
-            console.log(`[Profile:Create] Creating default profile for user ${userId}`);
+            console.log(`[Profile:Create] Attempting to create default profile for user ${userId}`);
             await callProfileAPI(`/update_profile/${userId}`, 'PUT', defaultProfile);
+            console.log(`[Profile:Create] Default profile created. Reloading profile for user ${userId}.`);
 
             // Reload profile after creation
             await loadUserProfile(userId);
         } catch (error) {
-            console.error('[Profile:Create] Error creating default profile:', error);
+            console.error('[Profile:Create] Error during default profile creation:', error);
             displayMinimalProfile(userId);
             hideLoadingAndShowContent();
         }
@@ -627,63 +637,73 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     try {
         authStateUnsubscribe = monitorAuthState(
             async (user, validToken) => {
-                if (isDestroyed) return;
+                console.log('[Profile:Auth] Auth state change event received.');
+                if (isDestroyed || isProcessingAuth) {
+                    if (isProcessingAuth) console.log('[Profile:Auth] Auth processing already in progress, skipping.');
+                    return;
+                }
                 
-                clearAuthError();
+                isProcessingAuth = true;
+                console.log('[Profile:Auth] Starting auth processing.');
 
-                if (user && validToken) {
-                    console.log('[Profile:Auth] User authenticated successfully', {
-                        uid: user.uid,
-                        email: user.email,
-                        emailVerified: user.emailVerified
-                    });
+                try {
+                    clearAuthError();
 
-                    currentUser = user;
-                    const targetUserId = getUserIdFromUrl() || user.uid;
-                    isCurrentUserProfile = (targetUserId === user.uid);
-
-                    // Load the user profile with enhanced error handling
-                    try {
-                        await loadUserProfile(targetUserId);
-                    } catch (profileError) {
-                        console.error('[Profile:Auth] Error loading profile:', profileError);
-                        showAuthError({
-                            code: 'profile-load-failed',
-                            message: 'Failed to load user profile',
-                            userMessage: 'Unable to load profile data. Please refresh the page and try again.',
-                            requiresReauth: false,
-                            retryable: true
-                        });
-                        showErrorState();
-                        return;
-                    }
-
-                    // Check if user is admin for achievements management
-                    try {
-                        const claimsResult = await validateUserClaims(['team-member']);
-                        const isAdmin = claimsResult.success && claimsResult.claims.role === 'team-member';
-
-                        console.log('[Profile:Auth] User role validation', {
-                            isAdmin,
-                            role: claimsResult.claims?.role,
-                            hasPermissions: claimsResult.success
+                    if (user && validToken) {
+                        console.log('[Profile:Auth] User is authenticated. Loading profile...', {
+                            uid: user.uid,
+                            email: user.email
                         });
 
-                        if (isAdmin && adminAchievements) {
-                            adminAchievements.classList.remove('hidden');
-                            
-                            // Load achievements for admin - placeholder
-                            console.log('[Profile:Admin] Admin features enabled');
+                        currentUser = user;
+                        const targetUserId = getUserIdFromUrl() || user.uid;
+                        isCurrentUserProfile = (targetUserId === user.uid);
+                        console.log(`[Profile:Auth] Target user ID is ${targetUserId}. Current user profile: ${isCurrentUserProfile}.`);
+
+                        // Load the user profile with enhanced error handling
+                        try {
+                            await loadUserProfile(targetUserId);
+                        } catch (profileError) {
+                            console.error('[Profile:Auth] Unhandled error during profile load:', profileError);
+                            showAuthError({
+                                code: 'profile-load-failed',
+                                message: 'Failed to load user profile',
+                                userMessage: 'Unable to load profile data. Please refresh the page and try again.',
+                                requiresReauth: false,
+                                retryable: true
+                            });
+                            showErrorState();
+                            return;
                         }
-                    } catch (claimsError) {
-                        console.error('[Profile:Auth] Error validating user claims:', claimsError);
-                        // Don't show error for claims validation failure - just hide admin features
-                    }
 
-                } else {
-                    console.log('[Profile:Auth] User not authenticated, redirecting to login');
-                    cleanup();
-                    navigateToInternal('/login.html');
+                        // Check if user is admin for achievements management
+                        try {
+                            console.log('[Profile:Auth] Validating user claims for admin access.');
+                            const claimsResult = await validateUserClaims(['team-member']);
+                            const isAdmin = claimsResult.success && claimsResult.claims.role === 'team-member';
+
+                            console.log('[Profile:Auth] User role validation complete:', {
+                                isAdmin,
+                                role: claimsResult.claims?.role,
+                                hasPermissions: claimsResult.success
+                            });
+
+                            if (isAdmin && adminAchievements) {
+                                adminAchievements.classList.remove('hidden');
+                                console.log('[Profile:Admin] Admin features enabled.');
+                            }
+                        } catch (claimsError) {
+                            console.error('[Profile:Auth] Error validating user claims:', claimsError);
+                        }
+
+                    } else {
+                        console.log('[Profile:Auth] User is not authenticated. Redirecting to login.');
+                        cleanup();
+                        navigateToInternal('/login.html');
+                    }
+                } finally {
+                    isProcessingAuth = false;
+                    console.log('[Profile:Auth] Finished auth processing.');
                 }
             },
             (error) => {
