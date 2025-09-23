@@ -57,6 +57,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     // Track initialization state
     let isInitialized = false;
     let isDestroyed = false;
+    let isProcessingAuth = false; // Guard against re-entrant auth calls
 
     // --- Start of Function Declarations ---
 
@@ -424,58 +425,67 @@ import { navigateToInternal } from './navigation-helpers.js';
     try {
         authStateUnsubscribe = monitorAuthState(
             async (user, validToken) => {
-                if (isDestroyed) return;
+                if (isDestroyed || isProcessingAuth) {
+                    if (isProcessingAuth) console.log('[Dashboard:Auth] Auth processing already in progress, skipping.');
+                    return;
+                }
                 
-                clearAuthError();
-                
-                if (user && validToken) {
-                    console.log('[Dashboard:Auth] User authenticated successfully');
-                    
-                    // Update UI with user info
-                    if (userEmailEl) {
-                        setSafeText(userEmailEl, user.email);
-                    }
-                    
-                    try {
-                        // Check user permissions
-                        const claimsResult = await validateUserClaims(['team-member']);
-                        const isTeamMember = claimsResult.success && claimsResult.claims.role === 'team-member';
-                        
-                        console.log('[Dashboard:Auth] User role check:', { isTeamMember, role: claimsResult.claims?.role });
+                isProcessingAuth = true;
 
-                        if (isTeamMember) {
-                            // Show admin features
-                            if (raceManagementCard) {
-                                raceManagementCard.style.display = 'block';
+                try {
+                    clearAuthError();
+                    
+                    if (user && validToken) {
+                        console.log('[Dashboard:Auth] User authenticated successfully');
+
+                        // Update UI with user info
+                        if (userEmailEl) {
+                            setSafeText(userEmailEl, user.email);
+                        }
+                        
+                        try {
+                            // Check user permissions
+                            const claimsResult = await validateUserClaims(['team-member']);
+                            const isTeamMember = claimsResult.success && claimsResult.claims.role === 'team-member';
+
+                            console.log('[Dashboard:Auth] User role check:', { isTeamMember, role: claimsResult.claims?.role });
+
+                            if (isTeamMember) {
+                                // Show admin features
+                                if (raceManagementCard) {
+                                    raceManagementCard.style.display = 'block';
+                                }
+
+                                // Load admin data
+                                await getRaceData();
                             }
                             
-                            // Load admin data
-                            await getRaceData();
+                            // Show driver notes (available to all authenticated users)
+                            if (driverNotesCard) {
+                                driverNotesCard.classList.remove('hidden');
+                            }
+
+                            // All data loaded successfully
+                            hideLoadingAndShowContent();
+
+                        } catch (error) {
+                            console.error('[Dashboard:Auth] Error loading dashboard data:', error);
+                            showAuthError({
+                                code: 'dashboard-data-load-failed',
+                                message: 'Failed to load dashboard data',
+                                userMessage: 'Unable to load dashboard information. Please try refreshing the page.',
+                                requiresReauth: false,
+                                retryable: true
+                            });
+                            hideLoadingAndShowFallback();
                         }
-                        
-                        // Show driver notes (available to all authenticated users)
-                        if (driverNotesCard) {
-                            driverNotesCard.classList.remove('hidden');
-                        }
-                        
-                        // All data loaded successfully
-                        hideLoadingAndShowContent();
-                        
-                    } catch (error) {
-                        console.error('[Dashboard:Auth] Error loading dashboard data:', error);
-                        showAuthError({
-                            code: 'dashboard-data-load-failed',
-                            message: 'Failed to load dashboard data',
-                            userMessage: 'Unable to load dashboard information. Please try refreshing the page.',
-                            requiresReauth: false,
-                            retryable: true
-                        });
-                        hideLoadingAndShowFallback();
+                    } else {
+                        console.log('[Dashboard:Auth] User not authenticated, redirecting to login');
+                        cleanup();
+                        navigateToInternal('/login.html');
                     }
-                } else {
-                    console.log('[Dashboard:Auth] User not authenticated, redirecting to login');
-                    cleanup();
-                    navigateToInternal('/login.html');
+                } finally {
+                    isProcessingAuth = false;
                 }
             },
             (error) => {
