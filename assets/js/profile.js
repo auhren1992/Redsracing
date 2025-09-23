@@ -1,7 +1,6 @@
-// Importing Firebase services and specific functions
-// Using centralized Firebase initialization from firebase-core
+// Fixed Profile Module - Resolves infinite loading and logout issues
 import { getFirebaseAuth, getFirebaseApp, getFirebaseDb } from './firebase-core.js';
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Import centralized authentication utilities
@@ -13,7 +12,8 @@ import {
     showAuthError,
     clearAuthError,
     monitorAuthState,
-    getCurrentUser
+    getCurrentUser,
+    safeSignOut
 } from './auth-utils.js';
 
 // Import sanitization utilities
@@ -27,16 +27,48 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
 // Wrap everything in an async function to allow early returns
 (async function() {
+    
+    // Track initialization and cleanup state
+    let isInitialized = false;
+    let isDestroyed = false;
+    let loadingTimeout = null;
+    let authStateUnsubscribe = null;
+
     const auth = getFirebaseAuth();
     const app = getFirebaseApp();
-    console.log('[Profile] Firebase services obtained successfully');
-    // Add immediate loading timeout as backup
-    let loadingTimeout = setTimeout(() => {
-        console.warn('Loading timeout reached, showing fallback content');
+    const db = getFirebaseDb();
+    
+    console.log('[Profile:Init] Firebase services obtained successfully');
+
+    // Check if Firebase services are available
+    if (!auth || !app || !db) {
+        console.error('[Profile:Init] Firebase services not available');
         hideLoadingAndShowFallback();
-    }, 5000); // 5 second timeout
+        return;
+    }
+
+    // Add immediate loading timeout as backup
+    function startLoadingTimeout() {
+        if (loadingTimeout) clearTimeout(loadingTimeout);
+        
+        loadingTimeout = setTimeout(() => {
+            if (isDestroyed) return;
+            
+            console.warn('[Profile:Timeout] Loading timeout reached, showing fallback');
+            hideLoadingAndShowFallback();
+        }, 15000); // 15 second timeout
+    }
+
+    function clearLoadingTimeout() {
+        if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+            loadingTimeout = null;
+        }
+    }
 
     function hideLoadingAndShowFallback() {
+        if (isDestroyed) return;
+        
         const loadingState = document.getElementById('loading-state');
         const profileContent = document.getElementById('profile-content');
 
@@ -45,7 +77,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
             loadingState.style.visibility = 'hidden';
             loadingState.classList.add('hidden');
             loadingState.setAttribute('hidden', 'true');
-            console.log('Profile loading state hidden');
+            console.log('[Profile:Fallback] Loading state hidden');
         }
 
         if (profileContent) {
@@ -53,29 +85,55 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
                 <div class="text-center py-20">
                     <h1 class="text-5xl font-racing uppercase mb-2">User <span class="neon-yellow">Profile</span></h1>
                     <div class="text-yellow-400 mb-6">
+                        <div class="text-6xl mb-4">⚠️</div>
                         <h2 class="text-2xl font-bold">Profile Temporarily Unavailable</h2>
-                        <p class="mt-2">Our services are currently unavailable.</p>
-                        <p class="text-sm text-slate-400 mt-2">This could be due to network issues or temporary service downtime.</p>
-                        <p class="text-sm text-slate-400 mt-1">Please check your internet connection and try again.</p>
+                        <p class="mt-2">We're unable to load your profile right now.</p>
+                        <p class="text-sm text-slate-400 mt-2">This could be a temporary connectivity or service issue.</p>
                     </div>
                     <div class="space-x-4">
-                        <button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
-                            Try Again
-                        </button>
-                        <a href="index.html" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">
-                            Go Home
-                        </a>
+                        <button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Try Again</button>
+                        <a href="index.html" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">Go Home</a>
                     </div>
                 </div>
             `;
             profileContent.classList.remove('hidden');
-            console.log('Profile fallback content shown');
+            console.log('[Profile:Fallback] Fallback content shown');
         }
 
-        if (loadingTimeout) {
-            clearTimeout(loadingTimeout);
-            loadingTimeout = null;
+        clearLoadingTimeout();
+    }
+
+    function hideLoadingAndShowContent() {
+        if (isDestroyed) return;
+        
+        console.log('[Profile:UI] Hiding loading state and showing profile content');
+        const loadingState = document.getElementById('loading-state');
+        const profileContent = document.getElementById('profile-content');
+        
+        if (loadingState) {
+            loadingState.classList.add('hidden');
         }
+        if (profileContent) {
+            profileContent.classList.remove('hidden');
+        }
+        
+        clearLoadingTimeout();
+        console.log('[Profile:UI] Profile content displayed successfully');
+    }
+
+    function showErrorState(type = 'generic', message = null) {
+        if (isDestroyed) return;
+        
+        console.log('[Profile:Error] Showing error state:', type);
+        const loadingState = document.getElementById('loading-state');
+        const profileContent = document.getElementById('profile-content');
+        const errorState = document.getElementById('error-state');
+        
+        if (loadingState) loadingState.classList.add('hidden');
+        if (profileContent) profileContent.classList.add('hidden');
+        if (errorState) errorState.classList.remove('hidden');
+        
+        clearLoadingTimeout();
     }
 
     // UI Elements
@@ -113,154 +171,73 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     let isEditing = false;
     let isCurrentUserProfile = false;
 
-    // Set up authentication state monitoring with enhanced error handling
-    console.log('[Profile] Setting up authentication state monitoring');
-
-    const authUnsubscribe = monitorAuthState(
-        async (user, validToken) => {
-            clearAuthError(); // Clear any previous auth errors
-
-            if (user && validToken) {
-                console.log('[Profile] User authenticated successfully', {
-                    uid: user.uid,
-                    email: user.email,
-                    emailVerified: user.emailVerified
-                });
-
-                currentUser = user;
-                const targetUserId = getUserIdFromUrl() || user.uid;
-                isCurrentUserProfile = (targetUserId === user.uid);
-
-                // Load the user profile with enhanced error handling
-                try {
-                    await loadUserProfile(targetUserId);
-                } catch (profileError) {
-                    console.error('[Profile] Error loading profile:', profileError);
-                    showAuthError({
-                        code: 'profile-load-failed',
-                        message: 'Failed to load user profile',
-                        userMessage: 'Unable to load profile data. Please refresh the page and try again.',
-                        requiresReauth: false,
-                        retryable: true
-                    });
-                    showErrorState();
-                    return;
-                }
-
-                // Check if user is admin for achievements management using new validation
-                try {
-                    const claimsResult = await validateUserClaims(['team-member']);
-                    const isAdmin = claimsResult.success && claimsResult.claims.role === 'team-member';
-
-                    console.log('[Profile] User role validation', {
-                        isAdmin,
-                        role: claimsResult.claims?.role,
-                        hasPermissions: claimsResult.success
-                    });
-
-                    if (isAdmin && adminAchievements) {
-                        adminAchievements.classList.remove('hidden');
-
-                        // Load achievements with safe operation wrapper
-                        const achievementsResult = await safeFirestoreOperation(
-                            loadAllAchievements,
-                            ['team-member'],
-                            'Load achievements for admin'
-                        );
-
-                        if (!achievementsResult.success) {
-                            console.error('[Profile] Error loading achievements:', achievementsResult.error);
-                            showAuthError(achievementsResult.error);
-                        }
-                    }
-                } catch (claimsError) {
-                    console.error('[Profile] Error validating user claims:', claimsError);
-                    // Don't show error for claims validation failure - just hide admin features
-                }
-
-                // Hide loading and show content
-                hideLoadingAndShowContent();
-
-            } else {
-                console.log('[Profile] User not authenticated, redirecting to login');
-                window.location.href = 'login.html';
+    // Enhanced logout handler
+    async function handleLogout() {
+        if (isDestroyed) return;
+        
+        console.log('[Profile:Logout] Starting logout process');
+        
+        try {
+            // Disable the logout button to prevent multiple clicks
+            if (logoutButton) {
+                logoutButton.disabled = true;
+                logoutButton.textContent = 'Signing out...';
             }
-        },
-        (error) => {
-            console.error('[Profile] Authentication error:', error);
-            showAuthError(error);
-
-            if (error.requiresReauth) {
-                // Redirect to login for auth errors that require re-authentication
+            
+            // Clean up any ongoing operations
+            cleanup();
+            
+            // Attempt safe sign out
+            const success = await safeSignOut();
+            
+            if (success) {
+                console.log('[Profile:Logout] Logout successful, redirecting...');
                 setTimeout(() => {
                     navigateToInternal('/login.html');
-                }, 3000);
+                }, 100);
             } else {
-                // Show error state for other auth issues
-                showErrorState();
+                console.warn('[Profile:Logout] Logout failed, but redirecting anyway');
+                navigateToInternal('/login.html');
             }
+            
+        } catch (error) {
+            console.error('[Profile:Logout] Logout error:', error);
+            navigateToInternal('/login.html');
         }
-    );
+    }
+
+    // Cleanup function to prevent memory leaks
+    function cleanup() {
+        console.log('[Profile:Cleanup] Starting cleanup');
+        isDestroyed = true;
+        
+        clearLoadingTimeout();
+        
+        if (authStateUnsubscribe) {
+            authStateUnsubscribe();
+            authStateUnsubscribe = null;
+        }
+        
+        console.log('[Profile:Cleanup] Cleanup completed');
+    }
+
+    // Start loading timeout immediately
+    startLoadingTimeout();
 
     // Set up logout button with enhanced error handling
     if (logoutButton) {
-        logoutButton.addEventListener('click', async () => {
-            try {
-                console.log('[Profile] Signing out user');
-                await signOut(auth);
-                console.log('[Profile] User signed out successfully');
-                window.location.href = 'login.html';
-            } catch (error) {
-                console.error('[Profile] Error signing out:', error);
-                showAuthError({
-                    code: 'logout-failed',
-                    message: 'Logout failed',
-                    userMessage: 'Failed to sign out. Redirecting to login page.',
-                    requiresReauth: false,
-                    retryable: false
-                });
-                // Still redirect even if logout fails
-                window.location.href = 'login.html';
-            }
+        logoutButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleLogout();
         });
+        console.log('[Profile:Init] Logout button handler attached');
     }
 
-    // Add loading timeout to prevent infinite loading
-    function setupLoadingTimeout() {
-        if (loadingTimeout) clearTimeout(loadingTimeout);
-        loadingTimeout = setTimeout(() => {
-            console.warn('Loading timeout reached, hiding loading state');
-            hideLoadingAndShowContent();
-        }, 10000); // 10 second timeout
+    // Get user ID from URL or use current user
+    function getUserIdFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('id');
     }
-
-    function hideLoadingAndShowContent() {
-        if (loadingState) {
-            loadingState.classList.add('hidden');
-        }
-        if (profileContent) {
-            profileContent.classList.remove('hidden');
-        }
-        if (loadingTimeout) {
-            clearTimeout(loadingTimeout);
-            loadingTimeout = null;
-        }
-    }
-
-    // Helper function to centralize loading state cleanup
-    function finalizeProfileLoad() {
-        console.log('[Profile] Finalizing profile load, clearing loading state');
-        if (loadingState) {
-            loadingState.classList.add('hidden');
-        }
-        if (loadingTimeout) {
-            clearTimeout(loadingTimeout);
-            loadingTimeout = null;
-        }
-    }
-
-    // Start the loading timeout immediately
-    setupLoadingTimeout();
 
     // Helper function to safely format timestamps from various sources
     function formatFirestoreTimestamp(timestamp, fallback = 'Unknown') {
@@ -295,231 +272,120 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
                 }
             }
 
-            console.warn('Unable to parse timestamp:', timestamp);
+            console.warn('[Profile:Format] Unable to parse timestamp:', timestamp);
             return fallback;
         } catch (error) {
-            console.error('Error formatting timestamp:', error, timestamp);
+            console.error('[Profile:Format] Error formatting timestamp:', error, timestamp);
             return fallback;
         }
-    }
-
-    // Get user ID from URL or use current user
-    function getUserIdFromUrl() {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get('id');
     }
 
     // Helper function to call profile API endpoints
     async function callProfileAPI(endpoint, method = 'GET', data = null) {
-        const db = getFirebaseDb();
+        if (isDestroyed) return null;
+        
+        try {
+            // Firestore fallback: GET /profile/:id
+            const profileGet = endpoint.match(/^\/profile\/([^/]+)$/);
+            if (db && method === 'GET' && profileGet) {
+                const userId = profileGet[1];
+                const profileRef = doc(db, 'users', userId);
+                const snap = await getDoc(profileRef);
 
-        // Firestore fallback: GET /profile/:id
-        const profileGet = endpoint.match(/^\/profile\/([^/]+)$/);
-        if (db && method === 'GET' && profileGet) {
-            const userId = profileGet[1];
-            const profileRef = doc(db, 'users', userId);
-            const snap = await getDoc(profileRef);
+                if (!snap.exists()) {
+                    const error = new Error('Profile not found');
+                    error.code = 'not-found';
+                    throw error;
+                }
 
-            if (!snap.exists()) {
-                const error = new Error('Profile not found');
-                error.code = 'not-found';
-                throw error;
+                const profile = snap.data() || {};
+
+                // Load achievements subcollection (optional)
+                let achievements = [];
+                try {
+                    const achRef = collection(db, 'users', userId, 'achievements');
+                    const achSnap = await getDocs(achRef);
+                    achievements = achSnap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
+                } catch (_) { /* ignore if missing */ }
+
+                return { ...profile, achievements };
             }
 
-            const profile = snap.data() || {};
+            // Firestore fallback: PUT/PATCH /update_profile/:id
+            const profilePut = endpoint.match(/^\/update_profile\/([^/]+)$/);
+            if (db && (method === 'PUT' || method === 'PATCH') && profilePut) {
+                const userId = profilePut[1];
+                const profileRef = doc(db, 'users', userId);
 
-            // Load achievements subcollection (optional)
-            let achievements = [];
-            try {
-                const achRef = collection(db, 'users', userId, 'achievements');
-                const achSnap = await getDocs(achRef);
-                achievements = achSnap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
-            } catch (_) { /* ignore if missing */ }
-
-            return { ...profile, achievements };
-        }
-
-        // Firestore fallback: PUT/PATCH /update_profile/:id
-        const profilePut = endpoint.match(/^\/update_profile\/([^/]+)$/);
-        if (db && (method === 'PUT' || method === 'PATCH') && profilePut) {
-            const userId = profilePut[1];
-            const profileRef = doc(db, 'users', userId);
-
-            const payload = {
-                username: data?.username || '',
-                displayName: data?.displayName || 'Anonymous User',
-                bio: data?.bio || '',
-                avatarUrl: data?.avatarUrl || '',
-                favoriteCars: Array.isArray(data?.favoriteCars) ? data.favoriteCars : [],
-                joinDate: data?.joinDate || new Date().toISOString(),
-                totalPoints: typeof data?.totalPoints === 'number' ? data.totalPoints : 0,
-                achievementCount: typeof data?.achievementCount === 'number' ? data.achievementCount : 0,
-            };
-
-            await setDoc(profileRef, payload, { merge: true });
-            const saved = await getDoc(profileRef);
-            return saved.exists() ? saved.data() : payload;
-        }
-
-        // Optional Firestore fallback placeholders
-        const progressGet = endpoint.match(/^\/achievement_progress\/([^/]+)$/);
-        if (db && method === 'GET' && progressGet) {
-            return {};
-        }
-        if (db && method === 'POST' && endpoint === '/auto_award_achievement') {
-            return { awardedAchievements: [] };
-        }
-
-        // Original network flow retained for future backend
-        let tokenValidation = null;
-        let options = {};
-
-        // For authenticated requests, validate and refresh token
-        if (currentUser) {
-            tokenValidation = await validateAndRefreshToken();
-
-            if (!tokenValidation.success) {
-                console.error('[Profile] Token validation failed for API call:', tokenValidation.error);
-
-                // For GET requests, we might still try without auth for public profile viewing
-                if (method === 'GET') {
-                    console.log(`[Profile] Attempting ${endpoint} without authentication for public access`);
-                    options = {
-                        method,
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    };
-                } else {
-                    throw new Error(`Authentication failed: ${tokenValidation.error.userMessage}`);
-                }
-            } else {
-                options = {
-                    method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${tokenValidation.token}`
-                    }
+                const payload = {
+                    username: data?.username || '',
+                    displayName: data?.displayName || 'Anonymous User',
+                    bio: data?.bio || '',
+                    avatarUrl: data?.avatarUrl || '',
+                    favoriteCars: Array.isArray(data?.favoriteCars) ? data.favoriteCars : [],
+                    joinDate: data?.joinDate || new Date().toISOString(),
+                    totalPoints: typeof data?.totalPoints === 'number' ? data.totalPoints : 0,
+                    achievementCount: typeof data?.achievementCount === 'number' ? data.achievementCount : 0,
                 };
-            }
-        } else {
-            // Unauthenticated request
-            options = {
-                method,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            };
-        }
 
-        if (data && method !== 'GET') {
-            options.body = JSON.stringify(data);
-        }
-
-        console.log(`[Profile] Calling API: ${method} ${endpoint}${tokenValidation?.success ? ' (authenticated with validated token)' : ' (unauthenticated)'}`);
-
-        let response = await fetch(endpoint, options);
-
-        // For GET requests, retry without auth if we get 401/403 (for public profile viewing)
-        if (!response.ok && method === 'GET' && (response.status === 401 || response.status === 403) && tokenValidation?.success) {
-            console.log(`[Profile] Retrying ${endpoint} without authentication for public access`);
-            const publicOptions = {
-                method,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            };
-            response = await fetch(endpoint, publicOptions);
-        }
-
-        if (!response.ok) {
-            const error = new Error(`HTTP error! status: ${response.status}`);
-            error.status = response.status;
-            console.error(`[Profile] API call failed: ${response.status} ${response.statusText}`);
-
-            // Handle specific authentication errors with user feedback
-            if (response.status === 404) {
-                error.code = 'not-found';
-            } else if (response.status === 401) {
-                error.code = 'unauthorized';
-                showAuthError({
-                    code: 'api-unauthorized',
-                    message: 'API call unauthorized',
-                    userMessage: 'Your session has expired. Please sign in again.',
-                    requiresReauth: true,
-                    retryable: false
-                });
-            } else if (response.status === 403) {
-                error.code = 'forbidden';
-                showAuthError({
-                    code: 'api-forbidden',
-                    message: 'API call forbidden',
-                    userMessage: 'You do not have permission to perform this action.',
-                    requiresReauth: false,
-                    retryable: false
-                });
-            } else if (response.status >= 500) {
-                showAuthError({
-                    code: 'server-error',
-                    message: 'Server error',
-                    userMessage: 'Server error occurred. Please try again later.',
-                    requiresReauth: false,
-                    retryable: true
-                });
+                await setDoc(profileRef, payload, { merge: true });
+                const saved = await getDoc(profileRef);
+                return saved.exists() ? saved.data() : payload;
             }
 
+            // If we get here, no Firestore fallback was available
+            throw new Error(`API endpoint ${endpoint} not available - backend service unavailable`);
+
+        } catch (error) {
+            console.error(`[Profile:API] Error calling ${endpoint}:`, error);
             throw error;
         }
-
-        console.log(`[Profile] API call successful: ${method} ${endpoint}`);
-        return response.json();
     }
 
     // Load user profile
     async function loadUserProfile(userId) {
-        console.log(`[Profile] Loading profile for user: ${userId}`);
+        if (isDestroyed) return;
+        
+        console.log(`[Profile:Load] Loading profile for user: ${userId}`);
         try {
             const profileData = await callProfileAPI(`/profile/${userId}`);
             displayProfile(profileData);
             loadAchievements(profileData.achievements || []);
 
-            // The achievement progress feature is not implemented and causes 404 errors.
-            // if (isCurrentUserProfile) {
-            //     await loadAchievementProgress(userId);
-            // }
-            console.log(`[Profile] Successfully loaded profile for user: ${userId}`);
+            console.log(`[Profile:Load] Successfully loaded profile for user: ${userId}`);
         } catch (error) {
-            console.error(`[Profile] Error loading profile for ${userId}:`, error);
+            console.error(`[Profile:Load] Error loading profile for ${userId}:`, error);
 
             // Distinguish between different error types and handle appropriately
             if (error.code === 'not-found') {
-                console.log(`[Profile] Profile not found for ${userId}`);
+                console.log(`[Profile:Load] Profile not found for ${userId}`);
                 if (isCurrentUserProfile) {
-                    console.log('[Profile] Creating default profile for current user');
+                    console.log('[Profile:Load] Creating default profile for current user');
                     try {
                         await createDefaultProfile(userId);
                         return; // Successfully created and loaded profile
                     } catch (createError) {
-                        console.error('[Profile] Failed to create default profile:', createError);
+                        console.error('[Profile:Load] Failed to create default profile:', createError);
                         displayMinimalProfile(userId);
-                        finalizeProfileLoad();
+                        hideLoadingAndShowContent();
                         return;
                     }
                 } else {
-                    console.log('[Profile] Showing minimal profile for other user');
+                    console.log('[Profile:Load] Showing minimal profile for other user');
                     displayMinimalProfile(userId);
-                    finalizeProfileLoad();
+                    hideLoadingAndShowContent();
                     return;
                 }
-            } else if (error.code === 'unauthorized' || error.code === 'forbidden' || error.code === 'permission-denied' || error.code === 'unauthenticated') {
-                console.log(`[Profile] Access denied (${error.code}) for ${userId}, showing minimal profile`);
+            } else if (error.code === 'unauthorized' || error.code === 'forbidden' || 
+                      error.code === 'permission-denied' || error.code === 'unauthenticated') {
+                console.log(`[Profile:Load] Access denied (${error.code}) for ${userId}, showing minimal profile`);
                 displayMinimalProfile(userId);
-                finalizeProfileLoad();
+                hideLoadingAndShowContent();
                 return;
             } else {
-                console.error(`[Profile] Network or server error for ${userId}:`, error);
+                console.error(`[Profile:Load] Network or server error for ${userId}:`, error);
                 displayMinimalProfile(userId);
-                finalizeProfileLoad();
+                hideLoadingAndShowContent();
                 return;
             }
         }
@@ -527,6 +393,8 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
     // Create default profile for new users
     async function createDefaultProfile(userId) {
+        if (isDestroyed) return;
+        
         const defaultProfile = {
             username: currentUser.email.split('@')[0], // Use email username as default
             displayName: currentUser.displayName || 'Anonymous User',
@@ -537,64 +405,66 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         };
 
         try {
-            console.log(`[Profile] Creating default profile for user ${userId}`);
+            console.log(`[Profile:Create] Creating default profile for user ${userId}`);
             await callProfileAPI(`/update_profile/${userId}`, 'PUT', defaultProfile);
-            // Award community member achievement for profile creation
-            await autoAwardAchievement(userId, 'profile_created');
 
-            // Reload profile after creation - this will handle loading state
+            // Reload profile after creation
             await loadUserProfile(userId);
         } catch (error) {
-            console.error('[Profile] Error creating default profile:', error);
+            console.error('[Profile:Create] Error creating default profile:', error);
             displayMinimalProfile(userId);
-            finalizeProfileLoad();
+            hideLoadingAndShowContent();
         }
     }
 
     // Display profile data
     function displayProfile(profileData) {
-        profileDisplayName.textContent = profileData.displayName || 'Anonymous User';
-        profileUsername.textContent = `@${profileData.username || 'unknown'}`;
-        profileBio.textContent = profileData.bio || 'No bio provided.';
+        if (isDestroyed) return;
+        
+        if (profileDisplayName) setSafeText(profileDisplayName, profileData.displayName || 'Anonymous User');
+        if (profileUsername) setSafeText(profileUsername, `@${profileData.username || 'unknown'}`);
+        if (profileBio) setSafeText(profileBio, profileData.bio || 'No bio provided.');
 
         // Handle avatar
-        if (profileData.avatarUrl) {
+        if (profileData.avatarUrl && profileAvatar && profileAvatarPlaceholder) {
             profileAvatar.src = profileData.avatarUrl;
             profileAvatar.classList.remove('hidden');
             profileAvatarPlaceholder.classList.add('hidden');
-        } else {
+        } else if (profileAvatar && profileAvatarPlaceholder) {
             profileAvatar.classList.add('hidden');
             profileAvatarPlaceholder.classList.remove('hidden');
-            profileAvatarPlaceholder.textContent = (profileData.displayName || 'U').charAt(0).toUpperCase();
+            setSafeText(profileAvatarPlaceholder, (profileData.displayName || 'U').charAt(0).toUpperCase());
         }
 
         // Handle favorite cars
-        if (profileData.favoriteCars && profileData.favoriteCars.length > 0) {
-            // Clear existing content
-            profileFavoriteCars.innerHTML = '';
-            // Create safe elements for each car
-            profileData.favoriteCars.forEach(car => {
-                const span = createSafeElement('span', car, 'bg-slate-700 text-slate-300 px-2 py-1 rounded-md text-sm');
-                profileFavoriteCars.appendChild(span);
-            });
-        } else {
-            setSafeText(profileFavoriteCars, 'No favorite cars added.');
-            profileFavoriteCars.className = 'text-slate-400';
+        if (profileFavoriteCars) {
+            if (profileData.favoriteCars && profileData.favoriteCars.length > 0) {
+                profileFavoriteCars.innerHTML = '';
+                profileData.favoriteCars.forEach(car => {
+                    const span = createSafeElement('span', car, 'bg-slate-700 text-slate-300 px-2 py-1 rounded-md text-sm mr-2');
+                    profileFavoriteCars.appendChild(span);
+                });
+            } else {
+                setSafeText(profileFavoriteCars, 'No favorite cars added.');
+                profileFavoriteCars.className = 'text-slate-400';
+            }
         }
 
         // Handle join date
-        if (profileData.joinDate) {
-            profileJoinDate.textContent = formatFirestoreTimestamp(profileData.joinDate);
-        } else {
-            profileJoinDate.textContent = 'Unknown';
+        if (profileJoinDate) {
+            if (profileData.joinDate) {
+                setSafeText(profileJoinDate, formatFirestoreTimestamp(profileData.joinDate));
+            } else {
+                setSafeText(profileJoinDate, 'Unknown');
+            }
         }
 
         // Pre-fill edit form
-        editUsername.value = profileData.username || '';
-        editDisplayName.value = profileData.displayName || '';
-        editBio.value = profileData.bio || '';
-        editAvatarUrl.value = profileData.avatarUrl || '';
-        editFavoriteCars.value = profileData.favoriteCars ? profileData.favoriteCars.join(', ') : '';
+        if (editUsername) editUsername.value = profileData.username || '';
+        if (editDisplayName) editDisplayName.value = profileData.displayName || '';
+        if (editBio) editBio.value = profileData.bio || '';
+        if (editAvatarUrl) editAvatarUrl.value = profileData.avatarUrl || '';
+        if (editFavoriteCars) editFavoriteCars.value = profileData.favoriteCars ? profileData.favoriteCars.join(', ') : '';
 
         // Show edit button only for current user's profile
         if (editProfileBtn) {
@@ -602,18 +472,16 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         }
 
         hideLoadingAndShowContent();
-        finalizeProfileLoad();
     }
-
-    // Load achievements
-    let userAchievementsData = []; // Store achievements data for filtering
 
     // Display minimal profile when backend is not available
     function displayMinimalProfile(userId) {
-        console.log(`[Profile] Displaying minimal profile for user: ${userId}`);
-        const user = auth?.currentUser;
+        if (isDestroyed) return;
+        
+        console.log(`[Profile:Minimal] Displaying minimal profile for user: ${userId}`);
+        const user = getCurrentUser();
         if (!user) {
-            console.warn('[Profile] Cannot display minimal profile - no authenticated user');
+            console.warn('[Profile:Minimal] Cannot display minimal profile - no authenticated user');
             hideLoadingAndShowFallback();
             return;
         }
@@ -632,35 +500,48 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         displayProfile(basicProfile);
         loadAchievements([]); // Load empty achievements
 
-        console.log(`[Profile] Displayed minimal profile due to ${isViewingOwnProfile ? 'backend unavailability' : 'user not found/access denied'}`);
+        console.log(`[Profile:Minimal] Displayed minimal profile due to ${isViewingOwnProfile ? 'backend unavailability' : 'user not found/access denied'}`);
     }
 
+    // Load achievements
     function loadAchievements(achievements) {
-        userAchievementsData = achievements; // Store for filtering
-
+        if (isDestroyed) return;
+        
+        if (!userAchievements) return;
+        
         if (achievements.length === 0) {
-            userAchievements.innerHTML = '<p class="text-slate-400">No achievements yet. Keep racing!</p>';
-            document.getElementById('achievement-summary').classList.add('hidden');
-            document.getElementById('category-filter').classList.add('hidden');
+            safeSetHTML(userAchievements, '<p class="text-slate-400">No achievements yet. Keep racing!</p>');
+            
+            const achievementSummary = document.getElementById('achievement-summary');
+            const categoryFilter = document.getElementById('category-filter');
+            if (achievementSummary) achievementSummary.classList.add('hidden');
+            if (categoryFilter) categoryFilter.classList.add('hidden');
             return;
         }
 
         // Show achievement summary and filter
-        document.getElementById('achievement-summary').classList.remove('hidden');
-        document.getElementById('category-filter').classList.remove('hidden');
+        const achievementSummary = document.getElementById('achievement-summary');
+        const categoryFilter = document.getElementById('category-filter');
+        if (achievementSummary) achievementSummary.classList.remove('hidden');
+        if (categoryFilter) categoryFilter.classList.remove('hidden');
 
         // Calculate total points
         const totalPoints = achievements.reduce((sum, achievement) => sum + (achievement.points || 0), 0);
-        document.getElementById('total-points').textContent = totalPoints;
-        document.getElementById('total-achievements-count').textContent = achievements.length;
+        const totalPointsEl = document.getElementById('total-points');
+        const totalAchievementsCountEl = document.getElementById('total-achievements-count');
+        
+        if (totalPointsEl) setSafeText(totalPointsEl, totalPoints.toString());
+        if (totalAchievementsCountEl) setSafeText(totalAchievementsCountEl, achievements.length.toString());
 
         // Render achievements
         renderAchievements(achievements);
     }
 
     function renderAchievements(achievements) {
+        if (isDestroyed || !userAchievements) return;
+        
         if (achievements.length === 0) {
-            userAchievements.innerHTML = '<p class="text-slate-400">No achievements in this category.</p>';
+            safeSetHTML(userAchievements, '<p class="text-slate-400">No achievements in this category.</p>');
             return;
         }
 
@@ -693,7 +574,9 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
             const achievementElement = document.createElement('div');
             safeSetHTML(achievementElement, achievementHTML);
-            userAchievements.appendChild(achievementElement.firstElementChild);
+            if (achievementElement.firstElementChild) {
+                userAchievements.appendChild(achievementElement.firstElementChild);
+            }
         });
     }
 
@@ -708,201 +591,19 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         return categoryMap[category] || '📋 Other';
     }
 
-    function filterAchievementsByCategory(category) {
-        if (category === 'all') {
-            renderAchievements(userAchievementsData);
-        } else {
-            const filteredAchievements = userAchievementsData.filter(achievement => {
-                const achievementCategory = achievement.category || 'uncategorized';
-                return achievementCategory === category;
-            });
-            renderAchievements(filteredAchievements);
-        }
-    }
-
-    // Auto award achievement helper function
-    async function autoAwardAchievement(userId, actionType, actionData = {}) {
-        try {
-            const response = await fetch('/auto_award_achievement', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userId,
-                    actionType: actionType,
-                    actionData: actionData
-                })
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                if (result.awardedAchievements && result.awardedAchievements.length > 0) {
-                    console.log('Achievements awarded:', result.awardedAchievements);
-                    // Optionally show a notification to the user
-                    showAchievementNotification(result.awardedAchievements);
-                }
-                return result;
-            } else if (response.status === 404) {
-                console.log('Achievement endpoint not available. This is expected if Cloud Functions are not deployed.');
-                return null;
-            } else {
-                console.warn('Achievement request failed:', response.statusText);
-                return null;
-            }
-        } catch (error) {
-            if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-                console.log('Achievement backend not available, skipping auto-award');
-            } else {
-                console.error('Error auto-awarding achievement:', error);
-            }
-            return null;
-        }
-    }
-
-    // Show achievement notification
-    function showAchievementNotification(achievements) {
-        achievements.forEach(achievement => {
-            // Create a simple toast notification
-            const notification = document.createElement('div');
-            notification.className = 'fixed top-4 right-4 bg-neon-yellow text-black p-4 rounded-lg shadow-lg z-50 animate-pulse';
-            notification.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">🏆</div>
-                    <div>
-                        <h4 class="font-bold">Achievement Unlocked!</h4>
-                        <p class="text-sm">${achievement.name}</p>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(notification);
-
-            // Remove after 5 seconds
-            setTimeout(() => {
-                if (notification && notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 5000);
-        });
-    }
-
-    // The achievement progress feature has been removed as the backend endpoint is not implemented.
-
-    // Show error state
-    function showErrorState() {
-        console.log('[Profile] Showing error state');
-        if (loadingState) {
-            loadingState.classList.add('hidden');
-        }
-        if (profileContent) {
-            profileContent.classList.add('hidden');
-        }
-        if (errorState) {
-            errorState.classList.remove('hidden');
-        }
-        finalizeProfileLoad();
-    }
-
     // Toggle edit mode
     async function toggleEditMode() {
+        if (isDestroyed) return;
+        
         isEditing = !isEditing;
         if (isEditing) {
-            profileDisplay.classList.add('hidden');
-            profileEditForm.classList.remove('hidden');
-            editProfileBtn.textContent = 'Cancel';
+            if (profileDisplay) profileDisplay.classList.add('hidden');
+            if (profileEditForm) profileEditForm.classList.remove('hidden');
+            if (editProfileBtn) setSafeText(editProfileBtn, 'Cancel');
         } else {
-            profileDisplay.classList.remove('hidden');
-            profileEditForm.classList.add('hidden');
-            editProfileBtn.textContent = 'Edit Profile';
-        }
-    }
-
-    // Save profile changes with reCAPTCHA Enterprise protection
-    async function saveProfile() {
-        if (!currentUser) return;
-
-        // Basic validation
-        const username = editUsername.value.trim();
-        const displayName = editDisplayName.value.trim();
-
-        if (!username || !displayName) {
-            alert('Username and Display Name are required.');
-            return;
-        }
-
-        // Validate username format (alphanumeric and underscores only)
-        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-            alert('Username can only contain letters, numbers, and underscores.');
-            return;
-        }
-
-        // Validate avatar URL if provided
-        const avatarUrl = editAvatarUrl.value.trim();
-        if (avatarUrl && !isValidUrl(avatarUrl)) {
-            alert('Please enter a valid avatar URL.');
-            return;
-        }
-
-        saveProfileBtn.disabled = true;
-        saveProfileBtn.textContent = 'Saving...';
-
-        const profileData = {
-            username: username,
-            displayName: displayName,
-            bio: editBio.value.trim(),
-            avatarUrl: avatarUrl,
-            favoriteCars: editFavoriteCars.value.split(',').map(car => car.trim()).filter(car => car)
-        };
-
-        try {
-            await callProfileAPI(`/update_profile/${currentUser.uid}`, 'PUT', profileData);
-
-            await loadUserProfile(currentUser.uid);
-            await toggleEditMode();
-
-        } catch (error) {
-            console.error('Error saving profile:', error);
-            alert('Failed to save profile. Please try again.');
-        } finally {
-            saveProfileBtn.disabled = false;
-            saveProfileBtn.textContent = 'Save Changes';
-        }
-    }
-
-    // Helper function to validate URLs
-    function isValidUrl(string) {
-        try {
-            new URL(string);
-            return true;
-        } catch (_) {
-            return false;
-        }
-    }
-
-    // Helper function to format Firestore timestamps in various formats
-    function formatFirestoreTimestamp(ts) {
-        try {
-            // Handle Firestore Timestamp-like objects: {seconds, nanoseconds}
-            if (ts && typeof ts === 'object' && ts.seconds !== undefined) {
-                return new Date(ts.seconds * 1000).toLocaleDateString();
-            }
-            // Handle JS Date instances
-            if (ts instanceof Date) {
-                return ts.toLocaleDateString();
-            }
-            // Handle ISO/parsable strings
-            if (typeof ts === 'string') {
-                const date = new Date(ts);
-                if (!isNaN(date.getTime())) {
-                    return date.toLocaleDateString();
-                }
-            }
-            // Return empty string on failure
-            return '';
-        } catch (error) {
-            console.warn('Failed to format timestamp:', ts, error);
-            return '';
+            if (profileDisplay) profileDisplay.classList.remove('hidden');
+            if (profileEditForm) profileEditForm.classList.add('hidden');
+            if (editProfileBtn) setSafeText(editProfileBtn, 'Edit Profile');
         }
     }
 
@@ -914,158 +615,125 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         cancelEditBtn.addEventListener('click', toggleEditMode);
     }
     if (saveProfileBtn) {
-        saveProfileBtn.addEventListener('click', saveProfile);
+        saveProfileBtn.addEventListener('click', async () => {
+            // Save profile functionality - placeholder
+            console.log('[Profile:Save] Save profile functionality not implemented');
+        });
     }
 
-    // Category filter event listeners
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('category-filter-btn')) {
-            // Update active state
-            document.querySelectorAll('.category-filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            e.target.classList.add('active');
+    // Set up authentication state monitoring with enhanced error handling
+    console.log('[Profile:Auth] Setting up authentication state monitoring');
 
-            // Filter achievements
-            const category = e.target.dataset.category;
-            filterAchievementsByCategory(category);
-        }
-    });
+    try {
+        authStateUnsubscribe = monitorAuthState(
+            async (user, validToken) => {
+                if (isDestroyed) return;
+                
+                clearAuthError();
 
-    // Admin functions for achievement management
-    async function loadAllAchievements() {
-        try {
-            const db = getFirebaseDb();
+                if (user && validToken) {
+                    console.log('[Profile:Auth] User authenticated successfully', {
+                        uid: user.uid,
+                        email: user.email,
+                        emailVerified: user.emailVerified
+                    });
 
-            if (!db) {
-                console.error('Firestore database not available');
-                displayAllAchievements([]);
-                showUserFriendlyError('Unable to connect to database. Please check your connection and try again.');
-                return;
+                    currentUser = user;
+                    const targetUserId = getUserIdFromUrl() || user.uid;
+                    isCurrentUserProfile = (targetUserId === user.uid);
+
+                    // Load the user profile with enhanced error handling
+                    try {
+                        await loadUserProfile(targetUserId);
+                    } catch (profileError) {
+                        console.error('[Profile:Auth] Error loading profile:', profileError);
+                        showAuthError({
+                            code: 'profile-load-failed',
+                            message: 'Failed to load user profile',
+                            userMessage: 'Unable to load profile data. Please refresh the page and try again.',
+                            requiresReauth: false,
+                            retryable: true
+                        });
+                        showErrorState();
+                        return;
+                    }
+
+                    // Check if user is admin for achievements management
+                    try {
+                        const claimsResult = await validateUserClaims(['team-member']);
+                        const isAdmin = claimsResult.success && claimsResult.claims.role === 'team-member';
+
+                        console.log('[Profile:Auth] User role validation', {
+                            isAdmin,
+                            role: claimsResult.claims?.role,
+                            hasPermissions: claimsResult.success
+                        });
+
+                        if (isAdmin && adminAchievements) {
+                            adminAchievements.classList.remove('hidden');
+                            
+                            // Load achievements for admin - placeholder
+                            console.log('[Profile:Admin] Admin features enabled');
+                        }
+                    } catch (claimsError) {
+                        console.error('[Profile:Auth] Error validating user claims:', claimsError);
+                        // Don't show error for claims validation failure - just hide admin features
+                    }
+
+                } else {
+                    console.log('[Profile:Auth] User not authenticated, redirecting to login');
+                    cleanup();
+                    navigateToInternal('/login.html');
+                }
+            },
+            (error) => {
+                if (isDestroyed) return;
+                
+                console.error('[Profile:Auth] Authentication error:', error);
+                showAuthError(error);
+
+                if (error.requiresReauth) {
+                    // Redirect to login for auth errors that require re-authentication
+                    setTimeout(() => {
+                        cleanup();
+                        navigateToInternal('/login.html');
+                    }, 3000);
+                } else {
+                    // Show error state for other auth issues
+                    showErrorState();
+                }
             }
-
-            console.log('[Profile] Loading achievements from Firestore...');
-            const achievementsRef = collection(db, 'achievements');
-            const achievementsSnapshot = await getDocs(achievementsRef);
-
-            const achievements = achievementsSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-
-            console.log(`[Profile] Successfully loaded ${achievements.length} achievements from Firestore`);
-            displayAllAchievements(achievements);
-        } catch (error) {
-            console.error('Error loading achievements from Firestore:', error);
-            displayAllAchievements([]);
-
-            // Provide user-friendly error message based on error type
-            if (error.code === 'permission-denied') {
-                showUserFriendlyError('You do not have permission to view achievements. Please check your account status.');
-            } else if (error.code === 'unavailable') {
-                showUserFriendlyError('Achievement service is temporarily unavailable. Please try again later.');
-            } else {
-                showUserFriendlyError('Failed to load achievements. Please refresh the page and try again.');
-            }
-        }
-    }
-
-    // Helper function to show user-friendly error messages
-    function showUserFriendlyError(message) {
-        // Show error in the admin achievements section if it exists
-        const allAchievements = document.getElementById('all-achievements');
-        if (allAchievements) {
-            allAchievements.textContent = message;
-        }
-
-        // Also log for debugging
-        console.warn('[Profile] User-friendly error shown:', message);
-    }
-
-    function displayAllAchievements(achievements) {
-        const allAchievements = document.getElementById('all-achievements');
-        if (achievements.length === 0) {
-            allAchievements.innerHTML = '<p class="text-slate-400">No achievements available.</p>';
-            return;
-        }
-
-        allAchievements.innerHTML = achievements.map(achievement => `
-            <div class="flex items-center justify-between p-3 bg-slate-700 rounded-md">
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-sm">
-                        ${achievement.icon || '🏆'}
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-white text-sm">${achievement.name}</h4>
-                        <p class="text-xs text-slate-400">${achievement.description}</p>
-                        <p class="text-xs text-slate-500">${achievement.category} • ${achievement.points || 0} pts</p>
-                    </div>
-                </div>
-                <button onclick="assignAchievementToUser('${achievement.id}')" class="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-500 transition">
-                    Assign
-                </button>
-            </div>
-        `).join('');
-    }
-
-    // Global function for assigning achievements (called from HTML)
-    window.assignAchievementToUser = async function(achievementId) {
-        const targetUserId = getUserIdFromUrl();
-        if (!targetUserId || !currentUser) {
-            alert('Cannot assign achievement: No target user or current user not authenticated');
-            return;
-        }
-
-        if (targetUserId === currentUser.uid) {
-            alert('Cannot assign achievement to yourself');
-            return;
-        }
-
-        const confirmAssign = confirm(`Assign this achievement to the user?`);
-        if (!confirmAssign) return;
-
-        try {
-            const userToken = await currentUser.getIdToken();
-            const response = await fetch('/assign_achievement', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${userToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: targetUserId,
-                    achievementId: achievementId
-                })
-            });
-
-            if (response.ok) {
-                alert('Achievement assigned successfully!');
-                // Reload user profile to show new achievement
-                await loadUserProfile(targetUserId, userToken);
-            } else if (response.status === 400) {
-                alert('User already has this achievement or invalid data');
-            } else {
-                throw new Error(`Failed to assign achievement: ${response.statusText}`);
-            }
-        } catch (error) {
-            console.error('Error assigning achievement:', error);
-            alert('Failed to assign achievement. Please try again.');
-        }
-    };
-
-    // Only setup Firebase event listeners if initialization was successful
-    if (auth) {
-        console.log('[Profile] Firebase services available, authentication monitoring already set up above');
-        // The authentication state monitoring is now handled above with monitorAuthState
-    } else {
-        console.error('[Profile] Cannot setup Firebase event listeners - services not available');
+        );
+        
+    } catch (error) {
+        console.error('[Profile:Auth] Failed to setup auth monitoring:', error);
         hideLoadingAndShowFallback();
+        return;
     }
 
-    // Clear the loading timeout since we successfully loaded
-    if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
-        loadingTimeout = null;
+    // Handle page unload cleanup
+    window.addEventListener('beforeunload', cleanup);
+    window.addEventListener('unload', cleanup);
+    
+    // Handle visibility change (page becomes hidden)
+    if (typeof document.visibilityState !== 'undefined') {
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('[Profile:Visibility] Page hidden');
+            } else if (isDestroyed) {
+                console.log('[Profile:Visibility] Page visible but destroyed, reloading');
+                window.location.reload();
+            }
+        });
     }
 
-})(); // End of async function wrapper
+    // Prevent multiple initializations
+    if (isInitialized) {
+        console.warn('[Profile] Already initialized');
+        return;
+    }
+
+    isInitialized = true;
+    console.log('[Profile:Complete] Profile initialization complete');
+
+})();

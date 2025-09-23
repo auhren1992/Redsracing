@@ -1,6 +1,6 @@
 /**
- * Authentication Utilities Module
- * Centralized authentication management with token validation, refresh, and error handling
+ * Fixed Authentication Utilities Module
+ * Resolves infinite loading loops and logout issues
  */
 
 import { getFirebaseAuth } from './firebase-core.js';
@@ -23,6 +23,9 @@ let tokenValidationCache = {
     expirationTime: null
 };
 
+// Track auth state listeners to prevent duplicates
+let authStateListeners = new Set();
+
 /**
  * Enhanced authentication logger
  */
@@ -38,12 +41,17 @@ const authLogger = {
  * @returns {Object|null} Current Firebase user or null
  */
 export function getCurrentUser() {
-    const auth = getFirebaseAuth();
-    if (!auth) {
-        authLogger.error('GetUser', 'Firebase auth not initialized');
+    try {
+        const auth = getFirebaseAuth();
+        if (!auth) {
+            authLogger.error('GetUser', 'Firebase auth not initialized');
+            return null;
+        }
+        return auth.currentUser;
+    } catch (error) {
+        authLogger.error('GetUser', error);
         return null;
     }
-    return auth.currentUser;
 }
 
 /**
@@ -76,11 +84,16 @@ export async function validateAndRefreshToken(forceRefresh = false) {
             const cacheAge = Date.now() - tokenValidationCache.lastValidation;
             if (cacheAge < AUTH_CONFIG.TOKEN_VALIDATION_CACHE_DURATION && tokenValidationCache.isValid) {
                 authLogger.info('TokenValidation', 'Using cached valid token');
-                return {
-                    success: true,
-                    token: await currentUser.getIdToken(false),
-                    error: null
-                };
+                try {
+                    return {
+                        success: true,
+                        token: await currentUser.getIdToken(false),
+                        error: null
+                    };
+                } catch (error) {
+                    // If cached token fails, continue with refresh
+                    authLogger.warn('TokenValidation', 'Cached token failed, refreshing');
+                }
             }
         }
 
@@ -173,6 +186,19 @@ export async function validateUserClaims(requiredRoles = []) {
         }
 
         const currentUser = getCurrentUser();
+        if (!currentUser) {
+            return {
+                success: false,
+                claims: null,
+                error: {
+                    code: 'auth/no-current-user',
+                    message: 'No current user found',
+                    userMessage: 'Please sign in again',
+                    requiresReauth: true
+                }
+            };
+        }
+
         const tokenResult = await currentUser.getIdTokenResult(false);
         const claims = tokenResult.claims;
 
@@ -343,12 +369,13 @@ function classifyAuthError(error) {
 
     // Firebase Auth errors
     if (error.code && error.code.startsWith('auth/')) {
+        const friendlyError = getFriendlyAuthError(error);
         return {
             code: error.code,
             message: error.message,
-            userMessage: getFriendlyAuthError(error),
-            requiresReauth: requiresReauth(error.code),
-            retryable: isRetryableError(error.code)
+            userMessage: typeof friendlyError === 'string' ? friendlyError : friendlyError.userMessage,
+            requiresReauth: requiresReauth(error),
+            retryable: isRetryableError(error)
         };
     }
 
@@ -476,6 +503,7 @@ export function clearAuthError(containerId = 'auth-error-container') {
  * Authentication state monitor - sets up listeners for auth state changes
  * @param {Function} onAuthChange - Callback for auth state changes
  * @param {Function} onError - Callback for auth errors
+ * @returns {Function} Unsubscribe function
  */
 export function monitorAuthState(onAuthChange, onError) {
     const auth = getFirebaseAuth();
@@ -488,41 +516,50 @@ export function monitorAuthState(onAuthChange, onError) {
             retryable: true
         };
         onError(error);
-        return;
+        return () => {}; // Return empty unsubscribe function
     }
 
     authLogger.info('AuthMonitor', 'Setting up authentication state monitoring');
 
-    return auth.onAuthStateChanged(
+    // Create a unique identifier for this listener
+    const listenerId = Date.now() + Math.random();
+    
+    const unsubscribe = auth.onAuthStateChanged(
         async (user) => {
-            if (user) {
-                authLogger.info('AuthMonitor', 'User signed in', {
-                    uid: user.uid,
-                    email: user.email,
-                    emailVerified: user.emailVerified
-                });
+            try {
+                if (user) {
+                    authLogger.info('AuthMonitor', 'User signed in', {
+                        uid: user.uid,
+                        email: user.email,
+                        emailVerified: user.emailVerified
+                    });
 
-                // For new users, force a token refresh to get custom claims immediately.
-                // For existing users, use the standard validation (which might be cached).
-                const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
-                authLogger.info('AuthMonitor', `User is ${isNewUser ? 'new' : 'existing'}.`);
+                    // For new users, force a token refresh to get custom claims immediately.
+                    // For existing users, use the standard validation (which might be cached).
+                    const isNewUser = user.metadata.creationTime === user.metadata.lastSignInTime;
+                    authLogger.info('AuthMonitor', `User is ${isNewUser ? 'new' : 'existing'}.`);
 
-                const tokenValidation = await validateAndRefreshToken(isNewUser);
-                if (tokenValidation.success) {
-                    onAuthChange(user, tokenValidation.token);
+                    const tokenValidation = await validateAndRefreshToken(isNewUser);
+                    if (tokenValidation.success) {
+                        onAuthChange(user, tokenValidation.token);
+                    } else {
+                        authLogger.error('AuthMonitor', 'Token validation failed for signed-in user', tokenValidation.error);
+                        onError(tokenValidation.error);
+                    }
                 } else {
-                    authLogger.error('AuthMonitor', 'Token validation failed for signed-in user', tokenValidation.error);
-                    onError(tokenValidation.error);
+                    authLogger.info('AuthMonitor', 'User signed out');
+                    // Clear token cache when user signs out
+                    tokenValidationCache = {
+                        lastValidation: null,
+                        isValid: false,
+                        expirationTime: null
+                    };
+                    onAuthChange(null, null);
                 }
-            } else {
-                authLogger.info('AuthMonitor', 'User signed out');
-                // Clear token cache when user signs out
-                tokenValidationCache = {
-                    lastValidation: null,
-                    isValid: false,
-                    expirationTime: null
-                };
-                onAuthChange(null, null);
+            } catch (error) {
+                authLogger.error('AuthMonitor', 'Error in auth state change handler', error);
+                const errorInfo = classifyAuthError(error);
+                onError(errorInfo);
             }
         },
         (error) => {
@@ -531,7 +568,72 @@ export function monitorAuthState(onAuthChange, onError) {
             onError(errorInfo);
         }
     );
+
+    // Track this listener
+    authStateListeners.add(listenerId);
+    
+    // Return enhanced unsubscribe function
+    return () => {
+        unsubscribe();
+        authStateListeners.delete(listenerId);
+        authLogger.info('AuthMonitor', 'Auth state listener unsubscribed');
+    };
+}
+
+/**
+ * Safe sign out function that handles errors gracefully
+ * @returns {Promise<boolean>} True if successful, false if failed
+ */
+export async function safeSignOut() {
+    try {
+        const auth = getFirebaseAuth();
+        if (!auth) {
+            authLogger.error('SignOut', 'Firebase auth not initialized');
+            return false;
+        }
+
+        authLogger.info('SignOut', 'Starting sign out process');
+        
+        // Clear token cache before signing out
+        tokenValidationCache = {
+            lastValidation: null,
+            isValid: false,
+            expirationTime: null
+        };
+
+        await auth.signOut();
+        
+        authLogger.success('SignOut', 'User signed out successfully');
+        return true;
+    } catch (error) {
+        authLogger.error('SignOut', error);
+        return false;
+    }
+}
+
+/**
+ * Check network connectivity
+ * @returns {Promise<boolean>} True if online
+ */
+async function checkNetworkConnectivity() {
+    try {
+        // First check navigator.onLine
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+            return false;
+        }
+
+        // Try to fetch a small resource to test actual connectivity
+        const response = await fetch('https://www.google.com/favicon.ico', {
+            method: 'HEAD',
+            mode: 'no-cors',
+            cache: 'no-store'
+        });
+        return true;
+    } catch (error) {
+        return false;
+    }
 }
 
 // Export configuration for testing
 export const AUTH_UTILS_CONFIG = AUTH_CONFIG;
+
