@@ -11,9 +11,10 @@ let isDestroyed = false;
 let loadingTimeout = null;
 
 async function init() {
+  console.log('[Leaderboard:Init] Initialization sequence started.');
   // Prevent multiple initializations
   if (isInitialized) {
-    console.warn('[Leaderboard] Already initialized');
+    console.warn('[Leaderboard] Already initialized, skipping.');
     return;
   }
 
@@ -117,13 +118,15 @@ function clearLoadingTimeout() {
 async function loadLeaderboard() {
   if (isDestroyed) return;
   
-  console.log('[Leaderboard:Load] Starting leaderboard data load');
+  console.log('[Leaderboard:Load] Starting leaderboard data load.');
 
   try {
+    console.log('[Leaderboard:Load] Fetching data from /leaderboard endpoint.');
     // Create AbortController for timeout handling
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       if (!isDestroyed) {
+        console.log('[Leaderboard:Load] Fetch timeout triggered.');
         controller.abort();
       }
     }, 10000); // 10 second timeout
@@ -138,23 +141,32 @@ async function loadLeaderboard() {
 
     clearTimeout(timeoutId);
 
-    if (isDestroyed) return; // Check if component was destroyed during fetch
+    if (isDestroyed) {
+      console.log('[Leaderboard:Load] Component destroyed during fetch, aborting.');
+      return;
+    }
 
     if (!response.ok) {
+      console.error(`[Leaderboard:Load] HTTP error! status: ${response.status}`);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const leaderboard = await response.json();
 
-    if (isDestroyed) return; // Check again after async operation
+    if (isDestroyed) {
+      console.log('[Leaderboard:Load] Component destroyed after fetch, aborting.');
+      return;
+    }
 
     console.log('[Leaderboard:Load] Successfully loaded leaderboard data:', leaderboard.length, 'entries');
 
     if (leaderboard.length === 0) {
+      console.log('[Leaderboard:Load] Leaderboard is empty, showing empty state.');
       showEmptyState();
       return;
     }
 
+    console.log('[Leaderboard:Load] Rendering leaderboard.');
     renderLeaderboard(leaderboard);
     
     // Clear loading timeout and show content
@@ -183,14 +195,17 @@ async function loadLeaderboard() {
 function renderLeaderboard(leaderboard) {
   if (isDestroyed) return;
   
-  console.log('[Leaderboard:Render] Rendering leaderboard with', leaderboard.length, 'entries');
+  console.log('[Leaderboard:Render] Starting render for', leaderboard.length, 'entries.');
   
   try {
+    console.log('[Leaderboard:Render] Rendering podium.');
     renderPodium(leaderboard.slice(0, 3));
+    console.log('[Leaderboard:Render] Rendering table.');
     renderTable(leaderboard);
+    console.log('[Leaderboard:Render] Rendering stats.');
     renderStats(leaderboard);
     
-    console.log('[Leaderboard:Render] All components rendered successfully');
+    console.log('[Leaderboard:Render] All components rendered successfully.');
   } catch (error) {
     console.error('[Leaderboard:Render] Error during rendering:', error);
     showError();

@@ -2,4 +2,3 @@ firebase-functions==0.4.3
 firebase-admin==7.1.0
 flask>=3.1.2
 sendgrid>=6.0.0
-google-cloud-recaptcha-enterprise>=1.12.0

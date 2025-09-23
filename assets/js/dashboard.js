@@ -425,18 +425,20 @@ import { navigateToInternal } from './navigation-helpers.js';
     try {
         authStateUnsubscribe = monitorAuthState(
             async (user, validToken) => {
+                console.log('[Dashboard:Auth] Auth state change event received.');
                 if (isDestroyed || isProcessingAuth) {
                     if (isProcessingAuth) console.log('[Dashboard:Auth] Auth processing already in progress, skipping.');
                     return;
                 }
                 
                 isProcessingAuth = true;
+                console.log('[Dashboard:Auth] Starting auth processing.');
 
                 try {
                     clearAuthError();
                     
                     if (user && validToken) {
-                        console.log('[Dashboard:Auth] User authenticated successfully');
+                        console.log('[Dashboard:Auth] User is authenticated. Loading dashboard data...');
 
                         // Update UI with user info
                         if (userEmailEl) {
@@ -444,32 +446,30 @@ import { navigateToInternal } from './navigation-helpers.js';
                         }
                         
                         try {
-                            // Check user permissions
+                            console.log('[Dashboard:Auth] Validating user claims for team-member role.');
                             const claimsResult = await validateUserClaims(['team-member']);
                             const isTeamMember = claimsResult.success && claimsResult.claims.role === 'team-member';
 
-                            console.log('[Dashboard:Auth] User role check:', { isTeamMember, role: claimsResult.claims?.role });
+                            console.log('[Dashboard:Auth] User role check completed:', { isTeamMember, role: claimsResult.claims?.role });
 
                             if (isTeamMember) {
-                                // Show admin features
+                                console.log('[Dashboard:Auth] User is a team member. Displaying race management and loading race data.');
                                 if (raceManagementCard) {
                                     raceManagementCard.style.display = 'block';
                                 }
-
-                                // Load admin data
                                 await getRaceData();
+                                console.log('[Dashboard:Auth] Race data loaded.');
                             }
                             
-                            // Show driver notes (available to all authenticated users)
                             if (driverNotesCard) {
                                 driverNotesCard.classList.remove('hidden');
                             }
 
-                            // All data loaded successfully
                             hideLoadingAndShowContent();
+                            console.log('[Dashboard:Auth] Dashboard content successfully displayed.');
 
                         } catch (error) {
-                            console.error('[Dashboard:Auth] Error loading dashboard data:', error);
+                            console.error('[Dashboard:Auth] Error during dashboard data loading:', error);
                             showAuthError({
                                 code: 'dashboard-data-load-failed',
                                 message: 'Failed to load dashboard data',
@@ -480,12 +480,13 @@ import { navigateToInternal } from './navigation-helpers.js';
                             hideLoadingAndShowFallback();
                         }
                     } else {
-                        console.log('[Dashboard:Auth] User not authenticated, redirecting to login');
+                        console.log('[Dashboard:Auth] User is not authenticated. Redirecting to login.');
                         cleanup();
                         navigateToInternal('/login.html');
                     }
                 } finally {
                     isProcessingAuth = false;
+                    console.log('[Dashboard:Auth] Finished auth processing.');
                 }
             },
             (error) => {

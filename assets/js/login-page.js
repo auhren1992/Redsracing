@@ -4,10 +4,8 @@
  */
 
 import { getFirebaseAuth, getFirebaseApp } from './firebase-core.js';
-import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
+import { getFriendlyAuthError } from './auth-errors.js';
 import { setPendingInvitationCode } from './invitation-codes.js';
-import { recaptchaService } from './recaptcha-enterprise.js';
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
 import { 
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
@@ -247,31 +245,7 @@ class LoginPageController {
     }
 
     /**
-     * Verify reCAPTCHA token with the backend Cloud Function
-     * @param {string} action - The action name
-     * @param {string} token - The reCAPTCHA token
-     */
-    async verifyRecaptcha(action, token) {
-        try {
-            const functions = getFunctions(getFirebaseApp());
-            const createAssessment = httpsCallable(functions, 'createAssessment');
-            const result = await createAssessment({
-                recaptchaAction: action,
-                token: token,
-            });
-
-            console.log(`[Login Controller] reCAPTCHA assessment score: ${result.data.score}`);
-            if (result.data.score < 0.5) { // Example threshold from main branch
-                 throw new Error("Low reCAPTCHA score. Please try again.");
-            }
-        } catch (error) {
-            console.error('[Login Controller] reCAPTCHA verification failed:', error);
-            throw new Error('Security verification failed. Please try again.');
-        }
-    }
-
-    /**
-     * Handle email/password sign in with reCAPTCHA Enterprise protection
+     * Handle email/password sign in
      */
     async handleEmailSignIn() {
         if (!this.isInitialized) {
@@ -291,21 +265,9 @@ class LoginPageController {
         this.setLoadingState(this.elements.signinButton, true, 'Sign In');
 
         try {
-            // Protected action with reCAPTCHA Enterprise
-            await recaptchaService.protectedAction(
-                'LOGIN',
-                async (recaptchaData) => {
-                    if (recaptchaData.recaptchaToken) {
-                        await this.verifyRecaptcha('LOGIN', recaptchaData.recaptchaToken);
-                    }
-                    await signInWithEmailAndPassword(this.auth, email, password);
-                    this.showMessage('Login successful! Redirecting...', false);
-                    this.handleSuccess();
-                },
-                null,
-                { fallbackOnError: false, showUserMessage: true }
-            );
-
+            await signInWithEmailAndPassword(this.auth, email, password);
+            this.showMessage('Login successful! Redirecting...', false);
+            this.handleSuccess();
         } catch (error) {
             this.showMessage(getFriendlyAuthError(error));
         } finally {
@@ -315,7 +277,7 @@ class LoginPageController {
 
 
     /**
-     * Handle Google sign in with reCAPTCHA Enterprise protection
+     * Handle Google sign in
      */
     async handleGoogleSignIn() {
         if (!this.isInitialized) {
@@ -326,21 +288,9 @@ class LoginPageController {
         this.setLoadingState(this.elements.googleSigninButton, true, 'Sign in with Google');
 
         try {
-            // Protected action with reCAPTCHA Enterprise
-            await recaptchaService.protectedAction(
-                'LOGIN',
-                async (recaptchaData) => {
-                    if (recaptchaData.recaptchaToken) {
-                        await this.verifyRecaptcha('LOGIN', recaptchaData.recaptchaToken);
-                    }
-                    await signInWithPopup(this.auth, this.googleProvider);
-                    this.showMessage('Google sign-in successful! Redirecting...', false);
-                    this.handleSuccess();
-                },
-                null,
-                { fallbackOnError: true, showUserMessage: true }
-            );
-            
+            await signInWithPopup(this.auth, this.googleProvider);
+            this.showMessage('Google sign-in successful! Redirecting...', false);
+            this.handleSuccess();
         } catch (error) {
             if (error.code !== 'auth/popup-closed-by-user') {
                 this.showMessage(getFriendlyAuthError(error));
@@ -352,7 +302,7 @@ class LoginPageController {
 
 
     /**
-     * Handle forgot password with reCAPTCHA Enterprise protection
+     * Handle forgot password
      */
     async handleForgotPassword(e) {
         e.preventDefault();
@@ -373,20 +323,8 @@ class LoginPageController {
         }
 
         try {
-            // Protected action with reCAPTCHA Enterprise
-            await recaptchaService.protectedAction(
-                'PASSWORD_RESET',
-                async (recaptchaData) => {
-                    if (recaptchaData.recaptchaToken) {
-                        await this.verifyRecaptcha('PASSWORD_RESET', recaptchaData.recaptchaToken);
-                    }
-                    await sendPasswordResetEmail(this.auth, email);
-                    this.showMessage('Password reset email sent! Please check your inbox and spam folder.', false);
-                },
-                null,
-                { fallbackOnError: true, showUserMessage: true }
-            );
-            
+            await sendPasswordResetEmail(this.auth, email);
+            this.showMessage('Password reset email sent! Please check your inbox and spam folder.', false);
         } catch (error) {
             this.showMessage(getFriendlyAuthError(error));
         }
