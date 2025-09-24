@@ -1,10 +1,8 @@
-
 import './app.js';
 import { getFirebaseAuth, getFirebaseDb } from '/assets/js/firebase-core.js';
 import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { validateInvitationCode, processInvitationCode, captureInvitationCodeFromURL } from '/assets/js/invitation-codes.js';
-
 
 async function createDefaultProfile(user) {
     try {
