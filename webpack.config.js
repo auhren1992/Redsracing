@@ -1,6 +1,7 @@
 const path = require('path');
 
 module.exports = {
+
   mode: 'production',
   entry: {
     main: './assets/js/main.js',
@@ -16,12 +17,16 @@ module.exports = {
     signup: './assets/js/signup-page.js',
     sponsorship: './assets/js/sponsorship.js',
     videos: './assets/js/videos.js',
+
   },
   output: {
+    filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
+
     filename: '[name].js',
   },
   devtool: 'source-map',
+
   module: {
     rules: [
       {
@@ -30,10 +35,10 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env'],
-          },
-        },
-      },
-    ],
-  },
+            presets: ['@babel/preset-env']
+          }
+        }
+      }
+    ]
+  }
 };
