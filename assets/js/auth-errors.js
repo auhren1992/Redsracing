@@ -26,6 +26,17 @@ export function isNetworkError(error) {
   }
 }
 
+export function isRecaptchaError(error) {
+  try {
+    if (!error) return false;
+    const code = (error.code || '').toString().toLowerCase();
+    const msg = (error.message || String(error)).toLowerCase();
+    return code.includes('recaptcha') || msg.includes('recaptcha');
+  } catch {
+    return false;
+  }
+}
+
 export function isRetryableError(error) {
   try {
     if (isNetworkError(error)) return true;
