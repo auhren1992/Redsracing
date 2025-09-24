@@ -23,6 +23,10 @@
     ],
     "rewrites": [
       {
+        "source": "/dist/**",
+        "destination": "/dist/**"
+      },
+      {
         "source": "/add_subscriber",
         "function": {
           "functionId": "handleAddSubscriber",
