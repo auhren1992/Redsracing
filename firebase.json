@@ -10,6 +10,17 @@
       ".github/**",
       ".git/**"
     ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Document-Policy",
+            "value": "js-profiling"
+          }
+        ]
+      }
+    ],
     "rewrites": [
       {
         "source": "/add_subscriber",
