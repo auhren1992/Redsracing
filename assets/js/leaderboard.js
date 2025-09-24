@@ -1,6 +1,6 @@
 // Fixed Leaderboard Module - Resolves infinite loading issues
 import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { onAuthStateChanged } from "firebase/auth";
 
 // Import sanitization utilities
 import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js';

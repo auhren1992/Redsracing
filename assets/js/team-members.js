@@ -6,7 +6,7 @@
  */
 
 import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import {
     collection,
     query,
@@ -17,7 +17,7 @@ import {
     getDocs,
     doc,
     getDoc
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+} from "firebase/firestore";
 
 // Import utilities
 import {
