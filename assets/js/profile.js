@@ -25,7 +25,7 @@ import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js
 import { navigateToInternal } from './navigation-helpers.js';
 
 // Import error handling utilities
-import { getFriendlyAuthError } from './auth-errors.js';
+import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
 // Wrap everything in an async function to allow early returns
 (async function() {
