@@ -1,7 +1,9 @@
+import './app.js';
+
 // Fixed Profile Module - Resolves infinite loading and logout issues
 import { getFirebaseAuth, getFirebaseApp, getFirebaseDb } from './firebase-core.js';
-import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { signOut } from "firebase/auth";
+import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
 
 // Import centralized authentication utilities
 import { 

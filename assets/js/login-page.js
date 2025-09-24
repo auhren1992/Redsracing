@@ -1,3 +1,5 @@
+import './app.js';
+
 /**
  * Login Page Controller
  * Centralized login flow management with deferred UI enablement, MFA support, and reCAPTCHA Enterprise
@@ -11,7 +13,7 @@ import {
     sendPasswordResetEmail,
     GoogleAuthProvider,
     signInWithPopup
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+} from "firebase/auth";
 import { navigateToInternal } from './navigation-helpers.js';
 
 /**
