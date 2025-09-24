@@ -1,24 +1,32 @@
 const path = require('path');
 
 module.exports = {
+
+  mode: 'production',
   entry: {
-    dashboard: './assets/js/dashboard.js',
-    profile: './assets/js/profile.js',
-    jonny: './assets/js/jonny.js',
-    qna: './assets/js/qna.js',
-    leaderboard: './assets/js/leaderboard.js',
-    gallery: './assets/js/gallery.js',
-    'signup-page': './assets/js/signup-page.js',
-    'login-page': './assets/js/login-page.js',
-    sponsorship: './assets/js/sponsorship.js',
     main: './assets/js/main.js',
-    navigation: './assets/js/navigation.js'
+    dashboard: './assets/js/dashboard.js',
+    feedback: './assets/js/feedback.js',
+    gallery: './assets/js/gallery.js',
+    jonny: './assets/js/jonny.js',
+    leaderboard: './assets/js/leaderboard.js',
+    'login-page': './assets/js/login-page.js',
+    profile: './assets/js/profile.js',
+    qna: './assets/js/qna.js',
+    schedule: './assets/js/schedule.js',
+    signup: './assets/js/signup-page.js',
+    sponsorship: './assets/js/sponsorship.js',
+    videos: './assets/js/videos.js',
+
   },
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
+
+    filename: '[name].js',
   },
-  mode: 'production',
+  devtool: 'source-map',
+
   module: {
     rules: [
       {

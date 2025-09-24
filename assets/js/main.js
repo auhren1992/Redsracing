@@ -1,3 +1,5 @@
+import './app.js';
+
 // Firebase-dependent functionality
 import { getFirebaseConfig } from './firebase-config.js';
 import { initializeApp } from "firebase/app";

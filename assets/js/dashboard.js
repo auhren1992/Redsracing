@@ -1,3 +1,5 @@
+import './app.js';
+
 // Fixed Dashboard Module - Resolves infinite loading and logout issues
 import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage } from './firebase-core.js';
 import { onAuthStateChanged } from "firebase/auth";

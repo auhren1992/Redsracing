@@ -1,3 +1,5 @@
+import './app.js';
+
 // Enhanced Navigation functionality - independent of Firebase and ES6 modules
 (function() {
     'use strict';

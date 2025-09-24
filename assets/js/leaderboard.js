@@ -1,3 +1,5 @@
+import './app.js';
+
 // Fixed Leaderboard Module - Resolves infinite loading issues
 import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
 import { onAuthStateChanged } from "firebase/auth";

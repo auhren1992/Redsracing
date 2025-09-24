@@ -1,3 +1,5 @@
+import './app.js';
+
 /**
  * Login Page Controller
  * Centralized login flow management with deferred UI enablement, MFA support, and reCAPTCHA Enterprise
