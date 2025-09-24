@@ -1,4 +1,4 @@
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirebaseApp, getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
 
 const DEFAULT_PARAM_NAMES = ['invite', 'code'];

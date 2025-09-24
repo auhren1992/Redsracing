@@ -1,6 +1,6 @@
 import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
-import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import { validateInvitationCode, processInvitationCode, captureInvitationCodeFromURL } from './invitation-codes.js';
 
 async function createDefaultProfile(user) {

@@ -1,7 +1,7 @@
 // Fixed Profile Module - Resolves infinite loading and logout issues
 import { getFirebaseAuth, getFirebaseApp, getFirebaseDb } from './firebase-core.js';
-import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { signOut } from "firebase/auth";
+import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
 
 // Import centralized authentication utilities
 import { 
@@ -23,7 +23,7 @@ import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js
 import { navigateToInternal } from './navigation-helpers.js';
 
 // Import error handling utilities
-import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
+import { getFriendlyAuthError } from './auth-errors.js';
 
 // Wrap everything in an async function to allow early returns
 (async function() {

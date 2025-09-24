@@ -3,14 +3,26 @@
   "version": "1.0.0",
   "description": "RedsRacing #8 Frontend",
   "scripts": {
-    "build-css": "tailwindcss -i ./styles/tailwind.css -o ./styles/main.css --watch",
-    "build-js": "esbuild assets/js/auth-errors.js assets/js/auth-utils.js assets/js/dashboard.js assets/js/feedback.js assets/js/firebase-config.js assets/js/firebase-core.js assets/js/firebase-init.js assets/js/gallery.js assets/js/global-error-handler.js assets/js/invitation-codes.js assets/js/jonny.js assets/js/leaderboard-inline-fallback.js assets/js/leaderboard.js assets/js/login-page.js assets/js/main.js assets/js/navigation-helpers.js assets/js/navigation.js assets/js/network-guards.js assets/js/profile-inline-fallback.js assets/js/profile.js assets/js/qna.js assets/js/sanitize.js assets/js/schedule.js assets/js/secure-random.js assets/js/signup-page.js assets/js/sponsorship.js --bundle --outdir=dist --format=esm --minify",
-    "build": "npm run build-css-prod && npm run build-js",
-    "build-css-prod": "tailwindcss -i ./styles/tailwind.css -o ./dist/style.css --minify"
+    "build-css": "tailwindcss -i ./src/input.css -o ./styles/tailwind.css --watch",
+    "build-css-prod": "tailwindcss -i ./src/input.css -o ./styles/tailwind.css --minify",
+    "build": "webpack",
+    "postbuild": "ls -l dist"
   },
   "devDependencies": {
-    "esbuild": "^0.20.2",
-    "tailwindcss": "^3.4.0"
+    "@babel/core": "^7.28.4",
+    "@babel/preset-env": "^7.28.3",
+    "babel-loader": "^10.0.0",
+    "glob": "^11.0.3",
+    "tailwindcss": "^3.4.0",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@sentry/browser": "^10.14.0",
+    "@sentry/integrations": "^7.114.0",
+    "@sentry/replay": "^7.116.0",
+    "@sentry/tracing": "^7.120.4",
+    "firebase": "^12.3.0"
+  }
 }

@@ -1,5 +1,5 @@
 import { getFirebaseConfig } from './firebase-config.js';
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { initializeApp } from "firebase/app";
 
 async function main() {
     const firebaseConfig = await getFirebaseConfig();
