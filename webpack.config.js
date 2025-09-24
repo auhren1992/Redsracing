@@ -1,4 +1,5 @@
 const path = require('path');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: 'production',
@@ -36,4 +37,18 @@ module.exports = {
       },
     ],
   },
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        { from: 'styles', to: 'styles' },
+        { from: 'assets', to: 'assets' },
+        { from: '*.html', to: '' },
+        { from: '*.png', to: '' },
+        { from: '*.ico', to: '' },
+        { from: '*.svg', to: '' },
+        { from: 'site.webmanifest', to: '' },
+        { from: 'styles', to: 'styles' },
+      ],
+    }),
+  ],
 };
