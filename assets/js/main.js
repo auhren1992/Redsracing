@@ -1,10 +1,10 @@
 import './app.js';
 
 // Firebase-dependent functionality
-import { getFirebaseConfig } from './firebase-config.js';
-import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, query, onSnapshot, where, limit } from "firebase/firestore";
+import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
+
 
 // Import invitation code utilities
 import { captureInvitationCodeFromURL, applyPendingInvitationCode } from './invitation-codes.js';
@@ -14,13 +14,9 @@ async function initFirebase() {
         // Capture invitation code from URL as early as possible
         captureInvitationCodeFromURL();
 
-        // Get Firebase config
-        const firebaseConfig = await getFirebaseConfig();
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // Initialize Firebase using the core module
+        const auth = getFirebaseAuth();
+        const db = getFirebaseDb();
 
         // UI Elements
         const authLink = document.getElementById('auth-link');

@@ -1,19 +1,16 @@
 import './app.js';
-import { getFirebaseConfig } from './firebase-config.js';
-import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, increment, getDocs } from "firebase/firestore";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage } from './firebase-core.js';
 
 // Import sanitization utilities
 import { html, safeSetHTML, createSafeElement } from './sanitize.js';
 
 async function main() {
-    const firebaseConfig = await getFirebaseConfig();
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
+    const auth = getFirebaseAuth();
+    const db = getFirebaseDb();
+    const storage = getFirebaseStorage();
 
     // --- Auth State ---
     const uploadContainer = document.getElementById('upload-container');

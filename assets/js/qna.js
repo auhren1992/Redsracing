@@ -1,17 +1,15 @@
 import './app.js';
-import { getFirebaseConfig } from './firebase-config.js';
-import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp } from "firebase/firestore";
+import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
+
 
 // Import sanitization utilities
 import { html, safeSetHTML } from './sanitize.js';
 
 async function main() {
-    const firebaseConfig = await getFirebaseConfig();
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    const auth = getFirebaseAuth();
+    const db = getFirebaseDb();
 
     const qnaContainer = document.getElementById('qna-container');
     const qnaFormContainer = document.getElementById('qna-form-container');

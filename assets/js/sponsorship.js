@@ -1,11 +1,6 @@
 import './app.js';
-import { getFirebaseConfig } from './firebase-config.js';
-import { initializeApp } from "firebase/app";
 
 async function main() {
-    const firebaseConfig = await getFirebaseConfig();
-    const app = initializeApp(firebaseConfig);
-
     const sponsorshipForm = document.getElementById('sponsorshipForm');
     const sponsorshipStatus = document.getElementById('sponsorshipStatus');
 

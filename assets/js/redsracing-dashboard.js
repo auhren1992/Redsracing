@@ -8,10 +8,7 @@ import { ref, deleteObject } from "firebase/storage";
 
 // Import centralized authentication utilities
 import {
-    validateAndRefreshToken,
     validateUserClaims,
-    safeFirestoreOperation,
-    retryAuthOperation,
     showAuthError,
     clearAuthError,
     monitorAuthState,
