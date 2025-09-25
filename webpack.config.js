@@ -5,7 +5,10 @@ module.exports = {
   mode: 'production',
   entry: {
     main: './assets/js/main.js',
-    dashboard: './assets/js/dashboard.js',
+    "redsracing-dashboard": './assets/js/redsracing-dashboard.js',
+    "follower-dashboard": './assets/js/follower-dashboard.js',
+    router: './assets/js/router.js',
+    "auth-guard": './assets/js/auth-guard.js',
     feedback: './assets/js/feedback.js',
     gallery: './assets/js/gallery.js',
     jonny: './assets/js/jonny.js',

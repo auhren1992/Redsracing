@@ -10,6 +10,10 @@ service cloud.firestore {
     return request.auth.token.role == 'team-member';
   }
 
+  function isTeamRedFollower() {
+    return request.auth.token.role == 'TeamRedFollower';
+  }
+
   function isOwner(userId) {
     return request.auth.uid == userId;
   }
