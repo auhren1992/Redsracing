@@ -1,8 +1,8 @@
 import './app.js';
-import { getFirebaseConfig } from './firebase-config.js';
-import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, query, onSnapshot, orderBy } from "firebase/firestore";
+import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
+
 
 // Import invitation code utilities
 import { captureInvitationCodeFromURL, applyPendingInvitationCode } from './invitation-codes.js';
@@ -14,10 +14,8 @@ async function main() {
     // Capture invitation code from URL as early as possible
     captureInvitationCodeFromURL();
 
-    const firebaseConfig = await getFirebaseConfig();
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+    const db = getFirebaseDb();
+    const auth = getFirebaseAuth();
 
     // UI Elements
     const authLink = document.getElementById('auth-link');
