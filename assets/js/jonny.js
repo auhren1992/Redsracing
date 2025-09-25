@@ -1,8 +1,8 @@
 import './app.js';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, increment, getDocs } from "firebase/firestore";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage } from './firebase-core.js';
+import { monitorAuthState } from './auth-utils.js';
 
 // Import sanitization utilities
 import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js';
@@ -22,12 +22,14 @@ async function main() {
     let selectedFile = null;
 
     // Auth State Change
-    onAuthStateChanged(auth, user => {
+    monitorAuthState(user => {
         if (user) {
             if(uploadContainer) uploadContainer.style.display = 'block';
         } else {
             if(uploadContainer) uploadContainer.style.display = 'none';
         }
+    }, (error) => {
+        if(uploadContainer) uploadContainer.style.display = 'none';
     });
 
     // Photo Upload Logic
@@ -61,7 +63,6 @@ async function main() {
                     if(uploadStatus) uploadStatus.textContent = `Uploading... ${Math.round(progress)}%`;
                 },
                 (error) => {
-                    console.error("Upload failed:", error);
                     if(uploadStatus) {
                         uploadStatus.textContent = `Upload failed: ${error.message}`;
                         uploadStatus.style.color = '#ef4444';
@@ -97,7 +98,7 @@ async function main() {
                                 totalPhotos: userPhotos.size 
                             });
                         } catch (error) {
-                            console.error('Error checking for photo achievements:', error);
+                            // Error checking for photo achievements, continue.
                         }
                         
                         if(uploadStatus) {
@@ -107,7 +108,6 @@ async function main() {
                         selectedFile = null;
                         if(uploadInput) uploadInput.value = '';
                     } catch (error) {
-                        console.error("Error creating Firestore entry:", error);
                         if(uploadStatus) {
                             uploadStatus.textContent = 'Error saving file data.';
                             uploadStatus.style.color = '#ef4444';
@@ -229,12 +229,12 @@ async function main() {
                             totalLikes: totalLikes + 1 // +1 for the new like we just added
                         });
                     } catch (error) {
-                        console.error('Error checking for like achievements:', error);
+                        // Error checking for like achievements, continue.
                     }
                 }
             }
         } catch (error) {
-            console.error('Error toggling like:', error);
+            // Error toggling like, continue.
         }
     };
     
@@ -316,7 +316,6 @@ async function main() {
                 });
             });
         } catch (error) {
-            console.error('Error loading comments:', error);
             commentsList.innerHTML = '<p class="text-red-400 text-sm">Error loading comments.</p>';
         }
     };
@@ -339,7 +338,7 @@ async function main() {
             
             commentInput.value = '';
         } catch (error) {
-            console.error('Error adding comment:', error);
+            // Error adding comment, continue.
         }
     };
     
@@ -379,23 +378,18 @@ async function autoAwardAchievement(userId, actionType, actionData = {}) {
         if (response.ok) {
             const result = await response.json();
             if (result.awardedAchievements && result.awardedAchievements.length > 0) {
-                console.log('Achievements awarded:', result.awardedAchievements);
                 showAchievementNotification(result.awardedAchievements);
             }
             return result;
         } else if (response.status === 404) {
-            console.log('Achievement endpoint not available. This is expected if Cloud Functions are not deployed.');
+            // Achievement endpoint not available. This is expected if Cloud Functions are not deployed.
             return null;
         } else {
-            console.warn('Achievement request failed:', response.statusText);
+            // Achievement request failed.
             return null;
         }
     } catch (error) {
-        if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-            console.log('Achievement backend not available, skipping auto-award');
-        } else {
-            console.error('Error auto-awarding achievement:', error);
-        }
+        // Error auto-awarding achievement, continue.
         return null;
     }
 }

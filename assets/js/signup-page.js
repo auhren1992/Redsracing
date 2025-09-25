@@ -19,9 +19,9 @@ async function createDefaultProfile(user) {
             achievementCount: 0
         };
         await setDoc(profileRef, defaultProfile);
-        console.log(`[Signup] Default profile created for user: ${user.uid}`);
+
     } catch (error) {
-        console.error("Failed to create default profile:", error);
+
         // This error should be logged, but we don't want to fail the whole signup process
     }
 }
@@ -47,7 +47,7 @@ export async function handleSignup(email, password, inviteCode) {
 
         return user;
     } catch (error) {
-        console.error("Signup failed:", error);
+
         throw error;
     }
 }

@@ -1,7 +1,7 @@
 import './app.js';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp } from "firebase/firestore";
 import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
+import { monitorAuthState } from './auth-utils.js';
 
 
 // Import sanitization utilities
@@ -17,12 +17,14 @@ async function main() {
     const qnaQuestionInput = document.getElementById('qna-question');
     const qnaFormStatus = document.getElementById('qna-form-status');
 
-    onAuthStateChanged(auth, user => {
+    monitorAuthState(user => {
         if (user) {
             if(qnaFormContainer) qnaFormContainer.style.display = 'block';
         } else {
             if(qnaFormContainer) qnaFormContainer.style.display = 'none';
         }
+    }, (error) => {
+        if(qnaFormContainer) qnaFormContainer.style.display = 'none';
     });
 
     if (qnaForm) {
@@ -53,7 +55,7 @@ async function main() {
                 }
                 if(qnaQuestionInput) qnaQuestionInput.value = '';
             } catch (error) {
-                console.error("Error submitting question:", error);
+
                 if(qnaFormStatus) {
                     qnaFormStatus.textContent = 'Error submitting question. Please try again.';
                     qnaFormStatus.style.color = '#ef4444';

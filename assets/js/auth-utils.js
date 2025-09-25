@@ -13,7 +13,7 @@ export function getCurrentUser() {
     try {
         return auth.currentUser;
     } catch (error) {
-        console.error('[Auth Utils] Error getting current user:', error);
+
         return null;
     }
 }
@@ -26,7 +26,7 @@ export async function safeSignOut() {
         await auth.signOut();
         return true;
     } catch (error) {
-        console.error('[Auth Utils] Sign out error:', error);
+
         return false;
     }
 }
@@ -64,7 +64,7 @@ export async function validateUserClaims(requiredRoles = []) {
             error: null
         };
     } catch (error) {
-        console.error('[Auth Utils] Claims validation error:', error);
+
         return {
             success: false,
             error: { message: error.message || 'Token validation failed' }
@@ -92,12 +92,12 @@ export function monitorAuthState(onAuthChange, onError) {
                     onAuthChange(null, null);
                 }
             } catch (error) {
-                console.error('[Auth Utils] Auth state error:', error);
+
                 onError({ message: error.message || 'Authentication error' });
             }
         },
         (error) => {
-            console.error('[Auth Utils] Auth state listener error:', error);
+
             onError({ message: error.message || 'Auth listener error' });
         }
     );
@@ -109,7 +109,7 @@ export function monitorAuthState(onAuthChange, onError) {
 export function showAuthError(errorInfo, containerId = 'auth-error-container') {
     const container = document.getElementById(containerId);
     if (!container) {
-        console.warn('[Auth Utils] Error container not found:', containerId);
+
         return;
     }
 

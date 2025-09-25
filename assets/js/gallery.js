@@ -1,8 +1,8 @@
 import './app.js';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, increment, getDocs } from "firebase/firestore";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage } from './firebase-core.js';
+import { monitorAuthState } from './auth-utils.js';
 
 // Import sanitization utilities
 import { html, safeSetHTML, createSafeElement } from './sanitize.js';
@@ -14,12 +14,14 @@ async function main() {
 
     // --- Auth State ---
     const uploadContainer = document.getElementById('upload-container');
-    onAuthStateChanged(auth, user => {
+    monitorAuthState(user => {
         if (user) {
             if(uploadContainer) uploadContainer.style.display = 'block';
         } else {
             if(uploadContainer) uploadContainer.style.display = 'none';
         }
+    }, (error) => {
+        if(uploadContainer) uploadContainer.style.display = 'none';
     });
 
     // --- Photo Upload Logic ---
@@ -59,7 +61,7 @@ async function main() {
                     if(uploadStatus) uploadStatus.textContent = `Uploading... ${Math.round(progress)}%`;
                 },
                 (error) => {
-                    console.error("Upload failed:", error);
+
                     if(uploadStatus) {
                         uploadStatus.textContent = `Upload failed: ${error.message}`;
                         uploadStatus.style.color = '#ef4444';
@@ -89,7 +91,7 @@ async function main() {
                         selectedFile = null;
                         if(uploadInput) uploadInput.value = '';
                     } catch (error) {
-                        console.error("Error creating Firestore entry:", error);
+
                         if(uploadStatus) {
                             uploadStatus.textContent = 'Error saving file data.';
                             uploadStatus.style.color = '#ef4444';
@@ -206,7 +208,7 @@ async function main() {
                 });
             }
         } catch (error) {
-            console.error('Error toggling like:', error);
+
         }
     };
     
@@ -288,7 +290,7 @@ async function main() {
                 });
             });
         } catch (error) {
-            console.error('Error loading comments:', error);
+
             commentsList.innerHTML = '<p class="text-red-400 text-sm">Error loading comments.</p>';
         }
     };
@@ -311,7 +313,7 @@ async function main() {
             
             commentInput.value = '';
         } catch (error) {
-            console.error('Error adding comment:', error);
+
         }
     };
     

@@ -40,8 +40,6 @@ class LoginPageController {
      */
     async initialize() {
         try {
-            console.log('[Login Controller] Initializing...');
-            
             // Get DOM elements
             this.cacheElements();
             
@@ -59,10 +57,7 @@ class LoginPageController {
             this.enableUI();
             this.isInitialized = true;
             
-            console.log('[Login Controller] Initialization complete');
-            
         } catch (error) {
-            console.error('[Login Controller] Initialization failed:', error);
             this.showMessage('Failed to initialize authentication system. Please refresh the page.');
         }
     }
@@ -92,7 +87,7 @@ class LoginPageController {
         // Validate all elements exist
         for (const [name, element] of Object.entries(this.elements)) {
             if (!element) {
-                console.warn(`[Login Controller] Element not found: ${name}`);
+                // Element not found, but we don't want to log this in production.
             }
         }
     }
@@ -117,8 +112,6 @@ class LoginPageController {
         this.elements.emailInput?.addEventListener('input', () => this.hideMessage());
         this.elements.passwordInput?.addEventListener('input', () => this.hideMessage());
         this.elements.emailInput?.addEventListener('blur', () => this.validateEmailField());
-        
-        console.log('[Login Controller] Event listeners bound');
     }
 
     /**
@@ -139,7 +132,6 @@ class LoginPageController {
         });
 
         this.uiState.buttonsEnabled = true;
-        console.log('[Login Controller] UI enabled');
     }
 
     /**
@@ -194,8 +186,6 @@ class LoginPageController {
             ? 'error-message p-4 rounded-md mb-4'
             : 'bg-green-800 text-green-300 border-l-4 border-green-500 p-4 rounded-md mb-4';
         this.elements.errorBox.classList.remove('hidden');
-        
-        console.log(`[Login Controller] ${isError ? 'Error' : 'Success'} message: ${message}`);
     }
 
     /**
@@ -348,7 +338,6 @@ class LoginPageController {
         const invitationCode = this.elements.invitationCodeInput?.value?.trim();
         if (invitationCode) {
             setPendingInvitationCode(invitationCode);
-            console.log('[Login] Stored invitation code for post-login processing');
         }
 
         setTimeout(() => {
