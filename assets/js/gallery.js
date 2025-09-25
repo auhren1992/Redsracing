@@ -1,8 +1,8 @@
 import './app.js';
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, increment, getDocs } from "firebase/firestore";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage } from './firebase-core.js';
-import { monitorAuthState } from './auth-utils.js';
 
 // Import sanitization utilities
 import { html, safeSetHTML, createSafeElement } from './sanitize.js';
@@ -14,14 +14,12 @@ async function main() {
 
     // --- Auth State ---
     const uploadContainer = document.getElementById('upload-container');
-    monitorAuthState(user => {
+    onAuthStateChanged(auth, user => {
         if (user) {
             if(uploadContainer) uploadContainer.style.display = 'block';
         } else {
             if(uploadContainer) uploadContainer.style.display = 'none';
         }
-    }, (error) => {
-        if(uploadContainer) uploadContainer.style.display = 'none';
     });
 
     // --- Photo Upload Logic ---

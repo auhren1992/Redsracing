@@ -11,10 +11,13 @@ import './app.js';
     // Enhanced initialization with error handling and retry mechanism
     function initNavigation() {
         if (navigationInitialized) {
+
             return;
         }
 
         try {
+
+
             // Mobile menu toggle with enhanced error handling
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             if (mobileMenuButton) {
@@ -30,6 +33,7 @@ import './app.js';
                     if (mobileMenu) {
                         mobileMenu.classList.toggle('hidden');
                         const isHidden = mobileMenu.classList.contains('hidden');
+
                         
                         // Update aria attributes for accessibility
                         newMobileMenuButton.setAttribute('aria-expanded', !isHidden);
@@ -44,6 +48,8 @@ import './app.js';
                         newMobileMenuButton.click();
                     }
                 });
+
+
             }
 
             // Mobile menu accordion with enhanced functionality
@@ -72,6 +78,8 @@ import './app.js';
                         // Update aria attributes
                         newButton.setAttribute('aria-expanded', wasHidden);
                         content.setAttribute('aria-hidden', !wasHidden);
+
+
                     }
                 });
                 
@@ -83,6 +91,7 @@ import './app.js';
                     }
                 });
             });
+
 
             // Enhanced desktop dropdowns
             document.querySelectorAll('.dropdown-toggle').forEach((button, index) => {
@@ -96,6 +105,7 @@ import './app.js';
                     
                     const dropdownMenu = newButton.nextElementSibling;
                     if (!dropdownMenu || !dropdownMenu.classList.contains('dropdown-menu')) {
+
                         return;
                     }
                     
@@ -121,6 +131,7 @@ import './app.js';
                         dropdownMenu.classList.remove('hidden');
                         dropdownMenu.setAttribute('aria-hidden', 'false');
                         newButton.setAttribute('aria-expanded', 'true');
+
                         
                         // Focus first menu item for accessibility
                         const firstMenuItem = dropdownMenu.querySelector('a');
@@ -131,6 +142,7 @@ import './app.js';
                         dropdownMenu.classList.add('hidden');
                         dropdownMenu.setAttribute('aria-hidden', 'true');
                         newButton.setAttribute('aria-expanded', 'false');
+
                     }
                 });
                 
@@ -193,6 +205,7 @@ import './app.js';
                 }
             });
 
+
             // Enhanced outside click handling
             const handleOutsideClick = (event) => {
                 // Don't close if clicking on a dropdown toggle or menu
@@ -216,6 +229,7 @@ import './app.js';
             document.removeEventListener('click', window.navigationOutsideClickHandler);
             document.addEventListener('click', handleOutsideClick);
             window.navigationOutsideClickHandler = handleOutsideClick;
+
 
             // Enhanced keyboard navigation for dropdown menus
             document.querySelectorAll('.dropdown-menu').forEach(menu => {
@@ -253,7 +267,9 @@ import './app.js';
             if (yearEl) {
                 try {
                     yearEl.textContent = new Date().getFullYear().toString();
+
                 } catch (error) {
+
                     yearEl.textContent = '2025'; // Fallback year
                 }
             }
@@ -279,12 +295,16 @@ import './app.js';
 
             navigationInitialized = true;
 
+
         } catch (error) {
+
             retryCount++;
             
             if (retryCount <= maxRetries) {
+
                 setTimeout(initNavigation, 1000);
             } else {
+
                 // Try basic fallback initialization
                 initBasicNavigation();
             }
@@ -293,6 +313,8 @@ import './app.js';
 
     // Basic fallback navigation for when main initialization fails
     function initBasicNavigation() {
+
+
         try {
             // Basic mobile menu toggle
             const mobileButton = document.getElementById('mobile-menu-button');
@@ -319,8 +341,9 @@ import './app.js';
                 document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.add('hidden'));
             };
 
+
         } catch (error) {
-            // Basic navigation fallback failed.
+
         }
     }
 
@@ -346,6 +369,7 @@ import './app.js';
     if (typeof document.visibilityState !== 'undefined') {
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && !navigationInitialized) {
+
                 setTimeout(initNavigation, 500);
             }
         });

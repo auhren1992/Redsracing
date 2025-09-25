@@ -21,7 +21,7 @@ async function main() {
     const authLinkMobile = document.getElementById('auth-link-mobile');
 
     // Auth State Change
-    monitorAuthState(async (user, token) => {
+    monitorAuthState(async (user) => {
         if (user) {
             if(authLink) authLink.textContent = 'Dashboard';
             if(authLink) authLink.href = 'dashboard.html';

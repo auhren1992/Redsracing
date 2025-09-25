@@ -8,7 +8,7 @@ const followerPages = ['follower-dashboard.html'];
 const currentPage = window.location.pathname.split('/').pop();
 
 if (protectedPages.includes(currentPage)) {
-    monitorAuthState(async (user, token) => {
+    monitorAuthState(async (user) => {
         if (!user) {
             navigateToInternal('/login.html');
             return;

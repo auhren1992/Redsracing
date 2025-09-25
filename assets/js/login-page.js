@@ -40,6 +40,8 @@ class LoginPageController {
      */
     async initialize() {
         try {
+
+
             // Get DOM elements
             this.cacheElements();
             
@@ -57,7 +59,10 @@ class LoginPageController {
             this.enableUI();
             this.isInitialized = true;
             
+
+
         } catch (error) {
+
             this.showMessage('Failed to initialize authentication system. Please refresh the page.');
         }
     }
@@ -87,7 +92,7 @@ class LoginPageController {
         // Validate all elements exist
         for (const [name, element] of Object.entries(this.elements)) {
             if (!element) {
-                // Element not found, but we don't want to log this in production.
+
             }
         }
     }
@@ -112,6 +117,8 @@ class LoginPageController {
         this.elements.emailInput?.addEventListener('input', () => this.hideMessage());
         this.elements.passwordInput?.addEventListener('input', () => this.hideMessage());
         this.elements.emailInput?.addEventListener('blur', () => this.validateEmailField());
+
+
     }
 
     /**
@@ -132,6 +139,7 @@ class LoginPageController {
         });
 
         this.uiState.buttonsEnabled = true;
+
     }
 
     /**
@@ -186,6 +194,8 @@ class LoginPageController {
             ? 'error-message p-4 rounded-md mb-4'
             : 'bg-green-800 text-green-300 border-l-4 border-green-500 p-4 rounded-md mb-4';
         this.elements.errorBox.classList.remove('hidden');
+
+
     }
 
     /**
@@ -338,6 +348,7 @@ class LoginPageController {
         const invitationCode = this.elements.invitationCodeInput?.value?.trim();
         if (invitationCode) {
             setPendingInvitationCode(invitationCode);
+
         }
 
         setTimeout(() => {

@@ -3,9 +3,8 @@ import './app.js';
 // Firebase-dependent functionality
 import { getFirestore, collection, query, onSnapshot, where, limit } from "firebase/firestore";
 import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
-
-// Import centralized authentication utilities
 import { monitorAuthState } from './auth-utils.js';
+
 
 // Import invitation code utilities
 import { captureInvitationCodeFromURL, applyPendingInvitationCode } from './invitation-codes.js';
@@ -23,8 +22,8 @@ async function initFirebase() {
         const authLink = document.getElementById('auth-link');
         const authLinkMobile = document.getElementById('auth-link-mobile');
 
-        // Auth State Change using centralized utility
-        monitorAuthState(async (user, token) => {
+        // Auth State Change
+        monitorAuthState(async user => {
             if (user) {
                 if(authLink) authLink.textContent = 'Dashboard';
                 if(authLink) authLink.href = 'dashboard.html';
@@ -35,6 +34,7 @@ async function initFirebase() {
                 try {
                     await applyPendingInvitationCode(user);
                 } catch (error) {
+
                     // Don't block the auth flow for invitation code errors
                 }
                 
@@ -46,8 +46,6 @@ async function initFirebase() {
                 if(authLinkMobile) authLinkMobile.textContent = 'DRIVER LOGIN';
                 if(authLinkMobile) authLinkMobile.href = 'login.html';
             }
-        }, (error) => {
-            // Optional: Handle auth errors, though the main app flow here doesn't require it
         });
 
         // Check and award first login achievement
@@ -69,16 +67,20 @@ async function initFirebase() {
                 });
                 
                 if (response.ok) {
-                    // First login achievement checked successfully
+
                 } else if (response.status === 404) {
-                    // Achievement endpoint not available. This is expected if Cloud Functions are not deployed.
+
                 } else {
-                    // Achievement check failed.
+
                 }
                 
                 sessionStorage.setItem(sessionKey, 'true');
             } catch (error) {
-                // Error checking first login achievement, continue.
+                if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+
+                } else {
+
+                }
                 sessionStorage.setItem(sessionKey, 'true'); // Mark as attempted to avoid retries
             }
         }
@@ -116,12 +118,14 @@ async function initFirebase() {
                     subscribeStatus.classList.add('text-green-500');
                     subscribeForm.reset();
                 } catch (error) {
+
                     subscribeStatus.textContent = error.message || 'Failed to subscribe.';
                     subscribeStatus.classList.add('text-red-500');
                 }
             });
         }
     } catch (error) {
+
         // Firebase functionality will not be available, but navigation still works
     }
 }

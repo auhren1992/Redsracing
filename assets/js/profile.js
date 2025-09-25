@@ -29,6 +29,8 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
 // Wrap everything in an async function to allow early returns
 (async function() {
+
+
     // Track initialization and cleanup state
     let isInitialized = false;
     let isDestroyed = false;
@@ -40,8 +42,11 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     const app = getFirebaseApp();
     const db = getFirebaseDb();
     
+
+
     // Check if Firebase services are available
     if (!auth || !app || !db) {
+
         hideLoadingAndShowFallback();
         return;
     }
@@ -53,6 +58,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         loadingTimeout = setTimeout(() => {
             if (isDestroyed) return;
             
+
             hideLoadingAndShowFallback();
         }, 15000); // 15 second timeout
     }
@@ -75,6 +81,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
             loadingState.style.visibility = 'hidden';
             loadingState.classList.add('hidden');
             loadingState.setAttribute('hidden', 'true');
+
         }
 
         if (profileContent) {
@@ -94,6 +101,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
                 </div>
             `;
             profileContent.classList.remove('hidden');
+
         }
 
         clearLoadingTimeout();
@@ -102,6 +110,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     function hideLoadingAndShowContent() {
         if (isDestroyed) return;
         
+
         const loadingState = document.getElementById('loading-state');
         const profileContent = document.getElementById('profile-content');
         
@@ -113,11 +122,13 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         }
         
         clearLoadingTimeout();
+
     }
 
     function showErrorState(type = 'generic', message = null) {
         if (isDestroyed) return;
         
+
         const loadingState = document.getElementById('loading-state');
         const profileContent = document.getElementById('profile-content');
         const errorState = document.getElementById('error-state');

@@ -13,15 +13,20 @@ let isDestroyed = false;
 let loadingTimeout = null;
 
 async function init() {
+
   // Prevent multiple initializations
   if (isInitialized) {
+
     return;
   }
+
+
 
   const auth = getFirebaseAuth();
   
   // Check if Firebase services are available
   if (!auth) {
+
     showError();
     return;
   }
@@ -72,6 +77,7 @@ async function init() {
       retryBtn.addEventListener('click', () => {
         if (isDestroyed) return;
         
+
         document.getElementById('error-state')?.classList.add('hidden');
         document.getElementById('loading-state')?.classList.remove('hidden');
         
@@ -87,8 +93,10 @@ async function init() {
     await loadLeaderboard();
     
     isInitialized = true;
+
     
   } catch (error) {
+
     showError();
   }
 }
@@ -99,6 +107,7 @@ function startLoadingTimeout() {
   loadingTimeout = setTimeout(() => {
     if (isDestroyed) return;
     
+
     showError();
   }, 15000); // 15 second timeout
 }
@@ -113,11 +122,15 @@ function clearLoadingTimeout() {
 async function loadLeaderboard() {
   if (isDestroyed) return;
   
+
+
   try {
+
     // Create AbortController for timeout handling
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       if (!isDestroyed) {
+
         controller.abort();
       }
     }, 10000); // 10 second timeout
@@ -133,23 +146,30 @@ async function loadLeaderboard() {
     clearTimeout(timeoutId);
 
     if (isDestroyed) {
+
       return;
     }
 
     if (!response.ok) {
+
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const leaderboard = await response.json();
 
     if (isDestroyed) {
+
       return;
     }
 
+
+
     if (leaderboard.length === 0) {
+
       showEmptyState();
       return;
     }
+
 
     renderLeaderboard(leaderboard);
     
@@ -158,9 +178,20 @@ async function loadLeaderboard() {
     document.getElementById('loading-state')?.classList.add('hidden');
     document.getElementById('leaderboard-content')?.classList.remove('hidden');
     
+
+
   } catch (err) {
     if (isDestroyed) return;
     
+
+
+    // Handle specific error types
+    if (err.name === 'AbortError') {
+
+    } else if (err.message.includes('Failed to fetch')) {
+
+    }
+
     showError();
   }
 }
@@ -168,12 +199,19 @@ async function loadLeaderboard() {
 function renderLeaderboard(leaderboard) {
   if (isDestroyed) return;
   
+
+
   try {
+
     renderPodium(leaderboard.slice(0, 3));
+
     renderTable(leaderboard);
+
     renderStats(leaderboard);
     
+
   } catch (error) {
+
     showError();
   }
 }
@@ -292,6 +330,8 @@ function renderStats(leaderboard) {
 function showError() {
   if (isDestroyed) return;
   
+
+
   clearLoadingTimeout();
   document.getElementById('loading-state')?.classList.add('hidden');
   document.getElementById('leaderboard-content')?.classList.add('hidden');
@@ -301,6 +341,8 @@ function showError() {
 function showEmptyState() {
   if (isDestroyed) return;
   
+
+
   clearLoadingTimeout();
   document.getElementById('loading-state')?.classList.add('hidden');
   
@@ -320,6 +362,7 @@ function showEmptyState() {
 
 // Cleanup function
 function cleanup() {
+
   isDestroyed = true;
   clearLoadingTimeout();
 }
@@ -332,8 +375,9 @@ window.addEventListener('unload', cleanup);
 if (typeof document.visibilityState !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
-      // Page hidden
+
     } else if (isDestroyed) {
+
       window.location.reload();
     }
   });

@@ -26,6 +26,8 @@ function initializeFirebaseIfNeeded() {
         auth = getAuth(app);
         db = getFirestore(app);
         storage = getStorage(app);
+
+
     }
     return { app, auth, db, storage };
 }
