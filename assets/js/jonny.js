@@ -63,6 +63,7 @@ async function main() {
                     if(uploadStatus) uploadStatus.textContent = `Uploading... ${Math.round(progress)}%`;
                 },
                 (error) => {
+
                     if(uploadStatus) {
                         uploadStatus.textContent = `Upload failed: ${error.message}`;
                         uploadStatus.style.color = '#ef4444';
@@ -98,7 +99,7 @@ async function main() {
                                 totalPhotos: userPhotos.size 
                             });
                         } catch (error) {
-                            // Error checking for photo achievements, continue.
+
                         }
                         
                         if(uploadStatus) {
@@ -108,6 +109,7 @@ async function main() {
                         selectedFile = null;
                         if(uploadInput) uploadInput.value = '';
                     } catch (error) {
+
                         if(uploadStatus) {
                             uploadStatus.textContent = 'Error saving file data.';
                             uploadStatus.style.color = '#ef4444';
@@ -229,12 +231,12 @@ async function main() {
                             totalLikes: totalLikes + 1 // +1 for the new like we just added
                         });
                     } catch (error) {
-                        // Error checking for like achievements, continue.
+
                     }
                 }
             }
         } catch (error) {
-            // Error toggling like, continue.
+
         }
     };
     
@@ -316,6 +318,7 @@ async function main() {
                 });
             });
         } catch (error) {
+
             commentsList.innerHTML = '<p class="text-red-400 text-sm">Error loading comments.</p>';
         }
     };
@@ -338,7 +341,7 @@ async function main() {
             
             commentInput.value = '';
         } catch (error) {
-            // Error adding comment, continue.
+
         }
     };
     
@@ -378,18 +381,23 @@ async function autoAwardAchievement(userId, actionType, actionData = {}) {
         if (response.ok) {
             const result = await response.json();
             if (result.awardedAchievements && result.awardedAchievements.length > 0) {
+
                 showAchievementNotification(result.awardedAchievements);
             }
             return result;
         } else if (response.status === 404) {
-            // Achievement endpoint not available. This is expected if Cloud Functions are not deployed.
+
             return null;
         } else {
-            // Achievement request failed.
+
             return null;
         }
     } catch (error) {
-        // Error auto-awarding achievement, continue.
+        if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+
+        } else {
+
+        }
         return null;
     }
 }

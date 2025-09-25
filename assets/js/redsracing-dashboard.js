@@ -313,10 +313,17 @@ import { navigateToInternal } from './navigation-helpers.js';
             
             renderRacesTable(raceList);
             startCountdown(raceList);
+
+
         } catch (error) {
-            if (raceManagementCard) {
-                safeSetHTML(raceManagementCard, html`<div class="p-4 text-red-400">Error loading race data.</div>`);
-            }
+
+            showAuthError({
+                code: 'race-load-failed',
+                message: 'Failed to load race data',
+                userMessage: 'Unable to load race information. Please try refreshing the page.',
+                requiresReauth: false,
+                retryable: true
+            });
         }
     }
 
@@ -356,10 +363,9 @@ import { navigateToInternal } from './navigation-helpers.js';
                     });
                 }
             }
+
         } catch (error) {
-            if (qnaManagementCard) {
-                safeSetHTML(qnaManagementCard, html`<div class="p-4 text-red-400">Error loading Q&A submissions.</div>`);
-            }
+
         }
     }
 
@@ -393,10 +399,9 @@ import { navigateToInternal } from './navigation-helpers.js';
                     });
                 }
             }
+
         } catch (error) {
-            if (photoApprovalCard) {
-                safeSetHTML(photoApprovalCard, html`<div class="p-4 text-red-400">Error loading photo approvals.</div>`);
-            }
+
         }
     }
 
@@ -430,10 +435,9 @@ import { navigateToInternal } from './navigation-helpers.js';
                     });
                 }
             }
+
         } catch (error) {
-            if (jonnyPhotoApprovalCard) {
-                safeSetHTML(jonnyPhotoApprovalCard, html`<div class="p-4 text-red-400">Error loading Jonny's photo approvals.</div>`);
-            }
+
         }
     }
 
@@ -464,10 +468,9 @@ import { navigateToInternal } from './navigation-helpers.js';
                     });
                 }
             }
+
         } catch (error) {
-            if (jonnyVideoManagementCard) {
-                safeSetHTML(jonnyVideoManagementCard, html`<div class="p-4 text-red-400">Error loading Jonny's videos.</div>`);
-            }
+
         }
     }
 
@@ -520,10 +523,9 @@ import { navigateToInternal } from './navigation-helpers.js';
                     });
                 }
             }
+
         } catch (error) {
-            if (invitationCodesCard) {
-                safeSetHTML(invitationCodesCard, html`<div class="p-4 text-red-400">Error loading invitation codes.</div>`);
-            }
+
         }
     }
 
@@ -648,25 +650,23 @@ import { navigateToInternal } from './navigation-helpers.js';
 
 
 
-                            const dataLoadingPromises = [];
                             if (isTeamMember) {
+
                                 if (raceManagementCard) {
                                     raceManagementCard.style.display = 'block';
                                 }
-                                dataLoadingPromises.push(getRaceData());
-                                dataLoadingPromises.push(loadQnASubmissions());
-                                dataLoadingPromises.push(loadPhotoApprovals());
-                                dataLoadingPromises.push(loadJonnyPhotoApprovals());
-                                dataLoadingPromises.push(loadJonnyVideos());
-                                dataLoadingPromises.push(loadInvitationCodes());
+                                await getRaceData();
+                                await loadQnASubmissions();
+                                await loadPhotoApprovals();
+                                await loadJonnyPhotoApprovals();
+                                await loadJonnyVideos();
+                                await loadInvitationCodes();
+
                             }
                             
                             if (driverNotesCard) {
                                 driverNotesCard.classList.remove('hidden');
                             }
-
-                            // Load all data concurrently and don't let one failure block others.
-                            await Promise.allSettled(dataLoadingPromises);
 
                             hideLoadingAndShowContent();
 
