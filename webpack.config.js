@@ -7,6 +7,7 @@ module.exports = {
     main: './assets/js/main.js',
     "redsracing-dashboard": './assets/js/redsracing-dashboard.js',
     "follower-dashboard": './assets/js/follower-dashboard.js',
+    "follower-login": './assets/js/follower-login.js',
     router: './assets/js/router.js',
     "auth-guard": './assets/js/auth-guard.js',
     feedback: './assets/js/feedback.js',
