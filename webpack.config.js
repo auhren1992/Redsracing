@@ -45,7 +45,6 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { from: 'styles', to: 'styles' },
-        { from: 'assets', to: 'assets' },
         { from: '*.html', to: '' },
         { from: '*.png', to: '' },
         { from: '*.ico', to: '' },
