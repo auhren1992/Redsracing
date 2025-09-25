@@ -43,8 +43,6 @@ import { navigateToInternal } from './navigation-helpers.js';
     const dashboardContent = document.getElementById('dashboard-content');
     const userEmailEl = document.getElementById('user-email');
     const logoutButton = document.getElementById('logout-button');
-    const emailVerificationNotice = document.getElementById('email-verification-notice');
-    const resendVerificationBtn = document.getElementById('resend-verification-btn');
     const driverNotesCard = document.getElementById('driver-notes-card');
     const raceManagementCard = document.getElementById('race-management-card');
     const driverNotesEl = document.getElementById('driver-notes');

@@ -530,8 +530,7 @@ export function monitorAuthState(onAuthChange, onError) {
                 if (user) {
                     authLogger.info('AuthMonitor', 'User signed in', {
                         uid: user.uid,
-                        email: user.email,
-                        emailVerified: user.emailVerified
+                        email: user.email
                     });
 
                     // For new users, force a token refresh to get custom claims immediately.
