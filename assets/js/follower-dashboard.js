@@ -1,7 +1,6 @@
 import './app.js';
 
 import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
-import { onAuthStateChanged } from "firebase/auth";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { monitorAuthState, showAuthError, clearAuthError, safeSignOut } from './auth-utils.js';
 import { html, safeSetHTML, setSafeText } from './sanitize.js';
@@ -87,7 +86,6 @@ import { navigateToInternal } from './navigation-helpers.js';
         const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
 
         if (isNaN(nextRaceDate)) {
-            console.error(`[Dashboard:Countdown] Invalid date for next race:`, nextRace);
             if (countdownTimerEl) safeSetHTML(countdownTimerEl, html`<div class='col-span-4 text-red-500'>Error: Invalid race date</div>`);
             return;
         }
@@ -135,9 +133,8 @@ import { navigateToInternal } from './navigation-helpers.js';
 
             startCountdown(raceList);
 
-            console.log('[Dashboard:Races] Successfully loaded races:', raceList.length);
         } catch (error) {
-            console.error('[Dashboard:Races] Error loading race data:', error);
+            // Error loading race data, countdown will not start.
         }
     }
 

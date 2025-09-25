@@ -35,7 +35,7 @@ async function main() {
                 sponsorshipStatus.classList.add('text-green-500');
                 sponsorshipForm.reset();
             } catch (error) {
-                console.error('Error sending sponsorship inquiry:', error);
+
                 sponsorshipStatus.textContent = error.message || 'Failed to send inquiry.';
                 sponsorshipStatus.classList.add('text-red-500');
             }

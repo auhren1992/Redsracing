@@ -74,7 +74,7 @@ import { navigateToInternal } from './navigation-helpers.js';
         loadingTimeout = setTimeout(async () => {
             if (isDestroyed) return;
             
-            console.error('[Dashboard:Timeout] Loading timeout reached after', INITIAL_TIMEOUT, 'ms');
+
 
             // Before showing fallback, check if it's a network issue
             const isOnline = await checkNetworkConnectivity();
@@ -97,7 +97,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     function hideLoadingAndShowContent() {
         if (isDestroyed) return;
         
-        console.log('[Dashboard:UI] Hiding loading state and showing dashboard content');
+
         if (loadingState) {
             loadingState.style.display = 'none';
             loadingState.setAttribute('hidden', 'true');
@@ -108,13 +108,13 @@ import { navigateToInternal } from './navigation-helpers.js';
             dashboardContent.style.display = 'block';
         }
         clearLoadingTimeout();
-        console.log('[Dashboard:UI] ✓ Dashboard content displayed successfully');
+
     }
 
     function hideLoadingAndShowFallback() {
         if (isDestroyed) return;
         
-        console.log('[Dashboard:UI] Showing fallback content');
+
         
         if (loadingState) {
             loadingState.style.display = 'none';
@@ -147,7 +147,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     function showNetworkErrorFallback() {
         if (isDestroyed) return;
         
-        console.log('[Dashboard:Network] Showing network error fallback');
+
         
         if (loadingState) {
             loadingState.style.display = 'none';
@@ -191,7 +191,7 @@ import { navigateToInternal } from './navigation-helpers.js';
             });
             return true;
         } catch (error) {
-            console.warn('[Dashboard:Network] Network check failed:', error);
+
             return false;
         }
     }
@@ -227,7 +227,7 @@ import { navigateToInternal } from './navigation-helpers.js';
         const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
         
         if (isNaN(nextRaceDate)) {
-            console.error(`[Dashboard:Countdown] Invalid date for next race:`, nextRace);
+
             if (countdownTimerEl) safeSetHTML(countdownTimerEl, html`<div class='col-span-4 text-red-500'>Error: Invalid race date</div>`);
             return;
         }
@@ -313,29 +313,22 @@ import { navigateToInternal } from './navigation-helpers.js';
             
             renderRacesTable(raceList);
             startCountdown(raceList);
-            
-            console.log('[Dashboard:Races] Successfully loaded races:', raceList.length);
         } catch (error) {
-            console.error('[Dashboard:Races] Error loading race data:', error);
-            showAuthError({
-                code: 'race-load-failed',
-                message: 'Failed to load race data',
-                userMessage: 'Unable to load race information. Please try refreshing the page.',
-                requiresReauth: false,
-                retryable: true
-            });
+            if (raceManagementCard) {
+                safeSetHTML(raceManagementCard, html`<div class="p-4 text-red-400">Error loading race data.</div>`);
+            }
         }
     }
 
     function openRaceModal(race = null) {
         // Placeholder - implement race modal functionality
-        console.log('[Dashboard:Modal] Opening race modal for:', race);
+
     }
 
     function deleteRace(raceId) {
         if (confirm('Are you sure you want to delete this race?')) {
             // Placeholder - implement race deletion
-            console.log('[Dashboard:Delete] Deleting race:', raceId);
+
         }
     }
 
@@ -363,9 +356,10 @@ import { navigateToInternal } from './navigation-helpers.js';
                     });
                 }
             }
-            console.log('[Dashboard:QnA] Successfully loaded Q&A submissions:', qnaSubmissions.length);
         } catch (error) {
-            console.error('[Dashboard:QnA] Error loading Q&A submissions:', error);
+            if (qnaManagementCard) {
+                safeSetHTML(qnaManagementCard, html`<div class="p-4 text-red-400">Error loading Q&A submissions.</div>`);
+            }
         }
     }
 
@@ -399,9 +393,10 @@ import { navigateToInternal } from './navigation-helpers.js';
                     });
                 }
             }
-            console.log('[Dashboard:Photos] Successfully loaded unapproved photos:', unapprovedPhotos.length);
         } catch (error) {
-            console.error('[Dashboard:Photos] Error loading unapproved photos:', error);
+            if (photoApprovalCard) {
+                safeSetHTML(photoApprovalCard, html`<div class="p-4 text-red-400">Error loading photo approvals.</div>`);
+            }
         }
     }
 
@@ -435,9 +430,10 @@ import { navigateToInternal } from './navigation-helpers.js';
                     });
                 }
             }
-            console.log('[Dashboard:JonnyPhotos] Successfully loaded unapproved photos:', unapprovedPhotos.length);
         } catch (error) {
-            console.error('[Dashboard:JonnyPhotos] Error loading unapproved photos:', error);
+            if (jonnyPhotoApprovalCard) {
+                safeSetHTML(jonnyPhotoApprovalCard, html`<div class="p-4 text-red-400">Error loading Jonny's photo approvals.</div>`);
+            }
         }
     }
 
@@ -468,9 +464,10 @@ import { navigateToInternal } from './navigation-helpers.js';
                     });
                 }
             }
-            console.log('[Dashboard:JonnyVideos] Successfully loaded videos:', videos.length);
         } catch (error) {
-            console.error('[Dashboard:JonnyVideos] Error loading videos:', error);
+            if (jonnyVideoManagementCard) {
+                safeSetHTML(jonnyVideoManagementCard, html`<div class="p-4 text-red-400">Error loading Jonny's videos.</div>`);
+            }
         }
     }
 
@@ -490,7 +487,7 @@ import { navigateToInternal } from './navigation-helpers.js';
                     addVideoForm.reset();
                     loadJonnyVideos();
                 } catch (error) {
-                    console.error("Error adding video: ", error);
+
                 }
             }
         });
@@ -523,9 +520,10 @@ import { navigateToInternal } from './navigation-helpers.js';
                     });
                 }
             }
-            console.log('[Dashboard:Invites] Successfully loaded invitation codes:', codes.length);
         } catch (error) {
-            console.error('[Dashboard:Invites] Error loading invitation codes:', error);
+            if (invitationCodesCard) {
+                safeSetHTML(invitationCodesCard, html`<div class="p-4 text-red-400">Error loading invitation codes.</div>`);
+            }
         }
     }
 
@@ -533,7 +531,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     async function handleLogout() {
         if (isDestroyed) return;
         
-        console.log('[Dashboard:Logout] Starting logout process');
+
         
         try {
             // Disable the logout button to prevent multiple clicks
@@ -549,19 +547,19 @@ import { navigateToInternal } from './navigation-helpers.js';
             const success = await safeSignOut();
             
             if (success) {
-                console.log('[Dashboard:Logout] Logout successful, redirecting...');
+
                 // Short delay before redirect to ensure cleanup
                 setTimeout(() => {
                     navigateToInternal('/login.html');
                 }, 100);
             } else {
-                console.warn('[Dashboard:Logout] Logout failed, but redirecting anyway');
+
                 // Even if logout fails, redirect to login
                 navigateToInternal('/login.html');
             }
             
         } catch (error) {
-            console.error('[Dashboard:Logout] Logout error:', error);
+
             // Always redirect to login even if there's an error
             navigateToInternal('/login.html');
         }
@@ -569,7 +567,7 @@ import { navigateToInternal } from './navigation-helpers.js';
 
     // Cleanup function to prevent memory leaks
     function cleanup() {
-        console.log('[Dashboard:Cleanup] Starting cleanup');
+
         isDestroyed = true;
         
         // Clear timers
@@ -585,22 +583,22 @@ import { navigateToInternal } from './navigation-helpers.js';
             authStateUnsubscribe = null;
         }
         
-        console.log('[Dashboard:Cleanup] Cleanup completed');
+
     }
 
     // --- Start of Main Execution Logic ---
 
     // Prevent multiple initializations
     if (isInitialized) {
-        console.warn('[Dashboard] Already initialized');
+
         return;
     }
     
-    console.log('[Dashboard:Init] Starting dashboard initialization');
+
     
     // Check if Firebase services are available
     if (!auth || !db) {
-        console.error('[Dashboard:Init] Firebase services not available');
+
         hideLoadingAndShowFallback();
         return;
     }
@@ -614,29 +612,29 @@ import { navigateToInternal } from './navigation-helpers.js';
             e.preventDefault();
             handleLogout();
         });
-        console.log('[Dashboard:Init] Logout button handler attached');
+
     } else {
-        console.warn('[Dashboard:Init] Logout button not found');
+
     }
 
     // Setup auth state monitoring
     try {
         authStateUnsubscribe = monitorAuthState(
             async (user, validToken) => {
-                console.log('[Dashboard:Auth] Auth state change event received.');
+
                 if (isDestroyed || isProcessingAuth) {
-                    if (isProcessingAuth) console.log('[Dashboard:Auth] Auth processing already in progress, skipping.');
+                    if (isProcessingAuth)
                     return;
                 }
                 
                 isProcessingAuth = true;
-                console.log('[Dashboard:Auth] Starting auth processing.');
+
 
                 try {
                     clearAuthError();
                     
                     if (user && validToken) {
-                        console.log('[Dashboard:Auth] User is authenticated. Loading dashboard data...');
+
 
                         // Update UI with user info
                         if (userEmailEl) {
@@ -644,35 +642,37 @@ import { navigateToInternal } from './navigation-helpers.js';
                         }
                         
                         try {
-                            console.log('[Dashboard:Auth] Validating user claims for team-member role.');
+
                             const claimsResult = await validateUserClaims(['team-member']);
                             const isTeamMember = claimsResult.success && claimsResult.claims.role === 'team-member';
 
-                            console.log('[Dashboard:Auth] User role check completed:', { isTeamMember, role: claimsResult.claims?.role });
 
+
+                            const dataLoadingPromises = [];
                             if (isTeamMember) {
-                                console.log('[Dashboard:Auth] User is a team member. Displaying race management and loading race data.');
                                 if (raceManagementCard) {
                                     raceManagementCard.style.display = 'block';
                                 }
-                                await getRaceData();
-                                await loadQnASubmissions();
-                                await loadPhotoApprovals();
-                                await loadJonnyPhotoApprovals();
-                                await loadJonnyVideos();
-                                await loadInvitationCodes();
-                                console.log('[Dashboard:Auth] Race data loaded.');
+                                dataLoadingPromises.push(getRaceData());
+                                dataLoadingPromises.push(loadQnASubmissions());
+                                dataLoadingPromises.push(loadPhotoApprovals());
+                                dataLoadingPromises.push(loadJonnyPhotoApprovals());
+                                dataLoadingPromises.push(loadJonnyVideos());
+                                dataLoadingPromises.push(loadInvitationCodes());
                             }
                             
                             if (driverNotesCard) {
                                 driverNotesCard.classList.remove('hidden');
                             }
 
+                            // Load all data concurrently and don't let one failure block others.
+                            await Promise.allSettled(dataLoadingPromises);
+
                             hideLoadingAndShowContent();
-                            console.log('[Dashboard:Auth] Dashboard content successfully displayed.');
+
 
                         } catch (error) {
-                            console.error('[Dashboard:Auth] Error during dashboard data loading:', error);
+
                             showAuthError({
                                 code: 'dashboard-data-load-failed',
                                 message: 'Failed to load dashboard data',
@@ -683,19 +683,19 @@ import { navigateToInternal } from './navigation-helpers.js';
                             hideLoadingAndShowFallback();
                         }
                     } else {
-                        console.log('[Dashboard:Auth] User is not authenticated. Redirecting to login.');
+
                         cleanup();
                         navigateToInternal('/login.html');
                     }
                 } finally {
                     isProcessingAuth = false;
-                    console.log('[Dashboard:Auth] Finished auth processing.');
+
                 }
             },
             (error) => {
                 if (isDestroyed) return;
                 
-                console.error('[Dashboard:Auth] Authentication error:', error);
+
                 showAuthError(error);
                 
                 if (error.requiresReauth) {
@@ -712,7 +712,7 @@ import { navigateToInternal } from './navigation-helpers.js';
         );
         
     } catch (error) {
-        console.error('[Dashboard:Init] Failed to setup auth monitoring:', error);
+
         hideLoadingAndShowFallback();
         return;
     }
@@ -737,16 +737,16 @@ import { navigateToInternal } from './navigation-helpers.js';
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
                 // Page is now hidden, could pause some operations
-                console.log('[Dashboard:Visibility] Page hidden');
+
             } else if (isDestroyed) {
                 // Page became visible but we're destroyed, reload
-                console.log('[Dashboard:Visibility] Page visible but destroyed, reloading');
+
                 window.location.reload();
             }
         });
     }
 
     isInitialized = true;
-    console.log('[Dashboard:Complete] Dashboard initialization setup complete');
+
 
 })();

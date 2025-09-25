@@ -44,7 +44,7 @@ export async function processInvitationCode(code, uid) {
         const result = await processCode({ code, uid });
         return result.data;
     } catch (error) {
-        console.error("Error processing invitation code:", error);
+
         throw error;
     }
 }

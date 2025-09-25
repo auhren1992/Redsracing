@@ -1,7 +1,7 @@
 import './app.js';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, query, onSnapshot, orderBy } from "firebase/firestore";
-import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
+import { getFirebaseDb } from './firebase-core.js';
+import { monitorAuthState } from './auth-utils.js';
 
 
 // Import invitation code utilities
@@ -15,14 +15,13 @@ async function main() {
     captureInvitationCodeFromURL();
 
     const db = getFirebaseDb();
-    const auth = getFirebaseAuth();
 
     // UI Elements
     const authLink = document.getElementById('auth-link');
     const authLinkMobile = document.getElementById('auth-link-mobile');
 
     // Auth State Change
-    onAuthStateChanged(auth, async user => {
+    monitorAuthState(async (user, token) => {
         if (user) {
             if(authLink) authLink.textContent = 'Dashboard';
             if(authLink) authLink.href = 'dashboard.html';
@@ -31,9 +30,8 @@ async function main() {
             
             // Apply pending invitation code if available
             try {
-                await applyPendingInvitationCode(auth);
+                await applyPendingInvitationCode(user);
             } catch (error) {
-                console.warn('[Schedule] Failed to apply pending invitation code:', error);
                 // Don't block the auth flow for invitation code errors
             }
         } else {
@@ -42,6 +40,8 @@ async function main() {
             if(authLinkMobile) authLinkMobile.textContent = 'DRIVER LOGIN';
             if(authLinkMobile) authLinkMobile.href = 'login.html';
         }
+    }, (error) => {
+        // Optional: handle auth errors
     });
 
     const superCupsContainer = document.getElementById('super-cups-schedule');

@@ -29,8 +29,6 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
 // Wrap everything in an async function to allow early returns
 (async function() {
-    console.log('[Profile:Module] Starting profile module execution.');
-    
     // Track initialization and cleanup state
     let isInitialized = false;
     let isDestroyed = false;
@@ -42,11 +40,8 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     const app = getFirebaseApp();
     const db = getFirebaseDb();
     
-    console.log('[Profile:Init] Firebase services obtained successfully.');
-
     // Check if Firebase services are available
     if (!auth || !app || !db) {
-        console.error('[Profile:Init] Firebase services not available. Aborting initialization.');
         hideLoadingAndShowFallback();
         return;
     }
@@ -58,7 +53,6 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         loadingTimeout = setTimeout(() => {
             if (isDestroyed) return;
             
-            console.warn('[Profile:Timeout] Loading timeout reached, showing fallback');
             hideLoadingAndShowFallback();
         }, 15000); // 15 second timeout
     }
@@ -81,7 +75,6 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
             loadingState.style.visibility = 'hidden';
             loadingState.classList.add('hidden');
             loadingState.setAttribute('hidden', 'true');
-            console.log('[Profile:Fallback] Loading state hidden');
         }
 
         if (profileContent) {
@@ -101,7 +94,6 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
                 </div>
             `;
             profileContent.classList.remove('hidden');
-            console.log('[Profile:Fallback] Fallback content shown');
         }
 
         clearLoadingTimeout();
@@ -110,7 +102,6 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     function hideLoadingAndShowContent() {
         if (isDestroyed) return;
         
-        console.log('[Profile:UI] Hiding loading state and showing profile content');
         const loadingState = document.getElementById('loading-state');
         const profileContent = document.getElementById('profile-content');
         
@@ -122,13 +113,11 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         }
         
         clearLoadingTimeout();
-        console.log('[Profile:UI] Profile content displayed successfully');
     }
 
     function showErrorState(type = 'generic', message = null) {
         if (isDestroyed) return;
         
-        console.log('[Profile:Error] Showing error state:', type);
         const loadingState = document.getElementById('loading-state');
         const profileContent = document.getElementById('profile-content');
         const errorState = document.getElementById('error-state');
@@ -179,7 +168,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     async function handleLogout() {
         if (isDestroyed) return;
         
-        console.log('[Profile:Logout] Starting logout process');
+
         
         try {
             // Disable the logout button to prevent multiple clicks
@@ -195,24 +184,24 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
             const success = await safeSignOut();
             
             if (success) {
-                console.log('[Profile:Logout] Logout successful, redirecting...');
+
                 setTimeout(() => {
                     navigateToInternal('/login.html');
                 }, 100);
             } else {
-                console.warn('[Profile:Logout] Logout failed, but redirecting anyway');
+
                 navigateToInternal('/login.html');
             }
             
         } catch (error) {
-            console.error('[Profile:Logout] Logout error:', error);
+
             navigateToInternal('/login.html');
         }
     }
 
     // Cleanup function to prevent memory leaks
     function cleanup() {
-        console.log('[Profile:Cleanup] Starting cleanup');
+
         isDestroyed = true;
         
         clearLoadingTimeout();
@@ -222,7 +211,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
             authStateUnsubscribe = null;
         }
         
-        console.log('[Profile:Cleanup] Cleanup completed');
+
     }
 
     // Start loading timeout immediately
@@ -234,7 +223,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
             e.preventDefault();
             handleLogout();
         });
-        console.log('[Profile:Init] Logout button handler attached');
+
     }
 
     // Get user ID from URL or use current user
@@ -276,10 +265,10 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
                 }
             }
 
-            console.warn('[Profile:Format] Unable to parse timestamp:', timestamp);
+
             return fallback;
         } catch (error) {
-            console.error('[Profile:Format] Error formatting timestamp:', error, timestamp);
+
             return fallback;
         }
     }
@@ -341,7 +330,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
             throw new Error(`API endpoint ${endpoint} not available - backend service unavailable`);
 
         } catch (error) {
-            console.error(`[Profile:API] Error calling ${endpoint}:`, error);
+
             throw error;
         }
     }
@@ -349,49 +338,49 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     // Load user profile
     async function loadUserProfile(userId) {
         if (isDestroyed) {
-            console.log(`[Profile:Load] Aborted: component destroyed.`);
+
             return;
         }
         
-        console.log(`[Profile:Load] Starting profile load for user: ${userId}`);
+
         try {
             const profileData = await callProfileAPI(`/profile/${userId}`);
-            console.log(`[Profile:Load] API call successful for user: ${userId}. Displaying profile.`);
+
             displayProfile(profileData);
             loadAchievements(profileData.achievements || []);
 
-            console.log(`[Profile:Load] Successfully finished loading profile for user: ${userId}`);
+
         } catch (error) {
-            console.error(`[Profile:Load] Caught error loading profile for ${userId}:`, error);
+
 
             // Distinguish between different error types and handle appropriately
             if (error.code === 'not-found') {
-                console.log(`[Profile:Load] Profile not found for ${userId}. Checking if it's the current user.`);
+
                 if (isCurrentUserProfile) {
-                    console.log('[Profile:Load] Current user profile not found. Attempting to create a default profile.');
+
                     try {
                         await createDefaultProfile(userId);
                         return; // Successfully created and loaded profile
                     } catch (createError) {
-                        console.error('[Profile:Load] Failed to create default profile:', createError);
+
                         displayMinimalProfile(userId);
                         hideLoadingAndShowContent();
                         return;
                     }
                 } else {
-                    console.log('[Profile:Load] Other user profile not found. Showing minimal profile.');
+
                     displayMinimalProfile(userId);
                     hideLoadingAndShowContent();
                     return;
                 }
             } else if (error.code === 'unauthorized' || error.code === 'forbidden' || 
                       error.code === 'permission-denied' || error.code === 'unauthenticated') {
-                console.log(`[Profile:Load] Access denied (${error.code}) for ${userId}. Showing minimal profile.`);
+
                 displayMinimalProfile(userId);
                 hideLoadingAndShowContent();
                 return;
             } else {
-                console.error(`[Profile:Load] A network or server error occurred for ${userId}. Showing minimal profile.`);
+
                 displayMinimalProfile(userId);
                 hideLoadingAndShowContent();
                 return;
@@ -402,7 +391,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     // Create default profile for new users
     async function createDefaultProfile(userId) {
         if (isDestroyed) {
-            console.log(`[Profile:Create] Aborted: component destroyed.`);
+
             return;
         }
         
@@ -416,14 +405,14 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         };
 
         try {
-            console.log(`[Profile:Create] Attempting to create default profile for user ${userId}`);
+
             await callProfileAPI(`/update_profile/${userId}`, 'PUT', defaultProfile);
-            console.log(`[Profile:Create] Default profile created. Reloading profile for user ${userId}.`);
+
 
             // Reload profile after creation
             await loadUserProfile(userId);
         } catch (error) {
-            console.error('[Profile:Create] Error during default profile creation:', error);
+
             displayMinimalProfile(userId);
             hideLoadingAndShowContent();
         }
@@ -490,10 +479,10 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     function displayMinimalProfile(userId) {
         if (isDestroyed) return;
         
-        console.log(`[Profile:Minimal] Displaying minimal profile for user: ${userId}`);
+
         const user = getCurrentUser();
         if (!user) {
-            console.warn('[Profile:Minimal] Cannot display minimal profile - no authenticated user');
+
             hideLoadingAndShowFallback();
             return;
         }
@@ -512,7 +501,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         displayProfile(basicProfile);
         loadAchievements([]); // Load empty achievements
 
-        console.log(`[Profile:Minimal] Displayed minimal profile due to ${isViewingOwnProfile ? 'backend unavailability' : 'user not found/access denied'}`);
+
     }
 
     // Load achievements
@@ -629,44 +618,41 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     if (saveProfileBtn) {
         saveProfileBtn.addEventListener('click', async () => {
             // Save profile functionality - placeholder
-            console.log('[Profile:Save] Save profile functionality not implemented');
+
         });
     }
 
     // Set up authentication state monitoring with enhanced error handling
-    console.log('[Profile:Auth] Setting up authentication state monitoring');
+
 
     try {
         authStateUnsubscribe = monitorAuthState(
             async (user, validToken) => {
-                console.log('[Profile:Auth] Auth state change event received.');
+
                 if (isDestroyed || isProcessingAuth) {
-                    if (isProcessingAuth) console.log('[Profile:Auth] Auth processing already in progress, skipping.');
+                    if (isProcessingAuth)
                     return;
                 }
                 
                 isProcessingAuth = true;
-                console.log('[Profile:Auth] Starting auth processing.');
+
 
                 try {
                     clearAuthError();
 
                     if (user && validToken) {
-                        console.log('[Profile:Auth] User is authenticated. Loading profile...', {
-                            uid: user.uid,
-                            email: user.email
-                        });
+
 
                         currentUser = user;
                         const targetUserId = getUserIdFromUrl() || user.uid;
                         isCurrentUserProfile = (targetUserId === user.uid);
-                        console.log(`[Profile:Auth] Target user ID is ${targetUserId}. Current user profile: ${isCurrentUserProfile}.`);
+
 
                         // Load the user profile with enhanced error handling
                         try {
                             await loadUserProfile(targetUserId);
                         } catch (profileError) {
-                            console.error('[Profile:Auth] Unhandled error during profile load:', profileError);
+
                             showAuthError({
                                 code: 'profile-load-failed',
                                 message: 'Failed to load user profile',
@@ -680,38 +666,34 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
                         // Check if user is admin for achievements management
                         try {
-                            console.log('[Profile:Auth] Validating user claims for admin access.');
+
                             const claimsResult = await validateUserClaims(['team-member']);
                             const isAdmin = claimsResult.success && claimsResult.claims.role === 'team-member';
 
-                            console.log('[Profile:Auth] User role validation complete:', {
-                                isAdmin,
-                                role: claimsResult.claims?.role,
-                                hasPermissions: claimsResult.success
-                            });
+
 
                             if (isAdmin && adminAchievements) {
                                 adminAchievements.classList.remove('hidden');
-                                console.log('[Profile:Admin] Admin features enabled.');
+
                             }
                         } catch (claimsError) {
-                            console.error('[Profile:Auth] Error validating user claims:', claimsError);
+
                         }
 
                     } else {
-                        console.log('[Profile:Auth] User is not authenticated. Redirecting to login.');
+
                         cleanup();
                         navigateToInternal('/login.html');
                     }
                 } finally {
                     isProcessingAuth = false;
-                    console.log('[Profile:Auth] Finished auth processing.');
+
                 }
             },
             (error) => {
                 if (isDestroyed) return;
                 
-                console.error('[Profile:Auth] Authentication error:', error);
+
                 showAuthError(error);
 
                 if (error.requiresReauth) {
@@ -728,7 +710,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
         );
         
     } catch (error) {
-        console.error('[Profile:Auth] Failed to setup auth monitoring:', error);
+
         hideLoadingAndShowFallback();
         return;
     }
@@ -741,9 +723,9 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
     if (typeof document.visibilityState !== 'undefined') {
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
-                console.log('[Profile:Visibility] Page hidden');
+
             } else if (isDestroyed) {
-                console.log('[Profile:Visibility] Page visible but destroyed, reloading');
+
                 window.location.reload();
             }
         });
@@ -751,11 +733,11 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
 
     // Prevent multiple initializations
     if (isInitialized) {
-        console.warn('[Profile] Already initialized');
+
         return;
     }
 
     isInitialized = true;
-    console.log('[Profile:Complete] Profile initialization complete');
+
 
 })();

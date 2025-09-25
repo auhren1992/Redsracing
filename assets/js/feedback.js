@@ -33,7 +33,7 @@ async function main() {
                 feedbackStatus.classList.add('text-green-500');
                 feedbackForm.reset();
             } catch (error) {
-                console.error('Error sending feedback:', error);
+
                 feedbackStatus.textContent = error.message || 'Failed to send feedback.';
                 feedbackStatus.classList.add('text-red-500');
             }

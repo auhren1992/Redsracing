@@ -137,7 +137,7 @@ export function navigateToInternal(path, replace = false) {
             window.location.href = normalizedPath;
         }
     } catch (error) {
-        console.error('Navigation failed:', error);
+
         throw new Error('Navigation failed');
     }
 }
@@ -160,7 +160,7 @@ export function safeRedirect(path) {
 export function validateRedirectUrl(url, fallbackPath = '/') {
     const normalizedPath = normalizeAndValidatePath(url);
     if (!normalizedPath) {
-        console.warn('Invalid redirect URL:', url);
+
         return fallbackPath;
     }
 
@@ -168,7 +168,7 @@ export function validateRedirectUrl(url, fallbackPath = '/') {
         return normalizedPath;
     }
 
-    console.warn('Unsafe redirect URL blocked:', url);
+
     return fallbackPath;
 }
 
@@ -203,7 +203,7 @@ export function safeOpenLink(url, newTab = false) {
             navigateToInternal(path);
         }
     } catch (error) {
-        console.error('Failed to open link:', error);
+
         throw new Error('Failed to open link');
     }
 }

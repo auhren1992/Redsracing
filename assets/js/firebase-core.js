@@ -26,8 +26,6 @@ function initializeFirebaseIfNeeded() {
         auth = getAuth(app);
         db = getFirestore(app);
         storage = getStorage(app);
-
-        console.log("[Firebase Core] Firebase initialized successfully");
     }
     return { app, auth, db, storage };
 }

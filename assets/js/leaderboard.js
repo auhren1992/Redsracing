@@ -2,7 +2,7 @@ import './app.js';
 
 // Fixed Leaderboard Module - Resolves infinite loading issues
 import { getFirebaseAuth, getFirebaseDb } from './firebase-core.js';
-import { onAuthStateChanged } from "firebase/auth";
+import { monitorAuthState } from './auth-utils.js';
 
 // Import sanitization utilities
 import { html, safeSetHTML, setSafeText, createSafeElement } from './sanitize.js';
@@ -13,20 +13,15 @@ let isDestroyed = false;
 let loadingTimeout = null;
 
 async function init() {
-  console.log('[Leaderboard:Init] Initialization sequence started.');
   // Prevent multiple initializations
   if (isInitialized) {
-    console.warn('[Leaderboard] Already initialized, skipping.');
     return;
   }
-
-  console.log('[Leaderboard:Init] Starting leaderboard initialization');
 
   const auth = getFirebaseAuth();
   
   // Check if Firebase services are available
   if (!auth) {
-    console.error('[Leaderboard:Init] Firebase auth service not available');
     showError();
     return;
   }
@@ -36,7 +31,7 @@ async function init() {
 
   try {
     // Toggle nav auth link
-    onAuthStateChanged(auth, user => {
+    monitorAuthState(user => {
       if (isDestroyed) return;
       
       const authLink = document.getElementById('auth-link');
@@ -57,6 +52,8 @@ async function init() {
       } else {
         setLinks('DRIVER LOGIN', 'login.html');
       }
+    }, (error) => {
+        // Optional: handle auth errors
     });
 
     // Mobile menu toggle
@@ -75,7 +72,6 @@ async function init() {
       retryBtn.addEventListener('click', () => {
         if (isDestroyed) return;
         
-        console.log('[Leaderboard:Retry] Retrying leaderboard load');
         document.getElementById('error-state')?.classList.add('hidden');
         document.getElementById('loading-state')?.classList.remove('hidden');
         
@@ -91,10 +87,8 @@ async function init() {
     await loadLeaderboard();
     
     isInitialized = true;
-    console.log('[Leaderboard:Complete] Leaderboard initialization complete');
     
   } catch (error) {
-    console.error('[Leaderboard:Init] Initialization failed:', error);
     showError();
   }
 }
@@ -105,7 +99,6 @@ function startLoadingTimeout() {
   loadingTimeout = setTimeout(() => {
     if (isDestroyed) return;
     
-    console.error('[Leaderboard:Timeout] Loading timeout reached');
     showError();
   }, 15000); // 15 second timeout
 }
@@ -120,15 +113,11 @@ function clearLoadingTimeout() {
 async function loadLeaderboard() {
   if (isDestroyed) return;
   
-  console.log('[Leaderboard:Load] Starting leaderboard data load.');
-
   try {
-    console.log('[Leaderboard:Load] Fetching data from /leaderboard endpoint.');
     // Create AbortController for timeout handling
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       if (!isDestroyed) {
-        console.log('[Leaderboard:Load] Fetch timeout triggered.');
         controller.abort();
       }
     }, 10000); // 10 second timeout
@@ -144,31 +133,24 @@ async function loadLeaderboard() {
     clearTimeout(timeoutId);
 
     if (isDestroyed) {
-      console.log('[Leaderboard:Load] Component destroyed during fetch, aborting.');
       return;
     }
 
     if (!response.ok) {
-      console.error(`[Leaderboard:Load] HTTP error! status: ${response.status}`);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const leaderboard = await response.json();
 
     if (isDestroyed) {
-      console.log('[Leaderboard:Load] Component destroyed after fetch, aborting.');
       return;
     }
 
-    console.log('[Leaderboard:Load] Successfully loaded leaderboard data:', leaderboard.length, 'entries');
-
     if (leaderboard.length === 0) {
-      console.log('[Leaderboard:Load] Leaderboard is empty, showing empty state.');
       showEmptyState();
       return;
     }
 
-    console.log('[Leaderboard:Load] Rendering leaderboard.');
     renderLeaderboard(leaderboard);
     
     // Clear loading timeout and show content
@@ -176,19 +158,8 @@ async function loadLeaderboard() {
     document.getElementById('loading-state')?.classList.add('hidden');
     document.getElementById('leaderboard-content')?.classList.remove('hidden');
     
-    console.log('[Leaderboard:Load] Leaderboard display completed successfully');
-    
   } catch (err) {
     if (isDestroyed) return;
-    
-    console.error('[Leaderboard:Load] Error loading leaderboard:', err);
-    
-    // Handle specific error types
-    if (err.name === 'AbortError') {
-      console.error('[Leaderboard:Load] Request was aborted (timeout)');
-    } else if (err.message.includes('Failed to fetch')) {
-      console.error('[Leaderboard:Load] Network error - failed to fetch');
-    }
     
     showError();
   }
@@ -197,19 +168,12 @@ async function loadLeaderboard() {
 function renderLeaderboard(leaderboard) {
   if (isDestroyed) return;
   
-  console.log('[Leaderboard:Render] Starting render for', leaderboard.length, 'entries.');
-  
   try {
-    console.log('[Leaderboard:Render] Rendering podium.');
     renderPodium(leaderboard.slice(0, 3));
-    console.log('[Leaderboard:Render] Rendering table.');
     renderTable(leaderboard);
-    console.log('[Leaderboard:Render] Rendering stats.');
     renderStats(leaderboard);
     
-    console.log('[Leaderboard:Render] All components rendered successfully.');
   } catch (error) {
-    console.error('[Leaderboard:Render] Error during rendering:', error);
     showError();
   }
 }
@@ -328,8 +292,6 @@ function renderStats(leaderboard) {
 function showError() {
   if (isDestroyed) return;
   
-  console.log('[Leaderboard:Error] Showing error state');
-  
   clearLoadingTimeout();
   document.getElementById('loading-state')?.classList.add('hidden');
   document.getElementById('leaderboard-content')?.classList.add('hidden');
@@ -338,8 +300,6 @@ function showError() {
 
 function showEmptyState() {
   if (isDestroyed) return;
-  
-  console.log('[Leaderboard:Empty] Showing empty state');
   
   clearLoadingTimeout();
   document.getElementById('loading-state')?.classList.add('hidden');
@@ -360,7 +320,6 @@ function showEmptyState() {
 
 // Cleanup function
 function cleanup() {
-  console.log('[Leaderboard:Cleanup] Starting cleanup');
   isDestroyed = true;
   clearLoadingTimeout();
 }
@@ -373,9 +332,8 @@ window.addEventListener('unload', cleanup);
 if (typeof document.visibilityState !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
-      console.log('[Leaderboard:Visibility] Page hidden');
+      // Page hidden
     } else if (isDestroyed) {
-      console.log('[Leaderboard:Visibility] Page visible but destroyed, reloading');
       window.location.reload();
     }
   });
