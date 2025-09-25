@@ -50,6 +50,17 @@ import { navigateToInternal } from './navigation-helpers.js';
     const driverNotesEl = document.getElementById('driver-notes');
     const notesStatusEl = document.getElementById('notes-status');
     const addRaceBtn = document.getElementById('add-race-btn');
+    const qnaManagementCard = document.getElementById('qna-management-card');
+    const qnaList = document.getElementById('qna-list');
+    const photoApprovalCard = document.getElementById('photo-approval-card');
+    const unapprovedPhotosList = document.getElementById('unapproved-photos-list');
+    const jonnyPhotoApprovalCard = document.getElementById('jonny-photo-approval-card');
+    const jonnyUnapprovedPhotosList = document.getElementById('jonny-unapproved-photos-list');
+    const jonnyVideoManagementCard = document.getElementById('jonny-video-management-card');
+    const jonnyVideosList = document.getElementById('jonny-videos-list');
+    const addVideoForm = document.getElementById('add-video-form');
+    const invitationCodesCard = document.getElementById('invitation-codes-card');
+    const invitationCodesTableBody = document.getElementById('invitation-codes-table-body');
 
     // Firebase Services
     const auth = getFirebaseAuth();
@@ -333,6 +344,196 @@ import { navigateToInternal } from './navigation-helpers.js';
         }
     }
 
+    async function loadQnASubmissions() {
+        if (isDestroyed) return;
+
+        try {
+            const qnaCol = collection(db, "qna_submissions");
+            const q = query(qnaCol, where("status", "==", "submitted"));
+            const qnaSnapshot = await getDocs(q);
+            const qnaSubmissions = qnaSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            if (qnaList) {
+                qnaList.innerHTML = '';
+                if (qnaSubmissions.length > 0) {
+                    qnaManagementCard.style.display = 'block';
+                    qnaSubmissions.forEach(submission => {
+                        const qnaElement = document.createElement('div');
+                        qnaElement.className = 'p-4 bg-slate-800 rounded-lg';
+                        safeSetHTML(qnaElement, html`
+                            <p class="text-white">${submission.question}</p>
+                            <button class="text-neon-yellow mt-2" data-id="${submission.id}">Answer</button>
+                        `);
+                        qnaList.appendChild(qnaElement);
+                    });
+                }
+            }
+            console.log('[Dashboard:QnA] Successfully loaded Q&A submissions:', qnaSubmissions.length);
+        } catch (error) {
+            console.error('[Dashboard:QnA] Error loading Q&A submissions:', error);
+        }
+    }
+
+    async function loadPhotoApprovals() {
+        if (isDestroyed) return;
+
+        try {
+            const photosCol = collection(db, "gallery_images");
+            const q = query(photosCol, where("approved", "==", false));
+            const photoSnapshot = await getDocs(q);
+            const unapprovedPhotos = photoSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            if (unapprovedPhotosList) {
+                unapprovedPhotosList.innerHTML = '';
+                if (unapprovedPhotos.length > 0) {
+                    photoApprovalCard.style.display = 'block';
+                    unapprovedPhotos.forEach(photo => {
+                        const photoElement = document.createElement('div');
+                        photoElement.className = 'p-4 bg-slate-800 rounded-lg flex items-center justify-between';
+                        safeSetHTML(photoElement, html`
+                            <div>
+                                <img src="${photo.url}" class="w-16 h-16 object-cover rounded-md mr-4">
+                                <p class="text-white">${photo.title}</p>
+                            </div>
+                            <div>
+                                <button class="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-500 transition mr-1" data-id="${photo.id}">Approve</button>
+                                <button class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-500 transition" data-id="${photo.id}">Reject</button>
+                            </div>
+                        `);
+                        unapprovedPhotosList.appendChild(photoElement);
+                    });
+                }
+            }
+            console.log('[Dashboard:Photos] Successfully loaded unapproved photos:', unapprovedPhotos.length);
+        } catch (error) {
+            console.error('[Dashboard:Photos] Error loading unapproved photos:', error);
+        }
+    }
+
+    async function loadJonnyPhotoApprovals() {
+        if (isDestroyed) return;
+
+        try {
+            const photosCol = collection(db, "jonny_gallery_images");
+            const q = query(photosCol, where("approved", "==", false));
+            const photoSnapshot = await getDocs(q);
+            const unapprovedPhotos = photoSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            if (jonnyUnapprovedPhotosList) {
+                jonnyUnapprovedPhotosList.innerHTML = '';
+                if (unapprovedPhotos.length > 0) {
+                    jonnyPhotoApprovalCard.style.display = 'block';
+                    unapprovedPhotos.forEach(photo => {
+                        const photoElement = document.createElement('div');
+                        photoElement.className = 'p-4 bg-slate-800 rounded-lg flex items-center justify-between';
+                        safeSetHTML(photoElement, html`
+                            <div>
+                                <img src="${photo.url}" class="w-16 h-16 object-cover rounded-md mr-4">
+                                <p class="text-white">${photo.title}</p>
+                            </div>
+                            <div>
+                                <button class="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-500 transition mr-1" data-id="${photo.id}">Approve</button>
+                                <button class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-500 transition" data-id="${photo.id}">Reject</button>
+                            </div>
+                        `);
+                        jonnyUnapprovedPhotosList.appendChild(photoElement);
+                    });
+                }
+            }
+            console.log('[Dashboard:JonnyPhotos] Successfully loaded unapproved photos:', unapprovedPhotos.length);
+        } catch (error) {
+            console.error('[Dashboard:JonnyPhotos] Error loading unapproved photos:', error);
+        }
+    }
+
+    async function loadJonnyVideos() {
+        if (isDestroyed) return;
+
+        try {
+            const videosCol = collection(db, "jonny_videos");
+            const q = query(videosCol, orderBy("timestamp", "desc"));
+            const videoSnapshot = await getDocs(q);
+            const videos = videoSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            if (jonnyVideosList) {
+                jonnyVideosList.innerHTML = '';
+                if (videos.length > 0) {
+                    jonnyVideoManagementCard.style.display = 'block';
+                    videos.forEach(video => {
+                        const videoElement = document.createElement('div');
+                        videoElement.className = 'p-4 bg-slate-800 rounded-lg flex items-center justify-between';
+                        safeSetHTML(videoElement, html`
+                            <div>
+                                <p class="text-white">${video.title}</p>
+                                <a href="${video.url}" target="_blank" class="text-neon-yellow text-sm">Watch</a>
+                            </div>
+                            <button class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-500 transition" data-id="${video.id}">Delete</button>
+                        `);
+                        jonnyVideosList.appendChild(videoElement);
+                    });
+                }
+            }
+            console.log('[Dashboard:JonnyVideos] Successfully loaded videos:', videos.length);
+        } catch (error) {
+            console.error('[Dashboard:JonnyVideos] Error loading videos:', error);
+        }
+    }
+
+    if (addVideoForm) {
+        addVideoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('video-url').value;
+            const title = document.getElementById('video-title').value;
+
+            if (url && title) {
+                try {
+                    await addDoc(collection(db, 'jonny_videos'), {
+                        url,
+                        title,
+                        timestamp: new Date()
+                    });
+                    addVideoForm.reset();
+                    loadJonnyVideos();
+                } catch (error) {
+                    console.error("Error adding video: ", error);
+                }
+            }
+        });
+    }
+
+    async function loadInvitationCodes() {
+        if (isDestroyed) return;
+
+        try {
+            const codesCol = collection(db, "invitation_codes");
+            const codeSnapshot = await getDocs(codesCol);
+            const codes = codeSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            if (invitationCodesTableBody) {
+                invitationCodesTableBody.innerHTML = '';
+                if (codes.length > 0) {
+                    invitationCodesCard.style.display = 'block';
+                    codes.forEach(code => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b border-slate-700';
+                        safeSetHTML(row, html`
+                            <td class="p-2">${code.id}</td>
+                            <td class="p-2">${code.role}</td>
+                            <td class="p-2">${code.status}</td>
+                            <td class="p-2">${code.usedBy || 'N/A'}</td>
+                            <td class="p-2">${code.usedAt ? new Date(code.usedAt.seconds * 1000).toLocaleDateString() : 'N/A'}</td>
+                            <td class="p-2">${new Date(code.expires.seconds * 1000).toLocaleDateString()}</td>
+                        `);
+                        invitationCodesTableBody.appendChild(row);
+                    });
+                }
+            }
+            console.log('[Dashboard:Invites] Successfully loaded invitation codes:', codes.length);
+        } catch (error) {
+            console.error('[Dashboard:Invites] Error loading invitation codes:', error);
+        }
+    }
+
     // Enhanced logout handler
     async function handleLogout() {
         if (isDestroyed) return;
@@ -460,6 +661,11 @@ import { navigateToInternal } from './navigation-helpers.js';
                                     raceManagementCard.style.display = 'block';
                                 }
                                 await getRaceData();
+                                await loadQnASubmissions();
+                                await loadPhotoApprovals();
+                                await loadJonnyPhotoApprovals();
+                                await loadJonnyVideos();
+                                await loadInvitationCodes();
                                 console.log('[Dashboard:Auth] Race data loaded.');
                             }
                             
