@@ -16,7 +16,6 @@ firebase-debug.log
 # Build output
 dist
 build
-/src/
 
 # Misc
 .DS_Store
