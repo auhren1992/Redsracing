@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "RedsRacing #8 Frontend",
   "scripts": {
-    "build-css": "npx tailwindcss -i ./src/input.css -o ./styles/tailwind.css --watch",
-    "build-css-prod": "npx tailwindcss -i ./src/input.css -o ./styles/tailwind.css --minify",
-    "build": "npm run build-css-prod && npx webpack"
+    "build-css": "tailwindcss -i ./src/input.css -o ./styles/tailwind.css --watch",
+    "build-css-prod": "tailwindcss -i ./src/input.css -o ./styles/tailwind.css --minify",
+    "build": "npx webpack"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
