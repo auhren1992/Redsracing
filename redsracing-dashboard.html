@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Dashboard - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="stylesheet" href="styles/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+            </a>
+            <div class="flex items-center space-x-6 font-bold">
+                <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
+                <a href="jonny.html" class="hover:text-neon-yellow transition duration-300">Jonny's Page</a>
+                <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Full Schedule</a>
+                <a href="profile.html" class="hover:text-neon-yellow transition duration-300">Profile</a>
+                <a href="leaderboard.html" class="hover:text-neon-yellow transition duration-300">Leaderboard</a>
+                <a id="logout-button" href="#" class="bg-red-600 text-white py-2 px-5 rounded-md hover:bg-red-500 transition duration-300">
+                    Logout
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-6 py-12">
+        <!-- Authentication and general error container -->
+        <div id="auth-error-container" class="mb-6"></div>
+        
+        <div id="loading-state" class="flex flex-col items-center justify-center text-center py-20">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-neon-yellow"></div>
+            <p class="text-2xl mt-4 font-racing uppercase tracking-wider">Loading Dashboard...</p>
+        </div>
+
+        <div id="dashboard-content" class="hidden">
+            <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
+            <p class="text-slate-400 mb-8">Welcome back, <span id="user-email" class="font-bold text-white"></span>.</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                <!-- Column 1 -->
+                <div class="space-y-8">
+                    <!-- Next Race Countdown -->
+                    <div class="card rounded-lg p-6">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Next <span class="neon-yellow">Race</span></h2>
+                        <p id="next-race-name" class="text-2xl font-bold text-white uppercase mb-4">Loading...</p>
+                        <div id="countdown-timer" class="grid grid-cols-4 gap-4 text-center">
+                            <div><div id="days" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Days</div></div>
+                            <div><div id="hours" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Hours</div></div>
+                            <div><div id="minutes" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Minutes</div></div>
+                            <div><div id="seconds" class="text-4xl font-bold">0</div><div class="text-xs uppercase text-slate-400">Seconds</div></div>
+                        </div>
+                    </div>
+
+                    <!-- Driver Notes -->
+                    <div id="driver-notes-card" class="card rounded-lg p-6">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Driver <span class="neon-yellow">Notes</span></h2>
+                        <p class="text-slate-400 mb-4">Your private space for race notes and reminders. Saved automatically.</p>
+                        <textarea id="driver-notes" class="w-full p-4 rounded-md textarea-notes" placeholder="Start typing your notes..."></textarea>
+                        <p id="notes-status" class="text-sm text-slate-500 mt-2 h-4"></p>
+                    </div>
+                </div>
+
+                <!-- Column 2 -->
+                <div class="space-y-8">
+                    <!-- Race Management -->
+                    <div id="race-management-card" class="card rounded-lg p-6" style="display: none;">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Race <span class="neon-yellow">Management</span></h2>
+                        <div class="flex justify-end mb-4">
+                             <button id="add-race-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Add New Race</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="border-b border-slate-600">
+                                        <th class="p-2">Date</th>
+                                        <th class="p-2">Name</th>
+                                        <th class="p-2">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="races-table-body">
+                                    <!-- Race rows will be inserted here by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Q&A Management -->
+                    <div id="qna-management-card" class="card rounded-lg p-6" style="display: none;">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Q&A <span class="neon-yellow">Submissions</span></h2>
+                        <div id="qna-list" class="space-y-4">
+                            <!-- Submitted questions will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Photo Approval -->
+                    <div id="photo-approval-card" class="card rounded-lg p-6" style="display: none;">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Main Gallery <span class="neon-yellow">Approvals</span></h2>
+                        <div id="unapproved-photos-list" class="space-y-4 max-h-96 overflow-y-auto">
+                            <!-- Unapproved photos will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Jonny's Photo Approval -->
+                    <div id="jonny-photo-approval-card" class="card rounded-lg p-6" style="display: none;">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Jonny's <span class="neon-red">Photo Approvals</span></h2>
+                        <div id="jonny-unapproved-photos-list" class="space-y-4 max-h-96 overflow-y-auto">
+                            <!-- Jonny's unapproved photos will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Jonny's Video Management -->
+                    <div id="jonny-video-management-card" class="card rounded-lg p-6" style="display: none;">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Jonny's <span class="neon-red">Video Gallery</span></h2>
+                        <form id="add-video-form" class="space-y-4 mb-6">
+                            <div>
+                                <label for="video-url" class="block text-sm font-medium text-gray-300">YouTube Video URL</label>
+                                <input type="url" id="video-url" required class="form-input mt-1 block w-full px-3 py-2 rounded-md" placeholder="https://www.youtube.com/watch?v=...">
+                            </div>
+                            <div>
+                                <label for="video-title" class="block text-sm font-medium text-gray-300">Video Title</label>
+                                <input type="text" id="video-title" required class="form-input mt-1 block w-full px-3 py-2 rounded-md" placeholder="e.g., First Laps in the #88">
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Add Video</button>
+                        </form>
+                        <h3 class="text-xl font-bold text-white mb-4">Current Videos</h3>
+                        <div id="jonny-videos-list" class="space-y-4 max-h-60 overflow-y-auto">
+                            <!-- Current videos will be listed here -->
+                        </div>
+                    </div>
+
+                    <!-- Invitation Codes Management -->
+                    <div id="invitation-codes-card" class="card rounded-lg p-6" style="display: none;">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">Invitation <span class="neon-yellow">Codes</span></h2>
+                        <p class="text-slate-400 mb-4">Manage team invitation codes and track usage.</p>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="border-b border-slate-600">
+                                        <th class="p-2">Code</th>
+                                        <th class="p-2">Role</th>
+                                        <th class="p-2">Status</th>
+                                        <th class="p-2">Used By</th>
+                                        <th class="p-2">Used At</th>
+                                        <th class="p-2">Expires</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invitation-codes-table-body">
+                                    <!-- Invitation codes will be inserted here by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <button id="refresh-codes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Refresh Codes</button>
+                        </div>
+                    </div>
+
+                    <!-- 2-Step Verification -->
+                    <div id="mfa-card" class="card rounded-lg p-6" style="display: none;">
+                        <h2 class="text-3xl font-racing text-white uppercase mb-4">2-Step <span class="neon-yellow">Verification</span></h2>
+                        <div id="mfa-status"></div>
+                        <div id="mfa-enroll-form" class="space-y-4">
+                            <p class="text-slate-400">Add your phone number to secure your account.</p>
+                            <input type="tel" id="mfa-phone-number" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2" placeholder="+1 555-555-5555">
+                            <button id="mfa-send-code-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Send Code</button>
+                        </div>
+                         <div id="mfa-verify-form" class="hidden space-y-4">
+                            <p class="text-slate-400">Enter the code sent to your phone.</p>
+                            <input type="text" id="mfa-verification-code" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2" placeholder="6-digit code">
+                             <button id="mfa-verify-btn" class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-500 transition">Verify & Enable</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-black/50 border-t border-slate-800 py-8 mt-12">
+        <div class="container mx-auto px-6 text-center text-slate-500 text-sm">
+            <p>© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Ensure modals are hidden on page load to prevent unwanted popups
+        document.addEventListener('DOMContentLoaded', () => {
+            const raceModal = document.getElementById('race-modal');
+            const qnaModal = document.getElementById('qna-modal');
+            
+            // Force hide the modals by removing flex class and adding hidden class
+            if (raceModal) {
+                raceModal.classList.add('hidden');
+                raceModal.classList.remove('flex');
+            }
+            if (qnaModal) {
+                qnaModal.classList.add('hidden');
+                qnaModal.classList.remove('flex');
+            }
+
+            // Fallback timeout in case module fails to load
+            setTimeout(() => {
+                const loadingState = document.getElementById('loading-state');
+                const dashboardContent = document.getElementById('dashboard-content');
+                
+                // Only show fallback if still loading
+                if (loadingState && !loadingState.classList.contains('hidden')) {
+                    loadingState.classList.remove('flex', 'flex-col', 'items-center', 'justify-center');
+                    loadingState.classList.add('hidden');
+                    loadingState.style.display = 'none';
+                    if (dashboardContent) {
+                        dashboardContent.innerHTML = `<div class="text-center py-20">
+                            <h1 class="text-5xl font-racing uppercase mb-2">Driver <span class="neon-yellow">Dashboard</span></h1>
+                            <div class="text-yellow-400 mb-6">
+                                <h2 class="text-2xl font-bold">Dashboard Temporarily Unavailable</h2>
+                                <p class="mt-2">Our services are currently unavailable.</p>
+                                <p class="text-sm text-slate-400 mt-2">Please check your connection and try again.</p>
+                            </div>
+                            <div class="space-x-4">
+                                <button onclick="window.location.reload()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Try Again</button>
+                                <a href="index.html" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">Go Home</a>
+                            </div>
+                        </div>`;
+                        dashboardContent.classList.remove('hidden');
+                    }
+                }
+            }, 20000);
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+    <script type="module" src="auth-guard.js"></script>
+    <script type="module" src="redsracing-dashboard.js"></script>
+
+    <!-- Add/Edit Race Modal -->
+    <div id="race-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-slate-900 p-8 rounded-lg shadow-2xl w-full max-w-md border border-slate-700">
+            <h2 id="modal-title" class="text-3xl font-racing text-white uppercase mb-6">Add New Race</h2>
+            <form id="race-form">
+                <input type="hidden" id="race-id">
+                <div class="space-y-4">
+                    <div>
+                        <label for="race-date" class="block text-sm font-medium text-gray-300">Date</label>
+                        <input type="date" id="race-date" required class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1">
+                    </div>
+                    <div>
+                        <label for="race-name" class="block text-sm font-medium text-gray-300">Track Name</label>
+                        <input type="text" id="race-name" required class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="e.g., Grundy County Speedway, IL">
+                    </div>
+                    <div>
+                        <label for="race-type" class="block text-sm font-medium text-gray-300">Event Type</label>
+                        <select id="race-type" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1">
+                            <option value="superCup">American Super Cup</option>
+                            <option value="specialEvent">Special Event</option>
+                        </select>
+                    </div>
+                    <div id="race-number-container">
+                        <label for="race-number" class="block text-sm font-medium text-gray-300">Race Number</label>
+                        <input type="text" id="race-number" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="e.g., #1">
+                    </div>
+                     <div id="special-name-container" class="hidden">
+                        <label for="special-name" class="block text-sm font-medium text-gray-300">Event Name</label>
+                        <input type="text" id="special-name" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="e.g., Jon Kirsch Birthday Race">
+                    </div>
+                    <div>
+                        <label for="race-results" class="block text-sm font-medium text-gray-300">Results</label>
+                        <input type="text" id="race-results" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="e.g., P5, 2nd Place">
+                    </div>
+                    <div>
+                        <label for="race-summary" class="block text-sm font-medium text-gray-300">Race Summary</label>
+                        <textarea id="race-summary" rows="4" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="Write a short recap of the race..."></textarea>
+                    </div>
+                    <div>
+                        <label for="live-timing-link" class="block text-sm font-medium text-gray-300">Live Timing Link</label>
+                        <input type="url" id="live-timing-link" class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1" placeholder="https://www.example.com/live-timing">
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end space-x-4">
+                    <button type="button" id="cancel-race-btn" class="bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition">Cancel</button>
+                    <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Save Race</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Answer Question Modal -->
+    <div id="qna-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-slate-900 p-8 rounded-lg shadow-2xl w-full max-w-lg border border-slate-700">
+            <h2 class="text-3xl font-racing text-white uppercase mb-6">Answer <span class="neon-yellow">Question</span></h2>
+            <form id="qna-answer-form">
+                <input type="hidden" id="qna-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Question:</label>
+                        <p id="qna-modal-question" class="text-lg text-white mt-1"></p>
+                    </div>
+                    <div>
+                        <label for="qna-answer" class="block text-sm font-medium text-gray-300">Your Answer</label>
+                        <textarea id="qna-answer" rows="6" required class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1"></textarea>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end space-x-4">
+                    <button type="button" id="cancel-qna-btn" class="bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition">Cancel</button>
+                    <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Publish Answer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

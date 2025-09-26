@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="stylesheet" href="styles/tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .category-filter-btn {
+            font-size: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 9999px;
+            border: 1px solid rgb(71 85 105);
+            background-color: rgb(30 41 59);
+            color: rgb(203 213 225);
+            transition: all 0.15s ease-in-out;
+            cursor: pointer;
+        }
+        .category-filter-btn:hover {
+            background-color: rgb(51 65 85);
+        }
+        .category-filter-btn.active {
+            background-color: var(--neon-yellow, #ffff00);
+            color: black;
+            border-color: var(--neon-yellow, #ffff00);
+            font-weight: bold;
+        }
+        .achievement-item {
+            transition: all 300ms ease-in-out;
+        }
+        .achievement-item.hidden-category {
+            display: none;
+        }
+        .achievement-category-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            background-color: rgb(71 85 105);
+            color: rgb(203 213 225);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+            </a>
+            <div class="flex items-center space-x-6 font-bold">
+                <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
+                <a href="jonny.html" class="hover:text-neon-yellow transition duration-300">Jonny's Page</a>
+                <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Full Schedule</a>
+                <a href="redsracing-dashboard.html" class="hover:text-neon-yellow transition duration-300">Dashboard</a>
+                <a href="leaderboard.html" class="hover:text-neon-yellow transition duration-300">Leaderboard</a>
+                <a id="logout-button" href="#" class="bg-red-600 text-white py-2 px-5 rounded-md hover:bg-red-500 transition duration-300">
+                    Logout
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-6 py-12">
+        <!-- Authentication and general error container -->
+        <div id="auth-error-container" class="mb-6"></div>
+        
+        <!-- Loading State -->
+        <div id="loading-state" class="flex flex-col items-center justify-center text-center py-20">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-neon-yellow"></div>
+            <p class="text-2xl mt-4 font-racing uppercase tracking-wider">Loading Profile...</p>
+        </div>
+
+        <!-- Profile Content -->
+        <div id="profile-content" class="hidden">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-5xl font-racing uppercase mb-2">User <span class="neon-yellow">Profile</span></h1>
+                <p class="text-slate-400 mb-8">Manage your profile and view your achievements</p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Profile Info -->
+                    <div class="lg:col-span-2 space-y-8">
+                        <!-- Profile Card -->
+                        <div class="card rounded-lg p-6">
+                            <div class="flex items-start justify-between mb-6">
+                                <h2 class="text-3xl font-racing text-white uppercase">Profile <span class="neon-yellow">Info</span></h2>
+                                <button id="edit-profile-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
+                                    Edit Profile
+                                </button>
+                            </div>
+
+                            <!-- Profile Display -->
+                            <div id="profile-display" class="space-y-4">
+                                <div class="flex items-center space-x-4 mb-6">
+                                    <div class="w-20 h-20 rounded-full overflow-hidden bg-slate-600 flex items-center justify-center">
+                                        <img id="profile-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
+                                        <span id="profile-avatar-placeholder" class="text-2xl font-bold text-slate-300">?</span>
+                                    </div>
+                                    <div>
+                                        <h3 id="profile-display-name" class="text-2xl font-bold text-white">Loading...</h3>
+                                        <p id="profile-username" class="text-slate-400">@loading</p>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-300 mb-2">Bio</label>
+                                    <p id="profile-bio" class="text-slate-400">No bio provided.</p>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-300 mb-2">Favorite Cars</label>
+                                    <div id="profile-favorite-cars" class="flex flex-wrap gap-2">
+                                        <span class="text-slate-400">No favorite cars added.</span>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-300 mb-2">Member Since</label>
+                                    <p id="profile-join-date" class="text-slate-400">Loading...</p>
+                                </div>
+                            </div>
+
+                            <!-- Profile Edit Form -->
+                            <div id="profile-edit-form" class="hidden space-y-4">
+                                <div>
+                                    <label for="edit-username" class="block text-sm font-bold text-slate-300 mb-2">Username</label>
+                                    <input type="text" id="edit-username" class="w-full p-3 rounded-md bg-slate-700 text-white border border-slate-600 focus:border-neon-yellow focus:outline-none">
+                                </div>
+                                
+                                <div>
+                                    <label for="edit-display-name" class="block text-sm font-bold text-slate-300 mb-2">Display Name</label>
+                                    <input type="text" id="edit-display-name" class="w-full p-3 rounded-md bg-slate-700 text-white border border-slate-600 focus:border-neon-yellow focus:outline-none">
+                                </div>
+                                
+                                <div>
+                                    <label for="edit-bio" class="block text-sm font-bold text-slate-300 mb-2">Bio</label>
+                                    <textarea id="edit-bio" rows="3" class="w-full p-3 rounded-md bg-slate-700 text-white border border-slate-600 focus:border-neon-yellow focus:outline-none" placeholder="Tell us about yourself..."></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label for="edit-avatar-url" class="block text-sm font-bold text-slate-300 mb-2">Avatar URL</label>
+                                    <input type="url" id="edit-avatar-url" class="w-full p-3 rounded-md bg-slate-700 text-white border border-slate-600 focus:border-neon-yellow focus:outline-none" placeholder="https://...">
+                                </div>
+                                
+                                <div>
+                                    <label for="edit-favorite-cars" class="block text-sm font-bold text-slate-300 mb-2">Favorite Cars (comma separated)</label>
+                                    <input type="text" id="edit-favorite-cars" class="w-full p-3 rounded-md bg-slate-700 text-white border border-slate-600 focus:border-neon-yellow focus:outline-none" placeholder="Porsche 911, BMW M3, McLaren 720S">
+                                </div>
+
+                                <div class="flex space-x-4">
+                                    <button id="save-profile-btn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-500 transition">
+                                        Save Changes
+                                    </button>
+                                    <button id="cancel-edit-btn" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Achievements Sidebar -->
+                    <div class="space-y-8">
+                        <div class="card rounded-lg p-6">
+                            <h2 class="text-2xl font-racing text-white uppercase mb-4">Your <span class="neon-yellow">Achievements</span></h2>
+                            
+                            <!-- Achievement Summary -->
+                            <div id="achievement-summary" class="grid grid-cols-2 gap-4 mb-4 hidden">
+                                <div class="text-center p-3 bg-slate-700 rounded-lg">
+                                    <div class="text-lg font-racing text-neon-yellow" id="total-points">0</div>
+                                    <div class="text-xs text-slate-400">Total Points</div>
+                                </div>
+                                <div class="text-center p-3 bg-slate-700 rounded-lg">
+                                    <div class="text-lg font-racing text-neon-yellow" id="total-achievements-count">0</div>
+                                    <div class="text-xs text-slate-400">Achievements</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Category Filter -->
+                            <div id="category-filter" class="mb-4 hidden">
+                                <div class="flex flex-wrap gap-2">
+                                    <button class="category-filter-btn active" data-category="all">
+                                        All
+                                    </button>
+                                    <button class="category-filter-btn" data-category="racing">
+                                        🏁 Racing
+                                    </button>
+                                    <button class="category-filter-btn" data-category="performance">
+                                        ⚡ Performance
+                                    </button>
+                                    <button class="category-filter-btn" data-category="community">
+                                        👥 Community
+                                    </button>
+                                    <button class="category-filter-btn" data-category="sportsmanship">
+                                        ✨ Fair Play
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="user-achievements" class="space-y-3">
+                                <p class="text-slate-400">Loading achievements...</p>
+                            </div>
+                        </div>
+
+                        <!-- All Achievements (if admin) -->
+                        <div id="admin-achievements" class="card rounded-lg p-6 hidden">
+                            <h2 class="text-2xl font-racing text-white uppercase mb-4">Manage <span class="neon-yellow">Achievements</span></h2>
+                            <button id="create-achievement-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition w-full mb-4">
+                                Create Achievement
+                            </button>
+                            <div id="all-achievements" class="space-y-3">
+                                <p class="text-slate-400">Loading all achievements...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="hidden text-center py-20">
+            <h2 class="text-3xl font-racing text-red-400 mb-4">Profile Not Found</h2>
+            <p class="text-slate-400 mb-6">The requested profile could not be found or you don't have permission to view it.</p>
+            <a href="redsracing-dashboard.html" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
+                Go to Dashboard
+            </a>
+        </div>
+    </main>
+
+    <!-- Fallback (non-module) must load before the module script -->
+    <script src="assets/js/profile-inline-fallback.js"></script>
+    <script type="module" src="auth-guard.js"></script>
+    <script type="module" src="profile.js"></script>
+</body>
+</html>

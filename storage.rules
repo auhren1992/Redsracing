@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function hasRole(role) {
+      return isAuthenticated() && request.auth.token.role == role;
+    }
+    
+    function isValidImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    function isValidSize() {
+      return request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+    
+    // Gallery images - user uploads
+    match /gallery/{userId}/{fileName} {
+      allow read: if true; // Public read for gallery images
+      allow write: if isAuthenticated() && 
+        request.auth.uid == userId &&
+        isValidImage() &&
+        isValidSize();
+    }
+    
+    // Jonny-specific images
+    match /gallery/jonny/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() &&
+        isValidImage() &&
+        isValidSize();
+    }
+    
+    // Profile avatars
+    match /avatars/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && 
+        request.auth.uid == userId &&
+        isValidImage() &&
+        isValidSize();
+    }
+    
+    // Team member uploads (broader access)
+    match /team/{path=**} {
+      allow read: if true;
+      allow write: if hasRole('team-member') &&
+        isValidImage() &&
+        isValidSize();
+    }
+    
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Error Handling Demo</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #1e293b; 
+            color: white;
+        }
+        .demo-container { 
+            background: #334155; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3); 
+        }
+        button { 
+            padding: 8px 16px; 
+            margin: 5px; 
+            border: none; 
+            border-radius: 4px; 
+            background: #3b82f6; 
+            color: white; 
+            cursor: pointer; 
+        }
+        button:hover { background: #2563eb; }
+        .result { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px; 
+            background: #475569;
+        }
+        .error-demo { background: #dc2626; }
+        .success-demo { background: #16a34a; }
+        .warning-demo { background: #d97706; }
+        .demo-title { font-size: 24px; font-weight: bold; margin-bottom: 15px; }
+        .neon-yellow { color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Enhanced Dashboard Error Handling Demo</h1>
+    <p>Interactive demonstration of the improved error handling features for the Driver Dashboard</p>
+    
+    <div class="demo-container">
+        <div class="demo-title">🔍 Error Classification Demo</div>
+        <p>Test how different types of errors are classified and presented to users:</p>
+        <button onclick="simulateNetworkError()">Simulate Network Error</button>
+        <button onclick="simulateFirebaseError()">Simulate Firebase Service Error</button>
+        <button onclick="simulateAuthError()">Simulate Authentication Error</button>
+        <button onclick="simulateConfigError()">Simulate Configuration Error</button>
+        <div id="error-demo-results"></div>
+    </div>
+
+    <div class="demo-container">
+        <div class="demo-title">🔄 Retry Logic Demo</div>
+        <p>Experience the exponential backoff retry mechanism:</p>
+        <button onclick="simulateRetrySuccess()">Retry with Success</button>
+        <button onclick="simulateRetryFailure()">Retry with Failure</button>
+        <button onclick="simulateNonRetryable()">Non-retryable Error</button>
+        <div id="retry-demo-results"></div>
+    </div>
+
+    <div class="demo-container">
+        <div class="demo-title">💬 User Message Demo</div>
+        <p>See the user-friendly error messages in action:</p>
+        <button onclick="showAllErrorMessages()">Show All Error Types</button>
+        <div id="message-demo-results"></div>
+    </div>
+
+    <script>
+        // Copy the enhanced error handling logic from dashboard.js for demo
+        const dashboardLogger = {
+            stage: (stage, message) => console.log(`[Dashboard:${stage}] ${message}`),
+            error: (stage, error, context = {}) => console.error(`[Dashboard:${stage}] Error:`, error, context),
+            retry: (attempt, maxAttempts, delay) => console.warn(`[Dashboard:Retry] Attempt ${attempt}/${maxAttempts}, delay: ${delay}ms`),
+            success: (stage, message) => console.log(`[Dashboard:${stage}] ✓ ${message}`)
+        };
+
+        const classifyError = (error, context = '') => {
+            if (!error) return { type: 'unknown', message: 'Unknown error occurred', retryable: false };
+            
+            // Network connectivity issues
+            if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                return { 
+                    type: 'network', 
+                    message: 'Network connection failed',
+                    userMessage: 'Please check your internet connection and try again.',
+                    retryable: true,
+                    icon: '🌐'
+                };
+            }
+            
+            // Firebase-specific errors
+            if (error.code) {
+                switch (error.code) {
+                    case 'unavailable':
+                    case 'deadline-exceeded':
+                        return {
+                            type: 'firebase-service',
+                            message: `Firebase service temporarily unavailable: ${error.code}`,
+                            userMessage: 'Our services are temporarily unavailable. Please try again in a moment.',
+                            retryable: true,
+                            icon: '⚠️'
+                        };
+                    case 'permission-denied':
+                    case 'unauthenticated':
+                        return {
+                            type: 'auth',
+                            message: `Authentication error: ${error.code}`,
+                            userMessage: 'Authentication failed. Please log in again.',
+                            retryable: false,
+                            icon: '🔐'
+                        };
+                    case 'failed-precondition':
+                        return {
+                            type: 'config',
+                            message: `Configuration error: ${error.code}`,
+                            userMessage: 'Service configuration issue. Please contact support.',
+                            retryable: false,
+                            icon: '⚙️'
+                        };
+                    default:
+                        return {
+                            type: 'firebase-other',
+                            message: `Firebase error: ${error.code} - ${error.message}`,
+                            userMessage: 'A service error occurred. Please try again.',
+                            retryable: true,
+                            icon: '🔥'
+                        };
+                }
+            }
+            
+            // Generic errors
+            return {
+                type: 'generic',
+                message: error.message || String(error),
+                userMessage: 'An unexpected error occurred. Please try again.',
+                retryable: true,
+                icon: '❗'
+            };
+        };
+
+        const retryWithBackoff = async (fn, maxRetries = 3, context = 'operation') => {
+            const RETRY_BASE_DELAY = 500; // 500ms base delay for demo
+            
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    const result = await fn();
+                    if (attempt > 1) {
+                        dashboardLogger.success('Retry', `${context} succeeded on attempt ${attempt}`);
+                    }
+                    return result;
+                } catch (error) {
+                    const errorInfo = classifyError(error, context);
+                    dashboardLogger.error('Retry', `${context} failed on attempt ${attempt}`, errorInfo);
+                    
+                    if (!errorInfo.retryable || attempt === maxRetries) {
+                        throw error;
+                    }
+                    
+                    const delay = RETRY_BASE_DELAY * Math.pow(2, attempt - 1) + Math.random() * 200;
+                    dashboardLogger.retry(attempt, maxRetries, Math.round(delay));
+                    
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        };
+
+        function addResult(containerId, content, type = 'result') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `result ${type}-demo`;
+            div.innerHTML = content;
+            container.appendChild(div);
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        function simulateNetworkError() {
+            clearResults('error-demo-results');
+            const error = new TypeError('Failed to fetch');
+            const errorInfo = classifyError(error, 'Network test');
+            addResult('error-demo-results', `
+                <strong>${errorInfo.icon} Network Error Detected</strong><br>
+                <strong>Type:</strong> ${errorInfo.type}<br>
+                <strong>Retryable:</strong> ${errorInfo.retryable ? 'Yes' : 'No'}<br>
+                <strong>User Message:</strong> "${errorInfo.userMessage}"<br>
+                <strong>Technical:</strong> ${errorInfo.message}
+            `, 'error');
+        }
+
+        function simulateFirebaseError() {
+            clearResults('error-demo-results');
+            const error = { code: 'unavailable', message: 'Service temporarily unavailable' };
+            const errorInfo = classifyError(error, 'Firebase test');
+            addResult('error-demo-results', `
+                <strong>${errorInfo.icon} Firebase Service Error</strong><br>
+                <strong>Type:</strong> ${errorInfo.type}<br>
+                <strong>Retryable:</strong> ${errorInfo.retryable ? 'Yes' : 'No'}<br>
+                <strong>User Message:</strong> "${errorInfo.userMessage}"<br>
+                <strong>Technical:</strong> ${errorInfo.message}
+            `, 'warning');
+        }
+
+        function simulateAuthError() {
+            clearResults('error-demo-results');
+            const error = { code: 'permission-denied', message: 'Access denied' };
+            const errorInfo = classifyError(error, 'Auth test');
+            addResult('error-demo-results', `
+                <strong>${errorInfo.icon} Authentication Error</strong><br>
+                <strong>Type:</strong> ${errorInfo.type}<br>
+                <strong>Retryable:</strong> ${errorInfo.retryable ? 'Yes' : 'No'}<br>
+                <strong>User Message:</strong> "${errorInfo.userMessage}"<br>
+                <strong>Technical:</strong> ${errorInfo.message}
+            `, 'error');
+        }
+
+        function simulateConfigError() {
+            clearResults('error-demo-results');
+            const error = { code: 'failed-precondition', message: 'Invalid configuration' };
+            const errorInfo = classifyError(error, 'Config test');
+            addResult('error-demo-results', `
+                <strong>${errorInfo.icon} Configuration Error</strong><br>
+                <strong>Type:</strong> ${errorInfo.type}<br>
+                <strong>Retryable:</strong> ${errorInfo.retryable ? 'Yes' : 'No'}<br>
+                <strong>User Message:</strong> "${errorInfo.userMessage}"<br>
+                <strong>Technical:</strong> ${errorInfo.message}
+            `, 'error');
+        }
+
+        async function simulateRetrySuccess() {
+            clearResults('retry-demo-results');
+            addResult('retry-demo-results', '🔄 Starting retry simulation...', 'warning');
+            
+            let attempts = 0;
+            const mockFunction = async () => {
+                attempts++;
+                if (attempts < 3) {
+                    throw new Error('Temporary failure');
+                }
+                return 'Success!';
+            };
+
+            try {
+                const result = await retryWithBackoff(mockFunction, 3, 'Demo operation');
+                addResult('retry-demo-results', `✅ <strong>Success!</strong> Operation completed after ${attempts} attempts.<br>Result: "${result}"`, 'success');
+            } catch (error) {
+                addResult('retry-demo-results', `❌ <strong>Failed!</strong> ${error.message}`, 'error');
+            }
+        }
+
+        async function simulateRetryFailure() {
+            clearResults('retry-demo-results');
+            addResult('retry-demo-results', '🔄 Starting retry simulation (will fail)...', 'warning');
+            
+            let attempts = 0;
+            const mockFunction = async () => {
+                attempts++;
+                throw new Error('Persistent failure');
+            };
+
+            try {
+                await retryWithBackoff(mockFunction, 3, 'Demo operation');
+            } catch (error) {
+                addResult('retry-demo-results', `❌ <strong>Failed after retries!</strong> Made ${attempts} attempts.<br>Final error: "${error.message}"`, 'error');
+            }
+        }
+
+        async function simulateNonRetryable() {
+            clearResults('retry-demo-results');
+            addResult('retry-demo-results', '🔄 Testing non-retryable error...', 'warning');
+            
+            let attempts = 0;
+            const mockFunction = async () => {
+                attempts++;
+                throw { code: 'permission-denied', message: 'Access denied' };
+            };
+
+            try {
+                await retryWithBackoff(mockFunction, 3, 'Demo operation');
+            } catch (error) {
+                addResult('retry-demo-results', `⚠️ <strong>Non-retryable error!</strong> Stopped after ${attempts} attempt(s).<br>Error: "${error.message}"`, 'warning');
+            }
+        }
+
+        function showAllErrorMessages() {
+            clearResults('message-demo-results');
+            
+            const errorTypes = [
+                { error: new TypeError('Failed to fetch'), name: 'Network Error' },
+                { error: { code: 'unavailable', message: 'Service down' }, name: 'Service Unavailable' },
+                { error: { code: 'permission-denied', message: 'Access denied' }, name: 'Authentication Error' },
+                { error: { code: 'failed-precondition', message: 'Config error' }, name: 'Configuration Error' },
+                { error: new Error('Something unexpected'), name: 'Generic Error' }
+            ];
+
+            errorTypes.forEach(({ error, name }) => {
+                const errorInfo = classifyError(error);
+                addResult('message-demo-results', `
+                    <strong>${errorInfo.icon} ${name}</strong><br>
+                    <em>"${errorInfo.userMessage}"</em>
+                `);
+            });
+        }
+
+        // Show a welcome message
+        window.addEventListener('load', () => {
+            dashboardLogger.stage('Demo', 'Enhanced Dashboard Error Handling Demo loaded successfully');
+        });
+    </script>
+</body>
+</html>

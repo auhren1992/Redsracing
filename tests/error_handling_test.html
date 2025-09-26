@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Handling Tests</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-container { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .fail { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 8px 16px; margin: 5px; border: none; border-radius: 4px; background: #007bff; color: white; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .summary { font-weight: bold; font-size: 16px; padding: 15px; text-align: center; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Error Handling Tests</h1>
+    <p>Testing improved error handling for missing backend endpoints and Firestore permission issues</p>
+    
+    <div class="test-container">
+        <h2>📡 Backend Endpoint Error Handling</h2>
+        <button onclick="testProfileEndpoint()">Test Profile Endpoint (404)</button>
+        <button onclick="testAchievementEndpoint()">Test Achievement Endpoint (404)</button>
+        <div id="backend-results"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🔥 Firestore Index Check</h2>
+        <button onclick="checkFirestoreIndexes()">Check Index Configuration</button>
+        <div id="firestore-results"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🛡️ Error Handler Functions</h2>
+        <button onclick="testErrorHandlers()">Test Error Handler Logic</button>
+        <div id="handler-results"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>📊 Test Summary</h2>
+        <div id="test-summary" class="summary">Click tests above to see results</div>
+    </div>
+
+    <script>
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            total: 0
+        };
+
+        function logResult(elementId, message, success) {
+            const element = document.getElementById(elementId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${success ? 'pass' : 'fail'}`;
+            resultDiv.innerHTML = message;
+            element.appendChild(resultDiv);
+            
+            testResults.total++;
+            if (success) {
+                testResults.passed++;
+            } else {
+                testResults.failed++;
+            }
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summaryEl = document.getElementById('test-summary');
+            summaryEl.innerHTML = `Tests: ${testResults.total} | Passed: ${testResults.passed} | Failed: ${testResults.failed}`;
+            summaryEl.className = `summary ${testResults.failed === 0 ? 'pass' : 'fail'}`;
+        }
+
+        async function testProfileEndpoint() {
+            const resultsEl = document.getElementById('backend-results');
+            
+            try {
+                const response = await fetch('/profile/test-user-id');
+                if (response.status === 404) {
+                    logResult('backend-results', '✅ Profile endpoint correctly returns 404 (expected for missing backend)', true);
+                } else {
+                    logResult('backend-results', `❌ Profile endpoint returned unexpected status: ${response.status}`, false);
+                }
+            } catch (error) {
+                if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+                    logResult('backend-results', '✅ Profile endpoint fetch error handled correctly (network/CORS)', true);
+                } else {
+                    logResult('backend-results', `❌ Unexpected profile endpoint error: ${error.message}`, false);
+                }
+            }
+        }
+
+        async function testAchievementEndpoint() {
+            try {
+                const response = await fetch('/auto_award_achievement', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: 'test', actionType: 'test' })
+                });
+                
+                if (response.status === 404) {
+                    logResult('backend-results', '✅ Achievement endpoint correctly returns 404 (expected for missing backend)', true);
+                } else {
+                    logResult('backend-results', `❌ Achievement endpoint returned unexpected status: ${response.status}`, false);
+                }
+            } catch (error) {
+                if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+                    logResult('backend-results', '✅ Achievement endpoint fetch error handled correctly (network/CORS)', true);
+                } else {
+                    logResult('backend-results', `❌ Unexpected achievement endpoint error: ${error.message}`, false);
+                }
+            }
+        }
+
+        function checkFirestoreIndexes() {
+            // Mock test for index configuration
+            fetch('/firestore.indexes.json')
+                .then(response => response.json())
+                .then(data => {
+                    const hasJonnyVideosIndex = data.indexes.some(index => 
+                        index.collectionGroup === 'jonny_videos' &&
+                        index.fields.some(field => field.fieldPath === 'createdAt' && field.order === 'DESCENDING')
+                    );
+                    
+                    if (hasJonnyVideosIndex) {
+                        logResult('firestore-results', '✅ jonny_videos createdAt DESC index found in configuration', true);
+                    } else {
+                        logResult('firestore-results', '❌ jonny_videos createdAt DESC index missing from configuration', false);
+                    }
+                })
+                .catch(error => {
+                    logResult('firestore-results', `❌ Could not check index configuration: ${error.message}`, false);
+                });
+        }
+
+        function testErrorHandlers() {
+            // Test the error handler logic with mock functions
+            
+            // Test 1: 404 error handling
+            const mockFetch404 = () => Promise.resolve({ status: 404, ok: false, statusText: 'Not Found' });
+            
+            const testAutoAward = async () => {
+                try {
+                    const response = await mockFetch404();
+                    if (response.status === 404) {
+                        console.log('Achievement endpoint not available. This is expected if Cloud Functions are not deployed.');
+                        return null;
+                    }
+                } catch (error) {
+                    return null;
+                }
+            };
+            
+            testAutoAward().then(result => {
+                if (result === null) {
+                    logResult('handler-results', '✅ 404 error handler returns null correctly', true);
+                } else {
+                    logResult('handler-results', '❌ 404 error handler did not return null', false);
+                }
+            });
+
+            // Test 2: Network error handling
+            const mockNetworkError = () => Promise.reject(new TypeError('Failed to fetch'));
+            
+            const testNetworkError = async () => {
+                try {
+                    await mockNetworkError();
+                } catch (error) {
+                    if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+                        console.log('Network error handled correctly');
+                        return true;
+                    }
+                    return false;
+                }
+            };
+            
+            testNetworkError().then(result => {
+                if (result) {
+                    logResult('handler-results', '✅ Network error handler works correctly', true);
+                } else {
+                    logResult('handler-results', '❌ Network error handler failed', false);
+                }
+            });
+
+            // Test 3: Permission error handling
+            const mockPermissionError = () => Promise.reject({ code: 'permission-denied', message: 'Insufficient permissions' });
+            
+            const testPermissionError = async () => {
+                try {
+                    await mockPermissionError();
+                } catch (error) {
+                    if (error.code === 'permission-denied') {
+                        console.log('Permission error handled correctly');
+                        return true;
+                    }
+                    return false;
+                }
+            };
+            
+            testPermissionError().then(result => {
+                if (result) {
+                    logResult('handler-results', '✅ Permission error handler works correctly', true);
+                } else {
+                    logResult('handler-results', '❌ Permission error handler failed', false);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

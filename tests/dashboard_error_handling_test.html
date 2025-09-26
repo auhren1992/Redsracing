@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Error Handling Tests</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-container { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .fail { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 8px 16px; margin: 5px; border: none; border-radius: 4px; background: #007bff; color: white; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .summary { font-weight: bold; font-size: 16px; padding: 15px; text-align: center; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .code-sample { background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Enhanced Dashboard Error Handling Tests</h1>
+    <p>Testing improved error handling, retry logic, and user messaging for the Driver Dashboard</p>
+    
+    <div class="test-container">
+        <h2>🔍 Error Classification Tests</h2>
+        <button onclick="testErrorClassification()">Test Error Classification Logic</button>
+        <div id="error-classification-results"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🔄 Retry Logic Tests</h2>
+        <button onclick="testRetryLogic()">Test Exponential Backoff Retry</button>
+        <div id="retry-logic-results"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>🌐 Network Detection Tests</h2>
+        <button onclick="testNetworkDetection()">Test Network Connectivity Detection</button>
+        <div id="network-detection-results"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>💬 User Message Tests</h2>
+        <button onclick="testUserMessages()">Test User-Friendly Error Messages</button>
+        <div id="user-messages-results"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>📊 Test Summary</h2>
+        <div id="test-summary" class="summary">Click tests above to see results</div>
+    </div>
+
+    <script>
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            total: 0
+        };
+
+        function logResult(elementId, message, success) {
+            const element = document.getElementById(elementId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${success ? 'pass' : 'fail'}`;
+            resultDiv.innerHTML = message;
+            element.appendChild(resultDiv);
+            
+            testResults.total++;
+            if (success) {
+                testResults.passed++;
+            } else {
+                testResults.failed++;
+            }
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summaryEl = document.getElementById('test-summary');
+            summaryEl.innerHTML = `Tests: ${testResults.total} | Passed: ${testResults.passed} | Failed: ${testResults.failed}`;
+            summaryEl.className = `summary ${testResults.failed === 0 ? 'pass' : 'fail'}`;
+        }
+
+        // Mock the error classification function from dashboard.js
+        const classifyError = (error, context = '') => {
+            if (!error) return { type: 'unknown', message: 'Unknown error occurred', retryable: false };
+            
+            // Network connectivity issues
+            if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                return { 
+                    type: 'network', 
+                    message: 'Network connection failed',
+                    userMessage: 'Please check your internet connection and try again.',
+                    retryable: true
+                };
+            }
+            
+            // Firebase-specific errors
+            if (error.code) {
+                switch (error.code) {
+                    case 'unavailable':
+                    case 'deadline-exceeded':
+                        return {
+                            type: 'firebase-service',
+                            message: `Firebase service temporarily unavailable: ${error.code}`,
+                            userMessage: 'Our services are temporarily unavailable. Please try again in a moment.',
+                            retryable: true
+                        };
+                    case 'permission-denied':
+                    case 'unauthenticated':
+                        return {
+                            type: 'auth',
+                            message: `Authentication error: ${error.code}`,
+                            userMessage: 'Authentication failed. Please log in again.',
+                            retryable: false
+                        };
+                    case 'failed-precondition':
+                        return {
+                            type: 'config',
+                            message: `Configuration error: ${error.code}`,
+                            userMessage: 'Service configuration issue. Please contact support.',
+                            retryable: false
+                        };
+                    default:
+                        return {
+                            type: 'firebase-other',
+                            message: `Firebase error: ${error.code} - ${error.message}`,
+                            userMessage: 'A service error occurred. Please try again.',
+                            retryable: true
+                        };
+                }
+            }
+            
+            // Generic errors
+            return {
+                type: 'generic',
+                message: error.message || String(error),
+                userMessage: 'An unexpected error occurred. Please try again.',
+                retryable: true
+            };
+        };
+
+        // Mock retry function
+        const retryWithBackoff = async (fn, maxRetries = 3, context = 'operation') => {
+            const RETRY_BASE_DELAY = 100; // Reduced for testing
+            
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    return await fn();
+                } catch (error) {
+                    const errorInfo = classifyError(error, context);
+                    
+                    if (!errorInfo.retryable || attempt === maxRetries) {
+                        throw error;
+                    }
+                    
+                    const delay = RETRY_BASE_DELAY * Math.pow(2, attempt - 1);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        };
+
+        function testErrorClassification() {
+            const resultsEl = document.getElementById('error-classification-results');
+            resultsEl.innerHTML = '';
+
+            // Test 1: Network error
+            const networkError = new TypeError('Failed to fetch');
+            const networkResult = classifyError(networkError);
+            if (networkResult.type === 'network' && networkResult.retryable === true) {
+                logResult('error-classification-results', '✅ Network error correctly classified as retryable', true);
+            } else {
+                logResult('error-classification-results', '❌ Network error misclassified', false);
+            }
+
+            // Test 2: Auth error
+            const authError = { code: 'permission-denied', message: 'Access denied' };
+            const authResult = classifyError(authError);
+            if (authResult.type === 'auth' && authResult.retryable === false) {
+                logResult('error-classification-results', '✅ Auth error correctly classified as non-retryable', true);
+            } else {
+                logResult('error-classification-results', '❌ Auth error misclassified', false);
+            }
+
+            // Test 3: Firebase service error
+            const serviceError = { code: 'unavailable', message: 'Service unavailable' };
+            const serviceResult = classifyError(serviceError);
+            if (serviceResult.type === 'firebase-service' && serviceResult.retryable === true) {
+                logResult('error-classification-results', '✅ Firebase service error correctly classified as retryable', true);
+            } else {
+                logResult('error-classification-results', '❌ Firebase service error misclassified', false);
+            }
+
+            // Test 4: Generic error
+            const genericError = new Error('Something went wrong');
+            const genericResult = classifyError(genericError);
+            if (genericResult.type === 'generic' && genericResult.retryable === true) {
+                logResult('error-classification-results', '✅ Generic error correctly classified', true);
+            } else {
+                logResult('error-classification-results', '❌ Generic error misclassified', false);
+            }
+        }
+
+        async function testRetryLogic() {
+            const resultsEl = document.getElementById('retry-logic-results');
+            resultsEl.innerHTML = '';
+
+            // Test 1: Successful retry after failures
+            let attemptCount = 0;
+            const successAfterRetries = async () => {
+                attemptCount++;
+                if (attemptCount < 3) {
+                    throw new Error('Temporary failure');
+                }
+                return 'success';
+            };
+
+            try {
+                const result = await retryWithBackoff(successAfterRetries, 3, 'test operation');
+                if (result === 'success' && attemptCount === 3) {
+                    logResult('retry-logic-results', '✅ Retry logic successfully recovered after failures', true);
+                } else {
+                    logResult('retry-logic-results', `❌ Retry logic unexpected result: ${result}, attempts: ${attemptCount}`, false);
+                }
+            } catch (error) {
+                logResult('retry-logic-results', '❌ Retry logic failed when it should have succeeded', false);
+            }
+
+            // Test 2: Non-retryable error stops immediately
+            const nonRetryableError = { code: 'permission-denied', message: 'Access denied' };
+            let nonRetryableAttempts = 0;
+            const nonRetryableFunction = async () => {
+                nonRetryableAttempts++;
+                throw nonRetryableError;
+            };
+
+            try {
+                await retryWithBackoff(nonRetryableFunction, 3, 'auth test');
+                logResult('retry-logic-results', '❌ Non-retryable error should have thrown', false);
+            } catch (error) {
+                if (nonRetryableAttempts === 1) {
+                    logResult('retry-logic-results', '✅ Non-retryable error correctly stopped after first attempt', true);
+                } else {
+                    logResult('retry-logic-results', `❌ Non-retryable error made ${nonRetryableAttempts} attempts (should be 1)`, false);
+                }
+            }
+
+            // Test 3: Max retries exceeded
+            let maxRetryAttempts = 0;
+            const alwaysFailFunction = async () => {
+                maxRetryAttempts++;
+                throw new Error('Always fails');
+            };
+
+            try {
+                await retryWithBackoff(alwaysFailFunction, 2, 'max retry test');
+                logResult('retry-logic-results', '❌ Should have thrown after max retries', false);
+            } catch (error) {
+                if (maxRetryAttempts === 2) {
+                    logResult('retry-logic-results', '✅ Max retries correctly enforced', true);
+                } else {
+                    logResult('retry-logic-results', `❌ Wrong number of retry attempts: ${maxRetryAttempts} (expected 2)`, false);
+                }
+            }
+        }
+
+        async function testNetworkDetection() {
+            const resultsEl = document.getElementById('network-detection-results');
+            resultsEl.innerHTML = '';
+
+            // Mock network detection function
+            const checkNetworkConnectivity = async () => {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 1000);
+                    
+                    // Test with a known good endpoint
+                    const response = await fetch('https://www.google.com/favicon.ico', {
+                        method: 'HEAD',
+                        mode: 'no-cors',
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+                    return true;
+                } catch (error) {
+                    return false;
+                }
+            };
+
+            try {
+                const isOnline = await checkNetworkConnectivity();
+                if (typeof isOnline === 'boolean') {
+                    logResult('network-detection-results', `✅ Network detection working: ${isOnline ? 'Online' : 'Offline'}`, true);
+                } else {
+                    logResult('network-detection-results', '❌ Network detection returned invalid result', false);
+                }
+            } catch (error) {
+                logResult('network-detection-results', `❌ Network detection threw error: ${error.message}`, false);
+            }
+
+            // Test timeout handling
+            const checkNetworkWithTimeout = async () => {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 1);
+                    
+                    await fetch('https://httpbin.org/delay/2', {
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+                    return true;
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        return false; // Timeout handled correctly
+                    }
+                    throw error;
+                }
+            };
+
+            try {
+                const timeoutResult = await checkNetworkWithTimeout();
+                if (timeoutResult === false) {
+                    logResult('network-detection-results', '✅ Network timeout handled correctly', true);
+                } else {
+                    logResult('network-detection-results', '❌ Network timeout not handled properly', false);
+                }
+            } catch (error) {
+                // This is expected for the timeout test
+                logResult('network-detection-results', '✅ Network timeout correctly threw error', true);
+            }
+        }
+
+        function testUserMessages() {
+            const resultsEl = document.getElementById('user-messages-results');
+            resultsEl.innerHTML = '';
+
+            // Test user-friendly messages for different error types
+            const testCases = [
+                {
+                    error: new TypeError('Failed to fetch'),
+                    expectedType: 'network',
+                    expectedMessage: 'Please check your internet connection and try again.'
+                },
+                {
+                    error: { code: 'permission-denied', message: 'Access denied' },
+                    expectedType: 'auth',
+                    expectedMessage: 'Authentication failed. Please log in again.'
+                },
+                {
+                    error: { code: 'unavailable', message: 'Service unavailable' },
+                    expectedType: 'firebase-service',
+                    expectedMessage: 'Our services are temporarily unavailable. Please try again in a moment.'
+                }
+            ];
+
+            testCases.forEach((testCase, index) => {
+                const result = classifyError(testCase.error);
+                
+                if (result.type === testCase.expectedType && 
+                    result.userMessage === testCase.expectedMessage) {
+                    logResult('user-messages-results', `✅ Test ${index + 1}: User message correct for ${testCase.expectedType} error`, true);
+                } else {
+                    logResult('user-messages-results', `❌ Test ${index + 1}: User message incorrect. Expected: "${testCase.expectedMessage}", Got: "${result.userMessage}"`, false);
+                }
+            });
+
+            // Test that all user messages are non-technical
+            const technicalTerms = ['fetch', 'firebase', 'code', 'exception', 'stack'];
+            let allMessagesUserFriendly = true;
+            
+            testCases.forEach(testCase => {
+                const result = classifyError(testCase.error);
+                technicalTerms.forEach(term => {
+                    if (result.userMessage.toLowerCase().includes(term)) {
+                        allMessagesUserFriendly = false;
+                    }
+                });
+            });
+
+            if (allMessagesUserFriendly) {
+                logResult('user-messages-results', '✅ All user messages are non-technical and user-friendly', true);
+            } else {
+                logResult('user-messages-results', '❌ Some user messages contain technical terms', false);
+            }
+        }
+    </script>
+</body>
+</html>

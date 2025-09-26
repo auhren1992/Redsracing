@@ -1,0 +1,92 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user has specific role
+    function hasRole(role) {
+      return isAuthenticated() && request.auth.token.role == role;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection - profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) || hasRole('team-member');
+    }
+    
+    // User achievements
+    match /user_achievements/{achievementId} {
+      allow read: if isAuthenticated();
+      allow write: if hasRole('team-member'); // Only admins can assign achievements
+    }
+    
+    // Available achievements
+    match /achievements/{achievementId} {
+      allow read: if isAuthenticated();
+      allow write: if hasRole('team-member');
+    }
+    
+    // Gallery images
+    match /gallery_images/{imageId} {
+      allow read: if true; // Public read for gallery
+      allow create: if isAuthenticated() && 
+        request.auth.uid == resource.data.uploaderUid;
+      allow update: if hasRole('team-member') || 
+        (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
+      allow delete: if hasRole('team-member');
+      
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isAuthenticated();
+        allow update, delete: if isAuthenticated() && 
+          request.auth.uid == resource.data.authorUid;
+      }
+    }
+    
+    // Race schedule
+    match /races/{raceId} {
+      allow read: if true; // Public read for race schedule
+      allow write: if hasRole('team-member');
+    }
+    
+    // Q&A submissions
+    match /qna_submissions/{submissionId} {
+      allow read: if hasRole('team-member') || 
+        (resource.data.status == 'published');
+      allow create: if isAuthenticated();
+      allow update: if hasRole('team-member');
+    }
+    
+    // Subscribers (newsletter)
+    match /subscribers/{subscriberId} {
+      allow create: if true; // Allow anyone to subscribe
+      allow read, update, delete: if hasRole('team-member');
+    }
+    
+    // Invitation codes
+    match /invitation_codes/{codeId} {
+      allow read, write: if hasRole('team-member');
+    }
+    
+    // Jonny-specific content
+    match /jonny_videos/{videoId} {
+      allow read: if true;
+      allow write: if hasRole('team-member');
+    }
+    
+    // Default deny rule
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
