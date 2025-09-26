@@ -1,135 +1,92 @@
 rules_version = '2';
+
 service cloud.firestore {
-
-  // Helper functions
-  function signedIn() {
-    return request.auth != null;
-  }
-
-  function isTeamMember() {
-    return request.auth.token.role == 'team-member';
-  }
-
-  function isTeamRedFollower() {
-    return request.auth.token.role == 'TeamRedFollower';
-  }
-
-  function isOwner(userId) {
-    return request.auth.uid == userId;
-  }
-
-  function isApproved(data) {
-    return data.approved == true;
-  }
-
   match /databases/{database}/documents {
-
-    // USERS: Publicly readable user profiles.
-    // Read: Anyone can read.
-    // Create/Update: Owner-only.
-    // Delete: Team members only.
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user has specific role
+    function hasRole(role) {
+      return isAuthenticated() && request.auth.token.role == role;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection - profiles
     match /users/{userId} {
-      allow read;
-      allow create, update: if isOwner(userId);
-      allow delete: if isTeamMember();
-
-      // Achievements subcollection within user profiles
-      // Read: Anyone can read user achievements
-      // Write: Only team members can assign/manage achievements
-      match /achievements/{achievementId} {
-        allow read;
-        allow write: if isTeamMember();
-      }
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) || hasRole('team-member');
     }
-
-    // SUBSCRIBERS: Email subscriptions
-    // Create: Anyone can create (subscribe).
-    // Read/Update/Delete: No one on the client-side.
-    match /subscribers/{subId} {
-      allow create;
-      allow read, update, delete: if false;
+    
+    // User achievements
+    match /user_achievements/{achievementId} {
+      allow read: if isAuthenticated();
+      allow write: if hasRole('team-member'); // Only admins can assign achievements
     }
-
-    // RACES: Race schedule and results
-    // Read: Anyone can read.
-    // Write: Only team members can manage races.
-    match /races/{raceId} {
-      allow read;
-      allow write: if isTeamMember();
+    
+    // Available achievements
+    match /achievements/{achievementId} {
+      allow read: if isAuthenticated();
+      allow write: if hasRole('team-member');
     }
-
-    // DRIVER_NOTES: Private notes for team members
-    // Read/Write: Only the owner of the notes can access them.
-    match /driver_notes/{userId} {
-      allow read, write: if signedIn() && isOwner(userId);
-    }
-
-    // GALLERY_IMAGES: User-submitted photos
-    // Read: Approved photos are public; unapproved are visible to owner and team members.
-    // Create: Authenticated users can submit photos.
-    // Update: Owner can edit their unapproved photos; team members can edit any.
-    // Delete: Owner can delete their unapproved photos; team members can delete any.
+    
+    // Gallery images
     match /gallery_images/{imageId} {
-      allow read: if isApproved(resource.data) || 
-                     (signedIn() && isOwner(resource.data.uploaderUid)) ||
-                     isTeamMember();
-      allow create: if signedIn() && 
-                       request.resource.data.uploaderUid == request.auth.uid &&
-                       request.resource.data.approved == false;
-      allow update: if (signedIn() && isOwner(resource.data.uploaderUid) && resource.data.approved == false) ||
-                       isTeamMember();
-      allow delete: if (signedIn() && isOwner(resource.data.uploaderUid) && resource.data.approved == false) ||
-                       isTeamMember();
-
+      allow read: if true; // Public read for gallery
+      allow create: if isAuthenticated() && 
+        request.auth.uid == resource.data.uploaderUid;
+      allow update: if hasRole('team-member') || 
+        (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
+      allow delete: if hasRole('team-member');
+      
       // Comments subcollection
       match /comments/{commentId} {
-        allow read: if isApproved(get(/databases/$(database)/documents/gallery_images/$(imageId)).data) || 
-                       (signedIn() && isOwner(get(/databases/$(database)/documents/gallery_images/$(imageId)).data.uploaderUid)) ||
-                       isTeamMember();
-        allow create: if signedIn() && 
-                         request.resource.data.authorUid == request.auth.uid;
-        allow update, delete: if signedIn() && (isOwner(resource.data.authorUid) || isTeamMember());
-      }
-
-      // Likes subcollection  
-      match /likes/{likeId} {
-        allow read: if isApproved(get(/databases/$(database)/documents/gallery_images/$(imageId)).data) || 
-                       (signedIn() && isOwner(get(/databases/$(database)/documents/gallery_images/$(imageId)).data.uploaderUid)) ||
-                       isTeamMember();
-        allow create, delete: if signedIn() && isOwner(likeId);
+        allow read: if true;
+        allow create: if isAuthenticated();
+        allow update, delete: if isAuthenticated() && 
+          request.auth.uid == resource.data.authorUid;
       }
     }
-
-    // QNA_SUBMISSIONS: Fan questions and answers
-    // Read: Published Q&As are public.
-    // Create: Any authenticated user can submit a question.
-    // Update/Delete: Only team members can manage submissions.
-    match /qna_submissions/{qnaId} {
-      allow read: if resource.data.status == 'published' || isTeamMember();
-      allow create: if signedIn();
-      allow update, delete: if isTeamMember();
+    
+    // Race schedule
+    match /races/{raceId} {
+      allow read: if true; // Public read for race schedule
+      allow write: if hasRole('team-member');
     }
-
-    // INVITATION_CODES: Special codes for team access
-    // Read/Write: Only team members can manage invitation codes.
+    
+    // Q&A submissions
+    match /qna_submissions/{submissionId} {
+      allow read: if hasRole('team-member') || 
+        (resource.data.status == 'published');
+      allow create: if isAuthenticated();
+      allow update: if hasRole('team-member');
+    }
+    
+    // Subscribers (newsletter)
+    match /subscribers/{subscriberId} {
+      allow create: if true; // Allow anyone to subscribe
+      allow read, update, delete: if hasRole('team-member');
+    }
+    
+    // Invitation codes
     match /invitation_codes/{codeId} {
-      allow read, write: if isTeamMember();
+      allow read, write: if hasRole('team-member');
     }
-
-    // ACHIEVEMENTS: Available achievements/badges
-    // Read: Anyone can read achievements.
-    // Write: Only team members can manage achievements.
-    match /achievements/{achievementId} {
-      allow read;
-      allow write: if isTeamMember();
-    }
-
-    // JONNY_VIDEOS: Jonny's video collection for team management
-    // Read: Publicly readable.
-    // Write: Only team members can manage Jonny's videos.
+    
+    // Jonny-specific content
     match /jonny_videos/{videoId} {
-      allow read;
-      allow write: if isTeamMember();
+      allow read: if true;
+      allow write: if hasRole('team-member');
+    }
+    
+    // Default deny rule
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

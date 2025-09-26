@@ -5,11 +5,10 @@ module.exports = {
   mode: 'production',
   entry: {
     main: './assets/js/main.js',
-    dashboard: './assets/js/router.js',
+    router: './assets/js/router.js',
     "redsracing-dashboard": './assets/js/redsracing-dashboard.js',
     "follower-dashboard": './assets/js/follower-dashboard.js',
     "follower-login": './assets/js/follower-login.js',
-    router: './assets/js/router.js',
     "auth-guard": './assets/js/auth-guard.js',
     feedback: './assets/js/feedback.js',
     gallery: './assets/js/gallery.js',
@@ -20,13 +19,14 @@ module.exports = {
     profile: './assets/js/profile.js',
     qna: './assets/js/qna.js',
     schedule: './assets/js/schedule.js',
-    signup: './assets/js/signup-page.js',
+    'signup-page': './assets/js/signup-page.js',
     sponsorship: './assets/js/sponsorship.js',
     videos: './assets/js/videos.js',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].js',
+    clean: true, // Clean the output directory before emit
   },
   devtool: 'source-map',
   module: {
@@ -37,7 +37,14 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env'],
+            presets: [
+              ['@babel/preset-env', {
+                targets: {
+                  browsers: ['> 1%', 'last 2 versions', 'Firefox ESR']
+                },
+                modules: false
+              }]
+            ],
           },
         },
       },
@@ -46,13 +53,40 @@ module.exports = {
   plugins: [
     new CopyPlugin({
       patterns: [
-        { from: 'styles', to: 'styles' },
+        // Copy all HTML files
         { from: '*.html', to: '' },
-        { from: '*.png', to: '' },
-        { from: '*.ico', to: '' },
-        { from: '*.svg', to: '' },
-        { from: 'site.webmanifest', to: '' },
+        // Copy styles
+        { from: 'styles', to: 'styles' },
+        // Copy static assets
+        { from: '*.png', to: '', noErrorOnMissing: true },
+        { from: '*.ico', to: '', noErrorOnMissing: true },
+        { from: '*.svg', to: '', noErrorOnMissing: true },
+        { from: '*.webmanifest', to: '', noErrorOnMissing: true },
+        { from: 'site.webmanifest', to: '', noErrorOnMissing: true },
+        // Copy other static files
+        { from: 'apple-touch-icon.png', to: '', noErrorOnMissing: true },
+        { from: 'hero-bg.png', to: '', noErrorOnMissing: true },
       ],
     }),
   ],
+  resolve: {
+    extensions: ['.js', '.json'],
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+        firebase: {
+          test: /[\\/]node_modules[\\/]firebase[\\/]/,
+          name: 'firebase',
+          chunks: 'all',
+        },
+      },
+    },
+  },
 };
