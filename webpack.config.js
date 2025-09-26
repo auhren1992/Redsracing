@@ -5,6 +5,7 @@ module.exports = {
   mode: 'production',
   entry: {
     main: './assets/js/main.js',
+    dashboard: './assets/js/router.js',
     "redsracing-dashboard": './assets/js/redsracing-dashboard.js',
     "follower-dashboard": './assets/js/follower-dashboard.js',
     "follower-login": './assets/js/follower-login.js',
