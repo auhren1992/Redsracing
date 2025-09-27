@@ -45,6 +45,7 @@ async function main() {
     }
 
     // Auth State Change
+
     monitorAuthState((user) => {
         updateUploadVisibility(user);
     }, (error) => {
@@ -52,6 +53,7 @@ async function main() {
             uploadContainer.style.display = 'block';
         }
         updateUploadVisibility(null);
+
     });
 
     // Apply initial state in case the listener fires later

@@ -7,6 +7,7 @@ const followerPages = ['follower-dashboard.html'];
 
 const currentPage = window.location.pathname.split('/').pop();
 
+
 // Add a short grace period to allow Firebase Auth to hydrate before redirecting
 const REDIRECT_GRACE_MS = 1500;
 
@@ -32,6 +33,7 @@ if (protectedPages.includes(currentPage)) {
         // We have a user - cancel redirect timer
         clearTimeout(graceTimer);
 
+
         try {
             const claimsResult = await validateUserClaims();
             const role = claimsResult.success ? claimsResult.claims.role : null;
@@ -42,6 +44,7 @@ if (protectedPages.includes(currentPage)) {
                 navigateToInternal('/redsracing-dashboard.html');
             }
         } catch (error) {
+
             // On error, only redirect after grace period (which we've already cleared due to user)
             safeRedirectToLogin();
         }
@@ -51,3 +54,4 @@ if (protectedPages.includes(currentPage)) {
         safeRedirectToLogin();
     });
 }
+

@@ -7,7 +7,9 @@ import './app.js';
 
 import { getFirebaseAuth, getFirebaseApp } from './firebase-core.js';
 import { getFriendlyAuthError } from './auth-errors.js';
+
 import { getFunctions, httpsCallable } from "firebase/functions";
+
 import {
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
@@ -289,6 +291,7 @@ class FollowerLoginController {
     async checkUserRoleAndRedirect(user) {
         try {
             // Wait a moment for the token to be ready
+
             await new Promise(resolve => setTimeout(resolve, 500));
 
             // Validate user claims
@@ -331,6 +334,7 @@ class FollowerLoginController {
             setTimeout(() => {
                 navigateToInternal('/follower-dashboard.html');
             }, 800);
+
         }
     }
 

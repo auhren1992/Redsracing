@@ -40,7 +40,9 @@ class LoginPageController {
      */
     async initialize() {
         try {
+
             console.info('[Login] Initializing controller');
+
 
             // Get DOM elements
             this.cacheElements();
@@ -59,9 +61,11 @@ class LoginPageController {
             // Enable UI after initialization
             this.enableUI();
             this.isInitialized = true;
+
             console.info('[Login] UI enabled');
         } catch (error) {
             console.error('[Login] Initialization failed:', error);
+
             this.showMessage('Failed to initialize authentication system. Please refresh the page.');
         }
     }
@@ -128,6 +132,7 @@ class LoginPageController {
         this.elements.emailInput?.addEventListener('input', () => this.hideMessage());
         this.elements.passwordInput?.addEventListener('input', () => this.hideMessage());
         this.elements.emailInput?.addEventListener('blur', () => this.validateEmailField());
+
     }
 
     /**

@@ -28,6 +28,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     // --- Start of Variable Declarations ---
 
     const INITIAL_TIMEOUT = 8000; // Reduced to 8s to avoid perceived infinite loading
+
     const MAX_RETRIES = 2; // Reduced from 3 to 2
     const RETRY_BASE_DELAY = 1000;
 
@@ -44,7 +45,9 @@ import { navigateToInternal } from './navigation-helpers.js';
     const raceManagementCard = document.getElementById('race-management-card');
     const driverNotesEl = document.getElementById('driver-notes');
     const notesStatusEl = document.getElementById('notes-status');
+
     const saveNotesBtn = document.getElementById('save-notes-btn');
+
     const addRaceBtn = document.getElementById('add-race-btn');
     const qnaManagementCard = document.getElementById('qna-management-card');
     const qnaList = document.getElementById('qna-list');
@@ -271,6 +274,7 @@ import { navigateToInternal } from './navigation-helpers.js';
         
         tableBody.innerHTML = '';
 
+
         if (races.length === 0) {
             const row = document.createElement('tr');
             safeSetHTML(row, `<td class="p-4 text-slate-400" colspan="3">No races added yet.</td>`);
@@ -322,6 +326,7 @@ import { navigateToInternal } from './navigation-helpers.js';
             const raceSnapshot = await getDocs(q);
             const raceList = raceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
+
             if (raceManagementCard) raceManagementCard.style.display = 'block';
             renderRacesTable(raceList);
             startCountdown(raceList);
@@ -384,6 +389,7 @@ import { navigateToInternal } from './navigation-helpers.js';
 
         try {
             const photosCol = collection(db, "gallery_images");
+
             // Fetch all then filter client-side to handle docs without 'approved' field
             const photoSnapshot = await getDocs(photosCol);
             const allPhotos = photoSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -407,6 +413,7 @@ import { navigateToInternal } from './navigation-helpers.js';
                             <div class="flex items-center gap-3">
                                 ${url ? `<img src="${url}" class="w-16 h-16 object-cover rounded-md">` : ''}
                                 <p class="text-white">${title}</p>
+
                             </div>
                             <div>
                                 <button class="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-500 transition mr-1" data-id="${photo.id}">Approve</button>
@@ -419,7 +426,9 @@ import { navigateToInternal } from './navigation-helpers.js';
             }
 
         } catch (error) {
+
             console.error('[Dashboard] Failed to load photo approvals:', error);
+
         }
     }
 
@@ -428,6 +437,7 @@ import { navigateToInternal } from './navigation-helpers.js';
 
         try {
             const photosCol = collection(db, "jonny_gallery_images");
+
             const photoSnapshot = await getDocs(photosCol);
             const allPhotos = photoSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             const unapprovedPhotos = allPhotos.filter(p => p.approved !== true);
@@ -450,6 +460,7 @@ import { navigateToInternal } from './navigation-helpers.js';
                             <div class="flex items-center gap-3">
                                 ${url ? `<img src="${url}" class="w-16 h-16 object-cover rounded-md">` : ''}
                                 <p class="text-white">${title}</p>
+
                             </div>
                             <div>
                                 <button class="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-500 transition mr-1" data-id="${photo.id}">Approve</button>
@@ -462,6 +473,7 @@ import { navigateToInternal } from './navigation-helpers.js';
             }
 
         } catch (error) {
+
             console.error('[Dashboard] Failed to load Jonny photo approvals:', error);
         }
     }
@@ -471,6 +483,7 @@ import { navigateToInternal } from './navigation-helpers.js';
 
         try {
             const videosCol = collection(db, "jonny_videos");
+
             const snapshot = await getDocs(videosCol);
             let videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             // Sort by createdAt or timestamp if present
@@ -489,13 +502,16 @@ import { navigateToInternal } from './navigation-helpers.js';
                     empty.textContent = 'No videos yet.';
                     jonnyVideosList.appendChild(empty);
                 } else {
+
                     videos.forEach(video => {
                         const videoElement = document.createElement('div');
                         videoElement.className = 'p-4 bg-slate-800 rounded-lg flex items-center justify-between';
                         safeSetHTML(videoElement, html`
                             <div>
+
                                 <p class="text-white">${video.title || 'Untitled'}</p>
                                 ${video.url ? `<a href="${video.url}" target="_blank" class="text-neon-yellow text-sm">Watch</a>` : ''}
+
                             </div>
                             <button class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-500 transition" data-id="${video.id}">Delete</button>
                         `);
@@ -505,7 +521,9 @@ import { navigateToInternal } from './navigation-helpers.js';
             }
 
         } catch (error) {
+
             console.error('[Dashboard] Failed to load Jonny videos:', error);
+
         }
     }
 
@@ -751,6 +769,7 @@ import { navigateToInternal } from './navigation-helpers.js';
         hideLoadingAndShowFallback();
         return;
     }
+
 
     // Save driver notes
     if (saveNotesBtn && driverNotesEl) {
