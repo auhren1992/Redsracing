@@ -6,7 +6,7 @@ Sentry.init({
     Sentry.browserTracingIntegration(),
     Sentry.replayIntegration(),
     Sentry.consoleLoggingIntegration({
-      levels: ['log', 'warn', 'error'],
+      levels: ["log", "warn", "error"],
     }),
   ],
   tracesSampleRate: 1.0,

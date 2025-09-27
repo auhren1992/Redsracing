@@ -1,37 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard - RedsRacing #8</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="manifest" href="site.webmanifest">
-    <link rel="stylesheet" href="styles/tailwind.css">
-    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/main.css">
-</head>
-<body class="flex items-center justify-center min-h-screen">
-
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body class="flex items-center justify-center min-h-screen">
     <!-- Loading State -->
-    <div id="loading-state" class="flex flex-col items-center justify-center text-center">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-neon-yellow"></div>
-        <p class="text-2xl mt-4 font-racing uppercase tracking-wider">Loading Dashboard...</p>
-        <p class="text-slate-400 mt-2">Determining your access level...</p>
+    <div
+      id="loading-state"
+      class="flex flex-col items-center justify-center text-center"
+    >
+      <div
+        class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-neon-yellow"
+      ></div>
+      <p class="text-2xl mt-4 font-racing uppercase tracking-wider">
+        Loading Dashboard...
+      </p>
+      <p class="text-slate-400 mt-2">Determining your access level...</p>
     </div>
 
     <!-- Error State -->
     <div id="error-state" class="hidden text-center">
-        <h2 class="text-3xl font-racing text-red-400 mb-4">Access Denied</h2>
-        <p class="text-slate-400 mb-6">Unable to determine your dashboard access.</p>
-        <div class="space-x-4">
-            <a href="login.html" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Sign In</a>
-            <a href="index.html" class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition">Go Home</a>
-        </div>
+      <h2 class="text-3xl font-racing text-red-400 mb-4">Access Denied</h2>
+      <p class="text-slate-400 mb-6">
+        Unable to determine your dashboard access.
+      </p>
+      <div class="space-x-4">
+        <a
+          href="login.html"
+          class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition"
+          >Sign In</a
+        >
+        <a
+          href="index.html"
+          class="bg-slate-600 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-500 transition"
+          >Go Home</a
+        >
+      </div>
     </div>
 
     <!-- Router Script - This will redirect to the appropriate dashboard -->
     <script type="module" src="router.js"></script>
-</body>
+  </body>
 </html>

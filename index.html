@@ -1,176 +1,467 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RedsRacing #8 - The Ultimate Hub</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="manifest" href="site.webmanifest">
-    <link rel="stylesheet" href="styles/tailwind.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://unpkg.com/scrollreveal"></script>
-    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
-    <link rel="stylesheet" href="styles/main.css">
-</head>
-<body>
-    <header class="bg-black/30 backdrop-blur-md fixed w-full top-0 z-50 border-b border-slate-700/50" style="top: 0;">
-        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
-                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
-            </a>
-            <div class="hidden md:flex items-center space-x-6 font-bold">
-                <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
-                        The Drivers <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
-                        <a href="driver.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jon Kirsch</a>
-                        <a href="jonny.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jonny Kirsch #88</a>
-                    </div>
-                </div>
-                <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Schedule</a>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
-                        Media <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
-                        <a href="gallery.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gallery</a>
-                        <a href="videos.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Videos</a>
-                    </div>
-                </div>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
-                        Community <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
-                        <a href="qna.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Q&A</a>
-                        <a href="feedback.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Feedback</a>
-                    </div>
-                </div>
-                <a href="sponsorship.html" class="hover:text-neon-yellow transition duration-300">Sponsorship</a>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300 flex items-center font-bold">
-                        Login <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50 right-0">
-                        <a href="login.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Team Member Login</a>
-                        <a href="follower-login.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Follower Login</a>
-                    </div>
-                </div>
-            </div>
-            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swiper/swiper-bundle.min.css"
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <header
+      class="bg-black/30 backdrop-blur-md fixed w-full top-0 z-50 border-b border-slate-700/50"
+      style="top: 0"
+    >
+      <nav
+        class="container mx-auto px-6 py-3 flex justify-between items-center"
+      >
+        <a
+          href="index.html"
+          class="text-4xl font-racing uppercase tracking-wider"
+        >
+          <span class="title-blue">Reds</span
+          ><span class="neon-yellow">Racing</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-6 font-bold">
+          <a
+            href="index.html"
+            class="hover:text-neon-yellow transition duration-300"
+            >Home</a
+          >
+          <div class="relative dropdown">
+            <button
+              class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center"
+            >
+              The Drivers
+              <svg
+                class="w-4 h-4 ml-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
             </button>
-        </nav>
-        <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
-             <a href="index.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Home</a>
-             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">The Drivers</button>
-             <div class="mobile-accordion-content hidden pl-4">
-                 <a href="driver.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Jon Kirsch</a>
-                 <a href="jonny.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Jonny Kirsch #88</a>
-             </div>
-             <a href="schedule.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
-             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Media</button>
-             <div class="mobile-accordion-content hidden pl-4">
-                 <a href="gallery.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Gallery</a>
-                 <a href="videos.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Videos</a>
-             </div>
-             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Community</button>
-             <div class="mobile-accordion-content hidden pl-4">
-                 <a href="qna.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Q&A</a>
-                 <a href="feedback.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Feedback</a>
-             </div>
-             <a href="sponsorship.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Sponsorship</a>
-             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Login</button>
-             <div class="mobile-accordion-content hidden pl-4">
-                 <a href="login.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Team Member Login</a>
-                 <a href="follower-login.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Follower Login</a>
-             </div>
+            <div
+              class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50"
+            >
+              <a
+                href="driver.html"
+                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
+                >Jon Kirsch</a
+              >
+              <a
+                href="jonny.html"
+                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
+                >Jonny Kirsch #88</a
+              >
+            </div>
+          </div>
+          <a
+            href="schedule.html"
+            class="hover:text-neon-yellow transition duration-300"
+            >Schedule</a
+          >
+          <div class="relative dropdown">
+            <button
+              class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center"
+            >
+              Media
+              <svg
+                class="w-4 h-4 ml-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+            <div
+              class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50"
+            >
+              <a
+                href="gallery.html"
+                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
+                >Gallery</a
+              >
+              <a
+                href="videos.html"
+                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
+                >Videos</a
+              >
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button
+              class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center"
+            >
+              Community
+              <svg
+                class="w-4 h-4 ml-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+            <div
+              class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50"
+            >
+              <a
+                href="qna.html"
+                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
+                >Q&A</a
+              >
+              <a
+                href="feedback.html"
+                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
+                >Feedback</a
+              >
+            </div>
+          </div>
+          <a
+            href="sponsorship.html"
+            class="hover:text-neon-yellow transition duration-300"
+            >Sponsorship</a
+          >
+          <div class="relative dropdown">
+            <button
+              class="dropdown-toggle bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300 flex items-center font-bold"
+            >
+              Login
+              <svg
+                class="w-4 h-4 ml-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+            <div
+              class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50 right-0"
+            >
+              <a
+                href="login.html"
+                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
+                >Team Member Login</a
+              >
+              <a
+                href="follower-login.html"
+                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
+                >Follower Login</a
+              >
+            </div>
+          </div>
         </div>
+        <button
+          id="mobile-menu-button"
+          class="md:hidden text-white focus:outline-none"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16m-7 6h7"
+            ></path>
+          </svg>
+        </button>
+      </nav>
+      <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
+        <a href="index.html" class="block py-3 px-6 text-sm hover:bg-slate-800"
+          >Home</a
+        >
+        <button
+          class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left"
+        >
+          The Drivers
+        </button>
+        <div class="mobile-accordion-content hidden pl-4">
+          <a
+            href="driver.html"
+            class="block py-2 pl-6 text-sm hover:bg-slate-800"
+            >Jon Kirsch</a
+          >
+          <a
+            href="jonny.html"
+            class="block py-2 pl-6 text-sm hover:bg-slate-800"
+            >Jonny Kirsch #88</a
+          >
+        </div>
+        <a
+          href="schedule.html"
+          class="block py-3 px-6 text-sm hover:bg-slate-800"
+          >Schedule</a
+        >
+        <button
+          class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left"
+        >
+          Media
+        </button>
+        <div class="mobile-accordion-content hidden pl-4">
+          <a
+            href="gallery.html"
+            class="block py-2 pl-6 text-sm hover:bg-slate-800"
+            >Gallery</a
+          >
+          <a
+            href="videos.html"
+            class="block py-2 pl-6 text-sm hover:bg-slate-800"
+            >Videos</a
+          >
+        </div>
+        <button
+          class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left"
+        >
+          Community
+        </button>
+        <div class="mobile-accordion-content hidden pl-4">
+          <a href="qna.html" class="block py-2 pl-6 text-sm hover:bg-slate-800"
+            >Q&A</a
+          >
+          <a
+            href="feedback.html"
+            class="block py-2 pl-6 text-sm hover:bg-slate-800"
+            >Feedback</a
+          >
+        </div>
+        <a
+          href="sponsorship.html"
+          class="block py-3 px-6 text-sm hover:bg-slate-800"
+          >Sponsorship</a
+        >
+        <button
+          class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left"
+        >
+          Login
+        </button>
+        <div class="mobile-accordion-content hidden pl-4">
+          <a
+            href="login.html"
+            class="block py-2 pl-6 text-sm hover:bg-slate-800"
+            >Team Member Login</a
+          >
+          <a
+            href="follower-login.html"
+            class="block py-2 pl-6 text-sm hover:bg-slate-800"
+            >Follower Login</a
+          >
+        </div>
+      </div>
     </header>
 
     <main>
-        <section id="home" class="h-screen relative flex items-center justify-center text-center overflow-hidden" style="background-image: url('hero-bg.png'); background-size: cover; background-position: center; background-attachment: fixed;">
-            <div class="relative z-10 p-8 hero-overlay w-full h-full flex flex-col items-center justify-center">
-                <h1 class="text-6xl md:text-9xl font-racing uppercase text-gradient text-shadow-strong tracking-wider">
-                    Push The Limit
-                </h1>
-                <p class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest">THE OFFICIAL HUB OF JON'S RACING SAGA</p>
-            </div>
-        </section>
+      <section
+        id="home"
+        class="h-screen relative flex items-center justify-center text-center overflow-hidden"
+        style="
+          background-image: url(&quot;hero-bg.png&quot;);
+          background-size: cover;
+          background-position: center;
+          background-attachment: fixed;
+        "
+      >
+        <div
+          class="relative z-10 p-8 hero-overlay w-full h-full flex flex-col items-center justify-center"
+        >
+          <h1
+            class="text-6xl md:text-9xl font-racing uppercase text-gradient text-shadow-strong tracking-wider"
+          >
+            Push The Limit
+          </h1>
+          <p
+            class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest"
+          >
+            THE OFFICIAL HUB OF JON'S RACING SAGA
+          </p>
+        </div>
+      </section>
 
-        <section id="sponsors" class="py-24 md:py-32 section-glow">
-            <div class="container mx-auto px-6 text-center">
-                <h2 class="font-racing text-5xl uppercase mb-12 reveal-fade">Team <span class="neon-yellow">Partners</span></h2>
-                <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-8 items-center">
-                    <div class="sponsor-logo p-4 rounded-lg reveal-up"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=OK1+Automotive" alt="OK1 Automotive Technology" loading="lazy" width="300" height="150"></div>
-                    <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="100"><img src="https://placehold.co/300x150/e2e8f0/05080f?text=StepUp+Construction" alt="StepUp Construction" loading="lazy" width="300" height="150"></div>
-                    <div class="sponsor-logo p-4 rounded-lg reveal-up" data-reveal-delay="200"><img src="https://i.imgur.com/h6p6QLs.png" alt="Paul Ries and Sons Chicago" loading="lazy" width="300" height="150"></div>
-                </div>
+      <section id="sponsors" class="py-24 md:py-32 section-glow">
+        <div class="container mx-auto px-6 text-center">
+          <h2 class="font-racing text-5xl uppercase mb-12 reveal-fade">
+            Team <span class="neon-yellow">Partners</span>
+          </h2>
+          <div
+            class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-8 items-center"
+          >
+            <div class="sponsor-logo p-4 rounded-lg reveal-up">
+              <img
+                src="https://placehold.co/300x150/e2e8f0/05080f?text=OK1+Automotive"
+                alt="OK1 Automotive Technology"
+                loading="lazy"
+                width="300"
+                height="150"
+              />
             </div>
-        </section>
-
+            <div
+              class="sponsor-logo p-4 rounded-lg reveal-up"
+              data-reveal-delay="100"
+            >
+              <img
+                src="https://placehold.co/300x150/e2e8f0/05080f?text=StepUp+Construction"
+                alt="StepUp Construction"
+                loading="lazy"
+                width="300"
+                height="150"
+              />
+            </div>
+            <div
+              class="sponsor-logo p-4 rounded-lg reveal-up"
+              data-reveal-delay="200"
+            >
+              <img
+                src="https://i.imgur.com/h6p6QLs.png"
+                alt="Paul Ries and Sons Chicago"
+                loading="lazy"
+                width="300"
+                height="150"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer class="bg-black/50 border-t border-slate-800 py-16">
-        <div class="container mx-auto px-6 text-center">
-            <h3 class="font-racing text-4xl uppercase mb-2 neon-yellow">Get In Touch</h3>
-            <p class="text-slate-400 mb-8">Subscribe for race updates and follow the journey on social media.</p>
-            <div class="max-w-md mx-auto mb-8">
-                <form id="subscribe-form" class="flex flex-col sm:flex-row gap-2">
-                    <input type="email" id="subscribe-email" placeholder="Enter your email" required class="flex-grow bg-slate-800 text-white px-4 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-neon-yellow w-full">
-                    <button type="submit" class="bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Subscribe</button>
-                </form>
-                <p id="subscribe-message" class="text-sm mt-2 h-4"></p>
-            </div>
-            <div class="flex justify-center space-x-6 mb-8">
-                <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
-                <a href="https://www.tiktok.com/@redsracing" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"/></svg></a>
-            </div>
-            <p class="mt-8 text-slate-500 text-sm">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
+      <div class="container mx-auto px-6 text-center">
+        <h3 class="font-racing text-4xl uppercase mb-2 neon-yellow">
+          Get In Touch
+        </h3>
+        <p class="text-slate-400 mb-8">
+          Subscribe for race updates and follow the journey on social media.
+        </p>
+        <div class="max-w-md mx-auto mb-8">
+          <form id="subscribe-form" class="flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              id="subscribe-email"
+              placeholder="Enter your email"
+              required
+              class="flex-grow bg-slate-800 text-white px-4 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-neon-yellow w-full"
+            />
+            <button
+              type="submit"
+              class="bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300"
+            >
+              Subscribe
+            </button>
+          </form>
+          <p id="subscribe-message" class="text-sm mt-2 h-4"></p>
         </div>
+        <div class="flex justify-center space-x-6 mb-8">
+          <a
+            href="https://www.facebook.com/share/1F1RTxz9xa/"
+            target="_blank"
+            class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"
+            ><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                fill-rule="evenodd"
+                d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
+                clip-rule="evenodd"
+              /></svg
+          ></a>
+          <a
+            href="https://www.tiktok.com/@redsracing"
+            target="_blank"
+            class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"
+            ><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"
+              /></svg
+          ></a>
+        </div>
+        <p class="mt-8 text-slate-500 text-sm">
+          © <span id="year"></span> RedsRacing #8. All Rights Reserved.
+        </p>
+      </div>
     </footer>
 
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script src="navigation.js"></script>
     <script src="main.js"></script>
     <script>
-      (function(){
-        function init(){
+      (function () {
+        function init() {
           // Desktop dropdowns fallback
-          document.querySelectorAll('.dropdown-toggle').forEach(function(btn){
-            btn.addEventListener('click', function(e){
+          document.querySelectorAll(".dropdown-toggle").forEach(function (btn) {
+            btn.addEventListener("click", function (e) {
               e.preventDefault();
               e.stopPropagation();
               var menu = btn.nextElementSibling;
-              if (menu && menu.classList.contains('dropdown-menu')){
-                document.querySelectorAll('.dropdown-menu').forEach(function(m){ if(m!==menu) m.classList.add('hidden'); });
-                menu.classList.toggle('hidden');
+              if (menu && menu.classList.contains("dropdown-menu")) {
+                document
+                  .querySelectorAll(".dropdown-menu")
+                  .forEach(function (m) {
+                    if (m !== menu) m.classList.add("hidden");
+                  });
+                menu.classList.toggle("hidden");
               }
             });
           });
           // Outside click to close
-          document.addEventListener('click', function(){
-            document.querySelectorAll('.dropdown-menu').forEach(function(m){ m.classList.add('hidden'); });
+          document.addEventListener("click", function () {
+            document.querySelectorAll(".dropdown-menu").forEach(function (m) {
+              m.classList.add("hidden");
+            });
           });
           // Mobile menu fallback
-          var mobileButton = document.getElementById('mobile-menu-button');
-          var mobileMenu = document.getElementById('mobile-menu');
-          if (mobileButton && mobileMenu){
-            mobileButton.addEventListener('click', function(e){
+          var mobileButton = document.getElementById("mobile-menu-button");
+          var mobileMenu = document.getElementById("mobile-menu");
+          if (mobileButton && mobileMenu) {
+            mobileButton.addEventListener("click", function (e) {
               e.preventDefault();
               e.stopPropagation();
-              mobileMenu.classList.toggle('hidden');
+              mobileMenu.classList.toggle("hidden");
             });
           }
         }
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+        if (document.readyState === "loading")
+          document.addEventListener("DOMContentLoaded", init);
+        else init();
       })();
     </script>
-</body>
+  </body>
 </html>

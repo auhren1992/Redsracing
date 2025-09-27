@@ -1,2 +1,2 @@
-import './app.js';
-import './navigation.js';
+import "./app.js";
+import "./navigation.js";

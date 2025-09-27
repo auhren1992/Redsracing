@@ -1,295 +1,449 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login Validation Tests - Offline</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-        .test-container { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .test-result { padding: 10px; margin: 10px 0; border-radius: 4px; }
-        .pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .fail { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-        input, button { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; width: 200px; }
-        button { background: #007bff; color: white; cursor: pointer; width: auto; }
-        button:hover { background: #0056b3; }
-        .form-test { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
-        .summary { font-weight: bold; font-size: 16px; padding: 15px; text-align: center; }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .test-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .test-result {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+      }
+      .pass {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .fail {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      input,
+      button {
+        padding: 8px;
+        margin: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 200px;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+        width: auto;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .form-test {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+      .summary {
+        font-weight: bold;
+        font-size: 16px;
+        padding: 15px;
+        text-align: center;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>🧪 Login System Validation Tests (Offline)</h1>
     <p>Testing login validation logic without Firebase dependencies</p>
-    
+
     <div class="test-container">
-        <h2>📧 Email Validation Tests</h2>
-        <div id="email-results"></div>
+      <h2>📧 Email Validation Tests</h2>
+      <div id="email-results"></div>
     </div>
 
     <div class="test-container">
-        <h2>🔒 Password Validation Tests</h2>
-        <div id="password-results"></div>
+      <h2>🔒 Password Validation Tests</h2>
+      <div id="password-results"></div>
     </div>
 
     <div class="test-container">
-        <h2>📋 Form Validation Tests</h2>
-        <div id="form-results"></div>
+      <h2>📋 Form Validation Tests</h2>
+      <div id="form-results"></div>
     </div>
 
     <div class="test-container">
-        <h2>🎯 Interactive Test</h2>
-        <p>Test the validation logic with custom inputs:</p>
-        <div class="form-test">
-            <input type="email" id="test-email" placeholder="Enter email to test" />
-            <input type="password" id="test-password" placeholder="Enter password to test" />
-            <button onclick="testCustomInput()">Test Validation</button>
-            <div id="custom-result" style="margin-top: 10px;"></div>
-        </div>
+      <h2>🎯 Interactive Test</h2>
+      <p>Test the validation logic with custom inputs:</p>
+      <div class="form-test">
+        <input type="email" id="test-email" placeholder="Enter email to test" />
+        <input
+          type="password"
+          id="test-password"
+          placeholder="Enter password to test"
+        />
+        <button onclick="testCustomInput()">Test Validation</button>
+        <div id="custom-result" style="margin-top: 10px"></div>
+      </div>
     </div>
 
     <div class="test-container">
-        <h2>⚠️ Error Message Tests</h2>
-        <div id="error-results"></div>
+      <h2>⚠️ Error Message Tests</h2>
+      <div id="error-results"></div>
     </div>
 
     <script>
-        // Copy the validation functions from login.html for testing
-        function isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
+      // Copy the validation functions from login.html for testing
+      function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+      }
+
+      function validateLoginForm(email, password) {
+        const errors = [];
+
+        if (!email || !password) {
+          errors.push("Please fill in all required fields.");
+          return errors;
         }
 
-        function validateLoginForm(email, password) {
-            const errors = [];
-            
-            if (!email || !password) {
-                errors.push('Please fill in all required fields.');
-                return errors;
-            }
-            
-            if (!isValidEmail(email)) {
-                errors.push('Please enter a valid email address.');
-            }
-            
-            if (password.length < 6) {
-                errors.push('Password must be at least 6 characters long.');
-            }
-            
-            return errors;
+        if (!isValidEmail(email)) {
+          errors.push("Please enter a valid email address.");
         }
 
-        function getFriendlyErrorMessage(error) {
-            switch (error.code) {
-                case 'auth/user-not-found':
-                    return 'No account found with this email address. Please check your email or sign up for a new account.';
-                case 'auth/wrong-password':
-                    return 'Incorrect password. Please try again or use "Forgot password?" to reset it.';
-                case 'auth/invalid-email':
-                    return 'Please enter a valid email address.';
-                case 'auth/user-disabled':
-                    return 'This account has been disabled. Please contact support for assistance.';
-                case 'auth/too-many-requests':
-                    return 'Too many failed login attempts. Please wait a moment and try again.';
-                case 'auth/network-request-failed':
-                    return 'Network error. Please check your internet connection and try again.';
-                case 'auth/invalid-credential':
-                    return 'Invalid email or password. Please check your credentials and try again.';
-                default:
-                    return error.message || 'An unexpected error occurred. Please try again.';
-            }
+        if (password.length < 6) {
+          errors.push("Password must be at least 6 characters long.");
         }
 
-        // Test email validation
-        function runEmailTests() {
-            const emailTests = [
-                { input: 'test@example.com', expected: true, description: 'Valid email' },
-                { input: 'user@domain.co.uk', expected: true, description: 'Valid email with country code' },
-                { input: 'invalid-email', expected: false, description: 'Missing @ symbol' },
-                { input: '@example.com', expected: false, description: 'Missing username' },
-                { input: 'test@', expected: false, description: 'Missing domain' },
-                { input: 'test.example.com', expected: false, description: 'Missing @ symbol' },
-                { input: '', expected: false, description: 'Empty email' },
-                { input: 'test@example', expected: false, description: 'Missing top-level domain' }
-            ];
+        return errors;
+      }
 
-            const resultsDiv = document.getElementById('email-results');
-            let passed = 0;
+      function getFriendlyErrorMessage(error) {
+        switch (error.code) {
+          case "auth/user-not-found":
+            return "No account found with this email address. Please check your email or sign up for a new account.";
+          case "auth/wrong-password":
+            return 'Incorrect password. Please try again or use "Forgot password?" to reset it.';
+          case "auth/invalid-email":
+            return "Please enter a valid email address.";
+          case "auth/user-disabled":
+            return "This account has been disabled. Please contact support for assistance.";
+          case "auth/too-many-requests":
+            return "Too many failed login attempts. Please wait a moment and try again.";
+          case "auth/network-request-failed":
+            return "Network error. Please check your internet connection and try again.";
+          case "auth/invalid-credential":
+            return "Invalid email or password. Please check your credentials and try again.";
+          default:
+            return (
+              error.message || "An unexpected error occurred. Please try again."
+            );
+        }
+      }
 
-            emailTests.forEach((test, index) => {
-                const result = isValidEmail(test.input);
-                const success = result === test.expected;
-                if (success) passed++;
+      // Test email validation
+      function runEmailTests() {
+        const emailTests = [
+          {
+            input: "test@example.com",
+            expected: true,
+            description: "Valid email",
+          },
+          {
+            input: "user@domain.co.uk",
+            expected: true,
+            description: "Valid email with country code",
+          },
+          {
+            input: "invalid-email",
+            expected: false,
+            description: "Missing @ symbol",
+          },
+          {
+            input: "@example.com",
+            expected: false,
+            description: "Missing username",
+          },
+          { input: "test@", expected: false, description: "Missing domain" },
+          {
+            input: "test.example.com",
+            expected: false,
+            description: "Missing @ symbol",
+          },
+          { input: "", expected: false, description: "Empty email" },
+          {
+            input: "test@example",
+            expected: false,
+            description: "Missing top-level domain",
+          },
+        ];
 
-                const div = document.createElement('div');
-                div.className = `test-result ${success ? 'pass' : 'fail'}`;
-                div.innerHTML = `
+        const resultsDiv = document.getElementById("email-results");
+        let passed = 0;
+
+        emailTests.forEach((test, index) => {
+          const result = isValidEmail(test.input);
+          const success = result === test.expected;
+          if (success) passed++;
+
+          const div = document.createElement("div");
+          div.className = `test-result ${success ? "pass" : "fail"}`;
+          div.innerHTML = `
                     <strong>Test ${index + 1}:</strong> ${test.description}<br>
                     Input: "${test.input}"<br>
-                    Expected: ${test.expected}, Got: ${result} ${success ? '✅' : '❌'}
+                    Expected: ${test.expected}, Got: ${result} ${success ? "✅" : "❌"}
                 `;
-                resultsDiv.appendChild(div);
-            });
+          resultsDiv.appendChild(div);
+        });
 
-            const summary = document.createElement('div');
-            summary.className = `test-result summary ${passed === emailTests.length ? 'pass' : 'fail'}`;
-            summary.innerHTML = `Email Validation: ${passed}/${emailTests.length} tests passed`;
-            resultsDiv.appendChild(summary);
+        const summary = document.createElement("div");
+        summary.className = `test-result summary ${passed === emailTests.length ? "pass" : "fail"}`;
+        summary.innerHTML = `Email Validation: ${passed}/${emailTests.length} tests passed`;
+        resultsDiv.appendChild(summary);
 
-            return passed === emailTests.length;
-        }
+        return passed === emailTests.length;
+      }
 
-        // Test password validation
-        function runPasswordTests() {
-            const passwordTests = [
-                { input: 'validpassword', expected: true, description: 'Valid password (8+ chars)' },
-                { input: 'short', expected: false, description: 'Too short (5 chars)' },
-                { input: '123456', expected: true, description: 'Minimum length (6 chars)' },
-                { input: '', expected: false, description: 'Empty password' },
-                { input: 'a'.repeat(20), expected: true, description: 'Long password' }
-            ];
+      // Test password validation
+      function runPasswordTests() {
+        const passwordTests = [
+          {
+            input: "validpassword",
+            expected: true,
+            description: "Valid password (8+ chars)",
+          },
+          {
+            input: "short",
+            expected: false,
+            description: "Too short (5 chars)",
+          },
+          {
+            input: "123456",
+            expected: true,
+            description: "Minimum length (6 chars)",
+          },
+          { input: "", expected: false, description: "Empty password" },
+          {
+            input: "a".repeat(20),
+            expected: true,
+            description: "Long password",
+          },
+        ];
 
-            const resultsDiv = document.getElementById('password-results');
-            let passed = 0;
+        const resultsDiv = document.getElementById("password-results");
+        let passed = 0;
 
-            passwordTests.forEach((test, index) => {
-                const result = test.input.length >= 6;
-                const success = result === test.expected;
-                if (success) passed++;
+        passwordTests.forEach((test, index) => {
+          const result = test.input.length >= 6;
+          const success = result === test.expected;
+          if (success) passed++;
 
-                const div = document.createElement('div');
-                div.className = `test-result ${success ? 'pass' : 'fail'}`;
-                div.innerHTML = `
+          const div = document.createElement("div");
+          div.className = `test-result ${success ? "pass" : "fail"}`;
+          div.innerHTML = `
                     <strong>Test ${index + 1}:</strong> ${test.description}<br>
                     Input: "${test.input}" (${test.input.length} chars)<br>
-                    Expected: ${test.expected}, Got: ${result} ${success ? '✅' : '❌'}
+                    Expected: ${test.expected}, Got: ${result} ${success ? "✅" : "❌"}
                 `;
-                resultsDiv.appendChild(div);
-            });
+          resultsDiv.appendChild(div);
+        });
 
-            const summary = document.createElement('div');
-            summary.className = `test-result summary ${passed === passwordTests.length ? 'pass' : 'fail'}`;
-            summary.innerHTML = `Password Validation: ${passed}/${passwordTests.length} tests passed`;
-            resultsDiv.appendChild(summary);
+        const summary = document.createElement("div");
+        summary.className = `test-result summary ${passed === passwordTests.length ? "pass" : "fail"}`;
+        summary.innerHTML = `Password Validation: ${passed}/${passwordTests.length} tests passed`;
+        resultsDiv.appendChild(summary);
 
-            return passed === passwordTests.length;
-        }
+        return passed === passwordTests.length;
+      }
 
-        // Test form validation
-        function runFormTests() {
-            const formTests = [
-                { email: '', password: '', expected: ['Please fill in all required fields.'], description: 'Empty form' },
-                { email: 'valid@example.com', password: 'validpassword', expected: [], description: 'Valid form' },
-                { email: 'invalid-email', password: 'validpassword', expected: ['Please enter a valid email address.'], description: 'Invalid email' },
-                { email: 'valid@example.com', password: '123', expected: ['Password must be at least 6 characters long.'], description: 'Short password' },
-                { email: 'invalid-email', password: '123', expected: ['Please enter a valid email address.', 'Password must be at least 6 characters long.'], description: 'Multiple errors' }
-            ];
+      // Test form validation
+      function runFormTests() {
+        const formTests = [
+          {
+            email: "",
+            password: "",
+            expected: ["Please fill in all required fields."],
+            description: "Empty form",
+          },
+          {
+            email: "valid@example.com",
+            password: "validpassword",
+            expected: [],
+            description: "Valid form",
+          },
+          {
+            email: "invalid-email",
+            password: "validpassword",
+            expected: ["Please enter a valid email address."],
+            description: "Invalid email",
+          },
+          {
+            email: "valid@example.com",
+            password: "123",
+            expected: ["Password must be at least 6 characters long."],
+            description: "Short password",
+          },
+          {
+            email: "invalid-email",
+            password: "123",
+            expected: [
+              "Please enter a valid email address.",
+              "Password must be at least 6 characters long.",
+            ],
+            description: "Multiple errors",
+          },
+        ];
 
-            const resultsDiv = document.getElementById('form-results');
-            let passed = 0;
+        const resultsDiv = document.getElementById("form-results");
+        let passed = 0;
 
-            formTests.forEach((test, index) => {
-                const result = validateLoginForm(test.email, test.password);
-                const success = JSON.stringify(result) === JSON.stringify(test.expected);
-                if (success) passed++;
+        formTests.forEach((test, index) => {
+          const result = validateLoginForm(test.email, test.password);
+          const success =
+            JSON.stringify(result) === JSON.stringify(test.expected);
+          if (success) passed++;
 
-                const div = document.createElement('div');
-                div.className = `test-result ${success ? 'pass' : 'fail'}`;
-                div.innerHTML = `
+          const div = document.createElement("div");
+          div.className = `test-result ${success ? "pass" : "fail"}`;
+          div.innerHTML = `
                     <strong>Test ${index + 1}:</strong> ${test.description}<br>
                     Input: email="${test.email}", password="${test.password}"<br>
                     Expected: ${JSON.stringify(test.expected)}<br>
-                    Got: ${JSON.stringify(result)} ${success ? '✅' : '❌'}
+                    Got: ${JSON.stringify(result)} ${success ? "✅" : "❌"}
                 `;
-                resultsDiv.appendChild(div);
-            });
+          resultsDiv.appendChild(div);
+        });
 
-            const summary = document.createElement('div');
-            summary.className = `test-result summary ${passed === formTests.length ? 'pass' : 'fail'}`;
-            summary.innerHTML = `Form Validation: ${passed}/${formTests.length} tests passed`;
-            resultsDiv.appendChild(summary);
+        const summary = document.createElement("div");
+        summary.className = `test-result summary ${passed === formTests.length ? "pass" : "fail"}`;
+        summary.innerHTML = `Form Validation: ${passed}/${formTests.length} tests passed`;
+        resultsDiv.appendChild(summary);
 
-            return passed === formTests.length;
-        }
+        return passed === formTests.length;
+      }
 
-        // Test error messages
-        function runErrorTests() {
-            const errorTests = [
-                { code: 'auth/user-not-found', expected: 'No account found', description: 'User not found error' },
-                { code: 'auth/wrong-password', expected: 'Incorrect password', description: 'Wrong password error' },
-                { code: 'auth/invalid-email', expected: 'valid email address', description: 'Invalid email error' },
-                { code: 'auth/too-many-requests', expected: 'Too many failed', description: 'Rate limiting error' },
-                { code: 'auth/unknown-error', expected: 'unexpected error occurred', description: 'Unknown error fallback' }
-            ];
+      // Test error messages
+      function runErrorTests() {
+        const errorTests = [
+          {
+            code: "auth/user-not-found",
+            expected: "No account found",
+            description: "User not found error",
+          },
+          {
+            code: "auth/wrong-password",
+            expected: "Incorrect password",
+            description: "Wrong password error",
+          },
+          {
+            code: "auth/invalid-email",
+            expected: "valid email address",
+            description: "Invalid email error",
+          },
+          {
+            code: "auth/too-many-requests",
+            expected: "Too many failed",
+            description: "Rate limiting error",
+          },
+          {
+            code: "auth/unknown-error",
+            expected: "unexpected error occurred",
+            description: "Unknown error fallback",
+          },
+        ];
 
-            const resultsDiv = document.getElementById('error-results');
-            let passed = 0;
+        const resultsDiv = document.getElementById("error-results");
+        let passed = 0;
 
-            errorTests.forEach((test, index) => {
-                const mockError = { code: test.code, message: `Firebase error: ${test.code}` };
-                const result = getFriendlyErrorMessage(mockError);
-                const success = result.toLowerCase().includes(test.expected.toLowerCase());
-                if (success) passed++;
+        errorTests.forEach((test, index) => {
+          const mockError = {
+            code: test.code,
+            message: `Firebase error: ${test.code}`,
+          };
+          const result = getFriendlyErrorMessage(mockError);
+          const success = result
+            .toLowerCase()
+            .includes(test.expected.toLowerCase());
+          if (success) passed++;
 
-                const div = document.createElement('div');
-                div.className = `test-result ${success ? 'pass' : 'fail'}`;
-                div.innerHTML = `
+          const div = document.createElement("div");
+          div.className = `test-result ${success ? "pass" : "fail"}`;
+          div.innerHTML = `
                     <strong>Test ${index + 1}:</strong> ${test.description}<br>
                     Error Code: ${test.code}<br>
                     Expected to contain: "${test.expected}"<br>
-                    Got: "${result}" ${success ? '✅' : '❌'}
+                    Got: "${result}" ${success ? "✅" : "❌"}
                 `;
-                resultsDiv.appendChild(div);
-            });
+          resultsDiv.appendChild(div);
+        });
 
-            const summary = document.createElement('div');
-            summary.className = `test-result summary ${passed === errorTests.length ? 'pass' : 'fail'}`;
-            summary.innerHTML = `Error Messages: ${passed}/${errorTests.length} tests passed`;
-            resultsDiv.appendChild(summary);
+        const summary = document.createElement("div");
+        summary.className = `test-result summary ${passed === errorTests.length ? "pass" : "fail"}`;
+        summary.innerHTML = `Error Messages: ${passed}/${errorTests.length} tests passed`;
+        resultsDiv.appendChild(summary);
 
-            return passed === errorTests.length;
+        return passed === errorTests.length;
+      }
+
+      // Interactive test function
+      function testCustomInput() {
+        const email = document.getElementById("test-email").value;
+        const password = document.getElementById("test-password").value;
+        const resultDiv = document.getElementById("custom-result");
+
+        const errors = validateLoginForm(email, password);
+
+        if (errors.length === 0) {
+          resultDiv.innerHTML =
+            '<div class="test-result pass">✅ Valid input! Form would be submitted.</div>';
+        } else {
+          resultDiv.innerHTML = `<div class="test-result fail">❌ Validation failed:<br>${errors.map((error) => `• ${error}`).join("<br>")}</div>`;
         }
+      }
 
-        // Interactive test function
-        function testCustomInput() {
-            const email = document.getElementById('test-email').value;
-            const password = document.getElementById('test-password').value;
-            const resultDiv = document.getElementById('custom-result');
+      // Run all tests when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("Running comprehensive login validation tests...");
 
-            const errors = validateLoginForm(email, password);
+        const emailResults = runEmailTests();
+        const passwordResults = runPasswordTests();
+        const formResults = runFormTests();
+        const errorResults = runErrorTests();
 
-            if (errors.length === 0) {
-                resultDiv.innerHTML = '<div class="test-result pass">✅ Valid input! Form would be submitted.</div>';
-            } else {
-                resultDiv.innerHTML = `<div class="test-result fail">❌ Validation failed:<br>${errors.map(error => `• ${error}`).join('<br>')}</div>`;
-            }
-        }
+        const allPassed =
+          emailResults && passwordResults && formResults && errorResults;
 
-        // Run all tests when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Running comprehensive login validation tests...');
-            
-            const emailResults = runEmailTests();
-            const passwordResults = runPasswordTests(); 
-            const formResults = runFormTests();
-            const errorResults = runErrorTests();
-
-            const allPassed = emailResults && passwordResults && formResults && errorResults;
-            
-            // Add overall summary
-            const body = document.body;
-            const overallSummary = document.createElement('div');
-            overallSummary.className = `test-container ${allPassed ? 'pass' : 'fail'}`;
-            overallSummary.innerHTML = `
+        // Add overall summary
+        const body = document.body;
+        const overallSummary = document.createElement("div");
+        overallSummary.className = `test-container ${allPassed ? "pass" : "fail"}`;
+        overallSummary.innerHTML = `
                 <h2>📊 Overall Test Results</h2>
-                <div class="test-result summary ${allPassed ? 'pass' : 'fail'}">
-                    ${allPassed ? '🎉 All validation tests passed! Login system is ready.' : '⚠️ Some tests failed. Please review the results above.'}
+                <div class="test-result summary ${allPassed ? "pass" : "fail"}">
+                    ${allPassed ? "🎉 All validation tests passed! Login system is ready." : "⚠️ Some tests failed. Please review the results above."}
                 </div>
             `;
-            body.appendChild(overallSummary);
+        body.appendChild(overallSummary);
 
-            console.log(`Test Results: ${allPassed ? 'ALL PASSED' : 'SOME FAILED'}`);
-        });
+        console.log(
+          `Test Results: ${allPassed ? "ALL PASSED" : "SOME FAILED"}`,
+        );
+      });
     </script>
-</body>
+  </body>
 </html>

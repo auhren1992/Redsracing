@@ -7,7 +7,7 @@ export const firebaseConfig = {
   storageBucket: "redsracing-a7f8b.appspot.com",
   messagingSenderId: "517034606151",
   appId: "1:517034606151:web:24cae262e1d98832757b62",
-  measurementId: "G-YD3ZWC13SR"
+  measurementId: "G-YD3ZWC13SR",
 };
 
 export function getFirebaseConfig() {
