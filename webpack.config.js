@@ -79,17 +79,18 @@ module.exports = {
   },
   optimization: {
     splitChunks: {
-      chunks: "all",
+      chunks: 'all',
+      maxSize: 200000,
       cacheGroups: {
         vendor: {
           test: /[\\/]node_modules[\\/]/,
-          name: "vendors",
-          chunks: "all",
+          name: 'vendors',
+          chunks: 'all',
         },
         firebase: {
           test: /[\\/]node_modules[\\/]firebase[\\/]/,
-          name: "firebase",
-          chunks: "all",
+          name: 'firebase',
+          chunks: 'all',
         },
       },
     },
