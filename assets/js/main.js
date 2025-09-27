@@ -136,3 +136,12 @@ async function initFirebase() {
 
 // Initialize Firebase functionality
 initFirebase();
+
+// Lazy-load Sentry only in production and only if DSN is present
+if (process.env.NODE_ENV === 'production') {
+  setTimeout(() => {
+    import(/* webpackChunkName: "sentry" */ './sentry-init.js')
+      .then(({ initSentry }) => initSentry && initSentry())
+      .catch(() => {});
+  }, 0);
+}
