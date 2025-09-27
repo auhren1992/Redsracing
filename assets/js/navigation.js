@@ -58,6 +58,16 @@ import "./app.js";
     }
   }
 
+  // Lazy-load Sentry once per page if configured and in production
+  if (process.env.NODE_ENV === 'production' && !window.__sentryLoaded) {
+    window.__sentryLoaded = true;
+    setTimeout(() => {
+      import(/* webpackChunkName: "sentry" */ './sentry-init.js')
+        .then(({ initSentry }) => initSentry && initSentry())
+        .catch(() => {});
+    }, 0);
+  }
+
   // Enhanced initialization with error handling and retry mechanism
   function initNavigation() {
     if (navigationInitialized) {
