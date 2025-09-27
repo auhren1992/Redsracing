@@ -1,5 +1,17 @@
 # RedsRacing #8 Frontend
 
+## Bundle analysis
+
+To analyze bundle size locally:
+
+1. Install deps and build once:
+   - `npm ci`
+   - `npm run build`
+2. Generate stats and open analyzer:
+   - `npm run analyze`
+
+This writes `stats.json` and launches an interactive treemap.
+
 This is the official website for RedsRacing #8, featuring Jon's racing journey.
 
 ## Development Setup
