@@ -1,3 +1,4 @@
+
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 
@@ -17,11 +18,13 @@ module.exports = {
     'login-page': './assets/js/login-page.js',
     navigation: './assets/js/navigation.js',
     profile: './assets/js/profile.js',
+    'profile-inline-fallback': './assets/js/profile-inline-fallback.js',
     qna: './assets/js/qna.js',
     schedule: './assets/js/schedule.js',
     'signup-page': './assets/js/signup-page.js',
     sponsorship: './assets/js/sponsorship.js',
     videos: './assets/js/videos.js',
+    'leaderboard-inline-fallback': './assets/js/leaderboard-inline-fallback.js',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),

@@ -1,7 +1,10 @@
 // assets/js/firebase-core-fixed.js
 import { getFirebaseConfig } from './firebase-config.js';
 import { initializeApp, getApps } from "firebase/app";
-import { getAuth } from "firebase/auth";
+
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+
+
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
@@ -24,6 +27,15 @@ function initializeFirebaseIfNeeded() {
         }
 
         auth = getAuth(app);
+
+        // Ensure auth persists across tabs and page loads
+        try {
+            // Set to local persistence explicitly to avoid environment defaults
+            setPersistence(auth, browserLocalPersistence).catch(() => {});
+        } catch (e) {
+            // Ignore persistence errors; Firebase will fall back to default
+        }
+
         db = getFirestore(app);
         storage = getStorage(app);
 

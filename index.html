@@ -137,7 +137,40 @@
     </footer>
 
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-    <script type="module" src="dist/main.js"></script>
-    <script type="module" src="dist/navigation.js"></script>
+    <script src="navigation.js"></script>
+    <script src="main.js"></script>
+    <script>
+      (function(){
+        function init(){
+          // Desktop dropdowns fallback
+          document.querySelectorAll('.dropdown-toggle').forEach(function(btn){
+            btn.addEventListener('click', function(e){
+              e.preventDefault();
+              e.stopPropagation();
+              var menu = btn.nextElementSibling;
+              if (menu && menu.classList.contains('dropdown-menu')){
+                document.querySelectorAll('.dropdown-menu').forEach(function(m){ if(m!==menu) m.classList.add('hidden'); });
+                menu.classList.toggle('hidden');
+              }
+            });
+          });
+          // Outside click to close
+          document.addEventListener('click', function(){
+            document.querySelectorAll('.dropdown-menu').forEach(function(m){ m.classList.add('hidden'); });
+          });
+          // Mobile menu fallback
+          var mobileButton = document.getElementById('mobile-menu-button');
+          var mobileMenu = document.getElementById('mobile-menu');
+          if (mobileButton && mobileMenu){
+            mobileButton.addEventListener('click', function(e){
+              e.preventDefault();
+              e.stopPropagation();
+              mobileMenu.classList.toggle('hidden');
+            });
+          }
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+      })();
+    </script>
 </body>
 </html>

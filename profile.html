@@ -233,8 +233,10 @@
     </main>
 
     <!-- Fallback (non-module) must load before the module script -->
-    <script src="assets/js/profile-inline-fallback.js"></script>
-    <script type="module" src="auth-guard.js"></script>
-    <script type="module" src="profile.js"></script>
+
+    <script src="profile-inline-fallback.js"></script>
+    <script src="vendors.js"></script>
+    <script src="auth-guard.js"></script>
+    <script src="profile.js"></script>
 </body>
 </html>

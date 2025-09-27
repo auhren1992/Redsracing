@@ -41,6 +41,8 @@ class LoginPageController {
     async initialize() {
         try {
 
+            console.info('[Login] Initializing controller');
+
 
             // Get DOM elements
             this.cacheElements();
@@ -51,6 +53,7 @@ class LoginPageController {
             // Get Firebase auth instance
             this.auth = getFirebaseAuth();
             this.googleProvider = new GoogleAuthProvider();
+            console.info('[Login] Firebase auth ready:', !!this.auth);
             
             // Bind event listeners
             this.bindEvents();
@@ -58,10 +61,10 @@ class LoginPageController {
             // Enable UI after initialization
             this.enableUI();
             this.isInitialized = true;
-            
 
-
+            console.info('[Login] UI enabled');
         } catch (error) {
+            console.error('[Login] Initialization failed:', error);
 
             this.showMessage('Failed to initialize authentication system. Please refresh the page.');
         }
@@ -102,22 +105,33 @@ class LoginPageController {
      */
     bindEvents() {
         // Email/password sign in
-        this.elements.signinButton?.addEventListener('click', () => this.handleEmailSignIn());
+        this.elements.signinButton?.addEventListener('click', () => {
+            console.info('[Login] Sign-in button clicked');
+            this.handleEmailSignIn();
+        });
         
         // Sign up redirect
-        this.elements.signupButton?.addEventListener('click', () => this.handleSignUpRedirect());
+        this.elements.signupButton?.addEventListener('click', () => {
+            console.info('[Login] Sign-up button clicked');
+            this.handleSignUpRedirect();
+        });
         
         // Google sign in
-        this.elements.googleSigninButton?.addEventListener('click', () => this.handleGoogleSignIn());
+        this.elements.googleSigninButton?.addEventListener('click', () => {
+            console.info('[Login] Google sign-in clicked');
+            this.handleGoogleSignIn();
+        });
         
         // Password reset
-        this.elements.forgotPasswordLink?.addEventListener('click', (e) => this.handleForgotPassword(e));
+        this.elements.forgotPasswordLink?.addEventListener('click', (e) => {
+            console.info('[Login] Forgot password clicked');
+            this.handleForgotPassword(e);
+        });
         
         // Input validation and error clearing
         this.elements.emailInput?.addEventListener('input', () => this.hideMessage());
         this.elements.passwordInput?.addEventListener('input', () => this.hideMessage());
         this.elements.emailInput?.addEventListener('blur', () => this.validateEmailField());
-
 
     }
 
@@ -251,6 +265,7 @@ class LoginPageController {
      */
     async handleEmailSignIn() {
         if (!this.isInitialized) {
+            console.warn('[Login] handleEmailSignIn called before init');
             this.showMessage('Please wait for the page to load completely.');
             return;
         }
@@ -264,13 +279,42 @@ class LoginPageController {
             return;
         }
 
+        if (!this.auth) {
+            console.error('[Login] Firebase auth not ready');
+            this.showMessage('Authentication not ready. Please refresh the page.');
+            return;
+        }
+
         this.setLoadingState(this.elements.signinButton, true, 'Sign In');
 
         try {
             await signInWithEmailAndPassword(this.auth, email, password);
+            console.info('[Login] Email sign-in success');
+            // Force refresh to get latest custom claims
+            const user = this.auth.currentUser;
+            let role = null;
+            try {
+                const tokenResult = await user.getIdTokenResult(true);
+                role = tokenResult?.claims?.role || null;
+                console.info('[Login] Claims role:', role);
+            } catch (e) {
+                console.warn('[Login] Failed to refresh token for claims:', e);
+            }
+
             this.showMessage('Login successful! Redirecting...', false);
+
+            // Route based on role if known
+            if (role === 'team-member') {
+                navigateToInternal('/redsracing-dashboard.html');
+                return;
+            } else if (role === 'TeamRedFollower') {
+                navigateToInternal('/follower-dashboard.html');
+                return;
+            }
+            // Fallback to generic dashboard router
             this.handleSuccess();
         } catch (error) {
+            console.error('[Login] Email sign-in failed:', error);
             this.showMessage(getFriendlyAuthError(error));
         } finally {
             this.setLoadingState(this.elements.signinButton, false, 'Sign In');
@@ -359,6 +403,7 @@ class LoginPageController {
 
 // Initialize login controller when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
+    console.info('[Login] DOMContentLoaded');
     const loginController = new LoginPageController();
     await loginController.initialize();
 });

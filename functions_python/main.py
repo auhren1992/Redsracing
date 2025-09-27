@@ -7,12 +7,28 @@ import os
 import json
 from datetime import datetime
 
+# Sentry error monitoring
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+
 # Initialize Firebase Admin SDK.
 initialize_app()
 
-# Set the SendGrid API key from environment variables/secrets.
-# This is crucial for security. The secret name is 'SENDGRID_API_KEY'.
+# Configure secrets for email functionality
+# Keep SENTRY_DSN optional to avoid deployment failure when the secret is not present
 options.set_global_options(secrets=["SENDGRID_API_KEY", "RECAPTCHA_SITE_KEY"])
+
+# Initialize Sentry (non-blocking if DSN not provided)
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
+SENTRY_ENV = os.environ.get("SENTRY_ENV", "production")
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=SENTRY_ENV,
+        integrations=[FlaskIntegration()],
+        traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", 0.1)),
+        send_default_pii=False,
+    )
 
 # Configure secrets for email functionality
 # The SENDGRID_API_KEY secret should be configured in Google Cloud Secret Manager
@@ -83,6 +99,10 @@ def handleAddSubscriber(req: https_fn.Request) -> https_fn.Response:
         db.collection("subscribers").add({"email": email, "timestamp": firestore.SERVER_TIMESTAMP})
         return https_fn.Response("Subscription successful!", status=200)
     except Exception as e:
+        try:
+            sentry_sdk.capture_exception(e)
+        except Exception:
+            pass
         return https_fn.Response(f"An error occurred: {e}", status=500)
 
 @https_fn.on_request(cors=CORS_OPTIONS)
@@ -135,8 +155,16 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
 
     except ValueError as ve:
         # Handle specifically the case where SendGrid API key is not configured
+        try:
+            sentry_sdk.capture_exception(ve)
+        except Exception:
+            pass
         return https_fn.Response(f"Email service not configured: {ve}", status=503)
     except Exception as e:
+        try:
+            sentry_sdk.capture_exception(e)
+        except Exception:
+            pass
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
 
 @https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY"])
@@ -187,8 +215,16 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
 
     except ValueError as ve:
         # Handle specifically the case where SendGrid API key is not configured
+        try:
+            sentry_sdk.capture_exception(ve)
+        except Exception:
+            pass
         return https_fn.Response(f"Email service not configured: {ve}", status=503)
     except Exception as e:
+        try:
+            sentry_sdk.capture_exception(e)
+        except Exception:
+            pass
         return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
 
 # ============================================================================
@@ -263,6 +299,10 @@ def handleGetProfile(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response(json.dumps(result, default=ts_to_dict), status=200, headers={"Content-Type": "application/json"})
     
     except Exception as e:
+        try:
+            sentry_sdk.capture_exception(e)
+        except Exception:
+            pass
         return https_fn.Response(f"An error occurred: {e}", status=500)
 
 @https_fn.on_request(cors=CORS_OPTIONS)
@@ -425,6 +465,10 @@ def handleUpdateProfile(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response("Profile updated successfully", status=200)
     
     except Exception as e:
+        try:
+            sentry_sdk.capture_exception(e)
+        except Exception:
+            pass
         return https_fn.Response(f"An error occurred: {e}", status=500)
 
 @https_fn.on_request(cors=CORS_OPTIONS)

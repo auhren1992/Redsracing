@@ -7,12 +7,32 @@ const followerPages = ['follower-dashboard.html'];
 
 const currentPage = window.location.pathname.split('/').pop();
 
+
+// Add a short grace period to allow Firebase Auth to hydrate before redirecting
+const REDIRECT_GRACE_MS = 1500;
+
 if (protectedPages.includes(currentPage)) {
+    let redirected = false;
+    const safeRedirectToLogin = () => {
+        if (redirected) return;
+        redirected = true;
+        navigateToInternal('/login.html');
+    };
+
+    const graceTimer = setTimeout(() => {
+        // If we still haven't seen a user after the grace period, redirect to login
+        safeRedirectToLogin();
+    }, REDIRECT_GRACE_MS);
+
     monitorAuthState(async (user) => {
         if (!user) {
-            navigateToInternal('/login.html');
+            // Do not immediately redirect; wait for grace period
             return;
         }
+
+        // We have a user - cancel redirect timer
+        clearTimeout(graceTimer);
+
 
         try {
             const claimsResult = await validateUserClaims();
@@ -24,9 +44,14 @@ if (protectedPages.includes(currentPage)) {
                 navigateToInternal('/redsracing-dashboard.html');
             }
         } catch (error) {
-            navigateToInternal('/login.html');
+
+            // On error, only redirect after grace period (which we've already cleared due to user)
+            safeRedirectToLogin();
         }
     }, (error) => {
-        navigateToInternal('/login.html');
+        // On auth errors, only redirect after the grace period
+        clearTimeout(graceTimer);
+        safeRedirectToLogin();
     });
 }
+

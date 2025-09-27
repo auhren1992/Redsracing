@@ -25,10 +25,9 @@ const ALLOWED_PATHS = new Set([
     '/driver.html',
     '/follower-login.html',
     '/follower-dashboard.html',
-    'dashboard.html',
-    'login.html',
-    'follower-login.html',
-    'follower-dashboard.html',
+    '/redsracing-dashboard.html',
+    'redsracing-dashboard.html',
+
     'signup.html',
     'profile.html',
     'gallery.html',

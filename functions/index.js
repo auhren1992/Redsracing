@@ -140,7 +140,7 @@ exports.processInvitationCode = onCall(async (request) => {
  */
 exports.generateTags = onObjectFinalized({
   region: "us-central1", // Explicitly specify the function's region
-  bucket: "redsracing-a7f8b.firebasestorage.app", // Use the correct GCS bucket name
+  bucket: "redsracing-a7f8b.firebasestorage.app", // Use the Firebase Storage bucket identifier for this project
   cpu: 2, // Allocate more CPU
   memory: "1GiB", // Allocate more memory
   timeoutSeconds: 300, // Extend timeout
@@ -392,10 +392,41 @@ exports.getInvitationCodes = onCall(async (request) => {
       });
     });
 
-    logger.info(`Retrieved ${codes.length} invitation codes for team member ${request.auth.uid}`);
+  logger.info(`Retrieved ${codes.length} invitation codes for team member ${request.auth.uid}`);
     return {status: "success", codes: codes};
   } catch (error) {
     logger.error(`Error retrieving invitation codes for user ${request.auth.uid}:`, error);
     throw new HttpsError("internal", "An internal error occurred while retrieving invitation codes.", error);
+  }
+});
+
+/**
+ * Sets the caller's role to TeamRedFollower if they don't already have a role.
+ * This lets followers sign in without an invitation code.
+ */
+exports.setFollowerRole = onCall(async (request) => {
+  if (!request.auth) {
+    logger.error("setFollowerRole called by unauthenticated user.");
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+
+  const uid = request.auth.uid;
+  const currentRole = request.auth.token.role || null;
+  const auth = getAuth();
+  const db = getFirestore();
+
+  try {
+    // If already team-member or follower, do nothing
+    if (currentRole === 'team-member' || currentRole === 'TeamRedFollower') {
+      return { status: 'noop', role: currentRole };
+    }
+
+    await auth.setCustomUserClaims(uid, { role: 'TeamRedFollower' });
+    await db.collection('users').doc(uid).set({ role: 'TeamRedFollower' }, { merge: true });
+    logger.info(`Assigned TeamRedFollower role to user ${uid}.`);
+    return { status: 'success', role: 'TeamRedFollower' };
+  } catch (error) {
+    logger.error(`Error setting follower role for user ${uid}:`, error);
+    throw new HttpsError("internal", "Failed to assign follower role.", error);
   }
 });

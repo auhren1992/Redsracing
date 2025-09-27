@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -38,9 +39,11 @@ service cloud.firestore {
     // Gallery images
     match /gallery_images/{imageId} {
       allow read: if true; // Public read for gallery
-      allow create: if isAuthenticated() && 
-        request.auth.uid == resource.data.uploaderUid;
-      allow update: if hasRole('team-member') || 
+      // On create, validate uploader matches the auth user using request.resource.data
+      allow create: if isAuthenticated() &&
+        request.auth.uid == request.resource.data.uploaderUid;
+      // On update, allow uploader or team member
+      allow update: if hasRole('team-member') ||
         (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
       allow delete: if hasRole('team-member');
       
@@ -78,7 +81,17 @@ service cloud.firestore {
       allow read, write: if hasRole('team-member');
     }
     
-    // Jonny-specific content
+    // Jonny-specific images (approvals)
+    match /jonny_gallery_images/{imageId} {
+      // Public can read approved images; team members can read all
+      allow read: if (resource.data.approved == true) || hasRole('team-member');
+      // Uploader can create; team members can update/approve or delete
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.uploaderUid;
+      allow update: if hasRole('team-member') || (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
+      allow delete: if hasRole('team-member');
+    }
+
+    // Jonny-specific videos
     match /jonny_videos/{videoId} {
       allow read: if true;
       allow write: if hasRole('team-member');
@@ -90,3 +103,4 @@ service cloud.firestore {
     }
   }
 }
+

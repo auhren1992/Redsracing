@@ -109,7 +109,7 @@ function startLoadingTimeout() {
     
 
     showError();
-  }, 15000); // 15 second timeout
+  }, 8000); // 8 second timeout
 }
 
 function clearLoadingTimeout() {
@@ -233,13 +233,17 @@ function renderPodium(topThree) {
     const el = document.createElement('div');
     el.className = `card rounded-lg p-4 text-center ${index === 1 ? 'order-1' : index === 0 ? 'order-2' : 'order-3'}`;
     
+    const displayName = racer.displayName || 'Unknown';
+    const username = racer.username || '';
+    const showUsername = username && username.toLowerCase() !== displayName.toLowerCase();
+
     const avatarHTML = racer.avatarUrl && racer.avatarUrl.trim()
-      ? html`<img src="${racer.avatarUrl}" alt="${racer.displayName}" class="w-16 h-16 rounded-full mb-3 object-cover mx-auto">`
+      ? html`<img src="${racer.avatarUrl}" alt="${displayName}" class="w-16 h-16 rounded-full mb-3 object-cover mx-auto">`
       : html`<div class="w-16 h-16 rounded-full bg-slate-600 flex items-center justify-center mb-3 mx-auto">
-               <span class="text-xl font-racing text-white">${(racer.displayName || 'U').charAt(0).toUpperCase()}</span>
+               <span class="text-xl font-racing text-white">${displayName.charAt(0).toUpperCase()}</span>
              </div>`;
     
-    const usernameHTML = racer.username ? html`<p class="text-sm text-slate-400 mb-2">@${racer.username}</p>` : '';
+    const usernameHTML = showUsername ? html`<p class="text-sm text-slate-400 mb-2">@${username}</p>` : '';
     
     const podiumHTML = html`
       <div class="flex flex-col items-center">
@@ -283,13 +287,15 @@ function renderTable(leaderboard) {
       rankClass = 'text-orange-400'; 
     }
 
-    const avatarCell = racer.avatarUrl && racer.avatarUrl.trim()
-      ? `<img src="${racer.avatarUrl}" alt="${racer.displayName}" class="w-10 h-10 rounded-full object-cover">`
-      : `<div class="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center">
-           <span class="text-sm font-racing text-white">${(racer.displayName || 'U').charAt(0).toUpperCase()}</span>
-         </div>`;
+    const displayName = racer.displayName || 'Unknown';
+    const username = racer.username || '';
+    const showUsername = username && username.toLowerCase() !== displayName.toLowerCase();
 
-    const usernameRow = racer.username ? `<p class="text-sm text-slate-400">@${racer.username}</p>` : '';
+    const avatarCell = racer.avatarUrl && racer.avatarUrl.trim()
+      ? `<img src=\"${racer.avatarUrl}\" alt=\"${displayName}\" class=\"w-10 h-10 rounded-full object-cover\">`
+      : `<div class=\"w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center\">\n           <span class=\"text-sm font-racing text-white\">${displayName.charAt(0).toUpperCase()}</span>\n         </div>`;
+
+    const usernameRow = showUsername ? `<p class=\"text-sm text-slate-400\">@${username}</p>` : '';
 
     const rowHTML = `
       <td class="p-3"><span class="text-2xl ${rankClass}">${rankDisplay}</span></td>

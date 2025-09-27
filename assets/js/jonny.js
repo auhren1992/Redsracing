@@ -21,16 +21,43 @@ async function main() {
     const galleryContainer = document.getElementById('dynamic-gallery-container');
     let selectedFile = null;
 
-    // Auth State Change
-    monitorAuthState(user => {
-        if (user) {
-            if(uploadContainer) uploadContainer.style.display = 'block';
-        } else {
-            if(uploadContainer) uploadContainer.style.display = 'none';
+    // Ensure upload UI is visible with proper state based on auth
+    function updateUploadVisibility(user) {
+        if (!uploadContainer) return;
+        // Always show the container so it doesn't look missing
+        uploadContainer.style.display = 'block';
+        const isAuthed = !!user;
+
+        // Disable/enable controls accordingly
+        if (uploadInput) uploadInput.disabled = !isAuthed;
+        if (uploadBtn) uploadBtn.disabled = !isAuthed || !selectedFile;
+
+        // Friendly status prompt
+        if (uploadStatus) {
+            if (!isAuthed) {
+                uploadStatus.textContent = 'Please log in to upload photos.';
+                uploadStatus.style.color = '#94a3b8'; // slate-400
+            } else if (!selectedFile) {
+                uploadStatus.textContent = '';
+                uploadStatus.style.color = '';
+            }
         }
+    }
+
+    // Auth State Change
+
+    monitorAuthState((user) => {
+        updateUploadVisibility(user);
     }, (error) => {
-        if(uploadContainer) uploadContainer.style.display = 'none';
+        if (uploadContainer) {
+            uploadContainer.style.display = 'block';
+        }
+        updateUploadVisibility(null);
+
     });
+
+    // Apply initial state in case the listener fires later
+    updateUploadVisibility(auth.currentUser);
 
     // Photo Upload Logic
     if(uploadInput) {
@@ -39,9 +66,12 @@ async function main() {
             if (selectedFile) {
                 if(uploadBtn) uploadBtn.disabled = false;
                 if(uploadStatus) uploadStatus.textContent = `Selected: ${selectedFile.name}`;
+                if (uploadStatus) uploadStatus.style.color = '';
             } else {
                 if(uploadBtn) uploadBtn.disabled = true;
             }
+            // Recompute visibility/state (e.g., if not authed, keep disabled)
+            updateUploadVisibility(auth.currentUser);
         });
     }
 

@@ -60,7 +60,7 @@ import { getFriendlyAuthError, isRecaptchaError } from './auth-errors.js';
             
 
             hideLoadingAndShowFallback();
-        }, 15000); // 15 second timeout
+        }, 8000); // 8 second timeout
     }
 
     function clearLoadingTimeout() {

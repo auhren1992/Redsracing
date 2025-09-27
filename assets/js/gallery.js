@@ -15,12 +15,11 @@ async function main() {
     // --- Auth State ---
     const uploadContainer = document.getElementById('upload-container');
     onAuthStateChanged(auth, user => {
-        if (user) {
-            if(uploadContainer) uploadContainer.style.display = 'block';
-        } else {
-            if(uploadContainer) uploadContainer.style.display = 'none';
-        }
+        updateUploadVisibility(user);
     });
+
+    // Apply initial state in case the listener fires later
+    updateUploadVisibility(auth.currentUser);
 
     // --- Photo Upload Logic ---
     const uploadInput = document.getElementById('photo-upload-input');
@@ -29,15 +28,41 @@ async function main() {
     const uploadStatus = document.getElementById('upload-status');
     let selectedFile = null;
 
+    // Ensure upload UI is visible with proper state based on auth
+    function updateUploadVisibility(user) {
+        if (!uploadContainer) return;
+        // Always show the container so it doesn't look missing
+        uploadContainer.style.display = 'block';
+        const isAuthed = !!user;
+
+        // Disable/enable controls accordingly
+        if (uploadInput) uploadInput.disabled = !isAuthed;
+        if (uploadBtn) uploadBtn.disabled = !isAuthed || !selectedFile;
+
+        // Friendly status prompt
+        if (uploadStatus) {
+            if (!isAuthed) {
+                uploadStatus.textContent = 'Please log in to upload photos.';
+                uploadStatus.style.color = '#94a3b8'; // slate-400
+            } else if (!selectedFile) {
+                uploadStatus.textContent = '';
+                uploadStatus.style.color = '';
+            }
+        }
+    }
+
     if(uploadInput) {
         uploadInput.addEventListener('change', (e) => {
             selectedFile = e.target.files[0];
             if (selectedFile) {
                 if(uploadBtn) uploadBtn.disabled = false;
                 if(uploadStatus) uploadStatus.textContent = `Selected: ${selectedFile.name}`;
+                if (uploadStatus) uploadStatus.style.color = '';
             } else {
                 if(uploadBtn) uploadBtn.disabled = true;
             }
+            // Recompute visibility/state (e.g., if not authed, keep disabled)
+            updateUploadVisibility(auth.currentUser);
         });
     }
 

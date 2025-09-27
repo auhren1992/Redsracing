@@ -2,34 +2,60 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
     
-    // Team-members have full access to everything
+    function hasRole(role) {
+      return isAuthenticated() && request.auth.token.role == role;
+    }
+    
+    function isValidImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    function isValidSize() {
+      return request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+    
+    // Gallery images - user uploads
+    match /gallery/{userId}/{fileName} {
+      allow read: if true; // Public read for gallery images
+      allow write: if isAuthenticated() && 
+        request.auth.uid == userId &&
+        isValidImage() &&
+        isValidSize();
+    }
+    
+    // Jonny-specific images
+    match /gallery/jonny/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() &&
+        isValidImage() &&
+        isValidSize();
+    }
+    
+    // Profile avatars
+    match /avatars/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && 
+        request.auth.uid == userId &&
+        isValidImage() &&
+        isValidSize();
+    }
+    
+    // Team member uploads (broader access)
+    match /team/{path=**} {
+      allow read: if true;
+      allow write: if hasRole('team-member') &&
+        isValidImage() &&
+        isValidSize();
+    }
+    
+    // Default deny
     match /{allPaths=**} {
-      allow read, write: if request.auth != null && request.auth.token.role == 'team-member';
+      allow read, write: if false;
     }
-    
-    // Match files within a user-specific folder in the gallery.
-    // This allows us to secure uploads on a per-user basis.
-    match /gallery/{userId}/{imageId} {
-
-      // Allow anyone to read images from the gallery.
-      allow read;
-
-      // Allow write (uploads) only if the following conditions are met:
-      // 1. The user is authenticated.
-      // 2. The `userId` in the path matches the ID of the user making the request.
-      // 3. The file size is less than 5MB.
-      // 4. The file is an image.
-      allow write: if request.auth != null &&
-                      request.auth.uid == userId &&
-                      request.resource.size < 5 * 1024 * 1024 &&
-                      request.resource.contentType.matches('image/.*');
-    }
-
-    // Optional: Public photos path for future use (currently disabled for non-team-members)
-    // match /public/photos/{imageId} {
-    //   allow read;
-    //   allow write: if false; // Disabled for non team-members
-    // }
   }
 }

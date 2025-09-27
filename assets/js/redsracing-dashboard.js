@@ -27,7 +27,8 @@ import { navigateToInternal } from './navigation-helpers.js';
     
     // --- Start of Variable Declarations ---
 
-    const INITIAL_TIMEOUT = 15000; // Reduced from 30s to 15s
+    const INITIAL_TIMEOUT = 8000; // Reduced to 8s to avoid perceived infinite loading
+
     const MAX_RETRIES = 2; // Reduced from 3 to 2
     const RETRY_BASE_DELAY = 1000;
 
@@ -44,6 +45,9 @@ import { navigateToInternal } from './navigation-helpers.js';
     const raceManagementCard = document.getElementById('race-management-card');
     const driverNotesEl = document.getElementById('driver-notes');
     const notesStatusEl = document.getElementById('notes-status');
+
+    const saveNotesBtn = document.getElementById('save-notes-btn');
+
     const addRaceBtn = document.getElementById('add-race-btn');
     const qnaManagementCard = document.getElementById('qna-management-card');
     const qnaList = document.getElementById('qna-list');
@@ -269,20 +273,31 @@ import { navigateToInternal } from './navigation-helpers.js';
         if (!tableBody) return;
         
         tableBody.innerHTML = '';
+
+
+        if (races.length === 0) {
+            const row = document.createElement('tr');
+            safeSetHTML(row, `<td class="p-4 text-slate-400" colspan="3">No races added yet.</td>`);
+            tableBody.appendChild(row);
+        }
+
         races.forEach(race => {
             const row = document.createElement('tr');
-            row.className = 'border-b border-slate-700 hover:bg-slate-800';
+            row.className = 'border-b border-slate-700/50 hover:bg-slate-800/40';
             
             const dateStr = race.date ? new Date(race.date).toLocaleDateString() : 'TBD';
             const raceName = race.name || 'Unnamed Race';
-            const raceType = race.type === 'specialEvent' ? race.special || 'Special Event' : `Race ${race.race || '?'}`;
+            const raceType = race.type === 'specialEvent' ? (race.special || 'Special Event') : `Race ${race.race || '?'}`;
             
             safeSetHTML(row, html`
-                <td class="p-2">${dateStr}</td>
-                <td class="p-2">${raceName} - ${raceType}</td>
-                <td class="p-2">
-                    <button class="edit-race-btn bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-500 transition mr-1" data-id="${race.id}">Edit</button>
-                    <button class="delete-race-btn bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-500 transition" data-id="${race.id}">Delete</button>
+                <td class="p-3 align-top">${dateStr}</td>
+                <td class="p-3">
+                  <div class="font-bold text-white">${raceName}</div>
+                  <div class="text-slate-400 text-sm mt-1">${raceType}</div>
+                </td>
+                <td class="p-3 text-right whitespace-nowrap">
+                    <button class="edit-race-btn bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-500 transition mr-2" data-id="${race.id}">Edit</button>
+                    <button class="delete-race-btn bg-red-600 text-white px-3 py-1.5 rounded text-xs hover:bg-red-500 transition" data-id="${race.id}">Delete</button>
                 </td>
             `);
             
@@ -311,12 +326,12 @@ import { navigateToInternal } from './navigation-helpers.js';
             const raceSnapshot = await getDocs(q);
             const raceList = raceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
+
+            if (raceManagementCard) raceManagementCard.style.display = 'block';
             renderRacesTable(raceList);
             startCountdown(raceList);
-
-
         } catch (error) {
-
+            console.error('[Dashboard] Failed to load races:', error);
             showAuthError({
                 code: 'race-load-failed',
                 message: 'Failed to load race data',
@@ -374,21 +389,31 @@ import { navigateToInternal } from './navigation-helpers.js';
 
         try {
             const photosCol = collection(db, "gallery_images");
-            const q = query(photosCol, where("approved", "==", false));
-            const photoSnapshot = await getDocs(q);
-            const unapprovedPhotos = photoSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Fetch all then filter client-side to handle docs without 'approved' field
+            const photoSnapshot = await getDocs(photosCol);
+            const allPhotos = photoSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            const unapprovedPhotos = allPhotos.filter(p => p.approved !== true);
 
             if (unapprovedPhotosList) {
                 unapprovedPhotosList.innerHTML = '';
-                if (unapprovedPhotos.length > 0) {
-                    photoApprovalCard.style.display = 'block';
+                photoApprovalCard.style.display = 'block';
+                if (unapprovedPhotos.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'p-4 text-slate-400';
+                    empty.textContent = 'No pending photo approvals.';
+                    unapprovedPhotosList.appendChild(empty);
+                } else {
                     unapprovedPhotos.forEach(photo => {
+                        const url = photo.imageUrl || photo.url || '';
+                        const title = photo.title || 'Untitled';
                         const photoElement = document.createElement('div');
                         photoElement.className = 'p-4 bg-slate-800 rounded-lg flex items-center justify-between';
                         safeSetHTML(photoElement, html`
-                            <div>
-                                <img src="${photo.url}" class="w-16 h-16 object-cover rounded-md mr-4">
-                                <p class="text-white">${photo.title}</p>
+                            <div class="flex items-center gap-3">
+                                ${url ? `<img src="${url}" class="w-16 h-16 object-cover rounded-md">` : ''}
+                                <p class="text-white">${title}</p>
+
                             </div>
                             <div>
                                 <button class="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-500 transition mr-1" data-id="${photo.id}">Approve</button>
@@ -402,6 +427,8 @@ import { navigateToInternal } from './navigation-helpers.js';
 
         } catch (error) {
 
+            console.error('[Dashboard] Failed to load photo approvals:', error);
+
         }
     }
 
@@ -410,21 +437,30 @@ import { navigateToInternal } from './navigation-helpers.js';
 
         try {
             const photosCol = collection(db, "jonny_gallery_images");
-            const q = query(photosCol, where("approved", "==", false));
-            const photoSnapshot = await getDocs(q);
-            const unapprovedPhotos = photoSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const photoSnapshot = await getDocs(photosCol);
+            const allPhotos = photoSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            const unapprovedPhotos = allPhotos.filter(p => p.approved !== true);
 
             if (jonnyUnapprovedPhotosList) {
                 jonnyUnapprovedPhotosList.innerHTML = '';
-                if (unapprovedPhotos.length > 0) {
-                    jonnyPhotoApprovalCard.style.display = 'block';
+                jonnyPhotoApprovalCard.style.display = 'block';
+                if (unapprovedPhotos.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'p-4 text-slate-400';
+                    empty.textContent = 'No pending photo approvals.';
+                    jonnyUnapprovedPhotosList.appendChild(empty);
+                } else {
                     unapprovedPhotos.forEach(photo => {
+                        const url = photo.imageUrl || photo.url || '';
+                        const title = photo.title || 'Untitled';
                         const photoElement = document.createElement('div');
                         photoElement.className = 'p-4 bg-slate-800 rounded-lg flex items-center justify-between';
                         safeSetHTML(photoElement, html`
-                            <div>
-                                <img src="${photo.url}" class="w-16 h-16 object-cover rounded-md mr-4">
-                                <p class="text-white">${photo.title}</p>
+                            <div class="flex items-center gap-3">
+                                ${url ? `<img src="${url}" class="w-16 h-16 object-cover rounded-md">` : ''}
+                                <p class="text-white">${title}</p>
+
                             </div>
                             <div>
                                 <button class="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-500 transition mr-1" data-id="${photo.id}">Approve</button>
@@ -438,6 +474,7 @@ import { navigateToInternal } from './navigation-helpers.js';
 
         } catch (error) {
 
+            console.error('[Dashboard] Failed to load Jonny photo approvals:', error);
         }
     }
 
@@ -446,21 +483,35 @@ import { navigateToInternal } from './navigation-helpers.js';
 
         try {
             const videosCol = collection(db, "jonny_videos");
-            const q = query(videosCol, orderBy("timestamp", "desc"));
-            const videoSnapshot = await getDocs(q);
-            const videos = videoSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const snapshot = await getDocs(videosCol);
+            let videos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Sort by createdAt or timestamp if present
+            videos.sort((a,b) => {
+                const ta = (a.createdAt?.seconds || a.timestamp?.seconds || 0);
+                const tb = (b.createdAt?.seconds || b.timestamp?.seconds || 0);
+                return tb - ta;
+            });
 
             if (jonnyVideosList) {
                 jonnyVideosList.innerHTML = '';
-                if (videos.length > 0) {
-                    jonnyVideoManagementCard.style.display = 'block';
+                jonnyVideoManagementCard.style.display = 'block';
+                if (videos.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'p-4 text-slate-400';
+                    empty.textContent = 'No videos yet.';
+                    jonnyVideosList.appendChild(empty);
+                } else {
+
                     videos.forEach(video => {
                         const videoElement = document.createElement('div');
                         videoElement.className = 'p-4 bg-slate-800 rounded-lg flex items-center justify-between';
                         safeSetHTML(videoElement, html`
                             <div>
-                                <p class="text-white">${video.title}</p>
-                                <a href="${video.url}" target="_blank" class="text-neon-yellow text-sm">Watch</a>
+
+                                <p class="text-white">${video.title || 'Untitled'}</p>
+                                ${video.url ? `<a href="${video.url}" target="_blank" class="text-neon-yellow text-sm">Watch</a>` : ''}
+
                             </div>
                             <button class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-500 transition" data-id="${video.id}">Delete</button>
                         `);
@@ -470,6 +521,8 @@ import { navigateToInternal } from './navigation-helpers.js';
             }
 
         } catch (error) {
+
+            console.error('[Dashboard] Failed to load Jonny videos:', error);
 
         }
     }
@@ -715,6 +768,24 @@ import { navigateToInternal } from './navigation-helpers.js';
 
         hideLoadingAndShowFallback();
         return;
+    }
+
+
+    // Save driver notes
+    if (saveNotesBtn && driverNotesEl) {
+        saveNotesBtn.addEventListener('click', async () => {
+            try {
+                const user = getCurrentUser();
+                if (!user) return;
+                if (notesStatusEl) notesStatusEl.textContent = 'Saving...';
+                await setDoc(doc(db, 'users', user.uid), { driverNotes: driverNotesEl.value, driverNotesUpdatedAt: new Date() }, { merge: true });
+                if (notesStatusEl) notesStatusEl.textContent = 'Saved';
+                setTimeout(() => { if (notesStatusEl) notesStatusEl.textContent=''; }, 2000);
+            } catch (e) {
+                console.error('[Dashboard] Failed to save notes:', e);
+                if (notesStatusEl) notesStatusEl.textContent = 'Failed to save';
+            }
+        });
     }
 
     // Event listeners for other functionality

@@ -7,6 +7,9 @@ import './app.js';
 
 import { getFirebaseAuth, getFirebaseApp } from './firebase-core.js';
 import { getFriendlyAuthError } from './auth-errors.js';
+
+import { getFunctions, httpsCallable } from "firebase/functions";
+
 import {
     signInWithEmailAndPassword,
     sendPasswordResetEmail,
@@ -288,35 +291,50 @@ class FollowerLoginController {
     async checkUserRoleAndRedirect(user) {
         try {
             // Wait a moment for the token to be ready
-            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             // Validate user claims
             const claimsResult = await validateUserClaims();
-            const userRole = claimsResult.success ? claimsResult.claims.role : null;
+            let userRole = claimsResult.success ? claimsResult.claims.role : null;
 
             console.log('User role detected:', userRole);
 
-            if (userRole === 'TeamRedFollower') {
-                this.showMessage('Login successful! Redirecting to your dashboard...', false);
-                setTimeout(() => {
-                    navigateToInternal('/follower-dashboard.html');
-                }, 1500);
-            } else if (userRole === 'team-member') {
+            if (userRole === 'team-member') {
                 this.showMessage('Team member detected. Redirecting to team dashboard...', false);
                 setTimeout(() => {
                     navigateToInternal('/redsracing-dashboard.html');
-                }, 1500);
-            } else {
-                // User doesn't have follower access
-                this.showMessage('Your account does not have follower access. Please contact the team for an invitation code.');
-                // Don't sign out, just show error
+                }, 800);
+                return;
             }
-        } catch (error) {
-            console.error('Error checking user role:', error);
-            this.showMessage('Login successful, but there was an issue accessing your profile. Redirecting anyway...');
+
+            // Followers: if role missing or public, automatically assign follower role
+            if (userRole !== 'TeamRedFollower') {
+                try {
+                    const functions = getFunctions(getFirebaseApp());
+                    const setFollowerRole = httpsCallable(functions, 'setFollowerRole');
+                    const result = await setFollowerRole();
+                    if (result?.data?.status === 'success' || result?.data?.status === 'noop') {
+                        // Force token refresh to get new claims
+                        await user.getIdToken(true);
+                        userRole = 'TeamRedFollower';
+                    }
+                } catch (e) {
+                    console.warn('Failed to assign follower role automatically:', e);
+                }
+            }
+
+            this.showMessage('Login successful! Redirecting to your dashboard...', false);
             setTimeout(() => {
                 navigateToInternal('/follower-dashboard.html');
-            }, 2000);
+            }, 800);
+        } catch (error) {
+            console.error('Error checking user role:', error);
+            this.showMessage('Login successful. Redirecting...', false);
+            setTimeout(() => {
+                navigateToInternal('/follower-dashboard.html');
+            }, 800);
+
         }
     }
 

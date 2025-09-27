@@ -8,6 +8,50 @@ import './app.js';
     let retryCount = 0;
     const maxRetries = 3;
 
+    // Lazy import auth utilities only when needed to keep navigation independent
+    let authNavInitialized = false;
+    async function initAuthNavigation() {
+        if (authNavInitialized) return;
+        authNavInitialized = true;
+        try {
+            const { monitorAuthState } = await import('./auth-utils.js');
+
+            // Locate the desktop nav container
+            const desktopNav = document.querySelector('nav .md\\:flex.items-center, nav .hidden.md\\:flex.items-center');
+            // Find the login dropdown by looking for a login link in its menu
+            const loginLink = document.querySelector('a[href="login.html"]');
+            const loginDropdown = loginLink ? loginLink.closest('.dropdown') : null;
+
+            // Create a Dashboard link we can toggle
+            let dashboardLink = document.getElementById('auth-link-nav');
+            if (!dashboardLink && desktopNav) {
+                dashboardLink = document.createElement('a');
+                dashboardLink.id = 'auth-link-nav';
+                dashboardLink.href = 'dashboard.html'; // routes to correct dashboard
+                dashboardLink.className = 'bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300 font-bold';
+                dashboardLink.textContent = 'Dashboard';
+                dashboardLink.style.display = 'none';
+                desktopNav.appendChild(dashboardLink);
+            }
+
+            monitorAuthState((user) => {
+                const isAuthed = !!user;
+                if (dashboardLink) {
+                    dashboardLink.style.display = isAuthed ? 'inline-block' : 'none';
+                }
+                if (loginDropdown) {
+                    loginDropdown.style.display = isAuthed ? 'none' : '';
+                }
+            }, () => {
+                // On error, prefer showing login dropdown
+                if (dashboardLink) dashboardLink.style.display = 'none';
+                if (loginDropdown) loginDropdown.style.display = '';
+            });
+        } catch (e) {
+            // If auth utils fail to load, do nothing; nav remains static
+        }
+    }
+
     // Enhanced initialization with error handling and retry mechanism
     function initNavigation() {
         if (navigationInitialized) {
@@ -20,6 +64,9 @@ import './app.js';
 
             // Mobile menu toggle with enhanced error handling
             const mobileMenuButton = document.getElementById('mobile-menu-button');
+
+            // Initialize auth-aware nav once DOM is available
+            initAuthNavigation();
             if (mobileMenuButton) {
                 // Remove any existing listeners to prevent duplicates
                 mobileMenuButton.replaceWith(mobileMenuButton.cloneNode(true));

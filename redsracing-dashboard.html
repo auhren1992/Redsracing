@@ -66,7 +66,11 @@
                         <h2 class="text-3xl font-racing text-white uppercase mb-4">Driver <span class="neon-yellow">Notes</span></h2>
                         <p class="text-slate-400 mb-4">Your private space for race notes and reminders. Saved automatically.</p>
                         <textarea id="driver-notes" class="w-full p-4 rounded-md textarea-notes" placeholder="Start typing your notes..."></textarea>
-                        <p id="notes-status" class="text-sm text-slate-500 mt-2 h-4"></p>
+\
+                        <div class="flex items-center justify-between mt-3">
+                            <p id="notes-status" class="text-sm text-slate-500 h-4"></p>
+                            <button id="save-notes-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">Save Notes</button>
+                        </div>
                     </div>
                 </div>
 
@@ -237,8 +241,11 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
-    <script type="module" src="auth-guard.js"></script>
-    <script type="module" src="redsracing-dashboard.js"></script>
+\
+    <script src="vendors.js"></script>
+    <script src="auth-guard.js"></script>
+    <script src="redsracing-dashboard.js"></script>
+
 
     <!-- Add/Edit Race Modal -->
     <div id="race-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">

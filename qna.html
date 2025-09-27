@@ -133,8 +133,38 @@
             <p class="mt-8 text-slate-500 text-sm">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
         </div>
     </footer>
-    <script type="module" src="dist/main.js"></script>
-    <script type="module" src="dist/navigation.js"></script>
-    <script type="module" src="dist/qna.js"></script>
+    <script src="navigation.js"></script>
+    <script src="main.js"></script>
+    <script src="qna.js"></script>
+    <script>
+      (function(){
+        function init(){
+          document.querySelectorAll('.dropdown-toggle').forEach(function(btn){
+            btn.addEventListener('click', function(e){
+              e.preventDefault();
+              e.stopPropagation();
+              var menu = btn.nextElementSibling;
+              if (menu && menu.classList.contains('dropdown-menu')){
+                document.querySelectorAll('.dropdown-menu').forEach(function(m){ if(m!==menu) m.classList.add('hidden'); });
+                menu.classList.toggle('hidden');
+              }
+            });
+          });
+          document.addEventListener('click', function(){
+            document.querySelectorAll('.dropdown-menu').forEach(function(m){ m.classList.add('hidden'); });
+          });
+          var mobileButton = document.getElementById('mobile-menu-button');
+          var mobileMenu = document.getElementById('mobile-menu');
+          if (mobileButton && mobileMenu){
+            mobileButton.addEventListener('click', function(e){
+              e.preventDefault();
+              e.stopPropagation();
+              mobileMenu.classList.toggle('hidden');
+            });
+          }
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+      })();
+    </script>
 </body>
 </html>
