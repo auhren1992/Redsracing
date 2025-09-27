@@ -1,11 +1,6 @@
 import './app.js';
-import { getFirebaseConfig } from './firebase-config.js';
-import { initializeApp } from "firebase/app";
 
 async function main() {
-    const firebaseConfig = await getFirebaseConfig();
-    const app = initializeApp(firebaseConfig);
-
     const sponsorshipForm = document.getElementById('sponsorshipForm');
     const sponsorshipStatus = document.getElementById('sponsorshipStatus');
 
@@ -40,7 +35,7 @@ async function main() {
                 sponsorshipStatus.classList.add('text-green-500');
                 sponsorshipForm.reset();
             } catch (error) {
-                console.error('Error sending sponsorship inquiry:', error);
+
                 sponsorshipStatus.textContent = error.message || 'Failed to send inquiry.';
                 sponsorshipStatus.classList.add('text-red-500');
             }

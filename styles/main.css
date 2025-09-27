@@ -255,6 +255,12 @@ body {
     }
 }
 
+/* CSS-only fallback to ensure dropdowns open even if JS fails */
+.dropdown:hover .dropdown-menu,
+.dropdown:focus-within .dropdown-menu {
+    display: block !important; /* override hidden */
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: high) {
     .dropdown-menu {

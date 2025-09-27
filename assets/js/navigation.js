@@ -8,18 +8,65 @@ import './app.js';
     let retryCount = 0;
     const maxRetries = 3;
 
+    // Lazy import auth utilities only when needed to keep navigation independent
+    let authNavInitialized = false;
+    async function initAuthNavigation() {
+        if (authNavInitialized) return;
+        authNavInitialized = true;
+        try {
+            const { monitorAuthState } = await import('./auth-utils.js');
+
+            // Locate the desktop nav container
+            const desktopNav = document.querySelector('nav .md\\:flex.items-center, nav .hidden.md\\:flex.items-center');
+            // Find the login dropdown by looking for a login link in its menu
+            const loginLink = document.querySelector('a[href="login.html"]');
+            const loginDropdown = loginLink ? loginLink.closest('.dropdown') : null;
+
+            // Create a Dashboard link we can toggle
+            let dashboardLink = document.getElementById('auth-link-nav');
+            if (!dashboardLink && desktopNav) {
+                dashboardLink = document.createElement('a');
+                dashboardLink.id = 'auth-link-nav';
+                dashboardLink.href = 'dashboard.html'; // routes to correct dashboard
+                dashboardLink.className = 'bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300 font-bold';
+                dashboardLink.textContent = 'Dashboard';
+                dashboardLink.style.display = 'none';
+                desktopNav.appendChild(dashboardLink);
+            }
+
+            monitorAuthState((user) => {
+                const isAuthed = !!user;
+                if (dashboardLink) {
+                    dashboardLink.style.display = isAuthed ? 'inline-block' : 'none';
+                }
+                if (loginDropdown) {
+                    loginDropdown.style.display = isAuthed ? 'none' : '';
+                }
+            }, () => {
+                // On error, prefer showing login dropdown
+                if (dashboardLink) dashboardLink.style.display = 'none';
+                if (loginDropdown) loginDropdown.style.display = '';
+            });
+        } catch (e) {
+            // If auth utils fail to load, do nothing; nav remains static
+        }
+    }
+
     // Enhanced initialization with error handling and retry mechanism
     function initNavigation() {
         if (navigationInitialized) {
-            console.log('Navigation already initialized');
+
             return;
         }
 
         try {
-            console.log('Initializing navigation... (attempt', retryCount + 1, '/', maxRetries + 1, ')');
+
 
             // Mobile menu toggle with enhanced error handling
             const mobileMenuButton = document.getElementById('mobile-menu-button');
+
+            // Initialize auth-aware nav once DOM is available
+            initAuthNavigation();
             if (mobileMenuButton) {
                 // Remove any existing listeners to prevent duplicates
                 mobileMenuButton.replaceWith(mobileMenuButton.cloneNode(true));
@@ -33,7 +80,7 @@ import './app.js';
                     if (mobileMenu) {
                         mobileMenu.classList.toggle('hidden');
                         const isHidden = mobileMenu.classList.contains('hidden');
-                        console.log('Mobile menu toggled, hidden:', isHidden);
+
                         
                         // Update aria attributes for accessibility
                         newMobileMenuButton.setAttribute('aria-expanded', !isHidden);
@@ -48,8 +95,8 @@ import './app.js';
                         newMobileMenuButton.click();
                     }
                 });
-                
-                console.log('Mobile menu button listener added');
+
+
             }
 
             // Mobile menu accordion with enhanced functionality
@@ -78,8 +125,8 @@ import './app.js';
                         // Update aria attributes
                         newButton.setAttribute('aria-expanded', wasHidden);
                         content.setAttribute('aria-hidden', !wasHidden);
-                        
-                        console.log('Mobile accordion toggled:', newButton.textContent?.trim());
+
+
                     }
                 });
                 
@@ -91,7 +138,7 @@ import './app.js';
                     }
                 });
             });
-            console.log('Mobile accordion listeners added:', document.querySelectorAll('.mobile-accordion').length);
+
 
             // Enhanced desktop dropdowns
             document.querySelectorAll('.dropdown-toggle').forEach((button, index) => {
@@ -105,7 +152,7 @@ import './app.js';
                     
                     const dropdownMenu = newButton.nextElementSibling;
                     if (!dropdownMenu || !dropdownMenu.classList.contains('dropdown-menu')) {
-                        console.warn('Dropdown menu not found for button:', newButton.textContent?.trim());
+
                         return;
                     }
                     
@@ -131,7 +178,7 @@ import './app.js';
                         dropdownMenu.classList.remove('hidden');
                         dropdownMenu.setAttribute('aria-hidden', 'false');
                         newButton.setAttribute('aria-expanded', 'true');
-                        console.log('Dropdown opened:', newButton.textContent?.trim());
+
                         
                         // Focus first menu item for accessibility
                         const firstMenuItem = dropdownMenu.querySelector('a');
@@ -142,7 +189,7 @@ import './app.js';
                         dropdownMenu.classList.add('hidden');
                         dropdownMenu.setAttribute('aria-hidden', 'true');
                         newButton.setAttribute('aria-expanded', 'false');
-                        console.log('Dropdown closed:', newButton.textContent?.trim());
+
                     }
                 });
                 
@@ -204,7 +251,7 @@ import './app.js';
                     });
                 }
             });
-            console.log('Desktop dropdown listeners added:', document.querySelectorAll('.dropdown-toggle').length);
+
 
             // Enhanced outside click handling
             const handleOutsideClick = (event) => {
@@ -229,7 +276,7 @@ import './app.js';
             document.removeEventListener('click', window.navigationOutsideClickHandler);
             document.addEventListener('click', handleOutsideClick);
             window.navigationOutsideClickHandler = handleOutsideClick;
-            console.log('Outside click listener added');
+
 
             // Enhanced keyboard navigation for dropdown menus
             document.querySelectorAll('.dropdown-menu').forEach(menu => {
@@ -267,9 +314,9 @@ import './app.js';
             if (yearEl) {
                 try {
                     yearEl.textContent = new Date().getFullYear().toString();
-                    console.log('Year set in footer');
+
                 } catch (error) {
-                    console.warn('Failed to set year in footer:', error);
+
                     yearEl.textContent = '2025'; // Fallback year
                 }
             }
@@ -294,17 +341,17 @@ import './app.js';
             });
 
             navigationInitialized = true;
-            console.log('Navigation initialization completed successfully');
+
 
         } catch (error) {
-            console.error('Navigation initialization failed:', error);
+
             retryCount++;
             
             if (retryCount <= maxRetries) {
-                console.log('Retrying navigation initialization in 1 second...');
+
                 setTimeout(initNavigation, 1000);
             } else {
-                console.error('Navigation initialization failed after', maxRetries + 1, 'attempts');
+
                 // Try basic fallback initialization
                 initBasicNavigation();
             }
@@ -313,8 +360,8 @@ import './app.js';
 
     // Basic fallback navigation for when main initialization fails
     function initBasicNavigation() {
-        console.log('Attempting basic navigation fallback...');
-        
+
+
         try {
             // Basic mobile menu toggle
             const mobileButton = document.getElementById('mobile-menu-button');
@@ -341,9 +388,9 @@ import './app.js';
                 document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.add('hidden'));
             };
 
-            console.log('Basic navigation fallback initialized');
+
         } catch (error) {
-            console.error('Even basic navigation fallback failed:', error);
+
         }
     }
 
@@ -369,7 +416,7 @@ import './app.js';
     if (typeof document.visibilityState !== 'undefined') {
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && !navigationInitialized) {
-                console.log('Page became visible, checking navigation...');
+
                 setTimeout(initNavigation, 500);
             }
         });

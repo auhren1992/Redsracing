@@ -50,7 +50,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     // Get Firebase services
     auth = getFirebaseAuth();
     db = getFirebaseDb();
-    console.log('[TeamMembers] Firebase services obtained successfully');
+
 
     // UI Elements
     const loadingState = document.getElementById('loading-state');
@@ -120,7 +120,7 @@ import { navigateToInternal } from './navigation-helpers.js';
     // Load team members with pagination
     async function loadTeamMembers(isLoadMore = false) {
         try {
-            console.log('[TeamMembers] Loading team members...', { isLoadMore, searchTerm, roleFilter });
+
 
             if (!isLoadMore) {
                 // Show loading in container for initial load
@@ -150,7 +150,7 @@ import { navigateToInternal } from './navigation-helpers.js';
             }
 
             const querySnapshot = await getDocs(q);
-            console.log(`[TeamMembers] Loaded ${querySnapshot.docs.length} members`);
+
 
             const newMembers = querySnapshot.docs.map(doc => ({
                 id: doc.id,
@@ -182,10 +182,10 @@ import { navigateToInternal } from './navigation-helpers.js';
             renderMembers();
             updateLoadMoreButton();
 
-            console.log(`[TeamMembers] Total members displayed: ${members.length}`);
+
 
         } catch (error) {
-            console.error('[TeamMembers] Error loading members:', error);
+
 
             if (error.code === 'permission-denied') {
                 showErrorState('permission');
@@ -482,7 +482,7 @@ import { navigateToInternal } from './navigation-helpers.js';
             clearAuthError();
 
             if (user && validToken) {
-                console.log('[TeamMembers] User authenticated successfully');
+
                 currentUser = user;
 
                 try {
@@ -490,7 +490,7 @@ import { navigateToInternal } from './navigation-helpers.js';
                     const claimsResult = await validateUserClaims(['team-member']);
                     isTeamMember = claimsResult.success && claimsResult.claims.role === 'team-member';
 
-                    console.log('[TeamMembers] Permission check:', { isTeamMember });
+
 
                     if (isTeamMember) {
                         // Show admin features
@@ -505,7 +505,7 @@ import { navigateToInternal } from './navigation-helpers.js';
                     showTeamContent();
 
                 } catch (error) {
-                    console.error('[TeamMembers] Error loading data:', error);
+
                     if (error.code === 'permission-denied') {
                         showErrorState('permission');
                     } else {
@@ -513,12 +513,12 @@ import { navigateToInternal } from './navigation-helpers.js';
                     }
                 }
             } else {
-                console.log('[TeamMembers] User not authenticated, redirecting...');
+
                 navigateToInternal('/login.html');
             }
         },
         (error) => {
-            console.error('[TeamMembers] Authentication error:', error);
+
             showAuthError(error);
 
             if (error.requiresReauth) {
@@ -537,7 +537,7 @@ import { navigateToInternal } from './navigation-helpers.js';
                 await signOut(auth);
                 navigateToInternal('/login.html');
             } catch (error) {
-                console.error('[TeamMembers] Logout error:', error);
+
                 navigateToInternal('/login.html'); // Redirect anyway
             }
         });

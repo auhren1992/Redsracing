@@ -1,31 +1,57 @@
+// assets/js/firebase-core-fixed.js
 import { getFirebaseConfig } from './firebase-config.js';
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeApp, getApps } from "firebase/app";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// Initialize Firebase
-const config = getFirebaseConfig();
-const app = initializeApp(config);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+// Singleton pattern to prevent multiple initializations
+let app = null;
+let auth = null;
+let db = null;
+let storage = null;
 
-console.log("[Firebase Core] Firebase initialized at top level.");
+function initializeFirebaseIfNeeded() {
+    if (!app) {
+        const config = getFirebaseConfig();
 
-// Export the initialized services
+        // Check if app already exists
+        const existingApps = getApps();
+        if (existingApps.length > 0) {
+            app = existingApps[0];
+        } else {
+            app = initializeApp(config);
+        }
+
+        auth = getAuth(app);
+        // Ensure auth persists across tabs and page loads
+        try {
+            // Set to local persistence explicitly to avoid environment defaults
+            setPersistence(auth, browserLocalPersistence).catch(() => {});
+        } catch (e) {
+            // Ignore persistence errors; Firebase will fall back to default
+        }
+        db = getFirestore(app);
+        storage = getStorage(app);
+
+
+    }
+    return { app, auth, db, storage };
+}
+
+// Export getter functions that initialize if needed
 export function getFirebaseApp() {
-    return app;
+    return initializeFirebaseIfNeeded().app;
 }
 
 export function getFirebaseAuth() {
-    return auth;
+    return initializeFirebaseIfNeeded().auth;
 }
 
 export function getFirebaseDb() {
-    return db;
+    return initializeFirebaseIfNeeded().db;
 }
 
 export function getFirebaseStorage() {
-    return storage;
+    return initializeFirebaseIfNeeded().storage;
 }

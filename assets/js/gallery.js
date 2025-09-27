@@ -1,29 +1,25 @@
 import './app.js';
-import { getFirebaseConfig } from './firebase-config.js';
-import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, increment, getDocs } from "firebase/firestore";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage } from './firebase-core.js';
 
 // Import sanitization utilities
 import { html, safeSetHTML, createSafeElement } from './sanitize.js';
 
 async function main() {
-    const firebaseConfig = await getFirebaseConfig();
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
+    const auth = getFirebaseAuth();
+    const db = getFirebaseDb();
+    const storage = getFirebaseStorage();
 
     // --- Auth State ---
     const uploadContainer = document.getElementById('upload-container');
     onAuthStateChanged(auth, user => {
-        if (user) {
-            if(uploadContainer) uploadContainer.style.display = 'block';
-        } else {
-            if(uploadContainer) uploadContainer.style.display = 'none';
-        }
+        updateUploadVisibility(user);
     });
+
+    // Apply initial state in case the listener fires later
+    updateUploadVisibility(auth.currentUser);
 
     // --- Photo Upload Logic ---
     const uploadInput = document.getElementById('photo-upload-input');
@@ -32,15 +28,41 @@ async function main() {
     const uploadStatus = document.getElementById('upload-status');
     let selectedFile = null;
 
+    // Ensure upload UI is visible with proper state based on auth
+    function updateUploadVisibility(user) {
+        if (!uploadContainer) return;
+        // Always show the container so it doesn't look missing
+        uploadContainer.style.display = 'block';
+        const isAuthed = !!user;
+
+        // Disable/enable controls accordingly
+        if (uploadInput) uploadInput.disabled = !isAuthed;
+        if (uploadBtn) uploadBtn.disabled = !isAuthed || !selectedFile;
+
+        // Friendly status prompt
+        if (uploadStatus) {
+            if (!isAuthed) {
+                uploadStatus.textContent = 'Please log in to upload photos.';
+                uploadStatus.style.color = '#94a3b8'; // slate-400
+            } else if (!selectedFile) {
+                uploadStatus.textContent = '';
+                uploadStatus.style.color = '';
+            }
+        }
+    }
+
     if(uploadInput) {
         uploadInput.addEventListener('change', (e) => {
             selectedFile = e.target.files[0];
             if (selectedFile) {
                 if(uploadBtn) uploadBtn.disabled = false;
                 if(uploadStatus) uploadStatus.textContent = `Selected: ${selectedFile.name}`;
+                if (uploadStatus) uploadStatus.style.color = '';
             } else {
                 if(uploadBtn) uploadBtn.disabled = true;
             }
+            // Recompute visibility/state (e.g., if not authed, keep disabled)
+            updateUploadVisibility(auth.currentUser);
         });
     }
 
@@ -62,7 +84,7 @@ async function main() {
                     if(uploadStatus) uploadStatus.textContent = `Uploading... ${Math.round(progress)}%`;
                 },
                 (error) => {
-                    console.error("Upload failed:", error);
+
                     if(uploadStatus) {
                         uploadStatus.textContent = `Upload failed: ${error.message}`;
                         uploadStatus.style.color = '#ef4444';
@@ -92,7 +114,7 @@ async function main() {
                         selectedFile = null;
                         if(uploadInput) uploadInput.value = '';
                     } catch (error) {
-                        console.error("Error creating Firestore entry:", error);
+
                         if(uploadStatus) {
                             uploadStatus.textContent = 'Error saving file data.';
                             uploadStatus.style.color = '#ef4444';
@@ -209,7 +231,7 @@ async function main() {
                 });
             }
         } catch (error) {
-            console.error('Error toggling like:', error);
+
         }
     };
     
@@ -291,7 +313,7 @@ async function main() {
                 });
             });
         } catch (error) {
-            console.error('Error loading comments:', error);
+
             commentsList.innerHTML = '<p class="text-red-400 text-sm">Error loading comments.</p>';
         }
     };
@@ -314,7 +336,7 @@ async function main() {
             
             commentInput.value = '';
         } catch (error) {
-            console.error('Error adding comment:', error);
+
         }
     };
     

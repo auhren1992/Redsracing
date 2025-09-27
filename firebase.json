@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "predeploy": "npm install && npm run build",
+    "predeploy": "npm install && npm run build-css-prod && npm run build",
     "target": "production",
     "public": "dist",
     "ignore": [
@@ -9,7 +9,9 @@
       "storage.rules",
       ".firebaserc",
       ".github/**",
-      ".git/**"
+      ".git/**",
+      "assets/**",
+      "node_modules/**"
     ],
     "headers": [
       {
@@ -20,13 +22,18 @@
             "value": "js-profiling"
           }
         ]
+      },
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=0, must-revalidate"
+          }
+        ]
       }
     ],
     "rewrites": [
-      {
-        "source": "/dist/**",
-        "destination": "/dist/**"
-      },
       {
         "source": "/add_subscriber",
         "function": {
@@ -118,7 +125,6 @@
           "codebase": "python-api"
         }
       }
-      // No rewrites for Node.js-only callable/event functions (such as getProfile, processInvitationCode, etc.)
     ]
   },
   "functions": [
@@ -136,5 +142,8 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

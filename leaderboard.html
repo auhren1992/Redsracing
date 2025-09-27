@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaderboard - RedsRacing #8</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
     <link rel="stylesheet" href="styles/tailwind.css">
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/main.css">
@@ -23,7 +23,6 @@
                 <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
                 <a href="jonny.html" class="hover:text-neon-yellow transition duration-300">Jonny's Page</a>
                 <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Full Schedule</a>
-                <a href="dashboard.html" class="hover:text-neon-yellow transition duration-300">Dashboard</a>
                 <a href="profile.html" class="hover:text-neon-yellow transition duration-300">Profile</a>
                 <a href="leaderboard.html" class="text-neon-yellow border-b-2 border-neon-yellow">Leaderboard</a>
                 <a id="auth-link" href="login.html" class="bg-red-600 text-white py-2 px-5 rounded-md hover:bg-red-500 transition duration-300">
@@ -44,7 +43,6 @@
                 <a href="index.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Home</a>
                 <a href="jonny.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Jonny's Page</a>
                 <a href="schedule.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Full Schedule</a>
-                <a href="dashboard.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Dashboard</a>
                 <a href="profile.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Profile</a>
                 <a href="leaderboard.html" class="block py-2 text-neon-yellow border-l-4 border-neon-yellow pl-3">Leaderboard</a>
                 <a id="auth-link-mobile" href="login.html" class="block py-2 bg-red-600 text-white text-center rounded-md hover:bg-red-500 transition duration-300">
@@ -130,8 +128,9 @@
     </footer>
 
     <!-- Fallback (non-module) must load before the module script -->
-    <script src="assets/js/leaderboard-inline-fallback.js"></script>
+    <script src="leaderboard-inline-fallback.js"></script>
     <!-- Firebase and App Scripts -->
-    <script type="module" src="dist/leaderboard.js"></script>
+    <script src="vendors.js"></script>
+    <script src="leaderboard.js"></script>
 </body>
 </html>

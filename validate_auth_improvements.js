@@ -16,7 +16,7 @@ const path = require('path');
  * @throws {Error} If the path escapes the base directory
  */
 function resolveSafe(baseDir, candidate) {
-    if (!path.isAbsolute(baseDir)) throw new Error(`Invalid base directory: ${baseDir}`);
+    const resolvedBase = path.resolve(baseDir);
     const resolvedCandidate = path.resolve(resolvedBase, path.normalize(candidate));
     
     // Ensure the resolved path starts with the base directory
@@ -95,8 +95,8 @@ if (profileExists) {
 }
 
 // Check if HTML files have error containers
-const dashboardHtmlPath = encodeURIComponent(resolveSafe(baseDir, 'dashboard.html'));
-const profileHtmlPath = htmlEncode(resolveSafe(baseDir, 'profile.html'));
+const dashboardHtmlPath = resolveSafe(baseDir, 'dashboard.html');
+const profileHtmlPath = resolveSafe(baseDir, 'profile.html');
 
 console.log('\n🌐 HTML Error Containers:');
 

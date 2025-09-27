@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Q&A - RedsRacing #8</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
     <link rel="stylesheet" href="styles/tailwind.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,9 +52,15 @@
                     </div>
                 </div>
                 <a href="sponsorship.html" class="hover:text-neon-yellow transition duration-300">Sponsorship</a>
-                <a id="auth-link" href="login.html" class="bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300">
-                    DRIVER LOGIN
-                </a>
+                <div class="relative dropdown">
+                    <button class="dropdown-toggle bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300 flex items-center font-bold">
+                        Login <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50 right-0">
+                        <a href="login.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Team Member Login</a>
+                        <a href="follower-login.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Follower Login</a>
+                    </div>
+                </div>
             </div>
             <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
@@ -79,7 +85,11 @@
                  <a href="feedback.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Feedback</a>
              </div>
              <a href="sponsorship.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Sponsorship</a>
-             <a id="auth-link-mobile" href="login.html" class="block py-3 px-6 text-sm hover:bg-slate-800">DRIVER LOGIN</a>
+             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Login</button>
+             <div class="mobile-accordion-content hidden pl-4">
+                 <a href="login.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Team Member Login</a>
+                 <a href="follower-login.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Follower Login</a>
+             </div>
         </div>
     </header>
     <main class="pt-20">
@@ -123,8 +133,38 @@
             <p class="mt-8 text-slate-500 text-sm">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
         </div>
     </footer>
-    <script type="module" src="dist/main.js"></script>
-    <script type="module" src="dist/navigation.js"></script>
-    <script type="module" src="dist/qna.js"></script>
+    <script src="navigation.js"></script>
+    <script src="main.js"></script>
+    <script src="qna.js"></script>
+    <script>
+      (function(){
+        function init(){
+          document.querySelectorAll('.dropdown-toggle').forEach(function(btn){
+            btn.addEventListener('click', function(e){
+              e.preventDefault();
+              e.stopPropagation();
+              var menu = btn.nextElementSibling;
+              if (menu && menu.classList.contains('dropdown-menu')){
+                document.querySelectorAll('.dropdown-menu').forEach(function(m){ if(m!==menu) m.classList.add('hidden'); });
+                menu.classList.toggle('hidden');
+              }
+            });
+          });
+          document.addEventListener('click', function(){
+            document.querySelectorAll('.dropdown-menu').forEach(function(m){ m.classList.add('hidden'); });
+          });
+          var mobileButton = document.getElementById('mobile-menu-button');
+          var mobileMenu = document.getElementById('mobile-menu');
+          if (mobileButton && mobileMenu){
+            mobileButton.addEventListener('click', function(e){
+              e.preventDefault();
+              e.stopPropagation();
+              mobileMenu.classList.toggle('hidden');
+            });
+          }
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+      })();
+    </script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 import './app.js';
-import { getFirebaseConfig } from './firebase-config.js';
-import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, query, onSnapshot, orderBy } from "firebase/firestore";
+import { getFirebaseDb } from './firebase-core.js';
+import { monitorAuthState } from './auth-utils.js';
+
 
 // Import invitation code utilities
 import { captureInvitationCodeFromURL, applyPendingInvitationCode } from './invitation-codes.js';
@@ -14,17 +14,14 @@ async function main() {
     // Capture invitation code from URL as early as possible
     captureInvitationCodeFromURL();
 
-    const firebaseConfig = await getFirebaseConfig();
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+    const db = getFirebaseDb();
 
     // UI Elements
     const authLink = document.getElementById('auth-link');
     const authLinkMobile = document.getElementById('auth-link-mobile');
 
     // Auth State Change
-    onAuthStateChanged(auth, async user => {
+    monitorAuthState(async (user) => {
         if (user) {
             if(authLink) authLink.textContent = 'Dashboard';
             if(authLink) authLink.href = 'dashboard.html';
@@ -33,9 +30,8 @@ async function main() {
             
             // Apply pending invitation code if available
             try {
-                await applyPendingInvitationCode(auth);
+                await applyPendingInvitationCode(user);
             } catch (error) {
-                console.warn('[Schedule] Failed to apply pending invitation code:', error);
                 // Don't block the auth flow for invitation code errors
             }
         } else {
@@ -44,6 +40,8 @@ async function main() {
             if(authLinkMobile) authLinkMobile.textContent = 'DRIVER LOGIN';
             if(authLinkMobile) authLinkMobile.href = 'login.html';
         }
+    }, (error) => {
+        // Optional: handle auth errors
     });
 
     const superCupsContainer = document.getElementById('super-cups-schedule');

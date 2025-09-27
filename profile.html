@@ -57,7 +57,7 @@
                 <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
                 <a href="jonny.html" class="hover:text-neon-yellow transition duration-300">Jonny's Page</a>
                 <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Full Schedule</a>
-                <a href="dashboard.html" class="hover:text-neon-yellow transition duration-300">Dashboard</a>
+                <a href="redsracing-dashboard.html" class="hover:text-neon-yellow transition duration-300">Dashboard</a>
                 <a href="leaderboard.html" class="hover:text-neon-yellow transition duration-300">Leaderboard</a>
                 <a id="logout-button" href="#" class="bg-red-600 text-white py-2 px-5 rounded-md hover:bg-red-500 transition duration-300">
                     Logout
@@ -226,14 +226,16 @@
         <div id="error-state" class="hidden text-center py-20">
             <h2 class="text-3xl font-racing text-red-400 mb-4">Profile Not Found</h2>
             <p class="text-slate-400 mb-6">The requested profile could not be found or you don't have permission to view it.</p>
-            <a href="dashboard.html" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
+            <a href="redsracing-dashboard.html" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition">
                 Go to Dashboard
             </a>
         </div>
     </main>
 
     <!-- Fallback (non-module) must load before the module script -->
-    <script src="assets/js/profile-inline-fallback.js"></script>
-    <script type="module" src="dist/profile.js"></script>
+    <script src="profile-inline-fallback.js"></script>
+    <script src="vendors.js"></script>
+    <script src="auth-guard.js"></script>
+    <script src="profile.js"></script>
 </body>
 </html>
