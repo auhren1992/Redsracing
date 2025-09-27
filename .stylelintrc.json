@@ -1,11 +1,6 @@
 {
-  "extends": [
-    "stylelint-config-standard",
-    "stylelint-config-standard-scss"
-  ],
-  "plugins": [
-    "stylelint-scss"
-  ],
+  "extends": ["stylelint-config-standard", "stylelint-config-standard-scss"],
+  "plugins": ["stylelint-scss"],
   "rules": {
     "function-disallowed-list": [],
     "scss/function-unquote-no-unquoted-strings-inside": true,

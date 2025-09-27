@@ -14,11 +14,13 @@ This project uses Tailwind CSS for styling. The CSS is built locally instead of 
 ### Building CSS
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Build CSS for production:
+
    ```bash
    npm run build-css-prod
    ```

@@ -9,13 +9,13 @@
  * @returns {string} The escaped string
  */
 export function escapeHTML(str) {
-    if (str === null || str === undefined) {
-        return '';
-    }
-    
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+  if (str === null || str === undefined) {
+    return "";
+  }
+
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 /**
@@ -27,11 +27,11 @@ export function escapeHTML(str) {
  * @returns {string} Safe HTML string with escaped interpolations
  */
 export function html(strings, ...values) {
-    let result = strings[0];
-    for (let i = 0; i < values.length; i++) {
-        result += escapeHTML(String(values[i])) + strings[i + 1];
-    }
-    return result;
+  let result = strings[0];
+  for (let i = 0; i < values.length; i++) {
+    result += escapeHTML(String(values[i])) + strings[i + 1];
+  }
+  return result;
 }
 
 /**
@@ -40,24 +40,32 @@ export function html(strings, ...values) {
  * @param {string} htmlString - The HTML string (should already be sanitized)
  */
 export function safeSetHTML(element, htmlString) {
-    if (!element || !htmlString) {
-        return;
+  if (!element || !htmlString) {
+    return;
+  }
+
+  try {
+    // Check if DOMPurify is available before using it
+    /* global DOMPurify */
+    const cleanHTML =
+      typeof DOMPurify !== "undefined"
+        ? DOMPurify.sanitize(htmlString)
+        : htmlString;
+    element.innerHTML = "";
+    const tempDiv = document.createElement("div");
+    tempDiv.appendChild(
+      document.createRange().createContextualFragment(cleanHTML),
+    );
+    while (tempDiv.firstChild) {
+      element.appendChild(tempDiv.firstChild);
     }
-    
-    try {
-        // Check if DOMPurify is available before using it
-        /* global DOMPurify */
-        const cleanHTML = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(htmlString) : htmlString;
-        element.innerHTML = '';
-        const tempDiv = document.createElement('div');
-        tempDiv.appendChild(document.createRange().createContextualFragment(cleanHTML));
-        while (tempDiv.firstChild) {
-            element.appendChild(tempDiv.firstChild);
-        }
-    } catch (e) {
-        // Fallback to basic innerHTML if anything fails
-        element.innerHTML = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(htmlString) : htmlString;
-    }
+  } catch (e) {
+    // Fallback to basic innerHTML if anything fails
+    element.innerHTML =
+      typeof DOMPurify !== "undefined"
+        ? DOMPurify.sanitize(htmlString)
+        : htmlString;
+  }
 }
 
 /**
@@ -66,10 +74,10 @@ export function safeSetHTML(element, htmlString) {
  * @param {string} text - The text content
  */
 export function setSafeText(element, text) {
-    if (!element) {
-        return;
-    }
-    element.textContent = text || '';
+  if (!element) {
+    return;
+  }
+  element.textContent = text || "";
 }
 
 /**
@@ -79,13 +87,13 @@ export function setSafeText(element, text) {
  * @param {string} className - Optional CSS class name
  * @returns {HTMLElement} The created element
  */
-export function createSafeElement(tagName, textContent = '', className = '') {
-    const element = document.createElement(tagName);
-    if (textContent) {
-        element.textContent = textContent;
-    }
-    if (className) {
-        element.className = className;
-    }
-    return element;
+export function createSafeElement(tagName, textContent = "", className = "") {
+  const element = document.createElement(tagName);
+  if (textContent) {
+    element.textContent = textContent;
+  }
+  if (className) {
+    element.className = className;
+  }
+  return element;
 }

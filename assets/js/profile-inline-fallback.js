@@ -3,16 +3,17 @@
 
 (function () {
   function showProfileFallback() {
-    var loading = document.getElementById('loading-state');
-    var content = document.getElementById('profile-content');
+    var loading = document.getElementById("loading-state");
+    var content = document.getElementById("profile-content");
     if (!loading || !content) return;
 
     // Only act if the loader is still visible
-    var isHidden = loading.classList.contains('hidden') || loading.style.display === 'none';
+    var isHidden =
+      loading.classList.contains("hidden") || loading.style.display === "none";
     if (isHidden) return;
 
-    loading.classList.add('hidden');
-    loading.style.display = 'none';
+    loading.classList.add("hidden");
+    loading.style.display = "none";
 
     content.innerHTML = `
       <div class="text-center py-20">
@@ -29,12 +30,12 @@
         </div>
       </div>`;
 
-    content.classList.remove('hidden');
+    content.classList.remove("hidden");
   }
 
   // Run after 20s if module hasn't hidden the loader
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
       setTimeout(showProfileFallback, 20000);
     });
   } else {

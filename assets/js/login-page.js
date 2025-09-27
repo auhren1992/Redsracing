@@ -1,409 +1,417 @@
-import './app.js';
+import "./app.js";
 
 /**
  * Login Page Controller
  * Centralized login flow management with deferred UI enablement, MFA support, and reCAPTCHA Enterprise
  */
 
-import { getFirebaseAuth, getFirebaseApp } from './firebase-core.js';
-import { getFriendlyAuthError } from './auth-errors.js';
-import { setPendingInvitationCode } from './invitation-codes.js';
-import { 
-    signInWithEmailAndPassword,
-    sendPasswordResetEmail,
-    GoogleAuthProvider,
-    signInWithPopup
+import { getFirebaseAuth, getFirebaseApp } from "./firebase-core.js";
+import { getFriendlyAuthError } from "./auth-errors.js";
+import { setPendingInvitationCode } from "./invitation-codes.js";
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
-import { navigateToInternal } from './navigation-helpers.js';
+import { navigateToInternal } from "./navigation-helpers.js";
 
 /**
  * Login Page Controller Class
  * Manages the complete login lifecycle with proper initialization sequence
  */
 class LoginPageController {
-    constructor() {
-        this.auth = null;
-        this.googleProvider = null;
-        this.confirmationResult = null;
-        this.isInitialized = false;
-        this.elements = {};
-        
-        // UI state management
-        this.uiState = {
-            buttonsEnabled: false,
-            loadingButton: null,
-        };
+  constructor() {
+    this.auth = null;
+    this.googleProvider = null;
+    this.confirmationResult = null;
+    this.isInitialized = false;
+    this.elements = {};
+
+    // UI state management
+    this.uiState = {
+      buttonsEnabled: false,
+      loadingButton: null,
+    };
+  }
+
+  /**
+   * Initialize the login controller
+   */
+  async initialize() {
+    try {
+      console.info("[Login] Initializing controller");
+
+      // Get DOM elements
+      this.cacheElements();
+
+      // Disable UI initially
+      this.disableUI();
+
+      // Get Firebase auth instance
+      this.auth = getFirebaseAuth();
+      this.googleProvider = new GoogleAuthProvider();
+      console.info("[Login] Firebase auth ready:", !!this.auth);
+
+      // Bind event listeners
+      this.bindEvents();
+
+      // Enable UI after initialization
+      this.enableUI();
+      this.isInitialized = true;
+      console.info("[Login] UI enabled");
+    } catch (error) {
+      console.error("[Login] Initialization failed:", error);
+      this.showMessage(
+        "Failed to initialize authentication system. Please refresh the page.",
+      );
+    }
+  }
+
+  /**
+   * Cache DOM elements
+   */
+  cacheElements() {
+    this.elements = {
+      // Form inputs
+      emailInput: document.getElementById("email"),
+      passwordInput: document.getElementById("password"),
+      invitationCodeInput: document.getElementById("invitation-code"),
+
+      // Buttons
+      signinButton: document.getElementById("signin-button"),
+      signupButton: document.getElementById("signup-button"),
+      googleSigninButton: document.getElementById("google-signin-button"),
+      forgotPasswordLink: document.getElementById("forgot-password-link"),
+
+      // UI containers
+      errorBox: document.getElementById("error-box"),
+      errorText: document.getElementById("error-text"),
+      loginForm: document.getElementById("login-form"),
+    };
+
+    // Validate all elements exist
+    for (const [name, element] of Object.entries(this.elements)) {
+      if (!element) {
+      }
+    }
+  }
+
+  /**
+   * Bind event listeners to UI elements
+   */
+  bindEvents() {
+    // Email/password sign in
+    this.elements.signinButton?.addEventListener("click", () => {
+      console.info("[Login] Sign-in button clicked");
+      this.handleEmailSignIn();
+    });
+
+    // Sign up redirect
+    this.elements.signupButton?.addEventListener("click", () => {
+      console.info("[Login] Sign-up button clicked");
+      this.handleSignUpRedirect();
+    });
+
+    // Google sign in
+    this.elements.googleSigninButton?.addEventListener("click", () => {
+      console.info("[Login] Google sign-in clicked");
+      this.handleGoogleSignIn();
+    });
+
+    // Password reset
+    this.elements.forgotPasswordLink?.addEventListener("click", (e) => {
+      console.info("[Login] Forgot password clicked");
+      this.handleForgotPassword(e);
+    });
+
+    // Input validation and error clearing
+    this.elements.emailInput?.addEventListener("input", () =>
+      this.hideMessage(),
+    );
+    this.elements.passwordInput?.addEventListener("input", () =>
+      this.hideMessage(),
+    );
+    this.elements.emailInput?.addEventListener("blur", () =>
+      this.validateEmailField(),
+    );
+  }
+
+  /**
+   * Enable UI interactions after Firebase initialization
+   */
+  enableUI() {
+    const buttons = [
+      this.elements.signinButton,
+      this.elements.signupButton,
+      this.elements.googleSigninButton,
+    ];
+
+    buttons.forEach((button) => {
+      if (button) {
+        button.disabled = false;
+        button.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+    });
+
+    this.uiState.buttonsEnabled = true;
+  }
+
+  /**
+   * Disable UI interactions during initialization
+   */
+  disableUI() {
+    const buttons = [
+      this.elements.signinButton,
+      this.elements.signupButton,
+      this.elements.googleSigninButton,
+    ];
+
+    buttons.forEach((button) => {
+      if (button) {
+        button.disabled = true;
+        button.classList.add("opacity-50", "cursor-not-allowed");
+      }
+    });
+
+    this.uiState.buttonsEnabled = false;
+  }
+
+  /**
+   * Set loading state for a specific button
+   */
+  setLoadingState(button, isLoading, originalText) {
+    if (!button) return;
+
+    if (isLoading) {
+      button.disabled = true;
+      button.textContent = "Processing...";
+      button.classList.add("opacity-50", "cursor-not-allowed");
+      this.uiState.loadingButton = button;
+    } else {
+      button.disabled = false;
+      button.textContent = originalText;
+      button.classList.remove("opacity-50", "cursor-not-allowed");
+      if (this.uiState.loadingButton === button) {
+        this.uiState.loadingButton = null;
+      }
+    }
+  }
+
+  /**
+   * Show message to user
+   */
+  showMessage(message, isError = true) {
+    if (!this.elements.errorText || !this.elements.errorBox) return;
+
+    this.elements.errorText.textContent = message;
+    this.elements.errorBox.className = isError
+      ? "error-message p-4 rounded-md mb-4"
+      : "bg-green-800 text-green-300 border-l-4 border-green-500 p-4 rounded-md mb-4";
+    this.elements.errorBox.classList.remove("hidden");
+  }
+
+  /**
+   * Hide message display
+   */
+  hideMessage() {
+    if (this.elements.errorBox) {
+      this.elements.errorBox.classList.add("hidden");
+    }
+  }
+
+  /**
+   * Validate email field in real-time
+   */
+  validateEmailField() {
+    const email = this.elements.emailInput?.value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (email && !emailRegex.test(email)) {
+      this.elements.emailInput.classList.add("border-red-500");
+      this.elements.emailInput.classList.remove("border-gray-300");
+    } else {
+      this.elements.emailInput.classList.remove("border-red-500");
+      this.elements.emailInput.classList.add("border-gray-300");
+    }
+  }
+
+  /**
+   * Validate login form inputs
+   */
+  validateLoginForm(email, password) {
+    if (!email || !password) {
+      this.showMessage("Please fill in all required fields.");
+      return false;
     }
 
-    /**
-     * Initialize the login controller
-     */
-    async initialize() {
-        try {
-
-            console.info('[Login] Initializing controller');
-
-
-            // Get DOM elements
-            this.cacheElements();
-            
-            // Disable UI initially
-            this.disableUI();
-            
-            // Get Firebase auth instance
-            this.auth = getFirebaseAuth();
-            this.googleProvider = new GoogleAuthProvider();
-            console.info('[Login] Firebase auth ready:', !!this.auth);
-            
-            // Bind event listeners
-            this.bindEvents();
-            
-            // Enable UI after initialization
-            this.enableUI();
-            this.isInitialized = true;
-
-            console.info('[Login] UI enabled');
-        } catch (error) {
-            console.error('[Login] Initialization failed:', error);
-
-            this.showMessage('Failed to initialize authentication system. Please refresh the page.');
-        }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      this.showMessage("Please enter a valid email address.");
+      return false;
     }
 
-    /**
-     * Cache DOM elements
-     */
-    cacheElements() {
-        this.elements = {
-            // Form inputs
-            emailInput: document.getElementById('email'),
-            passwordInput: document.getElementById('password'),
-            invitationCodeInput: document.getElementById('invitation-code'),
-            
-            // Buttons
-            signinButton: document.getElementById('signin-button'),
-            signupButton: document.getElementById('signup-button'),
-            googleSigninButton: document.getElementById('google-signin-button'),
-            forgotPasswordLink: document.getElementById('forgot-password-link'),
-            
-            // UI containers
-            errorBox: document.getElementById('error-box'),
-            errorText: document.getElementById('error-text'),
-            loginForm: document.getElementById('login-form'),
-        };
-
-        // Validate all elements exist
-        for (const [name, element] of Object.entries(this.elements)) {
-            if (!element) {
-
-            }
-        }
+    if (password.length < 6) {
+      this.showMessage("Password must be at least 6 characters long.");
+      return false;
     }
 
-    /**
-     * Bind event listeners to UI elements
-     */
-    bindEvents() {
-        // Email/password sign in
-        this.elements.signinButton?.addEventListener('click', () => {
-            console.info('[Login] Sign-in button clicked');
-            this.handleEmailSignIn();
-        });
-        
-        // Sign up redirect
-        this.elements.signupButton?.addEventListener('click', () => {
-            console.info('[Login] Sign-up button clicked');
-            this.handleSignUpRedirect();
-        });
-        
-        // Google sign in
-        this.elements.googleSigninButton?.addEventListener('click', () => {
-            console.info('[Login] Google sign-in clicked');
-            this.handleGoogleSignIn();
-        });
-        
-        // Password reset
-        this.elements.forgotPasswordLink?.addEventListener('click', (e) => {
-            console.info('[Login] Forgot password clicked');
-            this.handleForgotPassword(e);
-        });
-        
-        // Input validation and error clearing
-        this.elements.emailInput?.addEventListener('input', () => this.hideMessage());
-        this.elements.passwordInput?.addEventListener('input', () => this.hideMessage());
-        this.elements.emailInput?.addEventListener('blur', () => this.validateEmailField());
+    return true;
+  }
 
+  /**
+   * Handle email/password sign in
+   */
+  async handleEmailSignIn() {
+    if (!this.isInitialized) {
+      console.warn("[Login] handleEmailSignIn called before init");
+      this.showMessage("Please wait for the page to load completely.");
+      return;
     }
 
-    /**
-     * Enable UI interactions after Firebase initialization
-     */
-    enableUI() {
-        const buttons = [
-            this.elements.signinButton,
-            this.elements.signupButton,
-            this.elements.googleSigninButton,
-        ];
+    const email = this.elements.emailInput?.value.trim();
+    const password = this.elements.passwordInput?.value;
 
-        buttons.forEach(button => {
-            if (button) {
-                button.disabled = false;
-                button.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-        });
+    this.hideMessage();
 
-        this.uiState.buttonsEnabled = true;
-
+    if (!this.validateLoginForm(email, password)) {
+      return;
     }
 
-    /**
-     * Disable UI interactions during initialization
-     */
-    disableUI() {
-        const buttons = [
-            this.elements.signinButton,
-            this.elements.signupButton,
-            this.elements.googleSigninButton,
-        ];
-
-        buttons.forEach(button => {
-            if (button) {
-                button.disabled = true;
-                button.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-        });
-
-        this.uiState.buttonsEnabled = false;
+    if (!this.auth) {
+      console.error("[Login] Firebase auth not ready");
+      this.showMessage("Authentication not ready. Please refresh the page.");
+      return;
     }
 
-    /**
-     * Set loading state for a specific button
-     */
-    setLoadingState(button, isLoading, originalText) {
-        if (!button) return;
+    this.setLoadingState(this.elements.signinButton, true, "Sign In");
 
-        if (isLoading) {
-            button.disabled = true;
-            button.textContent = 'Processing...';
-            button.classList.add('opacity-50', 'cursor-not-allowed');
-            this.uiState.loadingButton = button;
-        } else {
-            button.disabled = false;
-            button.textContent = originalText;
-            button.classList.remove('opacity-50', 'cursor-not-allowed');
-            if (this.uiState.loadingButton === button) {
-                this.uiState.loadingButton = null;
-            }
-        }
+    try {
+      await signInWithEmailAndPassword(this.auth, email, password);
+      console.info("[Login] Email sign-in success");
+      // Force refresh to get latest custom claims
+      const user = this.auth.currentUser;
+      let role = null;
+      try {
+        const tokenResult = await user.getIdTokenResult(true);
+        role = tokenResult?.claims?.role || null;
+        console.info("[Login] Claims role:", role);
+      } catch (e) {
+        console.warn("[Login] Failed to refresh token for claims:", e);
+      }
+
+      this.showMessage("Login successful! Redirecting...", false);
+
+      // Route based on role if known
+      if (role === "team-member") {
+        navigateToInternal("/redsracing-dashboard.html");
+        return;
+      } else if (role === "TeamRedFollower") {
+        navigateToInternal("/follower-dashboard.html");
+        return;
+      }
+      // Fallback to generic dashboard router
+      this.handleSuccess();
+    } catch (error) {
+      console.error("[Login] Email sign-in failed:", error);
+      this.showMessage(getFriendlyAuthError(error));
+    } finally {
+      this.setLoadingState(this.elements.signinButton, false, "Sign In");
+    }
+  }
+
+  /**
+   * Handle Google sign in
+   */
+  async handleGoogleSignIn() {
+    if (!this.isInitialized) {
+      this.showMessage("Please wait for the page to load completely.");
+      return;
     }
 
-    /**
-     * Show message to user
-     */
-    showMessage(message, isError = true) {
-        if (!this.elements.errorText || !this.elements.errorBox) return;
+    this.setLoadingState(
+      this.elements.googleSigninButton,
+      true,
+      "Sign in with Google",
+    );
 
-        this.elements.errorText.textContent = message;
-        this.elements.errorBox.className = isError
-            ? 'error-message p-4 rounded-md mb-4'
-            : 'bg-green-800 text-green-300 border-l-4 border-green-500 p-4 rounded-md mb-4';
-        this.elements.errorBox.classList.remove('hidden');
+    try {
+      await signInWithPopup(this.auth, this.googleProvider);
+      this.showMessage("Google sign-in successful! Redirecting...", false);
+      this.handleSuccess();
+    } catch (error) {
+      if (error.code !== "auth/popup-closed-by-user") {
+        this.showMessage(getFriendlyAuthError(error));
+      }
+    } finally {
+      this.setLoadingState(
+        this.elements.googleSigninButton,
+        false,
+        "Sign in with Google",
+      );
+    }
+  }
 
+  /**
+   * Handle forgot password
+   */
+  async handleForgotPassword(e) {
+    e.preventDefault();
 
+    const email = this.elements.emailInput?.value.trim();
+
+    if (!email) {
+      this.showMessage(
+        "Please enter your email address above, then click 'Forgot password?'.",
+      );
+      this.elements.emailInput?.focus();
+      return;
     }
 
-    /**
-     * Hide message display
-     */
-    hideMessage() {
-        if (this.elements.errorBox) {
-            this.elements.errorBox.classList.add('hidden');
-        }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      this.showMessage("Please enter a valid email address.");
+      this.elements.emailInput?.focus();
+      return;
     }
 
-    /**
-     * Validate email field in real-time
-     */
-    validateEmailField() {
-        const email = this.elements.emailInput?.value.trim();
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        
-        if (email && !emailRegex.test(email)) {
-            this.elements.emailInput.classList.add('border-red-500');
-            this.elements.emailInput.classList.remove('border-gray-300');
-        } else {
-            this.elements.emailInput.classList.remove('border-red-500');
-            this.elements.emailInput.classList.add('border-gray-300');
-        }
+    try {
+      await sendPasswordResetEmail(this.auth, email);
+      this.showMessage(
+        "Password reset email sent! Please check your inbox and spam folder.",
+        false,
+      );
+    } catch (error) {
+      this.showMessage(getFriendlyAuthError(error));
+    }
+  }
+
+  /**
+   * Handle sign up redirect
+   */
+  handleSignUpRedirect() {
+    navigateToInternal("/signup.html");
+  }
+
+  /**
+   * Handle successful authentication
+   */
+  handleSuccess() {
+    // Capture invitation code from form if entered
+    const invitationCode = this.elements.invitationCodeInput?.value?.trim();
+    if (invitationCode) {
+      setPendingInvitationCode(invitationCode);
     }
 
-    /**
-     * Validate login form inputs
-     */
-    validateLoginForm(email, password) {
-        if (!email || !password) {
-            this.showMessage('Please fill in all required fields.');
-            return false;
-        }
-        
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            this.showMessage('Please enter a valid email address.');
-            return false;
-        }
-        
-        if (password.length < 6) {
-            this.showMessage('Password must be at least 6 characters long.');
-            return false;
-        }
-        
-        return true;
-    }
-
-    /**
-     * Handle email/password sign in
-     */
-    async handleEmailSignIn() {
-        if (!this.isInitialized) {
-            console.warn('[Login] handleEmailSignIn called before init');
-            this.showMessage('Please wait for the page to load completely.');
-            return;
-        }
-
-        const email = this.elements.emailInput?.value.trim();
-        const password = this.elements.passwordInput?.value;
-
-        this.hideMessage();
-
-        if (!this.validateLoginForm(email, password)) {
-            return;
-        }
-
-        if (!this.auth) {
-            console.error('[Login] Firebase auth not ready');
-            this.showMessage('Authentication not ready. Please refresh the page.');
-            return;
-        }
-
-        this.setLoadingState(this.elements.signinButton, true, 'Sign In');
-
-        try {
-            await signInWithEmailAndPassword(this.auth, email, password);
-            console.info('[Login] Email sign-in success');
-            // Force refresh to get latest custom claims
-            const user = this.auth.currentUser;
-            let role = null;
-            try {
-                const tokenResult = await user.getIdTokenResult(true);
-                role = tokenResult?.claims?.role || null;
-                console.info('[Login] Claims role:', role);
-            } catch (e) {
-                console.warn('[Login] Failed to refresh token for claims:', e);
-            }
-
-            this.showMessage('Login successful! Redirecting...', false);
-
-            // Route based on role if known
-            if (role === 'team-member') {
-                navigateToInternal('/redsracing-dashboard.html');
-                return;
-            } else if (role === 'TeamRedFollower') {
-                navigateToInternal('/follower-dashboard.html');
-                return;
-            }
-            // Fallback to generic dashboard router
-            this.handleSuccess();
-        } catch (error) {
-            console.error('[Login] Email sign-in failed:', error);
-            this.showMessage(getFriendlyAuthError(error));
-        } finally {
-            this.setLoadingState(this.elements.signinButton, false, 'Sign In');
-        }
-    }
-
-
-    /**
-     * Handle Google sign in
-     */
-    async handleGoogleSignIn() {
-        if (!this.isInitialized) {
-            this.showMessage('Please wait for the page to load completely.');
-            return;
-        }
-
-        this.setLoadingState(this.elements.googleSigninButton, true, 'Sign in with Google');
-
-        try {
-            await signInWithPopup(this.auth, this.googleProvider);
-            this.showMessage('Google sign-in successful! Redirecting...', false);
-            this.handleSuccess();
-        } catch (error) {
-            if (error.code !== 'auth/popup-closed-by-user') {
-                this.showMessage(getFriendlyAuthError(error));
-            }
-        } finally {
-            this.setLoadingState(this.elements.googleSigninButton, false, 'Sign in with Google');
-        }
-    }
-
-
-    /**
-     * Handle forgot password
-     */
-    async handleForgotPassword(e) {
-        e.preventDefault();
-        
-        const email = this.elements.emailInput?.value.trim();
-        
-        if (!email) {
-            this.showMessage("Please enter your email address above, then click 'Forgot password?'.");
-            this.elements.emailInput?.focus();
-            return;
-        }
-        
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            this.showMessage('Please enter a valid email address.');
-            this.elements.emailInput?.focus();
-            return;
-        }
-
-        try {
-            await sendPasswordResetEmail(this.auth, email);
-            this.showMessage('Password reset email sent! Please check your inbox and spam folder.', false);
-        } catch (error) {
-            this.showMessage(getFriendlyAuthError(error));
-        }
-    }
-
-
-    /**
-     * Handle sign up redirect
-     */
-    handleSignUpRedirect() {
-        navigateToInternal('/signup.html');
-    }
-
-    /**
-     * Handle successful authentication
-     */
-    handleSuccess() {
-        // Capture invitation code from form if entered
-        const invitationCode = this.elements.invitationCodeInput?.value?.trim();
-        if (invitationCode) {
-            setPendingInvitationCode(invitationCode);
-
-        }
-
-        setTimeout(() => {
-            navigateToInternal('/dashboard.html');
-        }, 1500);
-    }
+    setTimeout(() => {
+      navigateToInternal("/dashboard.html");
+    }, 1500);
+  }
 }
 
 // Initialize login controller when DOM is ready
-document.addEventListener('DOMContentLoaded', async () => {
-    console.info('[Login] DOMContentLoaded');
-    const loginController = new LoginPageController();
-    await loginController.initialize();
+document.addEventListener("DOMContentLoaded", async () => {
+  console.info("[Login] DOMContentLoaded");
+  const loginController = new LoginPageController();
+  await loginController.initialize();
 });

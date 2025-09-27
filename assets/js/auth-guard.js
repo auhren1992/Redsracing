@@ -1,57 +1,65 @@
-import { navigateToInternal } from './navigation-helpers.js';
-import { monitorAuthState, validateUserClaims } from './auth-utils.js';
+import { navigateToInternal } from "./navigation-helpers.js";
+import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
 
-const protectedPages = ['redsracing-dashboard.html', 'follower-dashboard.html', 'profile.html'];
-const teamMemberPages = ['redsracing-dashboard.html'];
-const followerPages = ['follower-dashboard.html'];
+const protectedPages = [
+  "redsracing-dashboard.html",
+  "follower-dashboard.html",
+  "profile.html",
+];
+const teamMemberPages = ["redsracing-dashboard.html"];
+const followerPages = ["follower-dashboard.html"];
 
-const currentPage = window.location.pathname.split('/').pop();
+const currentPage = window.location.pathname.split("/").pop();
 
 
 // Add a short grace period to allow Firebase Auth to hydrate before redirecting
 const REDIRECT_GRACE_MS = 1500;
 
 if (protectedPages.includes(currentPage)) {
-    let redirected = false;
-    const safeRedirectToLogin = () => {
-        if (redirected) return;
-        redirected = true;
-        navigateToInternal('/login.html');
-    };
+  let redirected = false;
+  const safeRedirectToLogin = () => {
+    if (redirected) return;
+    redirected = true;
+    navigateToInternal("/login.html");
+  };
 
-    const graceTimer = setTimeout(() => {
-        // If we still haven't seen a user after the grace period, redirect to login
-        safeRedirectToLogin();
-    }, REDIRECT_GRACE_MS);
+  const graceTimer = setTimeout(() => {
+    // If we still haven't seen a user after the grace period, redirect to login
+    safeRedirectToLogin();
+  }, REDIRECT_GRACE_MS);
 
-    monitorAuthState(async (user) => {
-        if (!user) {
-            // Do not immediately redirect; wait for grace period
-            return;
+  monitorAuthState(
+    async (user) => {
+      if (!user) {
+        // Do not immediately redirect; wait for grace period
+        return;
+      }
+
+      // We have a user - cancel redirect timer
+      clearTimeout(graceTimer);
+
+      try {
+        const claimsResult = await validateUserClaims();
+        const role = claimsResult.success ? claimsResult.claims.role : null;
+
+        if (teamMemberPages.includes(currentPage) && role !== "team-member") {
+          navigateToInternal("/follower-dashboard.html");
+        } else if (
+          followerPages.includes(currentPage) &&
+          role !== "TeamRedFollower"
+        ) {
+          navigateToInternal("/redsracing-dashboard.html");
         }
-
-        // We have a user - cancel redirect timer
-        clearTimeout(graceTimer);
-
-
-        try {
-            const claimsResult = await validateUserClaims();
-            const role = claimsResult.success ? claimsResult.claims.role : null;
-
-            if (teamMemberPages.includes(currentPage) && role !== 'team-member') {
-                navigateToInternal('/follower-dashboard.html');
-            } else if (followerPages.includes(currentPage) && role !== 'TeamRedFollower') {
-                navigateToInternal('/redsracing-dashboard.html');
-            }
-        } catch (error) {
-
-            // On error, only redirect after grace period (which we've already cleared due to user)
-            safeRedirectToLogin();
-        }
-    }, (error) => {
-        // On auth errors, only redirect after the grace period
-        clearTimeout(graceTimer);
+      } catch (error) {
+        // On error, only redirect after grace period (which we've already cleared due to user)
         safeRedirectToLogin();
-    });
+      }
+    },
+    (error) => {
+      // On auth errors, only redirect after the grace period
+      clearTimeout(graceTimer);
+      safeRedirectToLogin();
+    },
+  );
 }
 
