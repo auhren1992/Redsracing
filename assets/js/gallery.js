@@ -30,6 +30,7 @@ import {
 
 // Import sanitization utilities
 import { html, safeSetHTML, createSafeElement } from "./sanitize.js";
+import { validateUserClaims } from "./auth-utils.js";
 
 async function main() {
   const auth = getFirebaseAuth();
@@ -38,12 +39,17 @@ async function main() {
 
   // --- Auth State ---
   const uploadContainer = document.getElementById("upload-container");
-  onAuthStateChanged(auth, (user) => {
+  let isModerator = false; // team-member or admin
+  let unsubscribePending = null;
+
+  onAuthStateChanged(auth, async (user) => {
     updateUploadVisibility(user);
+    await checkModerator();
   });
 
   // Apply initial state in case the listener fires later
   updateUploadVisibility(auth.currentUser);
+  await checkModerator();
 
   // --- Photo Upload Logic ---
   const uploadInput = document.getElementById("photo-upload-input");
@@ -136,6 +142,7 @@ async function main() {
               approved: false,
               likes: [],
               likeCount: 0,
+              storagePath: `gallery/${userId}/${timestamp}-${selectedFile.name}`,
             });
             if (uploadStatus) {
               uploadStatus.textContent =
@@ -154,6 +161,112 @@ async function main() {
           }
         },
       );
+    });
+  }
+
+  // --- Moderator check & Pending Approvals ---
+  const moderationSection = document.getElementById("moderation-section");
+  const pendingContainer = document.getElementById("pending-approvals");
+  const pendingCountEl = document.getElementById("pending-count");
+
+  async function checkModerator() {
+    try {
+      const res = await validateUserClaims(["team-member", "admin"]);
+      isModerator = !!res?.success;
+      if (moderationSection) {
+        moderationSection.style.display = isModerator ? "block" : "none";
+      }
+      if (isModerator) {
+        startPendingListener();
+      } else {
+        stopPendingListener();
+        if (pendingContainer) pendingContainer.innerHTML = "";
+        if (pendingCountEl) pendingCountEl.textContent = "";
+      }
+    } catch (_) {}
+  }
+
+  function stopPendingListener() {
+    if (typeof unsubscribePending === "function") {
+      unsubscribePending();
+      unsubscribePending = null;
+    }
+  }
+
+  function startPendingListener() {
+    if (!pendingContainer || !db) return;
+    stopPendingListener();
+    const q = query(
+      collection(db, "gallery_images"),
+      where("approved", "==", false),
+      orderBy("createdAt", "desc"),
+    );
+    unsubscribePending = onSnapshot(q, (snapshot) => {
+      pendingContainer.innerHTML = "";
+      const total = snapshot.size;
+      if (pendingCountEl) pendingCountEl.textContent = total === 0 ? "No pending items" : `${total} awaiting approval`;
+      if (snapshot.empty) {
+        pendingContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No pending photos.</p>`;
+        return;
+      }
+      snapshot.forEach((docSnapshot) => {
+        const image = docSnapshot.data();
+        const imageId = docSnapshot.id;
+        const card = document.createElement("div");
+        card.className = "rounded-lg overflow-hidden bg-slate-800 border border-slate-700";
+        safeSetHTML(
+          card,
+          html`
+            <div class="aspect-video overflow-hidden">
+              <img src="${image.imageUrl}" alt="Pending photo" class="w-full h-full object-cover" />
+            </div>
+            <div class="p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-slate-300">${image.uploaderDisplayName || "Anonymous"}</div>
+                <div class="text-xs text-slate-400">${image.uploaderEmail || ""}</div>
+              </div>
+              <div class="flex items-center gap-3">
+                <button class="approve-btn bg-green-600 hover:bg-green-500 text-white font-bold px-3 py-2 rounded-md" data-image-id="${imageId}">Approve</button>
+                <button class="reject-btn bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-2 rounded-md" data-image-id="${imageId}">Delete</button>
+              </div>
+            </div>
+          `,
+        );
+        pendingContainer.appendChild(card);
+      });
+    });
+  }
+
+  if (pendingContainer) {
+    pendingContainer.addEventListener("click", async (e) => {
+      const approveEl = e.target.closest(".approve-btn");
+      const rejectEl = e.target.closest(".reject-btn");
+      if (!approveEl && !rejectEl) return;
+      const imageId = (approveEl || rejectEl)?.dataset?.imageId;
+      if (!imageId) return;
+      try {
+        if (approveEl) {
+          await updateDoc(doc(db, "gallery_images", imageId), { approved: true });
+        } else if (rejectEl) {
+          if (!confirm("Delete this photo? This action cannot be undone.")) return;
+          const imageQuery = await getDocs(query(collection(db, "gallery_images"), where("__name__", "==", imageId)));
+          if (!imageQuery.empty) {
+            const imageData = imageQuery.docs[0].data();
+            const storagePath = imageData.storagePath;
+            const { deleteDoc } = await import("firebase/firestore");
+            await deleteDoc(doc(db, "gallery_images", imageId));
+            if (storagePath) {
+              try {
+                const { deleteObject, ref } = await import("firebase/storage");
+                const storageRef = ref(getStorage(), storagePath);
+                await deleteObject(storageRef);
+              } catch (_) {}
+            }
+          }
+        }
+      } catch (err) {
+        alert("Operation failed. Please try again.");
+      }
     });
   }
 
@@ -201,6 +314,10 @@ async function main() {
         const fillValue = isLiked ? "currentColor" : "none";
         const disabledAttr = !currentUser ? "disabled" : "";
 
+        // Check if user is admin for delete functionality
+        const adminEmails = ['auhren1992@gmail.com']; // Add your admin emails here
+        const isAdmin = currentUser && adminEmails.includes(currentUser.email);
+
         const galleryHTML = html`
           <img
             src="${image.imageUrl}"
@@ -215,26 +332,32 @@ async function main() {
             </p>
             <div class="mt-2" id="tags-container-${imageId}"></div>
             <div class="mt-3 flex items-center justify-between">
-              <button
-                class="like-btn flex items-center space-x-1 text-xs ${likeButtonClass} hover:text-red-400 transition"
-                data-image-id="${imageId}"
-                ${disabledAttr}
-              >
-                <svg
-                  class="w-4 h-4"
-                  fill="${fillValue}"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div class="flex items-center space-x-2">
+                <button
+                  class="like-btn flex items-center space-x-1 text-xs ${likeButtonClass} hover:text-red-400 transition"
+                  data-image-id="${imageId}"
+                  ${disabledAttr}
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 000-6.364 4.5 4.5 0 00-6.364 0L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                  ></path>
-                </svg>
-                <span class="like-count">${likeCount}</span>
-              </button>
+                  <svg
+                    class="w-4 h-4"
+                    fill="${fillValue}"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 000-6.364 4.5 4.5 0 00-6.364 0L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    ></path>
+                  </svg>
+                  <span class="like-count">${likeCount}</span>
+                </button>
+                ${isAdmin ? html`<button class="delete-btn flex items-center space-x-1 text-xs text-red-400 hover:text-red-300 transition" data-image-id="${imageId}">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  <span>Delete</span>
+                </button>` : ""}
+              </div>
               <button
                 class="comment-btn flex items-center space-x-1 text-xs text-slate-400 hover:text-blue-400 transition"
                 data-image-id="${imageId}"
@@ -271,6 +394,35 @@ async function main() {
           }
         }
 
+        // Wire delete button if present
+        const delBtn = galleryItem.querySelector('.delete-btn');
+        if (delBtn) {
+          delBtn.addEventListener('click', async () => {
+            if (!confirm('Delete this photo? This action cannot be undone.')) return;
+            try {
+              // Delete from Firestore
+              const { deleteDoc, doc } = await import('firebase/firestore');
+              await deleteDoc(doc(db, 'gallery_images', imageId));
+              
+              // Try to delete from Storage if we have the path
+              if (image.storagePath) {
+                try {
+                  const { deleteObject, ref } = await import('firebase/storage');
+                  const storageRef = ref(storage, image.storagePath);
+                  await deleteObject(storageRef);
+                } catch (storageError) {
+                  console.warn('Could not delete from storage:', storageError);
+                }
+              }
+              
+              console.log('Photo deleted successfully');
+            } catch (error) {
+              console.error('Error deleting photo:', error);
+              alert('Failed to delete photo. Please try again.');
+            }
+          });
+        }
+        
         galleryContainer.appendChild(galleryItem);
       });
     });

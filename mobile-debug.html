@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Navigation Debug</title>
+    <link rel="stylesheet" href="styles/tailwind.css">
+    <style>
+        #mobile-menu {
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 20px;
+        }
+        
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: red;
+            color: white;
+            padding: 10px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white">
+    <div class="debug-info">
+        <div>Screen: <span id="screen-width"></span>px</div>
+        <div>Menu: <span id="menu-state">Hidden</span></div>
+    </div>
+    
+    <header class="bg-black p-4">
+        <div class="flex justify-between items-center">
+            <div class="text-xl font-bold">RedsRacing Debug</div>
+            
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-toggle" class="md:hidden text-white focus:outline-none p-2 border border-white">
+                <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+                <svg id="close-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div id="mobile-menu" style="display: none;">
+            <div class="mt-4 space-y-2">
+                <a href="#" class="block py-2 px-4 bg-slate-800 rounded">Home</a>
+                <a href="#" class="block py-2 px-4 bg-slate-800 rounded">Drivers</a>
+                <a href="#" class="block py-2 px-4 bg-slate-800 rounded">Racing</a>
+                <a href="#" class="block py-2 px-4 bg-slate-800 rounded">Community</a>
+                <a href="#" class="block py-2 px-4 bg-red-600 rounded font-bold">LOGIN</a>
+            </div>
+        </div>
+    </header>
+    
+    <main class="p-8">
+        <h1 class="text-3xl mb-4">Mobile Navigation Debug</h1>
+        <p>This page is for testing mobile navigation functionality.</p>
+        <p>Try clicking the hamburger menu button in the header.</p>
+        <div class="mt-8">
+            <button onclick="testShowMenu()" class="bg-green-600 px-4 py-2 rounded mr-2">Force Show Menu</button>
+            <button onclick="testHideMenu()" class="bg-red-600 px-4 py-2 rounded mr-2">Force Hide Menu</button>
+            <button onclick="testToggleMenu()" class="bg-blue-600 px-4 py-2 rounded">Test Toggle</button>
+        </div>
+    </main>
+
+    <script>
+        // Debug info updates
+        function updateDebugInfo() {
+            document.getElementById('screen-width').textContent = window.innerWidth;
+            const menu = document.getElementById('mobile-menu');
+            const isVisible = menu && menu.style.display !== 'none';
+            document.getElementById('menu-state').textContent = isVisible ? 'Visible' : 'Hidden';
+        }
+        
+        // Update debug info on load and resize
+        window.addEventListener('load', updateDebugInfo);
+        window.addEventListener('resize', updateDebugInfo);
+        
+        // Mobile menu functionality
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+        const closeIcon = document.getElementById('close-icon');
+        
+        let mobileMenuVisible = false;
+        
+        console.log('Elements found:');
+        console.log('Toggle:', mobileMenuToggle);
+        console.log('Menu:', mobileMenu);
+        console.log('Menu icon:', menuIcon);
+        console.log('Close icon:', closeIcon);
+        
+        function showMobileMenu() {
+            console.log('Showing mobile menu');
+            if (mobileMenu) {
+                mobileMenu.style.display = 'block';
+                mobileMenuVisible = true;
+            }
+            if (menuIcon) menuIcon.style.display = 'none';
+            if (closeIcon) closeIcon.style.display = 'block';
+            updateDebugInfo();
+        }
+        
+        function hideMobileMenu() {
+            console.log('Hiding mobile menu');
+            if (mobileMenu) {
+                mobileMenu.style.display = 'none';
+                mobileMenuVisible = false;
+            }
+            if (menuIcon) menuIcon.style.display = 'block';
+            if (closeIcon) closeIcon.style.display = 'none';
+            updateDebugInfo();
+        }
+        
+        function toggleMobileMenu() {
+            console.log('Toggle clicked, current state:', mobileMenuVisible);
+            if (mobileMenuVisible) {
+                hideMobileMenu();
+            } else {
+                showMobileMenu();
+            }
+        }
+        
+        // Test functions for manual testing
+        function testShowMenu() {
+            showMobileMenu();
+        }
+        
+        function testHideMenu() {
+            hideMobileMenu();
+        }
+        
+        function testToggleMenu() {
+            toggleMobileMenu();
+        }
+        
+        if (mobileMenuToggle) {
+            console.log('Adding click listener to toggle button');
+            mobileMenuToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Toggle button clicked');
+                toggleMobileMenu();
+            });
+        } else {
+            console.log('Mobile menu toggle button not found!');
+        }
+        
+        // Close menu when clicking links
+        if (mobileMenu) {
+            const links = mobileMenu.querySelectorAll('a');
+            console.log('Found', links.length, 'links in mobile menu');
+            links.forEach(link => {
+                link.addEventListener('click', function() {
+                    console.log('Link clicked, hiding menu');
+                    hideMobileMenu();
+                });
+            });
+        }
+        
+        // Initial state
+        hideMobileMenu();
+        updateDebugInfo();
+    </script>
+</body>
+</html>

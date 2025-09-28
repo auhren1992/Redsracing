@@ -17,6 +17,32 @@ let isInitialized = false;
 let isDestroyed = false;
 let loadingTimeout = null;
 
+import("./loading.js").then(({ LoadingService }) => {
+  try { LoadingService.bind({ loaderId: 'loading-state', contentId: 'leaderboard-content', errorId: 'error-state', maxMs: 3000 }); } catch {}
+}).catch(()=>{});
+
+// Hard failsafe: after 4s, stop spinner and show an empty state if nothing rendered yet
+setTimeout(() => {
+  if (isDestroyed) return;
+  const loader = document.getElementById('loading-state');
+  const content = document.getElementById('leaderboard-content');
+  if (loader && !loader.classList.contains('hidden')) {
+    loader.classList.add('hidden');
+    if (content) {
+      content.classList.remove('hidden');
+      if (!document.getElementById('leaderboard-table')?.children.length) {
+        const container = content.querySelector('.max-w-4xl');
+        if (container) {
+          const empty = document.createElement('div');
+          empty.className = 'text-center py-12 text-slate-400';
+          empty.textContent = 'Leaderboard data is not available right now.';
+          container.appendChild(empty);
+        }
+      }
+    }
+  }
+}, 4000);
+
 async function init() {
   // Prevent multiple initializations
   if (isInitialized) {
@@ -164,6 +190,7 @@ async function loadLeaderboard() {
     clearLoadingTimeout();
     document.getElementById("loading-state")?.classList.add("hidden");
     document.getElementById("leaderboard-content")?.classList.remove("hidden");
+    try { (await import('./loading.js')).LoadingService.done('leaderboard-content'); } catch {}
   } catch (err) {
     if (isDestroyed) return;
 
@@ -347,6 +374,7 @@ function showError() {
   document.getElementById("loading-state")?.classList.add("hidden");
   document.getElementById("leaderboard-content")?.classList.add("hidden");
   document.getElementById("error-state")?.classList.remove("hidden");
+  import('./loading.js').then(({ LoadingService }) => LoadingService.error({ loaderId: 'loading-state', errorId: 'error-state' })).catch(()=>{});
 }
 
 function showEmptyState() {

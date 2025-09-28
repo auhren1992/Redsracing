@@ -18,6 +18,9 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
+    // Admins can read and write anything
+    allow read, write: if hasRole('admin');
+    
     // Users collection - profiles
     match /users/{userId} {
       allow read: if isAuthenticated();

@@ -15,338 +15,300 @@
       href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
       rel="stylesheet"
     />
-    <script src="https://unpkg.com/scrollreveal"></script>
+    <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://redsracing-a7f8b.firebasestorage.app" crossorigin />
+    <link rel="dns-prefetch" href="//redsracing-a7f8b.firebasestorage.app" />
+    <script defer src="https://unpkg.com/scrollreveal"></script>
     <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="stylesheet" href="styles/modern-effects.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
   </head>
   <body class="bg-dark-blue">
-    <header
-      class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50"
-    >
-      <nav
-        class="container mx-auto px-6 py-3 flex justify-between items-center"
-      >
-        <a
-          href="index.html"
-          class="text-4xl font-racing uppercase tracking-wider"
-        >
-          <span class="title-blue">Reds</span
-          ><span class="neon-yellow">Racing</span>
+    <!-- Clean Modern Header -->
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+        <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+          <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
         </a>
+        
+        <!-- Navigation Links -->
         <div class="hidden md:flex items-center space-x-6 font-bold">
-          <a
-            href="index.html"
-            class="hover:text-neon-yellow transition duration-300"
-            >Home</a
-          >
+          <a href="index.html" class="nav-link">🏠 Home</a>
           <div class="relative dropdown">
-            <button
-              class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center"
-            >
-              The Drivers
-              <svg
-                class="w-4 h-4 ml-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
+            <button class="dropdown-toggle nav-link">
+              🏎️ Drivers <i class="fas fa-chevron-down"></i>
             </button>
-            <div
-              class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50"
-            >
-              <a
-                href="driver.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Jon Kirsch</a
-              >
-              <a
-                href="jonny.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Jonny Kirsch #88</a
-              >
-            </div>
-          </div>
-          <a
-            href="schedule.html"
-            class="hover:text-neon-yellow transition duration-300"
-            >Schedule</a
-          >
-          <div class="relative dropdown">
-            <button
-              class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center"
-            >
-              Media
-              <svg
-                class="w-4 h-4 ml-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
-            </button>
-            <div
-              class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50"
-            >
-              <a
-                href="gallery.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Gallery</a
-              >
-              <a
-                href="videos.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Videos</a
-              >
+            <div class="dropdown-menu modern-dropdown">
+              <a href="driver.html" class="dropdown-item">Jon Kirsch #8</a>
+              <a href="jonny.html" class="dropdown-item">Jonny Kirsch #88</a>
+              <a href="legends.html" class="dropdown-item">Team Legends</a>
             </div>
           </div>
           <div class="relative dropdown">
-            <button
-              class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center"
-            >
-              Community
-              <svg
-                class="w-4 h-4 ml-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
+            <button class="dropdown-toggle nav-link">
+              🏁 Racing <i class="fas fa-chevron-down"></i>
             </button>
-            <div
-              class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50"
-            >
-              <a
-                href="qna.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Q&A</a
-              >
-              <a
-                href="feedback.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Feedback</a
-              >
+            <div class="dropdown-menu modern-dropdown">
+              <a href="schedule.html" class="dropdown-item">Schedule</a>
+              <a href="leaderboard.html" class="dropdown-item">Leaderboard</a>
+              <a href="gallery.html" class="dropdown-item">📸 Gallery</a>
+              <a href="videos.html" class="dropdown-item">🎥 Videos</a>
             </div>
           </div>
-          <a
-            href="sponsorship.html"
-            class="hover:text-neon-yellow transition duration-300"
-            >Sponsorship</a
-          >
           <div class="relative dropdown">
-            <button
-              class="dropdown-toggle bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300 flex items-center font-bold"
-            >
-              Login
-              <svg
-                class="w-4 h-4 ml-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
+            <button class="dropdown-toggle nav-link">
+              👥 Community <i class="fas fa-chevron-down"></i>
             </button>
-            <div
-              class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50 right-0"
-            >
-              <a
-                href="login.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Team Member Login</a
-              >
-              <a
-                href="follower-login.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Follower Login</a
-              >
+            <div class="dropdown-menu modern-dropdown">
+              <a href="qna.html" class="dropdown-item">❓ Q&A</a>
+              <a href="feedback.html" class="dropdown-item">💬 Feedback</a>
+              <a href="sponsorship.html" class="dropdown-item">💰 Sponsorship</a>
+            </div>
+          </div>
+          
+          <!-- User Profile / Login -->
+          <div id="auth-section">
+            <!-- Login Button (shown when not authenticated) -->
+            <a href="admin-console.html" id="login-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-bold transition duration-300 flex items-center space-x-1">
+              <i class="fas fa-sign-in-alt"></i>
+              <span>Login</span>
+            </a>
+            
+            <!-- User Profile Dropdown (shown when authenticated) -->
+            <div id="user-profile" class="relative dropdown hidden">
+              <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
+                <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <i class="fas fa-user text-white text-xs"></i>
+                </div>
+                <div class="text-left hidden md:block">
+                  <div class="text-sm font-semibold text-white" id="user-name">Driver</div>
+                  <div class="text-xs text-slate-400">Team Member</div>
+                </div>
+                <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+              </button>
+              
+              <div class="dropdown-menu modern-dropdown right-0 w-44">
+                <div class="px-4 py-2 border-b border-slate-600/50">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-green-400 text-sm">Online</span>
+                  </div>
+                </div>
+                
+                <a href="admin-console.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
+                  <span>Dashboard</span>
+                </a>
+                
+                <a href="profile.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-user w-4 mr-3 text-green-400"></i>
+                  <span>My Profile</span>
+                </a>
+                
+                <div class="border-t border-slate-600/50 my-1"></div>
+                
+                <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                  <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
+                  <span>Sign Out</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
-        <button
-          id="mobile-menu-button"
-          class="md:hidden text-white focus:outline-none"
-        >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h16m-7 6h7"
-            ></path>
+        
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
           </svg>
         </button>
       </nav>
-      <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
-        <a href="index.html" class="block py-3 px-6 text-sm hover:bg-slate-800"
-          >Home</a
-        >
-        <button
-          class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left"
-        >
-          The Drivers
+      
+      <!-- Mobile Menu -->
+      <div id="mobile-menu" class="mobile-menu modern-mobile hidden">
+        <a href="index.html" class="mobile-nav-item">🏠 Home</a>
+        <button class="mobile-accordion">
+          <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
         </button>
-        <div class="mobile-accordion-content hidden pl-4">
-          <a
-            href="driver.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Jon Kirsch</a
-          >
-          <a
-            href="jonny.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Jonny Kirsch #88</a
-          >
+        <div class="mobile-accordion-content">
+          <a href="driver.html" class="mobile-nav-subitem">Jon Kirsch #8</a>
+          <a href="jonny.html" class="mobile-nav-subitem">Jonny Kirsch #88</a>
+          <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
         </div>
-        <a
-          href="schedule.html"
-          class="block py-3 px-6 text-sm hover:bg-slate-800"
-          >Schedule</a
-        >
-        <button
-          class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left"
-        >
-          Media
+        <button class="mobile-accordion">
+          <span>🏁 Racing</span><i class="fas fa-chevron-down accordion-icon"></i>
         </button>
-        <div class="mobile-accordion-content hidden pl-4">
-          <a
-            href="gallery.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Gallery</a
-          >
-          <a
-            href="videos.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Videos</a
-          >
+        <div class="mobile-accordion-content">
+          <a href="schedule.html" class="mobile-nav-subitem">Schedule</a>
+          <a href="leaderboard.html" class="mobile-nav-subitem">Leaderboard</a>
+          <a href="gallery.html" class="mobile-nav-subitem">📸 Gallery</a>
+          <a href="videos.html" class="mobile-nav-subitem">🎥 Videos</a>
         </div>
-        <button
-          class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left"
-        >
-          Community
+        <button class="mobile-accordion">
+          <span>👥 Community</span><i class="fas fa-chevron-down accordion-icon"></i>
         </button>
-        <div class="mobile-accordion-content hidden pl-4">
-          <a href="qna.html" class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Q&A</a
-          >
-          <a
-            href="feedback.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Feedback</a
-          >
+        <div class="mobile-accordion-content">
+          <a href="qna.html" class="mobile-nav-subitem">❓ Q&A</a>
+          <a href="feedback.html" class="mobile-nav-subitem">💬 Feedback</a>
+          <a href="sponsorship.html" class="mobile-nav-subitem">💰 Sponsorship</a>
         </div>
-        <a
-          href="sponsorship.html"
-          class="block py-3 px-6 text-sm hover:bg-slate-800"
-          >Sponsorship</a
-        >
-        <button
-          class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left"
-        >
-          Login
-        </button>
-        <div class="mobile-accordion-content hidden pl-4">
-          <a
-            href="login.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Team Member Login</a
-          >
-          <a
-            href="follower-login.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Follower Login</a
-          >
-        </div>
-      </div>
-    </header>
-    <main class="pt-20">
-      <section id="schedule" class="py-24 md:py-32 section-glow">
-        <div class="container mx-auto px-6">
-          <h2
-            class="font-racing text-5xl uppercase mb-12 text-center reveal-fade"
-          >
-            2025 Race <span class="neon-yellow">Schedule</span>
-          </h2>
-          <div
-            class="max-w-4xl mx-auto bg-slate-900/50 p-8 rounded-lg text-center mb-12 reveal-up"
-          >
-            <h3 class="text-xl font-bold text-slate-400 uppercase">
-              Countdown to Next Race
-            </h3>
-            <p
-              id="next-race-name"
-              class="text-3xl font-racing text-white uppercase my-4"
-            >
-              Loading...
-            </p>
-            <div
-              id="countdown-timer"
-              class="grid grid-cols-4 gap-4 max-w-md mx-auto"
-            >
-              <div>
-                <div id="days" class="text-4xl font-bold">0</div>
-                <div class="text-xs uppercase text-slate-400">Days</div>
-              </div>
-              <div>
-                <div id="hours" class="text-4xl font-bold">0</div>
-                <div class="text-xs uppercase text-slate-400">Hours</div>
-              </div>
-              <div>
-                <div id="minutes" class="text-4xl font-bold">0</div>
-                <div class="text-xs uppercase text-slate-400">Minutes</div>
-              </div>
-              <div>
-                <div id="seconds" class="text-4xl font-bold">0</div>
-                <div class="text-xs uppercase text-slate-400">Seconds</div>
+        <div class="border-t border-slate-600 mt-4 pt-4">
+          <!-- Mobile Auth Section -->
+          <div id="mobile-auth-section">
+            <!-- Mobile Login Button (shown when not authenticated) -->
+            <a href="admin-console.html" id="mobile-login-btn" class="mobile-login-btn bg-red-600 hover:bg-red-700">
+              <i class="fas fa-sign-in-alt mr-2"></i>Driver Login
+            </a>
+            
+            <!-- Mobile User Profile (shown when authenticated) -->
+            <div id="mobile-user-profile" class="hidden">
+              <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
+                <div class="flex items-center space-x-3 mb-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white"></i>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold" id="mobile-user-name">Driver</div>
+                    <div class="text-slate-400 text-sm">Team Member</div>
+                    <div class="flex items-center space-x-1 mt-1">
+                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span class="text-green-400 text-xs">Online</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="space-y-1">
+                  <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
+                    <span>Dashboard</span>
+                  </a>
+                  <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-user w-5 mr-3 text-green-400"></i>
+                    <span>My Profile</span>
+                  </a>
+                  <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                    <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-          <div
-            class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 max-w-6xl mx-auto reveal-up"
-            data-reveal-delay="200"
-          >
-            <div>
-              <h3
-                class="text-3xl font-racing text-white uppercase mb-4 border-b-2 border-neon-yellow pb-2"
-              >
-                American Super Cups
-              </h3>
-              <div id="super-cups-schedule" class="space-y-4"></div>
+        </div>
+      </div>
+    </header>
+    <main>
+      <!-- Modern Hero Section -->
+      <section class="py-20 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
+        <div class="container mx-auto px-6 relative z-10">
+          <div class="text-center mb-16">
+            <div class="inline-flex items-center bg-yellow-600/20 backdrop-blur-sm px-6 py-3 rounded-full border border-yellow-400/30 mb-6">
+              <div class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse mr-3"></div>
+              <span class="text-yellow-400 font-bold uppercase tracking-wider text-sm">
+                <i class="fas fa-calendar-alt mr-2"></i>2025 Season
+              </span>
             </div>
+            
+            <h1 class="font-racing text-6xl md:text-8xl lg:text-9xl uppercase tracking-wider mb-6">
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-red-500 to-yellow-600">
+                Schedule
+              </span>
+            </h1>
+            
+            <p class="text-xl md:text-2xl text-slate-300 font-bold tracking-wide max-w-4xl mx-auto mb-8">
+              Track the season • Mark your calendar • Never miss the action
+            </p>
+            
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              <div class="modern-card p-4 border border-red-400/20">
+                <div class="text-3xl font-bold text-red-400">24</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Total Races</div>
+              </div>
+              <div class="modern-card p-4 border border-blue-400/20">
+                <div class="text-3xl font-bold text-blue-400">8</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Completed</div>
+              </div>
+              <div class="modern-card p-4 border border-green-400/20">
+                <div class="text-3xl font-bold text-green-400">16</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Remaining</div>
+              </div>
+              <div class="modern-card p-4 border border-purple-400/20">
+                <div class="text-3xl font-bold text-purple-400">12</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Tracks</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Countdown Section -->
+      <section class="py-16 md:py-24 bg-gradient-to-b from-black to-slate-900">
+        <div class="container mx-auto px-6">
+          <div class="max-w-4xl mx-auto modern-card p-8 md:p-12 rounded-2xl text-center">
+            <div class="inline-flex items-center bg-red-500/20 px-4 py-2 rounded-full mb-6">
+              <i class="fas fa-flag-checkered text-red-400 mr-2"></i>
+              <span class="text-red-400 font-bold uppercase tracking-wider text-sm">Next Race</span>
+            </div>
+            
+            <h2 id="next-race-name" class="font-racing text-3xl md:text-4xl text-white uppercase mb-8">
+              Loading...
+            </h2>
+            
+            <div id="countdown-timer" class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+              <div class="modern-card p-4 border border-yellow-400/20">
+                <div id="days" class="text-4xl md:text-5xl font-bold text-yellow-400">0</div>
+                <div class="text-xs uppercase text-slate-400 tracking-wider mt-2">Days</div>
+              </div>
+              <div class="modern-card p-4 border border-red-400/20">
+                <div id="hours" class="text-4xl md:text-5xl font-bold text-red-400">0</div>
+                <div class="text-xs uppercase text-slate-400 tracking-wider mt-2">Hours</div>
+              </div>
+              <div class="modern-card p-4 border border-blue-400/20">
+                <div id="minutes" class="text-4xl md:text-5xl font-bold text-blue-400">0</div>
+                <div class="text-xs uppercase text-slate-400 tracking-wider mt-2">Minutes</div>
+              </div>
+              <div class="modern-card p-4 border border-green-400/20">
+                <div id="seconds" class="text-4xl md:text-5xl font-bold text-green-400">0</div>
+                <div class="text-xs uppercase text-slate-400 tracking-wider mt-2">Seconds</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Schedule Content -->
+      <section class="py-20 md:py-32 bg-gradient-to-b from-slate-900 to-black">
+        <div class="container mx-auto px-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
             <div>
-              <h3
-                class="text-3xl font-racing text-white uppercase mb-4 border-b-2 border-neon-yellow pb-2"
-              >
-                Special Events
-              </h3>
-              <div id="special-events-schedule" class="space-y-4"></div>
+              <div class="modern-card p-8 rounded-2xl h-full">
+                <div class="flex items-center mb-6">
+                  <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-trophy text-white text-xl"></i>
+                  </div>
+                  <h3 class="font-racing text-3xl text-white uppercase">
+                    American <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">Super Cups</span>
+                  </h3>
+                </div>
+                <div id="super-cups-schedule" class="space-y-4"></div>
+              </div>
+            </div>
+            
+            <div>
+              <div class="modern-card p-8 rounded-2xl h-full">
+                <div class="flex items-center mb-6">
+                  <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-star text-white text-xl"></i>
+                  </div>
+                  <h3 class="font-racing text-3xl text-white uppercase">
+                    Special <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">Events</span>
+                  </h3>
+                </div>
+                <div id="special-events-schedule" class="space-y-4"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -406,9 +368,9 @@
       </div>
     </footer>
 
-    <script src="navigation.js"></script>
-    <script src="main.js"></script>
-    <script src="schedule.js"></script>
+    <script type="module" src="navigation.js"></script>
+    <script type="module" src="main.js"></script>
+    <script type="module" src="schedule.js"></script>
     <script>
       (function () {
         function init() {
@@ -447,5 +409,6 @@
         else init();
       })();
     </script>
+    <script type="module" src="modern-effects.js"></script>
   </body>
 </html>

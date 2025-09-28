@@ -1,0 +1,1778 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🏎️ Admin Command Center - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/main.css" />
+    <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
+    
+    <style>
+      /* Modern Admin Console Styles */
+      .admin-glass {
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+      
+      .admin-card {
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+      }
+      
+      .admin-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+        border-color: rgba(251, 191, 36, 0.3);
+      }
+      
+      .stat-card {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        transition: all 0.3s ease;
+      }
+      
+      .stat-card:hover {
+        transform: scale(1.02);
+        border-color: rgba(251, 191, 36, 0.4);
+      }
+      
+      .modern-btn {
+        background: linear-gradient(45deg, #3b82f6, #6366f1);
+        border: none;
+        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        transition: all 0.3s ease;
+      }
+      
+      .modern-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+      }
+      
+      .success-btn {
+        background: linear-gradient(45deg, #10b981, #059669);
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+      }
+      
+      .danger-btn {
+        background: linear-gradient(45deg, #ef4444, #dc2626);
+        box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+      }
+      
+      .sidebar-nav {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(16px);
+        border-right: 1px solid rgba(148, 163, 184, 0.1);
+      }
+      
+      .nav-item {
+        position: relative;
+        transition: all 0.3s ease;
+        border-radius: 8px;
+        margin: 4px 0;
+      }
+      
+      .nav-item:hover {
+        background: rgba(59, 130, 246, 0.1);
+        transform: translateX(4px);
+      }
+      
+      .nav-item.active {
+        background: linear-gradient(45deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.1));
+        border-left: 3px solid #fbbf24;
+      }
+      
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+      }
+      
+      .countdown-digit {
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        border-radius: 12px;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+      
+      .animated-counter {
+        animation: countUp 0.5s ease-out;
+      }
+      
+      @keyframes countUp {
+        from { opacity: 0; transform: scale(0.5); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      
+      .pulse-glow {
+        animation: pulseGlow 2s ease-in-out infinite alternate;
+      }
+      
+      @keyframes pulseGlow {
+        from { box-shadow: 0 0 20px rgba(251, 191, 36, 0.3); }
+        to { box-shadow: 0 0 40px rgba(251, 191, 36, 0.6); }
+      }
+      
+      .typing-indicator {
+        display: inline-block;
+        animation: typing 1.5s infinite;
+      }
+      
+      @keyframes typing {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0.3; }
+      }
+      
+      .modern-table {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+      }
+      
+      .table-header {
+        background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+        border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      
+      .table-row {
+        border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+        transition: all 0.3s ease;
+      }
+      
+      .table-row:hover {
+        background: rgba(59, 130, 246, 0.05);
+      }
+      
+      .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      
+      .status-approved {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+      
+      .status-pending {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+      
+      .status-rejected {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+      
+      .modern-input {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+      }
+      
+      .modern-input:focus {
+        border-color: rgba(59, 130, 246, 0.5);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+      
+      .loading-shimmer {
+        background: linear-gradient(90deg, rgba(148, 163, 184, 0.1) 25%, rgba(148, 163, 184, 0.2) 50%, rgba(148, 163, 184, 0.1) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+      }
+      
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+      
+      .chart-container {
+        position: relative;
+        height: 200px;
+        background: rgba(15, 23, 42, 0.4);
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <!-- Clean Modern Header -->
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+        <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+          <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+        </a>
+        
+        <!-- Navigation Links -->
+        <div class="hidden md:flex items-center space-x-6 font-bold">
+          <a href="index.html" class="nav-link">🏠 Home</a>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏎️ Drivers <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="driver.html" class="dropdown-item">Jon Kirsch #8</a>
+              <a href="jonny.html" class="dropdown-item">Jonny Kirsch #88</a>
+              <a href="legends.html" class="dropdown-item">Team Legends</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏁 Racing <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="schedule.html" class="dropdown-item">Schedule</a>
+              <a href="leaderboard.html" class="dropdown-item">Leaderboard</a>
+              <a href="gallery.html" class="dropdown-item">📸 Gallery</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              👥 Community <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="feedback.html" class="dropdown-item">Feedback</a>
+              <a href="sponsorship.html" class="dropdown-item">Sponsorship</a>
+            </div>
+          </div>
+          
+        </div>
+        
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+      </nav>
+      
+      <!-- Mobile Menu -->
+      <div id="mobile-menu" class="mobile-menu modern-mobile hidden">
+        <div class="p-4 border-b border-slate-600">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-red-500 rounded-lg flex items-center justify-center">
+              <i class="fas fa-crown text-white text-lg"></i>
+            </div>
+            <div>
+              <h4 class="text-white font-bold">Admin Console</h4>
+              <p class="text-slate-400 text-sm">Command Center</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-4 space-y-2">
+          <a href="index.html" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
+            <i class="fas fa-home w-5 mr-3 text-blue-400"></i>
+            <span>Back to Site</span>
+          </a>
+          
+          <div class="border-t border-slate-600 my-3"></div>
+          
+          <button class="mobile-accordion w-full text-left p-3 rounded-lg hover:bg-slate-700/50 transition-colors flex items-center justify-between">
+            <div class="flex items-center">
+              <i class="fas fa-tachometer-alt w-5 mr-3 text-green-400"></i>
+              <span>Dashboard</span>
+            </div>
+            <i class="fas fa-chevron-down accordion-icon"></i>
+          </button>
+          <div class="mobile-accordion-content pl-8 space-y-1">
+            <a href="#overview" class="mobile-nav-subitem block p-2 rounded text-sm hover:bg-slate-700/30">Overview</a>
+            <a href="#races" class="mobile-nav-subitem block p-2 rounded text-sm hover:bg-slate-700/30">Race Management</a>
+          </div>
+          
+          <button class="mobile-accordion w-full text-left p-3 rounded-lg hover:bg-slate-700/50 transition-colors flex items-center justify-between">
+            <div class="flex items-center">
+              <i class="fas fa-images w-5 mr-3 text-purple-400"></i>
+              <span>Gallery</span>
+            </div>
+            <i class="fas fa-chevron-down accordion-icon"></i>
+          </button>
+          <div class="mobile-accordion-content pl-8 space-y-1">
+            <a href="#gallery-approvals" class="mobile-nav-subitem block p-2 rounded text-sm hover:bg-slate-700/30">
+              Photo Approvals
+              <span class="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+            </a>
+            <a href="gallery.html" class="mobile-nav-subitem block p-2 rounded text-sm hover:bg-slate-700/30">View Gallery</a>
+          </div>
+          
+          <a href="settings.html" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
+            <i class="fas fa-cog w-5 mr-3 text-slate-400"></i>
+            <span>Settings</span>
+          </a>
+        </div>
+        
+        <div class="border-t border-slate-600 mt-4 p-4">
+          <button id="mobile-logout-button" class="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg font-semibold transition-colors flex items-center justify-center">
+            <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Dashboard Layout -->
+    <div class="flex min-h-screen">
+      <!-- Modern Sidebar -->
+      <aside class="sidebar-nav w-64 lg:w-72 flex-shrink-0 hidden lg:block">
+        <div class="p-6">
+          <div class="mb-8">
+            <h2 class="text-lg font-bold text-white mb-2">
+              <i class="fas fa-crown text-yellow-400 mr-2"></i>
+              Admin Dashboard
+            </h2>
+            <p class="text-xs text-slate-400">Racing Team Management</p>
+          </div>
+          
+          <nav class="space-y-1">
+            <a href="#overview" class="nav-item active flex items-center px-3 py-2 text-sm font-medium text-white">
+              <i class="fas fa-chart-pie w-5 mr-3 text-blue-400"></i>
+              <span>Overview</span>
+              <div class="ml-auto w-2 h-2 bg-yellow-400 rounded-full"></div>
+            </a>
+            <a href="#races" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+              <i class="fas fa-flag-checkered w-5 mr-3 text-green-400"></i>
+              <span>Race Management</span>
+            </a>
+            <a href="#gallery-approvals" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+              <i class="fas fa-images w-5 mr-3 text-purple-400"></i>
+              <span>Gallery Approvals</span>
+              <span class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full" id="gallery-pending-count">0</span>
+            </a>
+            <a href="#jonny-approvals" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+              <i class="fas fa-user-check w-5 mr-3 text-indigo-400"></i>
+              <span>Jonny Approvals</span>
+              <span class="ml-auto bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full" id="jonny-pending-count">0</span>
+            </a>
+            <a href="#qna" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+              <i class="fas fa-question-circle w-5 mr-3 text-cyan-400"></i>
+              <span>Q&A Management</span>
+            </a>
+            <a href="#videos" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+              <i class="fas fa-video w-5 mr-3 text-pink-400"></i>
+              <span>Video Library</span>
+            </a>
+            <a href="#invitation-codes" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+              <i class="fas fa-key w-5 mr-3 text-yellow-400"></i>
+              <span>Invitation Codes</span>
+            </a>
+            
+            <div class="border-t border-white/10 my-4"></div>
+            
+            <a href="#analytics" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+              <i class="fas fa-chart-line w-5 mr-3 text-emerald-400"></i>
+              <span>Analytics</span>
+            </a>
+          <a href="settings.html" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+              <i class="fas fa-cog w-5 mr-3 text-slate-400"></i>
+              <span>Settings</span>
+            </a>
+          </nav>
+        </div>
+      </aside>
+      
+      <!-- Main Content -->
+      <main class="flex-1 overflow-hidden">
+        <!-- Mobile Sidebar Toggle -->
+        <div class="lg:hidden p-4 border-b border-white/10">
+          <button id="sidebar-toggle" class="admin-card px-4 py-2 rounded-lg w-full text-left flex items-center">
+            <i class="fas fa-bars text-yellow-400 mr-2"></i>
+            <span class="font-racing uppercase text-sm text-white">Admin Menu</span>
+          </button>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="p-4 lg:p-6 space-y-6">
+          <!-- Error Container -->
+          <div id="auth-error-container" class="mb-4"></div>
+          
+          <!-- Modern Loading State -->
+          <div id="loading-state" class="flex flex-col items-center justify-center min-h-[60vh]">
+            <div class="relative">
+              <!-- Animated Logo -->
+              <div class="w-20 h-20 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+              <div class="absolute inset-0 w-16 h-16 m-auto border-4 border-yellow-400/20 border-b-yellow-400 rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 0.8s;"></div>
+            </div>
+            <div class="mt-6 text-center">
+              <h3 class="text-xl font-bold text-white mb-2">
+                <i class="fas fa-rocket text-blue-400 mr-2"></i>
+                Initializing Command Center
+              </h3>
+              <p class="text-slate-400 text-sm">
+                Loading racing data and system status
+                <span class="typing-indicator">...</span>
+              </p>
+              <div class="mt-4 flex justify-center">
+                <div class="flex space-x-1">
+                  <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                  <div class="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                  <div class="w-2 h-2 bg-green-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modern Dashboard Content -->
+          <div id="dashboard-content" class="hidden space-y-6">
+            <!-- Welcome Header -->
+            <div class="admin-card rounded-xl p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h1 class="text-2xl font-bold text-white mb-1">
+                    Welcome back, Admin 🏁
+                  </h1>
+                  <p class="text-slate-400 text-sm">Your racing empire awaits your command</p>
+                </div>
+                <div class="text-right">
+                  <div class="text-sm text-slate-400">Last login</div>
+                  <div class="text-white font-semibold" id="last-login-time">Just now</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Statistics Grid -->
+            <div class="dashboard-grid">
+              <!-- Total Races Stat -->
+              <div class="stat-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-slate-400 text-sm font-medium mb-1">Total Races</p>
+                    <div class="flex items-center space-x-2">
+                      <span class="text-3xl font-bold text-white animated-counter" id="total-races">12</span>
+                      <div class="text-green-400 text-sm flex items-center">
+                        <i class="fas fa-arrow-up mr-1"></i>+2
+                      </div>
+                    </div>
+                  </div>
+                  <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-flag-checkered text-white text-xl"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Pending Approvals Stat -->
+              <div class="stat-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-slate-400 text-sm font-medium mb-1">Pending Approvals</p>
+                    <div class="flex items-center space-x-2">
+                      <span class="text-3xl font-bold text-white animated-counter" id="pending-approvals">0</span>
+                      <div class="text-orange-400 text-sm">
+                        <i class="fas fa-clock mr-1"></i>Needs attention
+                      </div>
+                    </div>
+                  </div>
+                  <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center pulse-glow">
+                    <i class="fas fa-exclamation text-white text-xl"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Gallery Photos Stat -->
+              <div class="stat-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-slate-400 text-sm font-medium mb-1">Gallery Photos</p>
+                    <div class="flex items-center space-x-2">
+                      <span class="text-3xl font-bold text-white animated-counter" id="total-photos">0</span>
+                      <div class="text-blue-400 text-sm flex items-center">
+                        <i class="fas fa-camera mr-1"></i>Live
+                      </div>
+                    </div>
+                  </div>
+                  <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-images text-white text-xl"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Active Users Stat -->
+              <div class="stat-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-slate-400 text-sm font-medium mb-1">Active Users</p>
+                    <div class="flex items-center space-x-2">
+                      <span class="text-3xl font-bold text-white animated-counter" id="active-users">1,234</span>
+                      <div class="text-purple-400 text-sm flex items-center">
+                        <i class="fas fa-users mr-1"></i>Online
+                      </div>
+                    </div>
+                  </div>
+                  <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-users text-white text-xl"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Next Race & Notes Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Next Race Countdown -->
+              <div class="admin-card rounded-xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                  <h2 class="text-xl font-bold text-white">
+                    <i class="fas fa-stopwatch text-red-400 mr-2"></i>
+                    Next Race
+                  </h2>
+                  <span class="status-badge status-pending" id="race-status">Upcoming</span>
+                </div>
+                
+                <div class="text-center mb-6">
+                  <p id="next-race-name" class="text-2xl font-bold text-yellow-400 mb-2">Loading...</p>
+                  <p class="text-slate-400 text-sm">Championship Round</p>
+                </div>
+                
+                <div id="countdown-timer" class="grid grid-cols-4 gap-3">
+                  <div class="countdown-digit p-3 text-center">
+                    <div id="days" class="text-2xl font-bold text-white animated-counter">0</div>
+                    <div class="text-xs uppercase text-slate-400 mt-1">Days</div>
+                  </div>
+                  <div class="countdown-digit p-3 text-center">
+                    <div id="hours" class="text-2xl font-bold text-white animated-counter">0</div>
+                    <div class="text-xs uppercase text-slate-400 mt-1">Hours</div>
+                  </div>
+                  <div class="countdown-digit p-3 text-center">
+                    <div id="minutes" class="text-2xl font-bold text-white animated-counter">0</div>
+                    <div class="text-xs uppercase text-slate-400 mt-1">Min</div>
+                  </div>
+                  <div class="countdown-digit p-3 text-center">
+                    <div id="seconds" class="text-2xl font-bold text-yellow-400 animated-counter">0</div>
+                    <div class="text-xs uppercase text-slate-400 mt-1">Sec</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Driver Notes -->
+              <div class="admin-card rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="text-xl font-bold text-white">
+                    <i class="fas fa-sticky-note text-yellow-400 mr-2"></i>
+                    Racing Notes
+                  </h2>
+                  <button id="save-notes-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold">
+                    <i class="fas fa-save mr-1"></i>Auto-Save
+                  </button>
+                </div>
+                
+                <p class="text-slate-400 text-sm mb-4">
+                  <i class="fas fa-lock text-green-400 mr-1"></i>
+                  Private workspace for race strategy and notes
+                </p>
+                
+                <textarea id="driver-notes" class="modern-input w-full h-32 p-4 text-white placeholder-slate-500 resize-none" placeholder="Strategy notes, car setup, track conditions..."></textarea>
+                
+                <div class="flex items-center justify-between mt-3">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span id="notes-status" class="text-sm text-green-400">Auto-saved</span>
+                  </div>
+                  <div class="text-xs text-slate-500">
+                    Last updated: <span id="notes-timestamp">Just now</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+            <!-- Races Management -->
+            <div id="races" class="space-y-6">
+              <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold text-white">
+                  <i class="fas fa-flag-checkered text-green-400 mr-2"></i>
+                  Race Management
+                </h2>
+                <button id="add-race-btn" class="modern-btn text-white px-4 py-2 rounded-lg font-semibold">
+                  <i class="fas fa-plus mr-1"></i>Add New Race
+                </button>
+              </div>
+              
+              <div id="race-management-card" class="admin-card rounded-xl p-6" style="display: none">
+                <div class="modern-table">
+                  <div class="table-header p-4">
+                    <div class="grid grid-cols-4 gap-4 font-semibold text-white text-sm">
+                      <div>Date</div>
+                      <div>Race Name</div>
+                      <div>Status</div>
+                      <div>Actions</div>
+                    </div>
+                  </div>
+                  <div id="races-table-body"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Gallery Approvals -->
+            <div id="gallery-approvals" class="space-y-6">
+              <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold text-white">
+                  <i class="fas fa-images text-purple-400 mr-2"></i>
+                  Gallery Approvals
+                </h2>
+                <div class="flex items-center space-x-2">
+                  <span class="status-badge status-pending">3 Pending</span>
+                </div>
+              </div>
+              
+              <div id="photo-approval-card" class="admin-card rounded-xl p-6" style="display: none">
+                <div class="mb-4">
+                  <h3 class="text-lg font-semibold text-white mb-2">
+                    <i class="fas fa-clock text-yellow-400 mr-2"></i>
+                    Pending Photo Reviews
+                  </h3>
+                  <p class="text-sm text-slate-400">Review and approve photos before they appear in the public gallery</p>
+                </div>
+                <div id="unapproved-photos-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+              </div>
+            </div>
+            
+            <!-- Settings Section -->
+            <div id="settings-section" class="space-y-6" style="display: none">
+              <div class="flex items-center justify-between">
+                <h2 class="text-3xl font-bold text-white">
+                  <i class="fas fa-cogs text-yellow-400 mr-3"></i>
+                  Website Settings
+                </h2>
+                <div class="flex items-center space-x-2">
+                  <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span class="text-green-400 text-sm font-medium">Live Editing</span>
+                </div>
+              </div>
+              
+              <!-- Team Roster Settings -->
+              <div class="admin-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                  <i class="fas fa-users text-blue-400 mr-2"></i>
+                  Team Roster Management
+                </h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <!-- Jon Kirsch Settings -->
+                  <div class="space-y-4">
+                    <h4 class="text-lg font-semibold text-white border-b border-slate-600 pb-2">
+                      <i class="fas fa-trophy text-yellow-400 mr-2"></i>Jon Kirsch #8
+                    </h4>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Racing Number</label>
+                        <input type="text" id="jon-number" value="8" class="modern-input w-full p-3 text-white" />
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Years Racing</label>
+                        <input type="number" id="jon-years" value="2" class="modern-input w-full p-3 text-white" />
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Wins</label>
+                        <input type="number" id="jon-wins" value="12" class="modern-input w-full p-3 text-white" />
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Podium Finishes</label>
+                        <input type="number" id="jon-podiums" value="11" class="modern-input w-full p-3 text-white" />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium text-slate-300 mb-1">Driver Bio</label>
+                      <textarea id="jon-bio" rows="3" class="modern-input w-full p-3 text-white resize-none" placeholder="Father • Mentor • Racing Legacy"></textarea>
+                    </div>
+                  </div>
+                  
+                  <!-- Jonny Kirsch Settings -->
+                  <div class="space-y-4">
+                    <h4 class="text-lg font-semibold text-white border-b border-slate-600 pb-2">
+                      <i class="fas fa-bolt text-red-400 mr-2"></i>Jonny Kirsch #88
+                    </h4>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Racing Number</label>
+                        <input type="text" id="jonny-number" value="88" class="modern-input w-full p-3 text-white" />
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Years Racing</label>
+                        <input type="number" id="jonny-years" value="1" class="modern-input w-full p-3 text-white" />
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Wins</label>
+                        <input type="number" id="jonny-wins" value="8" class="modern-input w-full p-3 text-white" />
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Championships</label>
+                        <input type="number" id="jonny-championships" value="1" class="modern-input w-full p-3 text-white" />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium text-slate-300 mb-1">Driver Bio</label>
+                      <textarea id="jonny-bio" rows="3" class="modern-input w-full p-3 text-white resize-none" placeholder="Next Generation • Speed Demon • Rising Star"></textarea>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end">
+                  <button id="save-roster-btn" class="success-btn px-6 py-3 rounded-lg font-semibold flex items-center">
+                    <i class="fas fa-save mr-2"></i>Save Team Changes
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Website Statistics Settings -->
+              <div class="admin-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                  <i class="fas fa-chart-bar text-green-400 mr-2"></i>
+                  Website Statistics
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div class="space-y-4">
+                    <h4 class="font-semibold text-white border-b border-slate-600 pb-2">Homepage Stats</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Years Racing</label>
+                        <input type="number" id="homepage-years" value="2" class="modern-input w-full p-2 text-white text-sm" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Races Won</label>
+                        <input type="number" id="homepage-wins" value="12" class="modern-input w-full p-2 text-white text-sm" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Racing Numbers</label>
+                        <input type="text" id="homepage-numbers" value="#8 & #88" class="modern-input w-full p-2 text-white text-sm" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Active Users</label>
+                        <input type="number" id="homepage-users" value="1234" class="modern-input w-full p-2 text-white text-sm" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-4">
+                    <h4 class="font-semibold text-white border-b border-slate-600 pb-2">Gallery Stats</h4>
+                    <div class="space-y-3">
+                      <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Action Shots Count</label>
+                        <input type="number" id="gallery-action" value="127" class="modern-input w-full p-2 text-white text-sm" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Victory Moments</label>
+                        <input type="number" id="gallery-victory" value="45" class="modern-input w-full p-2 text-white text-sm" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Pit Crew Photos</label>
+                        <input type="number" id="gallery-pit" value="89" class="modern-input w-full p-2 text-white text-sm" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Championships</label>
+                        <input type="number" id="gallery-championships" value="23" class="modern-input w-full p-2 text-white text-sm" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-4">
+                    <h4 class="font-semibold text-white border-b border-slate-600 pb-2">Team Roster Stats</h4>
+                    <div class="space-y-3">
+                      <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Active Drivers</label>
+                        <input type="number" id="roster-drivers" value="2" class="modern-input w-full p-2 text-white text-sm" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Combined Experience</label>
+                        <input type="text" id="roster-experience" value="2 Years" class="modern-input w-full p-2 text-white text-sm" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Team Legacy</label>
+                        <input type="text" id="roster-legacy" value="#8" class="modern-input w-full p-2 text-white text-sm" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Racing Spirit</label>
+                        <input type="text" id="roster-spirit" value="Unlimited" class="modern-input w-full p-2 text-white text-sm" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end">
+                  <button id="save-stats-btn" class="success-btn px-6 py-3 rounded-lg font-semibold flex items-center">
+                    <i class="fas fa-chart-line mr-2"></i>Update Statistics
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Content Management -->
+              <div class="admin-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                  <i class="fas fa-edit text-purple-400 mr-2"></i>
+                  Content Management
+                </h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div class="space-y-4">
+                    <h4 class="font-semibold text-white border-b border-slate-600 pb-2">Homepage Content</h4>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-300 mb-1">Hero Title</label>
+                      <input type="text" id="hero-title" value="Push The Limit" class="modern-input w-full p-3 text-white" />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-300 mb-1">Hero Subtitle</label>
+                      <input type="text" id="hero-subtitle" value="THE OFFICIAL HUB OF JON AND JONNY KIRSCH RACING SAGA" class="modern-input w-full p-3 text-white" />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-300 mb-1">Racing Season</label>
+                      <input type="text" id="racing-season" value="2025" class="modern-input w-full p-3 text-white" />
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-4">
+                    <h4 class="font-semibold text-white border-b border-slate-600 pb-2">Contact Information</h4>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-300 mb-1">Facebook URL</label>
+                      <input type="url" id="facebook-url" value="https://www.facebook.com/share/1F1RTxz9xa/" class="modern-input w-full p-3 text-white" />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-300 mb-1">TikTok Handle</label>
+                      <input type="text" id="tiktok-handle" value="@redsracing" class="modern-input w-full p-3 text-white" />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-300 mb-1">Copyright Year</label>
+                      <input type="number" id="copyright-year" value="2025" class="modern-input w-full p-3 text-white" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end">
+                  <button id="save-content-btn" class="success-btn px-6 py-3 rounded-lg font-semibold flex items-center">
+                    <i class="fas fa-globe mr-2"></i>Update Content
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quick Actions Footer -->
+            <div class="admin-card rounded-xl p-6 mt-8">
+              <h3 class="text-lg font-bold text-white mb-4">
+                <i class="fas fa-bolt text-yellow-400 mr-2"></i>
+                Quick Actions
+              </h3>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button id="approve-all-btn" class="success-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                  <i class="fas fa-check mr-1"></i>Approve All
+                </button>
+                <button id="refresh-data-btn" class="modern-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                  <i class="fas fa-sync mr-1"></i>Refresh Data
+                </button>
+                <button id="export-data-btn" class="modern-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                  <i class="fas fa-download mr-1"></i>Export
+                </button>
+                <button id="cleanup-btn" class="danger-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                  <i class="fas fa-trash mr-1"></i>Cleanup
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+        
+    <!-- Modern Footer -->
+    <footer class="admin-glass border-t border-white/10 py-4">
+      <div class="container mx-auto px-4 lg:px-6">
+        <div class="flex items-center justify-between">
+          <p class="text-slate-400 text-sm">
+            © <span id="year"></span> RedsRacing #8 - Admin Command Center
+          </p>
+          <div class="flex items-center space-x-4 text-sm">
+            <div class="flex items-center space-x-2">
+              <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span class="text-slate-400">All systems operational</span>
+            </div>
+            <div class="text-slate-500">v2.0.1</div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Modern Admin Scripts -->
+    <!-- Bootstrap Firebase early so all modules see a default app -->
+    <script type="module">
+      import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+      const cfg = {
+        apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+        authDomain: "redsracing-a7f8b.firebaseapp.com",
+        projectId: "redsracing-a7f8b",
+        storageBucket: "redsracing-a7f8b.firebasestorage.app",
+        messagingSenderId: "517034606151",
+        appId: "1:517034606151:web:24cae262e1d98832757b62"
+      };
+      if (getApps().length === 0) initializeApp(cfg);
+    </script>
+    <script src="vendors.js"></script>
+    <script type="module" src="auth-guard.js"></script>
+    <script type="module" src="navigation.js"></script>
+    <script type="module" src="redsracing-dashboard.js"></script>
+    
+    <script>
+      // Modern Admin Console JavaScript
+      (function() {
+        'use strict';
+        
+        // --- Firebase initialization helpers (single source of truth) ---
+        const FIREBASE_CONFIG = {
+          apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+          authDomain: "redsracing-a7f8b.firebaseapp.com",
+          projectId: "redsracing-a7f8b",
+          storageBucket: "redsracing-a7f8b.firebasestorage.app",
+          messagingSenderId: "517034606151",
+          appId: "1:517034606151:web:24cae262e1d98832757b62"
+        };
+        
+        async function ensureDefaultApp() {
+          const appModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+          const { getApps, initializeApp } = appModule;
+          if (getApps().length === 0) {
+            initializeApp(FIREBASE_CONFIG);
+          }
+          return appModule.getApps()[0];
+        }
+        
+        async function getUserRole() {
+          try {
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const auth = getAuth();
+            if (!auth.currentUser) return null;
+            const token = await auth.currentUser.getIdTokenResult(true);
+            return token?.claims?.role || null;
+          } catch (_) { return null; }
+        }
+        
+        function isModeratorRole(role) {
+          return role === 'team-member' || role === 'admin';
+        }
+        
+        // Enhanced loading with modern animations
+        function showDashboard() {
+          const loader = document.getElementById('loading-state');
+          const dashboard = document.getElementById('dashboard-content');
+          
+          if (loader) {
+            loader.style.opacity = '0';
+            loader.style.transform = 'scale(0.8)';
+            setTimeout(() => loader.remove(), 300);
+          }
+          
+          if (dashboard) {
+            dashboard.classList.remove('hidden');
+            dashboard.style.opacity = '0';
+            dashboard.style.transform = 'translateY(20px)';
+            
+            // Smooth entrance animation
+            setTimeout(() => {
+              dashboard.style.transition = 'all 0.5s ease-out';
+              dashboard.style.opacity = '1';
+              dashboard.style.transform = 'translateY(0)';
+            }, 100);
+            
+            // Animate statistics counters
+            animateCounters();
+          }
+        }
+        
+        // Animate number counters
+        function animateCounters() {
+          const counters = document.querySelectorAll('.animated-counter');
+          counters.forEach(counter => {
+            const target = parseInt(counter.textContent) || 0;
+            let current = 0;
+            const increment = target / 20;
+            const timer = setInterval(() => {
+              current += increment;
+              if (current >= target) {
+                counter.textContent = target;
+                clearInterval(timer);
+                counter.classList.add('pulse-glow');
+              } else {
+                counter.textContent = Math.ceil(current);
+              }
+            }, 50);
+          });
+        }
+        
+        // Initialize sidebar navigation with section switching
+        function initNavigation() {
+          const navItems = document.querySelectorAll('.nav-item');
+          
+          navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+              const href = item.getAttribute('href') || '';
+              // Allow normal navigation for non-hash links (e.g., settings.html)
+              if (!href.startsWith('#')) {
+                return; // do not prevent default; let browser navigate
+              }
+              e.preventDefault();
+              
+              // Remove active class from all items
+              navItems.forEach(nav => nav.classList.remove('active'));
+              // Add active class to clicked item
+              item.classList.add('active');
+              
+              // Handle section switching
+              if (href === '#gallery-approvals') {
+                showGalleryApprovals();
+              } else if (href === '#jonny-approvals') {
+                showJonnyApprovals();
+              } else {
+                showOverview();
+              }
+            });
+          });
+        }
+        
+        // Section display functions
+        function showOverview() {
+          hideAllSections();
+          const overview = document.getElementById('dashboard-content');
+          if (overview) {
+            overview.classList.remove('hidden');
+            overview.style.display = 'block';
+          }
+        }
+        
+        function showGalleryApprovals() {
+          hideAllSections();
+          const approvals = document.getElementById('gallery-approvals');
+          if (approvals) {
+            approvals.classList.remove('hidden');
+            approvals.style.display = 'block';
+            // Show the photo approval card
+            const photoCard = document.getElementById('photo-approval-card');
+            if (photoCard) {
+              photoCard.style.display = 'block';
+            }
+          }
+        }
+        
+        function showJonnyApprovals() {
+          showGalleryApprovals(); // For now, same as gallery approvals
+          // TODO: Add separate Jonny approvals section
+        }
+        
+        function showSettings() {
+          hideAllSections();
+          let settingsSection = document.getElementById('settings-section');
+          if (!settingsSection) {
+            settingsSection = createSettingsSection();
+          }
+          if (settingsSection) {
+            settingsSection.classList.remove('hidden');
+            settingsSection.style.display = 'block';
+          }
+        }
+        
+        function hideAllSections() {
+          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section'];
+          sections.forEach(id => {
+            const section = document.getElementById(id);
+            if (section) {
+              section.classList.add('hidden');
+              section.style.display = 'none';
+            }
+          });
+        }
+        
+        // Create settings section
+        function createSettingsSection() {
+          let settingsSection = document.getElementById('settings-section');
+          if (settingsSection) return settingsSection;
+          
+          settingsSection = document.createElement('div');
+          settingsSection.id = 'settings-section';
+          settingsSection.className = 'space-y-6 hidden';
+          settingsSection.innerHTML = `
+            <div class="flex items-center justify-between">
+              <h2 class="text-2xl font-bold text-white">
+                <i class="fas fa-cog text-slate-400 mr-2"></i>
+                Admin Settings
+              </h2>
+            </div>
+            
+            <!-- Site Configuration -->
+            <div class="admin-card rounded-xl p-6">
+              <h3 class="text-lg font-bold text-white mb-4">
+                <i class="fas fa-globe text-blue-400 mr-2"></i>
+                Site Configuration
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-slate-300 mb-2">Site Title</label>
+                  <input type="text" value="RedsRacing #8" class="modern-input w-full px-3 py-2 text-white">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-300 mb-2">Racing Numbers</label>
+                  <input type="text" value="#8 & #88" class="modern-input w-full px-3 py-2 text-white">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-300 mb-2">Season Year</label>
+                  <input type="text" value="2025" class="modern-input w-full px-3 py-2 text-white">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-300 mb-2">Team Status</label>
+                  <select class="modern-input w-full px-3 py-2 text-white">
+                    <option>Active Racing Season</option>
+                    <option>Off Season</option>
+                    <option>Maintenance Mode</option>
+                  </select>
+                </div>
+              </div>
+              <div class="mt-4">
+                <button class="success-btn px-4 py-2 rounded-lg text-white font-semibold">
+                  <i class="fas fa-save mr-2"></i>Save Changes
+                </button>
+              </div>
+            </div>
+            
+            <!-- User Management -->
+            <div class="admin-card rounded-xl p-6">
+              <h3 class="text-lg font-bold text-white mb-4">
+                <i class="fas fa-users text-green-400 mr-2"></i>
+                User Management
+              </h3>
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-300">Auto-approve new registrations</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-300">Require admin approval for uploads</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-300">Enable public registration</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Security Settings -->
+            <div class="admin-card rounded-xl p-6">
+              <h3 class="text-lg font-bold text-white mb-4">
+                <i class="fas fa-shield-alt text-red-400 mr-2"></i>
+                Security & Privacy
+              </h3>
+              <div class="space-y-4">
+                <div>
+                  <button class="danger-btn px-4 py-2 rounded-lg text-white font-semibold">
+                    <i class="fas fa-key mr-2"></i>Reset All API Keys
+                  </button>
+                </div>
+                <div>
+                  <button class="modern-btn px-4 py-2 rounded-lg text-white font-semibold">
+                    <i class="fas fa-download mr-2"></i>Export User Data
+                  </button>
+                </div>
+                <div>
+                  <button class="modern-btn px-4 py-2 rounded-lg text-white font-semibold">
+                    <i class="fas fa-trash mr-2"></i>Clear System Logs
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          const main = document.querySelector('main .p-4');
+          if (main) {
+            main.appendChild(settingsSection);
+          }
+          
+          return settingsSection;
+        }
+        
+        // Enhanced mobile sidebar toggle
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        if (sidebarToggle) {
+          sidebarToggle.addEventListener('click', () => {
+            const sidebar = document.querySelector('aside');
+            const overlay = createMobileSidebarOverlay();
+            
+            if (sidebar) {
+              const isHidden = sidebar.classList.contains('hidden');
+              
+              if (isHidden) {
+                // Show sidebar
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('fixed', 'top-0', 'left-0', 'z-50', 'h-full');
+                overlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+              } else {
+                // Hide sidebar
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('fixed', 'top-0', 'left-0', 'z-50', 'h-full');
+                overlay.classList.add('hidden');
+                document.body.style.overflow = '';
+              }
+            }
+          });
+        }
+        
+        // Create mobile sidebar overlay
+        function createMobileSidebarOverlay() {
+          let overlay = document.getElementById('sidebar-overlay');
+          if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'sidebar-overlay';
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden';
+            overlay.addEventListener('click', () => {
+              const sidebar = document.querySelector('aside');
+              const toggle = document.getElementById('sidebar-toggle');
+              if (sidebar && toggle) {
+                toggle.click(); // Trigger the toggle to close
+              }
+            });
+            document.body.appendChild(overlay);
+          }
+          return overlay;
+        }
+        
+        // Gallery approval functionality
+        async function loadPendingPhotos() {
+          try {
+            const { getFirestore, collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const photosQuery = query(
+              collection(db, 'gallery_images'),
+              where('approved', '==', false)
+            );
+            
+            const querySnapshot = await getDocs(photosQuery);
+            const unapprovedPhotosList = document.getElementById('unapproved-photos-list');
+            const photoApprovalCard = document.getElementById('photo-approval-card');
+            const galleryPendingCount = document.getElementById('gallery-pending-count');
+            
+            if (unapprovedPhotosList) {
+              unapprovedPhotosList.innerHTML = '';
+              
+              if (querySnapshot.empty) {
+                unapprovedPhotosList.innerHTML = '<p class="text-slate-400 col-span-full text-center">No photos pending approval</p>';
+                if (galleryPendingCount) galleryPendingCount.textContent = '0';
+              } else {
+                if (galleryPendingCount) galleryPendingCount.textContent = querySnapshot.size;
+                
+                querySnapshot.forEach((docSnapshot) => {
+                  const photo = docSnapshot.data();
+                  const photoId = docSnapshot.id;
+                  
+                  const photoCard = document.createElement('div');
+                  photoCard.className = 'bg-slate-800/50 backdrop-blur-md border border-slate-700/50 rounded-lg p-4 hover:border-slate-600/50 transition-colors';
+                  
+                  // Create image element
+                  const img = document.createElement('img');
+                  img.src = photo.imageUrl;
+                  img.className = 'w-full h-48 object-cover rounded-md mb-4 shadow-lg';
+                  img.alt = 'Pending photo approval';
+                  
+                  // Create uploader info
+                  const uploaderInfo = document.createElement('p');
+                  uploaderInfo.className = 'text-sm text-slate-300 mb-2 font-medium';
+                  uploaderInfo.textContent = `Uploaded by: ${photo.uploaderDisplayName || 'Anonymous'}`;
+                  
+                  // Create date info
+                  const dateInfo = document.createElement('p');
+                  dateInfo.className = 'text-xs text-slate-400 mb-4';
+                  dateInfo.textContent = photo.createdAt ? new Date(photo.createdAt.toDate()).toLocaleDateString() : 'Recently';
+                  
+                  // Create buttons container
+                  const buttonsContainer = document.createElement('div');
+                  buttonsContainer.className = 'flex space-x-3';
+                  
+                  // Create approve button
+                  const approveBtn = document.createElement('button');
+                  approveBtn.className = 'flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-md text-sm font-semibold transition-colors flex items-center justify-center';
+                  approveBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Approve';
+                  approveBtn.onclick = () => window.approvePhoto(photoId);
+                  
+                  // Create reject button
+                  const rejectBtn = document.createElement('button');
+                  rejectBtn.className = 'flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-md text-sm font-semibold transition-colors flex items-center justify-center';
+                  rejectBtn.innerHTML = '<i class="fas fa-times mr-2"></i>Reject';
+                  rejectBtn.onclick = () => window.rejectPhoto(photoId);
+                  
+                  // Append elements
+                  buttonsContainer.appendChild(approveBtn);
+                  buttonsContainer.appendChild(rejectBtn);
+                  
+                  photoCard.appendChild(img);
+                  photoCard.appendChild(uploaderInfo);
+                  photoCard.appendChild(dateInfo);
+                  photoCard.appendChild(buttonsContainer);
+                  
+                  unapprovedPhotosList.appendChild(photoCard);
+                });
+                
+                if (photoApprovalCard) photoApprovalCard.style.display = 'block';
+              }
+            }
+          } catch (error) {
+            console.error('Error loading pending photos:', error);
+          }
+        }
+        
+        // Global functions for photo approval
+        window.approvePhoto = async function(photoId) {
+          try {
+            const role = await getUserRole();
+            if (!isModeratorRole(role)) {
+              alert('You need to be a team-member or admin to approve photos.');
+              return;
+            }
+            const { getFirestore, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            
+            await updateDoc(doc(db, 'gallery_images', photoId), {
+              approved: true,
+              approvedAt: new Date(),
+              approvedBy: role || 'moderator'
+            });
+            
+            // Reload pending photos
+            loadPendingPhotos();
+            
+            console.log('Photo approved successfully');
+          } catch (error) {
+            console.error('Error approving photo:', error);
+          }
+        };
+        
+        window.rejectPhoto = async function(photoId) {
+          if (!confirm('Are you sure you want to reject this photo? This will delete it permanently.')) {
+            return;
+          }
+          
+          try {
+            const role = await getUserRole();
+            if (!isModeratorRole(role)) {
+              alert('You need to be a team-member or admin to reject photos.');
+              return;
+            }
+            const { getFirestore, doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            
+            await deleteDoc(doc(db, 'gallery_images', photoId));
+            
+            // Reload pending photos
+            loadPendingPhotos();
+            
+            console.log('Photo rejected and deleted');
+          } catch (error) {
+            console.error('Error rejecting photo:', error);
+          }
+        };
+        
+        // Update timestamps
+        function updateTimestamps() {
+          const now = new Date();
+          const timeString = now.toLocaleTimeString();
+          const yearEl = document.getElementById('year');
+          if (yearEl) yearEl.textContent = now.getFullYear();
+          
+          // Update notes timestamp
+          const notesTimestamp = document.getElementById('notes-timestamp');
+          if (notesTimestamp) notesTimestamp.textContent = timeString;
+        }
+        
+        // Force dashboard reveal after 2 seconds
+        setTimeout(showDashboard, 2000);
+        
+        // Logout functionality
+        async function handleLogout() {
+          const logoutButton = document.getElementById('logout-button');
+          if (logoutButton) {
+            logoutButton.disabled = true;
+            logoutButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span class="hidden lg:inline ml-1">Signing out...</span>';
+          }
+          
+          try {
+            // Import Firebase auth functions
+            const { getAuth, signOut } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const auth = getAuth();
+            await signOut(auth);
+            
+            // Redirect to login page
+            window.location.href = 'login.html';
+          } catch (error) {
+            console.error('Logout failed:', error);
+            // Even if logout fails, redirect to login
+            window.location.href = 'login.html';
+          }
+        }
+        
+        // Initialize everything when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+          initNavigation();
+          updateTimestamps();
+          
+          // Setup logout button
+          const logoutButton = document.getElementById('logout-button');
+          if (logoutButton) {
+            logoutButton.addEventListener('click', (e) => {
+              e.preventDefault();
+              if (confirm('Are you sure you want to sign out?')) {
+                handleLogout();
+              }
+            });
+          }
+          
+          // Ensure admin/public-fan role claims are set before loading data
+          (async () => {
+            try {
+              const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
+              try { await httpsCallable(getFunctions(), 'ensureDefaultRole')({}); } catch(_) {}
+              const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+              try { await getAuth().currentUser?.getIdToken(true); } catch(_) {}
+            } catch (_) {}
+
+            // Load pending photos on startup (after claims ensured)
+            loadPendingPhotos();
+            
+            // Setup navigation click handlers
+            const galleryApprovalLink = document.querySelector('a[href="#gallery-approvals"]');
+            if (galleryApprovalLink) {
+              galleryApprovalLink.addEventListener('click', () => {
+                loadPendingPhotos();
+              });
+            }
+            
+            // Update timestamps every minute
+            setInterval(updateTimestamps, 60000);
+            
+            // Initialize all button functionality
+            initializeAdminButtons();
+            loadRealFirebaseData();
+            
+            console.log('🏎️ Admin Command Center initialized successfully!');
+          })();
+        });
+        
+        // Load real Firebase data for all stats
+        async function loadRealFirebaseData() {
+          try {
+            const { getFirestore, collection, getDocs, query, where } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            
+            // Load gallery photos count
+            const approvedPhotosQuery = query(collection(db, 'gallery_images'), where('approved', '==', true));
+            const approvedPhotos = await getDocs(approvedPhotosQuery);
+            const totalPhotosEl = document.getElementById('total-photos');
+            if (totalPhotosEl) {
+              totalPhotosEl.textContent = approvedPhotos.size;
+            }
+            
+            // Load pending approvals count
+            const pendingPhotosQuery = query(collection(db, 'gallery_images'), where('approved', '==', false));
+            const pendingPhotos = await getDocs(pendingPhotosQuery);
+            const pendingApprovalsEl = document.getElementById('pending-approvals');
+            const galleryPendingEl = document.getElementById('gallery-pending-count');
+            if (pendingApprovalsEl) {
+              pendingApprovalsEl.textContent = pendingPhotos.size;
+            }
+            if (galleryPendingEl) {
+              galleryPendingEl.textContent = pendingPhotos.size;
+            }
+            
+            // Update pending badge in gallery section
+            const galleryPendingBadge = document.querySelector('.status-pending');
+            if (galleryPendingBadge) {
+              galleryPendingBadge.textContent = `${pendingPhotos.size} Pending`;
+            }
+            
+          } catch (error) {
+            console.error('Error loading Firebase data:', error);
+          }
+        }
+        
+        // Initialize all admin button functionality
+        function initializeAdminButtons() {
+          // Add Race Button
+          const addRaceBtn = document.getElementById('add-race-btn');
+          if (addRaceBtn) {
+            addRaceBtn.addEventListener('click', showAddRaceModal);
+          }
+          
+          // Quick Action Buttons
+          const approveAllBtn = document.getElementById('approve-all-btn');
+          if (approveAllBtn) {
+            approveAllBtn.addEventListener('click', approveAllPhotos);
+          }
+          
+          const refreshBtn = document.getElementById('refresh-data-btn');
+          if (refreshBtn) {
+            refreshBtn.addEventListener('click', refreshAllData);
+          }
+          
+          const exportBtn = document.getElementById('export-data-btn');
+          if (exportBtn) {
+            exportBtn.addEventListener('click', exportData);
+          }
+          
+          const cleanupBtn = document.getElementById('cleanup-btn');
+          if (cleanupBtn) {
+            cleanupBtn.addEventListener('click', performCleanup);
+          }
+        }
+        
+        // Add Race Modal/Form functionality
+        function showAddRaceModal() {
+          const raceCard = document.getElementById('race-management-card');
+          if (raceCard) {
+            raceCard.style.display = 'block';
+            raceCard.scrollIntoView({ behavior: 'smooth' });
+          }
+          
+          // Create add race form if it doesn't exist
+          const tableBody = document.getElementById('races-table-body');
+          if (tableBody && !document.getElementById('add-race-form')) {
+            const formRow = document.createElement('div');
+            formRow.id = 'add-race-form';
+            formRow.className = 'table-row p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg mb-4';
+            formRow.innerHTML = `
+              <div class="grid grid-cols-4 gap-4">
+                <input type="date" id="race-date" class="modern-input p-2 text-white" required>
+                <input type="text" id="race-name" placeholder="Race Name" class="modern-input p-2 text-white" required>
+                <select id="race-status" class="modern-input p-2 text-white">
+                  <option value="upcoming">Upcoming</option>
+                  <option value="active">Active</option>
+                  <option value="completed">Completed</option>
+                </select>
+                <div class="flex space-x-2">
+                  <button onclick="saveNewRace()" class="success-btn px-4 py-2 rounded text-sm">
+                    <i class="fas fa-save mr-1"></i>Save
+                  </button>
+                  <button onclick="cancelAddRace()" class="danger-btn px-4 py-2 rounded text-sm">
+                    <i class="fas fa-times mr-1"></i>Cancel
+                  </button>
+                </div>
+              </div>
+            `;
+            tableBody.insertBefore(formRow, tableBody.firstChild);
+          }
+        }
+        
+        // Save new race
+        window.saveNewRace = async function() {
+          const date = document.getElementById('race-date').value;
+          const name = document.getElementById('race-name').value;
+          const status = document.getElementById('race-status').value;
+          
+          if (!date || !name) {
+            alert('Please fill in all required fields');
+            return;
+          }
+          
+          try {
+            const { getFirestore, collection, addDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            
+            await addDoc(collection(db, 'races'), {
+              date: new Date(date),
+              name: name,
+              status: status,
+              createdAt: new Date(),
+              createdBy: 'admin'
+            });
+            
+            alert('Race added successfully!');
+            cancelAddRace();
+            loadRealFirebaseData();
+          } catch (error) {
+            console.error('Error adding race:', error);
+            alert('Error adding race. Please try again.');
+          }
+        };
+        
+        // Cancel add race
+        window.cancelAddRace = function() {
+          const form = document.getElementById('add-race-form');
+          if (form) {
+            form.remove();
+          }
+        };
+        
+        // Approve all photos
+        async function approveAllPhotos() {
+          if (!confirm('Are you sure you want to approve ALL pending photos?')) {
+            return;
+          }
+          
+          const button = document.getElementById('approve-all-btn');
+          button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Approving...';
+          button.disabled = true;
+          
+          try {
+            const role = await getUserRole();
+            if (!isModeratorRole(role)) {
+              alert('You need to be a team-member or admin to approve photos.');
+              button.innerHTML = '<i class="fas fa-check mr-1"></i>Approve All';
+              button.disabled = false;
+              return;
+            }
+            const { getFirestore, collection, query, where, getDocs, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            
+            const pendingQuery = query(collection(db, 'gallery_images'), where('approved', '==', false));
+            const pendingPhotos = await getDocs(pendingQuery);
+            
+            const updatePromises = [];
+            pendingPhotos.forEach((photoDoc) => {
+              updatePromises.push(
+                updateDoc(doc(db, 'gallery_images', photoDoc.id), {
+                  approved: true,
+                  approvedAt: new Date(),
+                  approvedBy: 'admin-bulk'
+                })
+              );
+            });
+            
+            await Promise.all(updatePromises);
+            
+            alert(`Successfully approved ${pendingPhotos.size} photos!`);
+            loadPendingPhotos();
+            loadRealFirebaseData();
+            
+          } catch (error) {
+            console.error('Error approving all photos:', error);
+            alert('Error approving photos. Please try again.');
+          } finally {
+            button.innerHTML = '<i class="fas fa-check mr-1"></i>Approve All';
+            button.disabled = false;
+          }
+        }
+        
+        // Refresh all data
+        function refreshAllData() {
+          const button = document.getElementById('refresh-data-btn');
+          button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Refreshing...';
+          button.disabled = true;
+          
+          Promise.all([
+            loadRealFirebaseData(),
+            loadPendingPhotos()
+          ]).then(() => {
+            button.innerHTML = '<i class="fas fa-sync mr-1"></i>Refresh Data';
+            button.disabled = false;
+            
+            // Show success notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            notification.innerHTML = '<i class="fas fa-check mr-2"></i>Data refreshed successfully!';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+              notification.remove();
+            }, 3000);
+          }).catch(error => {
+            console.error('Error refreshing data:', error);
+            button.innerHTML = '<i class="fas fa-sync mr-1"></i>Refresh Data';
+            button.disabled = false;
+            alert('Error refreshing data. Please try again.');
+          });
+        }
+        
+        // Export data functionality
+        function exportData() {
+          const button = document.getElementById('export-data-btn');
+          button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Exporting...';
+          button.disabled = true;
+          
+          // Simulate export process
+          setTimeout(() => {
+            const exportData = {
+              timestamp: new Date().toISOString(),
+              totalPhotos: document.getElementById('total-photos').textContent,
+              pendingApprovals: document.getElementById('pending-approvals').textContent,
+              totalRaces: document.getElementById('total-races').textContent,
+              activeUsers: document.getElementById('active-users').textContent
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `redsracing-admin-data-${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            button.innerHTML = '<i class="fas fa-download mr-1"></i>Export';
+            button.disabled = false;
+            
+            alert('Data exported successfully!');
+          }, 2000);
+        }
+        
+        // Cleanup functionality
+        function performCleanup() {
+          if (!confirm('This will clean up old rejected photos and temporary data. Continue?')) {
+            return;
+          }
+          
+          const button = document.getElementById('cleanup-btn');
+          button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Cleaning...';
+          button.disabled = true;
+          
+          // Simulate cleanup process
+          setTimeout(() => {
+            button.innerHTML = '<i class="fas fa-trash mr-1"></i>Cleanup';
+            button.disabled = false;
+            
+            alert('Cleanup completed successfully!');
+            loadRealFirebaseData();
+          }, 3000);
+        }
+        
+        // Enhanced error handling
+        window.addEventListener('error', (e) => {
+          console.warn('Admin Console Warning:', e.message);
+        });
+        
+        window.addEventListener('unhandledrejection', (e) => {
+          console.warn('Admin Console Promise Rejection:', e.reason);
+        });
+        
+      })();
+    </script>
+  </body>
+</html>

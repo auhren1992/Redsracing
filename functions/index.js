@@ -7,7 +7,16 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
+const Sentry = require("@sentry/node");
+let __dsn = process.env.SENTRY_DSN;
+try {
+  if (!__dsn) {
+    const cfg = require("firebase-functions").config?.() || {};
+    __dsn = cfg?.sentry?.dsn || undefined;
+  }
+} catch {}
+Sentry.init({ dsn: __dsn, tracesSampleRate: 0.1 });
 const { onObjectFinalized } = require("firebase-functions/v2/storage");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
@@ -18,7 +27,7 @@ const vision = require("@google-cloud/vision");
 const cors = require("cors")({ origin: true });
 
 // Initialize Firebase Admin SDK
-initializeApp({ storageBucket: "redsracing-a7f8b.appspot.com" });
+initializeApp({ storageBucket: "redsracing-a7f8b.firebasestorage.app" });
 
 /**
  * Processes an invitation code upon user signup.
@@ -32,7 +41,7 @@ initializeApp({ storageBucket: "redsracing-a7f8b.appspot.com" });
  * @param {string} data.uid The UID of the user who signed up.
  * @returns {Promise<object>} A promise that resolves with the result of the operation.
  */
-exports.processInvitationCode = onCall(async (request) => {
+exports.processInvitationCode = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
   // Check if the user is authenticated.
   // While the rules on the function should prevent this, it's a good failsafe.
   if (!request.auth) {
@@ -87,10 +96,10 @@ exports.processInvitationCode = onCall(async (request) => {
 
     if (!codeData.role) {
       logger.info(
-        `Invitation code '${code}' is missing a role. Defaulting to 'team-member' and updating the document.`,
+        `Invitation code '${code}' is missing a role. Defaulting to 'public-fan' and updating the document.`,
       );
-      await codeDoc.ref.update({ role: "team-member" });
-      codeData.role = "team-member"; // Update the local copy as well
+      await codeDoc.ref.update({ role: "public-fan" });
+      codeData.role = "public-fan"; // Update the local copy as well
     }
 
     // 2. Check if the code is still valid (not expired and not already used)
@@ -151,6 +160,7 @@ exports.processInvitationCode = onCall(async (request) => {
     };
   } catch (error) {
     logger.error(`Error processing invitation code for user ${uid}:`, error);
+    try { Sentry.captureException(error); } catch (_) {}
     throw new HttpsError(
       "internal",
       "An internal error occurred while processing the code.",
@@ -172,10 +182,11 @@ exports.processInvitationCode = onCall(async (request) => {
 exports.generateTags = onObjectFinalized(
   {
     region: "us-central1", // Explicitly specify the function's region
-    bucket: "redsracing-a7f8b.appspot.com", // Use the Firebase Storage bucket name for this project
+  bucket: "redsracing-a7f8b.firebasestorage.app", // Use the Firebase Storage bucket for this project
     cpu: 2, // Allocate more CPU
     memory: "1GiB", // Allocate more memory
     timeoutSeconds: 300, // Extend timeout
+    secrets: ["SENTRY_DSN"], // Add secret access
   },
   async (event) => {
     const fileBucket = event.data.bucket; // The Storage bucket that contains the file.
@@ -250,13 +261,21 @@ exports.generateTags = onObjectFinalized(
         candidateUrls.push(`${googleapisBaseUrl}&token=${downloadToken}`);
       }
 
-      // firebasestorage.app domain URLs (derive '<project>.firebasestorage.app' from '<project>.appspot.com')
-      const bucketHostPrefix = fileBucket.replace(/\.appspot\.com$/, "");
-      const appDomainBaseUrl = `https://${bucketHostPrefix}.firebasestorage.app/o/${encodeURIComponent(filePath)}?alt=media`;
-      candidateUrls.push(appDomainBaseUrl);
-      if (downloadToken) {
-        candidateUrls.push(`${appDomainBaseUrl}&token=${downloadToken}`);
-      }
+    // firebasestorage.app domain URLs (support both legacy appspot.com bucket IDs and new firebasestorage.app IDs)
+    let appDomainHost;
+    if (/\.appspot\.com$/.test(fileBucket)) {
+      const prefix = fileBucket.replace(/\.appspot\.com$/, '');
+      appDomainHost = `${prefix}.firebasestorage.app`;
+    } else if (/\.firebasestorage\.app$/.test(fileBucket)) {
+      appDomainHost = fileBucket; // Already a full host
+    } else {
+      appDomainHost = fileBucket; // Fallback
+    }
+    const appDomainBaseUrl = `https://${appDomainHost}/o/${encodeURIComponent(filePath)}?alt=media`;
+    candidateUrls.push(appDomainBaseUrl);
+    if (downloadToken) {
+      candidateUrls.push(`${appDomainBaseUrl}&token=${downloadToken}`);
+    }
 
       const galleryRef = db.collection("gallery_images");
       let imageDoc = null;
@@ -294,6 +313,7 @@ exports.generateTags = onObjectFinalized(
       );
     } catch (error) {
       logger.error(`Failed to analyze image ${filePath}. Error:`, error);
+      try { Sentry.captureException(error); } catch (_) {}
       // Optionally, update the Firestore doc with an error state
       // This helps in debugging and re-triggering failed jobs.
     }
@@ -311,7 +331,7 @@ exports.generateTags = onObjectFinalized(
  * @param {string} data.userId The UID of the user profile to fetch.
  * @returns {Promise<object>} A promise that resolves with the user's profile data.
  */
-exports.getProfile = onCall(async (request) => {
+exports.getProfile = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
   if (!request.auth) {
     logger.error("getProfile called by unauthenticated user.");
     throw new HttpsError(
@@ -344,6 +364,7 @@ exports.getProfile = onCall(async (request) => {
     return userDoc.data();
   } catch (error) {
     logger.error(`Error fetching profile for user ${userId}:`, error);
+    try { Sentry.captureException(error); } catch (_) {}
     if (error.code === "not-found") {
       throw error; // Re-throw HttpsError
     }
@@ -352,6 +373,65 @@ exports.getProfile = onCall(async (request) => {
       "An internal error occurred while fetching the profile.",
       error,
     );
+  }
+});
+
+
+// Assign default role based on configured admin email vs everyone else
+exports.ensureDefaultRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
+  if (!request.auth) {
+    logger.error("ensureDefaultRole called by unauthenticated user.");
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+  try {
+    // Read admin email from config or env
+    let ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+    try {
+      const cfg = require("firebase-functions").config?.() || {};
+      ADMIN_EMAIL = cfg?.admin?.email || ADMIN_EMAIL;
+    } catch {}
+
+    const uid = request.auth.uid;
+    const email = request.auth.token?.email || "";
+    const roleToAssign = (ADMIN_EMAIL && email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase())
+      ? "admin"
+      : "public-fan";
+
+    const auth = getAuth();
+    const db = getFirestore();
+
+    await auth.setCustomUserClaims(uid, { role: roleToAssign });
+    await db.collection("users").doc(uid).set({ role: roleToAssign }, { merge: true });
+
+    logger.info(`ensureDefaultRole: set role '${roleToAssign}' for user ${uid} (${email}).`);
+    return { status: "success", role: roleToAssign };
+  } catch (error) {
+    logger.error("ensureDefaultRole failed", error);
+    try { Sentry.captureException(error); } catch(_) {}
+    throw new HttpsError("internal", "Failed to set default role.");
+  }
+});
+
+// Fetch K1 Addison Junior League row for Jonny/Jonathon/Jonathan Kirsch (best-effort parser)
+exports.fetchK1AddisonJonny = onRequest({ secrets: ["SENTRY_DSN"] }, async (req, res) => {
+  try {
+    const url = 'https://www.k1speed.com/addison-junior-league-results.html';
+    const r = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const html = await r.text();
+    // Normalize whitespace
+    const text = html.replace(/\s+/g, ' ');
+    // Capture the row for "Jonny|Jonathon|Jonathan Kirsch": a sequence of numbers (GP) then a total
+    const rx = /(Jonny|Jonathon|Jonathan)\s+Kirsch\s+((?:\d+\s+){1,24})(\d{1,4})(?!\s*\d)/i;
+    const m = text.match(rx);
+    if (!m) {
+      return res.status(200).json({ ok: false, message: 'Row for Jonny/Jonathon/Jonathan Kirsch not found' });
+    }
+    const nums = m[2].trim().split(/\s+/).map(n => parseInt(n, 10)).filter(Number.isFinite);
+    const total = parseInt(m[3], 10);
+    res.status(200).json({ ok: true, season: 2025, gpPoints: nums, total, matchedName: m[1] + ' Kirsch' });
+  } catch (error) {
+    try { Sentry.captureException(error); } catch (_) {}
+    res.status(200).json({ ok: false, message: 'Failed to fetch K1 page' });
   }
 });
 
@@ -366,7 +446,7 @@ exports.getProfile = onCall(async (request) => {
  * @param {object} data.profileData The new profile data.
  * @returns {Promise<object>} A promise that resolves with the result of the operation.
  */
-exports.updateProfile = onCall(async (request) => {
+exports.updateProfile = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
   if (!request.auth) {
     logger.error("updateProfile called by unauthenticated user.");
     throw new HttpsError(
@@ -426,7 +506,7 @@ exports.updateProfile = onCall(async (request) => {
  *
  * @returns {Promise<object>} A promise that resolves with the codes data.
  */
-exports.getInvitationCodes = onCall(async (request) => {
+exports.getInvitationCodes = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
   // Check if the user is authenticated
   if (!request.auth) {
     logger.error("getInvitationCodes called by unauthenticated user.");
@@ -489,7 +569,7 @@ exports.getInvitationCodes = onCall(async (request) => {
  * Sets the caller's role to TeamRedFollower if they don't already have a role.
  * This lets followers sign in without an invitation code.
  */
-exports.setFollowerRole = onCall(async (request) => {
+exports.setFollowerRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
   if (!request.auth) {
     logger.error("setFollowerRole called by unauthenticated user.");
     throw new HttpsError("unauthenticated", "You must be logged in.");

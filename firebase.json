@@ -1,7 +1,7 @@
 
 {
   "hosting": {
-    "predeploy": "npm install && npm run build-css-prod && npm run build",
+    "predeploy": "npm install && npm run build-css-prod && npm run build && npm run inject-sentry-dsn",
     "target": "production",
     "public": "dist",
     "ignore": [
@@ -18,19 +18,43 @@
       {
         "source": "**",
         "headers": [
-          {
-            "key": "Document-Policy",
-            "value": "js-profiling"
-          }
+          { "key": "Document-Policy", "value": "js-profiling" }
         ]
       },
       {
-        "source": "**/*.@(js|css)",
+        "source": "**/*.html",
         "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=0, must-revalidate"
-          }
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "source": "vendors.js",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=604800, immutable" }
+        ]
+      },
+      {
+        "source": "**/*.js",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=3600" }
+        ]
+      },
+      {
+        "source": "styles/*.css",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
+      },
+      {
+        "source": "**/*.@(png|jpg|jpeg|svg|webp)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=2592000, immutable" }
+        ]
+      },
+      {
+        "source": "data/*.json",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=300" }
         ]
       }
     ],
@@ -124,6 +148,13 @@
         "function": {
           "functionId": "handleAssignAchievement",
           "codebase": "python-api"
+        }
+      },
+      {
+        "source": "/k1/addison/2025/jonny",
+        "function": {
+          "functionId": "fetchK1AddisonJonny",
+          "codebase": "default"
         }
       }
     ]

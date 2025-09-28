@@ -12,18 +12,35 @@ export async function initSentry() {
       return; // No DSN configured; skip
     }
 
-    const [{ init, BrowserTracing, Replay }, { captureException }] = await Promise.all([
-      import(/* webpackChunkName: "sentry" */ "@sentry/browser"),
-      import(/* webpackChunkName: "sentry" */ "@sentry/browser")
-    ]);
+    const { init, browserTracingIntegration, browserProfilingIntegration, replayIntegration } = await import(/* webpackChunkName: "sentry" */ "@sentry/browser");
 
-    // Note: Keep integrations list minimal to reduce bytes; tracing/replay are optional.
+    // Enhanced configuration with performance monitoring and profiling
     init({
       dsn,
-      integrations: [new BrowserTracing()],
-      tracesSampleRate: 0.1,
-      replaysSessionSampleRate: 0.0,
-      replaysOnErrorSampleRate: 0.2,
+      integrations: [
+        browserTracingIntegration(),
+        browserProfilingIntegration(),
+        replayIntegration({
+          maskAllText: false,
+          blockAllMedia: false,
+        })
+      ],
+      // Performance Monitoring
+      tracesSampleRate: 1.0, // Capture 100% of transactions
+      // Set trace propagation targets for your domains
+      tracePropagationTargets: [
+        "localhost", 
+        /^https:\/\/.*\.firebaseapp\.com\//,
+        /^https:\/\/.*\.web\.app\//,
+        /^https:\/\/.*-r7f4oo4gjq-uc\.a\.run\.app\//,
+        "redsracing.org",
+        /^https:\/\/redsracing/
+      ],
+      // Session Replay
+      replaysSessionSampleRate: 0.1, // 10% of sessions
+      replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
+      // Performance Profiling
+      profilesSampleRate: 1.0, // Profile 100% of transactions
     });
   } catch (e) {
     // Swallow errors to avoid impacting UX

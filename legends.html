@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Racing Legends - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="styles/tailwind.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
+    <style>
+        .legend-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .legend-card:hover {
+            transform: translateY(-8px);
+            border-color: #f7ff00;
+            box-shadow: 0 25px 50px rgba(247, 255, 0, 0.2);
+        }
+        .legend-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f7ff00, #ff6b35, #f7ff00);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .legend-card:hover::before {
+            opacity: 1;
+        }
+        .persona-badge {
+            background: linear-gradient(45deg, #1e293b, #334155);
+            border: 1px solid #475569;
+            position: relative;
+            overflow: hidden;
+        }
+        .persona-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(247, 255, 0, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        .persona-badge:hover::before {
+            left: 100%;
+        }
+        .racing-dna {
+            background: radial-gradient(circle, rgba(247, 255, 0, 0.1), transparent);
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            position: relative;
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(148,163,184,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        }
+        .stats-glow {
+            box-shadow: 0 0 20px rgba(247, 255, 0, 0.3);
+        }
+        
+        /* CUSTOM MOBILE MENU CSS - OVERRIDES ALL TAILWIND CONFLICTS */
+        #mobile-menu {
+            display: none !important;
+            position: absolute !important;
+            top: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            z-index: 1000 !important;
+        }
+        
+        #mobile-menu.force-show {
+            display: block !important;
+        }
+        
+        /* FORCE HAMBURGER BUTTON TO SHOW ON MOBILE - OVERRIDE ALL TAILWIND */
+        #mobile-menu-toggle {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            width: auto !important;
+            height: auto !important;
+            position: static !important;
+            float: none !important;
+            clear: none !important;
+            margin: 0 !important;
+            padding: 8px !important;
+            border: 2px solid white !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+        }
+        
+        @media (min-width: 768px) {
+            #mobile-menu {
+                display: none !important;
+            }
+            #mobile-menu-toggle {
+                display: none !important;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            #mobile-menu-toggle {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                position: relative !important;
+                z-index: 9999 !important;
+            }
+        }
+        
+        /* FORCE MODAL HIDDEN BY DEFAULT */
+        #legend-modal {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+        }
+        
+        #legend-modal.modal-open {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        
+    </style>
+</head>
+<body class="bg-slate-900 text-white">
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+        <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="index.html" class="text-xl md:text-4xl font-racing uppercase tracking-wider">
+                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex items-center space-x-6 font-bold">
+                <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
+                
+                <!-- Drivers Dropdown -->
+                <div class="relative dropdown">
+                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
+                        Drivers
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+                        <a href="driver.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jon Kirsch #8</a>
+                        <a href="jonny.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jonny Kirsch #88</a>
+                        <a href="legends.html" class="block px-4 py-2 text-sm text-neon-yellow hover:bg-slate-700">Team Legends</a>
+                    </div>
+                </div>
+                
+                <!-- Racing Dropdown -->
+                <div class="relative dropdown">
+                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
+                        Racing
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+                        <a href="schedule.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Schedule</a>
+                        <a href="leaderboard.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Leaderboard</a>
+                        <a href="gallery.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">📸 Gallery</a>
+                        <a href="videos.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">🎥 Videos</a>
+                    </div>
+                </div>
+                
+                <!-- Community Dropdown -->
+                <div class="relative dropdown">
+                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
+                        Community
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+                        <a href="qna.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">❓ Q&A</a>
+                        <a href="feedback.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">💬 Feedback</a>
+                        <a href="sponsorship.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">💰 Sponsorship</a>
+                    </div>
+                </div>
+                
+                <!-- User Profile / Login -->
+                <div id="auth-section">
+                    <!-- Login Button (shown when not authenticated) -->
+                    <a href="admin-console.html" id="login-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-bold transition duration-300 flex items-center space-x-1">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login</span>
+                    </a>
+                    
+                    <!-- User Profile Dropdown (shown when authenticated) -->
+                    <div id="user-profile" class="relative dropdown hidden">
+                        <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
+                            <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-white text-xs"></i>
+                            </div>
+                            <div class="text-left hidden md:block">
+                                <div class="text-sm font-semibold text-white" id="user-name">Driver</div>
+                                <div class="text-xs text-slate-400">Team Member</div>
+                            </div>
+                            <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                        </button>
+                        
+                        <div class="dropdown-menu modern-dropdown right-0 w-44">
+                            <div class="px-4 py-2 border-b border-slate-600/50">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                    <span class="text-green-400 text-sm">Online</span>
+                                </div>
+                            </div>
+                            
+                            <a href="admin-console.html" class="dropdown-item flex items-center">
+                                <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            
+                            <a href="profile.html" class="dropdown-item flex items-center">
+                                <i class="fas fa-user w-4 mr-3 text-green-400"></i>
+                                <span>My Profile</span>
+                            </a>
+                            
+                            <div class="border-t border-slate-600/50 my-1"></div>
+                            
+                            <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                                <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
+                                <span>Sign Out</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile menu button -->
+            <button id="mobile-menu-toggle" class="md:hidden text-white focus:outline-none p-2">
+                <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+                <svg id="close-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </nav>
+        
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="md:hidden bg-black/95 backdrop-blur-md border-t border-slate-700">
+            <div class="container mx-auto px-4 py-4 space-y-2">
+                <a href="index.html" class="block py-3 px-4 text-white hover:text-neon-yellow hover:bg-slate-800/50 rounded-lg transition duration-300 text-lg">🏠 Home</a>
+                
+                <!-- Drivers Mobile Accordion -->
+                <button class="mobile-accordion w-full text-left py-3 px-4 text-white hover:text-neon-yellow hover:bg-slate-800/50 rounded-lg transition duration-300 text-lg font-semibold flex items-center justify-between">
+                    🏎️ Drivers
+                    <svg class="w-5 h-5 transform transition-transform mobile-accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div class="mobile-accordion-content pl-4 space-y-1" style="display: none;">
+                    <a href="driver.html" class="block py-2 px-4 text-slate-300 hover:text-neon-yellow hover:bg-slate-800/30 rounded text-base">Jon Kirsch #8</a>
+                    <a href="jonny.html" class="block py-2 px-4 text-slate-300 hover:text-neon-yellow hover:bg-slate-800/30 rounded text-base">Jonny Kirsch #88</a>
+                    <a href="legends.html" class="block py-2 px-4 text-neon-yellow bg-neon-yellow/10 rounded text-base font-bold">Team Legends</a>
+                </div>
+                
+                <!-- Racing Mobile Accordion -->
+                <button class="mobile-accordion w-full text-left py-3 px-4 text-white hover:text-neon-yellow hover:bg-slate-800/50 rounded-lg transition duration-300 text-lg font-semibold flex items-center justify-between">
+                    🏁 Racing
+                    <svg class="w-5 h-5 transform transition-transform mobile-accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div class="mobile-accordion-content pl-4 space-y-1" style="display: none;">
+                    <a href="schedule.html" class="block py-2 px-4 text-slate-300 hover:text-neon-yellow hover:bg-slate-800/30 rounded text-base">Schedule</a>
+                    <a href="leaderboard.html" class="block py-2 px-4 text-slate-300 hover:text-neon-yellow hover:bg-slate-800/30 rounded text-base">Leaderboard</a>
+                    <a href="gallery.html" class="block py-2 px-4 text-slate-300 hover:text-neon-yellow hover:bg-slate-800/30 rounded text-base">📸 Gallery</a>
+                    <a href="videos.html" class="block py-2 px-4 text-slate-300 hover:text-neon-yellow hover:bg-slate-800/30 rounded text-base">🎥 Videos</a>
+                </div>
+                
+                <!-- Community Mobile Accordion -->
+                <button class="mobile-accordion w-full text-left py-3 px-4 text-white hover:text-neon-yellow hover:bg-slate-800/50 rounded-lg transition duration-300 text-lg font-semibold flex items-center justify-between">
+                    👥 Community
+                    <svg class="w-5 h-5 transform transition-transform mobile-accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div class="mobile-accordion-content pl-4 space-y-1" style="display: none;">
+                    <a href="qna.html" class="block py-2 px-4 text-slate-300 hover:text-neon-yellow hover:bg-slate-800/30 rounded text-base">❓ Q&A</a>
+                    <a href="feedback.html" class="block py-2 px-4 text-slate-300 hover:text-neon-yellow hover:bg-slate-800/30 rounded text-base">💬 Feedback</a>
+                    <a href="sponsorship.html" class="block py-2 px-4 text-slate-300 hover:text-neon-yellow hover:bg-slate-800/30 rounded text-base">💰 Sponsorship</a>
+                </div>
+                
+                <div class="pt-4 border-t border-slate-700">
+                    <!-- Mobile Auth Section -->
+                    <div id="mobile-auth-section">
+                        <!-- Mobile Login Button (shown when not authenticated) -->
+                        <a href="admin-console.html" id="mobile-login-btn" class="mobile-login-btn bg-red-600 hover:bg-red-700 block py-3 px-4 text-white rounded-lg transition duration-300 text-center text-lg font-bold">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Driver Login
+                        </a>
+                        
+                        <!-- Mobile User Profile (shown when authenticated) -->
+                        <div id="mobile-user-profile" class="hidden">
+                            <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
+                                <div class="flex items-center space-x-3 mb-3">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-white font-semibold" id="mobile-user-name">Driver</div>
+                                        <div class="text-slate-400 text-sm">Team Member</div>
+                                        <div class="flex items-center space-x-1 mt-1">
+                                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                            <span class="text-green-400 text-xs">Online</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-1">
+                                    <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
+                                        <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
+                                        <span>Dashboard</span>
+                                    </a>
+                                    <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
+                                        <i class="fas fa-user w-5 mr-3 text-green-400"></i>
+                                        <span>My Profile</span>
+                                    </a>
+                                    <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                                        <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
+                                        <span>Sign Out</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section py-12 md:py-20 relative">
+        <div class="container mx-auto px-4 md:px-6 text-center relative z-10">
+            <h1 class="text-3xl md:text-6xl font-racing uppercase mb-4 md:mb-6 leading-tight">
+                Racing <span class="neon-yellow">Legends</span>
+            </h1>
+            <p class="text-lg md:text-2xl text-slate-300 mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed">
+                Meet the fearless drivers who define RedsRacing #8. Each legend brings their own style, 
+                personality, and racing DNA to the track.
+            </p>
+            <div class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8 md:mb-12">
+                <div class="racing-dna px-4 md:px-6 py-2 md:py-3 rounded-full border border-slate-600">
+                    <span class="text-sm md:text-lg font-bold">⚡ Speed Demons</span>
+                </div>
+                <div class="racing-dna px-4 md:px-6 py-2 md:py-3 rounded-full border border-slate-600">
+                    <span class="text-sm md:text-lg font-bold">🧠 Strategic Masters</span>
+                </div>
+                <div class="racing-dna px-4 md:px-6 py-2 md:py-3 rounded-full border border-slate-600">
+                    <span class="text-sm md:text-lg font-bold">🎯 Precision Pilots</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Stats Overview -->
+    <section class="py-8 md:py-16 bg-slate-800/50">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+                <div class="text-center p-3 md:p-6 rounded-lg stats-glow">
+                    <div class="text-2xl md:text-4xl font-bold neon-yellow mb-1 md:mb-2">2</div>
+                    <div class="text-slate-400 uppercase tracking-wide text-xs md:text-sm leading-tight">Active<br class="md:hidden"> Legends</div>
+                </div>
+                <div class="text-center p-3 md:p-6 rounded-lg">
+                    <div class="text-2xl md:text-4xl font-bold text-blue-400 mb-1 md:mb-2">2</div>
+                    <div class="text-slate-400 uppercase tracking-wide text-xs md:text-sm leading-tight">Years<br class="md:hidden"> Racing</div>
+                </div>
+                <div class="text-center p-3 md:p-6 rounded-lg">
+                    <div class="text-2xl md:text-4xl font-bold text-green-400 mb-1 md:mb-2">∞</div>
+                    <div class="text-slate-400 uppercase tracking-wide text-xs md:text-sm leading-tight">Passion<br class="md:hidden"> Level</div>
+                </div>
+                <div class="text-center p-3 md:p-6 rounded-lg">
+                    <div class="text-2xl md:text-4xl font-bold text-red-400 mb-1 md:mb-2">#8</div>
+                    <div class="text-slate-400 uppercase tracking-wide text-xs md:text-sm leading-tight">Team<br class="md:hidden"> Legacy</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Legends Showcase -->
+    <section class="py-12 md:py-20">
+        <div class="container mx-auto px-4 md:px-6">
+            <h2 class="text-2xl md:text-4xl font-racing uppercase text-center mb-8 md:mb-16">
+                Meet The <span class="neon-yellow">Legends</span>
+            </h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 max-w-6xl mx-auto">
+                <!-- Legend Card 1: Jon Kirsch -->
+                <div class="legend-card rounded-xl p-4 md:p-8 cursor-pointer touch-manipulation" onclick="openLegendModal('jon')">
+                    <div class="flex items-start justify-between mb-4 md:mb-6">
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-racing uppercase mb-1 md:mb-2">Jon Kirsch</h3>
+                            <p class="text-neon-yellow font-bold text-base md:text-lg">The Veteran</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl md:text-3xl mb-1 md:mb-2">🏁</div>
+                            <div class="text-xs md:text-sm text-slate-400">Driver #8</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 md:mb-6">
+                        <p class="text-slate-300 italic mb-4">
+                            "Attack the track with precision and never give up."
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="persona-badge px-3 py-1 rounded-full text-xs font-bold">⚡ Attack</span>
+                            <span class="persona-badge px-3 py-1 rounded-full text-xs font-bold">🎯 Determined</span>
+                            <span class="persona-badge px-3 py-1 rounded-full text-xs font-bold">🔥 Leader</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center text-sm">
+                        <div>
+                            <div class="text-xl font-bold text-blue-400">2</div>
+                            <div class="text-slate-400">Years Experience</div>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-red-400">Attack</div>
+                            <div class="text-slate-400">Racing Style</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legend Card 2: Jonny Kirsch -->
+                <div class="legend-card rounded-xl p-6 md:p-8 cursor-pointer touch-manipulation" onclick="openLegendModal('jonny')">
+                    <div class="flex items-start justify-between mb-6">
+                        <div>
+                            <h3 class="text-2xl font-racing uppercase mb-2">Jonny Kirsch</h3>
+                            <p class="text-neon-yellow font-bold text-base md:text-lg">The Newcomer</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl mb-2">⚡</div>
+                            <div class="text-sm text-slate-400">Driver #88</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <p class="text-slate-300 italic mb-4">
+                            "Learning every turn, growing with every lap."
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="persona-badge px-3 py-1 rounded-full text-xs font-bold">🌱 Learning</span>
+                            <span class="persona-badge px-3 py-1 rounded-full text-xs font-bold">✨ Potential</span>
+                            <span class="persona-badge px-3 py-1 rounded-full text-xs font-bold">👥 Team Spirit</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center text-sm">
+                        <div>
+                            <div class="text-xl font-bold text-purple-400">New</div>
+                            <div class="text-slate-400">Career Status</div>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-slate-400">Developing</div>
+                            <div class="text-slate-400">Racing Style</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="text-center mt-16">
+                <h3 class="text-2xl font-racing uppercase mb-4">Want to Join the Legends?</h3>
+                <p class="text-slate-300 mb-8">Think you have what it takes to race with RedsRacing #8?</p>
+                <a href="feedback.html" class="bg-neon-yellow text-black font-bold py-3 px-8 rounded-md hover:bg-yellow-400 transition duration-300 uppercase tracking-wide">
+                    Get In Touch
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Legend Modal (Hidden by default) -->
+    <div id="legend-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-4">
+            <div class="p-4 md:p-8">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                    <h2 id="modal-name" class="text-2xl md:text-3xl font-racing uppercase mb-2"></h2>
+                    <p id="modal-title" class="text-neon-yellow font-bold text-lg md:text-xl"></p>
+                    </div>
+                    <button id="modal-close-btn" class="text-slate-400 hover:text-white text-3xl md:text-2xl p-1 cursor-pointer" title="Close">×</button>
+                </div>
+                
+                <div id="modal-content" class="space-y-6">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <footer class="bg-black/50 border-t border-slate-800 py-8 mt-12">
+        <div class="container mx-auto px-6 text-center text-slate-500 text-sm">
+            <p>© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // IMMEDIATE MODAL CLOSE - RUN FIRST!
+        (function() {
+            console.log('EMERGENCY: Forcing modal closed immediately');
+            const modal = document.getElementById('legend-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.style.visibility = 'hidden';
+                modal.style.opacity = '0';
+                modal.classList.add('hidden');
+                modal.classList.remove('modal-open');
+            }
+            document.body.style.overflow = 'auto';
+            console.log('EMERGENCY: Modal forced closed');
+        })();
+        
+        
+        // Set current year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Legend data
+        const legends = {
+            jon: {
+                name: "Jon Kirsch",
+                title: "The Veteran",
+                icon: "🏁",
+                number: "#8",
+                quote: "Attack the track with precision and never give up.",
+                description: "The cornerstone of RedsRacing #8, Jon brings 2 years of focused experience and an aggressive mindset to every race. Known for his attack-style approach and determination, he's the driver who leads by example on the track.",
+                traits: ["Attack Racing", "Determined", "Team Leadership", "Focused Aggression"],
+                stats: [
+                    { label: "Years Racing", value: "2" },
+                    { label: "Racing Style", value: "Attack" },
+                    { label: "Driver Number", value: "#8" },
+                    { label: "Role", value: "Team Leader" }
+                ],
+                funFacts: [
+                    "Aggressive but calculated racing approach",
+                    "Father and mentor to Jonny",
+                    "Team founder and leader"
+                ]
+            },
+            jonny: {
+                name: "Jonny Kirsch",
+                title: "The Newcomer", 
+                icon: "⚡",
+                number: "#88",
+                quote: "Learning every turn, growing with every lap.",
+                description: "Jon's son and the newest member of RedsRacing #8, Jonny is just starting his racing journey. With natural enthusiasm and his father's guidance, he's developing his skills and discovering his own racing identity on the track.",
+                traits: ["Eager to Learn", "Natural Talent", "Team Spirit", "Growing Confidence"],
+                stats: [
+                    { label: "Career Stage", value: "New" },
+                    { label: "Racing Style", value: "Developing" },
+                    { label: "Experience", value: "Beginner" },
+                    { label: "Potential", value: "High" }
+                ],
+                funFacts: [
+                    "Son of team leader Jon Kirsch",
+                    "Learning from his father's experience",
+                    "Excited to find his own racing style"
+                ]
+            }
+        };
+
+        function openLegendModal(legendId) {
+            const legend = legends[legendId];
+            const modal = document.getElementById('legend-modal');
+            const modalContent = document.getElementById('modal-content');
+            
+            document.getElementById('modal-name').textContent = legend.name;
+            document.getElementById('modal-title').textContent = legend.title;
+            
+            modalContent.innerHTML = `
+                <div class="text-center mb-6">
+                    <div class="text-6xl mb-4">${legend.icon}</div>
+                    <div class="text-lg text-slate-400">${legend.number}</div>
+                </div>
+                
+                <blockquote class="text-xl italic text-center text-slate-300 mb-8 border-l-4 border-neon-yellow pl-6">
+                    "${legend.quote}"
+                </blockquote>
+                
+                <div class="mb-8">
+                    <h3 class="text-xl font-bold mb-4">Racing DNA</h3>
+                    <p class="text-slate-300 mb-4">${legend.description}</p>
+                    <div class="flex flex-wrap gap-2">
+                        ${legend.traits.map(trait => `<span class="bg-slate-700 px-3 py-1 rounded-full text-sm">${trait}</span>`).join('')}
+                    </div>
+                </div>
+                
+                <div class="mb-8">
+                    <h3 class="text-xl font-bold mb-4">Stats</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        ${legend.stats.map(stat => `
+                            <div class="text-center p-3 bg-slate-700/50 rounded-lg">
+                                <div class="font-bold text-neon-yellow">${stat.value}</div>
+                                <div class="text-sm text-slate-400">${stat.label}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Fun Facts</h3>
+                    <ul class="space-y-2">
+                        ${legend.funFacts.map(fact => `<li class="flex items-center"><span class="text-neon-yellow mr-2">•</span> ${fact}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            
+            // Show the modal using CSS class
+            modal.classList.remove('hidden');
+            modal.classList.add('modal-open');
+            
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden';
+            
+            console.log('Modal opened for:', legendId);
+        }
+
+        function closeLegendModal() {
+            try {
+                const modal = document.getElementById('legend-modal');
+                if (modal) {
+                    console.log('Closing modal...');
+                    
+                    // Hide the modal using CSS classes
+                    modal.classList.add('hidden');
+                    modal.classList.remove('modal-open');
+                    
+                    // Clear modal content for next time
+                    const modalContent = document.getElementById('modal-content');
+                    if (modalContent) {
+                        modalContent.innerHTML = '';
+                    }
+                    
+                    // Remove any scroll lock
+                    document.body.style.overflow = 'auto';
+                    
+                    console.log('Modal closed successfully');
+                }
+            } catch (error) {
+                console.error('Error closing modal:', error);
+            }
+        }
+
+        // Force close modal on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, forcing modal closed');
+            
+            // Force close any open modals immediately
+            const modal = document.getElementById('legend-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                console.log('Modal forced closed on page load');
+            }
+            // Desktop dropdown functionality
+            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+            dropdownToggles.forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dropdown = this.parentElement;
+                    const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+                    
+                    // Close other dropdowns
+                    dropdownToggles.forEach(otherToggle => {
+                        if (otherToggle !== this) {
+                            const otherDropdown = otherToggle.parentElement;
+                            const otherMenu = otherDropdown.querySelector('.dropdown-menu');
+                            if (otherMenu) otherMenu.classList.add('hidden');
+                        }
+                    });
+                    
+                    // Toggle current dropdown
+                    if (dropdownMenu) {
+                        dropdownMenu.classList.toggle('hidden');
+                    }
+                });
+            });
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.classList.add('hidden');
+                    });
+                }
+            });
+            
+            // Mobile accordion functionality
+            const mobileAccordions = document.querySelectorAll('.mobile-accordion');
+            mobileAccordions.forEach(accordion => {
+                accordion.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('.mobile-accordion-icon');
+                    
+                    // Toggle current accordion
+                    if (content && content.classList.contains('mobile-accordion-content')) {
+                        const isHidden = content.classList.contains('hidden');
+                        
+                        if (isHidden) {
+                            content.classList.remove('hidden');
+                            if (icon) icon.style.transform = 'rotate(180deg)';
+                        } else {
+                            content.classList.add('hidden');
+                            if (icon) icon.style.transform = 'rotate(0deg)';
+                        }
+                    }
+                });
+            });
+            
+            // Get modal elements (fix duplicate declaration)
+            const legendModal = document.getElementById('legend-modal');
+            const closeBtn = document.getElementById('modal-close-btn');
+            
+            // Enhanced modal close functionality for mobile and desktop
+            if (closeBtn) {
+                // Click event
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Modal close button clicked');
+                    closeLegendModal();
+                });
+                
+                // Touch events for mobile
+                closeBtn.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Modal close button touched');
+                    closeLegendModal();
+                });
+                
+                // Make sure the button is clickable
+                closeBtn.style.cursor = 'pointer';
+                closeBtn.style.userSelect = 'none';
+                closeBtn.style.touchAction = 'manipulation';
+            }
+            
+            // Close modal when clicking outside (enhanced)
+            if (legendModal) {
+                legendModal.addEventListener('click', function(e) {
+                    // Only close if clicking the modal background, not the content
+                    if (e.target === this) {
+                        console.log('Modal background clicked, closing modal');
+                        closeLegendModal();
+                    }
+                });
+                
+                // Also handle touch events for mobile
+                legendModal.addEventListener('touchend', function(e) {
+                    if (e.target === this) {
+                        console.log('Modal background touched, closing modal');
+                        closeLegendModal();
+                    }
+                });
+            }
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (legendModal && !legendModal.classList.contains('hidden')) {
+                        closeLegendModal();
+                    }
+                }
+            });
+            
+            // BULLETPROOF Mobile Menu Implementation - No External Dependencies
+            (function() {
+                console.log('=== MOBILE MENU INITIALIZATION STARTING ===');
+                
+                // Force clear any existing event listeners by cloning elements (but preserve modal)
+                function clearExistingListeners() {
+                    const toggle = document.getElementById('mobile-menu-toggle');
+                    const menu = document.getElementById('mobile-menu');
+                    
+                    if (toggle) {
+                        const newToggle = toggle.cloneNode(true);
+                        toggle.parentNode.replaceChild(newToggle, toggle);
+                        console.log('Mobile toggle button listeners cleared');
+                    }
+                    
+                    // Clear any existing mobile menu event listeners (but not modal buttons)
+                    if (menu) {
+                        const links = menu.querySelectorAll('a, button.mobile-accordion');
+                        links.forEach(link => {
+                            // Only clear mobile menu specific elements, not modal elements
+                            if (!link.id || !link.id.includes('modal')) {
+                                const newLink = link.cloneNode(true);
+                                link.parentNode.replaceChild(newLink, link);
+                            }
+                        });
+                        console.log('Mobile menu link listeners cleared (modal preserved)');
+                    }
+                }
+                
+                // Clear existing listeners first
+                clearExistingListeners();
+                
+                // Get fresh references after clearing
+                const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+                const mobileMenu = document.getElementById('mobile-menu');
+                const menuIcon = document.getElementById('menu-icon');
+                const closeIcon = document.getElementById('close-icon');
+                
+                console.log('Elements found:');
+                console.log('- Toggle:', !!mobileMenuToggle);
+                console.log('- Menu:', !!mobileMenu);
+                console.log('- Menu Icon:', !!menuIcon);
+                console.log('- Close Icon:', !!closeIcon);
+                
+                if (!mobileMenuToggle || !mobileMenu) {
+                    console.error('Critical mobile menu elements not found!');
+                    return;
+                }
+                
+                // State tracking
+                let isMenuVisible = false;
+                
+                // Force initial state
+                function initializeMenuState() {
+                    console.log('Initializing menu state...');
+                    
+                    // Force hide menu using CSS class
+                    mobileMenu.classList.remove('force-show');
+                    
+                    // Show hamburger icon, hide close icon
+                    if (menuIcon) {
+                        menuIcon.style.display = 'inline';
+                    }
+                    if (closeIcon) {
+                        closeIcon.style.display = 'none';
+                    }
+                    
+                    isMenuVisible = false;
+                    console.log('Menu initialized as hidden with CSS class control');
+                }
+                
+                function showMenu() {
+                    console.log('SHOWING MENU');
+                    
+                    // Show menu using CSS class
+                    mobileMenu.classList.add('force-show');
+                    
+                    // Switch icons
+                    if (menuIcon) {
+                        menuIcon.style.display = 'none';
+                    }
+                    if (closeIcon) {
+                        closeIcon.style.display = 'inline';
+                    }
+                    
+                    isMenuVisible = true;
+                    console.log('Menu is now visible using CSS class');
+                }
+                
+                function hideMenu() {
+                    console.log('HIDING MENU');
+                    
+                    // Hide menu using CSS class
+                    mobileMenu.classList.remove('force-show');
+                    
+                    // Switch icons back
+                    if (menuIcon) {
+                        menuIcon.style.display = 'inline';
+                    }
+                    if (closeIcon) {
+                        closeIcon.style.display = 'none';
+                    }
+                    
+                    isMenuVisible = false;
+                    console.log('Menu is now hidden using CSS class');
+                }
+                
+                function toggleMenu() {
+                    console.log('TOGGLE MENU - Current state:', isMenuVisible ? 'VISIBLE' : 'HIDDEN');
+                    console.log('Menu has force-show class:', mobileMenu.classList.contains('force-show'));
+                    
+                    // Check actual DOM state vs our variable
+                    const actuallyVisible = mobileMenu.classList.contains('force-show');
+                    
+                    if (actuallyVisible) {
+                        hideMenu();
+                        console.log('Menu was visible, now hiding');
+                    } else {
+                        showMenu();
+                        console.log('Menu was hidden, now showing');
+                    }
+                }
+                
+                // Add toggle button listener with enhanced debugging
+                console.log('Adding click listener to button:', mobileMenuToggle);
+                
+                mobileMenuToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    toggleMenu();
+                });
+                
+                // Also add mousedown and touchstart for mobile debugging
+                mobileMenuToggle.addEventListener('mousedown', function(e) {
+                    console.log('🟡 MOUSEDOWN on toggle button');
+                });
+                
+                mobileMenuToggle.addEventListener('touchstart', function(e) {
+                    console.log('🟡 TOUCHSTART on toggle button');
+                });
+                
+                console.log('✅ Toggle button listener added successfully');
+                console.log('✅ Button classList:', mobileMenuToggle.classList.toString());
+                console.log('✅ Button styles:', getComputedStyle(mobileMenuToggle).display);
+                
+                // Add click listeners to menu links
+                const menuLinks = mobileMenu.querySelectorAll('a');
+                console.log('Found', menuLinks.length, 'menu links');
+                
+                menuLinks.forEach((link, index) => {
+                    link.addEventListener('click', function(e) {
+                        console.log('Menu link', index, 'clicked - hiding menu');
+                        // Don't prevent default - let link work normally
+                        hideMenu();
+                    });
+                });
+                
+                // Add accordion functionality
+                const accordions = mobileMenu.querySelectorAll('.mobile-accordion');
+                console.log('Found', accordions.length, 'accordions');
+                
+                accordions.forEach((accordion, index) => {
+                    accordion.addEventListener('click', function(e) {
+                        console.log('Accordion', index, 'clicked');
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const content = this.nextElementSibling;
+                        if (content && content.classList.contains('mobile-accordion-content')) {
+                            const isHidden = content.style.display === 'none' || content.style.display === '';
+                            console.log('Accordion content hidden:', isHidden);
+                            
+                            if (isHidden) {
+                                content.style.display = 'block';
+                                console.log('Opened accordion', index);
+                            } else {
+                                content.style.display = 'none';
+                                console.log('Closed accordion', index);
+                            }
+                        }
+                    });
+                    
+                    // Initialize accordion content as hidden
+                    const content = accordion.nextElementSibling;
+                    if (content && content.classList.contains('mobile-accordion-content')) {
+                        content.style.display = 'none';
+                    }
+                });
+                
+                // Hide menu on window resize
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth >= 768) {
+                        hideMenu();
+                    }
+                });
+                
+                // Initialize the menu state
+                initializeMenuState();
+                
+            
+            // Make functions available for debugging
+            window.mobileMenuDebug = {
+                showMenu: showMenu,
+                hideMenu: hideMenu,
+                toggleMenu: toggleMenu,
+                getState: () => isMenuVisible
+            };
+                
+                console.log('=== MOBILE MENU INITIALIZATION COMPLETE ===');
+                console.log('Debug functions available at window.mobileMenuDebug');
+                
+            })();
+            
+            // Add some interactive animations (desktop only to avoid mobile performance issues)
+            if (window.innerWidth >= 768) {
+                document.querySelectorAll('.legend-card').forEach(card => {
+                    card.addEventListener('mouseenter', function() {
+                        this.style.transform = 'translateY(-8px) scale(1.02)';
+                    });
+                    
+                    card.addEventListener('mouseleave', function() {
+                        this.style.transform = 'translateY(0) scale(1)';
+                    });
+                });
+            }
+            
+            // Improve mobile touch feedback
+            document.querySelectorAll('.legend-card').forEach(card => {
+                card.addEventListener('touchstart', function() {
+                    this.style.opacity = '0.8';
+                });
+                
+                card.addEventListener('touchend', function() {
+                    this.style.opacity = '1';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

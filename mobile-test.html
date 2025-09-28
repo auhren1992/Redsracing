@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Navigation Test - RedsRacing</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #1a1a1a; color: white; }
+        
+        .header { background: #000; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #f7ff00; }
+        
+        .desktop-nav { display: none; }
+        @media (min-width: 768px) {
+            .desktop-nav { display: flex; gap: 1rem; }
+            .mobile-toggle { display: none !important; }
+        }
+        
+        .mobile-toggle {
+            background: none;
+            border: 2px solid white;
+            color: white;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .mobile-menu {
+            background: rgba(0,0,0,0.95);
+            padding: 1rem;
+            border-top: 1px solid #333;
+        }
+        
+        .mobile-menu a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            background: #333;
+        }
+        
+        .mobile-menu a:hover {
+            background: #555;
+            color: #f7ff00;
+        }
+        
+        .accordion-toggle {
+            width: 100%;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 1rem;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .accordion-content {
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .accordion-content a {
+            background: #222;
+            margin-bottom: 0.25rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        .login-btn {
+            background: #dc2626 !important;
+            color: white !important;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .debug {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #f00;
+            color: white;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug" id="debug">
+        Menu: <span id="menu-status">Hidden</span><br>
+        Width: <span id="screen-width"></span>px
+    </div>
+
+    <header class="header">
+        <div class="logo">RedsRacing #8</div>
+        
+        <nav class="desktop-nav">
+            <a href="index.html">Home</a>
+            <a href="driver.html">Drivers</a>
+            <a href="schedule.html">Racing</a>
+            <a href="qna.html">Community</a>
+            <a href="admin-console.html">LOGIN</a>
+        </nav>
+        
+        <button class="mobile-toggle" id="mobile-toggle">
+            <span id="menu-icon">☰</span>
+            <span id="close-icon" style="display: none;">✕</span>
+        </button>
+    </header>
+    
+    <div class="mobile-menu" id="mobile-menu" style="display: none;">
+        <a href="index.html">🏠 Home</a>
+        
+        <button class="accordion-toggle" id="drivers-toggle">
+            🏎️ Drivers <span id="drivers-arrow">▼</span>
+        </button>
+        <div class="accordion-content" id="drivers-content" style="display: none;">
+            <a href="driver.html">🏁 Jon Kirsch</a>
+            <a href="jonny.html">⚡ Jonny Kirsch</a>
+            <a href="legends.html">🏆 Team Legends</a>
+        </div>
+        
+        <button class="accordion-toggle" id="racing-toggle">
+            🏁 Racing <span id="racing-arrow">▼</span>
+        </button>
+        <div class="accordion-content" id="racing-content" style="display: none;">
+            <a href="schedule.html">📅 Schedule</a>
+            <a href="leaderboard.html">👥 Team Roster</a>
+            <a href="gallery.html">📸 Gallery</a>
+            <a href="videos.html">🎥 Videos</a>
+        </div>
+        
+        <button class="accordion-toggle" id="community-toggle">
+            👥 Community <span id="community-arrow">▼</span>
+        </button>
+        <div class="accordion-content" id="community-content" style="display: none;">
+            <a href="qna.html">❓ Q&A</a>
+            <a href="feedback.html">💬 Feedback</a>
+            <a href="sponsorship.html">🤝 Sponsorship</a>
+        </div>
+        
+        <a href="admin-console.html" class="login-btn">🚀 DRIVER LOGIN</a>
+    </div>
+    
+    <main style="padding: 2rem;">
+        <h1>Mobile Navigation Test</h1>
+        <p>This is a completely clean test of mobile navigation.</p>
+        <p>Try clicking the hamburger menu button (☰) in the header above.</p>
+        <p>The menu should toggle open/closed and show all navigation options including the login button.</p>
+        
+        <div style="margin-top: 2rem;">
+            <h2>Test Buttons:</h2>
+            <button onclick="forceShow()" style="background: green; color: white; padding: 0.5rem 1rem; margin: 0.5rem; border: none; border-radius: 4px;">Force Show Menu</button>
+            <button onclick="forceHide()" style="background: red; color: white; padding: 0.5rem 1rem; margin: 0.5rem; border: none; border-radius: 4px;">Force Hide Menu</button>
+        </div>
+    </main>
+
+    <script>
+        console.log('Mobile navigation test loaded');
+        
+        // Get elements
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+        const closeIcon = document.getElementById('close-icon');
+        const debugStatus = document.getElementById('menu-status');
+        const screenWidth = document.getElementById('screen-width');
+        
+        let menuVisible = false;
+        
+        // Update debug info
+        function updateDebug() {
+            debugStatus.textContent = menuVisible ? 'Visible' : 'Hidden';
+            screenWidth.textContent = window.innerWidth;
+        }
+        
+        // Show menu
+        function showMenu() {
+            console.log('Showing mobile menu');
+            mobileMenu.style.display = 'block';
+            menuIcon.style.display = 'none';
+            closeIcon.style.display = 'inline';
+            menuVisible = true;
+            updateDebug();
+        }
+        
+        // Hide menu
+        function hideMenu() {
+            console.log('Hiding mobile menu');
+            mobileMenu.style.display = 'none';
+            menuIcon.style.display = 'inline';
+            closeIcon.style.display = 'none';
+            menuVisible = false;
+            updateDebug();
+        }
+        
+        // Toggle menu
+        function toggleMenu() {
+            console.log('Toggling menu, current state:', menuVisible);
+            if (menuVisible) {
+                hideMenu();
+            } else {
+                showMenu();
+            }
+        }
+        
+        // Test functions for buttons
+        function forceShow() { showMenu(); }
+        function forceHide() { hideMenu(); }
+        
+        // Make functions global for testing
+        window.forceShow = forceShow;
+        window.forceHide = forceHide;
+        
+        // Add click listener to toggle button
+        if (mobileToggle) {
+            console.log('Mobile toggle button found, adding listener');
+            mobileToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Mobile toggle clicked');
+                toggleMenu();
+            });
+        } else {
+            console.log('Mobile toggle button NOT found');
+        }
+        
+        // Add click listeners to menu links
+        const menuLinks = mobileMenu.querySelectorAll('a');
+        console.log('Found', menuLinks.length, 'menu links');
+        menuLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                console.log('Menu link clicked, hiding menu');
+                hideMenu();
+            });
+        });
+        
+        // Accordion functionality
+        const accordions = [
+            { toggle: 'drivers-toggle', content: 'drivers-content', arrow: 'drivers-arrow' },
+            { toggle: 'racing-toggle', content: 'racing-content', arrow: 'racing-arrow' },
+            { toggle: 'community-toggle', content: 'community-content', arrow: 'community-arrow' }
+        ];
+        
+        accordions.forEach(acc => {
+            const toggle = document.getElementById(acc.toggle);
+            const content = document.getElementById(acc.content);
+            const arrow = document.getElementById(acc.arrow);
+            
+            if (toggle && content) {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Accordion clicked:', acc.toggle);
+                    
+                    const isHidden = content.style.display === 'none';
+                    console.log('Accordion content hidden:', isHidden);
+                    
+                    if (isHidden) {
+                        content.style.display = 'block';
+                        arrow.textContent = '▲';
+                        console.log('Opened accordion:', acc.toggle);
+                    } else {
+                        content.style.display = 'none';
+                        arrow.textContent = '▼';
+                        console.log('Closed accordion:', acc.toggle);
+                    }
+                });
+            }
+        });
+        
+        // Close menu when window is resized to desktop
+        window.addEventListener('resize', function() {
+            updateDebug();
+            if (window.innerWidth >= 768) {
+                hideMenu();
+            }
+        });
+        
+        // Initial setup
+        hideMenu();
+        updateDebug();
+        
+        console.log('Mobile navigation test initialized');
+    </script>
+</body>
+</html>

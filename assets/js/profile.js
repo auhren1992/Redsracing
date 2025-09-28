@@ -35,6 +35,7 @@ import { navigateToInternal } from "./navigation-helpers.js";
 
 // Import error handling utilities
 import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
+import { LoadingService } from "./loading.js";
 
 // Wrap everything in an async function to allow early returns
 (async function () {
@@ -64,6 +65,23 @@ import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
 
       hideLoadingAndShowFallback();
     }, 8000); // 8 second timeout
+
+    // Extra failsafe at 4s to ensure spinner never hangs
+    setTimeout(() => {
+      if (isDestroyed) return;
+      const loader = document.getElementById('loading-state');
+      const content = document.getElementById('profile-content');
+      if (loader && !loader.classList.contains('hidden')) {
+        // Show minimal profile shell
+        if (content && content.classList.contains('hidden')) {
+          content.classList.remove('hidden');
+          if (!content.innerHTML || content.innerHTML.trim() === '') {
+            content.innerHTML = '<div class="text-center py-12 text-slate-400">Profile is loading slowly. Try again shortly.</div>';
+          }
+        }
+        loader.classList.add('hidden');
+      }
+    }, 4000);
   }
 
   function clearLoadingTimeout() {
@@ -150,9 +168,12 @@ import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
     "profile-avatar-placeholder",
   );
   const profileDisplayName = document.getElementById("profile-display-name");
+  const profileStatusEmoji = document.getElementById("profile-status-emoji");
+  const profileThemeDot = document.getElementById("profile-theme-dot");
   const profileUsername = document.getElementById("profile-username");
   const profileBio = document.getElementById("profile-bio");
   const profileFavoriteCars = document.getElementById("profile-favorite-cars");
+  const profileFavoriteTrack = document.getElementById("profile-favorite-track");
   const profileJoinDate = document.getElementById("profile-join-date");
 
   // Form elements
@@ -164,12 +185,13 @@ import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
   const editBio = document.getElementById("edit-bio");
   const editAvatarUrl = document.getElementById("edit-avatar-url");
   const editFavoriteCars = document.getElementById("edit-favorite-cars");
+  const editStatusEmoji = document.getElementById("edit-status-emoji");
+  const editFavoriteTrack = document.getElementById("edit-favorite-track");
+  const editThemeColor = document.getElementById("edit-theme-color");
+  const surpriseMeBtn = document.getElementById("surprise-me-btn");
   const saveProfileBtn = document.getElementById("save-profile-btn");
   const cancelEditBtn = document.getElementById("cancel-edit-btn");
-
-  // Achievement elements
-  const userAchievements = document.getElementById("user-achievements");
-  const adminAchievements = document.getElementById("admin-achievements");
+  const saveToast = document.getElementById("save-toast");
 
   let currentUser = null;
   let isEditing = false;
@@ -216,7 +238,9 @@ import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
     }
   }
 
-  // Start loading timeout immediately
+  // Start centralized loading guard (3s max visible for loader)
+  LoadingService.bind({ loaderId: 'loading-state', contentId: 'profile-content', errorId: 'error-state', maxMs: 3000 });
+  // Start legacy timeout as additional backup
   startLoadingTimeout();
 
   // Set up logout button with enhanced error handling
@@ -347,41 +371,22 @@ import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
 
   // Load user profile
   async function loadUserProfile(userId) {
-    if (isDestroyed) {
-      return;
-    }
+    if (isDestroyed) return;
 
     try {
       const profileData = await callProfileAPI(`/profile/${userId}`);
-
       displayProfile(profileData);
-      loadAchievements(profileData.achievements || []);
     } catch (error) {
-      // Distinguish between different error types and handle appropriately
-      if (error.code === "not-found") {
-        if (isCurrentUserProfile) {
-          try {
-            await createDefaultProfile(userId);
-            return; // Successfully created and loaded profile
-          } catch (createError) {
-            displayMinimalProfile(userId);
-            hideLoadingAndShowContent();
-            return;
-          }
-        } else {
+      // Distinguish errors and show minimal profile
+      if (isCurrentUserProfile) {
+        try {
+          await createDefaultProfile(userId);
+          return;
+        } catch (_) {
           displayMinimalProfile(userId);
           hideLoadingAndShowContent();
           return;
         }
-      } else if (
-        error.code === "unauthorized" ||
-        error.code === "forbidden" ||
-        error.code === "permission-denied" ||
-        error.code === "unauthenticated"
-      ) {
-        displayMinimalProfile(userId);
-        hideLoadingAndShowContent();
-        return;
       } else {
         displayMinimalProfile(userId);
         hideLoadingAndShowContent();
@@ -389,6 +394,7 @@ import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
       }
     }
   }
+
 
   // Create default profile for new users
   async function createDefaultProfile(userId) {
@@ -474,6 +480,15 @@ import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
       }
     }
 
+    // Fun display bits
+    if (profileStatusEmoji) setSafeText(profileStatusEmoji, profileData.funStatusEmoji || "");
+    if (profileThemeDot) {
+      const col = profileData.themeColor || "#f7ff00";
+      profileThemeDot.style.backgroundColor = col;
+      try { document.documentElement.style.setProperty('--fun-accent', col); } catch {}
+    }
+    if (profileFavoriteTrack) setSafeText(profileFavoriteTrack, profileData.favoriteTrack || "Add one in edit mode.");
+
     // Pre-fill edit form
     if (editUsername) editUsername.value = profileData.username || "";
     if (editDisplayName) editDisplayName.value = profileData.displayName || "";
@@ -490,6 +505,7 @@ import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
     }
 
     hideLoadingAndShowContent();
+    try { LoadingService.done('profile-content'); } catch {}
   }
 
   // Display minimal profile when backend is not available
@@ -522,122 +538,6 @@ import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
     };
 
     displayProfile(basicProfile);
-    loadAchievements([]); // Load empty achievements
-  }
-
-  // Load achievements
-  function loadAchievements(achievements) {
-    if (isDestroyed) return;
-
-    if (!userAchievements) return;
-
-    if (achievements.length === 0) {
-      safeSetHTML(
-        userAchievements,
-        '<p class="text-slate-400">No achievements yet. Keep racing!</p>',
-      );
-
-      const achievementSummary = document.getElementById("achievement-summary");
-      const categoryFilter = document.getElementById("category-filter");
-      if (achievementSummary) achievementSummary.classList.add("hidden");
-      if (categoryFilter) categoryFilter.classList.add("hidden");
-      return;
-    }
-
-    // Show achievement summary and filter
-    const achievementSummary = document.getElementById("achievement-summary");
-    const categoryFilter = document.getElementById("category-filter");
-    if (achievementSummary) achievementSummary.classList.remove("hidden");
-    if (categoryFilter) categoryFilter.classList.remove("hidden");
-
-    // Calculate total points
-    const totalPoints = achievements.reduce(
-      (sum, achievement) => sum + (achievement.points || 0),
-      0,
-    );
-    const totalPointsEl = document.getElementById("total-points");
-    const totalAchievementsCountEl = document.getElementById(
-      "total-achievements-count",
-    );
-
-    if (totalPointsEl) setSafeText(totalPointsEl, totalPoints.toString());
-    if (totalAchievementsCountEl)
-      setSafeText(totalAchievementsCountEl, achievements.length.toString());
-
-    // Render achievements
-    renderAchievements(achievements);
-  }
-
-  function renderAchievements(achievements) {
-    if (isDestroyed || !userAchievements) return;
-
-    if (achievements.length === 0) {
-      safeSetHTML(
-        userAchievements,
-        '<p class="text-slate-400">No achievements in this category.</p>',
-      );
-      return;
-    }
-
-    // Clear existing content
-    userAchievements.innerHTML = "";
-
-    achievements.forEach((achievement) => {
-      // Ensure category defaults to 'uncategorized' if missing
-      const category = achievement.category || "uncategorized";
-      const dateEarnedText = achievement.dateEarned
-        ? formatFirestoreTimestamp(achievement.dateEarned)
-        : "";
-
-      const achievementHTML = html`
-        <div
-          class="achievement-item flex items-center space-x-3 p-3 bg-slate-700 rounded-md"
-          data-category="${category}"
-        >
-          <div
-            class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center"
-          >
-            ${achievement.icon || "🏆"}
-          </div>
-          <div class="flex-1">
-            <div class="flex items-center justify-between mb-1">
-              <h4 class="font-bold text-white">${achievement.name}</h4>
-              <div class="flex items-center space-x-2">
-                <span class="achievement-category-badge"
-                  >${getCategoryDisplayName(category)}</span
-                >
-                <span class="text-xs font-racing text-neon-yellow"
-                  >${achievement.points || 0}pts</span
-                >
-              </div>
-            </div>
-            <p class="text-sm text-slate-400">${achievement.description}</p>
-            ${dateEarnedText
-              ? html`<p class="text-xs text-slate-500">
-                  Earned: ${dateEarnedText}
-                </p>`
-              : ""}
-          </div>
-        </div>
-      `;
-
-      const achievementElement = document.createElement("div");
-      safeSetHTML(achievementElement, achievementHTML);
-      if (achievementElement.firstElementChild) {
-        userAchievements.appendChild(achievementElement.firstElementChild);
-      }
-    });
-  }
-
-  function getCategoryDisplayName(category) {
-    const categoryMap = {
-      racing: "🏁 Racing",
-      performance: "⚡ Performance",
-      community: "👥 Community",
-      sportsmanship: "✨ Fair Play",
-      uncategorized: "📋 Other",
-    };
-    return categoryMap[category] || "📋 Other";
   }
 
   // Toggle edit mode
@@ -665,8 +565,85 @@ import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
   }
   if (saveProfileBtn) {
     saveProfileBtn.addEventListener("click", async () => {
-      // Save profile functionality - placeholder
+      if (isDestroyed || !currentUser) return;
+      try {
+        const userId = currentUser.uid;
+        const payload = {
+          username: (editUsername?.value || '').trim(),
+          displayName: (editDisplayName?.value || '').trim(),
+          bio: (editBio?.value || '').trim(),
+          avatarUrl: (editAvatarUrl?.value || '').trim(),
+          favoriteCars: (editFavoriteCars?.value || '')
+            .split(',')
+            .map((s)=>s.trim())
+            .filter(Boolean),
+          joinDate: new Date().toISOString(),
+          // Fun fields
+          funStatusEmoji: (editStatusEmoji?.value || '').trim(),
+          favoriteTrack: (editFavoriteTrack?.value || '').trim(),
+          themeColor: (editThemeColor?.value || '#f7ff00'),
+        };
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const app = getFirebaseApp();
+        const functions = getFunctions(app);
+        const updateProfile = httpsCallable(functions, 'updateProfile');
+        await updateProfile({ userId, profileData: payload });
+        // Ensure custom fields persist even if callable filters them
+        try {
+          const { doc, setDoc } = await import('firebase/firestore');
+          const db2 = getFirebaseDb();
+          await setDoc(doc(db2, 'users', userId), {
+            funStatusEmoji: payload.funStatusEmoji,
+            favoriteTrack: payload.favoriteTrack,
+            themeColor: payload.themeColor,
+          }, { merge: true });
+        } catch {}
+        // Reload
+        await loadUserProfile(userId);
+        // Exit edit mode
+        if (isEditing) await toggleEditMode();
+        // Celebrate!
+        showToast('Profile saved! 🎉');
+        launchConfetti();
+      } catch (e) {
+        showAuthError({ code: 'profile-save-failed', message: e?.message || 'Failed to save profile.' });
+      }
     });
+  }
+
+  // Surprise Me button
+  if (surpriseMeBtn) {
+    surpriseMeBtn.addEventListener('click', () => {
+      const emojis = ['🏁','🔥','🚀','😎','💥','✨','⚡','🏎️','🌟','🎯'];
+      const randEmoji = emojis[Math.floor(Math.random()*emojis.length)];
+      if (editStatusEmoji) editStatusEmoji.value = randEmoji;
+      const colors = ['#f7ff00','#00c6ff','#ff5ccd','#22c55e','#f97316','#a78bfa'];
+      const randColor = colors[Math.floor(Math.random()*colors.length)];
+      if (editThemeColor) editThemeColor.value = randColor;
+      showToast('Feeling lucky! 🎲');
+    });
+  }
+
+  function showToast(message) {
+    if (!saveToast) return;
+    saveToast.textContent = message;
+    saveToast.style.display = 'block';
+    clearTimeout(saveToast._t);
+    saveToast._t = setTimeout(()=>{ saveToast.style.display = 'none'; }, 2000);
+  }
+
+  function launchConfetti() {
+    const emojis = ['🏁','🔥','🚀','😎','💥','✨','⚡','🏎️','🌟','🎯'];
+    const count = 18;
+    for (let i=0;i<count;i++) {
+      const span = document.createElement('span');
+      span.className = 'confetti';
+      span.style.left = Math.random()*100 + 'vw';
+      span.style.transform = `translateY(0) rotate(${Math.random()*360}deg)`;
+      span.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      document.body.appendChild(span);
+      setTimeout(()=> span.remove(), 1600);
+    }
   }
 
   // Set up authentication state monitoring with enhanced error handling
@@ -704,17 +681,7 @@ import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
               return;
             }
 
-            // Check if user is admin for achievements management
-            try {
-              const claimsResult = await validateUserClaims(["team-member"]);
-              const isAdmin =
-                claimsResult.success &&
-                claimsResult.claims.role === "team-member";
-
-              if (isAdmin && adminAchievements) {
-                adminAchievements.classList.remove("hidden");
-              }
-            } catch (claimsError) {}
+            // No admin/achievements UI anymore
           } else {
             cleanup();
             navigateToInternal("/login.html");

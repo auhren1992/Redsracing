@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="stylesheet" href="styles/modern-effects.css" />
+    <style>
+      :root { --user-accent: #fbbf24; }
+      .accent-chip { background: var(--user-accent); }
+      .accent-border { border-color: var(--user-accent); }
+    </style>
+  </head>
+  <body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen">
+    <!-- Shared Header -->
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+        <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+          <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-6 font-bold">
+          <a href="index.html" class="nav-link">🏠 Home</a>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">🏎️ Drivers <i class="fas fa-chevron-down"></i></button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="driver.html" class="dropdown-item">Jon Kirsch #8</a>
+              <a href="jonny.html" class="dropdown-item">Jonny Kirsch #88</a>
+              <a href="legends.html" class="dropdown-item">Team Legends</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">🏁 Racing <i class="fas fa-chevron-down"></i></button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="schedule.html" class="dropdown-item">Schedule</a>
+              <a href="leaderboard.html" class="dropdown-item">Leaderboard</a>
+              <a href="gallery.html" class="dropdown-item">📸 Gallery</a>
+              <a href="videos.html" class="dropdown-item">🎥 Videos</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">👥 Community <i class="fas fa-chevron-down"></i></button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="qna.html" class="dropdown-item">❓ Q&A</a>
+              <a href="feedback.html" class="dropdown-item">💬 Feedback</a>
+              <a href="sponsorship.html" class="dropdown-item">💰 Sponsorship</a>
+            </div>
+          </div>
+          <a href="admin-console.html" class="nav-link">🛠️ Admin</a>
+        </div>
+        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+      </nav>
+      <div id="mobile-menu" class="mobile-menu modern-mobile hidden">
+        <a href="index.html" class="mobile-nav-item">🏠 Home</a>
+        <a href="admin-console.html" class="mobile-nav-item">🛠️ Admin</a>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-10">
+      <div class="mb-8 text-center">
+        <h1 class="text-4xl font-racing uppercase text-white">Website <span class="neon-yellow">Settings</span></h1>
+        <p class="text-slate-400 mt-2">Configure site, users, and security separate from the Admin Console</p>
+      </div>
+
+      <div id="settings-role-banner" class="mb-6 text-center text-slate-300"></div>
+
+      <!-- Profile Preferences (available to all users) -->
+      <section id="profile-settings" class="admin-card rounded-xl p-6 mb-8">
+        <h2 class="text-xl font-bold text-white mb-4"><i class="fas fa-user text-green-400 mr-2"></i>Profile Preferences</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Display Name</label>
+            <input id="profile-display-name" type="text" placeholder="Your name" class="modern-input w-full px-3 py-2 text-white" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Avatar URL</label>
+            <input id="profile-avatar" type="url" placeholder="https://..." class="modern-input w-full px-3 py-2 text-white" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Theme</label>
+            <select id="profile-theme" class="modern-input w-full px-3 py-2 text-white">
+              <option value="auto">Auto</option>
+              <option value="light">Light</option>
+              <option value="dark" selected>Dark</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Accent Color</label>
+            <input id="profile-accent-color" type="color" value="#fbbf24" class="modern-input w-full h-[42px] p-1 rounded-md bg-slate-700 border border-slate-600" />
+            <div class="mt-2 text-sm text-slate-400">Preview: <span id="accent-preview" class="inline-block w-4 h-4 rounded-full align-middle accent-chip" style="border:1px solid rgba(255,255,255,0.2);"></span></div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300">Email Notifications</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input id="profile-email-notifs" type="checkbox" class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <p id="profile-save-msg" class="text-sm text-slate-400"></p>
+          <button id="save-profile-btn" class="success-btn px-4 py-2 rounded-lg text-white font-semibold"><i class="fas fa-save mr-2"></i>Save Profile</button>
+        </div>
+      </section>
+
+      <!-- Team Tools (team-members and admins) -->
+      <section id="team-tools" class="rounded-xl p-6 mb-8 bg-slate-800 border border-slate-700 hidden">
+        <h2 class="text-xl font-bold text-white mb-4"><i class="fas fa-toolbox text-yellow-400 mr-2"></i>Team Tools</h2>
+        <p class="text-slate-400 text-sm mb-4">Quick links for team-members and admins. These tools live in their own pages to keep Settings simple.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <a href="gallery.html" class="block p-4 rounded-lg bg-slate-900/70 border border-slate-700 hover:border-yellow-400 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-white font-semibold">Gallery Approvals</span>
+              <span class="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full"><span id="pending-count-settings">0</span> pending</span>
+            </div>
+            <p class="text-slate-400 text-sm mt-2">Open the gallery to approve photos.</p>
+          </a>
+          <a href="gallery.html#mine" class="block p-4 rounded-lg bg-slate-900/70 border border-slate-700 hover:border-yellow-400 transition">
+            <div class="text-white font-semibold">My Uploads</div>
+            <p class="text-slate-400 text-sm mt-2">Jump to your photos in the gallery.</p>
+          </a>
+          <a href="qna.html" class="block p-4 rounded-lg bg-slate-900/70 border border-slate-700 hover:border-yellow-400 transition">
+            <div class="text-white font-semibold">Q&A Moderation</div>
+            <p class="text-slate-400 text-sm mt-2">Review community Q&A.</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- Privacy Controls (for everyone) -->
+      <section id="privacy-settings" class="rounded-xl p-6 mb-8 bg-slate-800 border border-slate-700">
+        <h2 class="text-xl font-bold text-white mb-4"><i class="fas fa-user-shield text-blue-400 mr-2"></i>Privacy</h2>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-300">Public profile</span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input id="profile-public" type="checkbox" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
+        </div>
+      </section>
+
+      <div id="settings-toast" class="hidden fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">Settings saved!</div>
+    </main>
+
+    <footer class="bg-black/50 border-t border-slate-800 py-8 mt-8">
+      <div class="container mx-auto px-6 text-center text-slate-400 text-sm">© <span id="year"></span> RedsRacing #8</div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="vendors.js"></script>
+    <script type="module" src="navigation.js"></script>
+    <script type="module">
+      const toast = document.getElementById('settings-toast');
+      const banner = document.getElementById('settings-role-banner');
+      const showToast = (msg) => {
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 2500);
+      };
+
+      // Initialize Firebase via CDN (same pattern as Admin Console)
+      const initFirebase = async () => {
+        const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+        let app;
+        if (getApps().length === 0) {
+          const firebaseConfig = {
+            apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+            authDomain: "redsracing-a7f8b.firebaseapp.com",
+            projectId: "redsracing-a7f8b",
+            storageBucket: "redsracing-a7f8b.firebasestorage.app",
+            messagingSenderId: "517034606151",
+            appId: "1:517034606151:web:24cae262e1d98832757b62"
+          };
+          app = initializeApp(firebaseConfig);
+        } else {
+          app = (await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js')).getApps()[0];
+        }
+        return app;
+      };
+
+      const setAdminVisibility = (isAdmin) => {
+        document.querySelectorAll('[data-role="admin"]').forEach(sec => {
+          if (isAdmin) {
+            sec.classList.remove('hidden');
+            sec.style.display = '';
+          } else {
+            sec.classList.add('hidden');
+            sec.style.display = 'none';
+          }
+        });
+      };
+
+      const loadUserProfile = async (app, uid) => {
+        try {
+          const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+          const db = getFirestore(app);
+          const snap = await getDoc(doc(db, 'users', uid));
+          if (snap.exists()) {
+            const data = snap.data();
+            const prefs = data.preferences || {};
+            document.getElementById('profile-display-name').value = data.displayName || '';
+            document.getElementById('profile-avatar').value = data.avatarUrl || '';
+            document.getElementById('profile-theme').value = prefs.theme || 'dark';
+            document.getElementById('profile-email-notifs').checked = !!prefs.emailNotifications;
+            const pub = document.getElementById('profile-public'); if (pub) pub.checked = !!prefs.publicProfile;
+            const colorInput = document.getElementById('profile-accent-color');
+            const userColor = prefs.userColor || '#fbbf24';
+            if (colorInput) colorInput.value = userColor;
+            try { document.documentElement.style.setProperty('--user-accent', userColor); } catch(_){}
+            const prev = document.getElementById('accent-preview'); if (prev) prev.style.background = userColor;
+          }
+        } catch (e) {
+          // no-op
+        }
+      };
+
+      const saveUserProfile = async (app, uid) => {
+        const displayName = document.getElementById('profile-display-name').value.trim();
+        const avatarUrl = document.getElementById('profile-avatar').value.trim();
+        const theme = document.getElementById('profile-theme').value;
+        const emailNotifications = document.getElementById('profile-email-notifs').checked;
+        const publicProfile = document.getElementById('profile-public')?.checked || false;
+        const userColor = document.getElementById('profile-accent-color')?.value || '#fbbf24';
+        try {
+          const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+          const db = getFirestore(app);
+          await setDoc(doc(db, 'users', uid), {
+            displayName,
+            avatarUrl,
+            preferences: { theme, emailNotifications, publicProfile, userColor }
+          }, { merge: true });
+          try { document.documentElement.style.setProperty('--user-accent', userColor); } catch(_){}
+          const prev = document.getElementById('accent-preview'); if (prev) prev.style.background = userColor;
+          showToast('Profile settings saved!');
+          const msg = document.getElementById('profile-save-msg');
+          if (msg) msg.textContent = 'Saved just now';
+        } catch (e) {
+          showToast('Failed to save profile');
+        }
+      };
+
+      const main = async () => {
+        const app = await initFirebase();
+        const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+        const auth = getAuth();
+        onAuthStateChanged(auth, async (user) => {
+          let role = 'public-fan';
+          if (user) {
+            try {
+              const token = await user.getIdTokenResult();
+              role = token?.claims?.role || 'public-fan';
+            } catch {}
+          }
+
+          const isAdmin = role === 'admin';
+          const isTeam = role === 'team-member';
+          setAdminVisibility(isAdmin);
+
+          if (banner) {
+            if (!user) {
+              banner.textContent = 'You are not signed in. Sign in to save your settings.';
+            } else if (isAdmin) {
+              banner.textContent = 'Signed in as Admin — you can manage global site settings.';
+            } else if (isTeam) {
+              banner.textContent = 'Signed in as Team Member — you can update your profile. Site settings are admin-only.';
+            } else {
+              banner.textContent = 'Signed in as Follower — personalize your profile. Site settings are admin-only.';
+            }
+          }
+
+          // Load and wire profile settings
+          const saveProfileBtn = document.getElementById('save-profile-btn');
+          if (user) {
+            await loadUserProfile(app, user.uid);
+            // Live preview on color change
+            const colorInput = document.getElementById('profile-accent-color');
+            if (colorInput) {
+              colorInput.addEventListener('input', (e) => {
+                const val = e.target.value;
+                try { document.documentElement.style.setProperty('--user-accent', val); } catch(_){}
+                const prev = document.getElementById('accent-preview'); if (prev) prev.style.background = val;
+              });
+            }
+            saveProfileBtn?.addEventListener('click', () => saveUserProfile(app, user.uid));
+          } else {
+            // disable inputs when signed out
+            [
+              'profile-display-name','profile-avatar','profile-theme','profile-email-notifs','save-profile-btn'
+            ].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
+          }
+
+          // Team tools visibility and counts (team-members/admins)
+          const teamTools = document.getElementById('team-tools');
+          if (isAdmin || isTeam) {
+            teamTools?.classList.remove('hidden');
+            try {
+              const { getFirestore, collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const db = getFirestore(app);
+              const pending = await getDocs(query(collection(db, 'gallery_images'), where('approved', '==', false)));
+              const el = document.getElementById('pending-count-settings');
+              if (el) el.textContent = pending.size;
+            } catch (_) {}
+          } else {
+            teamTools?.classList.add('hidden');
+          }
+        });
+
+        const yearEl = document.getElementById('year');
+        if (yearEl) yearEl.textContent = new Date().getFullYear();
+      };
+
+      main();
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  </body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "seasonYear": 2025,
+  "seasonOver": true,
+  "nextSeasonYear": 2026,
+  "races": [
+    {
+      "date": "2025-10-12",
+      "track": "Sycamore Speedway",
+      "city": "Maple Park",
+      "state": "IL",
+      "eventName": "Fall Nationals",
+      "startTime": "14:00"
+    },
+    {
+      "date": "2025-11-02",
+      "track": "Rockford Speedway",
+      "city": "Loves Park",
+      "state": "IL",
+      "eventName": "Championship Weekend",
+      "startTime": "13:00"
+    },
+    {
+      "date": "2025-12-06",
+      "track": "Milwaukee Mile",
+      "city": "West Allis",
+      "state": "WI",
+      "eventName": "Holiday Classic",
+      "startTime": "12:30"
+    }
+  ]
+}

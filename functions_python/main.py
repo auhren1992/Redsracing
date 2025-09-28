@@ -15,7 +15,7 @@ initialize_app()
 
 # Configure secrets for email functionality
 # Keep SENTRY_DSN optional to avoid deployment failure when the secret is not present
-options.set_global_options(secrets=["SENDGRID_API_KEY", "RECAPTCHA_SITE_KEY"])
+options.set_global_options(secrets=["SENDGRID_API_KEY", "RECAPTCHA_SITE_KEY", "SENTRY_DSN"])
 
 # Initialize Sentry (non-blocking if DSN not provided)
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
@@ -25,8 +25,11 @@ if SENTRY_DSN:
         dsn=SENTRY_DSN,
         environment=SENTRY_ENV,
         integrations=[FlaskIntegration()],
-        traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", 0.1)),
-        send_default_pii=False,
+        traces_sample_rate=1.0,  # Capture 100% of transactions for performance monitoring
+        send_default_pii=True,  # Include request headers, IP addresses, and user info
+        include_source_context=True,  # Include source code context in error reports
+        include_local_variables=True,  # Include local variables in stack traces
+        max_request_body_size="medium",  # Send request bodies up to medium size
     )
 
 # Configure secrets for email functionality
@@ -122,6 +125,20 @@ def handleAddSubscriber(req: https_fn.Request) -> https_fn.Response:
 def handleTest(req: https_fn.Request) -> https_fn.Response:
     """A simple test function to verify rewrite functionality."""
     print("handleTest function was invoked.")
+    
+    # Test Sentry error reporting if test_error parameter is passed
+    if req.args.get('test_error') == 'true':
+        try:
+            # Force an error for Sentry testing
+            result = 1 / 0  # This will cause a ZeroDivisionError
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            return https_fn.Response(
+                json.dumps({"status": "error", "message": "Test error sent to Sentry!"}),
+                status=500,
+                headers={"Content-Type": "application/json"},
+            )
+    
     return https_fn.Response(
         json.dumps({"status": "success", "message": "Hello from the test function!"}),
         status=200,
@@ -129,7 +146,7 @@ def handleTest(req: https_fn.Request) -> https_fn.Response:
     )
 
 
-@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY"])
+@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY", "SENTRY_DSN"])
 def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
     """Sends feedback from a user as an email via SendGrid."""
     if req.method == "OPTIONS":
@@ -188,7 +205,7 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
         )
 
 
-@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY"])
+@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY", "SENTRY_DSN"])
 def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
     """Sends a sponsorship inquiry as an email via SendGrid."""
     if req.method == "OPTIONS":

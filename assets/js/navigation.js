@@ -14,43 +14,233 @@ import "./app.js";
     if (authNavInitialized) return;
     authNavInitialized = true;
     try {
-      const { monitorAuthState } = await import("./auth-utils.js");
+      const { monitorAuthState, validateUserClaims, safeSignOut } = await import("./auth-utils.js");
 
       // Locate the desktop nav container
       const desktopNav = document.querySelector(
         "nav .md\\:flex.items-center, nav .hidden.md\\:flex.items-center",
       );
-      // Find the login dropdown by looking for a login link in its menu
-      const loginLink = document.querySelector('a[href="login.html"]');
-      const loginDropdown = loginLink ? loginLink.closest(".dropdown") : null;
 
-      // Create a Dashboard link we can toggle
-      let dashboardLink = document.getElementById("auth-link-nav");
-      if (!dashboardLink && desktopNav) {
-        dashboardLink = document.createElement("a");
-        dashboardLink.id = "auth-link-nav";
-        dashboardLink.href = "dashboard.html"; // routes to correct dashboard
-        dashboardLink.className =
-          "bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300 font-bold";
-        dashboardLink.textContent = "Dashboard";
-        dashboardLink.style.display = "none";
-        desktopNav.appendChild(dashboardLink);
+      // Ensure a consistent Account dropdown exists (desktop)
+      let accountDropdown = document.getElementById("account-dropdown");
+      if (!accountDropdown && desktopNav) {
+        accountDropdown = document.createElement("div");
+        accountDropdown.className = "dropdown relative";
+        accountDropdown.id = "account-dropdown";
+        accountDropdown.innerHTML = `
+          <button id=\"account-toggle\" class=\"dropdown-toggle bg-neon-yellow text-slate-900 py-2 px-4 rounded-md font-bold hover:bg-yellow-300 transition\" aria-haspopup=\"true\" aria-expanded=\"false\">
+            Account
+          </button>
+          <div id=\"account-menu\" class=\"dropdown-menu hidden\" role=\"menu\" aria-hidden=\"true\">
+            <!-- Items populated by JS -->
+          </div>
+        `;
+        desktopNav.appendChild(accountDropdown);
       }
 
+      // Ensure mobile Account section exists
+      const mobileMenu = document.getElementById("mobile-menu");
+      if (mobileMenu && !document.getElementById("account-dropdown-mobile")) {
+        const container = document.createElement("div");
+        container.id = "account-dropdown-mobile";
+        container.innerHTML = `
+          <button id=\"account-toggle-mobile\" class=\"mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left\">Login</button>
+          <div id=\"account-menu-mobile\" class=\"mobile-accordion-content hidden pl-4\"></div>
+        `;
+        mobileMenu.appendChild(container);
+      }
+
+      function buildMenuInto(menuId, items, opts = {}) {
+        const menu = document.getElementById(menuId);
+        if (!menu) return;
+        menu.innerHTML = "";
+        for (const item of items) {
+          const a = document.createElement("a");
+          a.href = item.href || "#";
+          a.textContent = item.label;
+          if (opts.roleMenuItem) a.setAttribute("role", "menuitem");
+          if (opts.extraClasses) a.className = opts.extraClasses;
+          if (item.onClick) {
+            a.addEventListener("click", (e) => {
+              e.preventDefault();
+              item.onClick();
+            });
+          }
+          menu.appendChild(a);
+        }
+      }
+
+      function buildMenu(items) {
+        // Desktop dropdown
+        buildMenuInto("account-menu", items, { roleMenuItem: true });
+        // Mobile accordion menu
+        buildMenuInto(
+          "account-menu-mobile",
+          items,
+          { extraClasses: "block py-2 pl-6 text-sm hover:bg-slate-800" }
+        );
+      }
+
+      function hideLegacyLinks() {
+        const selectors = [
+          'a[href="login.html"]',
+          'a[href="signup.html"]',
+          'a[href="profile.html"]',
+          'a[href="dashboard.html"]',
+          'a[href="redsracing-dashboard.html"]',
+          'a[href="follower-dashboard.html"]'
+        ];
+        selectors.forEach((sel) => {
+          document.querySelectorAll(sel).forEach((el) => {
+            const parentDropdown = el.closest('.dropdown');
+            if (parentDropdown && parentDropdown.id === 'account-dropdown') return;
+            el.style.display = 'none';
+          });
+        });
+      }
+
+      function setAvatarButtonContent(name, email, photoURL) {
+        const btn = document.getElementById('account-toggle');
+        if (!btn) return;
+        const initials = (name || email || 'U')
+          .replace(/[^a-zA-Z ]/g, '')
+          .trim()
+          .split(' ')
+          .map((p) => p[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase();
+        btn.innerHTML = '';
+        const wrap = document.createElement('span');
+        wrap.className = 'inline-flex items-center gap-2';
+        const avatar = document.createElement('span');
+        avatar.className = 'avatar-btn';
+        if (photoURL) {
+          const img = document.createElement('img');
+          img.src = photoURL;
+          img.alt = 'Profile';
+          img.className = 'avatar-img';
+          avatar.appendChild(img);
+        } else {
+          const i = document.createElement('span');
+          i.textContent = initials;
+          i.className = 'avatar-initials';
+          avatar.appendChild(i);
+        }
+        const label = document.createElement('span');
+        label.textContent = 'Account';
+        wrap.appendChild(avatar);
+        wrap.appendChild(label);
+        btn.appendChild(wrap);
+      }
+
+      async function renderForUser(user) {
+        hideLegacyLinks();
+        const menuBtn = document.getElementById("account-toggle");
+        if (!menuBtn) return;
+        if (!user) {
+          menuBtn.textContent = "Login";
+          const items = [
+            { label: "Team Member Login", href: "login.html" },
+            { label: "Follower Login", href: "follower-login.html" },
+          ];
+          buildMenu(items);
+          const mobileBtn = document.getElementById("account-toggle-mobile");
+          if (mobileBtn) mobileBtn.textContent = "Login";
+          return;
+        }
+        // Ensure default role is set (admin vs public-fan), then read claims
+        let role = null;
+        try {
+          // Call backend to enforce role
+          const { getFunctions, httpsCallable } = await import("firebase/functions");
+          try { await httpsCallable(getFunctions(), "ensureDefaultRole")({}); } catch (_) {}
+          // Force token refresh to pick up new claims
+          try { await user.getIdToken(true); } catch (_) {}
+          const claims = await validateUserClaims();
+          role = claims.success ? claims.claims.role : null;
+        } catch {}
+
+        const isAdmin = role === "admin";
+        const displayName = user.displayName || '';
+        const email = user.email || '';
+        setAvatarButtonContent(displayName, email, user.photoURL);
+
+        // Persist role into users/{uid}.role for visibility in Firestore (without changing security claims)
+        try {
+          const normalized = (role && typeof role === 'string') ? role : 'public-fan';
+          // Optional: map legacy 'follower' to 'public-fan'
+          const normRole = normalized === 'follower' ? 'public-fan' : normalized;
+          const [{ getFirebaseDb }, { doc, setDoc }] = await Promise.all([
+            import("./firebase-core.js"),
+            import("firebase/firestore"),
+          ]);
+          const db = getFirebaseDb();
+          await setDoc(doc(db, 'users', user.uid), { role: normRole }, { merge: true });
+        } catch (_) {}
+
+        const items = [];
+        // Header (not clickable)
+        items.push({ label: `${displayName || email}`, href: '#' });
+        items.push({ label: '—', href: '#' });
+
+        // Settings (was under crown menu; now under account dropdown for all users)
+        items.push({ label: "Settings", href: "settings.html" });
+
+        // Role-specific main destination
+        if (isAdmin) {
+          items.push({ label: "Admin Console", href: "admin-console.html" });
+        } else {
+          items.push({ label: "Follower Dashboard", href: "follower-dashboard.html" });
+        }
+
+        // Back to site (was under crown menu)
+        items.push({ label: "Back to Site", href: "index.html" });
+
+        // Sign out
+        items.push({
+          label: "Sign out",
+          onClick: async () => {
+            try {
+              await safeSignOut();
+            } finally {
+              window.location.href = "login.html";
+            }
+          },
+        });
+        buildMenu(items);
+        const mobileBtn = document.getElementById("account-toggle-mobile");
+        if (mobileBtn) mobileBtn.textContent = "Account";
+      }
+
+      // Wire dropdown toggle behavior (click to open/close)
+      function wireDropdown() {
+        const toggle = document.getElementById("account-toggle");
+        const menu = document.getElementById("account-menu");
+        if (!toggle || !menu) return;
+        // Remove existing listeners by replacing nodes
+        const newToggle = toggle.cloneNode(true);
+        toggle.parentNode.replaceChild(newToggle, toggle);
+        newToggle.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const hidden = menu.classList.contains("hidden");
+          document.querySelectorAll(".dropdown-menu").forEach((m) => m.classList.add("hidden"));
+          if (hidden) menu.classList.remove("hidden");
+          newToggle.setAttribute("aria-expanded", String(hidden));
+        });
+        document.addEventListener("click", () => menu.classList.add("hidden"));
+      }
+
+      wireDropdown();
+
       monitorAuthState(
-        (user) => {
-          const isAuthed = !!user;
-          if (dashboardLink) {
-            dashboardLink.style.display = isAuthed ? "inline-block" : "none";
-          }
-          if (loginDropdown) {
-            loginDropdown.style.display = isAuthed ? "none" : "";
-          }
+        async (user) => {
+          await renderForUser(user);
         },
         () => {
-          // On error, prefer showing login dropdown
-          if (dashboardLink) dashboardLink.style.display = "none";
-          if (loginDropdown) loginDropdown.style.display = "";
+          // On error, show logged-out menu
+          renderForUser(null);
         },
       );
     } catch (e) {
@@ -75,8 +265,8 @@ import "./app.js";
     }
 
     try {
-      // Mobile menu toggle with enhanced error handling
-      const mobileMenuButton = document.getElementById("mobile-menu-button");
+      // Mobile menu toggle with enhanced error handling - support both IDs
+      const mobileMenuButton = document.getElementById("mobile-menu-button") || document.getElementById("mobile-menu-toggle");
 
       // Initialize auth-aware nav once DOM is available
       initAuthNavigation();
@@ -84,7 +274,7 @@ import "./app.js";
         // Remove any existing listeners to prevent duplicates
         mobileMenuButton.replaceWith(mobileMenuButton.cloneNode(true));
         const newMobileMenuButton =
-          document.getElementById("mobile-menu-button");
+          document.getElementById("mobile-menu-button") || document.getElementById("mobile-menu-toggle");
 
         newMobileMenuButton.addEventListener("click", (event) => {
           event.preventDefault();
@@ -94,6 +284,20 @@ import "./app.js";
           if (mobileMenu) {
             mobileMenu.classList.toggle("hidden");
             const isHidden = mobileMenu.classList.contains("hidden");
+            
+            // Handle hamburger icon switching
+            const menuIcon = document.getElementById("menu-icon");
+            const closeIcon = document.getElementById("close-icon");
+            
+            if (menuIcon && closeIcon) {
+              if (isHidden) {
+                menuIcon.style.display = "block";
+                closeIcon.style.display = "none";
+              } else {
+                menuIcon.style.display = "none";
+                closeIcon.style.display = "block";
+              }
+            }
 
             // Update aria attributes for accessibility
             newMobileMenuButton.setAttribute("aria-expanded", !isHidden);
@@ -106,6 +310,17 @@ import "./app.js";
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             newMobileMenuButton.click();
+          } else if (event.key === "Escape") {
+            const mobileMenu = document.getElementById("mobile-menu");
+            if (mobileMenu && !mobileMenu.classList.contains("hidden")) {
+              // If focus is inside mobile menu, move it back to the button first
+              if (mobileMenu.contains(document.activeElement)) {
+                try { newMobileMenuButton.focus(); } catch (_) {}
+              }
+              mobileMenu.classList.add("hidden");
+              newMobileMenuButton.setAttribute("aria-expanded", "false");
+              mobileMenu.setAttribute("aria-hidden", "true");
+            }
           }
         });
       }
@@ -127,7 +342,10 @@ import "./app.js";
               content &&
               content.classList.contains("mobile-accordion-content")
             ) {
-              const wasHidden = content.classList.contains("hidden");
+              // Check both hidden class and display style
+              const isCurrentlyHidden = content.classList.contains("hidden") || 
+                content.style.display === "none" || 
+                getComputedStyle(content).display === "none";
 
               // Close other accordions (optional - remove if you want multiple open)
               document
@@ -135,25 +353,75 @@ import "./app.js";
                 .forEach((otherContent) => {
                   if (otherContent !== content) {
                     otherContent.classList.add("hidden");
+                    otherContent.style.display = "none";
                   }
                 });
 
-              content.classList.toggle("hidden");
+              // Toggle current accordion
+              if (isCurrentlyHidden) {
+                content.classList.remove("hidden");
+                content.style.display = "block";
+              } else {
+                content.classList.add("hidden");
+                content.style.display = "none";
+              }
 
               // Update aria attributes
-              newButton.setAttribute("aria-expanded", wasHidden);
-              content.setAttribute("aria-hidden", !wasHidden);
+              newButton.setAttribute("aria-expanded", !isCurrentlyHidden);
+              content.setAttribute("aria-hidden", isCurrentlyHidden);
             }
           });
 
           // Add keyboard support
           newButton.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" || event.key === " ") {
+          if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
               newButton.click();
+            } else if (event.key === "Escape") {
+              const content = newButton.nextElementSibling;
+              if (content && content.classList.contains("mobile-accordion-content")) {
+                if (!content.classList.contains("hidden")) {
+                  // If focus is inside the content being hidden, move it out
+                  if (content.contains(document.activeElement)) {
+                    try { newButton.focus(); } catch (_) {}
+                  }
+                  content.classList.add("hidden");
+                  content.style.display = "none";
+                  newButton.setAttribute("aria-expanded", "false");
+                  content.setAttribute("aria-hidden", "true");
+                }
+              }
             }
           });
         });
+
+      // Helpers to manage dropdown visibility, focus, and accessibility state
+      function setInert(el, value) {
+        try {
+          if (!el) return;
+          if (value) el.setAttribute("inert", "");
+          else el.removeAttribute("inert");
+        } catch (_) {}
+      }
+      function hideDropdownMenu(menu) {
+        if (!menu) return;
+        const toggle = menu.previousElementSibling;
+        // If focus is inside the menu being hidden, move it back to the toggle first
+        if (menu.contains(document.activeElement) && toggle) {
+          try { toggle.focus(); } catch (_) {}
+        }
+        menu.classList.add("hidden");
+        menu.setAttribute("aria-hidden", "true");
+        setInert(menu, true);
+        if (toggle) toggle.setAttribute("aria-expanded", "false");
+      }
+      function showDropdownMenu(menu, toggle) {
+        if (!menu) return;
+        menu.classList.remove("hidden");
+        menu.setAttribute("aria-hidden", "false");
+        setInert(menu, false);
+        if (toggle) toggle.setAttribute("aria-expanded", "true");
+      }
 
       // Enhanced desktop dropdowns
       document.querySelectorAll(".dropdown-toggle").forEach((button, index) => {
@@ -178,8 +446,7 @@ import "./app.js";
           // Close all other dropdowns first
           document.querySelectorAll(".dropdown-menu").forEach((menu) => {
             if (menu !== dropdownMenu) {
-              menu.classList.add("hidden");
-              menu.setAttribute("aria-hidden", "true");
+              hideDropdownMenu(menu);
             }
           });
 
@@ -194,9 +461,7 @@ import "./app.js";
 
           // Toggle the current dropdown
           if (isCurrentlyHidden) {
-            dropdownMenu.classList.remove("hidden");
-            dropdownMenu.setAttribute("aria-hidden", "false");
-            newButton.setAttribute("aria-expanded", "true");
+            showDropdownMenu(dropdownMenu, newButton);
 
             // Focus first menu item for accessibility
             const firstMenuItem = dropdownMenu.querySelector("a");
@@ -204,9 +469,7 @@ import "./app.js";
               setTimeout(() => firstMenuItem.focus(), 100);
             }
           } else {
-            dropdownMenu.classList.add("hidden");
-            dropdownMenu.setAttribute("aria-hidden", "true");
-            newButton.setAttribute("aria-expanded", "false");
+            hideDropdownMenu(dropdownMenu);
           }
         });
 
@@ -260,9 +523,7 @@ import "./app.js";
             if (dropdownMenu) {
               // Longer timeout to allow users to move mouse to menu items
               dropdown.hoverTimeout = setTimeout(() => {
-                dropdownMenu.classList.add("hidden");
-                dropdownMenu.setAttribute("aria-hidden", "true");
-                newButton.setAttribute("aria-expanded", "false");
+                hideDropdownMenu(dropdownMenu);
               }, 500);
             }
           });
@@ -279,10 +540,9 @@ import "./app.js";
           return;
         }
 
-        // Close all dropdowns
+        // Close all dropdowns (move focus out if it was inside)
         document.querySelectorAll(".dropdown-menu").forEach((menu) => {
-          menu.classList.add("hidden");
-          menu.setAttribute("aria-hidden", "true");
+          hideDropdownMenu(menu);
         });
 
         // Update all toggle buttons
@@ -319,13 +579,7 @@ import "./app.js";
               break;
             case "Escape":
               event.preventDefault();
-              menu.classList.add("hidden");
-              menu.setAttribute("aria-hidden", "true");
-              const toggle = menu.previousElementSibling;
-              if (toggle) {
-                toggle.setAttribute("aria-expanded", "false");
-                toggle.focus();
-              }
+              hideDropdownMenu(menu);
               break;
           }
         });
@@ -350,6 +604,7 @@ import "./app.js";
       document.querySelectorAll(".dropdown-menu").forEach((menu) => {
         menu.setAttribute("aria-hidden", "true");
         menu.setAttribute("role", "menu");
+        try { menu.setAttribute("inert", ""); } catch (_) {}
       });
 
       document.querySelectorAll(".mobile-accordion").forEach((accordion) => {

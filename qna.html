@@ -15,8 +15,15 @@
       href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
       rel="stylesheet"
     />
-    <script src="https://unpkg.com/scrollreveal"></script>
+    <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://redsracing-a7f8b.firebasestorage.app" crossorigin />
+    <link rel="dns-prefetch" href="//redsracing-a7f8b.firebasestorage.app" />
+    <script defer src="https://unpkg.com/scrollreveal"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="stylesheet" href="styles/modern-effects.css" />
   </head>
   <body class="bg-dark-blue">
     <header
@@ -33,155 +40,84 @@
           ><span class="neon-yellow">Racing</span>
         </a>
         <div class="hidden md:flex items-center space-x-6 font-bold">
-          <a
-            href="index.html"
-            class="hover:text-neon-yellow transition duration-300"
-            >Home</a
-          >
+          <a href="index.html" class="nav-link">🏠 Home</a>
           <div class="relative dropdown">
-            <button
-              class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center"
-            >
-              The Drivers
-              <svg
-                class="w-4 h-4 ml-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
+            <button class="dropdown-toggle nav-link">
+              🏎️ Drivers <i class="fas fa-chevron-down"></i>
             </button>
-            <div
-              class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50"
-            >
-              <a
-                href="driver.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Jon Kirsch</a
-              >
-              <a
-                href="jonny.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Jonny Kirsch #88</a
-              >
-            </div>
-          </div>
-          <a
-            href="schedule.html"
-            class="hover:text-neon-yellow transition duration-300"
-            >Schedule</a
-          >
-          <div class="relative dropdown">
-            <button
-              class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center"
-            >
-              Media
-              <svg
-                class="w-4 h-4 ml-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
-            </button>
-            <div
-              class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50"
-            >
-              <a
-                href="gallery.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Gallery</a
-              >
-              <a
-                href="videos.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Videos</a
-              >
+            <div class="dropdown-menu modern-dropdown">
+              <a href="driver.html" class="dropdown-item">Jon Kirsch #8</a>
+              <a href="jonny.html" class="dropdown-item">Jonny Kirsch #88</a>
+              <a href="legends.html" class="dropdown-item">Team Legends</a>
             </div>
           </div>
           <div class="relative dropdown">
-            <button
-              class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center"
-            >
-              Community
-              <svg
-                class="w-4 h-4 ml-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
+            <button class="dropdown-toggle nav-link">
+              🏁 Racing <i class="fas fa-chevron-down"></i>
             </button>
-            <div
-              class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50"
-            >
-              <a
-                href="qna.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Q&A</a
-              >
-              <a
-                href="feedback.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Feedback</a
-              >
+            <div class="dropdown-menu modern-dropdown">
+              <a href="schedule.html" class="dropdown-item">Schedule</a>
+              <a href="leaderboard.html" class="dropdown-item">Leaderboard</a>
+              <a href="gallery.html" class="dropdown-item">Gallery</a>
+              <a href="videos.html" class="dropdown-item">Videos</a>
             </div>
           </div>
-          <a
-            href="sponsorship.html"
-            class="hover:text-neon-yellow transition duration-300"
-            >Sponsorship</a
-          >
           <div class="relative dropdown">
-            <button
-              class="dropdown-toggle bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300 flex items-center font-bold"
-            >
-              Login
-              <svg
-                class="w-4 h-4 ml-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
+            <button class="dropdown-toggle nav-link">
+              👥 Community <i class="fas fa-chevron-down"></i>
             </button>
-            <div
-              class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50 right-0"
-            >
-              <a
-                href="login.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Team Member Login</a
-              >
-              <a
-                href="follower-login.html"
-                class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white"
-                >Follower Login</a
-              >
+            <div class="dropdown-menu modern-dropdown">
+              <a href="qna.html" class="dropdown-item active">❓ Q&A</a>
+              <a href="feedback.html" class="dropdown-item">Feedback</a>
+              <a href="sponsorship.html" class="dropdown-item">Sponsorship</a>
+            </div>
+          </div>
+          <!-- User Profile / Login -->
+          <div id="auth-section">
+            <!-- Login Button (shown when not authenticated) -->
+            <a href="admin-console.html" id="login-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-bold transition duration-300 flex items-center space-x-1">
+              <i class="fas fa-sign-in-alt"></i>
+              <span>Login</span>
+            </a>
+            
+            <!-- User Profile Dropdown (shown when authenticated) -->
+            <div id="user-profile" class="relative dropdown hidden">
+              <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
+                <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <i class="fas fa-user text-white text-xs"></i>
+                </div>
+                <div class="text-left hidden md:block">
+                  <div class="text-sm font-semibold text-white" id="user-name">Driver</div>
+                  <div class="text-xs text-slate-400">Team Member</div>
+                </div>
+                <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+              </button>
+              
+              <div class="dropdown-menu modern-dropdown right-0 w-44">
+                <div class="px-4 py-2 border-b border-slate-600/50">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-green-400 text-sm">Online</span>
+                  </div>
+                </div>
+                
+                <a href="admin-console.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
+                  <span>Dashboard</span>
+                </a>
+                
+                <a href="profile.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-user w-4 mr-3 text-green-400"></i>
+                  <span>My Profile</span>
+                </a>
+                
+                <div class="border-t border-slate-600/50 my-1"></div>
+                
+                <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                  <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
+                  <span>Sign Out</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -204,137 +140,178 @@
           </svg>
         </button>
       </nav>
-      <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
-        <a href="index.html" class="block py-3 px-6 text-sm hover:bg-slate-800"
-          >Home</a
-        >
-        <button
-          class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left"
-        >
-          The Drivers
+      <div id="mobile-menu" class="mobile-menu modern-mobile">
+        <a href="index.html" class="mobile-nav-item">🏠 Home</a>
+        <button class="mobile-accordion">
+          <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
         </button>
-        <div class="mobile-accordion-content hidden pl-4">
-          <a
-            href="driver.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Jon Kirsch</a
-          >
-          <a
-            href="jonny.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Jonny Kirsch #88</a
-          >
+        <div class="mobile-accordion-content">
+          <a href="driver.html" class="mobile-nav-subitem">Jon Kirsch #8</a>
+          <a href="jonny.html" class="mobile-nav-subitem">Jonny Kirsch #88</a>
+          <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
         </div>
-        <a
-          href="schedule.html"
-          class="block py-3 px-6 text-sm hover:bg-slate-800"
-          >Schedule</a
-        >
-        <button
-          class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left"
-        >
-          Media
+        <button class="mobile-accordion">
+          <span>🏁 Racing</span><i class="fas fa-chevron-down accordion-icon"></i>
         </button>
-        <div class="mobile-accordion-content hidden pl-4">
-          <a
-            href="gallery.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Gallery</a
-          >
-          <a
-            href="videos.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Videos</a
-          >
+        <div class="mobile-accordion-content">
+          <a href="schedule.html" class="mobile-nav-subitem">Schedule</a>
+          <a href="leaderboard.html" class="mobile-nav-subitem">Leaderboard</a>
+          <a href="gallery.html" class="mobile-nav-subitem">Gallery</a>
+          <a href="videos.html" class="mobile-nav-subitem">Videos</a>
         </div>
-        <button
-          class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left"
-        >
-          Community
+        <button class="mobile-accordion">
+          <span>👥 Community</span><i class="fas fa-chevron-down accordion-icon"></i>
         </button>
-        <div class="mobile-accordion-content hidden pl-4">
-          <a href="qna.html" class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Q&A</a
-          >
-          <a
-            href="feedback.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Feedback</a
-          >
+        <div class="mobile-accordion-content">
+          <a href="qna.html" class="mobile-nav-subitem active">❓ Q&A</a>
+          <a href="feedback.html" class="mobile-nav-subitem">Feedback</a>
+          <a href="sponsorship.html" class="mobile-nav-subitem">Sponsorship</a>
         </div>
-        <a
-          href="sponsorship.html"
-          class="block py-3 px-6 text-sm hover:bg-slate-800"
-          >Sponsorship</a
-        >
-        <button
-          class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left"
-        >
-          Login
-        </button>
-        <div class="mobile-accordion-content hidden pl-4">
-          <a
-            href="login.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Team Member Login</a
-          >
-          <a
-            href="follower-login.html"
-            class="block py-2 pl-6 text-sm hover:bg-slate-800"
-            >Follower Login</a
-          >
+        <div class="border-t border-slate-600 mt-4 pt-4">
+          <!-- Mobile Auth Section -->
+          <div id="mobile-auth-section">
+            <!-- Mobile Login Button (shown when not authenticated) -->
+            <a href="admin-console.html" id="mobile-login-btn" class="mobile-login-btn bg-red-600 hover:bg-red-700">
+              <i class="fas fa-sign-in-alt mr-2"></i>Driver Login
+            </a>
+            
+            <!-- Mobile User Profile (shown when authenticated) -->
+            <div id="mobile-user-profile" class="hidden">
+              <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
+                <div class="flex items-center space-x-3 mb-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white"></i>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold" id="mobile-user-name">Driver</div>
+                    <div class="text-slate-400 text-sm">Team Member</div>
+                    <div class="flex items-center space-x-1 mt-1">
+                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span class="text-green-400 text-xs">Online</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="space-y-1">
+                  <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
+                    <span>Dashboard</span>
+                  </a>
+                  <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-user w-5 mr-3 text-green-400"></i>
+                    <span>My Profile</span>
+                  </a>
+                  <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                    <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </header>
-    <main class="pt-20">
-      <section id="qna" class="py-24 md:py-32 bg-black/20">
-        <div class="container mx-auto px-6">
-          <h2
-            class="font-racing text-5xl uppercase mb-12 text-center reveal-fade"
-          >
-            Fan <span class="neon-yellow">Q&A</span>
-          </h2>
+    <main>
+      <!-- Modern Hero Section -->
+      <section class="py-20 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
+        <div class="container mx-auto px-6 relative z-10">
+          <div class="text-center mb-16">
+            <div class="inline-flex items-center bg-blue-600/20 backdrop-blur-sm px-6 py-3 rounded-full border border-blue-400/30 mb-6">
+              <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse mr-3"></div>
+              <span class="text-blue-400 font-bold uppercase tracking-wider text-sm">
+                <i class="fas fa-question-circle mr-2"></i>Community Driven
+              </span>
+            </div>
+            
+            <h1 class="font-racing text-6xl md:text-8xl lg:text-9xl uppercase tracking-wider mb-6">
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-blue-600">
+                Q&A Hub
+              </span>
+            </h1>
+            
+            <p class="text-xl md:text-2xl text-slate-300 font-bold tracking-wide max-w-4xl mx-auto mb-8">
+              Get answers from the team • Ask racing questions • Join the conversation
+            </p>
+            
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              <div class="modern-card p-4 border border-blue-400/20">
+                <div class="text-3xl font-bold text-blue-400">42</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Questions</div>
+              </div>
+              <div class="modern-card p-4 border border-green-400/20">
+                <div class="text-3xl font-bold text-green-400">38</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Answered</div>
+              </div>
+              <div class="modern-card p-4 border border-yellow-400/20">
+                <div class="text-3xl font-bold text-yellow-400">156</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Interactions</div>
+              </div>
+              <div class="modern-card p-4 border border-purple-400/20">
+                <div class="text-3xl font-bold text-purple-400">24h</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Response Time</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
+      <!-- Q&A Content Section -->
+      <section class="py-20 md:py-32 bg-gradient-to-b from-black to-slate-900">
+        <div class="container mx-auto px-6">
           <div id="qna-container" class="space-y-8 max-w-4xl mx-auto">
             <!-- Q&A items will be dynamically inserted here -->
+            <div class="text-center py-16">
+              <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-comments text-2xl text-white"></i>
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-4">Loading Q&A...</h3>
+              <p class="text-slate-400">Getting the latest questions and answers from the community</p>
+              <div class="mt-6 flex justify-center space-x-1">
+                <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                <div class="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+              </div>
+            </div>
           </div>
 
-          <div
-            id="qna-form-container"
-            class="max-w-4xl mx-auto mt-16"
-            style="display: none"
-          >
-            <h3
-              class="font-racing text-3xl text-white uppercase mb-4 text-center"
-            >
-              Ask a <span class="neon-yellow">Question</span>
-            </h3>
-            <form id="qna-form" class="card p-8 space-y-4">
-              <div>
-                <label
-                  for="qna-question"
-                  class="block text-sm font-medium text-gray-300"
-                  >Your Question</label
-                >
-                <textarea
-                  id="qna-question"
-                  rows="4"
-                  required
-                  class="w-full bg-slate-800 border border-slate-600 rounded-md p-2 mt-1"
-                  placeholder="What do you want to know?"
-                ></textarea>
+          <!-- Ask Question Form -->
+          <div id="qna-form-container" class="max-w-4xl mx-auto mt-16" style="display: none">
+            <div class="modern-card p-8 rounded-2xl">
+              <div class="text-center mb-8">
+                <div class="inline-flex items-center bg-yellow-400/20 px-4 py-2 rounded-full mb-4">
+                  <i class="fas fa-lightbulb text-yellow-400 mr-2"></i>
+                  <span class="text-yellow-400 font-bold uppercase tracking-wider text-sm">Ask Away</span>
+                </div>
+                <h3 class="font-racing text-4xl text-white uppercase mb-2">
+                  Ask a <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Question</span>
+                </h3>
+                <p class="text-slate-400">Get answers directly from the RedsRacing team</p>
               </div>
-              <button
-                type="submit"
-                class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition"
-              >
-                Submit Question
-              </button>
-              <p
-                id="qna-form-status"
-                class="text-sm text-slate-500 mt-2 h-4"
-              ></p>
-            </form>
+              
+              <form id="qna-form" class="space-y-6">
+                <div>
+                  <label for="qna-question" class="block text-sm font-bold text-slate-300 mb-2">
+                    <i class="fas fa-question-circle text-blue-400 mr-2"></i>Your Question
+                  </label>
+                  <textarea
+                    id="qna-question"
+                    rows="4"
+                    required
+                    class="w-full bg-slate-800 border border-slate-600 rounded-lg p-4 text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                    placeholder="What would you like to know about our racing team?"
+                  ></textarea>
+                </div>
+                
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                  <i class="fas fa-paper-plane mr-2"></i>
+                  Submit Question
+                </button>
+                
+                <p id="qna-form-status" class="text-sm text-center mt-4 h-4"></p>
+              </form>
+            </div>
           </div>
         </div>
       </section>
@@ -392,9 +369,13 @@
         </p>
       </div>
     </footer>
-    <script src="navigation.js"></script>
-    <script src="main.js"></script>
-    <script src="qna.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Scripts -->
+    <script type="module" src="navigation.js"></script>
+    <script type="module" src="main.js"></script>
+    <script type="module" src="qna.js"></script>
+    <script src="modern-effects.js"></script>
     <script>
       (function () {
         function init() {

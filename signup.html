@@ -67,6 +67,34 @@
             required
             class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
           />
+          
+          <!-- Team Role Selection -->
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-3">Team Role</label>
+            <div class="space-y-3">
+              <label class="flex items-center p-3 rounded-lg border border-slate-600 cursor-pointer hover:border-yellow-400 transition-all duration-200 bg-slate-800/50">
+                <input type="radio" name="team-role" value="racer" class="text-yellow-400 focus:ring-yellow-400 focus:ring-2" required />
+                <div class="flex items-center space-x-3 w-full ml-3">
+                  <div class="text-2xl">🏎️</div>
+                  <div>
+                    <div class="font-bold text-white">Racer</div>
+                    <div class="text-sm text-slate-400">Driver competing in races</div>
+                  </div>
+                </div>
+              </label>
+              
+              <label class="flex items-center p-3 rounded-lg border border-slate-600 cursor-pointer hover:border-yellow-400 transition-all duration-200 bg-slate-800/50">
+                <input type="radio" name="team-role" value="crew" class="text-yellow-400 focus:ring-yellow-400 focus:ring-2" required />
+                <div class="flex items-center space-x-3 w-full ml-3">
+                  <div class="text-2xl">🔧</div>
+                  <div>
+                    <div class="font-bold text-white">Crew Member</div>
+                    <div class="text-sm text-slate-400">Support team, mechanics, strategy</div>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
           <button
             type="submit"
             class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300"
@@ -97,7 +125,6 @@
           >
             <svg
               class="w-5 h-5 mr-2"
-              aria-hidden="true"
               focusable="false"
               data-prefix="fab"
               data-icon="google"

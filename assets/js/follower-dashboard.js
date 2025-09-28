@@ -11,6 +11,7 @@ import {
 } from "./auth-utils.js";
 import { html, safeSetHTML, setSafeText } from "./sanitize.js";
 import { navigateToInternal } from "./navigation-helpers.js";
+import { LoadingService } from "./loading.js";
 
 (async function () {
   const auth = getFirebaseAuth();
@@ -51,6 +52,8 @@ import { navigateToInternal } from "./navigation-helpers.js";
       navigateToInternal("/login.html");
     }
   }
+
+  let loadingTimeout;
 
   function hideLoadingAndShowContent() {
     if (loadingState) {
@@ -171,6 +174,13 @@ import { navigateToInternal } from "./navigation-helpers.js";
     });
   }
 
+  // Bind loading guard (3s max)
+  LoadingService.bind({ loaderId: 'loading-state', contentId: 'dashboard-content', maxMs: 3000 });
+  // Fallback timeout to avoid infinite spinner
+  loadingTimeout = setTimeout(() => {
+    if (!isDestroyed) { hideLoadingAndShowContent(); try { LoadingService.done('dashboard-content'); } catch {} }
+  }, 8000);
+
   monitorAuthState(
     (user, validToken) => {
       if (user && validToken) {
@@ -179,6 +189,7 @@ import { navigateToInternal } from "./navigation-helpers.js";
         }
         getRaceData();
         hideLoadingAndShowContent();
+        try { LoadingService.done('dashboard-content'); } catch {}
       } else {
         cleanup();
         navigateToInternal("/login.html");

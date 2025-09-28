@@ -37,6 +37,7 @@ import { html, safeSetHTML, setSafeText } from "./sanitize.js";
 
 // Import navigation helpers
 import { navigateToInternal } from "./navigation-helpers.js";
+import { LoadingService } from "./loading.js";
 
 // Main IIFE to encapsulate dashboard logic
 (async function () {
@@ -95,19 +96,46 @@ import { navigateToInternal } from "./navigation-helpers.js";
 
   // --- Start of Function Declarations ---
 
+  // Define checkNetworkConnectivity first to avoid hoisting issues
+  async function checkNetworkConnectivity() {
+    try {
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        return false;
+      }
+
+      // Use a simple fetch without AbortSignal.timeout for better browser compatibility
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      try {
+        const response = await fetch("https://www.google.com/favicon.ico", {
+          method: "HEAD",
+          mode: "no-cors",
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        return true;
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        return false;
+      }
+    } catch (error) {
+      return false;
+    }
+  }
+
   function startLoadingTimeout() {
     if (loadingTimeout) clearTimeout(loadingTimeout);
     loadingTimeout = setTimeout(async () => {
       if (isDestroyed) return;
-
-      // Before showing fallback, check if it's a network issue
       const isOnline = await checkNetworkConnectivity();
-
       if (!isOnline) {
         showNetworkErrorFallback();
       } else {
         hideLoadingAndShowFallback();
       }
+      try { LoadingService.done('dashboard-content'); } catch {}
     }, INITIAL_TIMEOUT);
   }
 
@@ -130,6 +158,7 @@ import { navigateToInternal } from "./navigation-helpers.js";
       dashboardContent.classList.remove("hidden");
       dashboardContent.style.display = "block";
     }
+    try { LoadingService.done('dashboard-content'); } catch {}
     clearLoadingTimeout();
   }
 
@@ -695,24 +724,7 @@ import { navigateToInternal } from "./navigation-helpers.js";
 
     }
 
-    // Setup auth state monitoring
-  async function checkNetworkConnectivity() {
-    try {
-      if (typeof navigator !== "undefined" && navigator.onLine === false) {
-        return false;
-      }
-
-      const response = await fetch("https://www.google.com/favicon.ico", {
-        method: "HEAD",
-        mode: "no-cors",
-        cache: "no-store",
-        signal: AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined,
-      });
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
+  // Setup auth state monitoring
 
   function startCountdown(races) {
     if (isDestroyed) return;
@@ -1160,21 +1172,24 @@ import { navigateToInternal } from "./navigation-helpers.js";
           codes.forEach((code) => {
             const row = document.createElement("tr");
             row.className = "border-b border-slate-700";
+            const used = (code.used !== undefined) ? code.used : (code.status === 'used');
+            const usedAtTs = code.usedAt || code.used_at || null;
+            const expiresTs = code.expiresAt || code.expires || null;
+            const usedAtStr = usedAtTs && (usedAtTs.seconds || usedAtTs._seconds)
+              ? new Date((usedAtTs.seconds || usedAtTs._seconds) * 1000).toLocaleDateString()
+              : 'N/A';
+            const expiresStr = expiresTs && (expiresTs.seconds || expiresTs._seconds)
+              ? new Date((expiresTs.seconds || expiresTs._seconds) * 1000).toLocaleDateString()
+              : 'N/A';
             safeSetHTML(
               row,
               html`
                 <td class="p-2">${code.id}</td>
-                <td class="p-2">${code.role}</td>
-                <td class="p-2">${code.status}</td>
-                <td class="p-2">${code.usedBy || "N/A"}</td>
-                <td class="p-2">
-                  ${code.usedAt
-                    ? new Date(code.usedAt.seconds * 1000).toLocaleDateString()
-                    : "N/A"}
-                </td>
-                <td class="p-2">
-                  ${new Date(code.expires.seconds * 1000).toLocaleDateString()}
-                </td>
+                <td class="p-2">${code.role || '—'}</td>
+                <td class="p-2">${used ? 'used' : 'unused'}</td>
+                <td class="p-2">${code.usedBy || code.used_by || 'N/A'}</td>
+                <td class="p-2">${usedAtStr}</td>
+                <td class="p-2">${expiresStr}</td>
               `,
             );
             invitationCodesTableBody.appendChild(row);
@@ -1233,6 +1248,24 @@ import { navigateToInternal } from "./navigation-helpers.js";
       authStateUnsubscribe = null;
     }
   }
+
+  // Bind centralized loader guard (3s max spinner)
+  try { LoadingService.bind({ loaderId: 'loading-state', contentId: 'dashboard-content', maxMs: 3000 }); } catch {}
+  // Extra failsafe at 4s to force-show content shell
+  setTimeout(() => {
+    if (isDestroyed) return;
+    const loader = document.getElementById('loading-state');
+    const content = document.getElementById('dashboard-content');
+    if (loader && !loader.classList.contains('hidden')) {
+      loader.classList.add('hidden');
+      if (content) {
+        content.classList.remove('hidden');
+        if (!content.innerHTML || content.innerHTML.trim() === '') {
+          content.innerHTML = '<div class="text-center py-12 text-slate-400">Dashboard is loading slowly. Try again shortly.</div>';
+        }
+      }
+    }
+  }, 4000);
 
   // --- Start of Main Execution Logic ---
 

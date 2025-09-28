@@ -13,17 +13,24 @@ module.exports = {
     feedback: "./assets/js/feedback.js",
     gallery: "./assets/js/gallery.js",
     jonny: "./assets/js/jonny.js",
+    driver: "./assets/js/driver.js",
+    "racer-schedule": "./assets/js/racer-schedule.js",
     leaderboard: "./assets/js/leaderboard.js",
     "login-page": "./assets/js/login-page.js",
     navigation: "./assets/js/navigation.js",
     profile: "./assets/js/profile.js",
     "profile-inline-fallback": "./assets/js/profile-inline-fallback.js",
+    loading: "./assets/js/loading.js",
+    "stats-2025": "./assets/js/stats-2025.js",
+    "k1-stats": "./assets/js/k1-stats.js",
+    "k1-history": "./assets/js/k1-history.js",
     qna: "./assets/js/qna.js",
     schedule: "./assets/js/schedule.js",
     "signup-page": "./assets/js/signup-page.js",
     sponsorship: "./assets/js/sponsorship.js",
     videos: "./assets/js/videos.js",
     "leaderboard-inline-fallback": "./assets/js/leaderboard-inline-fallback.js",
+    "modern-effects": "./assets/js/modern-effects.js",
   },
   output: {
     path: path.resolve(__dirname, "dist"),
@@ -71,6 +78,7 @@ module.exports = {
         // Copy other static files
         { from: "apple-touch-icon.png", to: "", noErrorOnMissing: true },
         { from: "hero-bg.png", to: "", noErrorOnMissing: true },
+        { from: "data", to: "data", noErrorOnMissing: true },
       ],
     }),
   ],
@@ -80,7 +88,6 @@ module.exports = {
   optimization: {
     splitChunks: {
       chunks: 'all',
-      maxSize: 200000,
       cacheGroups: {
         vendor: {
           test: /[\\/]node_modules[\\/]/,

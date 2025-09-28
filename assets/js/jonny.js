@@ -26,7 +26,7 @@ import {
   getFirebaseDb,
   getFirebaseStorage,
 } from "./firebase-core.js";
-import { monitorAuthState } from "./auth-utils.js";
+import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
 
 // Import sanitization utilities
 import {
@@ -40,6 +40,11 @@ async function main() {
   const auth = getFirebaseAuth();
   const db = getFirebaseDb();
   const storage = getFirebaseStorage();
+  let canTeamDelete = false;
+  try {
+    const claims = await validateUserClaims();
+    canTeamDelete = claims.success && claims.claims.role === 'team-member';
+  } catch {}
 
   // UI Elements
   const uploadContainer = document.getElementById("upload-container");
@@ -152,6 +157,7 @@ async function main() {
               category: "jonny",
               likes: [],
               likeCount: 0,
+              storagePath: `gallery/jonny/${timestamp}-${selectedFile.name}`,
             });
 
             // Check for photographer achievement
@@ -214,6 +220,7 @@ async function main() {
         const likeCount = image.likeCount || 0;
 
         const likeButtonClass = isLiked ? "text-red-400" : "text-slate-400";
+        const canDelete = canTeamDelete;
         const fillValue = isLiked ? "currentColor" : "none";
         const disabledAttr = !currentUser ? "disabled" : "";
 
@@ -230,6 +237,7 @@ async function main() {
               Uploaded by: ${image.uploaderDisplayName || "Anonymous"}
             </p>
             <div class="mt-3 flex items-center justify-between">
+              <div class="flex items-center gap-2">
               <button
                 class="like-btn flex items-center space-x-1 text-xs ${likeButtonClass} hover:text-red-400 transition"
                 data-image-id="${imageId}"
@@ -250,6 +258,11 @@ async function main() {
                 </svg>
                 <span class="like-count">${likeCount}</span>
               </button>
+              ${canDelete ? html`<button class="delete-btn flex items-center space-x-1 text-xs text-red-400 hover:text-red-300 transition" data-image-id="${imageId}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <span>Delete</span>
+              </button>` : ""}
+              </div>
               <button
                 class="comment-btn flex items-center space-x-1 text-xs text-slate-400 hover:text-blue-400 transition"
                 data-image-id="${imageId}"
@@ -275,10 +288,41 @@ async function main() {
         `;
 
         safeSetHTML(galleryItem, galleryHTML);
+        const delBtn = galleryItem.querySelector('.delete-btn');
+        if (delBtn) {
+          delBtn.addEventListener('click', async () => {
+            if (!confirm('Delete this photo?')) return;
+            try {
+              await deleteImage(imageId, image);
+            } catch (e) {}
+          });
+        }
         galleryContainer.appendChild(galleryItem);
       });
     });
   };
+
+  async function deleteImage(imageId, image) {
+    try {
+      const imageRef = doc(db, 'gallery_images', imageId);
+      try {
+        const s = getFirebaseStorage();
+        const { ref: sref, deleteObject } = await import('firebase/storage');
+        let path = image.storagePath;
+        if (!path && image.imageUrl) {
+          const m = image.imageUrl.match(/\/o\/([^?]+)\?/);
+          if (m) path = decodeURIComponent(m[1]);
+        }
+        if (path) {
+          const objRef = sref(s, path);
+          await deleteObject(objRef).catch(()=>{});
+        }
+      } catch {}
+      await import('firebase/firestore').then(async ({ deleteDoc }) => {
+        await deleteDoc(imageRef);
+      });
+    } catch {}
+  }
 
   // --- Social Features ---
   const toggleLike = async (imageId) => {
