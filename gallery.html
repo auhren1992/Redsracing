@@ -239,22 +239,22 @@
             
             <!-- Racing Stats Bar -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-              <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-yellow-400/20">
-                <div class="text-3xl font-bold text-yellow-400">127</div>
+              <button id="stat-action" data-filter="action" class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-yellow-400/20 hover:border-yellow-300/40 transition cursor-pointer text-left">
+                <div id="action-count" class="text-3xl font-bold text-yellow-400">0</div>
                 <div class="text-slate-400 text-sm uppercase tracking-wider">Action Shots</div>
-              </div>
-              <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-red-400/20">
-                <div class="text-3xl font-bold text-red-400">45</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider">Victory Moments</div>
-              </div>
-              <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-blue-400/20">
-                <div class="text-3xl font-bold text-blue-400">89</div>
+              </button>
+              <button id="stat-victory" data-filter="victory" class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-red-400/20 hover:border-red-300/40 transition cursor-pointer text-left">
+                <div id="victory-count" class="text-3xl font-bold text-red-400">0</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Podium</div>
+              </button>
+              <button id="stat-pit" data-filter="pit" class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-blue-400/20 hover:border-blue-300/40 transition cursor-pointer text-left">
+                <div id="pit-count" class="text-3xl font-bold text-blue-400">0</div>
                 <div class="text-slate-400 text-sm uppercase tracking-wider">Pit Crew</div>
-              </div>
-              <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-green-400/20">
-                <div class="text-3xl font-bold text-green-400">23</div>
+              </button>
+              <button id="stat-champs" data-filter="championship" class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-green-400/20 hover:border-green-300/40 transition cursor-pointer text-left">
+                <div id="champs-count" class="text-3xl font-bold text-green-400">0</div>
                 <div class="text-slate-400 text-sm uppercase tracking-wider">Championships</div>
-              </div>
+              </button>
             </div>
           </div>
         </div>
@@ -304,6 +304,11 @@
                              class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white placeholder-slate-400">
                     </label>
                   </div>
+
+                  <label class="inline-flex items-center">
+                    <input type="checkbox" id="photo-championship" class="mr-2">
+                    <span class="text-slate-300">Championship photo</span>
+                  </label>
                 </div>
                 
                 <div class="flex flex-col justify-center">
@@ -355,7 +360,7 @@
               <i class="fas fa-flag-checkered mr-2"></i>Race Action
             </button>
             <button class="gallery-filter" data-category="victory">
-              <i class="fas fa-trophy mr-2"></i>Victory Lane
+              <i class="fas fa-trophy mr-2"></i>Podium
             </button>
             <button class="gallery-filter" data-category="pit">
               <i class="fas fa-wrench mr-2"></i>Pit Crew

@@ -15,25 +15,23 @@
     />
     <link rel="stylesheet" href="styles/main.css" />
   </head>
-  <body class="flex items-center justify-center min-h-screen p-4">
+  <body class="flex items-center justify-center min-h-screen p-4 bg-slate-900">
     <div class="w-full max-w-md">
-      <!-- Logo Header -->
-      <div class="text-center mb-8">
-        <a
-          href="index.html"
-          class="text-5xl font-racing uppercase tracking-wider"
-        >
-          <span class="title-blue">Reds</span
-          ><span class="neon-yellow">Racing</span>
+      <!-- Modern Header -->
+      <div class="text-center mb-4">
+        <a href="index.html" class="text-5xl font-racing uppercase tracking-wider">
+          <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
         </a>
-        <p class="text-slate-400 mt-2">Follower Access Portal</p>
       </div>
 
-      <!-- Form Container -->
-      <div class="form-container p-8 rounded-lg shadow-2xl">
-        <h2 class="text-2xl font-bold text-center text-white mb-6">
-          Follower Login
-        </h2>
+      <!-- Card Container -->
+      <div class="p-0 rounded-2xl shadow-2xl bg-slate-900/60 backdrop-blur-md border border-slate-700/50 overflow-hidden">
+        <div class="px-8 pt-8 pb-4 border-b border-slate-700/50 text-center">
+          <h2 class="text-3xl font-racing uppercase text-white">Follower <span class="neon-yellow">Portal</span></h2>
+          <p class="text-slate-400 text-sm mt-2">Access the community dashboard</p>
+          <div class="mt-4 text-xs text-slate-500">Need team access? <a href="login.html" class="text-yellow-400 hover:text-yellow-300 font-semibold">Team/Admin Login</a></div>
+        </div>
+        <div class="px-8 py-6">
 
         <!-- Error Message Display -->
         <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
@@ -141,16 +139,12 @@
           </div>
         </div>
       </div>
+      </div>
 
       <div class="text-center mt-6">
-        <a
-          href="index.html"
-          class="text-slate-500 hover:text-neon-yellow text-sm"
-          >← Back to Home</a
-        >
+        <a href="index.html" class="text-slate-500 hover:text-neon-yellow text-sm">← Back to Home</a>
       </div>
     </div>
-
 
     <script src="follower-login.js"></script>
   </body>

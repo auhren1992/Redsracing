@@ -18,6 +18,7 @@ try {
 } catch {}
 Sentry.init({ dsn: __dsn, tracesSampleRate: 0.1 });
 const { onObjectFinalized } = require("firebase-functions/v2/storage");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getAuth } = require("firebase-admin/auth");
@@ -390,21 +391,34 @@ exports.ensureDefaultRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) 
       const cfg = require("firebase-functions").config?.() || {};
       ADMIN_EMAIL = cfg?.admin?.email || ADMIN_EMAIL;
     } catch {}
-
-    const uid = request.auth.uid;
-    const email = request.auth.token?.email || "";
-    const roleToAssign = (ADMIN_EMAIL && email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase())
-      ? "admin"
-      : "public-fan";
+    // Final fallback to hardcoded admin email if config/env missing
+    if (!ADMIN_EMAIL) ADMIN_EMAIL = "auhren1992@gmail.com";
+    if (typeof ADMIN_EMAIL === 'string') ADMIN_EMAIL = ADMIN_EMAIL.trim().toLowerCase();
 
     const auth = getAuth();
     const db = getFirestore();
 
+    const uid = request.auth.uid;
+    // Prefer token email, but fall back to fetching user record
+    let email = request.auth.token?.email || "";
+    if (!email) {
+      try {
+        const u = await auth.getUser(uid);
+        email = u?.email || "";
+      } catch (_) {}
+    }
+    if (typeof email === 'string') email = email.trim().toLowerCase();
+
+    let roleToAssign = "public-fan";
+    if (ADMIN_EMAIL && email && email === ADMIN_EMAIL) {
+      roleToAssign = "admin";
+    }
+
     await auth.setCustomUserClaims(uid, { role: roleToAssign });
     await db.collection("users").doc(uid).set({ role: roleToAssign }, { merge: true });
 
-    logger.info(`ensureDefaultRole: set role '${roleToAssign}' for user ${uid} (${email}).`);
-    return { status: "success", role: roleToAssign };
+    logger.info(`ensureDefaultRole: adminEmail='${ADMIN_EMAIL}', userEmail='${email}', set role '${roleToAssign}' for user ${uid}.`);
+    return { status: "success", role: roleToAssign, adminEmail: ADMIN_EMAIL, userEmail: email };
   } catch (error) {
     logger.error("ensureDefaultRole failed", error);
     try { Sentry.captureException(error); } catch(_) {}
@@ -596,5 +610,129 @@ exports.setFollowerRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) =>
   } catch (error) {
     logger.error(`Error setting follower role for user ${uid}:`, error);
     throw new HttpsError("internal", "Failed to assign follower role.", error);
+  }
+});
+
+/**
+ * TikTok auto-ingest: fetch latest public video URLs for @redsracing and store in Firestore.
+ * No official API is used; this parses the public profile page for video links.
+ */
+async function fetchTikTokVideoUrls(username) {
+  const profileUrl = `https://www.tiktok.com/@${username}`;
+  const res = await fetch(profileUrl, {
+    method: 'GET',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9'
+    }
+  });
+  const html = await res.text();
+  const urls = new Set();
+
+  // 1) Try parsing embedded JSON (SIGI_STATE)
+  try {
+    const sigiMatch = html.match(/<script id="SIGI_STATE"[^>]*>([\s\S]*?)<\/script>/);
+    if (sigiMatch && sigiMatch[1]) {
+      const state = JSON.parse(sigiMatch[1]);
+      // Preferred: ItemModule contains items keyed by videoId
+      const itemModule = state && state.ItemModule ? state.ItemModule : null;
+      if (itemModule && typeof itemModule === 'object') {
+        for (const key of Object.keys(itemModule)) {
+          const item = itemModule[key];
+          const id = (item && (item.id || item.video?.id)) || key;
+          if (id && /^\d+$/.test(String(id))) {
+            urls.add(`https://www.tiktok.com/@${username}/video/${id}`);
+          }
+        }
+      }
+      // Fallback: sometimes ItemList.itemList contains IDs
+      if (urls.size === 0 && state && state.ItemList && Array.isArray(state.ItemList)) {
+        try {
+          state.ItemList.forEach(list => {
+            const idList = list?.itemList || list?.list || [];
+            idList.forEach(id => {
+              if (id && /^\d+$/.test(String(id))) {
+                urls.add(`https://www.tiktok.com/@${username}/video/${id}`);
+              }
+            });
+          });
+        } catch(_) {}
+      }
+    }
+  } catch (e) {
+    logger.warn('SIGI_STATE parse failed', e);
+  }
+
+  // 2) Regex fallback (if JSON parse didn’t produce anything)
+  if (urls.size === 0) {
+    const rx = /https?:\/\/www\.tiktok\.com\/@[^\/#?\s]+\/(video|photo)\/(\d+)/g;
+    let m;
+    while ((m = rx.exec(html)) !== null) {
+      try { urls.add(m[0]); } catch (_) {}
+    }
+  }
+
+  return Array.from(urls);
+}
+
+async function upsertTikTokVideos(urls) {
+  const db = getFirestore();
+  const col = db.collection('videos');
+  // Load existing URLs to de-duplicate
+  const existingSnap = await col.where('platform','==','tiktok').get();
+  const existing = new Set();
+  existingSnap.forEach((d) => { const u = d.data()?.url; if (u) existing.add(u); });
+
+  let added = 0;
+  for (const url of urls) {
+    if (existing.has(url)) continue;
+    await col.add({
+      platform: 'tiktok',
+      url,
+      published: true,
+      createdAt: FieldValue.serverTimestamp(),
+      source: 'auto'
+    });
+    added++;
+  }
+  return added;
+}
+
+// Callable to trigger a refresh (admin-only)
+exports.refreshTikTokVideos = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated','Must be signed in.');
+  }
+  // Admin by role or email
+  const role = request.auth.token?.role || '';
+  const email = (request.auth.token?.email || '').toLowerCase();
+  let ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+  try { const cfg = require('firebase-functions').config?.() || {}; ADMIN_EMAIL = cfg?.admin?.email || ADMIN_EMAIL; } catch {}
+  if (!ADMIN_EMAIL) ADMIN_EMAIL = 'auhren1992@gmail.com';
+  if (!(role === 'admin' || (email && email === ADMIN_EMAIL.toLowerCase()))) {
+    throw new HttpsError('permission-denied','Admin only');
+  }
+  const username = 'redsracing';
+  try {
+    const urls = await fetchTikTokVideoUrls(username);
+    const added = await upsertTikTokVideos(urls);
+    return { status: 'success', found: urls.length, added };
+  } catch (e) {
+    logger.error('refreshTikTokVideos failed', e);
+    try { Sentry.captureException(e); } catch(_){}
+    throw new HttpsError('internal','Failed to refresh TikTok videos');
+  }
+});
+
+// Scheduled auto-ingest hourly
+exports.tiktokAutoIngest = onSchedule({ schedule: 'every 60 minutes', timeZone: 'Etc/UTC' }, async (event) => {
+  try {
+    const urls = await fetchTikTokVideoUrls('redsracing');
+    const added = await upsertTikTokVideos(urls);
+    logger.info(`TikTok auto-ingest: found=${urls.length}, added=${added}`);
+  } catch (e) {
+    logger.error('tiktokAutoIngest failed', e);
+    try { Sentry.captureException(e); } catch(_){}
   }
 });

@@ -134,7 +134,7 @@
           </svg>
         </button>
       </nav>
-      <div id="mobile-menu" class="mobile-menu modern-mobile">
+      <div id="mobile-menu" class="mobile-menu modern-mobile hidden">
         <a href="index.html" class="mobile-nav-item">🏠 Home</a>
         <button class="mobile-accordion">
           <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
@@ -207,135 +207,139 @@
     <main class="flex items-center justify-center min-h-screen p-4">
       <div class="w-full max-w-md reveal-fade">
         <!-- Form Container -->
-        <div class="form-container p-8 rounded-lg shadow-2xl bg-slate-800/50 backdrop-blur-md border border-slate-700/50">
-          <h2 class="text-3xl font-racing uppercase text-center text-white mb-6">
-            Member <span class="neon-yellow">Access</span>
-          </h2>
+        <div class="form-container p-0 rounded-2xl shadow-2xl bg-slate-900/60 backdrop-blur-md border border-slate-700/50 overflow-hidden">
+          <!-- Header -->
+          <div class="px-8 pt-8 pb-4 border-b border-slate-700/50">
+            <h2 class="text-3xl font-racing uppercase text-center text-white">
+              Member <span class="neon-yellow">Access</span>
+            </h2>
+            <p class="text-center text-slate-400 text-sm mt-2">Sign in to your team or admin account</p>
 
-        <!-- Error Message Display -->
-        <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
-          <p id="error-text"></p>
-        </div>
-
-        <!-- Login Form -->
-        <form id="login-form" class="space-y-6">
-          <div>
-            <label for="email" class="block text-sm font-medium text-gray-300"
-              >Email</label
-            >
-            <input
-              type="email"
-              id="email"
-              name="email"
-              required
-              class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
-            />
-          </div>
-          <div>
-            <div class="flex justify-between items-center">
-              <label
-                for="password"
-                class="block text-sm font-medium text-gray-300"
-                >Password</label
-              >
-              <a
-                href="#"
-                id="forgot-password-link"
-                class="text-sm text-slate-400 hover:text-neon-yellow"
-                >Forgot password?</a
-              >
+            <!-- Tabs -->
+            <div class="mt-6 flex items-center justify-center gap-2">
+              <button id="tab-team" class="login-tab active px-4 py-2 rounded-md text-sm font-semibold bg-yellow-400 text-slate-900 hover:bg-yellow-300">Team / Admin</button>
+              <button id="tab-follower" class="login-tab px-4 py-2 rounded-md text-sm font-semibold bg-slate-700 text-white hover:bg-slate-600">Follower</button>
             </div>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              required
-              class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
-            />
           </div>
 
-          <!-- Optional Invitation Code Field -->
-          <div>
-            <label
-              for="invitation-code"
-              class="block text-sm font-medium text-gray-300"
-              >Invitation Code (optional)</label
-            >
-            <input
-              type="text"
-              id="invitation-code"
-              name="invitation-code"
-              class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
-              placeholder="Enter invitation code if you have one"
-            />
-            <p class="text-xs text-gray-400 mt-1">
-              Enter an invitation code to access additional features.
-            </p>
-          </div>
+          <!-- Body -->
+          <div class="px-8 py-6">
+            <!-- Error Message Display -->
+            <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
+              <p id="error-text"></p>
+            </div>
 
-          <div class="flex flex-col space-y-4">
-            <button
-              type="button"
-              id="signin-button"
-              class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300"
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              id="signup-button"
-              class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition duration-300"
-            >
-              Sign Up
-            </button>
-          </div>
-        </form>
+            <!-- Team/Admin Panel -->
+            <div id="panel-team">
+              <!-- Login Form -->
+              <form id="login-form" class="space-y-6">
+                <div>
+                  <label for="email" class="block text-sm font-medium text-gray-300">Email</label>
+                  <div class="relative mt-1">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                      <i class="fas fa-envelope"></i>
+                    </span>
+                    <input type="email" id="email" name="email" required class="form-input block w-full pl-9 pr-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" />
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between items-center">
+                    <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
+                    <a href="#" id="forgot-password-link" class="text-sm text-slate-400 hover:text-neon-yellow">Forgot password?</a>
+                  </div>
+                  <div class="relative mt-1">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                      <i class="fas fa-lock"></i>
+                    </span>
+                    <input type="password" id="password" name="password" required class="form-input block w-full pl-9 pr-10 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" />
+                    <button type="button" id="toggle-password" aria-label="Show password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                </div>
 
-        <!-- Divider -->
-        <div class="relative my-6">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-slate-600"></div>
-          </div>
-          <div class="relative flex justify-center text-sm">
-            <span class="px-2 bg-slate-800 text-gray-400"
-              >Or continue with</span
-            >
-          </div>
-        </div>
+                <!-- Optional Invitation Code Field -->
+                <div>
+                  <label for="invitation-code" class="block text-sm font-medium text-gray-300">Invitation Code (optional)</label>
+                  <input type="text" id="invitation-code" name="invitation-code" class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" placeholder="Enter invitation code if you have one" />
+                  <p class="text-xs text-gray-400 mt-1">Enter an invitation code to access additional features.</p>
+                </div>
 
-        <!-- Google Sign-in -->
-        <div>
-          <button
-            type="button"
-            id="google-signin-button"
-            class="w-full flex justify-center items-center bg-white text-gray-700 font-semibold py-2 px-4 rounded-md shadow-sm hover:bg-gray-200 transition duration-300"
-          >
-            <svg
-              class="w-5 h-5 mr-2"
-              aria-hidden="true"
-              focusable="false"
-              data-prefix="fab"
-              data-icon="google"
-              role="img"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 488 512"
-            >
-              <path
-                fill="currentColor"
-                d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.9 0 129.8 110.3 20 244 20c66.2 0 121.3 24.8 162.2 65.5l-68.5 64.9C314.5 124.9 282.8 108 244 108c-73.2 0-132.3 59.8-132.3 133.1s59.1 133.1 132.3 133.1c76.9 0 114.3-52.3 120.8-79.1H244V261.8h244z"
-              ></path>
-            </svg>
-            Sign in with Google
-          </button>
-        </div>
+                <div class="flex flex-col space-y-3">
+                  <button type="button" id="signin-button" class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Sign In</button>
+                  <button type="button" id="signup-button" class="w-full bg-slate-700 text-white font-bold py-2 px-4 rounded-md hover:bg-slate-600 transition duration-300">Sign Up</button>
+                </div>
+              </form>
+
+              <!-- Divider -->
+              <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                  <div class="w-full border-t border-slate-600"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                  <span class="px-2 bg-slate-900 text-gray-400">Or continue with</span>
+                </div>
+              </div>
+
+              <!-- Google Sign-in -->
+              <div>
+                <button type="button" id="google-signin-button" class="w-full flex justify-center items-center bg-white text-gray-700 font-semibold py-2 px-4 rounded-md shadow-sm hover:bg-gray-200 transition duration-300">
+                  <svg class="w-5 h-5 mr-2" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.9 0 129.8 110.3 20 244 20c66.2 0 121.3 24.8 162.2 65.5l-68.5 64.9C314.5 124.9 282.8 108 244 108c-73.2 0-132.3 59.8-132.3 133.1s59.1 133.1 132.3 133.1c76.9 0 114.3-52.3 120.8-79.1H244V261.8h244z"></path></svg>
+                  Sign in with Google
+                </button>
+              </div>
+            </div>
+
+            <!-- Follower Panel -->
+            <div id="panel-follower" class="hidden">
+              <!-- Inline Follower Login Form -->
+              <form id="follower-inline-form" class="space-y-6">
+                <div>
+                  <label for="follower-email" class="block text-sm font-medium text-gray-300">Email</label>
+                  <div class="relative mt-1">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                      <i class="fas fa-envelope"></i>
+                    </span>
+                    <input type="email" id="follower-email" required class="form-input block w-full pl-9 pr-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" />
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between items-center">
+                    <label for="follower-password" class="block text-sm font-medium text-gray-300">Password</label>
+                    <a href="#" id="follower-forgot-password" class="text-sm text-slate-400 hover:text-neon-yellow">Forgot password?</a>
+                  </div>
+                  <div class="relative mt-1">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                      <i class="fas fa-lock"></i>
+                    </span>
+                    <input type="password" id="follower-password" required class="form-input block w-full pl-9 pr-10 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" />
+                    <button type="button" id="toggle-follower-password" aria-label="Show password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Error box for follower panel -->
+                <div id="follower-error-box" class="error-message p-4 rounded-md mb-2 hidden">
+                  <p id="follower-error-text"></p>
+                </div>
+
+                <div class="flex flex-col space-y-3">
+                  <button type="button" id="follower-signin" class="w-full bg-yellow-400 text-black font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition">Sign In as Follower</button>
+                  <button type="button" id="follower-google" class="w-full flex justify-center items-center bg-white text-gray-700 font-semibold py-2 px-4 rounded-md shadow-sm hover:bg-gray-200 transition">
+                    <svg class="w-5 h-5 mr-2" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.9 0 129.8 110.3 20 244 20c66.2 0 121.3 24.8 162.2 65.5l-68.5 64.9C314.5 124.9 282.8 108 244 108c-73.2 0-132.3 59.8-132.3 133.1s59.1 133.1 132.3 133.1c76.9 0 114.3-52.3 120.8-79.1H244V261.8h244z"></path></svg>
+                    Sign in with Google
+                  </button>
+                </div>
+
+                <p class="text-xs text-slate-400">Need team-member access? Contact the team for an invitation code.</p>
+              </form>
+            </div>
+          </div>
         </div>
         <p class="text-center text-gray-500 text-sm mt-6">
           Don't have an account?
-          <a
-            href="signup.html"
-            class="font-semibold neon-yellow hover:text-yellow-300"
-            >Sign up</a
-          >.
+          <a href="signup.html" class="font-semibold neon-yellow hover:text-yellow-300">Sign up</a>.
         </p>
       </div>
     </main>
@@ -347,5 +351,24 @@
     <script src="vendors.js"></script>
     <script src="login-page.js"></script>
     <script src="modern-effects.js"></script>
+    <!-- Toasts -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    <script>
+      // Minimal tab script for password toggle icons (fallback if JS bundles load late)
+      document.addEventListener('click', function(e){
+        if (e.target.closest('#toggle-password')) {
+          const input = document.getElementById('password');
+          const icon = e.target.closest('#toggle-password').querySelector('i');
+          if (input) { input.type = input.type === 'password' ? 'text' : 'password'; }
+          if (icon) { icon.classList.toggle('fa-eye'); icon.classList.toggle('fa-eye-slash'); }
+        }
+        if (e.target.closest('#toggle-follower-password')) {
+          const input = document.getElementById('follower-password');
+          const icon = e.target.closest('#toggle-follower-password').querySelector('i');
+          if (input) { input.type = input.type === 'password' ? 'text' : 'password'; }
+          if (icon) { icon.classList.toggle('fa-eye'); icon.classList.toggle('fa-eye-slash'); }
+        }
+      });
+    </script>
   </body>
 </html>

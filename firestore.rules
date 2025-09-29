@@ -12,6 +12,11 @@ service cloud.firestore {
     function hasRole(role) {
       return isAuthenticated() && request.auth.token.role == role;
     }
+
+    // Helper to allow admin by email as a safe fallback if claims are stale
+    function isAdminEmail() {
+      return isAuthenticated() && request.auth.token.email == 'auhren1992@gmail.com';
+    }
     
     // Helper function to check if user owns the resource
     function isOwner(userId) {
@@ -45,10 +50,11 @@ service cloud.firestore {
       // On create, validate uploader matches the auth user using request.resource.data
       allow create: if isAuthenticated() &&
         request.auth.uid == request.resource.data.uploaderUid;
-      // On update, allow uploader or team member
-      allow update: if hasRole('team-member') ||
+      // On update, allow uploader or team member (and allow admin by claim or email)
+      allow update: if hasRole('team-member') || hasRole('admin') || isAdminEmail() ||
         (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
-      allow delete: if hasRole('team-member');
+      // Allow delete for team-members and admins (by claim or email)
+      allow delete: if hasRole('team-member') || hasRole('admin') || isAdminEmail();
       
       // Comments subcollection
       match /comments/{commentId} {
@@ -71,6 +77,14 @@ service cloud.firestore {
         (resource.data.status == 'published');
       allow create: if isAuthenticated();
       allow update: if hasRole('team-member');
+    }
+    
+    // Videos (TikTok and others)
+    match /videos/{videoId} {
+      // Public can read published videos; team-members/admins can read all via global rules
+      allow read: if resource.data.published == true || hasRole('team-member');
+      // Writes restricted to team-members/admins
+      allow write: if hasRole('team-member') || hasRole('admin');
     }
     
     // Subscribers (newsletter)

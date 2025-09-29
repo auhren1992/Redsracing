@@ -15,6 +15,7 @@ import {
   arrayRemove,
   increment,
   getDocs,
+  getCountFromServer,
 } from "firebase/firestore";
 import {
   getStorage,
@@ -105,6 +106,17 @@ async function main() {
 
       const userId = auth.currentUser.uid;
       const timestamp = Date.now();
+
+      // Read optional metadata inputs
+      const categoryEl = document.getElementById('photo-category');
+      const raceEventEl = document.getElementById('race-event');
+      const champEl = document.getElementById('photo-championship');
+      const category = (categoryEl && categoryEl.value) ? categoryEl.value : 'action';
+      const raceEvent = (raceEventEl && raceEventEl.value) ? raceEventEl.value.trim() : '';
+      const isChampionship = !!(champEl && champEl.checked);
+      const categoryLabels = { action: 'Race Action', victory: 'Podium', pit: 'Pit Crew', behind: 'Behind Scenes' };
+      const categoryLabel = categoryLabels[category] || category;
+
       const storageRef = ref(
         storage,
         `gallery/${userId}/${timestamp}-${selectedFile.name}`,
@@ -143,6 +155,11 @@ async function main() {
               likes: [],
               likeCount: 0,
               storagePath: `gallery/${userId}/${timestamp}-${selectedFile.name}`,
+              // New metadata fields
+              category,
+              categoryLabel,
+              raceEvent,
+              isChampionship,
             });
             if (uploadStatus) {
               uploadStatus.textContent =
@@ -283,17 +300,23 @@ async function main() {
       galleryContainer.innerHTML = "";
       if (snapshot.empty) {
         galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos yet. Be the first to upload one!</p>`;
+        applyCurrentFilter();
         return;
       }
       snapshot.forEach((docSnapshot) => {
         const image = docSnapshot.data();
         const imageId = docSnapshot.id;
         const galleryItem = document.createElement("div");
-        galleryItem.className =
-          "gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group";
+        galleryItem.className = "gallery-item relative overflow-hidden rounded-lg";
+        if (image.category) {
+          try { galleryItem.dataset.category = String(image.category); } catch(_) {}
+        }
+        if (image.isChampionship) {
+          try { galleryItem.dataset.championship = 'true'; } catch(_) {}
+        }
 
-        // Build tags safely
-        const tagsContainer = document.createElement("div");
+        // Build tags safely (text only)
+        const tagsBuilt = document.createElement("div");
         if (image.tags && image.tags.length > 0) {
           image.tags.slice(0, 3).forEach((tag) => {
             const tagSpan = createSafeElement(
@@ -301,132 +324,237 @@ async function main() {
               tag,
               "bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full",
             );
-            tagsContainer.appendChild(tagSpan);
+            tagsBuilt.appendChild(tagSpan);
           });
         }
 
         const currentUser = auth.currentUser;
-        const isLiked =
-          currentUser && image.likes && image.likes.includes(currentUser.uid);
+        const isLiked = currentUser && image.likes && image.likes.includes(currentUser.uid);
         const likeCount = image.likeCount || 0;
-
         const likeButtonClass = isLiked ? "text-red-400" : "text-slate-400";
         const fillValue = isLiked ? "currentColor" : "none";
-        const disabledAttr = !currentUser ? "disabled" : "";
+        const disabledAttr = !currentUser;
 
-        // Check if user is admin for delete functionality
-        const adminEmails = ['auhren1992@gmail.com']; // Add your admin emails here
-        const isAdmin = currentUser && adminEmails.includes(currentUser.email);
+        // Check if user is admin for delete functionality (simple email match)
+        const adminEmails = ['auhren1992@gmail.com'];
+        const isAdmin = currentUser && adminEmails.includes((currentUser.email || '').toLowerCase());
+        // Image element with safe defaults
+        const img = new Image();
+        img.src = image.imageUrl || '';
+        img.alt = 'User uploaded race photo';
+        img.style.width = '100%';
+        img.style.height = 'auto';
+        img.loading = 'lazy';
+        img.onerror = () => { img.style.display = 'none'; };
+        galleryItem.appendChild(img);
 
-        const galleryHTML = html`
-          <img
-            src="${image.imageUrl}"
-            alt="User uploaded race photo"
-            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-          />
-          <div
-            class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent"
-          >
-            <p class="text-sm text-slate-300">
-              Uploaded by: ${image.uploaderDisplayName || "Anonymous"}
-            </p>
-            <div class="mt-2" id="tags-container-${imageId}"></div>
-            <div class="mt-3 flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <button
-                  class="like-btn flex items-center space-x-1 text-xs ${likeButtonClass} hover:text-red-400 transition"
-                  data-image-id="${imageId}"
-                  ${disabledAttr}
-                >
-                  <svg
-                    class="w-4 h-4"
-                    fill="${fillValue}"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 000-6.364 4.5 4.5 0 00-6.364 0L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    ></path>
-                  </svg>
-                  <span class="like-count">${likeCount}</span>
-                </button>
-                ${isAdmin ? html`<button class="delete-btn flex items-center space-x-1 text-xs text-red-400 hover:text-red-300 transition" data-image-id="${imageId}">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                  <span>Delete</span>
-                </button>` : ""}
-              </div>
-              <button
-                class="comment-btn flex items-center space-x-1 text-xs text-slate-400 hover:text-blue-400 transition"
-                data-image-id="${imageId}"
-                ${disabledAttr}
-              >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                  ></path>
-                </svg>
-                <span>Comment</span>
-              </button>
-            </div>
-          </div>
-        `;
+        // Badges overlay (Podium, Championship)
+        try {
+          const badges = document.createElement('div');
+          badges.style.position = 'absolute';
+          badges.style.top = '8px';
+          badges.style.left = '8px';
+          badges.style.zIndex = '5';
+          badges.style.display = 'flex';
+          badges.style.gap = '6px';
 
-        safeSetHTML(galleryItem, galleryHTML);
-
-        // Add tags safely to the tags container
-        const tagsContainerInDOM = galleryItem.querySelector(
-          `#tags-container-${imageId}`,
-        );
-        if (tagsContainerInDOM && tagsContainer.children.length > 0) {
-          while (tagsContainer.firstChild) {
-            tagsContainerInDOM.appendChild(tagsContainer.firstChild);
+          function makeBadge(text, bg, color) {
+            const b = document.createElement('span');
+            b.textContent = text;
+            b.style.background = bg;
+            b.style.color = color;
+            b.style.fontSize = '11px';
+            b.style.fontWeight = '700';
+            b.style.padding = '4px 8px';
+            b.style.borderRadius = '999px';
+            b.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+            b.style.letterSpacing = '0.3px';
+            return b;
           }
+
+          // Podium badge for victory category
+          if ((image.category || '').toLowerCase() === 'victory') {
+            badges.appendChild(makeBadge('🏆 Podium', 'rgba(239,68,68,0.9)', '#fff'));
+          }
+          // Championship badge
+          if (image.isChampionship) {
+            badges.appendChild(makeBadge('🏆 Championship', 'rgba(34,197,94,0.9)', '#fff'));
+          }
+
+          if (badges.children.length > 0) {
+            galleryItem.appendChild(badges);
+          }
+        } catch(_) {}
+
+        // Footer/info bar
+        const info = document.createElement('div');
+        info.style.padding = '10px';
+        info.style.background = 'rgba(0,0,0,0.6)';
+        info.style.marginTop = '6px';
+
+        const who = document.createElement('p');
+        who.className = 'text-sm';
+        who.textContent = `Uploaded by: ${image.uploaderDisplayName || 'Anonymous'}`;
+        info.appendChild(who);
+
+        // Photo description: category + race event, if present
+        const descriptionLine = document.createElement('p');
+        descriptionLine.className = 'text-xs text-slate-300 mt-1';
+        const parts = [];
+        if (image.categoryLabel || image.category) parts.push((image.categoryLabel || image.category));
+        if (image.raceEvent) parts.push(image.raceEvent);
+        if (parts.length > 0) {
+          descriptionLine.textContent = parts.join(' • ');
+          info.appendChild(descriptionLine);
         }
 
-        // Wire delete button if present
-        const delBtn = galleryItem.querySelector('.delete-btn');
-        if (delBtn) {
+        if (tagsBuilt.children.length > 0) {
+          const tagsHolder = document.createElement('div');
+          tagsHolder.style.marginTop = '6px';
+          while (tagsBuilt.firstChild) tagsHolder.appendChild(tagsBuilt.firstChild);
+          info.appendChild(tagsHolder);
+        }
+
+        const actions = document.createElement('div');
+        actions.style.marginTop = '8px';
+        actions.style.display = 'flex';
+        actions.style.justifyContent = 'space-between';
+        actions.style.alignItems = 'center';
+
+        // Left: like button
+        const likeBtn = document.createElement('button');
+        likeBtn.className = `like-btn ${likeButtonClass}`;
+        if (disabledAttr) likeBtn.disabled = true;
+        likeBtn.dataset.imageId = imageId;
+        likeBtn.innerHTML = `<svg class="w-4 h-4" fill="${fillValue}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 000-6.364 4.5 4.5 0 00-6.364 0L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg> <span class="like-count">${likeCount}</span>`;
+        actions.appendChild(likeBtn);
+
+        // Right: comment button (optional)
+        const commentBtn = document.createElement('button');
+        commentBtn.className = 'comment-btn';
+        commentBtn.dataset.imageId = imageId;
+        if (disabledAttr) commentBtn.disabled = true;
+        commentBtn.textContent = 'Comment';
+        actions.appendChild(commentBtn);
+
+        // Admin delete button
+        if (isAdmin) {
+          const delBtn = document.createElement('button');
+          delBtn.className = 'delete-btn';
+          delBtn.dataset.imageId = imageId;
+          delBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Delete`;
+          delBtn.style.marginLeft = '8px';
           delBtn.addEventListener('click', async () => {
             if (!confirm('Delete this photo? This action cannot be undone.')) return;
             try {
-              // Delete from Firestore
+              // Ensure correct role and fresh token before privileged write
+              try {
+                const [{ getFunctions, httpsCallable }, { getAuth }] = await Promise.all([
+                  import('firebase/functions'),
+                  import('firebase/auth'),
+                ]);
+                try { await httpsCallable(getFunctions(undefined,'us-central1'), 'ensureDefaultRole')({}); } catch(_) {}
+                try { await getAuth().currentUser?.getIdToken(true); } catch(_) {}
+              } catch (_) {}
+
               const { deleteDoc, doc } = await import('firebase/firestore');
               await deleteDoc(doc(db, 'gallery_images', imageId));
-              
-              // Try to delete from Storage if we have the path
               if (image.storagePath) {
-                try {
-                  const { deleteObject, ref } = await import('firebase/storage');
-                  const storageRef = ref(storage, image.storagePath);
-                  await deleteObject(storageRef);
-                } catch (storageError) {
-                  console.warn('Could not delete from storage:', storageError);
-                }
+                try { const { deleteObject, ref } = await import('firebase/storage'); const storageRef = ref(storage, image.storagePath); await deleteObject(storageRef); } catch(_){}
               }
-              
               console.log('Photo deleted successfully');
             } catch (error) {
-              console.error('Error deleting photo:', error);
-              alert('Failed to delete photo. Please try again.');
+              // Log detailed error info for debugging
+              try { console.error('Error deleting photo:', error && (error.code || ''), error && (error.message || ''), error); } catch(_){}
+              const code = error && error.code ? String(error.code) : '';
+              const msg = (code === 'permission-denied')
+                ? 'Delete denied. Your account may not have admin permissions yet. Use Account > Fix my role (refresh), then try again.'
+                : 'Failed to delete photo. Please try again.';
+              alert(msg);
             }
           });
+          actions.appendChild(delBtn);
         }
-        
+
+        info.appendChild(actions);
+        galleryItem.appendChild(info);
+
         galleryContainer.appendChild(galleryItem);
       });
+      // Apply any active filter after items are (re)rendered
+      applyCurrentFilter();
     });
   };
+
+  // --- Hero stats: dynamic counts and click-to-filter ---
+  async function updateHeroStats() {
+    try {
+      const base = [where('approved','==',true)];
+      const [actionSnap, victorySnap, pitSnap, champsSnap] = await Promise.all([
+        getCountFromServer(query(collection(db,'gallery_images'), ...base, where('category','==','action'))),
+        getCountFromServer(query(collection(db,'gallery_images'), ...base, where('category','==','victory'))),
+        getCountFromServer(query(collection(db,'gallery_images'), ...base, where('category','==','pit'))),
+        getCountFromServer(query(collection(db,'gallery_images'), ...base, where('isChampionship','==',true))),
+      ]);
+      const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = String(value); };
+      setText('action-count', actionSnap.data().count || 0);
+      setText('victory-count', victorySnap.data().count || 0);
+      setText('pit-count', pitSnap.data().count || 0);
+      setText('champs-count', champsSnap.data().count || 0);
+    } catch (_) {}
+  }
+
+  // --- Filtering ---
+  let currentFilter = 'all';
+  function applyCurrentFilter() {
+    try {
+      const items = galleryContainer ? Array.from(galleryContainer.children) : [];
+      items.forEach((el) => {
+        if (!(el instanceof HTMLElement)) return;
+        const cat = el.dataset && el.dataset.category ? String(el.dataset.category) : 'unknown';
+        const isChamp = el.dataset && el.dataset.championship === 'true';
+        let show = true;
+        if (currentFilter === 'all') show = true;
+        else if (currentFilter === 'championship') show = isChamp;
+        else show = (currentFilter === cat);
+        el.style.display = show ? '' : 'none';
+      });
+    } catch (_) {}
+  }
+  function setFilter(category) {
+    currentFilter = category || 'all';
+    // Update filter button active states
+    try {
+      document.querySelectorAll('.gallery-filter').forEach((btn) => {
+        const isActive = btn.getAttribute('data-category') === currentFilter || (currentFilter === 'all' && btn.getAttribute('data-category') === 'all');
+        if (isActive) btn.classList.add('active'); else btn.classList.remove('active');
+      });
+    } catch (_) {}
+    applyCurrentFilter();
+  }
+  // Wire filter buttons
+  try {
+    document.querySelectorAll('.gallery-filter').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cat = btn.getAttribute('data-category') || 'all';
+        setFilter(cat);
+      });
+    });
+    // Hero stat cards
+    [
+      ['stat-action','action'],
+      ['stat-victory','victory'],
+      ['stat-pit','pit'],
+      ['stat-champs','championship'],
+    ].forEach(([id,cat]) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('click', (e) => { e.preventDefault(); setFilter(cat); });
+    });
+  } catch (_) {}
+
+  // Initial counts
+  updateHeroStats();
 
   // --- Social Features ---
   const toggleLike = async (imageId) => {

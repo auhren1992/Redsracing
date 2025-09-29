@@ -17,6 +17,8 @@ import {
 import { navigateToInternal } from "./navigation-helpers.js";
 import { validateUserClaims } from "./auth-utils.js";
 
+const ADMIN_EMAIL = 'auhren1992@gmail.com';
+
 class FollowerLoginController {
   constructor() {
     this.auth = null;
@@ -160,12 +162,15 @@ class FollowerLoginController {
 
     if (isLoading) {
       button.disabled = true;
-      button.textContent = "Processing...";
+      // Preserve original label
+      if (!button.dataset.originalLabel) button.dataset.originalLabel = originalText || button.textContent || '';
+      button.innerHTML = '<svg class="animate-spin w-4 h-4 mr-2 inline" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l3 3-3 3v-4a8 8 0 01-8-8z"></path></svg> Processing...';
       button.classList.add("opacity-50", "cursor-not-allowed");
       this.uiState.loadingButton = button;
     } else {
       button.disabled = false;
-      button.textContent = originalText;
+      const label = button.dataset.originalLabel || originalText || 'Submit';
+      button.innerHTML = label;
       button.classList.remove("opacity-50", "cursor-not-allowed");
       if (this.uiState.loadingButton === button) {
         this.uiState.loadingButton = null;
@@ -264,9 +269,28 @@ class FollowerLoginController {
         email,
         password,
       );
-      console.log("Sign in successful:", userCredential.user.email);
 
-      // Check user role after successful authentication
+      // Ensure default role and refresh claims
+      try { await httpsCallable(getFunctions(undefined,'us-central1'), 'ensureDefaultRole')({}); } catch(_) {}
+      let role = null; let emailLower = '';
+      try {
+        await userCredential.user.getIdToken(true);
+        const tr = await userCredential.user.getIdTokenResult(true);
+        role = tr?.claims?.role || null;
+        emailLower = (userCredential.user.email || '').toLowerCase();
+      } catch(_) {}
+
+      // Route
+      if (role === 'admin' || emailLower === ADMIN_EMAIL.toLowerCase()) {
+        try { navigateToInternal('admin-console.html'); } catch(_) { try { window.location.href = 'admin-console.html'; } catch(_){} }
+        return;
+      }
+      if (role === 'team-member') {
+        try { navigateToInternal('redsracing-dashboard.html'); } catch(_) { try { window.location.href = 'redsracing-dashboard.html'; } catch(_){} }
+        return;
+      }
+
+      // Fallback to follower flow
       await this.checkUserRoleAndRedirect(userCredential.user);
     } catch (error) {
       console.error("Email sign in error:", error);
@@ -300,9 +324,28 @@ class FollowerLoginController {
         this.auth,
         this.googleProvider,
       );
-      console.log("Google sign in successful:", userCredential.user.email);
 
-      // Check user role after successful authentication
+      // Ensure default role and refresh claims
+      try { await httpsCallable(getFunctions(undefined,'us-central1'), 'ensureDefaultRole')({}); } catch(_) {}
+      let role = null; let emailLower = '';
+      try {
+        await userCredential.user.getIdToken(true);
+        const tr = await userCredential.user.getIdTokenResult(true);
+        role = tr?.claims?.role || null;
+        emailLower = (userCredential.user.email || '').toLowerCase();
+      } catch(_) {}
+
+      // Route
+      if (role === 'admin' || emailLower === ADMIN_EMAIL.toLowerCase()) {
+        try { navigateToInternal('admin-console.html'); } catch(_) { try { window.location.href = 'admin-console.html'; } catch(_){} }
+        return;
+      }
+      if (role === 'team-member') {
+        try { navigateToInternal('redsracing-dashboard.html'); } catch(_) { try { window.location.href = 'redsracing-dashboard.html'; } catch(_){} }
+        return;
+      }
+
+      // Fallback to follower flow
       await this.checkUserRoleAndRedirect(userCredential.user);
     } catch (error) {
       console.error("Google sign in error:", error);

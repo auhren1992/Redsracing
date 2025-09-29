@@ -384,6 +384,10 @@
               <i class="fas fa-chart-line w-5 mr-3 text-emerald-400"></i>
               <span>Analytics</span>
             </a>
+            <a href="#advanced" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+              <i class="fas fa-tools w-5 mr-3 text-yellow-400"></i>
+              <span>Advanced</span>
+            </a>
           <a href="settings.html" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
               <i class="fas fa-cog w-5 mr-3 text-slate-400"></i>
               <span>Settings</span>
@@ -912,6 +916,12 @@
       </div>
     </footer>
 
+    <!-- Inline Debug Panel (toggled by ?debug=1) -->
+    <div id="admin-debug" style="position:fixed;bottom:12px;right:12px;z-index:99999;display:none;max-width:360px;background:rgba(15,23,42,0.9);border:1px solid rgba(148,163,184,0.3);border-radius:10px;padding:10px;color:#e2e8f0;font-size:12px;line-height:1.3;box-shadow:0 10px 25px rgba(0,0,0,.35)">
+      <div style="font-weight:700;margin-bottom:6px">Admin Debug</div>
+      <div id="admin-debug-body" style="max-height:240px;overflow:auto"></div>
+    </div>
+
     <!-- Modern Admin Scripts -->
     <!-- Bootstrap Firebase early so all modules see a default app -->
     <script type="module">
@@ -934,7 +944,34 @@
     <script>
       // Modern Admin Console JavaScript
       (function() {
-        'use strict';
+'use strict';
+        // Debug logger writes to console and optional floating panel
+        const __dbg = {
+          enabled: false,
+          el: null,
+          init() {
+            try {
+              const params = new URLSearchParams(window.location.search);
+              this.enabled = params.get('debug') === '1';
+              this.el = document.getElementById('admin-debug');
+              if (this.enabled && this.el) this.el.style.display = 'block';
+            } catch(_) {}
+          },
+          log(...args) {
+            try { console.log('[AdminDebug]', ...args); } catch(_) {}
+            if (!this.enabled || !this.el) return;
+            try {
+              const body = document.getElementById('admin-debug-body');
+              if (!body) return;
+              const line = document.createElement('div');
+              line.textContent = args.map(a => (typeof a==='object'? JSON.stringify(a): String(a))).join(' ');
+              body.appendChild(line);
+              body.scrollTop = body.scrollHeight;
+            } catch(_) {}
+          }
+        };
+        __dbg.init();
+        __dbg.log('Console boot');
         
         // --- Firebase initialization helpers (single source of truth) ---
         const FIREBASE_CONFIG = {
@@ -945,6 +982,7 @@
           messagingSenderId: "517034606151",
           appId: "1:517034606151:web:24cae262e1d98832757b62"
         };
+        const ADMIN_EMAIL = 'auhren1992@gmail.com';
         
         async function ensureDefaultApp() {
           const appModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
@@ -963,6 +1001,15 @@
             const token = await auth.currentUser.getIdTokenResult(true);
             return token?.claims?.role || null;
           } catch (_) { return null; }
+        }
+
+        async function isAdminUserUI() {
+          try {
+            const role = await getUserRole();
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const email = (getAuth().currentUser?.email || '').toLowerCase();
+            return role === 'admin' || email === ADMIN_EMAIL.toLowerCase();
+          } catch (_) { return false; }
         }
         
         function isModeratorRole(role) {
@@ -1040,6 +1087,8 @@
                 showGalleryApprovals();
               } else if (href === '#jonny-approvals') {
                 showJonnyApprovals();
+              } else if (href === '#advanced') {
+                showAdvanced();
               } else {
                 showOverview();
               }
@@ -1089,7 +1138,7 @@
         }
         
         function hideAllSections() {
-          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section'];
+          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section'];
           sections.forEach(id => {
             const section = document.getElementById(id);
             if (section) {
@@ -1099,6 +1148,271 @@
           });
         }
         
+        // Advanced section (bulk edit tools)
+        async function showAdvanced() {
+          hideAllSections();
+          // Recreate section each time to ensure correct content for role
+          let advanced = document.getElementById('advanced-section');
+          if (advanced) { try { advanced.remove(); } catch(_) {} }
+          const isAdmin = await isAdminUserUI();
+          if (isAdmin) {
+            advanced = createAdvancedSection();
+            if (advanced) {
+              advanced.classList.remove('hidden');
+              advanced.style.display = 'block';
+              try { loadBulkGalleryList(); } catch(_) {}
+            }
+          } else {
+            advanced = createAdvancedGuardSection();
+            if (advanced) {
+              advanced.classList.remove('hidden');
+              advanced.style.display = 'block';
+            }
+          }
+        }
+
+        function createAdvancedGuardSection() {
+          let advanced = document.getElementById('advanced-section');
+          if (advanced) { try { advanced.remove(); } catch(_) {} }
+          advanced = document.createElement('div');
+          advanced.id = 'advanced-section';
+          advanced.className = 'space-y-6 hidden';
+          advanced.innerHTML = `
+            <div class="admin-card rounded-xl p-6">
+              <h2 class="text-2xl font-bold text-white mb-2"><i class="fas fa-lock mr-2 text-red-400"></i>Admin Only</h2>
+              <p class="text-slate-300 mb-4">The Advanced panel is restricted to Admins. Your current account does not have admin privileges.</p>
+              <div class="flex items-center gap-3">
+                <button id="fix-role-btn" class="modern-btn text-white px-4 py-2 rounded-lg font-semibold"><i class="fas fa-sync mr-1"></i>Fix my role (refresh)</button>
+                <a href="settings.html" class="modern-btn text-white px-4 py-2 rounded-lg font-semibold bg-slate-700 hover:bg-slate-600"><i class="fas fa-cog mr-1"></i>Settings</a>
+              </div>
+            </div>
+          `;
+          const main = document.querySelector('main .p-4');
+          if (main) main.appendChild(advanced);
+          setTimeout(async () => {
+            try {
+              const btn = document.getElementById('fix-role-btn');
+              if (btn) btn.addEventListener('click', async () => {
+                try {
+                  const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
+                  const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+                  try { await httpsCallable(getFunctions(undefined,'us-central1'),'ensureDefaultRole')({}); } catch(_) {}
+                  try { await getAuth().currentUser?.getIdToken(true); } catch(_) {}
+                } finally { window.location.reload(); }
+              });
+            } catch(_) {}
+          }, 0);
+          return advanced;
+        }
+
+        function createAdvancedSection() {
+          let advanced = document.getElementById('advanced-section');
+          if (advanced) return advanced;
+          advanced = document.createElement('div');
+          advanced.id = 'advanced-section';
+          advanced.className = 'space-y-6 hidden';
+          advanced.innerHTML = `
+            <div class="flex items-center justify-between">
+              <h2 class="text-3xl font-bold text-white">
+                <i class="fas fa-tools text-yellow-400 mr-3"></i>
+                Advanced Admin
+              </h2>
+            </div>
+
+            <!-- TikTok Tools -->
+            <div class="admin-card rounded-xl p-6 mb-6">
+              <h3 class="text-xl font-bold text-white mb-2">
+                <i class="fab fa-tiktok text-pink-400 mr-2"></i>
+                TikTok Tools
+              </h3>
+              <p class="text-slate-400 text-sm mb-4">Fetch latest public videos from @redsracing and add new ones to Firestore.</p>
+              <div class="flex items-center gap-3">
+                <button id="tiktok-refresh-btn" class="modern-btn text-white px-4 py-2 rounded-lg font-semibold">
+                  <i class="fas fa-sync mr-1"></i>Refresh TikTok Videos
+                </button>
+                <span id="tiktok-refresh-status" class="text-slate-400 text-sm"></span>
+              </div>
+            </div>
+
+            <div class="admin-card rounded-xl p-6">
+              <div class="flex flex-wrap items-end gap-4 mb-4">
+                <div>
+                  <label class="block text-sm text-slate-300 mb-1">Filter category</label>
+                  <select id="bulk-filter-category" class="modern-input px-3 py-2 text-white">
+                    <option value="all">All</option>
+                    <option value="action">Race Action</option>
+                    <option value="victory">Podium</option>
+                    <option value="pit">Pit Crew</option>
+                    <option value="behind">Behind Scenes</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm text-slate-300 mb-1">Approved only</label>
+                  <input type="checkbox" id="bulk-filter-approved" class="align-middle" checked>
+                </div>
+                <div>
+                  <button id="bulk-load-btn" class="modern-btn text-white px-4 py-2 rounded-lg font-semibold"><i class="fas fa-sync mr-1"></i>Load</button>
+                </div>
+                <div class="ml-auto text-sm text-slate-400">Max 100 photos per load</div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
+                <button id="bulk-select-all" class="modern-btn text-white px-3 py-2 rounded-md text-sm"><i class="fas fa-check-square mr-1"></i>Select All</button>
+                <button id="bulk-clear" class="danger-btn text-white px-3 py-2 rounded-md text-sm"><i class="fas fa-ban mr-1"></i>Clear</button>
+
+                <div class="flex items-center gap-2 ml-4">
+                  <label class="text-sm text-slate-300">Set category:</label>
+                  <select id="bulk-set-category" class="modern-input px-2 py-1 text-white">
+                    <option value="action">Race Action</option>
+                    <option value="victory">Podium</option>
+                    <option value="pit">Pit Crew</option>
+                    <option value="behind">Behind Scenes</option>
+                  </select>
+                  <button id="bulk-apply-category" class="modern-btn text-white px-3 py-2 rounded-md text-sm"><i class="fas fa-tags mr-1"></i>Apply</button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <label class="text-sm text-slate-300">Championship:</label>
+                  <select id="bulk-set-champ" class="modern-input px-2 py-1 text-white">
+                    <option value="true">Mark as Championship</option>
+                    <option value="false">Remove Championship</option>
+                  </select>
+                  <button id="bulk-apply-champ" class="modern-btn text-white px-3 py-2 rounded-md text-sm"><i class="fas fa-trophy mr-1"></i>Apply</button>
+                </div>
+              </div>
+
+              <div id="bulk-gallery-list" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6"></div>
+            </div>
+          `;
+
+          const main = document.querySelector('main .p-4');
+          if (main) main.appendChild(advanced);
+
+          // Wire handlers
+          setTimeout(() => {
+            try {
+              document.getElementById('bulk-load-btn').addEventListener('click', loadBulkGalleryList);
+              document.getElementById('bulk-select-all').addEventListener('click', () => toggleAllSelections(true));
+              document.getElementById('bulk-clear').addEventListener('click', () => toggleAllSelections(false));
+              document.getElementById('bulk-apply-category').addEventListener('click', applyBulkCategory);
+              document.getElementById('bulk-apply-champ').addEventListener('click', applyBulkChampionship);
+              const tiktokBtn = document.getElementById('tiktok-refresh-btn');
+              const tiktokStatus = document.getElementById('tiktok-refresh-status');
+              if (tiktokBtn) {
+                tiktokBtn.addEventListener('click', async () => {
+                  const orig = tiktokBtn.innerHTML;
+                  tiktokBtn.disabled = true;
+                  tiktokBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Refreshing...';
+                  if (tiktokStatus) tiktokStatus.textContent = 'Refreshing from TikTok...';
+                  try {
+                    const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
+                    const call = httpsCallable(getFunctions(undefined,'us-central1'), 'refreshTikTokVideos');
+                    const res = await call({});
+                    const found = res?.data?.found ?? 0; const added = res?.data?.added ?? 0;
+                    if (tiktokStatus) tiktokStatus.textContent = `Found ${found}, added ${added}.`;
+                  } catch (e) {
+                    if (tiktokStatus) tiktokStatus.textContent = 'Refresh failed. Ensure you are admin.';
+                  } finally {
+                    tiktokBtn.innerHTML = orig;
+                    tiktokBtn.disabled = false;
+                  }
+                });
+              }
+            } catch(_) {}
+          }, 0);
+
+          return advanced;
+        }
+
+        async function loadBulkGalleryList() {
+          try {
+            const { getFirestore, collection, query, where, orderBy, limit, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const cat = (document.getElementById('bulk-filter-category')?.value || 'all');
+            const onlyApproved = document.getElementById('bulk-filter-approved')?.checked !== false;
+            const parts = [collection(db, 'gallery_images')];
+            if (onlyApproved) parts.push(where('approved','==', true));
+            if (cat !== 'all') parts.push(where('category','==', cat));
+            parts.push(orderBy('createdAt','desc'));
+            parts.push(limit(100));
+            const q = query.apply(null, parts);
+            const snap = await getDocs(q);
+            const grid = document.getElementById('bulk-gallery-list');
+            if (!grid) return;
+            grid.innerHTML = '';
+            if (snap.empty) {
+              grid.innerHTML = '<p class="col-span-full text-center text-slate-400">No photos match your filters</p>';
+              return;
+            }
+            snap.forEach((docSnap) => {
+              const d = docSnap.data();
+              const wrap = document.createElement('div');
+              wrap.className = 'relative bg-slate-800/60 rounded-lg border border-slate-700 overflow-hidden';
+              wrap.innerHTML = `
+                <img src="${d.imageUrl || ''}" alt="" class="w-full h-36 object-cover">
+                <div class="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded">${(d.category || 'unknown')}</div>
+                ${d.isChampionship ? '<div class="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded"><i class="fas fa-trophy mr-1"></i>Champ</div>' : ''}
+                <label class="absolute bottom-2 left-2 bg-slate-900/70 text-white text-xs px-2 py-1 rounded flex items-center gap-2">
+                  <input type="checkbox" class="bulk-select" data-id="${docSnap.id}">
+                  Select
+                </label>
+              `;
+              grid.appendChild(wrap);
+            });
+          } catch (e) {
+            alert('Failed to load photos.');
+          }
+        }
+
+        function toggleAllSelections(on) {
+          try {
+            document.querySelectorAll('#bulk-gallery-list .bulk-select').forEach((cb) => {
+              cb.checked = !!on;
+            });
+          } catch(_) {}
+        }
+
+        async function applyBulkCategory() {
+          const cat = document.getElementById('bulk-set-category')?.value || 'action';
+          const ids = Array.from(document.querySelectorAll('#bulk-gallery-list .bulk-select'))
+            .filter(cb => cb.checked).map(cb => cb.getAttribute('data-id'));
+          if (ids.length === 0) { alert('Select at least one photo.'); return; }
+          if (!confirm(`Set category to "${cat}" for ${ids.length} photos?`)) return;
+          try {
+            const { getFirestore, doc, writeBatch } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const batch = writeBatch(db);
+            ids.forEach(id => batch.update(doc(db, 'gallery_images', id), { category: cat, categoryLabel: (cat==='victory'?'Podium':(cat==='action'?'Race Action':(cat==='pit'?'Pit Crew':'Behind Scenes'))) }));
+            await batch.commit();
+            alert('Category updated.');
+            loadBulkGalleryList();
+          } catch (e) {
+            alert('Update failed. Ensure you have admin privileges.');
+          }
+        }
+
+        async function applyBulkChampionship() {
+          const val = (document.getElementById('bulk-set-champ')?.value || 'true') === 'true';
+          const ids = Array.from(document.querySelectorAll('#bulk-gallery-list .bulk-select'))
+            .filter(cb => cb.checked).map(cb => cb.getAttribute('data-id'));
+          if (ids.length === 0) { alert('Select at least one photo.'); return; }
+          if (!confirm(`${val? 'Mark':'Remove'} championship for ${ids.length} photos?`)) return;
+          try {
+            const { getFirestore, doc, writeBatch } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const batch = writeBatch(db);
+            ids.forEach(id => batch.update(doc(db, 'gallery_images', id), { isChampionship: val }));
+            await batch.commit();
+            alert('Championship updated.');
+            loadBulkGalleryList();
+          } catch (e) {
+            alert('Update failed. Ensure you have admin privileges.');
+          }
+        }
+
         // Create settings section
         function createSettingsSection() {
           let settingsSection = document.getElementById('settings-section');
@@ -1348,11 +1662,8 @@
         // Global functions for photo approval
         window.approvePhoto = async function(photoId) {
           try {
-            const role = await getUserRole();
-            if (!isModeratorRole(role)) {
-              alert('You need to be a team-member or admin to approve photos.');
-              return;
-            }
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            try { await getAuth().currentUser?.getIdToken(true); } catch(_) {}
             const { getFirestore, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
@@ -1360,7 +1671,7 @@
             await updateDoc(doc(db, 'gallery_images', photoId), {
               approved: true,
               approvedAt: new Date(),
-              approvedBy: role || 'moderator'
+              approvedBy: 'console'
             });
             
             // Reload pending photos
@@ -1369,6 +1680,7 @@
             console.log('Photo approved successfully');
           } catch (error) {
             console.error('Error approving photo:', error);
+            alert('Approval failed. You need admin privileges. Try "Fix my role (refresh)" in Account, then retry.');
           }
         };
         
@@ -1378,11 +1690,8 @@
           }
           
           try {
-            const role = await getUserRole();
-            if (!isModeratorRole(role)) {
-              alert('You need to be a team-member or admin to reject photos.');
-              return;
-            }
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            try { await getAuth().currentUser?.getIdToken(true); } catch(_) {}
             const { getFirestore, doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
@@ -1395,6 +1704,7 @@
             console.log('Photo rejected and deleted');
           } catch (error) {
             console.error('Error rejecting photo:', error);
+            alert('Reject failed. You need admin privileges. Try "Fix my role (refresh)" in Account, then retry.');
           }
         };
         
@@ -1437,9 +1747,11 @@
         }
         
         // Initialize everything when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
           initNavigation();
           updateTimestamps();
+          // Ensure dashboard shows immediately; data loads async
+          try { showDashboard(); } catch(_) {}
           
           // Setup logout button
           const logoutButton = document.getElementById('logout-button');
@@ -1451,36 +1763,102 @@
               }
             });
           }
-          
-          // Ensure admin/public-fan role claims are set before loading data
-          (async () => {
-            try {
-              const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
-              try { await httpsCallable(getFunctions(), 'ensureDefaultRole')({}); } catch(_) {}
-              const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
-              try { await getAuth().currentUser?.getIdToken(true); } catch(_) {}
-            } catch (_) {}
 
-            // Load pending photos on startup (after claims ensured)
-            loadPendingPhotos();
-            
-            // Setup navigation click handlers
-            const galleryApprovalLink = document.querySelector('a[href="#gallery-approvals"]');
-            if (galleryApprovalLink) {
-              galleryApprovalLink.addEventListener('click', () => {
-                loadPendingPhotos();
-              });
+          __dbg.log('DOMContentLoaded');
+          // Wait for auth, then enforce role and load data
+          try {
+            const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const auth = getAuth();
+
+            // Fallback: force reveal in case anything gets stuck
+            function forceRevealDashboard(){
+              try {
+                const loader = document.getElementById('loading-state');
+                if (loader) loader.remove();
+                const content = document.getElementById('dashboard-content');
+                if (content) {
+                  content.classList.remove('hidden');
+                  content.style.display = 'block';
+                  content.style.visibility = 'visible';
+                  content.style.opacity = '1';
+                }
+              } catch(_) {}
             }
-            
-            // Update timestamps every minute
-            setInterval(updateTimestamps, 60000);
-            
-            // Initialize all button functionality
+            setTimeout(forceRevealDashboard, 1200);
+            setTimeout(forceRevealDashboard, 3500);
+
+            onAuthStateChanged(auth, async (user) => {
+              __dbg.log('Auth state:', !!user ? (user.email || user.uid) : 'no user');
+              if (!user) {
+                // Not signed in; redirect to login
+                window.location.href = 'login.html';
+                return;
+              }
+              try {
+                const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
+                // Ensure claims
+                try {
+                  const call = httpsCallable(getFunctions(undefined, 'us-central1'), 'ensureDefaultRole');
+                  const res = await call({});
+                  __dbg.log('ensureDefaultRole:', res?.data);
+                } catch(e) { __dbg.log('ensureDefaultRole error'); }
+                // Refresh token to pick up new claims
+                try {
+                  await auth.currentUser.getIdToken(true);
+                  const tk = await auth.currentUser.getIdTokenResult(true);
+                  __dbg.log('Claims.role:', tk?.claims?.role);
+                } catch(e) { __dbg.log('Token refresh error'); }
+              } catch (e) { __dbg.log('Role ensure block error'); }
+
+              // If admin, default to Advanced section on load
+              try {
+                const adminOk = await isAdminUserUI();
+                if (adminOk) { showAdvanced(); }
+              } catch(_) {}
+
+              // Load pending photos on startup (after claims ensured)
+              try { await loadPendingPhotos(); __dbg.log('Pending photos loaded'); } catch(e) { __dbg.log('Pending photos error'); }
+              // Ensure dashboard visible even if data fails
+              try { showDashboard(); __dbg.log('showDashboard called'); } catch(_) {}
+              // Extra safety
+              try { setTimeout(() => { try { showDashboard(); __dbg.log('showDashboard retry'); } catch(_){} }, 800); } catch(_){}
+
+              // Setup navigation click handlers
+              // Ensure dashboard visible even if data fails
+              try { showDashboard(); __dbg.log('showDashboard called'); } catch(_) {}
+              // Extra safety
+              try { setTimeout(() => { try { showDashboard(); __dbg.log('showDashboard retry'); } catch(_){} }, 800); } catch(_){}
+
+              // Setup navigation click handlers
+              const galleryApprovalLink = document.querySelector('a[href="#gallery-approvals"]');
+              if (galleryApprovalLink) {
+                galleryApprovalLink.addEventListener('click', () => {
+                  loadPendingPhotos();
+                });
+              }
+
+              // Support deep-linking to #advanced
+              try { if (window.location.hash === '#advanced') { showAdvanced(); } } catch(_) {}
+              try {
+                window.addEventListener('hashchange', () => {
+                  if (window.location.hash === '#advanced') { showAdvanced(); }
+                });
+              } catch(_) {}
+
+              // Update timestamps every minute
+              setInterval(updateTimestamps, 60000);
+
+              // Initialize all button functionality
+              initializeAdminButtons();
+              loadRealFirebaseData();
+
+              console.log('🏎️ Admin Command Center initialized successfully!');
+            });
+          } catch (_) {
+            // If auth fails to load, try loading views anyway
             initializeAdminButtons();
             loadRealFirebaseData();
-            
-            console.log('🏎️ Admin Command Center initialized successfully!');
-          })();
+          }
         });
         
         // Load real Firebase data for all stats
@@ -1640,13 +2018,8 @@
           button.disabled = true;
           
           try {
-            const role = await getUserRole();
-            if (!isModeratorRole(role)) {
-              alert('You need to be a team-member or admin to approve photos.');
-              button.innerHTML = '<i class="fas fa-check mr-1"></i>Approve All';
-              button.disabled = false;
-              return;
-            }
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            try { await getAuth().currentUser?.getIdToken(true); } catch(_) {}
             const { getFirestore, collection, query, where, getDocs, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
@@ -1673,7 +2046,7 @@
             
           } catch (error) {
             console.error('Error approving all photos:', error);
-            alert('Error approving photos. Please try again.');
+            alert('Bulk approval failed. You need admin privileges. Try "Fix my role (refresh)" in Account, then retry.');
           } finally {
             button.innerHTML = '<i class="fas fa-check mr-1"></i>Approve All';
             button.disabled = false;

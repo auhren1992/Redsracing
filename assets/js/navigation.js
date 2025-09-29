@@ -8,6 +8,36 @@ import "./app.js";
   let retryCount = 0;
   const maxRetries = 3;
 
+  // Helpers to manage dropdown visibility, focus, and accessibility state (top-level so all modules can use)
+  function setInert(el, value) {
+    try {
+      if (!el) return;
+      if (value) el.setAttribute("inert", "");
+      else el.removeAttribute("inert");
+    } catch (_) {}
+  }
+  function hideDropdownMenu(menu) {
+    if (!menu) return;
+    const toggle = menu.previousElementSibling;
+    // If focus is inside the menu being hidden, move it back to the toggle first
+    if (menu.contains(document.activeElement) && toggle) {
+      try { toggle.focus(); } catch (_) {}
+    }
+    menu.classList.add("hidden");
+    menu.style.display = 'none';
+    menu.setAttribute("aria-hidden", "true");
+    setInert(menu, true);
+    if (toggle) toggle.setAttribute("aria-expanded", "false");
+  }
+  function showDropdownMenu(menu, toggle) {
+    if (!menu) return;
+    menu.classList.remove("hidden");
+    menu.style.display = '';
+    menu.setAttribute("aria-hidden", "false");
+    setInert(menu, false);
+    if (toggle) toggle.setAttribute("aria-expanded", "true");
+  }
+
   // Lazy import auth utilities only when needed to keep navigation independent
   let authNavInitialized = false;
   async function initAuthNavigation() {
@@ -79,6 +109,12 @@ import "./app.js";
           items,
           { extraClasses: "block py-2 pl-6 text-sm hover:bg-slate-800" }
         );
+        // Make sure links are clickable (remove any pointer suppression)
+        try {
+          document.querySelectorAll('#account-menu a, #account-menu-mobile a').forEach(a => {
+            a.style.pointerEvents = 'auto';
+          });
+        } catch(_) {}
       }
 
       function hideLegacyLinks() {
@@ -149,21 +185,21 @@ import "./app.js";
           if (mobileBtn) mobileBtn.textContent = "Login";
           return;
         }
-        // Ensure default role is set (admin vs public-fan), then read claims
+        // Ensure default role is set (admin vs public-fan), then read claims (force fresh)
         let role = null;
         try {
-          // Call backend to enforce role
           const { getFunctions, httpsCallable } = await import("firebase/functions");
-          try { await httpsCallable(getFunctions(), "ensureDefaultRole")({}); } catch (_) {}
-          // Force token refresh to pick up new claims
+          try { await httpsCallable(getFunctions(undefined, 'us-central1'), "ensureDefaultRole")({}); } catch (_) {}
           try { await user.getIdToken(true); } catch (_) {}
-          const claims = await validateUserClaims();
-          role = claims.success ? claims.claims.role : null;
+          const token = await user.getIdTokenResult(true);
+          role = token?.claims?.role || 'public-fan';
         } catch {}
 
-        const isAdmin = role === "admin";
+        const ADMIN_EMAIL = 'auhren1992@gmail.com';
         const displayName = user.displayName || '';
         const email = user.email || '';
+        const isAdminEmail = !!email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+        const isAdmin = role === "admin" || isAdminEmail; // UI shows admin console for admin email
         setAvatarButtonContent(displayName, email, user.photoURL);
 
         // Persist role into users/{uid}.role for visibility in Firestore (without changing security claims)
@@ -190,6 +226,22 @@ import "./app.js";
         // Role-specific main destination
         if (isAdmin) {
           items.push({ label: "Admin Console", href: "admin-console.html" });
+          // If UI believes you're admin by email but token isn't yet admin, show a fix action
+          if (isAdminEmail && role !== 'admin') {
+            items.push({
+              label: "Fix my role (refresh)",
+              onClick: async () => {
+                try {
+                  const { getFunctions, httpsCallable } = await import("firebase/functions");
+                  const { getAuth } = await import("firebase/auth");
+                  try { await httpsCallable(getFunctions(undefined,'us-central1'), 'ensureDefaultRole')({}); } catch(_) {}
+                  try { await getAuth().currentUser?.getIdToken(true); } catch(_) {}
+                } finally {
+                  window.location.reload();
+                }
+              },
+            });
+          }
         } else {
           items.push({ label: "Follower Dashboard", href: "follower-dashboard.html" });
         }
@@ -224,12 +276,13 @@ import "./app.js";
         newToggle.addEventListener("click", (e) => {
           e.preventDefault();
           e.stopPropagation();
-          const hidden = menu.classList.contains("hidden");
-          document.querySelectorAll(".dropdown-menu").forEach((m) => m.classList.add("hidden"));
-          if (hidden) menu.classList.remove("hidden");
-          newToggle.setAttribute("aria-expanded", String(hidden));
+          const isHidden = menu.classList.contains("hidden") || menu.style.display === 'none';
+          document.querySelectorAll(".dropdown-menu").forEach((m) => {
+            if (m !== menu) hideDropdownMenu(m);
+          });
+          if (isHidden) showDropdownMenu(menu, newToggle); else hideDropdownMenu(menu);
         });
-        document.addEventListener("click", () => menu.classList.add("hidden"));
+        document.addEventListener("click", () => hideDropdownMenu(menu));
       }
 
       wireDropdown();
@@ -259,13 +312,24 @@ import "./app.js";
   }
 
   // Enhanced initialization with error handling and retry mechanism
-  function initNavigation() {
-    if (navigationInitialized) {
-      return;
-    }
+      function initNavigation() {
+        if (navigationInitialized) {
+          return;
+        }
 
-    try {
-      // Mobile menu toggle with enhanced error handling - support both IDs
+        try {
+          // Hide any dropdowns and mobile menu on load to prevent flash
+          try {
+            document.querySelectorAll('.dropdown-menu').forEach(m => {
+              m.classList.add('hidden');
+              m.setAttribute('aria-hidden','true');
+              m.style.display = 'none';
+            });
+            const mm = document.getElementById('mobile-menu');
+            if (mm) { mm.classList.add('hidden'); mm.style.display='none'; mm.setAttribute('aria-hidden','true'); }
+          } catch(_) {}
+
+          // Mobile menu toggle with enhanced error handling - support both IDs
       const mobileMenuButton = document.getElementById("mobile-menu-button") || document.getElementById("mobile-menu-toggle");
 
       // Initialize auth-aware nav once DOM is available
@@ -395,34 +459,6 @@ import "./app.js";
           });
         });
 
-      // Helpers to manage dropdown visibility, focus, and accessibility state
-      function setInert(el, value) {
-        try {
-          if (!el) return;
-          if (value) el.setAttribute("inert", "");
-          else el.removeAttribute("inert");
-        } catch (_) {}
-      }
-      function hideDropdownMenu(menu) {
-        if (!menu) return;
-        const toggle = menu.previousElementSibling;
-        // If focus is inside the menu being hidden, move it back to the toggle first
-        if (menu.contains(document.activeElement) && toggle) {
-          try { toggle.focus(); } catch (_) {}
-        }
-        menu.classList.add("hidden");
-        menu.setAttribute("aria-hidden", "true");
-        setInert(menu, true);
-        if (toggle) toggle.setAttribute("aria-expanded", "false");
-      }
-      function showDropdownMenu(menu, toggle) {
-        if (!menu) return;
-        menu.classList.remove("hidden");
-        menu.setAttribute("aria-hidden", "false");
-        setInert(menu, false);
-        if (toggle) toggle.setAttribute("aria-expanded", "true");
-      }
-
       // Enhanced desktop dropdowns
       document.querySelectorAll(".dropdown-toggle").forEach((button, index) => {
         // Remove existing listeners
@@ -501,7 +537,7 @@ import "./app.js";
               // Close other dropdowns
               document.querySelectorAll(".dropdown-menu").forEach((menu) => {
                 if (menu !== dropdownMenu) {
-                  menu.classList.add("hidden");
+                  hideDropdownMenu(menu);
                 }
               });
 
@@ -509,9 +545,7 @@ import "./app.js";
               clearTimeout(dropdown.hoverTimeout);
               dropdown.hoverTimeout = setTimeout(() => {
                 if (!dropdownMenu.classList.contains("hidden")) return;
-                dropdownMenu.classList.remove("hidden");
-                dropdownMenu.setAttribute("aria-hidden", "false");
-                newButton.setAttribute("aria-expanded", "true");
+                showDropdownMenu(dropdownMenu, newButton);
               }, 150);
             }
           });
@@ -605,6 +639,7 @@ import "./app.js";
         menu.setAttribute("aria-hidden", "true");
         menu.setAttribute("role", "menu");
         try { menu.setAttribute("inert", ""); } catch (_) {}
+        try { menu.classList.add('hidden'); menu.style.display='none'; } catch(_){}
       });
 
       document.querySelectorAll(".mobile-accordion").forEach((accordion) => {
