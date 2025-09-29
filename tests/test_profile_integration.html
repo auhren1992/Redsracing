@@ -1,253 +1,343 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Profile.js Integration Test</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-        .test-container { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .test-result { padding: 10px; margin: 10px 0; border-radius: 4px; }
-        .pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .fail { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .achievement-item { padding: 10px; margin: 5px 0; background: #f8f9fa; border-radius: 4px; }
-        .achievement-category-badge { background: #007bff; color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .test-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .test-result {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+      }
+      .pass {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .fail {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .achievement-item {
+        padding: 10px;
+        margin: 5px 0;
+        background: #f8f9fa;
+        border-radius: 4px;
+      }
+      .achievement-category-badge {
+        background: #007bff;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 12px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>🧪 Profile.js Integration Test</h1>
     <p>Testing profile.js functions work correctly with sample data</p>
-    
+
     <div class="test-container">
-        <h2>📅 Achievement Rendering Test</h2>
-        <div id="achievement-test-results"></div>
-        <div id="achievement-preview"></div>
+      <h2>📅 Achievement Rendering Test</h2>
+      <div id="achievement-test-results"></div>
+      <div id="achievement-preview"></div>
     </div>
 
     <div class="test-container">
-        <h2>📋 Category Filtering Integration Test</h2>
-        <div id="category-test-results"></div>
+      <h2>📋 Category Filtering Integration Test</h2>
+      <div id="category-test-results"></div>
     </div>
 
     <script>
-        // Extract the relevant functions from profile.js for testing
-        function formatFirestoreTimestamp(timestamp, fallback = 'Unknown') {
-            if (!timestamp) {
-                return fallback;
-            }
-
-            try {
-                // Handle Firestore Timestamp objects with .seconds property
-                if (timestamp && typeof timestamp === 'object' && timestamp.seconds) {
-                    return new Date(timestamp.seconds * 1000).toLocaleDateString();
-                }
-                
-                // Handle Date objects
-                if (timestamp instanceof Date) {
-                    return timestamp.toLocaleDateString();
-                }
-                
-                // Handle string representations
-                if (typeof timestamp === 'string') {
-                    const date = new Date(timestamp);
-                    if (!isNaN(date.getTime())) {
-                        return date.toLocaleDateString();
-                    }
-                }
-                
-                // Handle numeric timestamps (milliseconds)
-                if (typeof timestamp === 'number') {
-                    const date = new Date(timestamp);
-                    if (!isNaN(date.getTime())) {
-                        return date.toLocaleDateString();
-                    }
-                }
-                
-                console.warn('Unable to parse timestamp:', timestamp);
-                return fallback;
-            } catch (error) {
-                console.error('Error formatting timestamp:', error, timestamp);
-                return fallback;
-            }
+      // Extract the relevant functions from profile.js for testing
+      function formatFirestoreTimestamp(timestamp, fallback = "Unknown") {
+        if (!timestamp) {
+          return fallback;
         }
 
-        function getCategoryDisplayName(category) {
-            const categoryMap = {
-                'racing': '🏁 Racing',
-                'performance': '⚡ Performance',
-                'community': '👥 Community',
-                'sportsmanship': '✨ Fair Play',
-                'uncategorized': '📋 Other'
-            };
-            return categoryMap[category] || '📋 Other';
+        try {
+          // Handle Firestore Timestamp objects with .seconds property
+          if (timestamp && typeof timestamp === "object" && timestamp.seconds) {
+            return new Date(timestamp.seconds * 1000).toLocaleDateString();
+          }
+
+          // Handle Date objects
+          if (timestamp instanceof Date) {
+            return timestamp.toLocaleDateString();
+          }
+
+          // Handle string representations
+          if (typeof timestamp === "string") {
+            const date = new Date(timestamp);
+            if (!isNaN(date.getTime())) {
+              return date.toLocaleDateString();
+            }
+          }
+
+          // Handle numeric timestamps (milliseconds)
+          if (typeof timestamp === "number") {
+            const date = new Date(timestamp);
+            if (!isNaN(date.getTime())) {
+              return date.toLocaleDateString();
+            }
+          }
+
+          console.warn("Unable to parse timestamp:", timestamp);
+          return fallback;
+        } catch (error) {
+          console.error("Error formatting timestamp:", error, timestamp);
+          return fallback;
+        }
+      }
+
+      function getCategoryDisplayName(category) {
+        const categoryMap = {
+          racing: "🏁 Racing",
+          performance: "⚡ Performance",
+          community: "👥 Community",
+          sportsmanship: "✨ Fair Play",
+          uncategorized: "📋 Other",
+        };
+        return categoryMap[category] || "📋 Other";
+      }
+
+      function renderAchievements(achievements) {
+        if (achievements.length === 0) {
+          return '<p class="text-slate-400">No achievements in this category.</p>';
         }
 
-        function renderAchievements(achievements) {
-            if (achievements.length === 0) {
-                return '<p class="text-slate-400">No achievements in this category.</p>';
-            }
-
-            return achievements.map(achievement => `
-                <div class="achievement-item flex items-center space-x-3 p-3 bg-slate-700 rounded-md" data-category="${achievement.category || 'uncategorized'}">
+        return achievements
+          .map(
+            (achievement) => `
+                <div class="achievement-item flex items-center space-x-3 p-3 bg-slate-700 rounded-md" data-category="${achievement.category || "uncategorized"}">
                     <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
-                        ${achievement.icon || '🏆'}
+                        ${achievement.icon || "🏆"}
                     </div>
                     <div class="flex-1">
                         <div class="flex items-center justify-between mb-1">
                             <h4 class="font-bold text-white">${achievement.name}</h4>
                             <div class="flex items-center space-x-2">
-                                <span class="achievement-category-badge">${getCategoryDisplayName(achievement.category || 'uncategorized')}</span>
+                                <span class="achievement-category-badge">${getCategoryDisplayName(achievement.category || "uncategorized")}</span>
                                 <span class="text-xs font-racing text-neon-yellow">${achievement.points || 0}pts</span>
                             </div>
                         </div>
                         <p class="text-sm text-slate-400">${achievement.description}</p>
-                        ${achievement.dateEarned ? `<p class="text-xs text-slate-500">Earned: ${formatFirestoreTimestamp(achievement.dateEarned)}</p>` : ''}
+                        ${achievement.dateEarned ? `<p class="text-xs text-slate-500">Earned: ${formatFirestoreTimestamp(achievement.dateEarned)}</p>` : ""}
                     </div>
                 </div>
-            `).join('');
+            `,
+          )
+          .join("");
+      }
+
+      function filterAchievementsByCategory(achievements, category) {
+        if (category === "all") {
+          return achievements;
+        } else {
+          return achievements.filter((achievement) => {
+            const achievementCategory = achievement.category || "uncategorized";
+            return achievementCategory === category;
+          });
         }
+      }
 
-        function filterAchievementsByCategory(achievements, category) {
-            if (category === 'all') {
-                return achievements;
-            } else {
-                return achievements.filter(achievement => {
-                    const achievementCategory = achievement.category || 'uncategorized';
-                    return achievementCategory === category;
-                });
-            }
+      // Test data with various timestamp formats and missing categories
+      const testAchievements = [
+        {
+          name: "First Race",
+          description: "Complete your first race",
+          icon: "🏁",
+          category: "racing",
+          points: 10,
+          dateEarned: { seconds: 1699200000 }, // Firestore Timestamp format
+        },
+        {
+          name: "Community Member",
+          description: "Join the community",
+          icon: "👥",
+          // No category (should default to uncategorized)
+          points: 5,
+          dateEarned: new Date("2023-11-15"), // Date object
+        },
+        {
+          name: "Speed Demon",
+          description: "Achieve high speed",
+          icon: "⚡",
+          category: "performance",
+          points: 20,
+          dateEarned: "2023-11-20T10:30:00Z", // ISO string
+        },
+        {
+          name: "Team Player",
+          description: "Great teamwork",
+          icon: "🤝",
+          category: null, // Null category
+          points: 15,
+          dateEarned: 1700550000000, // Numeric timestamp
+        },
+        {
+          name: "Recent Achievement",
+          description: "Something new",
+          icon: "🆕",
+          category: "community",
+          points: 8,
+          // No dateEarned
+        },
+      ];
+
+      // Run integration tests
+      let testResults = [];
+
+      function runIntegrationTest(testName, testFn) {
+        try {
+          const result = testFn();
+          if (result) {
+            testResults.push({
+              name: testName,
+              status: "pass",
+              message: "Test passed",
+            });
+            return true;
+          } else {
+            testResults.push({
+              name: testName,
+              status: "fail",
+              message: "Test failed - assertion failed",
+            });
+            return false;
+          }
+        } catch (error) {
+          testResults.push({
+            name: testName,
+            status: "fail",
+            message: `Test failed - ${error.message}`,
+          });
+          return false;
         }
+      }
 
-        // Test data with various timestamp formats and missing categories
-        const testAchievements = [
-            {
-                name: 'First Race',
-                description: 'Complete your first race',
-                icon: '🏁',
-                category: 'racing',
-                points: 10,
-                dateEarned: { seconds: 1699200000 } // Firestore Timestamp format
-            },
-            {
-                name: 'Community Member',
-                description: 'Join the community',
-                icon: '👥',
-                // No category (should default to uncategorized)
-                points: 5,
-                dateEarned: new Date('2023-11-15') // Date object
-            },
-            {
-                name: 'Speed Demon',
-                description: 'Achieve high speed',
-                icon: '⚡',
-                category: 'performance',
-                points: 20,
-                dateEarned: '2023-11-20T10:30:00Z' // ISO string
-            },
-            {
-                name: 'Team Player',
-                description: 'Great teamwork',
-                icon: '🤝',
-                category: null, // Null category
-                points: 15,
-                dateEarned: 1700550000000 // Numeric timestamp
-            },
-            {
-                name: 'Recent Achievement',
-                description: 'Something new',
-                icon: '🆕',
-                category: 'community',
-                points: 8,
-                // No dateEarned
-            }
-        ];
+      // Test achievement rendering with various timestamp formats
+      runIntegrationTest(
+        "Achievement rendering handles all timestamp formats",
+        () => {
+          const rendered = renderAchievements(testAchievements);
 
-        // Run integration tests
-        let testResults = [];
+          // Check that all achievements are rendered
+          const achievementCount = (rendered.match(/achievement-item/g) || [])
+            .length;
+          if (achievementCount !== testAchievements.length) return false;
 
-        function runIntegrationTest(testName, testFn) {
-            try {
-                const result = testFn();
-                if (result) {
-                    testResults.push({ name: testName, status: 'pass', message: 'Test passed' });
-                    return true;
-                } else {
-                    testResults.push({ name: testName, status: 'fail', message: 'Test failed - assertion failed' });
-                    return false;
-                }
-            } catch (error) {
-                testResults.push({ name: testName, status: 'fail', message: `Test failed - ${error.message}` });
-                return false;
-            }
-        }
+          // Check that dates are properly formatted (not "Unknown" and not raw)
+          const hasFormattedDates =
+            rendered.includes("Earned:") &&
+            !rendered.includes("Earned: Unknown");
 
-        // Test achievement rendering with various timestamp formats
-        runIntegrationTest('Achievement rendering handles all timestamp formats', () => {
-            const rendered = renderAchievements(testAchievements);
-            
-            // Check that all achievements are rendered
-            const achievementCount = (rendered.match(/achievement-item/g) || []).length;
-            if (achievementCount !== testAchievements.length) return false;
-            
-            // Check that dates are properly formatted (not "Unknown" and not raw)
-            const hasFormattedDates = rendered.includes('Earned:') && !rendered.includes('Earned: Unknown');
-            
-            // Check that missing categories default to uncategorized
-            const hasUncategorizedBadges = rendered.includes('📋 Other');
-            
-            return hasFormattedDates && hasUncategorizedBadges;
-        });
+          // Check that missing categories default to uncategorized
+          const hasUncategorizedBadges = rendered.includes("📋 Other");
 
-        // Test category filtering with missing categories
-        runIntegrationTest('Category filtering handles missing categories correctly', () => {
-            const uncategorizedAchievements = filterAchievementsByCategory(testAchievements, 'uncategorized');
-            
-            // Should include achievements with no category or null category
-            const expectedCount = testAchievements.filter(a => !a.category || a.category === null).length;
-            return uncategorizedAchievements.length === expectedCount;
-        });
+          return hasFormattedDates && hasUncategorizedBadges;
+        },
+      );
 
-        runIntegrationTest('Category filtering works for specific categories', () => {
-            const racingAchievements = filterAchievementsByCategory(testAchievements, 'racing');
-            return racingAchievements.length === 1 && racingAchievements[0].name === 'First Race';
-        });
+      // Test category filtering with missing categories
+      runIntegrationTest(
+        "Category filtering handles missing categories correctly",
+        () => {
+          const uncategorizedAchievements = filterAchievementsByCategory(
+            testAchievements,
+            "uncategorized",
+          );
 
-        runIntegrationTest('Category filtering returns all for "all" category', () => {
-            const allAchievements = filterAchievementsByCategory(testAchievements, 'all');
-            return allAchievements.length === testAchievements.length;
-        });
+          // Should include achievements with no category or null category
+          const expectedCount = testAchievements.filter(
+            (a) => !a.category || a.category === null,
+          ).length;
+          return uncategorizedAchievements.length === expectedCount;
+        },
+      );
 
-        // Display results
-        function displayIntegrationResults() {
-            const achievementDiv = document.getElementById('achievement-test-results');
-            const categoryDiv = document.getElementById('category-test-results');
-            const previewDiv = document.getElementById('achievement-preview');
-            
-            // Separate achievement and category tests
-            const achievementTests = testResults.filter(test => test.name.includes('rendering'));
-            const categoryTests = testResults.filter(test => test.name.includes('filtering'));
+      runIntegrationTest(
+        "Category filtering works for specific categories",
+        () => {
+          const racingAchievements = filterAchievementsByCategory(
+            testAchievements,
+            "racing",
+          );
+          return (
+            racingAchievements.length === 1 &&
+            racingAchievements[0].name === "First Race"
+          );
+        },
+      );
 
-            achievementDiv.innerHTML = achievementTests.map(test => 
-                `<div class="test-result ${test.status}">
+      runIntegrationTest(
+        'Category filtering returns all for "all" category',
+        () => {
+          const allAchievements = filterAchievementsByCategory(
+            testAchievements,
+            "all",
+          );
+          return allAchievements.length === testAchievements.length;
+        },
+      );
+
+      // Display results
+      function displayIntegrationResults() {
+        const achievementDiv = document.getElementById(
+          "achievement-test-results",
+        );
+        const categoryDiv = document.getElementById("category-test-results");
+        const previewDiv = document.getElementById("achievement-preview");
+
+        // Separate achievement and category tests
+        const achievementTests = testResults.filter((test) =>
+          test.name.includes("rendering"),
+        );
+        const categoryTests = testResults.filter((test) =>
+          test.name.includes("filtering"),
+        );
+
+        achievementDiv.innerHTML = achievementTests
+          .map(
+            (test) =>
+              `<div class="test-result ${test.status}">
                     <strong>${test.name}:</strong> ${test.message}
-                </div>`
-            ).join('');
+                </div>`,
+          )
+          .join("");
 
-            categoryDiv.innerHTML = categoryTests.map(test => 
-                `<div class="test-result ${test.status}">
+        categoryDiv.innerHTML = categoryTests
+          .map(
+            (test) =>
+              `<div class="test-result ${test.status}">
                     <strong>${test.name}:</strong> ${test.message}
-                </div>`
-            ).join('');
+                </div>`,
+          )
+          .join("");
 
-            // Show rendered achievements preview
-            previewDiv.innerHTML = `
+        // Show rendered achievements preview
+        previewDiv.innerHTML = `
                 <h4>Achievement Rendering Preview:</h4>
                 ${renderAchievements(testAchievements)}
             `;
-        }
+      }
 
-        // Run tests when page loads
-        displayIntegrationResults();
+      // Run tests when page loads
+      displayIntegrationResults();
     </script>
-</body>
+  </body>
 </html>

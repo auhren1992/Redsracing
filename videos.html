@@ -1,138 +1,366 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Videos - RedsRacing #8</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="manifest" href="site.webmanifest">
-    <link rel="stylesheet" href="styles/tailwind.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/scrollreveal"></script>
-    <link rel="stylesheet" href="styles/main.css">
-</head>
-<body class="bg-dark-blue">
-    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
-        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
-                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
-            </a>
-            <div class="hidden md:flex items-center space-x-6 font-bold">
-                <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
-                        The Drivers <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
-                        <a href="driver.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jon Kirsch</a>
-                        <a href="jonny.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jonny Kirsch #88</a>
-                    </div>
-                </div>
-                <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Schedule</a>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
-                        Media <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
-                        <a href="gallery.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gallery</a>
-                        <a href="videos.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Videos</a>
-                    </div>
-                </div>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
-                        Community <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
-                        <a href="qna.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Q&A</a>
-                        <a href="feedback.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Feedback</a>
-                    </div>
-                </div>
-                <a href="sponsorship.html" class="hover:text-neon-yellow transition duration-300">Sponsorship</a>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300 flex items-center font-bold">
-                        Login <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50 right-0">
-                        <a href="login.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Team Member Login</a>
-                        <a href="follower-login.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Follower Login</a>
-                    </div>
-                </div>
-            </div>
-            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://redsracing-a7f8b.firebasestorage.app" crossorigin />
+    <link rel="dns-prefetch" href="//redsracing-a7f8b.firebasestorage.app" />
+    <script defer src="https://unpkg.com/scrollreveal"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="stylesheet" href="styles/modern-effects.css" />
+  <script src="assets/js/guest-gate.js"></script>
+  </head>
+  <body class="bg-dark-blue">
+    <header
+      class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50"
+    >
+      <nav
+        class="container mx-auto px-6 py-3 flex justify-between items-center"
+      >
+        <a
+href="jons.html"
+          class="text-4xl font-racing uppercase tracking-wider"
+        >
+          <span class="title-blue">Reds</span
+          ><span class="neon-yellow">Racing</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-6 font-bold">
+          <a href="index.html" class="nav-link">🏠 Home</a>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏎️ Drivers <i class="fas fa-chevron-down"></i>
             </button>
-        </nav>
-        <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
-             <a href="index.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Home</a>
-             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">The Drivers</button>
-             <div class="mobile-accordion-content hidden pl-4">
-                 <a href="driver.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Jon Kirsch</a>
-                 <a href="jonny.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Jonny Kirsch #88</a>
-             </div>
-             <a href="schedule.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
-             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Media</button>
-             <div class="mobile-accordion-content hidden pl-4">
-                 <a href="gallery.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Gallery</a>
-                 <a href="videos.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Videos</a>
-             </div>
-             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Community</button>
-             <div class="mobile-accordion-content hidden pl-4">
-                 <a href="qna.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Q&A</a>
-                 <a href="feedback.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Feedback</a>
-             </div>
-             <a href="sponsorship.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Sponsorship</a>
-             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Login</button>
-             <div class="mobile-accordion-content hidden pl-4">
-                 <a href="login.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Team Member Login</a>
-                 <a href="follower-login.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Follower Login</a>
-             </div>
-        </div>
-    </header>
-    <main class="pt-20">
-        <section id="videos" class="py-24 md:py-32 section-glow">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Onboard & <span class="neon-yellow">Highlights</span></h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="video-item rounded-lg overflow-hidden reveal-up">
-                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/Lzi_w8jqgS8" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
-                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Dells Raceway Park</h3><p class="text-sm text-slate-400">A hot lap around the track.</p></div>
-                    </div>
-                    <div class="video-item rounded-lg overflow-hidden reveal-up" data-reveal-delay="200">
-                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/DMYD64ViS88" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
-                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Slinger Super Speedway</h3><p class="text-sm text-slate-400">Highlights from the race.</p></div>
-                    </div>
-                    <div class="video-item rounded-lg overflow-hidden reveal-up" data-reveal-delay="400">
-                        <div class="aspect-w-16 aspect-h-9"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen class="w-full h-full" loading="lazy"></iframe></div>
-                        <div class="p-4 bg-slate-800"><h3 class="font-bold text-lg">Garage Talk: Car Setup</h3><p class="text-sm text-slate-400">A deep dive into the tech setup.</p></div>
-                    </div>
-                </div>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="driver.html" class="dropdown-item">Jon Kirsch #8</a>
+              <a href="jonny.html" class="dropdown-item">Jonny Kirsch #88</a>
+              <a href="legends.html" class="dropdown-item">Team Legends</a>
             </div>
-        </section>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏁 Racing <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="schedule.html" class="dropdown-item">Schedule</a>
+              <a href="leaderboard.html" class="dropdown-item">Leaderboard</a>
+              <a href="gallery.html" class="dropdown-item">Gallery</a>
+              <a href="videos.html" class="dropdown-item active">🎥 Videos</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              👥 Community <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="qna.html" class="dropdown-item">❓ Q&A</a>
+              <a href="feedback.html" class="dropdown-item">💬 Feedback</a>
+              <a href="sponsorship.html" class="dropdown-item">💰 Sponsorship</a>
+            </div>
+          </div>
+          <!-- User Profile / Login -->
+          <div id="auth-section">
+            <!-- Login Button (shown when not authenticated) -->
+            <!-- User Profile Dropdown (shown when authenticated) -->
+            <div id="user-profile" class="relative dropdown hidden">
+              <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
+                <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <i class="fas fa-user text-white text-xs"></i>
+                </div>
+                <div class="text-left hidden md:block">
+                  <div class="text-sm font-semibold text-white" id="user-name">Driver</div>
+                  <div class="text-xs text-slate-400">Team Member</div>
+                </div>
+                <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+              </button>
+              
+              <div class="dropdown-menu modern-dropdown right-0 w-44">
+                <div class="px-4 py-2 border-b border-slate-600/50">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-green-400 text-sm">Online</span>
+                  </div>
+                </div>
+                
+                <a href="admin-console.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
+                  <span>Dashboard</span>
+                </a>
+                
+                <a href="profile.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-user w-4 mr-3 text-green-400"></i>
+                  <span>My Profile</span>
+                </a>
+                
+                <div class="border-t border-slate-600/50 my-1"></div>
+                
+                <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                  <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button
+          id="mobile-menu-button"
+          class="md:hidden text-white focus:outline-none"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16m-7 6h7"
+            ></path>
+          </svg>
+        </button>
+      </nav>
+      <div id="mobile-menu" class="mobile-menu modern-mobile">
+        <a href="index.html" class="mobile-nav-item">🏠 Home</a>
+        <button class="mobile-accordion">
+          <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="driver.html" class="mobile-nav-subitem">Jon Kirsch #8</a>
+          <a href="jonny.html" class="mobile-nav-subitem">Jonny Kirsch #88</a>
+          <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
+        </div>
+        <button class="mobile-accordion">
+          <span>🏁 Racing</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="schedule.html" class="mobile-nav-subitem">Schedule</a>
+          <a href="leaderboard.html" class="mobile-nav-subitem">Leaderboard</a>
+          <a href="gallery.html" class="mobile-nav-subitem">Gallery</a>
+          <a href="videos.html" class="mobile-nav-subitem active">🎥 Videos</a>
+        </div>
+        <button class="mobile-accordion">
+          <span>👥 Community</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="qna.html" class="mobile-nav-subitem">❓ Q&A</a>
+          <a href="feedback.html" class="mobile-nav-subitem">💬 Feedback</a>
+          <a href="sponsorship.html" class="mobile-nav-subitem">💰 Sponsorship</a>
+        </div>
+        <div class="border-t border-slate-600 mt-4 pt-4">
+          <!-- Mobile Auth Section -->
+          <div id="mobile-auth-section">
+            <!-- Mobile Login Button (shown when not authenticated) -->
+            
+            
+            <!-- Mobile User Profile (shown when authenticated) -->
+            <div id="mobile-user-profile" class="hidden">
+              <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
+                <div class="flex items-center space-x-3 mb-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white"></i>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold" id="mobile-user-name">Driver</div>
+                    <div class="text-slate-400 text-sm">Team Member</div>
+                    <div class="flex items-center space-x-1 mt-1">
+                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span class="text-green-400 text-xs">Online</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="space-y-1">
+                  <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
+                    <span>Dashboard</span>
+                  </a>
+                  <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-user w-5 mr-3 text-green-400"></i>
+                    <span>My Profile</span>
+                  </a>
+                  <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                    <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main>
+      <!-- Modern Hero Section -->
+      <section class="py-20 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
+        <div class="container mx-auto px-6 relative z-10">
+          <div class="text-center mb-16">
+            <div class="inline-flex items-center bg-red-600/20 backdrop-blur-sm px-6 py-3 rounded-full border border-red-400/30 mb-6">
+              <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-3"></div>
+              <span class="text-red-400 font-bold uppercase tracking-wider text-sm">
+                <i class="fas fa-video mr-2"></i>Action Captured
+              </span>
+            </div>
+            
+            <h1 class="font-racing text-6xl md:text-8xl lg:text-9xl uppercase tracking-wider mb-6">
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-500 to-red-600">
+                Videos
+              </span>
+            </h1>
+            
+            <p class="text-xl md:text-2xl text-slate-300 font-bold tracking-wide max-w-4xl mx-auto mb-8">
+              Onboard cameras • Race highlights • Behind the scenes
+            </p>
+            
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              <div class="modern-card p-4 border border-red-400/20">
+                <div class="text-3xl font-bold text-red-400">24</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Total Videos</div>
+              </div>
+              <div class="modern-card p-4 border border-blue-400/20">
+                <div class="text-3xl font-bold text-blue-400">5.2K</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Total Views</div>
+              </div>
+              <div class="modern-card p-4 border border-green-400/20">
+                <div class="text-3xl font-bold text-green-400">12</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Race Highlights</div>
+              </div>
+              <div class="modern-card p-4 border border-purple-400/20">
+                <div class="text-3xl font-bold text-purple-400">8</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Onboard Cams</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Video Gallery Section -->
+      <section class="py-20 md:py-32 bg-gradient-to-b from-black to-slate-900">
+        <div class="container mx-auto px-6">
+          <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+              <div class="inline-flex items-center bg-orange-500/20 px-4 py-2 rounded-full mb-4">
+                <i class="fas fa-play text-orange-400 mr-2"></i>
+                <span class="text-orange-400 font-bold uppercase tracking-wider text-sm">Featured Content</span>
+              </div>
+              <h2 class="font-racing text-3xl md:text-4xl text-white uppercase mb-4">
+                Latest <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">Racing Action</span>
+              </h2>
+            </div>
+            
+            <div id="video-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div id="tiktok-embeds" class="col-span-full"></div>
+              <!-- TikTok content is injected by videos.js; YouTube fallback removed -->
+            </div>
+            
+            <!-- Call to Action -->
+            <div class="text-center mt-16">
+              <div class="modern-card p-8 md:p-12 rounded-2xl">
+                <div class="inline-flex items-center bg-red-500/20 px-4 py-2 rounded-full mb-6">
+                  <i class="fas fa-bell text-red-400 mr-2"></i>
+                  <span class="text-red-400 font-bold uppercase tracking-wider text-sm">Stay Updated</span>
+                </div>
+                
+                <h3 class="font-racing text-3xl md:text-4xl text-white uppercase mb-6">
+                  Never Miss the <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-500">Action</span>
+                </h3>
+                
+                <p class="text-slate-300 text-lg mb-8 max-w-3xl mx-auto">
+                  Subscribe to our channels and follow us on social media to catch every race, every victory, and every behind-the-scenes moment.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                  <a href="https://www.youtube.com/@redsracing" target="_blank" class="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-4 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl uppercase tracking-wide flex items-center justify-center">
+                    <i class="fab fa-youtube mr-2"></i>
+                    Subscribe on YouTube
+                  </a>
+                  <a href="https://www.tiktok.com/@redsracing" target="_blank" class="border-2 border-red-400 text-red-400 font-bold py-4 px-8 rounded-lg hover:bg-red-400 hover:text-black transition-all duration-300 transform hover:scale-105 uppercase tracking-wide flex items-center justify-center">
+                    <i class="fab fa-tiktok mr-2"></i>
+                    Follow on TikTok
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
     <footer class="bg-black/50 border-t border-slate-800 py-16">
-        <div class="container mx-auto px-6 text-center">
-            <h3 class="font-racing text-4xl uppercase mb-2 neon-yellow">Get In Touch</h3>
-            <p class="text-slate-400 mb-8">Subscribe for race updates and follow the journey on social media.</p>
-            <div class="max-w-md mx-auto mb-8">
-                <form id="subscribe-form" class="flex flex-col sm:flex-row gap-2">
-                    <input type="email" id="subscribe-email" placeholder="Enter your email" required class="flex-grow bg-slate-800 text-white px-4 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-neon-yellow w-full">
-                    <button type="submit" class="bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Subscribe</button>
-                </form>
-                <p id="subscribe-message" class="text-sm mt-2 h-4"></p>
-            </div>
-            <div class="flex justify-center space-x-6 mb-8">
-                <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
-                <a href="https://www.tiktok.com/@redsracing" target="_blank" class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"/></svg></a>
-            </div>
-            <p class="mt-8 text-slate-500 text-sm">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
+      <div class="container mx-auto px-6 text-center">
+        <h3 class="font-racing text-4xl uppercase mb-2 neon-yellow">
+          Get In Touch
+        </h3>
+        <p class="text-slate-400 mb-8">
+          Subscribe for race updates and follow the journey on social media.
+        </p>
+        <div class="max-w-md mx-auto mb-8">
+          <form id="subscribe-form" class="flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              id="subscribe-email"
+              placeholder="Enter your email"
+              required
+              class="flex-grow bg-slate-800 text-white px-4 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-neon-yellow w-full"
+            />
+            <button
+              type="submit"
+              class="bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300"
+            >
+              Subscribe
+            </button>
+          </form>
+          <p id="subscribe-message" class="text-sm mt-2 h-4"></p>
         </div>
+        <div class="flex justify-center space-x-6 mb-8">
+          <a
+            href="https://www.facebook.com/share/1F1RTxz9xa/"
+            target="_blank"
+            class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"
+            ><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                fill-rule="evenodd"
+                d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
+                clip-rule="evenodd"
+              /></svg
+          ></a>
+          <a
+            href="https://www.tiktok.com/@redsracing"
+            target="_blank"
+            class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"
+            ><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"
+              /></svg
+          ></a>
+        </div>
+        <p class="mt-8 text-slate-500 text-sm">
+          © <span id="year"></span> RedsRacing #8. All Rights Reserved.
+        </p>
+      </div>
     </footer>
-<script type="module" src="navigation.js"></script>
-<script type="module" src="main.js"></script>
-<script type="module" src="videos.js"></script>
-</body>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Scripts -->
+    <script type="module" src="navigation.js"></script>
+    <script type="module" src="main.js"></script>
+    <script type="module" src="videos.js"></script>
+    <script src="modern-effects.js"></script>
+  </body>
 </html>

@@ -5,6 +5,7 @@
 Fixed `ModuleNotFoundError: No module named 'mailgun'` error that occurred when deploying Firebase Functions locally.
 
 ### Error Details
+
 ```
 [2025-09-09 13:40:45,648] ERROR in app: Exception on trying to deploy only functions on my local machine /__/functions.yaml [GET]
 ...
@@ -16,6 +17,7 @@ ModuleNotFoundError: No module named 'mailgun'
 ## Root Cause
 
 The issue was caused by loose version specifications in `functions_python/requirements.txt`, which could lead to:
+
 - Inconsistent package installation in Firebase Functions environment
 - Caching issues preventing proper dependency resolution
 - Version conflicts between packages
@@ -32,6 +34,7 @@ mailgun==1.1.0
 ```
 
 ### Key Changes:
+
 1. **Added explicit version for `mailgun`**: Ensures `mailgun==1.1.0` is installed consistently
 2. **Pinned Firebase packages**: Prevents version conflicts with Firebase Functions runtime
 3. **Maintained Flask flexibility**: Kept `>=3.1.2` to allow patch updates
@@ -45,30 +48,34 @@ python verify_mailgun_fix.py
 ```
 
 This script verifies:
+
 - ✅ All required packages can be imported
-- ✅ MailgunClient has the expected API structure  
+- ✅ MailgunClient has the expected API structure
 - ✅ The main.py module can be imported without errors
 
 ## Deployment Instructions
 
 1. **Clear any existing Firebase Functions cache**:
+
    ```bash
    # Windows
    rmdir /s node_modules
    rmdir /s functions_python\__pycache__
-   
+
    # Linux/Mac
    rm -rf node_modules
    rm -rf functions_python/__pycache__
    ```
 
 2. **Reinstall dependencies**:
+
    ```bash
    cd functions_python
    pip install -r requirements.txt
    ```
 
 3. **Verify the fix**:
+
    ```bash
    python ../verify_mailgun_fix.py
    ```
@@ -89,11 +96,13 @@ This script verifies:
 ### If the error persists:
 
 1. **Check Python environment**:
+
    ```bash
    python -c "from mailgun.client import Client; print('Import successful')"
    ```
 
 2. **Verify package installation**:
+
    ```bash
    pip show mailgun
    pip list | grep mailgun

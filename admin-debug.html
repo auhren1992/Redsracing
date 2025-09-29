@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Debug</title>
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
+</head>
+<body class="p-6 bg-slate-900 text-white">
+    <h1 class="text-3xl mb-4">Admin Console Debug</h1>
+    
+    <div class="space-y-4">
+        <div id="script-status" class="mb-4"></div>
+        <div id="auth-status" class="mb-4"></div>
+        <div id="api-status" class="mb-4"></div>
+        <div id="error-log" class="mb-4 text-red-400"></div>
+    </div>
+    
+    <div class="mt-6">
+        <button id="test-api" class="bg-blue-600 px-4 py-2 rounded mr-2">Test API</button>
+        <button id="test-auth" class="bg-green-600 px-4 py-2 rounded mr-2">Test Auth</button>
+        <button id="force-show" class="bg-yellow-600 px-4 py-2 rounded">Force Show Admin</button>
+    </div>
+
+    <script>
+        const log = (selector, message, type = 'info') => {
+            const colors = {
+                success: 'text-green-400',
+                error: 'text-red-400', 
+                warning: 'text-yellow-400',
+                info: 'text-blue-400'
+            };
+            document.getElementById(selector.replace('#', '')).innerHTML = 
+                `<span class="${colors[type]}">[${type.toUpperCase()}] ${message}</span>`;
+        };
+        
+        const errorLog = [];
+        const logError = (error) => {
+            errorLog.push(error);
+            document.getElementById('error-log').innerHTML = 
+                '<strong>Errors:</strong><br>' + errorLog.join('<br>');
+        };
+        
+        // Error handling
+        window.addEventListener('error', (e) => {
+            logError(`JS Error: ${e.message} (${e.filename}:${e.lineno})`);
+        });
+        
+        window.addEventListener('unhandledrejection', (e) => {
+            logError(`Promise Rejection: ${e.reason}`);
+        });
+    </script>
+    
+    <script src="vendors.js" onerror="logError('Failed to load vendors.js')"></script>
+    
+    <script>
+        // Test script loading
+        if (typeof firebase !== 'undefined') {
+            log('script-status', '✅ Firebase loaded successfully', 'success');
+        } else {
+            log('script-status', '❌ Firebase failed to load', 'error');
+        }
+        
+        document.getElementById('test-api').addEventListener('click', async () => {
+            try {
+                log('api-status', '🔄 Testing API...', 'info');
+                const response = await fetch('https://handletest-r7f4oo4gjq-uc.a.run.app');
+                const data = await response.json();
+                log('api-status', `✅ API working: ${data.message}`, 'success');
+            } catch (error) {
+                log('api-status', `❌ API failed: ${error.message}`, 'error');
+                logError(`API Error: ${error.message}`);
+            }
+        });
+        
+        document.getElementById('test-auth').addEventListener('click', () => {
+            if (typeof firebase !== 'undefined' && firebase.auth) {
+                firebase.auth().onAuthStateChanged((user) => {
+                    if (user) {
+                        log('auth-status', `✅ User signed in: ${user.email}`, 'success');
+                    } else {
+                        log('auth-status', '⚠️ No user signed in', 'warning');
+                    }
+                });
+            } else {
+                log('auth-status', '❌ Firebase Auth not available', 'error');
+            }
+        });
+        
+        document.getElementById('force-show').addEventListener('click', () => {
+            window.open('admin-console.html', '_blank');
+        });
+    </script>
+</body>
+</html>

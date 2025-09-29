@@ -1,289 +1,744 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jonny Kirsch - #88</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="manifest" href="site.webmanifest">
-    <link rel="stylesheet" href="styles/tailwind.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/scrollreveal"></script>
-    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://redsracing-a7f8b.firebasestorage.app" crossorigin />
+    <link rel="dns-prefetch" href="//redsracing-a7f8b.firebasestorage.app" />
+    <script defer src="https://unpkg.com/scrollreveal"></script>
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="stylesheet" href="styles/modern-effects.css" />
     <style>
-        .neon-red { color: #ff3333; }
-        .bg-neon-red { background-color: #ff3333; }
-        .focus\:ring-neon-red:focus {
-            --tw-ring-color: #ff3333;
-        }
-        body.jonny-page {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 100 100'%3E%3Cstyle%3E.logo { font-family: 'Racing Sans One', sans-serif; font-size: 40px; opacity: 0.02; } %3C/style%3E%3Ctext x='50' y='65' fill='%23ff3333' class='logo' text-anchor='end' transform='rotate(-20 50 50)'%3E8%3C/text%3E%3Ctext x='52' y='65' fill='%23ffffff' class='logo' text-anchor='start' transform='rotate(-20 50 50)'%3E8%3C/text%3E%3C/svg%3E");
-        }
-        .text-gradient-red {
-            background-image: linear-gradient(to right, #ff3333, #f0f0f0);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        /* Timeline Styles */
-        .timeline-item {
-            position: relative;
-            padding-left: 3rem;
-            padding-bottom: 2rem;
-            border-left: 4px solid #334155; /* slate-700 */
-        }
-        .timeline-item:last-child {
-            border-left: 4px solid transparent;
-            padding-bottom: 0;
-        }
-        .timeline-marker {
-            position: absolute;
-            left: -11px; /* (20px - 4px)/2 */
-            top: 0;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background-color: #334155; /* slate-700 */
-            border: 4px solid #05080f; /* body bg */
-        }
-        .timeline-item.active .timeline-marker {
-            background-color: #ff3333; /* neon-red */
-        }
+      .neon-red {
+        color: #ff3333;
+      }
+      .bg-neon-red {
+        background-color: #ff3333;
+      }
+      .focus\:ring-neon-red:focus {
+        --tw-ring-color: #ff3333;
+      }
+      body.jonny-page {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 100 100'%3E%3Cstyle%3E.logo { font-family: 'Racing Sans One', sans-serif; font-size: 40px; opacity: 0.02; } %3C/style%3E%3Ctext x='50' y='65' fill='%23ff3333' class='logo' text-anchor='end' transform='rotate(-20 50 50)'%3E8%3C/text%3E%3Ctext x='52' y='65' fill='%23ffffff' class='logo' text-anchor='start' transform='rotate(-20 50 50)'%3E8%3C/text%3E%3C/svg%3E");
+      }
+      .text-gradient-red {
+        background-image: linear-gradient(to right, #ff3333, #f0f0f0);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      /* Timeline Styles */
+      .timeline-item {
+        position: relative;
+        padding-left: 3rem;
+        padding-bottom: 2rem;
+        border-left: 4px solid #334155; /* slate-700 */
+      }
+      .timeline-item:last-child {
+        border-left: 4px solid transparent;
+        padding-bottom: 0;
+      }
+      .timeline-marker {
+        position: absolute;
+        left: -11px; /* (20px - 4px)/2 */
+        top: 0;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: #334155; /* slate-700 */
+        border: 4px solid #05080f; /* body bg */
+      }
+      .timeline-item.active .timeline-marker {
+        background-color: #ff3333; /* neon-red */
+      }
+
+      /* Jonny: subtle motion and red accents for timeline cards */
+      .timeline-item-3d-red {
+        background: rgba(30, 41, 59, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(239, 68, 68, 0.35); /* more visible red */
+        border-radius: 16px;
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.12), 0 0 0 1px rgba(239,68,68,0.1);
+        position: relative;
+        overflow: hidden;
+      }
+      .timeline-item-3d-red::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, rgba(239,68,68,0.8), rgba(239,68,68,0.2));
+      }
+      .timeline-item-3d-red:hover {
+        transform: translateX(12px) rotateY(-4deg);
+        border-color: rgba(239, 68, 68, 0.6);
+        box-shadow: -10px 20px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(239,68,68,0.25), 0 10px 25px rgba(239,68,68,0.15);
+      }
+
+      /* Jonny: 3D gallery (red theme) */
+      .gallery-3d { perspective: 1000px; }
+      .gallery-item-3d {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-style: preserve-3d;
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid rgba(239,68,68,0.2);
+      }
+      .gallery-item-3d::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, transparent, rgba(239, 68, 68, 0.12), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 2;
+      }
+      .gallery-item-3d:hover {
+        transform: rotateY(10deg) rotateX(5deg) translateY(-10px) scale(1.02);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(239,68,68,0.25);
+      }
+      .gallery-item-3d:hover::before { opacity: 1; }
+
+      /* Fallback: apply red 3D hover to any gallery-item on Jonny page (covers cached JS) */
+      #jonny-gallery .gallery-item {
+        position: relative;
+        border: 1px solid rgba(239,68,68,0.2);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      #jonny-gallery .gallery-item::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, transparent, rgba(239, 68, 68, 0.12), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 2;
+      }
+      #jonny-gallery .gallery-item:hover {
+        transform: rotateY(10deg) rotateX(5deg) translateY(-10px) scale(1.02) !important;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(239,68,68,0.25);
+        border-color: rgba(239,68,68,0.4);
+      }
+      #jonny-gallery .gallery-item:hover::before { opacity: 1; }
+
+      /* Jonny: Rookie badges */
+      .rookie-badges { display: inline-flex; gap: 8px; margin-top: 10px; }
+      .rookie-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #fecaca; /* red-200 */
+        background: rgba(239,68,68,0.12);
+        border: 1px solid rgba(239,68,68,0.35);
+        border-radius: 9999px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+        animation: badgePop 1.2s ease forwards;
+      }
+      .rookie-badge .dot { width: 6px; height: 6px; border-radius: 9999px; background: #ef4444; box-shadow: 0 0 10px rgba(239,68,68,0.8); }
+      .rookie-badge:nth-child(2) { animation-delay: .12s; }
+      .rookie-badge:nth-child(3) { animation-delay: .24s; }
+      @keyframes badgePop { 0% { transform: translateY(6px) scale(.96); opacity: 0; } 60% { transform: translateY(0) scale(1.03); opacity: 1; } 100% { transform: translateY(0) scale(1); } }
+
+      /* Scope default stat-card hover on Jonny to red tint */
+      .jonny-page .stat-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 0 30px rgba(239, 68, 68, 0.2), 0 0 12px rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.4);
+      }
     </style>
-</head>
-<body class="jonny-page">
+  <script src="assets/js/guest-gate.js"></script>
+  </head>
+  <body class="jonny-page">
+    <!-- Clean Modern Header -->
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
-        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
-                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
-            </a>
-            <div class="hidden md:flex items-center space-x-6 font-bold">
-                <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
-                        The Drivers <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
-                        <a href="driver.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jon Kirsch</a>
-                        <a href="jonny.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jonny Kirsch #88</a>
-                    </div>
-                </div>
-                <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Schedule</a>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
-                        Media <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
-                        <a href="gallery.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gallery</a>
-                        <a href="videos.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Videos</a>
-                    </div>
-                </div>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
-                        Community <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
-                        <a href="qna.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Q&A</a>
-                        <a href="feedback.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Feedback</a>
-                    </div>
-                </div>
-                <a href="sponsorship.html" class="hover:text-neon-yellow transition duration-300">Sponsorship</a>
-                <div class="relative dropdown">
-                    <button class="dropdown-toggle bg-neon-yellow text-slate-900 py-2 px-5 rounded-md hover:bg-yellow-300 transition duration-300 flex items-center font-bold">
-                        Login <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50 right-0">
-                        <a href="login.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Team Member Login</a>
-                        <a href="follower-login.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Follower Login</a>
-                    </div>
-                </div>
-            </div>
-            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+        <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+          <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+        </a>
+        
+        <!-- Navigation Links -->
+        <div class="hidden md:flex items-center space-x-6 font-bold">
+          <a href="index.html" class="nav-link">🏠 Home</a>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏎️ Drivers <i class="fas fa-chevron-down"></i>
             </button>
-        </nav>
-        <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
-             <a href="index.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Home</a>
-             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">The Drivers</button>
-             <div class="mobile-accordion-content hidden pl-4">
-                 <a href="driver.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Jon Kirsch</a>
-                 <a href="jonny.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Jonny Kirsch #88</a>
-             </div>
-             <a href="schedule.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
-             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Media</button>
-             <div class="mobile-accordion-content hidden pl-4">
-                 <a href="gallery.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Gallery</a>
-                 <a href="videos.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Videos</a>
-             </div>
-             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Community</button>
-             <div class="mobile-accordion-content hidden pl-4">
-                 <a href="qna.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Q&A</a>
-                 <a href="feedback.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Feedback</a>
-             </div>
-             <a href="sponsorship.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Sponsorship</a>
-             <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Login</button>
-             <div class="mobile-accordion-content hidden pl-4">
-                 <a href="login.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Team Member Login</a>
-                 <a href="follower-login.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Follower Login</a>
-             </div>
+            <div class="dropdown-menu modern-dropdown">
+<a href="jons.html" class="dropdown-item">Jon Kirsch #8</a>
+              <a href="jonny.html" class="dropdown-item">Jonny Kirsch #88</a>
+              <a href="legends.html" class="dropdown-item">Team Legends</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏁 Racing <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="schedule.html" class="dropdown-item">Schedule</a>
+              <a href="leaderboard.html" class="dropdown-item">Leaderboard</a>
+              <a href="gallery.html" class="dropdown-item">📸 Gallery</a>
+              <a href="videos.html" class="dropdown-item">🎥 Videos</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              👥 Community <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="qna.html" class="dropdown-item">❓ Q&A</a>
+              <a href="feedback.html" class="dropdown-item">💬 Feedback</a>
+              <a href="sponsorship.html" class="dropdown-item">💰 Sponsorship</a>
+            </div>
+          </div>
+          
+          <!-- User Profile / Login -->
+          <div id="auth-section">
+            <!-- Login Button (shown when not authenticated) -->
+            <!-- User Profile Dropdown (shown when authenticated) -->
+            <div id="user-profile" class="relative dropdown hidden">
+              <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
+                <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <i class="fas fa-user text-white text-xs"></i>
+                </div>
+                <div class="text-left hidden md:block">
+                  <div class="text-sm font-semibold text-white" id="user-name">Driver</div>
+                  <div class="text-xs text-slate-400">Team Member</div>
+                </div>
+                <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+              </button>
+              
+              <div class="dropdown-menu modern-dropdown right-0 w-44">
+                <div class="px-4 py-2 border-b border-slate-600/50">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-green-400 text-sm">Online</span>
+                  </div>
+                </div>
+                
+                <a href="admin-console.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
+                  <span>Dashboard</span>
+                </a>
+                
+                <a href="profile.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-user w-4 mr-3 text-green-400"></i>
+                  <span>My Profile</span>
+                </a>
+                
+                <div class="border-t border-slate-600/50 my-1"></div>
+                
+                <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                  <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+        
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+      </nav>
+      
+      <!-- Mobile Menu -->
+      <div id="mobile-menu" class="mobile-menu modern-mobile hidden">
+        <a href="index.html" class="mobile-nav-item">🏠 Home</a>
+        <button class="mobile-accordion">
+          <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+<a href="jons.html" class="mobile-nav-subitem">Jon Kirsch #8</a>
+          <a href="jonny.html" class="mobile-nav-subitem">Jonny Kirsch #88</a>
+          <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
+        </div>
+        <button class="mobile-accordion">
+          <span>🏁 Racing</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="schedule.html" class="mobile-nav-subitem">Schedule</a>
+          <a href="leaderboard.html" class="mobile-nav-subitem">Leaderboard</a>
+          <a href="gallery.html" class="mobile-nav-subitem">📸 Gallery</a>
+          <a href="videos.html" class="mobile-nav-subitem">🎥 Videos</a>
+        </div>
+        <button class="mobile-accordion">
+          <span>👥 Community</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="qna.html" class="mobile-nav-subitem">❓ Q&A</a>
+          <a href="feedback.html" class="mobile-nav-subitem">💬 Feedback</a>
+          <a href="sponsorship.html" class="mobile-nav-subitem">💰 Sponsorship</a>
+        </div>
+        <div class="border-t border-slate-600 mt-4 pt-4">
+          <!-- Mobile Auth Section -->
+          <div id="mobile-auth-section">
+            <!-- Mobile Login Button (shown when not authenticated) -->
+            
+            
+            <!-- Mobile User Profile (shown when authenticated) -->
+            <div id="mobile-user-profile" class="hidden">
+              <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
+                <div class="flex items-center space-x-3 mb-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white"></i>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold" id="mobile-user-name">Driver</div>
+                    <div class="text-slate-400 text-sm">Team Member</div>
+                    <div class="flex items-center space-x-1 mt-1">
+                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span class="text-green-400 text-xs">Online</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="space-y-1">
+                  <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
+                    <span>Dashboard</span>
+                  </a>
+                  <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-user w-5 mr-3 text-green-400"></i>
+                    <span>My Profile</span>
+                  </a>
+                  <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                    <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </header>
 
     <main class="pt-20">
-        <section id="team-hero" class="py-20 md:py-32 text-center section-glow">
-            <div class="container mx-auto px-6">
-                <h1 class="text-6xl md:text-8xl font-racing uppercase text-gradient-red text-shadow-strong tracking-wider">
-                    Jonny Kirsch #88
-                </h1>
-                <p class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest">The Next Generation of Speed</p>
-            </div>
-        </section>
-
-        <section id="jonny-bio" class="py-16 md:py-24 bg-black/20">
-            <div class="container mx-auto px-6">
-                <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 items-center gap-12 lg:gap-16">
-                    <div class="lg:col-span-1 reveal-left">
-                        <img src="https://placehold.co/600x800/1e293b/ff3333?text=Jonny+Kirsch" alt="Jonny Kirsch" class="rounded-lg shadow-2xl w-full">
-                    </div>
-                    <div class="lg:col-span-2 text-lg space-y-6 reveal-right">
-                        <div>
-                            <h2 class="font-racing text-6xl uppercase">The Rookie <span class="neon-red">Sensation</span></h2>
-                            <p class="text-slate-300 mt-4">For nine-year-old Jonny, speed has always been a way of life. His journey began not on asphalt, but on dirt trails, mastering 4-wheelers and developing a natural feel for handling a machine at speed. This raw passion was later refined over 1.5 years of disciplined competition in K1 racing, where he learned sophisticated racecraft, precise control, and the art of the overtake. The first time he went to a race track was at 3 years old at Sycamore Speedway in 2018.</p>
-                            <p class="text-slate-400 mt-2">Now, Jonny is ready to trade his kart for a stock car and step onto the big stage of the American Super Cups. He won't be doing it alone. This next chapter is a shared dream with his father, built on countless hours in the garage and a mutual love for the sport. When Jonny climbs behind the wheel of the iconic #88, he’s not just a driver; he’s the future of a family legacy.</p>
-                            <p class="text-slate-400 mt-2">Off the track, Jonny's competitive spirit shines on the baseball diamond. The intense focus of the batter's box and the quick reflexes of an infielder translate directly to the split-second decisions required on the track. He is a true athlete, dedicated to excelling in everything he does. Jonny's story is one of passion, dedication, and family. The engine is warm, the green flag is about to drop, and a new rookie sensation is ready to make his mark.</p>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 text-center">
-                            <div class="stat-card p-4 rounded-lg border-l-4 border-neon-red">
-                                <div class="text-4xl font-bold">9</div>
-                                <div class="text-sm font-racing uppercase text-white tracking-wider">Years Old</div>
-                            </div>
-                             <div class="stat-card p-4 rounded-lg border-l-4 border-neon-red">
-                                <div class="text-4xl font-bold">#88</div>
-                                <div class="text-sm font-racing uppercase text-white tracking-wider">Car Number</div>
-                            </div>
-                             <div class="stat-card p-4 rounded-lg border-l-4 border-neon-red">
-                                <div class="text-4xl font-bold">4th</div>
-                                <div class="text-sm font-racing uppercase text-white tracking-wider">Grade</div>
-                            </div>
-                             <div class="stat-card p-4 rounded-lg border-l-4 border-neon-red">
-                                <div class="text-4xl font-bold">2026</div>
-                                <div class="text-sm font-racing uppercase text-white tracking-wider">Rookie Year</div>
-                            </div>
-                        </div>
-                    </div>
+      <section id="team-hero" class="py-20 md:py-32 relative overflow-hidden">
+        <!-- Rookie Spotlight: red diagonal stripes background -->
+        <div class="absolute inset-0 -z-10" style="background: repeating-linear-gradient(135deg, rgba(239,68,68,0.12) 0, rgba(239,68,68,0.12) 16px, rgba(239,68,68,0.04) 16px, rgba(239,68,68,0.04) 32px), radial-gradient(1200px 600px at 10% 10%, rgba(239,68,68,0.25), transparent 60%), radial-gradient(800px 400px at 90% 80%, rgba(255,255,255,0.08), transparent 60%);"></div>
+        <div class="container mx-auto px-6">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+            <!-- Rookie Card -->
+            <div class="order-2 lg:order-1">
+              <div class="bg-black/40 border border-red-400/30 rounded-2xl p-6 backdrop-blur-md shadow-2xl">
+                <div class="flex items-center gap-4">
+                  <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-3xl font-black text-white">88</div>
+                  <div>
+                    <div class="font-racing text-3xl text-white">Jonny Kirsch</div>
+                    <div class="text-slate-300 uppercase tracking-wider text-xs">Rookie • American Super Cups</div>
+                  </div>
                 </div>
-            </div>
-        </section>
-
-        <section id="jonny-timeline" class="py-16 md:py-24">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Road to <span class="neon-red">Racing</span></h2>
-                <div class="max-w-2xl mx-auto">
-                    <div class="timeline-item">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content p-4 rounded-lg stat-card">
-                            <h3 class="font-racing text-2xl text-white">First Racetrack Visit</h3>
-                            <time class="text-sm text-slate-400 mb-2 block">2018</time>
-                            <p>The first time he went to a race track was at 3 years old at Sycamore Speedway in 2018.</p>
-                            <div class="mt-4">
-                                <blockquote class="imgur-embed-pub" lang="en" data-id="a/2AKSeCa" data-context="false"><a href="//imgur.com/a/2AKSeCa"></a></blockquote>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content p-4 rounded-lg stat-card">
-                            <h3 class="font-racing text-2xl text-white">The First Spark</h3>
-                            <time class="text-sm text-slate-400 mb-2 block">2021-2023</time>
-                            <p>Long before any official race, Jonny discovered his love for engines and dirt. These years were spent exploring trails and learning the fundamentals of control and balance on his 4-wheeler, building the foundation for a future in motorsports.</p>
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content p-4 rounded-lg stat-card">
-                            <h3 class="font-racing text-2xl text-white">Getting Serious</h3>
-                            <time class="text-sm text-slate-400 mb-2 block">Early 2024</time>
-                            <p>The passion for fun transforms into a focused pursuit. Jonny enters the world of competitive K1 racing, quickly adapting to the demands of wheel-to-wheel competition and learning the core skills of braking, cornering, and race strategy.</p>
-                        </div>
-                    </div>
-                    <div class="timeline-item active">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content p-4 rounded-lg stat-card">
-                            <h3 class="font-racing text-2xl text-white">The Dream Begins</h3>
-                            <time class="text-sm text-slate-400 mb-2 block">2025</time>
-                            <p>The big decision is made. After a successful and educational season and a half in karts, Jonny and his dad commit to the next challenge. The #88 number is chosen, the car is acquired, and the father-son team begins intensive preparations for their rookie season. The rest of this year is dedicated to practice, gaining valuable seat time, and perfecting the car's setup.</p>
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content p-4 rounded-lg stat-card">
-                            <h3 class="font-racing text-2xl text-white">First Green Flag</h3>
-                            <time class="text-sm text-slate-400 mb-2 block">2026</time>
-                            <p>The culmination of years of hard work and preparation. Jonny is scheduled to take his first green flag in the American Super Cups, officially launching his stock car racing career. The #88 will hit the track, ready to turn dreams into reality.</p>
-                        </div>
-                    </div>
+                <div class="mt-4 grid grid-cols-3 gap-3 text-center">
+                  <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
+                    <div class="text-2xl font-bold text-white">#88</div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Number</div>
+                  </div>
+                  <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
+                    <div class="text-2xl font-bold text-white">2026</div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Rookie Year</div>
+                  </div>
+                  <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
+                    <div class="text-2xl font-bold text-white">K1</div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Karting</div>
+                  </div>
                 </div>
+              </div>
             </div>
-        </section>
 
-        <section id="jonny-gallery" class="py-16 md:py-24 bg-black/20">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Jonny's <span class="neon-red">Gallery</span></h2>
-
-                <!-- Upload Form -->
-                <div id="upload-container" class="max-w-xl mx-auto bg-slate-800/50 p-6 rounded-lg mb-12" style="display: none;">
-                    <h3 class="font-racing text-2xl text-white uppercase mb-4">Share Your <span class="neon-red">Photos of Jonny</span></h3>
-                    <div class="flex items-center space-x-4">
-                        <input type="file" id="photo-upload-input" accept="image/jpeg, image/png" class="block w-full text-sm text-slate-400
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-full file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-neon-red file:text-slate-900
-                            hover:file:bg-red-400">
-                        <button id="upload-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition disabled:opacity-50" disabled>Upload</button>
-                    </div>
-                    <div class="mt-4">
-                        <div class="w-full bg-slate-700 rounded-full h-2.5">
-                            <div id="upload-progress-bar" class="bg-neon-red h-2.5 rounded-full" style="width: 0%"></div>
-                        </div>
-                        <p id="upload-status" class="text-sm text-slate-400 mt-2 h-4"></p>
-                    </div>
-                </div>
-
-                <div id="dynamic-gallery-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <!-- Photos will be dynamically inserted here -->
-                </div>
-                <p class="text-center mt-8 text-slate-400">This gallery will feature photos from Jonny's races and events.</p>
+            <!-- Title + Tagline -->
+            <div class="text-center lg:text-left order-1 lg:order-2">
+              <h1 class="text-5xl md:text-7xl lg:text-8xl font-racing uppercase text-white tracking-wider">
+                Rookie <span class="neon-red">Spotlight</span>
+              </h1>
+              <p class="mt-4 text-lg md:text-xl font-bold text-slate-300 tracking-widest">
+                The Next Generation of Speed
+              </p>
+              <div class="rookie-badges">
+                <span class="rookie-badge"><span class="dot"></span> Rookie</span>
+                <span class="rookie-badge"><span class="dot"></span> K1 Trained</span>
+                <span class="rookie-badge"><span class="dot"></span> Super Cups</span>
+              </div>
+              <div class="mt-6 inline-flex items-center bg-red-500/15 border border-red-400/40 px-4 py-2 rounded-full text-red-300 text-xs uppercase tracking-wider">
+                <i class="fas fa-bolt mr-2"></i> Reaction • Precision • Grit
+              </div>
             </div>
-        </section>
 
-        <section id="jonny-videos" class="py-16 md:py-24">
-            <div class="container mx-auto px-6">
-                <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Jonny's <span class="neon-red">Videos</span></h2>
-                <div id="dynamic-video-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Videos will be dynamically inserted here -->
+            <!-- Speed Dial -->
+            <div class="order-3 flex justify-center lg:justify-end">
+              <div class="relative w-48 h-48 rounded-full bg-slate-900/60 border-2 border-red-400/30 shadow-2xl flex items-center justify-center">
+                <svg viewBox="0 0 100 100" class="w-40 h-40">
+                  <defs>
+                    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#ef4444"/>
+                      <stop offset="100%" stop-color="#fca5a5"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M10,70 A40,40 0 1,1 90,70" fill="none" stroke="url(#g)" stroke-width="6" stroke-linecap="round"/>
+                  <circle cx="50" cy="70" r="3" fill="#fff"/>
+                  <line id="needle" x1="50" y1="70" x2="86" y2="70" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <div class="absolute -bottom-3 text-center">
+                  <div class="text-xs text-slate-400 uppercase tracking-wider">Speed Focus</div>
                 </div>
+                <script>
+                  (function(){
+                    try{
+                      var el = document.getElementById('needle') || (document.currentScript && document.currentScript.previousElementSibling.querySelector('#needle'));
+                      var a=0; setInterval(function(){ a=(a+12)%180; if(el){ var rad=(a-90)*Math.PI/180; var x=50+36*Math.cos(rad); var y=70+36*Math.sin(rad); el.setAttribute('x2', x); el.setAttribute('y2', y);} }, 500);
+                    }catch(e){}
+                  })();
+                </script>
+              </div>
             </div>
-        </section>
+          </div>
+        </div>
+      </section>
+
+      <section id="jonny-bio" class="py-16 md:py-24 bg-black/20">
+        <div class="container mx-auto px-6">
+          <div
+            class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 items-center gap-12 lg:gap-16"
+          >
+            <div class="lg:col-span-1 reveal-left">
+              <img
+                src="https://placehold.co/600x800/1e293b/ff3333?text=Jonny+Kirsch"
+                alt="Jonny Kirsch"
+                class="rounded-lg shadow-2xl w-full"
+              />
+            </div>
+            <div class="lg:col-span-2 text-lg space-y-6 reveal-right">
+              <div>
+                <h2 class="font-racing text-6xl uppercase">
+                  The Rookie <span class="neon-red">Sensation</span>
+                </h2>
+                <p class="text-slate-300 mt-4">
+                  For nine-year-old Jonny, speed has always been a way of life.
+                  His journey began not on asphalt, but on dirt trails,
+                  mastering 4-wheelers and developing a natural feel for
+                  handling a machine at speed. This raw passion was later
+                  refined over 1.5 years of disciplined competition in K1
+                  racing, where he learned sophisticated racecraft, precise
+                  control, and the art of the overtake. The first time he went
+                  to a race track was at 3 years old at Sycamore Speedway in
+                  2018.
+                </p>
+                <p class="text-slate-400 mt-2">
+                  Now, Jonny is ready to trade his kart for a stock car and step
+                  onto the big stage of the American Super Cups. He won't be
+                  doing it alone. This next chapter is a shared dream with his
+                  father, built on countless hours in the garage and a mutual
+                  love for the sport. When Jonny climbs behind the wheel of the
+                  iconic #88, he’s not just a driver; he’s the future of a
+                  family legacy.
+                </p>
+                <p class="text-slate-400 mt-2">
+                  Off the track, Jonny's competitive spirit shines on the
+                  baseball diamond. The intense focus of the batter's box and
+                  the quick reflexes of an infielder translate directly to the
+                  split-second decisions required on the track. He is a true
+                  athlete, dedicated to excelling in everything he does. Jonny's
+                  story is one of passion, dedication, and family. The engine is
+                  warm, the green flag is about to drop, and a new rookie
+                  sensation is ready to make his mark.
+                </p>
+              </div>
+              <div class="grid grid-cols-2 gap-4 text-center">
+                <div
+                  class="stat-card p-4 rounded-lg border-l-4 border-neon-red"
+                >
+                  <div class="text-4xl font-bold">9</div>
+                  <div
+                    class="text-sm font-racing uppercase text-white tracking-wider"
+                  >
+                    Years Old
+                  </div>
+                </div>
+                <div
+                  class="stat-card p-4 rounded-lg border-l-4 border-neon-red"
+                >
+                  <div class="text-4xl font-bold">#88</div>
+                  <div
+                    class="text-sm font-racing uppercase text-white tracking-wider"
+                  >
+                    Car Number
+                  </div>
+                </div>
+                <div
+                  class="stat-card p-4 rounded-lg border-l-4 border-neon-red"
+                >
+                  <div class="text-4xl font-bold">4th</div>
+                  <div
+                    class="text-sm font-racing uppercase text-white tracking-wider"
+                  >
+                    Grade
+                  </div>
+                </div>
+                <div
+                  class="stat-card p-4 rounded-lg border-l-4 border-neon-red"
+                >
+                  <div class="text-4xl font-bold">2026</div>
+                  <div
+                    class="text-sm font-racing uppercase text-white tracking-wider"
+                  >
+                    Rookie Year
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="jonny-timeline" class="py-16 md:py-24">
+        <div class="container mx-auto px-6">
+          <h2
+            class="font-racing text-5xl uppercase mb-12 text-center reveal-fade"
+          >
+            Road to <span class="neon-red">Racing</span>
+          </h2>
+          <div class="max-w-2xl mx-auto">
+            <div class="timeline-item">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
+                <h3 class="font-racing text-2xl text-white">
+                  First Racetrack Visit
+                </h3>
+                <time class="text-sm text-slate-400 mb-2 block">2018</time>
+                <p>
+                  The first time he went to a race track was at 3 years old at
+                  Sycamore Speedway in 2018.
+                </p>
+                <div class="mt-4">
+                  <blockquote
+                    class="imgur-embed-pub"
+                    lang="en"
+                    data-id="a/2AKSeCa"
+                    data-context="false"
+                  >
+                    <a href="//imgur.com/a/2AKSeCa"></a>
+                  </blockquote>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
+                <h3 class="font-racing text-2xl text-white">The First Spark</h3>
+                <time class="text-sm text-slate-400 mb-2 block">2021-2023</time>
+                <p>
+                  Long before any official race, Jonny discovered his love for
+                  engines and dirt. These years were spent exploring trails and
+                  learning the fundamentals of control and balance on his
+                  4-wheeler, building the foundation for a future in
+                  motorsports.
+                </p>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
+                <h3 class="font-racing text-2xl text-white">Getting Serious</h3>
+                <time class="text-sm text-slate-400 mb-2 block"
+                  >Early 2024</time
+                >
+                <p>
+                  The passion for fun transforms into a focused pursuit. Jonny
+                  enters the world of competitive K1 racing, quickly adapting to
+                  the demands of wheel-to-wheel competition and learning the
+                  core skills of braking, cornering, and race strategy.
+                </p>
+              </div>
+            </div>
+            <div class="timeline-item active">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
+                <h3 class="font-racing text-2xl text-white">
+                  The Dream Begins
+                </h3>
+                <time class="text-sm text-slate-400 mb-2 block">2025</time>
+                <p>
+                  The big decision is made. After a successful and educational
+                  season and a half in karts, Jonny and his dad commit to the
+                  next challenge. The #88 number is chosen, the car is acquired,
+                  and the father-son team begins intensive preparations for
+                  their rookie season. The rest of this year is dedicated to
+                  practice, gaining valuable seat time, and perfecting the car's
+                  setup.
+                </p>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
+                <h3 class="font-racing text-2xl text-white">
+                  First Green Flag
+                </h3>
+                <time class="text-sm text-slate-400 mb-2 block">2026</time>
+                <p>
+                  The culmination of years of hard work and preparation. Jonny
+                  is scheduled to take his first green flag in the American
+                  Super Cups, officially launching his stock car racing career.
+                  The #88 will hit the track, ready to turn dreams into reality.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="racer-schedule" class="py-16 md:py-24 bg-black/20"></section>
+
+      <!-- K1 Speed Addison Stats (Jonny) -->
+      <section class="py-16 md:py-24 bg-black/10">
+        <div class="container mx-auto px-6">
+          <h2 class="font-racing text-5xl uppercase mb-6 text-center">K1 Speed <span class="neon-yellow">Addison</span> Stats</h2>
+          <div id="k1-addison-stats-jonny" class="card rounded-lg p-6">
+            <div class="skeleton h-6 w-56 rounded mb-3"></div>
+            <div class="skeleton h-4 w-full rounded"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="jonny-gallery" class="py-16 md:py-24 bg-black/20">
+        <div class="container mx-auto px-6">
+          <h2
+            class="font-racing text-5xl uppercase mb-12 text-center reveal-fade"
+          >
+            Jonny's <span class="neon-red">Gallery</span>
+          </h2>
+
+          <!-- Upload Form -->
+          <div
+            id="upload-container"
+            class="max-w-xl mx-auto bg-slate-800/50 p-6 rounded-lg mb-12"
+            style="display: none"
+          >
+            <h3 class="font-racing text-2xl text-white uppercase mb-4">
+              Share Your <span class="neon-red">Photos of Jonny</span>
+            </h3>
+            <div class="flex items-center space-x-4">
+              <input
+                type="file"
+                id="photo-upload-input"
+                accept="image/jpeg, image/png"
+                class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-neon-red file:text-slate-900 hover:file:bg-red-400"
+              />
+              <button
+                id="upload-btn"
+                class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition disabled:opacity-50"
+                disabled
+              >
+                Upload
+              </button>
+            </div>
+            <div class="mt-4">
+              <div class="w-full bg-slate-700 rounded-full h-2.5">
+                <div
+                  id="upload-progress-bar"
+                  class="bg-neon-red h-2.5 rounded-full"
+                  style="width: 0%"
+                ></div>
+              </div>
+              <p id="upload-status" class="text-sm text-slate-400 mt-2 h-4"></p>
+            </div>
+          </div>
+
+          <div
+            id="dynamic-gallery-container"
+            class="gallery-3d grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+          >
+            <!-- Photos will be dynamically inserted here -->
+          </div>
+          <p class="text-center mt-8 text-slate-400">
+            This gallery will feature photos from Jonny's races and events.
+          </p>
+        </div>
+      </section>
+
+      <section id="jonny-videos" class="py-16 md:py-24">
+        <div class="container mx-auto px-6">
+          <h2
+            class="font-racing text-5xl uppercase mb-12 text-center reveal-fade"
+          >
+            Jonny's <span class="neon-red">Videos</span>
+          </h2>
+          <div
+            id="dynamic-video-container"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            <!-- Videos will be dynamically inserted here -->
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer class="bg-black/50 border-t border-slate-800 py-16">
-        <div class="container mx-auto px-6 text-center">
-             <div class="flex justify-center space-x-6 mb-8">
-                <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="text-slate-400 hover:text-neon-red transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" /></svg></a>
-                <a href="https://www.tiktok.com/@redsracing" target="_blank" class="text-slate-400 hover:text-neon-red transition transform hover:scale-110"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"/></svg></a>
-            </div>
-            <p class="mt-8 text-slate-500 text-sm">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
+      <div class="container mx-auto px-6 text-center">
+        <div class="flex justify-center space-x-6 mb-8">
+          <a
+            href="https://www.facebook.com/share/1F1RTxz9xa/"
+            target="_blank"
+            class="text-slate-400 hover:text-neon-red transition transform hover:scale-110"
+            ><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                fill-rule="evenodd"
+                d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
+                clip-rule="evenodd"
+              /></svg
+          ></a>
+          <a
+            href="https://www.tiktok.com/@redsracing"
+            target="_blank"
+            class="text-slate-400 hover:text-neon-red transition transform hover:scale-110"
+            ><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"
+              /></svg
+          ></a>
         </div>
+        <p class="mt-8 text-slate-500 text-sm">
+          © <span id="year"></span> RedsRacing #8. All Rights Reserved.
+        </p>
+      </div>
     </footer>
 
-<script type="module" src="navigation.js"></script>
-<script type="module" src="main.js"></script>
-<script type="module" src="jonny.js"></script>
+    <script type="module" src="navigation.js"></script>
+    <script type="module" src="main.js"></script>
+    <script type="module" src="assets/js/racer-schedule.js"></script>
+    <script type="module" src="assets/js/jonny.js?v=20250929-1"></script>
+    <script type="module" src="assets/js/k1-stats-jonny.js?v=20250929-1"></script>
+    <script type="module" src="modern-effects.js"></script>
     <script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
-</body>
+  </body>
 </html>

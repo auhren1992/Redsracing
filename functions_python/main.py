@@ -1,4 +1,3 @@
-import firebase_admin
 from firebase_admin import firestore, initialize_app, auth
 from firebase_functions import https_fn, options
 import sendgrid
@@ -7,12 +6,31 @@ import os
 import json
 from datetime import datetime
 
+# Sentry error monitoring
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+
 # Initialize Firebase Admin SDK.
 initialize_app()
 
-# Set the SendGrid API key from environment variables/secrets.
-# This is crucial for security. The secret name is 'SENDGRID_API_KEY'.
-options.set_global_options(secrets=["SENDGRID_API_KEY", "RECAPTCHA_SITE_KEY"])
+# Configure secrets for email functionality
+# Keep SENTRY_DSN optional to avoid deployment failure when the secret is not present
+options.set_global_options(secrets=["SENDGRID_API_KEY", "RECAPTCHA_SITE_KEY", "SENTRY_DSN"])
+
+# Initialize Sentry (non-blocking if DSN not provided)
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
+SENTRY_ENV = os.environ.get("SENTRY_ENV", "production")
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=SENTRY_ENV,
+        integrations=[FlaskIntegration()],
+        traces_sample_rate=1.0,  # Capture 100% of transactions for performance monitoring
+        send_default_pii=True,  # Include request headers, IP addresses, and user info
+        include_source_context=True,  # Include source code context in error reports
+        include_local_variables=True,  # Include local variables in stack traces
+        max_request_body_size="medium",  # Send request bodies up to medium size
+    )
 
 # Configure secrets for email functionality
 # The SENDGRID_API_KEY secret should be configured in Google Cloud Secret Manager
@@ -22,15 +40,19 @@ options.set_global_options(secrets=["SENDGRID_API_KEY", "RECAPTCHA_SITE_KEY"])
 # Initialize SendGrid client lazily to avoid import failures if API key is missing
 sg = None
 
+
 def get_sendgrid_client():
     """Get or initialize the SendGrid client."""
     global sg
     if sg is None:
         api_key = os.environ.get("SENDGRID_API_KEY")
         if not api_key or api_key.strip() == "":
-            raise ValueError("SENDGRID_API_KEY is not configured or is empty. Please configure the secret in Google Cloud Secret Manager.")
+            raise ValueError(
+                "SENDGRID_API_KEY is not configured or is empty. Please configure the secret in Google Cloud Secret Manager."
+            )
         sg = sendgrid.SendGridAPIClient(api_key=api_key)
     return sg
+
 
 def get_client_ip(req):
     """Extract client IP address from request headers."""
@@ -38,14 +60,15 @@ def get_client_ip(req):
     forwarded_for = req.headers.get("X-Forwarded-For")
     if forwarded_for:
         return forwarded_for.split(",")[0].strip()
-    
+
     # Fallback to other headers
     real_ip = req.headers.get("X-Real-IP")
     if real_ip:
         return real_ip
-    
+
     # Last resort - direct connection IP (may be load balancer IP)
     return req.environ.get("REMOTE_ADDR", "unknown")
+
 
 def get_user_agent(req):
     """Extract user agent from request headers."""
@@ -53,7 +76,10 @@ def get_user_agent(req):
 
 
 # Define a default CORS policy to allow requests from any origin.
-CORS_OPTIONS = options.CorsOptions(cors_origins="*", cors_methods=["get", "post", "put", "options"])
+CORS_OPTIONS = options.CorsOptions(
+    cors_origins="*", cors_methods=["get", "post", "put", "options"]
+)
+
 
 def ts_to_dict(value):
     """Helper function to convert datetime objects to Firestore-like timestamp format."""
@@ -61,9 +87,12 @@ def ts_to_dict(value):
         # Convert to {seconds: int, nanoseconds: int} format
         timestamp = value.timestamp()
         seconds = int(timestamp)
-        nanoseconds = int((timestamp - seconds) * 1_000_000) * 1000  # Convert microseconds to nanoseconds
+        nanoseconds = (
+            int((timestamp - seconds) * 1_000_000) * 1000
+        )  # Convert microseconds to nanoseconds
         return {"seconds": seconds, "nanoseconds": nanoseconds}
     return value
+
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleAddSubscriber(req: https_fn.Request) -> https_fn.Response:
@@ -80,22 +109,44 @@ def handleAddSubscriber(req: https_fn.Request) -> https_fn.Response:
     email = data["email"]
     try:
         db = firestore.client()
-        db.collection("subscribers").add({"email": email, "timestamp": firestore.SERVER_TIMESTAMP})
+        db.collection("subscribers").add(
+            {"email": email, "timestamp": firestore.SERVER_TIMESTAMP}
+        )
         return https_fn.Response("Subscription successful!", status=200)
     except Exception as e:
+        try:
+            sentry_sdk.capture_exception(e)
+        except Exception:
+            pass
         return https_fn.Response(f"An error occurred: {e}", status=500)
+
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleTest(req: https_fn.Request) -> https_fn.Response:
     """A simple test function to verify rewrite functionality."""
     print("handleTest function was invoked.")
+    
+    # Test Sentry error reporting if test_error parameter is passed
+    if req.args.get('test_error') == 'true':
+        try:
+            # Force an error for Sentry testing
+            result = 1 / 0  # This will cause a ZeroDivisionError
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            return https_fn.Response(
+                json.dumps({"status": "error", "message": "Test error sent to Sentry!"}),
+                status=500,
+                headers={"Content-Type": "application/json"},
+            )
+    
     return https_fn.Response(
         json.dumps({"status": "success", "message": "Hello from the test function!"}),
         status=200,
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "application/json"},
     )
 
-@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY"])
+
+@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY", "SENTRY_DSN"])
 def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
     """Sends feedback from a user as an email via SendGrid."""
     if req.method == "OPTIONS":
@@ -112,34 +163,49 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
     message_content = data.get("message")
 
     if not all([name, email, message_content]):
-        return https_fn.Response("Missing required fields: name, email, message", status=400)
+        return https_fn.Response(
+            "Missing required fields: name, email, message", status=400
+        )
 
     try:
         email_subject = f"New Feedback from {name}"
         email_body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message_content}"
 
         message = Mail(
-            from_email='feedback@redsracing.org',  # Must be a verified sender in SendGrid
-            to_emails='aaron@redsracing.org',
+            from_email="feedback@redsracing.org",  # Must be a verified sender in SendGrid
+            to_emails="aaron@redsracing.org",
             subject=email_subject,
-            plain_text_content=email_body
+            plain_text_content=email_body,
         )
-        
+
         sg_client = get_sendgrid_client()
         response = sg_client.send(message)
 
         if response.status_code >= 200 and response.status_code < 300:
             return https_fn.Response("Feedback sent successfully!", status=200)
         else:
-            return https_fn.Response(f"Error sending email: {response.body}", status=response.status_code)
+            return https_fn.Response(
+                f"Error sending email: {response.body}", status=response.status_code
+            )
 
     except ValueError as ve:
         # Handle specifically the case where SendGrid API key is not configured
+        try:
+            sentry_sdk.capture_exception(ve)
+        except Exception:
+            pass
         return https_fn.Response(f"Email service not configured: {ve}", status=503)
     except Exception as e:
-        return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
+        try:
+            sentry_sdk.capture_exception(e)
+        except Exception:
+            pass
+        return https_fn.Response(
+            f"An error occurred while sending email: {e}", status=500
+        )
 
-@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY"])
+
+@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY", "SENTRY_DSN"])
 def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
     """Sends a sponsorship inquiry as an email via SendGrid."""
     if req.method == "OPTIONS":
@@ -158,7 +224,9 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
     message_content = data.get("message")
 
     if not all([name, email, message_content]):
-        return https_fn.Response("Missing required fields: name, email, message", status=400)
+        return https_fn.Response(
+            "Missing required fields: name, email, message", status=400
+        )
 
     try:
         email_subject = f"New Sponsorship Inquiry from {name}"
@@ -171,36 +239,54 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
         )
 
         message = Mail(
-            from_email='sponsorship@redsracing.org', # Must be a verified sender in SendGrid
-            to_emails='aaron@redsracing.org',
+            from_email="sponsorship@redsracing.org",  # Must be a verified sender in SendGrid
+            to_emails="aaron@redsracing.org",
             subject=email_subject,
-            plain_text_content=email_body
+            plain_text_content=email_body,
         )
-        
+
         sg_client = get_sendgrid_client()
         response = sg_client.send(message)
 
         if response.status_code >= 200 and response.status_code < 300:
-            return https_fn.Response("Sponsorship inquiry sent successfully!", status=200)
+            return https_fn.Response(
+                "Sponsorship inquiry sent successfully!", status=200
+            )
         else:
-            return https_fn.Response(f"Error sending email: {response.body}", status=response.status_code)
+            return https_fn.Response(
+                f"Error sending email: {response.body}", status=response.status_code
+            )
 
     except ValueError as ve:
         # Handle specifically the case where SendGrid API key is not configured
+        try:
+            sentry_sdk.capture_exception(ve)
+        except Exception:
+            pass
         return https_fn.Response(f"Email service not configured: {ve}", status=503)
     except Exception as e:
-        return https_fn.Response(f"An error occurred while sending email: {e}", status=500)
+        try:
+            sentry_sdk.capture_exception(e)
+        except Exception:
+            pass
+        return https_fn.Response(
+            f"An error occurred while sending email: {e}", status=500
+        )
+
 
 # ============================================================================
 # USER PROFILE AND ACHIEVEMENTS SYSTEM
 # ============================================================================
 
+
 def _get_user_from_token(req):
     """Helper function to extract and verify Firebase Auth token."""
     auth_header = req.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
-        return None, https_fn.Response("Missing or invalid Authorization header", status=401)
-    
+        return None, https_fn.Response(
+            "Missing or invalid Authorization header", status=401
+        )
+
     token = auth_header.split("Bearer ")[1]
     try:
         decoded_token = auth.verify_id_token(token)
@@ -208,10 +294,12 @@ def _get_user_from_token(req):
     except Exception as e:
         return None, https_fn.Response(f"Invalid token: {e}", status=401)
 
+
 def _is_admin(decoded_token):
     """Helper function to check if user has admin role."""
     custom_claims = decoded_token.get("role")
     return custom_claims == "team-member"
+
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleGetProfile(req: https_fn.Request) -> https_fn.Response:
@@ -224,46 +312,60 @@ def handleGetProfile(req: https_fn.Request) -> https_fn.Response:
     # Extract user_id from URL path
     path_parts = req.path.strip("/").split("/")
     if len(path_parts) < 2 or path_parts[0] != "profile":
-        return https_fn.Response("Invalid URL format. Use /profile/<user_id>", status=400)
-    
+        return https_fn.Response(
+            "Invalid URL format. Use /profile/<user_id>", status=400
+        )
+
     user_id = path_parts[1]
-    
+
     try:
         db = firestore.client()
-        
+
         # Get user profile
         profile_doc = db.collection("users").document(user_id).get()
         if not profile_doc.exists:
             return https_fn.Response("Profile not found", status=404)
-        
+
         profile_data = profile_doc.to_dict()
-        
+
         # Get user achievements
-        achievements_query = db.collection("user_achievements").where("userId", "==", user_id).stream()
+        achievements_query = (
+            db.collection("user_achievements").where("userId", "==", user_id).stream()
+        )
         user_achievements = []
-        
+
         for ach_doc in achievements_query:
             ach_data = ach_doc.to_dict()
             # Get achievement details
-            achievement_ref = db.collection("achievements").document(ach_data["achievementId"])
+            achievement_ref = db.collection("achievements").document(
+                ach_data["achievementId"]
+            )
             achievement_doc = achievement_ref.get()
             if achievement_doc.exists:
                 achievement_details = achievement_doc.to_dict()
                 # Convert dateEarned to Firestore-like format if it's a datetime
                 date_earned = ach_data.get("dateEarned")
-                achievement_details["dateEarned"] = ts_to_dict(date_earned) if date_earned else None
+                achievement_details["dateEarned"] = (
+                    ts_to_dict(date_earned) if date_earned else None
+                )
                 user_achievements.append(achievement_details)
-        
+
         # Combine profile with achievements
-        result = {
-            **profile_data,
-            "achievements": user_achievements
-        }
-        
-        return https_fn.Response(json.dumps(result, default=ts_to_dict), status=200, headers={"Content-Type": "application/json"})
-    
+        result = {**profile_data, "achievements": user_achievements}
+
+        return https_fn.Response(
+            json.dumps(result, default=ts_to_dict),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        )
+
     except Exception as e:
+        try:
+            sentry_sdk.capture_exception(e)
+        except Exception:
+            pass
         return https_fn.Response(f"An error occurred: {e}", status=500)
+
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleAuthAction(req: https_fn.Request) -> https_fn.Response:
@@ -276,29 +378,30 @@ def handleAuthAction(req: https_fn.Request) -> https_fn.Response:
     data = req.get_json(silent=True)
     if not data:
         return https_fn.Response("Invalid request body", status=400)
-    
+
     action_type = data.get("actionType")
     if not action_type:
         return https_fn.Response("Missing actionType", status=400)
-    
+
     # This function now only validates that the action type is known
     # and returns a success message. The actual auth logic is on the client.
     known_actions = ["login", "signup", "password_reset", "mfa_setup", "mfa_verify"]
     if action_type not in known_actions:
         return https_fn.Response(f"Unknown action type: {action_type}", status=400)
-    
+
     response_data = {
         "success": True,
-        "message": f"Action '{action_type}' acknowledged."
+        "message": f"Action '{action_type}' acknowledged.",
     }
-    
+
     return https_fn.Response(
         json.dumps(response_data),
         status=200,
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "application/json"},
     )
 
-@https_fn.on_request(cors=CORS_OPTIONS) 
+
+@https_fn.on_request(cors=CORS_OPTIONS)
 def handlePasswordReset(req: https_fn.Request) -> https_fn.Response:
     """Handle password reset requests."""
     if req.method == "OPTIONS":
@@ -309,23 +412,21 @@ def handlePasswordReset(req: https_fn.Request) -> https_fn.Response:
     data = req.get_json(silent=True)
     if not data:
         return https_fn.Response("Invalid request body", status=400)
-    
+
     email = data.get("email")
     if not email:
         return https_fn.Response("Email is required", status=400)
-    
+
     # The client-side code handles sending the password reset email.
     # This endpoint now serves as a simple acknowledgment.
-    response_data = {
-        "success": True,
-        "message": "Password reset request acknowledged."
-    }
-    
+    response_data = {"success": True, "message": "Password reset request acknowledged."}
+
     return https_fn.Response(
         json.dumps(response_data),
         status=200,
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "application/json"},
     )
+
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleUpdateProfile(req: https_fn.Request) -> https_fn.Response:
@@ -338,66 +439,89 @@ def handleUpdateProfile(req: https_fn.Request) -> https_fn.Response:
     # Extract user_id from URL path
     path_parts = req.path.strip("/").split("/")
     if len(path_parts) < 2 or path_parts[0] != "update_profile":
-        return https_fn.Response("Invalid URL format. Use /update_profile/<user_id>", status=400)
-    
+        return https_fn.Response(
+            "Invalid URL format. Use /update_profile/<user_id>", status=400
+        )
+
     user_id = path_parts[1]
-    
+
     # Verify authentication
     decoded_token, auth_error = _get_user_from_token(req)
     if auth_error:
         return auth_error
-    
+
     # Users can only update their own profile
     if decoded_token["uid"] != user_id:
-        return https_fn.Response("Forbidden: Can only update your own profile", status=403)
-    
+        return https_fn.Response(
+            "Forbidden: Can only update your own profile", status=403
+        )
+
     data = req.get_json(silent=True)
     if not data:
         return https_fn.Response("Invalid request body", status=400)
-    
+
     # Allowed fields for profile update
     allowed_fields = ["username", "displayName", "bio", "avatarUrl", "favoriteCars"]
     profile_data = {}
-    
+
     for field in allowed_fields:
         if field in data:
             value = data[field]
-            
+
             # Validate field types and constraints
             if field == "username":
                 if not isinstance(value, str) or not value.strip():
-                    return https_fn.Response("Username is required and must be a string", status=400)
+                    return https_fn.Response(
+                        "Username is required and must be a string", status=400
+                    )
                 # Username validation: alphanumeric and underscores only, 3-30 chars
                 username = value.strip().lower()
-                if not username.replace('_', '').isalnum() or len(username) < 3 or len(username) > 30:
-                    return https_fn.Response("Username must be 3-30 characters, alphanumeric and underscores only", status=400)
+                if (
+                    not username.replace("_", "").isalnum()
+                    or len(username) < 3
+                    or len(username) > 30
+                ):
+                    return https_fn.Response(
+                        "Username must be 3-30 characters, alphanumeric and underscores only",
+                        status=400,
+                    )
                 profile_data[field] = username
-                
+
             elif field == "displayName":
                 if not isinstance(value, str) or not value.strip():
-                    return https_fn.Response("Display name is required and must be a string", status=400)
+                    return https_fn.Response(
+                        "Display name is required and must be a string", status=400
+                    )
                 display_name = value.strip()
                 if len(display_name) > 100:
-                    return https_fn.Response("Display name must be 100 characters or less", status=400)
+                    return https_fn.Response(
+                        "Display name must be 100 characters or less", status=400
+                    )
                 profile_data[field] = display_name
-                
+
             elif field == "bio":
                 if isinstance(value, str):
                     bio = value.strip()
                     if len(bio) > 500:
-                        return https_fn.Response("Bio must be 500 characters or less", status=400)
+                        return https_fn.Response(
+                            "Bio must be 500 characters or less", status=400
+                        )
                     profile_data[field] = bio
-                    
+
             elif field == "avatarUrl":
                 if isinstance(value, str):
                     avatar_url = value.strip()
                     if avatar_url:  # Only validate if not empty
-                        if not avatar_url.startswith(('http://', 'https://')):
-                            return https_fn.Response("Avatar URL must be a valid HTTP/HTTPS URL", status=400)
+                        if not avatar_url.startswith(("http://", "https://")):
+                            return https_fn.Response(
+                                "Avatar URL must be a valid HTTP/HTTPS URL", status=400
+                            )
                         if len(avatar_url) > 500:
-                            return https_fn.Response("Avatar URL must be 500 characters or less", status=400)
+                            return https_fn.Response(
+                                "Avatar URL must be 500 characters or less", status=400
+                            )
                     profile_data[field] = avatar_url
-                    
+
             elif field == "favoriteCars":
                 if isinstance(value, list):
                     # Validate each car name
@@ -405,27 +529,34 @@ def handleUpdateProfile(req: https_fn.Request) -> https_fn.Response:
                     for car in value[:10]:  # Limit to 10 cars
                         if isinstance(car, str):
                             car_name = car.strip()
-                            if car_name and len(car_name) <= 50:  # Max 50 chars per car name
+                            if (
+                                car_name and len(car_name) <= 50
+                            ):  # Max 50 chars per car name
                                 validated_cars.append(car_name)
                     profile_data[field] = validated_cars
-    
+
     if not profile_data:
         return https_fn.Response("No valid fields provided for update", status=400)
-    
+
     try:
         db = firestore.client()
-        
+
         # Add/update timestamp
         profile_data["lastUpdated"] = firestore.SERVER_TIMESTAMP
-        
+
         # Update profile document
         profile_ref = db.collection("users").document(user_id)
         profile_ref.set(profile_data, merge=True)
-        
+
         return https_fn.Response("Profile updated successfully", status=200)
-    
+
     except Exception as e:
+        try:
+            sentry_sdk.capture_exception(e)
+        except Exception:
+            pass
         return https_fn.Response(f"An error occurred: {e}", status=500)
+
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleGetAchievements(req: https_fn.Request) -> https_fn.Response:
@@ -437,20 +568,25 @@ def handleGetAchievements(req: https_fn.Request) -> https_fn.Response:
 
     try:
         db = firestore.client()
-        
+
         # Get all achievements
         achievements_query = db.collection("achievements").stream()
         achievements = []
-        
+
         for doc in achievements_query:
             achievement_data = doc.to_dict()
             achievement_data["id"] = doc.id
             achievements.append(achievement_data)
-        
-        return https_fn.Response(json.dumps(achievements, default=str), status=200, headers={"Content-Type": "application/json"})
-    
+
+        return https_fn.Response(
+            json.dumps(achievements, default=str),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        )
+
     except Exception as e:
         return https_fn.Response(f"An error occurred: {e}", status=500)
+
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleAssignAchievement(req: https_fn.Request) -> https_fn.Response:
@@ -464,47 +600,56 @@ def handleAssignAchievement(req: https_fn.Request) -> https_fn.Response:
     decoded_token, auth_error = _get_user_from_token(req)
     if auth_error:
         return auth_error
-    
+
     if not _is_admin(decoded_token):
         return https_fn.Response("Forbidden: Admin role required", status=403)
-    
+
     data = req.get_json(silent=True)
     if not data:
         return https_fn.Response("Invalid request body", status=400)
-    
+
     user_id = data.get("userId")
     achievement_id = data.get("achievementId")
-    
+
     if not all([user_id, achievement_id]):
-        return https_fn.Response("Missing required fields: userId, achievementId", status=400)
-    
+        return https_fn.Response(
+            "Missing required fields: userId, achievementId", status=400
+        )
+
     try:
         db = firestore.client()
-        
+
         # Verify achievement exists
         achievement_doc = db.collection("achievements").document(achievement_id).get()
         if not achievement_doc.exists:
             return https_fn.Response("Achievement not found", status=404)
-        
+
         # Check if user already has this achievement
-        existing_query = db.collection("user_achievements").where("userId", "==", user_id).where("achievementId", "==", achievement_id).limit(1).stream()
+        existing_query = (
+            db.collection("user_achievements")
+            .where("userId", "==", user_id)
+            .where("achievementId", "==", achievement_id)
+            .limit(1)
+            .stream()
+        )
         if any(existing_query):
             return https_fn.Response("User already has this achievement", status=400)
-        
+
         # Create user achievement record
         user_achievement_data = {
             "userId": user_id,
             "achievementId": achievement_id,
             "dateEarned": firestore.SERVER_TIMESTAMP,
-            "assignedBy": decoded_token["uid"]
+            "assignedBy": decoded_token["uid"],
         }
-        
+
         db.collection("user_achievements").add(user_achievement_data)
-        
+
         return https_fn.Response("Achievement assigned successfully", status=200)
-    
+
     except Exception as e:
         return https_fn.Response(f"An error occurred: {e}", status=500)
+
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleGetLeaderboard(req: https_fn.Request) -> https_fn.Response:
@@ -516,32 +661,34 @@ def handleGetLeaderboard(req: https_fn.Request) -> https_fn.Response:
 
     try:
         db = firestore.client()
-        
+
         # Get all user achievements and calculate total points
         user_achievements = db.collection("user_achievements").stream()
         achievements_data = {}
-        
+
         # First get all achievements to know their point values
         for doc in db.collection("achievements").stream():
             achievements_data[doc.id] = doc.to_dict()
-        
+
         # Calculate total points per user
         user_points = {}
         user_achievement_counts = {}
-        
+
         for doc in user_achievements:
             data = doc.to_dict()
             user_id = data["userId"]
             achievement_id = data["achievementId"]
-            
+
             if user_id not in user_points:
                 user_points[user_id] = 0
                 user_achievement_counts[user_id] = 0
-            
+
             if achievement_id in achievements_data:
-                user_points[user_id] += achievements_data[achievement_id].get("points", 0)
+                user_points[user_id] += achievements_data[achievement_id].get(
+                    "points", 0
+                )
                 user_achievement_counts[user_id] += 1
-        
+
         # Get user profile data for leaderboard display
         leaderboard = []
         for user_id, total_points in user_points.items():
@@ -549,37 +696,44 @@ def handleGetLeaderboard(req: https_fn.Request) -> https_fn.Response:
                 profile_doc = db.collection("users").document(user_id).get()
                 if profile_doc.exists:
                     profile_data = profile_doc.to_dict()
-                    leaderboard.append({
-                        "userId": user_id,
-                        "displayName": profile_data.get("displayName", "Anonymous User"),
-                        "username": profile_data.get("username", ""),
-                        "avatarUrl": profile_data.get("avatarUrl", ""),
-                        "totalPoints": total_points,
-                        "achievementCount": user_achievement_counts[user_id]
-                    })
+                    leaderboard.append(
+                        {
+                            "userId": user_id,
+                            "displayName": profile_data.get(
+                                "displayName", "Anonymous User"
+                            ),
+                            "username": profile_data.get("username", ""),
+                            "avatarUrl": profile_data.get("avatarUrl", ""),
+                            "totalPoints": total_points,
+                            "achievementCount": user_achievement_counts[user_id],
+                        }
+                    )
             except Exception as e:
                 # Skip users with missing profiles
-                print(f"Warning: Skipping user {user_id} due to missing profile data: {str(e)}")
+                print(
+                    f"Warning: Skipping user {user_id} due to missing profile data: {str(e)}"
+                )
                 continue
-        
+
         # Sort by total points descending
         leaderboard.sort(key=lambda x: x["totalPoints"], reverse=True)
-        
+
         # Limit to top 50 users
         leaderboard = leaderboard[:50]
-        
+
         # Add rank numbers
         for i, user in enumerate(leaderboard):
             user["rank"] = i + 1
-        
+
         return https_fn.Response(
-            json.dumps(leaderboard, default=str), 
-            status=200, 
-            headers={"Content-Type": "application/json"}
+            json.dumps(leaderboard, default=str),
+            status=200,
+            headers={"Content-Type": "application/json"},
         )
-    
+
     except Exception as e:
         return https_fn.Response(f"An error occurred: {e}", status=500)
+
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleAutoAwardAchievement(req: https_fn.Request) -> https_fn.Response:
@@ -593,55 +747,61 @@ def handleAutoAwardAchievement(req: https_fn.Request) -> https_fn.Response:
     data = req.get_json(silent=True)
     if not data:
         return https_fn.Response("Invalid request body", status=400)
-    
+
     user_id = data.get("userId")
     action_type = data.get("actionType")
     action_data = data.get("actionData", {})
-    
+
     if not all([user_id, action_type]):
-        return https_fn.Response("Missing required fields: userId, actionType", status=400)
+        return https_fn.Response(
+            "Missing required fields: userId, actionType", status=400
+        )
 
     try:
         db = firestore.client()
-        
+
         # Get all achievements to check which ones to award
         achievements_query = db.collection("achievements").stream()
         achievements = {}
-        
+
         for doc in achievements_query:
             achievement_data = doc.to_dict()
             achievement_data["id"] = doc.id
             achievements[doc.id] = achievement_data
-        
+
         # Get user's current achievements
-        user_achievements_query = db.collection("user_achievements").where("userId", "==", user_id).stream()
-        user_achievement_ids = {doc.to_dict()["achievementId"] for doc in user_achievements_query}
-        
+        user_achievements_query = (
+            db.collection("user_achievements").where("userId", "==", user_id).stream()
+        )
+        user_achievement_ids = {
+            doc.to_dict()["achievementId"] for doc in user_achievements_query
+        }
+
         # Determine which achievements to award based on action type
         achievements_to_award = []
-        
+
         if action_type == "first_login":
             if "community_member" not in user_achievement_ids:
                 achievements_to_award.append("community_member")
-        
+
         elif action_type == "photo_upload":
             # Check for photographer achievement (5 photos)
             if "photographer" not in user_achievement_ids:
                 photo_count = action_data.get("totalPhotos", 1)
                 if photo_count >= 5:
                     achievements_to_award.append("photographer")
-        
+
         elif action_type == "photo_liked":
             # Check for fan favorite achievement (10 total likes across all photos)
             if "fan_favorite" not in user_achievement_ids:
                 total_likes = action_data.get("totalLikes", 1)
                 if total_likes >= 10:
                     achievements_to_award.append("fan_favorite")
-        
+
         elif action_type == "profile_created":
             if "community_member" not in user_achievement_ids:
                 achievements_to_award.append("community_member")
-        
+
         # Award the achievements
         awarded_achievements = []
         for achievement_id in achievements_to_award:
@@ -652,28 +812,34 @@ def handleAutoAwardAchievement(req: https_fn.Request) -> https_fn.Response:
                     "dateEarned": firestore.SERVER_TIMESTAMP,
                     "assignedBy": "system",
                     "autoAwarded": True,
-                    "actionType": action_type
+                    "actionType": action_type,
                 }
-                
+
                 db.collection("user_achievements").add(user_achievement_data)
-                awarded_achievements.append({
-                    "id": achievement_id,
-                    "name": achievements[achievement_id]["name"],
-                    "description": achievements[achievement_id]["description"],
-                    "points": achievements[achievement_id]["points"]
-                })
-        
+                awarded_achievements.append(
+                    {
+                        "id": achievement_id,
+                        "name": achievements[achievement_id]["name"],
+                        "description": achievements[achievement_id]["description"],
+                        "points": achievements[achievement_id]["points"],
+                    }
+                )
+
         return https_fn.Response(
-            json.dumps({
-                "awardedAchievements": awarded_achievements,
-                "message": f"Awarded {len(awarded_achievements)} achievement(s)"
-            }, default=str),
+            json.dumps(
+                {
+                    "awardedAchievements": awarded_achievements,
+                    "message": f"Awarded {len(awarded_achievements)} achievement(s)",
+                },
+                default=str,
+            ),
             status=200,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
-    
+
     except Exception as e:
         return https_fn.Response(f"An error occurred: {e}", status=500)
+
 
 @https_fn.on_request(cors=CORS_OPTIONS)
 def handleGetAchievementProgress(req: https_fn.Request) -> https_fn.Response:
@@ -686,54 +852,68 @@ def handleGetAchievementProgress(req: https_fn.Request) -> https_fn.Response:
     # Extract user_id from URL path
     path_parts = req.path.strip("/").split("/")
     if len(path_parts) < 2 or path_parts[0] != "achievement_progress":
-        return https_fn.Response("Invalid URL format. Use /achievement_progress/<user_id>", status=400)
-    
+        return https_fn.Response(
+            "Invalid URL format. Use /achievement_progress/<user_id>", status=400
+        )
+
     user_id = path_parts[1]
 
     try:
         db = firestore.client()
-        
+
         # Get user's current achievements
-        user_achievements_query = db.collection("user_achievements").where("userId", "==", user_id).stream()
-        user_achievement_ids = {doc.to_dict()["achievementId"] for doc in user_achievements_query}
-        
+        user_achievements_query = (
+            db.collection("user_achievements").where("userId", "==", user_id).stream()
+        )
+        user_achievement_ids = {
+            doc.to_dict()["achievementId"] for doc in user_achievements_query
+        }
+
         # Define progress tracking for specific achievements
         progress_data = {}
-        
+
         # Photographer achievement progress (upload 5 photos)
         if "photographer" not in user_achievement_ids:
             try:
-                photos_query = db.collection("gallery_images").where("uploaderUid", "==", user_id).stream()
+                photos_query = (
+                    db.collection("gallery_images")
+                    .where("uploaderUid", "==", user_id)
+                    .stream()
+                )
                 photo_count = sum(1 for _ in photos_query)
                 progress_data["photographer"] = {
                     "current": photo_count,
                     "target": 5,
                     "percentage": min((photo_count / 5) * 100, 100),
                     "completed": photo_count >= 5,
-                    "description": f"Upload {photo_count}/5 photos to the gallery"
+                    "description": f"Upload {photo_count}/5 photos to the gallery",
                 }
             except Exception as e:
                 print(f"Error getting photo count: {e}")
-        
+
         # Fan Favorite achievement progress (get 10 total likes)
         if "fan_favorite" not in user_achievement_ids:
             try:
-                user_photos_query = db.collection("gallery_images").where("uploaderUid", "==", user_id).stream()
+                user_photos_query = (
+                    db.collection("gallery_images")
+                    .where("uploaderUid", "==", user_id)
+                    .stream()
+                )
                 total_likes = 0
                 for photo_doc in user_photos_query:
                     photo_data = photo_doc.to_dict()
                     total_likes += photo_data.get("likeCount", 0)
-                
+
                 progress_data["fan_favorite"] = {
                     "current": total_likes,
                     "target": 10,
                     "percentage": min((total_likes / 10) * 100, 100),
                     "completed": total_likes >= 10,
-                    "description": f"Receive {total_likes}/10 total likes on your photos"
+                    "description": f"Receive {total_likes}/10 total likes on your photos",
                 }
             except Exception as e:
                 print(f"Error getting like count: {e}")
-        
+
         # Community Member achievement (already earned or not)
         if "community_member" not in user_achievement_ids:
             progress_data["community_member"] = {
@@ -741,14 +921,14 @@ def handleGetAchievementProgress(req: https_fn.Request) -> https_fn.Response:
                 "target": 1,
                 "percentage": 0,
                 "completed": False,
-                "description": "Join the RedsRacing community (automatic on login)"
+                "description": "Join the RedsRacing community (automatic on login)",
             }
-        
+
         return https_fn.Response(
             json.dumps(progress_data, default=str),
             status=200,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
-    
+
     except Exception as e:
         return https_fn.Response(f"An error occurred: {e}", status=500)

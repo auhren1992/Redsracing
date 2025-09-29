@@ -17,9 +17,11 @@ Authorization: Bearer <firebase-id-token>
 Retrieve a user's profile and achievements.
 
 **Parameters:**
+
 - `user_id` (path): The Firebase user ID
 
 **Response:**
+
 ```json
 {
   "username": "johndoe",
@@ -42,6 +44,7 @@ Retrieve a user's profile and achievements.
 ```
 
 **Status Codes:**
+
 - `200 OK`: Profile retrieved successfully
 - `404 Not Found`: Profile not found
 - `500 Internal Server Error`: Server error
@@ -51,9 +54,11 @@ Retrieve a user's profile and achievements.
 Update the authenticated user's profile. Users can only update their own profile.
 
 **Parameters:**
+
 - `user_id` (path): The Firebase user ID (must match authenticated user)
 
 **Request Body:**
+
 ```json
 {
   "username": "johndoe",
@@ -65,11 +70,13 @@ Update the authenticated user's profile. Users can only update their own profile
 ```
 
 **Response:**
+
 ```
 Profile updated successfully
 ```
 
 **Status Codes:**
+
 - `200 OK`: Profile updated successfully
 - `400 Bad Request`: Invalid request data
 - `401 Unauthorized`: Missing or invalid authentication
@@ -83,6 +90,7 @@ List all available achievements/badges.
 **Authentication:** Not required
 
 **Response:**
+
 ```json
 [
   {
@@ -105,6 +113,7 @@ List all available achievements/badges.
 ```
 
 **Status Codes:**
+
 - `200 OK`: Achievements retrieved successfully
 - `500 Internal Server Error`: Server error
 
@@ -115,6 +124,7 @@ Assign an achievement to a user. Admin role (`team-member`) required.
 **Authentication:** Required (admin only)
 
 **Request Body:**
+
 ```json
 {
   "userId": "firebase-user-id",
@@ -123,11 +133,13 @@ Assign an achievement to a user. Admin role (`team-member`) required.
 ```
 
 **Response:**
+
 ```
 Achievement assigned successfully
 ```
 
 **Status Codes:**
+
 - `200 OK`: Achievement assigned successfully
 - `400 Bad Request`: Missing required fields or user already has achievement
 - `401 Unauthorized`: Missing or invalid authentication
@@ -141,13 +153,13 @@ Achievement assigned successfully
 
 ```typescript
 interface UserProfile {
-  username: string;           // Unique username
-  displayName: string;        // Display name
-  bio?: string;              // Optional bio text
-  avatarUrl?: string;        // Optional avatar image URL
-  favoriteCars: string[];    // Array of favorite car names
-  joinDate: string;          // ISO 8601 date string
-  lastUpdated: string;       // Auto-generated timestamp
+  username: string; // Unique username
+  displayName: string; // Display name
+  bio?: string; // Optional bio text
+  avatarUrl?: string; // Optional avatar image URL
+  favoriteCars: string[]; // Array of favorite car names
+  joinDate: string; // ISO 8601 date string
+  lastUpdated: string; // Auto-generated timestamp
 }
 ```
 
@@ -155,12 +167,12 @@ interface UserProfile {
 
 ```typescript
 interface Achievement {
-  id: string;                // Unique achievement ID
-  name: string;              // Achievement name
-  description: string;       // Achievement description
-  icon: string;              // Achievement icon (emoji or URL)
-  category: string;          // Achievement category
-  points?: number;           // Optional points value
+  id: string; // Unique achievement ID
+  name: string; // Achievement name
+  description: string; // Achievement description
+  icon: string; // Achievement icon (emoji or URL)
+  category: string; // Achievement category
+  points?: number; // Optional points value
 }
 ```
 
@@ -168,10 +180,10 @@ interface Achievement {
 
 ```typescript
 interface UserAchievement {
-  userId: string;            // Firebase user ID
-  achievementId: string;     // Achievement ID
-  dateEarned: string;        // ISO 8601 date string
-  assignedBy: string;        // User ID who assigned the achievement
+  userId: string; // Firebase user ID
+  achievementId: string; // Achievement ID
+  dateEarned: string; // ISO 8601 date string
+  assignedBy: string; // User ID who assigned the achievement
 }
 ```
 

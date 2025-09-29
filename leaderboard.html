@@ -1,135 +1,533 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboard - RedsRacing #8</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="manifest" href="site.webmanifest">
-    <link rel="stylesheet" href="styles/tailwind.css">
-    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/main.css">
-</head>
-<body class="flex flex-col min-h-screen">
-
-    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
-        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
-                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
-            </a>
-            <div class="hidden md:flex items-center space-x-6 font-bold">
-                <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
-                <a href="jonny.html" class="hover:text-neon-yellow transition duration-300">Jonny's Page</a>
-                <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Full Schedule</a>
-                <a href="profile.html" class="hover:text-neon-yellow transition duration-300">Profile</a>
-                <a href="leaderboard.html" class="text-neon-yellow border-b-2 border-neon-yellow">Leaderboard</a>
-                <a id="auth-link" href="login.html" class="bg-red-600 text-white py-2 px-5 rounded-md hover:bg-red-500 transition duration-300">
-                    DRIVER LOGIN
-                </a>
-            </div>
-            <!-- Mobile menu button -->
-            <button id="mobile-menu-toggle" class="md:hidden text-white">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Team Roster - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="stylesheet" href="styles/modern-effects.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
+  <script src="assets/js/guest-gate.js"></script>
+  </head>
+  <body class="flex flex-col min-h-screen">
+    <header
+      class="modern-header sticky w-full top-0 z-50"
+    >
+      <nav
+        class="modern-nav container mx-auto px-6 py-3 flex justify-between items-center"
+      >
+        <a
+href="jons.html"
+          class="text-4xl font-racing uppercase tracking-wider"
+        >
+          <span class="title-blue">Reds</span
+          ><span class="neon-yellow">Racing</span>
+        </a>
+        <!-- Navigation Links -->
+        <div class="hidden md:flex items-center space-x-6 font-bold">
+          <a href="index.html" class="nav-link">🏠 Home</a>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏎️ Drivers <i class="fas fa-chevron-down"></i>
             </button>
-        </nav>
-        
-        <!-- Mobile menu -->
-        <div id="mobile-menu" class="md:hidden hidden bg-black/90 backdrop-blur-md">
-            <div class="px-6 pt-2 pb-3 space-y-1">
-                <a href="index.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Home</a>
-                <a href="jonny.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Jonny's Page</a>
-                <a href="schedule.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Full Schedule</a>
-                <a href="profile.html" class="block py-2 text-white hover:text-neon-yellow transition duration-300">Profile</a>
-                <a href="leaderboard.html" class="block py-2 text-neon-yellow border-l-4 border-neon-yellow pl-3">Leaderboard</a>
-                <a id="auth-link-mobile" href="login.html" class="block py-2 bg-red-600 text-white text-center rounded-md hover:bg-red-500 transition duration-300">
-                    DRIVER LOGIN
-                </a>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="driver.html" class="dropdown-item">Jon Kirsch #8</a>
+              <a href="jonny.html" class="dropdown-item">Jonny Kirsch #88</a>
+              <a href="legends.html" class="dropdown-item">Team Legends</a>
             </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏁 Racing <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="schedule.html" class="dropdown-item">Schedule</a>
+              <a href="leaderboard.html" class="dropdown-item">Leaderboard</a>
+              <a href="gallery.html" class="dropdown-item">📸 Gallery</a>
+              <a href="videos.html" class="dropdown-item">🎥 Videos</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              👥 Community <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="qna.html" class="dropdown-item">❓ Q&A</a>
+              <a href="feedback.html" class="dropdown-item">💬 Feedback</a>
+              <a href="sponsorship.html" class="dropdown-item">💰 Sponsorship</a>
+            </div>
+          </div>
+          
+          <!-- User Profile / Login -->
+          <div id="auth-section">
+            <!-- Login Button (shown when not authenticated) -->
+            <!-- User Profile Dropdown (shown when authenticated) -->
+            <div id="user-profile" class="relative dropdown hidden">
+              <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
+                <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <i class="fas fa-user text-white text-xs"></i>
+                </div>
+                <div class="text-left hidden md:block">
+                  <div class="text-sm font-semibold text-white" id="user-name">Driver</div>
+                  <div class="text-xs text-slate-400">Team Member</div>
+                </div>
+                <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+              </button>
+              
+              <div class="dropdown-menu modern-dropdown right-0 w-44">
+                <div class="px-4 py-2 border-b border-slate-600/50">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-green-400 text-sm">Online</span>
+                  </div>
+                </div>
+                
+                <a href="admin-console.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
+                  <span>Dashboard</span>
+                </a>
+                
+                <a href="profile.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-user w-4 mr-3 text-green-400"></i>
+                  <span>My Profile</span>
+                </a>
+                
+                <div class="border-t border-slate-600/50 my-1"></div>
+                
+                <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                  <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+      </nav>
+      
+      <!-- Mobile Menu -->
+      <div id="mobile-menu" class="mobile-menu modern-mobile hidden">
+        <a href="index.html" class="mobile-nav-item">🏠 Home</a>
+        <button class="mobile-accordion">
+          <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="driver.html" class="mobile-nav-subitem">Jon Kirsch #8</a>
+          <a href="jonny.html" class="mobile-nav-subitem">Jonny Kirsch #88</a>
+          <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
+        </div>
+        <button class="mobile-accordion">
+          <span>🏁 Racing</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="schedule.html" class="mobile-nav-subitem">Schedule</a>
+          <a href="leaderboard.html" class="mobile-nav-subitem">Leaderboard</a>
+          <a href="gallery.html" class="mobile-nav-subitem">📸 Gallery</a>
+          <a href="videos.html" class="mobile-nav-subitem">🎥 Videos</a>
+        </div>
+        <button class="mobile-accordion">
+          <span>👥 Community</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="qna.html" class="mobile-nav-subitem">❓ Q&A</a>
+          <a href="feedback.html" class="mobile-nav-subitem">💬 Feedback</a>
+          <a href="sponsorship.html" class="mobile-nav-subitem">💰 Sponsorship</a>
+        </div>
+        <div class="border-t border-slate-600 mt-4 pt-4">
+          <!-- Mobile Auth Section -->
+          <div id="mobile-auth-section">
+            <!-- Mobile Login Button (shown when not authenticated) -->
+            
+            
+            <!-- Mobile User Profile (shown when authenticated) -->
+            <div id="mobile-user-profile" class="hidden">
+              <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
+                <div class="flex items-center space-x-3 mb-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white"></i>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold" id="mobile-user-name">Driver</div>
+                    <div class="text-slate-400 text-sm">Team Member</div>
+                    <div class="flex items-center space-x-1 mt-1">
+                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span class="text-green-400 text-xs">Online</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="space-y-1">
+                  <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
+                    <span>Dashboard</span>
+                  </a>
+                  <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-user w-5 mr-3 text-green-400"></i>
+                    <span>My Profile</span>
+                  </a>
+                  <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                    <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </header>
 
-    <main class="flex-grow container mx-auto px-6 py-12">
-        <!-- Loading State -->
-        <div id="loading-state" class="flex flex-col items-center justify-center text-center py-20">
-            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-neon-yellow"></div>
-            <p class="text-2xl mt-4 font-racing uppercase tracking-wider">Loading Leaderboard...</p>
-        </div>
-
-        <!-- Leaderboard Content -->
-        <div id="leaderboard-content" class="hidden">
-            <div class="max-w-4xl mx-auto">
-                <h1 class="text-5xl font-racing uppercase mb-2">Achievement <span class="neon-yellow">Leaderboard</span></h1>
-                <p class="text-slate-400 mb-8">Top racers ranked by achievement points</p>
-
-                <!-- Top 3 Podium -->
-                <div id="podium" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                    <!-- Podium positions will be dynamically generated -->
-                </div>
-
-                <!-- Full Leaderboard -->
-                <div class="card rounded-lg p-6">
-                    <h2 class="text-3xl font-racing text-white uppercase mb-6">Full <span class="neon-yellow">Rankings</span></h2>
-                    
-                    <!-- Mobile-friendly table container -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="border-b border-slate-600">
-                                    <th class="p-3 font-racing text-neon-yellow">#</th>
-                                    <th class="p-3 font-racing text-neon-yellow">Racer</th>
-                                    <th class="p-3 font-racing text-neon-yellow text-center">Points</th>
-                                    <th class="p-3 font-racing text-neon-yellow text-center">Achievements</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaderboard-table">
-                                <!-- Leaderboard entries will be dynamically generated -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Stats Summary -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                    <div class="card rounded-lg p-6 text-center">
-                        <h3 class="text-xl font-racing text-neon-yellow mb-2">Total Racers</h3>
-                        <p id="total-racers" class="text-3xl font-bold text-white">-</p>
-                    </div>
-                    <div class="card rounded-lg p-6 text-center">
-                        <h3 class="text-xl font-racing text-neon-yellow mb-2">Total Points</h3>
-                        <p id="total-points" class="text-3xl font-bold text-white">-</p>
-                    </div>
-                    <div class="card rounded-lg p-6 text-center">
-                        <h3 class="text-xl font-racing text-neon-yellow mb-2">Total Achievements</h3>
-                        <p id="total-achievements" class="text-3xl font-bold text-white">-</p>
-                    </div>
-                </div>
+    <main>
+      <!-- Modern Hero Section -->
+      <section class="py-20 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
+        <div class="container mx-auto px-6 relative z-10">
+          <div class="text-center mb-16">
+            <div class="inline-flex items-center bg-blue-600/20 backdrop-blur-sm px-6 py-3 rounded-full border border-blue-400/30 mb-6">
+              <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse mr-3"></div>
+              <span class="text-blue-400 font-bold uppercase tracking-wider text-sm">
+                <i class="fas fa-users mr-2"></i>Team Excellence
+              </span>
             </div>
+            
+            <h1 class="font-racing text-6xl md:text-8xl lg:text-9xl uppercase tracking-wider mb-6">
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-blue-600">
+                Team Roster
+              </span>
+            </h1>
+            
+            <p class="text-xl md:text-2xl text-slate-300 font-bold tracking-wide max-w-4xl mx-auto mb-8">
+              Elite drivers • Proven performance • Racing legends in the making
+            </p>
+            
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              <div class="modern-card p-4 border border-blue-400/20">
+                <div class="text-3xl font-bold text-blue-400">2</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Active Drivers</div>
+              </div>
+              <div class="modern-card p-4 border border-green-400/20">
+                <div class="text-3xl font-bold text-green-400">5+</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Years Experience</div>
+              </div>
+              <div class="modern-card p-4 border border-yellow-400/20">
+                <div class="text-3xl font-bold text-yellow-400">#8</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Team Legacy</div>
+              </div>
+              <div class="modern-card p-4 border border-red-400/20">
+                <div class="text-3xl font-bold text-red-400">∞</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Racing Spirit</div>
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <!-- Error State -->
-        <div id="error-state" class="hidden text-center py-20">
-            <h2 class="text-3xl font-racing text-red-400 mb-4">Error Loading Leaderboard</h2>
-            <p class="text-slate-400 mb-6">Unable to load the leaderboard at this time.</p>
-            <button id="retry-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-md hover:bg-blue-500 transition">
-                Try Again
-            </button>
+      <!-- Driver Roster Section -->
+      <section class="py-20 md:py-32 bg-gradient-to-b from-black to-slate-900">
+        <div class="container mx-auto px-6">
+          <div class="max-w-6xl mx-auto">
+
+            <!-- Driver Cards -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+              <!-- Jon Kirsch Card -->
+              <div class="modern-card p-8 rounded-2xl hover:scale-105 transition-all duration-500 cursor-pointer group" onclick="window.location.href='driver.html'">
+                <div class="flex items-start justify-between mb-6">
+                  <div>
+                    <div class="flex items-center mb-3">
+                      <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-car text-white text-xl"></i>
+                      </div>
+                      <div>
+                        <h3 class="font-racing text-2xl md:text-3xl text-white uppercase mb-1">Jon Kirsch</h3>
+                        <p class="text-blue-400 font-bold text-lg">#8 • The Veteran</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-4xl group-hover:animate-bounce">🏁</div>
+                </div>
+                
+                <div class="bg-slate-800/30 rounded-lg p-4 mb-6">
+                  <p class="text-slate-300 italic text-center">
+                    "Precision and consistency win races, not just speed."
+                  </p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                  <div class="modern-card p-3 border border-blue-400/20 text-center">
+                    <div class="text-lg font-bold text-blue-400">Strategic</div>
+                    <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Racing Style</div>
+                  </div>
+                  <div class="modern-card p-3 border border-green-400/20 text-center">
+                    <div class="text-lg font-bold text-green-400">5+ Years</div>
+                    <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Experience</div>
+                  </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-2 mb-6 justify-center">
+                  <span class="bg-blue-500/20 border border-blue-400/30 px-3 py-1 rounded-full text-xs text-blue-300">🧠 Strategic</span>
+                  <span class="bg-green-500/20 border border-green-400/30 px-3 py-1 rounded-full text-xs text-green-300">⚖️ Balanced</span>
+                  <span class="bg-purple-500/20 border border-purple-400/30 px-3 py-1 rounded-full text-xs text-purple-300">🎯 Consistent</span>
+                </div>
+                
+                <div class="text-center">
+                  <div class="inline-flex items-center text-yellow-400 font-semibold group-hover:text-yellow-300 transition-colors">
+                    <span class="text-sm">View Full Profile</span>
+                    <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Jonny Kirsch Card -->
+              <div class="modern-card p-8 rounded-2xl hover:scale-105 transition-all duration-500 cursor-pointer group" onclick="window.location.href='jonny.html'">
+                <div class="flex items-start justify-between mb-6">
+                  <div>
+                    <div class="flex items-center mb-3">
+                      <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-bolt text-white text-xl"></i>
+                      </div>
+                      <div>
+                        <h3 class="font-racing text-2xl md:text-3xl text-white uppercase mb-1">Jonny Kirsch</h3>
+                        <p class="text-red-400 font-bold text-lg">#88 • Rising Thunder</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-4xl group-hover:animate-bounce">⚡</div>
+                </div>
+                
+                <div class="bg-slate-800/30 rounded-lg p-4 mb-6">
+                  <p class="text-slate-300 italic text-center">
+                    "Push the limits, break the barriers, make history."
+                  </p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                  <div class="modern-card p-3 border border-red-400/20 text-center">
+                    <div class="text-lg font-bold text-red-400">Aggressive</div>
+                    <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Racing Style</div>
+                  </div>
+                  <div class="modern-card p-3 border border-purple-400/20 text-center">
+                    <div class="text-lg font-bold text-purple-400">Rising Star</div>
+                    <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Career Stage</div>
+                  </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-2 mb-6 justify-center">
+                  <span class="bg-red-500/20 border border-red-400/30 px-3 py-1 rounded-full text-xs text-red-300">⚡ Aggressive</span>
+                  <span class="bg-orange-500/20 border border-orange-400/30 px-3 py-1 rounded-full text-xs text-orange-300">🚀 Fast</span>
+                  <span class="bg-yellow-500/20 border border-yellow-400/30 px-3 py-1 rounded-full text-xs text-yellow-300">🔥 Passionate</span>
+                </div>
+                
+                <div class="text-center">
+                  <div class="inline-flex items-center text-yellow-400 font-semibold group-hover:text-yellow-300 transition-colors">
+                    <span class="text-sm">View Full Profile</span>
+                    <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="modern-card p-8 md:p-12 rounded-2xl text-center">
+              <div class="inline-flex items-center bg-purple-500/20 px-4 py-2 rounded-full mb-6">
+                <i class="fas fa-star text-purple-400 mr-2"></i>
+                <span class="text-purple-400 font-bold uppercase tracking-wider text-sm">Discover More</span>
+              </div>
+              
+              <h3 class="font-racing text-3xl md:text-4xl text-white uppercase mb-6">
+                Explore Our <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Racing Legacy</span>
+              </h3>
+              
+              <p class="text-slate-300 text-lg mb-8 max-w-3xl mx-auto">
+                Dive deeper into the racing personas, achievements, and stories that make our team unique. 
+                Discover the racing DNA that drives RedsRacing #8 to victory.
+              </p>
+              
+              <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="legends.html" class="bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-black font-bold py-4 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl uppercase tracking-wide flex items-center justify-center">
+                  <i class="fas fa-trophy mr-2"></i>
+                  View Full Legends Showcase
+                </a>
+                <a href="feedback.html" class="border-2 border-yellow-400 text-yellow-400 font-bold py-4 px-8 rounded-lg hover:bg-yellow-400 hover:text-black transition-all duration-300 transform hover:scale-105 uppercase tracking-wide flex items-center justify-center">
+                  <i class="fas fa-users mr-2"></i>
+                  Join the Team
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
+      </div>
     </main>
 
     <!-- Footer -->
     <footer class="border-t border-slate-800 py-8">
-        <div class="container mx-auto px-6 text-center">
-            <p class="text-slate-500">© 2024 RedsRacing #8. All rights reserved.</p>
-        </div>
+      <div class="container mx-auto px-6 text-center">
+        <p class="text-slate-500">
+          © 2024 RedsRacing #8. All rights reserved.
+        </p>
+      </div>
     </footer>
 
-    <!-- Fallback (non-module) must load before the module script -->
-    <script src="assets/js/leaderboard-inline-fallback.js"></script>
-    <!-- Firebase and App Scripts -->
-    <script type="module" src="leaderboard.js"></script>
-</body>
+    <!-- Navigation Scripts -->
+    <script src="navigation.js"></script>
+    <script type="module" src="modern-effects.js"></script>
+    <script>
+        // Add hover effects and smooth interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Desktop dropdown functionality
+            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+            dropdownToggles.forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dropdown = this.parentElement;
+                    const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+                    
+                    // Close other dropdowns
+                    dropdownToggles.forEach(otherToggle => {
+                        if (otherToggle !== this) {
+                            const otherDropdown = otherToggle.parentElement;
+                            const otherMenu = otherDropdown.querySelector('.dropdown-menu');
+                            if (otherMenu) otherMenu.classList.add('hidden');
+                        }
+                    });
+                    
+                    // Toggle current dropdown
+                    if (dropdownMenu) {
+                        dropdownMenu.classList.toggle('hidden');
+                    }
+                });
+            });
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.classList.add('hidden');
+                    });
+                }
+            });
+            
+            // Mobile menu functionality
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            const closeIcon = document.getElementById('close-icon');
+            
+            // Ensure menu starts hidden
+            if (mobileMenu) {
+                mobileMenu.classList.add('hidden');
+                mobileMenu.style.display = 'none';
+            }
+            
+            // Ensure proper icon state
+            if (menuIcon) menuIcon.classList.remove('hidden');
+            if (closeIcon) closeIcon.classList.add('hidden');
+            
+            function toggleMobileMenu() {
+                if (!mobileMenu) return;
+                
+                const isHidden = mobileMenu.classList.contains('hidden');
+                
+                if (isHidden) {
+                    // Show menu
+                    mobileMenu.classList.remove('hidden');
+                    mobileMenu.style.display = 'block';
+                    if (menuIcon) menuIcon.classList.add('hidden');
+                    if (closeIcon) closeIcon.classList.remove('hidden');
+                } else {
+                    // Hide menu
+                    mobileMenu.classList.add('hidden');
+                    mobileMenu.style.display = 'none';
+                    if (menuIcon) menuIcon.classList.remove('hidden');
+                    if (closeIcon) closeIcon.classList.add('hidden');
+                }
+            }
+            
+            function hideMobileMenu() {
+                if (mobileMenu) {
+                    mobileMenu.classList.add('hidden');
+                    mobileMenu.style.display = 'none';
+                }
+                if (menuIcon) menuIcon.classList.remove('hidden');
+                if (closeIcon) closeIcon.classList.add('hidden');
+            }
+            
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleMobileMenu();
+                });
+            }
+            
+            // Close mobile menu when clicking a link
+            if (mobileMenu) {
+                const mobileLinks = mobileMenu.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        hideMobileMenu();
+                    });
+                });
+            }
+            
+            // Close mobile menu on window resize to desktop size
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 768) {
+                    hideMobileMenu();
+                }
+            });
+            
+            // Mobile accordion functionality
+            const mobileAccordions = document.querySelectorAll('.mobile-accordion');
+            mobileAccordions.forEach(accordion => {
+                accordion.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('.mobile-accordion-icon');
+                    
+                    // Toggle current accordion
+                    if (content && content.classList.contains('mobile-accordion-content')) {
+                        const isHidden = content.classList.contains('hidden');
+                        
+                        if (isHidden) {
+                            content.classList.remove('hidden');
+                            if (icon) icon.style.transform = 'rotate(180deg)';
+                        } else {
+                            content.classList.add('hidden');
+                            if (icon) icon.style.transform = 'rotate(0deg)';
+                        }
+                    }
+                });
+            });
+        
+        // Add smooth hover effects to driver cards
+        const driverCards = document.querySelectorAll('.card[onclick]');
+        driverCards.forEach(card => {
+          card.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+          });
+          
+          card.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+          });
+        });
+      });
+    </script>
+  </body>
 </html>
