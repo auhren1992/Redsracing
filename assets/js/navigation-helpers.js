@@ -25,6 +25,7 @@ const ALLOWED_PATHS = new Set([
   "/jonny.html",
   "/driver.html",
   "/jons.html",
+  "/admin-console.html",
   "/follower-login.html",
   "/follower-dashboard.html",
   "/redsracing-dashboard.html",
@@ -47,6 +48,7 @@ const ALLOWED_PATHS = new Set([
   "jonny.html",
   "driver.html",
   "jons.html",
+  "admin-console.html",
 ]);
 
 /**
