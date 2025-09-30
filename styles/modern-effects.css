@@ -329,6 +329,34 @@ body {
   border-radius: 4px;
 }
 
+/* Unified modern hero styling with watermark */
+.hero-modern {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(100% 50% at 10% 10%, rgba(251,191,36,0.08), transparent 60%),
+              radial-gradient(80% 50% at 90% 80%, rgba(59,130,246,0.08), transparent 60%),
+              rgba(15,23,42,0.4);
+}
+.hero-modern::after {
+  content: attr(data-watermark);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Racing Sans One', sans-serif;
+  font-weight: 900;
+  font-size: clamp(160px, 44vw, 520px);
+  color: transparent;
+  -webkit-text-stroke: 6px rgba(255,255,255,0.06);
+  text-shadow: 0 0 40px rgba(0,0,0,0.25);
+  opacity: 0.6;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+.hero-modern > * { position: relative; z-index: 1; }
+
 input:focus, textarea:focus {
   border-color: #fbbf24;
   box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
