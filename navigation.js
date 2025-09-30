@@ -174,10 +174,87 @@ const core = await import('./assets/js/firebase-core.js');
     if (!btn || !menu) return;
     // Ensure hidden on load
     menu.classList.add('hidden');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-controls', 'mobile-menu');
+
+    function closeMenu() {
+      if (!menu.classList.contains('hidden')) {
+        menu.classList.add('hidden');
+        btn.setAttribute('aria-expanded', 'false');
+        try { document.body.style.overflow = ''; } catch (_) {}
+      }
+    }
+
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      const willOpen = menu.classList.contains('hidden');
       menu.classList.toggle('hidden');
+      btn.setAttribute('aria-expanded', String(willOpen));
+      try { document.body.style.overflow = willOpen ? 'hidden' : ''; } catch (_) {}
+    });
+
+    // Close when clicking a link inside the menu
+    menu.addEventListener('click', (e) => {
+      const target = e.target;
+      if (target && target.closest('a')) {
+        closeMenu();
+      }
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      const target = e.target;
+      if (!menu.contains(target) && target !== btn) {
+        closeMenu();
+      }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMenu();
+    });
+  }
+
+  // Mobile accordion toggles (submenus)
+  function initMobileAccordions() {
+    const accordions = document.querySelectorAll('.mobile-accordion');
+    accordions.forEach((btn, idx) => {
+      const content = btn.nextElementSibling;
+      if (!content) return;
+
+      // Ensure content has the right class and is collapsed initially
+      content.classList.add('mobile-accordion-content');
+      // Remove any inline display:none or hidden class that would fight animations
+      try { content.classList.remove('hidden'); } catch (_) {}
+      try { content.style.display = ''; } catch (_) {}
+      try { content.style.maxHeight = '0px'; } catch (_) {}
+
+      // Accessibility attributes
+      const contentId = content.id || `mobile-acc-content-${idx}`;
+      if (!content.id) content.id = contentId;
+      btn.setAttribute('aria-controls', contentId);
+      btn.setAttribute('aria-expanded', 'false');
+
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const isActive = btn.classList.toggle('active');
+        btn.setAttribute('aria-expanded', String(isActive));
+        // Rotate any chevron icon
+        try {
+          const icon = btn.querySelector('.mobile-accordion-icon, .accordion-icon');
+          if (icon) icon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
+        } catch (_) {}
+        // Animate content height
+        try {
+          if (isActive) {
+            content.style.maxHeight = content.scrollHeight + 'px';
+          } else {
+            content.style.maxHeight = '0px';
+          }
+        } catch (_) {}
+      });
     });
   }
 
@@ -224,6 +301,7 @@ const core = await import('./assets/js/firebase-core.js');
   function ready() {
     try { initDropdowns(); } catch (_) {}
     try { initMobileMenu(); } catch (_) {}
+    try { initMobileAccordions(); } catch (_) {}
     // Initialize Sentry (error monitoring, tracing, profiling, replay) if DSN present
     try { initSentryGlobal(); } catch (_) {}
     // Global frontend error fallback to Firestore

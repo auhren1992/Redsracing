@@ -60,7 +60,13 @@
   transition: transform 0.3s ease;
 }
 
-.mobile-accordion.active .mobile-accordion-icon {
+/* Support both legacy and new chevron icon classes */
+.accordion-icon {
+  transition: transform 0.3s ease;
+}
+
+.mobile-accordion.active .mobile-accordion-icon,
+.mobile-accordion.active .accordion-icon {
   transform: rotate(180deg);
 }
 
