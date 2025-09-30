@@ -1,5 +1,7 @@
 // Shared schedule renderer for driver pages
 import "./app.js";
+import { getFirebaseDb } from "./firebase-core.js";
+import { collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 async function fetchJSON(path) {
   try {
@@ -7,6 +9,29 @@ async function fetchJSON(path) {
     if (!res.ok) throw new Error(`Failed to fetch ${path}`);
     return await res.json();
   } catch (e) {
+    return null;
+  }
+}
+
+async function fetchRacesFromFirestore() {
+  try {
+    const db = getFirebaseDb();
+    if (!db) return null;
+    const q = query(collection(db, "races"), orderBy("date", "asc"));
+    const snap = await getDocs(q);
+    if (snap.empty) return [];
+    const items = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    // Normalize to renderer shape
+    return items.map((r) => ({
+      eventName: r.name || r.eventName || "Race",
+      track: r.track || "",
+      city: r.city || "",
+      state: r.state || "",
+      date: r.date, // ISO yyyy-mm-dd expected
+      startTime: r.startTime || r.time || "TBA",
+      type: r.type || "race",
+    }));
+  } catch {
     return null;
   }
 }
@@ -121,13 +146,22 @@ function renderSchedule(root, races, opts = {}) {
 (async function initRacerSchedule() {
   const root = document.getElementById("racer-schedule");
   if (!root) return;
-  const data = await fetchJSON("data/schedule.json");
-  if (!data || !data.races) {
-    root.innerHTML = '<p class="text-center text-slate-400">Schedule coming soon.</p>';
-    return;
+
+  // Try Firestore first to stay in sync with schedule.html
+  let races = await fetchRacesFromFirestore();
+  let opts = { seasonOver: false };
+
+  if (!races || races.length === 0) {
+    // Fallback to static JSON file if Firestore not available or empty
+    const data = await fetchJSON("data/schedule.json");
+    if (!data || !data.races) {
+      root.innerHTML = '<p class="text-center text-slate-400">Schedule coming soon.</p>';
+      return;
+    }
+    races = data.races;
+    opts = { seasonOver: !!data.seasonOver, seasonYear: data.seasonYear, nextSeasonYear: data.nextSeasonYear };
   }
-  const seasonOver = !!data.seasonOver;
-  const opts = { seasonOver, seasonYear: data.seasonYear, nextSeasonYear: data.nextSeasonYear };
+
   // Show full schedule with past/upcoming styling
-  renderSchedule(root, data.races, opts);
+  renderSchedule(root, races, opts);
 })();
