@@ -33,10 +33,6 @@ async function createDefaultProfile(user) {
 }
 
 export async function handleSignup(email, password, inviteCode) {
-  if (!inviteCode) {
-    throw new Error("Invitation code is required.");
-  }
-
   try {
     const auth = getFirebaseAuth();
     const userCredential = await createUserWithEmailAndPassword(
@@ -46,14 +42,32 @@ export async function handleSignup(email, password, inviteCode) {
     );
     const user = userCredential.user;
 
-    // Process invitation code
-    await processInvitationCode(inviteCode, user.uid);
+    // If invite code provided, process it (admin/team code paths)
+    if (inviteCode && inviteCode.trim()) {
+      try {
+        await processInvitationCode(inviteCode.trim(), user.uid);
+      } catch (e) {
+        // If invite invalid, continue as follower without blocking signup
+        console.warn('Invite code processing failed, continuing as follower:', e?.message || e);
+      }
+    } else {
+      // No invite provided: default to follower role via callable
+      try {
+        const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
+        const f = getFunctions();
+        const setFollowerRole = httpsCallable(f, 'setFollowerRole');
+        await setFollowerRole();
+        try { await user.getIdToken(true); } catch(_) {}
+      } catch (e) {
+        console.warn('setFollowerRole failed (continuing without blocking):', e?.message || e);
+      }
+    }
 
     // Create a default profile document in Firestore
     await createDefaultProfile(user);
 
-    // Send email verification
-    await sendEmailVerification(user);
+    // Send email verification (best-effort)
+    try { await sendEmailVerification(user); } catch(_) {}
 
     return user;
   } catch (error) {
@@ -75,9 +89,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const inviteCode = signupForm["invite-code"].value;
 
       try {
-        await handleSignup(email, password, inviteCode);
-        // Redirect to a success page or login page
-        window.location.href = "/login.html";
+        const user = await handleSignup(email, password, inviteCode);
+        // Redirect to follower dashboard if no invite (follower) else to login
+        if (!inviteCode || !inviteCode.trim()) {
+          window.location.href = "/follower-dashboard.html";
+        } else {
+          window.location.href = "/login.html";
+        }
       } catch (error) {
         signupError.textContent = error.message;
       }

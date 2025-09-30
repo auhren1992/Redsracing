@@ -143,6 +143,7 @@ import "./app.js";
           const items = [
             { label: "Team Member Login", href: "login.html" },
             { label: "Follower Login", href: "follower-login.html" },
+            { label: "Sign Up", href: "signup.html" },
           ];
           buildMenu(items);
           const mobileBtn = document.getElementById("account-toggle-mobile");
