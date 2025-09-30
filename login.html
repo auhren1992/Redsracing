@@ -20,6 +20,45 @@
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
+    <style>
+      /* Modern Auth Layout Overrides */
+      .modern-auth-wrap {
+        position: relative;
+      }
+      .modern-auth-bg {
+        position: absolute; inset: 0; pointer-events: none; z-index: 0;
+        background:
+          radial-gradient(800px 400px at 20% 10%, rgba(251,191,36,0.12), transparent 60%),
+          radial-gradient(800px 400px at 80% 90%, rgba(59,130,246,0.12), transparent 60%);
+      }
+      .modern-auth {
+        position: relative; z-index: 1;
+        background: transparent;
+      }
+      .auth-brand {
+        background: linear-gradient(135deg, rgba(15,23,42,0.8), rgba(15,23,42,0.6));
+        border: 1px solid rgba(148,163,184,0.2);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+      }
+      .auth-brand .title {
+        font-size: clamp(28px, 3.4vw, 44px);
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        background: linear-gradient(90deg, #f7ff00, #ffffff);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .auth-bullets li { color: #cbd5e1; }
+      .auth-bullets li::marker { color: #f7ff00; }
+      .auth-form-card {
+        background: rgba(30,41,59,0.6);
+        border: 1px solid rgba(148,163,184,0.3);
+        border-radius: 16px;
+      }
+      .input-with-icon { position: relative; }
+      .input-with-icon i { position: absolute; top: 50%; left: 12px; transform: translateY(-50%); color: #94a3b8; }
+      .input-with-icon input { padding-left: 2.25rem; }
+    </style>
   </head>
   <body class="bg-dark-blue">
     <header
@@ -197,148 +236,94 @@ href="jons.html"
         </div>
       </div>
     </header>
-    <main class="flex items-center justify-center min-h-screen p-4">
-      <div class="w-full max-w-md reveal-fade visible">
-        <!-- Form Container -->
-        <div class="form-container p-8 rounded-lg shadow-2xl bg-slate-800/50 backdrop-blur-md border border-slate-700/50">
-          <h2 class="text-3xl font-racing uppercase text-center text-white mb-6">
-            Member <span class="neon-yellow">Access</span>
-          </h2>
-
-        <!-- Error Message Display -->
-        <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
-          <p id="error-text"></p>
+    <main class="min-h-screen p-4 relative modern-auth-wrap">
+      <div class="modern-auth-bg"></div>
+      <div class="modern-auth mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+        <!-- Brand Panel -->
+        <div class="auth-brand hidden md:flex flex-col justify-between p-8">
+          <div>
+            <div class="text-4xl font-racing title">RedsRacing #8</div>
+            <p class="mt-4 text-slate-300">Log in to manage content, approve gallery photos, and access team tools.</p>
+            <ul class="auth-bullets list-disc list-inside mt-6 space-y-2">
+              <li>Approve and curate photos</li>
+              <li>Manage races and results</li>
+              <li>Access the Admin Console</li>
+            </ul>
+          </div>
+          <div class="mt-8 text-slate-400 text-sm">Secure access powered by Firebase Auth</div>
         </div>
 
-        <!-- Login Form -->
-        <form id="login-form" class="space-y-6">
-          <div>
-            <label for="email" class="block text-sm font-medium text-gray-300"
-              >Email</label
-            >
-            <input
-              type="email"
-              id="email"
-              name="email"
-              required
-              class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
-            />
-          </div>
-          <div>
-            <div class="flex justify-between items-center">
-              <label
-                for="password"
-                class="block text-sm font-medium text-gray-300"
-                >Password</label
-              >
-              <a
-                href="#"
-                id="forgot-password-link"
-                class="text-sm text-slate-400 hover:text-neon-yellow"
-                >Forgot password?</a
-              >
-            </div>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              required
-              class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
-            />
-          </div>
+        <!-- Form Panel -->
+        <div class="w-full reveal-fade visible">
+          <div class="form-container auth-form-card p-8 shadow-2xl backdrop-blur-md">
+            <h2 class="text-3xl font-racing uppercase text-center text-white mb-6">
+              Member <span class="neon-yellow">Access</span>
+            </h2>
 
-          <!-- Optional Invitation Code Field -->
-          <div>
-            <label
-              for="invitation-code"
-              class="block text-sm font-medium text-gray-300"
-              >Invitation Code (optional)</label
-            >
-            <input
-              type="text"
-              id="invitation-code"
-              name="invitation-code"
-              class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
-              placeholder="Enter invitation code if you have one"
-            />
-            <p class="text-xs text-gray-400 mt-1">
-              Enter an invitation code to access additional features.
+            <!-- Error Message Display -->
+            <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
+              <p id="error-text"></p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-6">
+              <div class="input-with-icon">
+                <i class="fas fa-envelope"></i>
+                <label for="email" class="block text-sm font-medium text-gray-300">Email</label>
+                <input type="email" id="email" name="email" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" />
+              </div>
+              <div>
+                <div class="flex justify-between items-center">
+                  <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
+                  <a href="#" id="forgot-password-link" class="text-sm text-slate-400 hover:text-neon-yellow">Forgot password?</a>
+                </div>
+                <div class="input-with-icon">
+                  <i class="fas fa-lock"></i>
+                  <input type="password" id="password" name="password" required class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" />
+                </div>
+              </div>
+
+              <!-- Optional Invitation Code Field -->
+              <div>
+                <label for="invitation-code" class="block text-sm font-medium text-gray-300">Invitation Code (optional)</label>
+                <input type="text" id="invitation-code" name="invitation-code" class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm" placeholder="Enter invitation code if you have one" />
+                <p class="text-xs text-gray-400 mt-1">Enter an invitation code to access additional features.</p>
+              </div>
+
+              <div class="flex flex-col space-y-4">
+                <button type="button" id="signin-button" class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300">Sign In</button>
+                <button type="button" id="signup-button" class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition duration-300">Sign Up</button>
+              </div>
+            </form>
+
+            <!-- Divider -->
+            <div class="relative my-6">
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-slate-600"></div>
+              </div>
+              <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-slate-800 text-gray-400">Or continue with</span>
+              </div>
+            </div>
+
+            <!-- Google Sign-in -->
+            <div>
+              <button type="button" id="google-signin-button" class="w-full flex justify-center items-center bg-white text-gray-700 font-semibold py-2 px-4 rounded-md shadow-sm hover:bg-gray-200 transition duration-300">
+                <svg class="w-5 h-5 mr-2" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.9 0 129.8 110.3 20 244 20c66.2 0 121.3 24.8 162.2 65.5l-68.5 64.9C314.5 124.9 282.8 108 244 108c-73.2 0-132.3 59.8-132.3 133.1s59.1 133.1 132.3 133.1c76.9 0 114.3-52.3 120.8-79.1H244V261.8h244z"></path></svg>
+                Sign in with Google
+              </button>
+              <div class="mt-6">
+                <button type="button" id="continue-guest-button" class="w-full border border-slate-500 text-slate-200 font-semibold py-2 px-4 rounded-md hover:bg-slate-700/50 transition duration-300">Continue as guest</button>
+                <p class="text-xs text-slate-400 mt-2 text-center">You can browse public pages as a guest. Some features require sign-in.</p>
+              </div>
+            </div>
+
+            <p class="text-center text-gray-500 text-sm mt-6">
+              Don't have an account?
+              <a href="signup.html" class="font-semibold neon-yellow hover:text-yellow-300">Sign up</a>.
             </p>
           </div>
-
-          <div class="flex flex-col space-y-4">
-            <button
-              type="button"
-              id="signin-button"
-              class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300"
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              id="signup-button"
-              class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition duration-300"
-            >
-              Sign Up
-            </button>
-          </div>
-        </form>
-
-        <!-- Divider -->
-        <div class="relative my-6">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-slate-600"></div>
-          </div>
-          <div class="relative flex justify-center text-sm">
-            <span class="px-2 bg-slate-800 text-gray-400"
-              >Or continue with</span
-            >
-          </div>
         </div>
-
-        <!-- Google Sign-in -->
-        <div>
-          <button
-            type="button"
-            id="google-signin-button"
-            class="w-full flex justify-center items-center bg-white text-gray-700 font-semibold py-2 px-4 rounded-md shadow-sm hover:bg-gray-200 transition duration-300"
-          >
-            <svg
-              class="w-5 h-5 mr-2"
-              aria-hidden="true"
-              focusable="false"
-              data-prefix="fab"
-              data-icon="google"
-              role="img"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 488 512"
-            >
-              <path
-                fill="currentColor"
-                d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.9 0 129.8 110.3 20 244 20c66.2 0 121.3 24.8 162.2 65.5l-68.5 64.9C314.5 124.9 282.8 108 244 108c-73.2 0-132.3 59.8-132.3 133.1s59.1 133.1 132.3 133.1c76.9 0 114.3-52.3 120.8-79.1H244V261.8h244z"
-              ></path>
-            </svg>
-            Sign in with Google
-          </button>
-        <div class="mt-6">
-          <button
-            type="button"
-            id="continue-guest-button"
-            class="w-full border border-slate-500 text-slate-200 font-semibold py-2 px-4 rounded-md hover:bg-slate-700/50 transition duration-300"
-          >
-            Continue as guest
-          </button>
-          <p class="text-xs text-slate-400 mt-2 text-center">You can browse public pages as a guest. Some features require sign-in.</p>
-        </div>
-        </div>
-        <p class="text-center text-gray-500 text-sm mt-6">
-          Don't have an account?
-          <a
-            href="signup.html"
-            class="font-semibold neon-yellow hover:text-yellow-300"
-            >Sign up</a
-          >.
-        </p>
       </div>
     </main>
     
