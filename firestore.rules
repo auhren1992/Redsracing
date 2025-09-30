@@ -17,6 +17,12 @@ service cloud.firestore {
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
+
+    // Fallback: check role from users document for current user
+    function hasProfileRole(role) {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
     
     // Admins can read and write anything
     allow read, write: if hasRole('admin');
@@ -81,17 +87,35 @@ service cloud.firestore {
     
     // Invitation codes
     match /invitation_codes/{codeId} {
-      allow read, write: if hasRole('team-member');
+      // Team members or admins can read (via claim or users doc fallback)
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      // Only admins can create/update/delete (via claim or users doc fallback)
+      allow create: if hasRole('admin') || hasProfileRole('admin');
+      allow update: if hasRole('admin') || hasProfileRole('admin');
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+
+    // Site configuration (e.g., config/tiktok)
+    match /config/{docId} {
+      // Allow any authenticated user to read config (e.g., to show UI),
+      // but restrict writes to team-members or admins
+      allow read: if isAuthenticated();
+      allow write: if hasRole('team-member') || hasRole('admin');
     }
     
     // Jonny-specific images (approvals)
     match /jonny_gallery_images/{imageId} {
-      // Public can read approved images; team members can read all
-      allow read: if (resource.data.approved == true) || hasRole('team-member');
+      // Public can read approved images; team members/admins can read all
+      allow read: if (resource.data.approved == true)
+                  || hasRole('team-member')
+                  || hasProfileRole('team-member')
+                  || hasProfileRole('admin');
       // Uploader can create; team members can update/approve or delete
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.uploaderUid;
-      allow update: if hasRole('team-member') || (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
-      allow delete: if hasRole('team-member');
+      allow update: if hasRole('team-member')
+                    || hasProfileRole('team-member')
+                    || (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
+      allow delete: if hasRole('team-member') || hasProfileRole('team-member');
     }
 
     // Jonny-specific videos
@@ -100,6 +124,23 @@ service cloud.firestore {
       allow write: if hasRole('team-member');
     }
     
+    // Client error logs (frontend)
+    match /client_logs/{logId} {
+      // Any authenticated user may create a log entry
+      allow create: if isAuthenticated();
+      // Team members/admins can read logs (via token or users doc fallback)
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      // Admin can delete (via token or users doc fallback)
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+    
+    // TikTok videos library
+    match /tiktok_videos/{videoId} {
+      allow read: if isAuthenticated();
+      allow write: if hasRole('team-member') || hasRole('admin');
+      allow delete: if hasRole('team-member') || hasRole('admin');
+    }
+
     // Default deny rule
     match /{document=**} {
       allow read, write: if false;

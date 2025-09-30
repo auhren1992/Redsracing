@@ -6,7 +6,7 @@ import {
   getFirebaseDb,
   getFirebaseStorage,
 } from "./firebase-core.js";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import {
   doc,
   getDoc,
@@ -19,8 +19,8 @@ import {
   updateDoc,
   deleteDoc,
   where,
-} from "firebase/firestore";
-import { ref, deleteObject } from "firebase/storage";
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
 // Import centralized authentication utilities
 import {
@@ -488,11 +488,20 @@ import { LoadingService } from "./loading.js";
         if (isDestroyed) return;
 
         try {
-            const photosCol = collection(db, "jonny_gallery_images");
+            // Ensure only team-members/admins can load unapproved Jonny photos
+            try {
+                const claimsCheck = await validateUserClaims(["team-member", "admin"]);
+                if (!claimsCheck.success) {
+                    if (jonnyPhotoApprovalCard) jonnyPhotoApprovalCard.style.display = 'none';
+                    return;
+                }
+            } catch(_) {}
 
-            const photoSnapshot = await getDocs(photosCol);
-            const allPhotos = photoSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            const unapprovedPhotos = allPhotos.filter(p => p.approved !== true);
+            // Force fresh token so Firestore sees current role claims
+            try { await auth.currentUser?.getIdToken(true); } catch (_) {}
+            const q = query(collection(db, "jonny_gallery_images"), where("approved", "==", false));
+            const photoSnapshot = await getDocs(q);
+            const unapprovedPhotos = photoSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
             if (jonnyUnapprovedPhotosList) {
                 jonnyUnapprovedPhotosList.innerHTML = '';
@@ -525,7 +534,11 @@ import { LoadingService } from "./loading.js";
             }
 
         } catch (error) {
-
+            // Hide the card if user lacks permission to avoid repeated noisy errors
+            const msg = String(error?.message || '').toLowerCase();
+            if (error?.code === 'permission-denied' || msg.includes('insufficient permissions')) {
+                if (jonnyPhotoApprovalCard) jonnyPhotoApprovalCard.style.display = 'none';
+            }
             console.error('[Dashboard] Failed to load Jonny photo approvals:', error);
         }
     }
@@ -1020,17 +1033,22 @@ import { LoadingService } from "./loading.js";
     }
   }
 
-  async function loadJonnyPhotoApprovals() {
+  async function loadJonnyPhotoApprovals(_retry) {
     if (isDestroyed) return;
 
     try {
-      const photosCol = collection(db, "jonny_gallery_images");
-      const photoSnapshot = await getDocs(photosCol);
-      const allPhotos = photoSnapshot.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-      }));
-      const unapprovedPhotos = allPhotos.filter((p) => p.approved !== true);
+      // Ensure only team-members/admins can load unapproved Jonny photos
+      const claimsCheck = await validateUserClaims(["team-member", "admin"]);
+      if (!claimsCheck.success) {
+        if (jonnyPhotoApprovalCard) jonnyPhotoApprovalCard.style.display = "none";
+        return;
+      }
+
+      // Force fresh token so Firestore sees current role claims
+      try { await auth.currentUser?.getIdToken(true); } catch (_) {}
+      const q = query(collection(db, "jonny_gallery_images"), where("approved", "==", false));
+      const photoSnapshot = await getDocs(q);
+      const unapprovedPhotos = photoSnapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 
       if (jonnyUnapprovedPhotosList) {
         jonnyUnapprovedPhotosList.innerHTML = "";
@@ -1077,6 +1095,17 @@ import { LoadingService } from "./loading.js";
         }
       }
     } catch (error) {
+      // If token may be stale, force refresh and retry once
+      try {
+        const msg = String(error?.message || '').toLowerCase();
+        if (!_retry && (error?.code === 'permission-denied' || msg.includes('insufficient permissions'))) {
+          const u = getCurrentUser && getCurrentUser();
+          if (u && u.getIdToken) {
+            await u.getIdToken(true);
+            return await loadJonnyPhotoApprovals(true);
+          }
+        }
+      } catch (_) {}
       console.error("[Dashboard] Failed to load Jonny photo approvals:", error);
     }
   }
@@ -1312,12 +1341,13 @@ import { LoadingService } from "./loading.js";
             }
 
             try {
-              const claimsResult = await validateUserClaims(["team-member"]);
-              const isTeamMember =
-                claimsResult.success &&
-                claimsResult.claims.role === "team-member";
+              const claimsResult = await validateUserClaims(["team-member", "admin"]);
+              const role = claimsResult.success ? (claimsResult.claims.role || null) : null;
+              const isTeamOrAdmin = role === "team-member" || role === "admin";
 
-              if (isTeamMember) {
+              if (isTeamOrAdmin) {
+                // Force a fresh token so Firestore sees updated custom claims
+                try { await auth.currentUser?.getIdToken(true); } catch (_) {}
                 if (raceManagementCard) {
                   raceManagementCard.style.display = "block";
                 }

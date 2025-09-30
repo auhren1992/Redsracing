@@ -8,7 +8,7 @@ import {
   onSnapshot,
   orderBy,
   serverTimestamp,
-} from "firebase/firestore";
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import { getFirebaseAuth, getFirebaseDb } from "./firebase-core.js";
 import { monitorAuthState } from "./auth-utils.js";
 

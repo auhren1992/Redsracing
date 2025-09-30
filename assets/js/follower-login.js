@@ -7,13 +7,13 @@ import "./app.js";
 
 import { getFirebaseAuth, getFirebaseApp } from "./firebase-core.js";
 import { getFriendlyAuthError } from "./auth-errors.js";
-import { getFunctions, httpsCallable } from "firebase/functions";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js";
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithPopup,
-} from "firebase/auth";
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import { navigateToInternal } from "./navigation-helpers.js";
 import { validateUserClaims } from "./auth-utils.js";
 

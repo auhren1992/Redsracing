@@ -1,8 +1,8 @@
 import "./app.js";
 
 import { getFirebaseAuth, getFirebaseDb } from "./firebase-core.js";
-import { onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import {
   monitorAuthState,
   showAuthError,

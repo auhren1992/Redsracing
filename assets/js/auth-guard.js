@@ -2,11 +2,12 @@ import { navigateToInternal } from "./navigation-helpers.js";
 import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
 
 const protectedPages = [
-  "redsracing-dashboard.html",
-  "follower-dashboard.html",
-  "profile.html",
+  'redsracing-dashboard.html',
+  'follower-dashboard.html',
+  'profile.html',
+  'admin-console.html',
 ];
-const teamMemberPages = ["redsracing-dashboard.html"];
+const teamMemberPages = ['redsracing-dashboard.html', 'admin-console.html'];
 const followerPages = ["follower-dashboard.html"];
 
 const currentPage = window.location.pathname.split("/").pop();
@@ -40,15 +41,27 @@ if (protectedPages.includes(currentPage)) {
 
       try {
         const claimsResult = await validateUserClaims();
-        const role = claimsResult.success ? claimsResult.claims.role : null;
+        let role = claimsResult.success ? (claimsResult.claims.role || null) : null;
+        if (!role && user) {
+          // Fallback to users doc role
+          try {
+            const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const db = getFirestore();
+            const snap = await getDoc(doc(db, 'users', user.uid));
+            if (snap.exists()) {
+              const data = snap.data() || {};
+              if (typeof data.role === 'string' && data.role) role = data.role;
+            }
+          } catch (_) {}
+        }
 
-        if (teamMemberPages.includes(currentPage) && role !== "team-member") {
-          navigateToInternal("/follower-dashboard.html");
+        if (teamMemberPages.includes(currentPage) && !['team-member', 'admin'].includes(role)) {
+          navigateToInternal('/follower-dashboard.html');
         } else if (
           followerPages.includes(currentPage) &&
-          role !== "TeamRedFollower"
+          role !== 'TeamRedFollower'
         ) {
-          navigateToInternal("/redsracing-dashboard.html");
+          navigateToInternal('/redsracing-dashboard.html');
         }
       } catch (error) {
         // On error, only redirect after grace period (which we've already cleared due to user)

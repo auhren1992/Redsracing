@@ -6,15 +6,12 @@ import {
   getFirebaseApp,
   getFirebaseDb,
 } from "./firebase-core.js";
-import { signOut } from "firebase/auth";
-import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
+import { signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 // Import centralized authentication utilities
 import {
-  validateAndRefreshToken,
   validateUserClaims,
-  safeFirestoreOperation,
-  retryAuthOperation,
   showAuthError,
   clearAuthError,
   monitorAuthState,
@@ -34,7 +31,7 @@ import {
 import { navigateToInternal } from "./navigation-helpers.js";
 
 // Import error handling utilities
-import { getFriendlyAuthError, isRecaptchaError } from "./auth-errors.js";
+import { getFriendlyAuthError } from "./auth-errors.js";
 import { LoadingService } from "./loading.js";
 
 // Wrap everything in an async function to allow early returns
@@ -583,14 +580,14 @@ import { LoadingService } from "./loading.js";
           favoriteTrack: (editFavoriteTrack?.value || '').trim(),
           themeColor: (editThemeColor?.value || '#f7ff00'),
         };
-        const { getFunctions, httpsCallable } = await import('firebase/functions');
+const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
         const app = getFirebaseApp();
         const functions = getFunctions(app);
         const updateProfile = httpsCallable(functions, 'updateProfile');
         await updateProfile({ userId, profileData: payload });
         // Ensure custom fields persist even if callable filters them
         try {
-          const { doc, setDoc } = await import('firebase/firestore');
+const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
           const db2 = getFirebaseDb();
           await setDoc(doc(db2, 'users', userId), {
             funStatusEmoji: payload.funStatusEmoji,

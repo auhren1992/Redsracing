@@ -14,13 +14,13 @@ import {
   arrayRemove,
   increment,
   getDocs,
-} from "firebase/firestore";
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import {
   getStorage,
   ref,
   uploadBytesResumable,
   getDownloadURL,
-} from "firebase/storage";
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 import {
   getFirebaseAuth,
   getFirebaseDb,
@@ -204,7 +204,29 @@ async function main() {
     onSnapshot(q, (snapshot) => {
       galleryContainer.innerHTML = "";
       if (snapshot.empty) {
-        galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos of Jonny yet. Be the first to upload one!</p>`;
+        // Show placeholders so the 3D hover effect is visible even without approved photos
+        galleryContainer.innerHTML = "";
+        const placeholders = [
+          'https://placehold.co/800x800/1e293b/ff3333?text=Jonny+\u2022+1',
+          'https://placehold.co/800x800/1e293b/ff3333?text=Jonny+\u2022+2',
+          'https://placehold.co/800x800/1e293b/ff3333?text=Jonny+\u2022+3',
+          'https://placehold.co/800x800/1e293b/ff3333?text=Jonny+\u2022+4'
+        ];
+        placeholders.forEach((src) => {
+          const ph = document.createElement('div');
+          ph.className = 'gallery-item gallery-item-3d aspect-square relative overflow-hidden rounded-lg group';
+          ph.innerHTML = `
+            <img src="${src}" alt="Placeholder - Jonny" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+            <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+              <p class="text-xs text-slate-300">Placeholder preview — upload photos to replace</p>
+            </div>
+          `;
+          galleryContainer.appendChild(ph);
+        });
+        const note = document.createElement('p');
+        note.className = 'text-slate-400 col-span-full text-center mt-4';
+        note.textContent = 'No approved photos of Jonny yet. These are placeholders to preview the effect.';
+        galleryContainer.appendChild(note);
         return;
       }
       snapshot.forEach((docSnapshot) => {
@@ -212,7 +234,7 @@ async function main() {
         const imageId = docSnapshot.id;
         const galleryItem = document.createElement("div");
         galleryItem.className =
-          "gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group";
+          "gallery-item gallery-item-3d aspect-square reveal-up relative overflow-hidden rounded-lg group";
 
         const currentUser = auth.currentUser;
         const isLiked =
@@ -307,7 +329,7 @@ async function main() {
       const imageRef = doc(db, 'gallery_images', imageId);
       try {
         const s = getFirebaseStorage();
-        const { ref: sref, deleteObject } = await import('firebase/storage');
+const { ref: sref, deleteObject } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js');
         let path = image.storagePath;
         if (!path && image.imageUrl) {
           const m = image.imageUrl.match(/\/o\/([^?]+)\?/);
@@ -318,7 +340,7 @@ async function main() {
           await deleteObject(objRef).catch(()=>{});
         }
       } catch {}
-      await import('firebase/firestore').then(async ({ deleteDoc }) => {
+await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js').then(async ({ deleteDoc }) => {
         await deleteDoc(imageRef);
       });
     } catch {}

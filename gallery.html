@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
+  <script src="assets/js/guest-gate.js"></script>
   </head>
   <body class="bg-dark-blue">
     <header
@@ -33,7 +34,7 @@
         class="container mx-auto px-6 py-3 flex justify-between items-center"
       >
         <a
-          href="index.html"
+href="jons.html"
           class="text-4xl font-racing uppercase tracking-wider"
         >
           <span class="title-blue">Reds</span
@@ -75,11 +76,6 @@
           <!-- User Profile / Login -->
           <div id="auth-section">
             <!-- Login Button (shown when not authenticated) -->
-            <a href="admin-console.html" id="login-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-bold transition duration-300 flex items-center space-x-1">
-              <i class="fas fa-sign-in-alt"></i>
-              <span>Login</span>
-            </a>
-            
             <!-- User Profile Dropdown (shown when authenticated) -->
             <div id="user-profile" class="relative dropdown hidden">
               <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
@@ -171,9 +167,7 @@
           <!-- Mobile Auth Section -->
           <div id="mobile-auth-section">
             <!-- Mobile Login Button (shown when not authenticated) -->
-            <a href="admin-console.html" id="mobile-login-btn" class="mobile-login-btn bg-red-600 hover:bg-red-700">
-              <i class="fas fa-sign-in-alt mr-2"></i>Driver Login
-            </a>
+            
             
             <!-- Mobile User Profile (shown when authenticated) -->
             <div id="mobile-user-profile" class="hidden">
@@ -499,7 +493,7 @@
     <!-- Scripts -->
     <script type="module" src="navigation.js"></script>
     <script type="module" src="main.js"></script>
-    <script src="gallery.js"></script>
+    <script type="module" src="assets/js/gallery.js"></script>
     <script src="modern-effects.js"></script>
   </body>
 </html>

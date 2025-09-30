@@ -1,9 +1,8 @@
 
 {
   "hosting": {
-    "predeploy": "npm install && npm run build-css-prod && npm run build && npm run inject-sentry-dsn",
     "target": "production",
-    "public": "dist",
+    "public": ".",
     "ignore": [
       "firebase.json",
       "firestore.rules",
@@ -11,7 +10,6 @@
       ".firebaserc",
       ".github/**",
       ".git/**",
-      "assets/**",
       "node_modules/**"
     ],
     "headers": [

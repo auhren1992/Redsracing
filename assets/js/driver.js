@@ -15,8 +15,8 @@ import {
   increment,
   getDocs,
   deleteDoc,
-} from "firebase/firestore";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage } from "./firebase-core.js";
 import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
 import { html, safeSetHTML } from "./sanitize.js";

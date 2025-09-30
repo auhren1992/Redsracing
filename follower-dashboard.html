@@ -15,6 +15,7 @@
     />
     <link rel="stylesheet" href="styles/main.css" />
     <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
+  <script src="assets/js/guest-gate.js"></script>
   </head>
   <body class="flex flex-col min-h-screen">
     <header
@@ -147,8 +148,8 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
 
     <script src="vendors.js"></script>
-    <script src="auth-guard.js"></script>
+    <script type="module" src="assets/js/auth-guard.js"></script>
     <script src="navigation.js"></script>
-    <script src="follower-dashboard.js"></script>
+    <script type="module" src="assets/js/follower-dashboard.js"></script>
   </body>
 </html>

@@ -5,7 +5,7 @@ import {
   query,
   onSnapshot,
   orderBy,
-} from "firebase/firestore";
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import { getFirebaseDb } from "./firebase-core.js";
 import { monitorAuthState } from "./auth-utils.js";
 

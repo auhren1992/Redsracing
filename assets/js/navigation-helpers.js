@@ -8,6 +8,7 @@
  */
 const ALLOWED_PATHS = new Set([
   "/",
+  "/index.html",
   "/dashboard",
   "/dashboard.html",
   "/login.html",
@@ -23,9 +24,11 @@ const ALLOWED_PATHS = new Set([
   "/videos.html",
   "/jonny.html",
   "/driver.html",
+  "/jons.html",
   "/follower-login.html",
   "/follower-dashboard.html",
   "/redsracing-dashboard.html",
+  "index.html",
   "dashboard.html",
   "login.html",
   "follower-login.html",
@@ -43,6 +46,7 @@ const ALLOWED_PATHS = new Set([
   "videos.html",
   "jonny.html",
   "driver.html",
+  "jons.html",
 ]);
 
 /**

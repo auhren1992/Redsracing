@@ -1,5 +1,5 @@
 import "./app.js";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import {
   getFirestore,
   collection,
@@ -15,13 +15,13 @@ import {
   arrayRemove,
   increment,
   getDocs,
-} from "firebase/firestore";
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import {
   getStorage,
   ref,
   uploadBytesResumable,
   getDownloadURL,
-} from "firebase/storage";
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 import {
   getFirebaseAuth,
   getFirebaseDb,
@@ -253,11 +253,11 @@ async function main() {
           if (!imageQuery.empty) {
             const imageData = imageQuery.docs[0].data();
             const storagePath = imageData.storagePath;
-            const { deleteDoc } = await import("firebase/firestore");
+const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js");
             await deleteDoc(doc(db, "gallery_images", imageId));
             if (storagePath) {
               try {
-                const { deleteObject, ref } = await import("firebase/storage");
+const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js");
                 const storageRef = ref(getStorage(), storagePath);
                 await deleteObject(storageRef);
               } catch (_) {}
@@ -401,13 +401,13 @@ async function main() {
             if (!confirm('Delete this photo? This action cannot be undone.')) return;
             try {
               // Delete from Firestore
-              const { deleteDoc, doc } = await import('firebase/firestore');
+const { deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
               await deleteDoc(doc(db, 'gallery_images', imageId));
               
               // Try to delete from Storage if we have the path
               if (image.storagePath) {
                 try {
-                  const { deleteObject, ref } = await import('firebase/storage');
+const { deleteObject, ref } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js');
                   const storageRef = ref(storage, image.storagePath);
                   await deleteObject(storageRef);
                 } catch (storageError) {

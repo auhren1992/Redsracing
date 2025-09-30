@@ -67,7 +67,113 @@
       .timeline-item.active .timeline-marker {
         background-color: #ff3333; /* neon-red */
       }
+
+      /* Jonny: subtle motion and red accents for timeline cards */
+      .timeline-item-3d-red {
+        background: rgba(30, 41, 59, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(239, 68, 68, 0.35); /* more visible red */
+        border-radius: 16px;
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.12), 0 0 0 1px rgba(239,68,68,0.1);
+        position: relative;
+        overflow: hidden;
+      }
+      .timeline-item-3d-red::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, rgba(239,68,68,0.8), rgba(239,68,68,0.2));
+      }
+      .timeline-item-3d-red:hover {
+        transform: translateX(12px) rotateY(-4deg);
+        border-color: rgba(239, 68, 68, 0.6);
+        box-shadow: -10px 20px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(239,68,68,0.25), 0 10px 25px rgba(239,68,68,0.15);
+      }
+
+      /* Jonny: 3D gallery (red theme) */
+      .gallery-3d { perspective: 1000px; }
+      .gallery-item-3d {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-style: preserve-3d;
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid rgba(239,68,68,0.2);
+      }
+      .gallery-item-3d::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, transparent, rgba(239, 68, 68, 0.12), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 2;
+      }
+      .gallery-item-3d:hover {
+        transform: rotateY(10deg) rotateX(5deg) translateY(-10px) scale(1.02);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(239,68,68,0.25);
+      }
+      .gallery-item-3d:hover::before { opacity: 1; }
+
+      /* Fallback: apply red 3D hover to any gallery-item on Jonny page (covers cached JS) */
+      #jonny-gallery .gallery-item {
+        position: relative;
+        border: 1px solid rgba(239,68,68,0.2);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      #jonny-gallery .gallery-item::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, transparent, rgba(239, 68, 68, 0.12), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 2;
+      }
+      #jonny-gallery .gallery-item:hover {
+        transform: rotateY(10deg) rotateX(5deg) translateY(-10px) scale(1.02) !important;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(239,68,68,0.25);
+        border-color: rgba(239,68,68,0.4);
+      }
+      #jonny-gallery .gallery-item:hover::before { opacity: 1; }
+
+      /* Jonny: Rookie badges */
+      .rookie-badges { display: inline-flex; gap: 8px; margin-top: 10px; }
+      .rookie-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #fecaca; /* red-200 */
+        background: rgba(239,68,68,0.12);
+        border: 1px solid rgba(239,68,68,0.35);
+        border-radius: 9999px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+        animation: badgePop 1.2s ease forwards;
+      }
+      .rookie-badge .dot { width: 6px; height: 6px; border-radius: 9999px; background: #ef4444; box-shadow: 0 0 10px rgba(239,68,68,0.8); }
+      .rookie-badge:nth-child(2) { animation-delay: .12s; }
+      .rookie-badge:nth-child(3) { animation-delay: .24s; }
+      @keyframes badgePop { 0% { transform: translateY(6px) scale(.96); opacity: 0; } 60% { transform: translateY(0) scale(1.03); opacity: 1; } 100% { transform: translateY(0) scale(1); } }
+
+      /* Scope default stat-card hover on Jonny to red tint */
+      .jonny-page .stat-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 0 30px rgba(239, 68, 68, 0.2), 0 0 12px rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.4);
+      }
     </style>
+  <script src="assets/js/guest-gate.js"></script>
   </head>
   <body class="jonny-page">
     <!-- Clean Modern Header -->
@@ -85,7 +191,7 @@
               🏎️ Drivers <i class="fas fa-chevron-down"></i>
             </button>
             <div class="dropdown-menu modern-dropdown">
-              <a href="driver.html" class="dropdown-item">Jon Kirsch #8</a>
+<a href="jons.html" class="dropdown-item">Jon Kirsch #8</a>
               <a href="jonny.html" class="dropdown-item">Jonny Kirsch #88</a>
               <a href="legends.html" class="dropdown-item">Team Legends</a>
             </div>
@@ -115,11 +221,6 @@
           <!-- User Profile / Login -->
           <div id="auth-section">
             <!-- Login Button (shown when not authenticated) -->
-            <a href="admin-console.html" id="login-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-bold transition duration-300 flex items-center space-x-1">
-              <i class="fas fa-sign-in-alt"></i>
-              <span>Login</span>
-            </a>
-            
             <!-- User Profile Dropdown (shown when authenticated) -->
             <div id="user-profile" class="relative dropdown hidden">
               <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
@@ -177,7 +278,7 @@
           <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
         </button>
         <div class="mobile-accordion-content">
-          <a href="driver.html" class="mobile-nav-subitem">Jon Kirsch #8</a>
+<a href="jons.html" class="mobile-nav-subitem">Jon Kirsch #8</a>
           <a href="jonny.html" class="mobile-nav-subitem">Jonny Kirsch #88</a>
           <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
         </div>
@@ -202,9 +303,7 @@
           <!-- Mobile Auth Section -->
           <div id="mobile-auth-section">
             <!-- Mobile Login Button (shown when not authenticated) -->
-            <a href="admin-console.html" id="mobile-login-btn" class="mobile-login-btn bg-red-600 hover:bg-red-700">
-              <i class="fas fa-sign-in-alt mr-2"></i>Driver Login
-            </a>
+            
             
             <!-- Mobile User Profile (shown when authenticated) -->
             <div id="mobile-user-profile" class="hidden">
@@ -245,18 +344,84 @@
     </header>
 
     <main class="pt-20">
-      <section id="team-hero" class="py-20 md:py-32 text-center section-glow">
+      <section id="team-hero" class="py-20 md:py-32 relative overflow-hidden">
+        <!-- Rookie Spotlight: red diagonal stripes background -->
+        <div class="absolute inset-0 -z-10" style="background: repeating-linear-gradient(135deg, rgba(239,68,68,0.12) 0, rgba(239,68,68,0.12) 16px, rgba(239,68,68,0.04) 16px, rgba(239,68,68,0.04) 32px), radial-gradient(1200px 600px at 10% 10%, rgba(239,68,68,0.25), transparent 60%), radial-gradient(800px 400px at 90% 80%, rgba(255,255,255,0.08), transparent 60%);"></div>
         <div class="container mx-auto px-6">
-          <h1
-            class="text-6xl md:text-8xl font-racing uppercase text-gradient-red text-shadow-strong tracking-wider"
-          >
-            Jonny Kirsch #88
-          </h1>
-          <p
-            class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest"
-          >
-            The Next Generation of Speed
-          </p>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+            <!-- Rookie Card -->
+            <div class="order-2 lg:order-1">
+              <div class="bg-black/40 border border-red-400/30 rounded-2xl p-6 backdrop-blur-md shadow-2xl">
+                <div class="flex items-center gap-4">
+                  <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-3xl font-black text-white">88</div>
+                  <div>
+                    <div class="font-racing text-3xl text-white">Jonny Kirsch</div>
+                    <div class="text-slate-300 uppercase tracking-wider text-xs">Rookie • American Super Cups</div>
+                  </div>
+                </div>
+                <div class="mt-4 grid grid-cols-3 gap-3 text-center">
+                  <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
+                    <div class="text-2xl font-bold text-white">#88</div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Number</div>
+                  </div>
+                  <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
+                    <div class="text-2xl font-bold text-white">2026</div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Rookie Year</div>
+                  </div>
+                  <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
+                    <div class="text-2xl font-bold text-white">K1</div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Karting</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Title + Tagline -->
+            <div class="text-center lg:text-left order-1 lg:order-2">
+              <h1 class="text-5xl md:text-7xl lg:text-8xl font-racing uppercase text-white tracking-wider">
+                Rookie <span class="neon-red">Spotlight</span>
+              </h1>
+              <p class="mt-4 text-lg md:text-xl font-bold text-slate-300 tracking-widest">
+                The Next Generation of Speed
+              </p>
+              <div class="rookie-badges">
+                <span class="rookie-badge"><span class="dot"></span> Rookie</span>
+                <span class="rookie-badge"><span class="dot"></span> K1 Trained</span>
+                <span class="rookie-badge"><span class="dot"></span> Super Cups</span>
+              </div>
+              <div class="mt-6 inline-flex items-center bg-red-500/15 border border-red-400/40 px-4 py-2 rounded-full text-red-300 text-xs uppercase tracking-wider">
+                <i class="fas fa-bolt mr-2"></i> Reaction • Precision • Grit
+              </div>
+            </div>
+
+            <!-- Speed Dial -->
+            <div class="order-3 flex justify-center lg:justify-end">
+              <div class="relative w-48 h-48 rounded-full bg-slate-900/60 border-2 border-red-400/30 shadow-2xl flex items-center justify-center">
+                <svg viewBox="0 0 100 100" class="w-40 h-40">
+                  <defs>
+                    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#ef4444"/>
+                      <stop offset="100%" stop-color="#fca5a5"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M10,70 A40,40 0 1,1 90,70" fill="none" stroke="url(#g)" stroke-width="6" stroke-linecap="round"/>
+                  <circle cx="50" cy="70" r="3" fill="#fff"/>
+                  <line id="needle" x1="50" y1="70" x2="86" y2="70" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <div class="absolute -bottom-3 text-center">
+                  <div class="text-xs text-slate-400 uppercase tracking-wider">Speed Focus</div>
+                </div>
+                <script>
+                  (function(){
+                    try{
+                      var el = document.getElementById('needle') || (document.currentScript && document.currentScript.previousElementSibling.querySelector('#needle'));
+                      var a=0; setInterval(function(){ a=(a+12)%180; if(el){ var rad=(a-90)*Math.PI/180; var x=50+36*Math.cos(rad); var y=70+36*Math.sin(rad); el.setAttribute('x2', x); el.setAttribute('y2', y);} }, 500);
+                    }catch(e){}
+                  })();
+                </script>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -365,7 +530,7 @@
           <div class="max-w-2xl mx-auto">
             <div class="timeline-item">
               <div class="timeline-marker"></div>
-              <div class="timeline-content p-4 rounded-lg stat-card">
+              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
                 <h3 class="font-racing text-2xl text-white">
                   First Racetrack Visit
                 </h3>
@@ -388,7 +553,7 @@
             </div>
             <div class="timeline-item">
               <div class="timeline-marker"></div>
-              <div class="timeline-content p-4 rounded-lg stat-card">
+              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
                 <h3 class="font-racing text-2xl text-white">The First Spark</h3>
                 <time class="text-sm text-slate-400 mb-2 block">2021-2023</time>
                 <p>
@@ -402,7 +567,7 @@
             </div>
             <div class="timeline-item">
               <div class="timeline-marker"></div>
-              <div class="timeline-content p-4 rounded-lg stat-card">
+              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
                 <h3 class="font-racing text-2xl text-white">Getting Serious</h3>
                 <time class="text-sm text-slate-400 mb-2 block"
                   >Early 2024</time
@@ -417,7 +582,7 @@
             </div>
             <div class="timeline-item active">
               <div class="timeline-marker"></div>
-              <div class="timeline-content p-4 rounded-lg stat-card">
+              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
                 <h3 class="font-racing text-2xl text-white">
                   The Dream Begins
                 </h3>
@@ -435,7 +600,7 @@
             </div>
             <div class="timeline-item">
               <div class="timeline-marker"></div>
-              <div class="timeline-content p-4 rounded-lg stat-card">
+              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
                 <h3 class="font-racing text-2xl text-white">
                   First Green Flag
                 </h3>
@@ -511,7 +676,7 @@
 
           <div
             id="dynamic-gallery-container"
-            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+            class="gallery-3d grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
           >
             <!-- Photos will be dynamically inserted here -->
           </div>
@@ -570,9 +735,9 @@
 
     <script type="module" src="navigation.js"></script>
     <script type="module" src="main.js"></script>
-    <script type="module" src="racer-schedule.js"></script>
-    <script type="module" src="jonny.js"></script>
-    <script src="k1-stats-jonny.js"></script>
+    <script type="module" src="assets/js/racer-schedule.js"></script>
+    <script type="module" src="assets/js/jonny.js?v=20250929-1"></script>
+    <script type="module" src="assets/js/k1-stats-jonny.js?v=20250929-1"></script>
     <script type="module" src="modern-effects.js"></script>
     <script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
   </body>

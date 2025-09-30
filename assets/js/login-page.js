@@ -5,16 +5,11 @@ import "./app.js";
  * Centralized login flow management with deferred UI enablement, MFA support, and reCAPTCHA Enterprise
  */
 
-import { getFirebaseAuth, getFirebaseApp } from "./firebase-core.js";
 import { getFriendlyAuthError } from "./auth-errors.js";
 import { setPendingInvitationCode } from "./invitation-codes.js";
-import {
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
 import { navigateToInternal } from "./navigation-helpers.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 /**
  * Login Page Controller Class
@@ -48,8 +43,18 @@ class LoginPageController {
       // Disable UI initially
       this.disableUI();
 
-      // Get Firebase auth instance
-      this.auth = getFirebaseAuth();
+      // Initialize Firebase via CDN if needed and get auth
+      const cfg = {
+        apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+        authDomain: "redsracing-a7f8b.firebaseapp.com",
+        projectId: "redsracing-a7f8b",
+        storageBucket: "redsracing-a7f8b.firebasestorage.app",
+        messagingSenderId: "517034606151",
+        appId: "1:517034606151:web:24cae262e1d98832757b62"
+      };
+      if (getApps().length === 0) initializeApp(cfg);
+      this.auth = getAuth();
+      try { await setPersistence(this.auth, browserLocalPersistence); } catch(_) {}
       this.googleProvider = new GoogleAuthProvider();
       console.info("[Login] Firebase auth ready:", !!this.auth);
 
@@ -83,6 +88,7 @@ class LoginPageController {
       signupButton: document.getElementById("signup-button"),
       googleSigninButton: document.getElementById("google-signin-button"),
       forgotPasswordLink: document.getElementById("forgot-password-link"),
+      continueGuestButton: document.getElementById("continue-guest-button"),
 
       // UI containers
       errorBox: document.getElementById("error-box"),
@@ -123,6 +129,12 @@ class LoginPageController {
     this.elements.forgotPasswordLink?.addEventListener("click", (e) => {
       console.info("[Login] Forgot password clicked");
       this.handleForgotPassword(e);
+    });
+
+    // Continue as guest
+    this.elements.continueGuestButton?.addEventListener("click", () => {
+      console.info("[Login] Continue as guest clicked");
+      this.handleContinueAsGuest();
     });
 
     // Input validation and error clearing
@@ -269,6 +281,18 @@ class LoginPageController {
       return;
     }
 
+    // If already signed in (stale session), sign out both contexts first so user can log in fresh
+    try {
+      if (this.auth?.currentUser) {
+        try { await this.auth.signOut(); } catch(_) {}
+        try {
+          const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+          const cdnAuth = getAuth();
+          if (cdnAuth?.currentUser) { try { await cdnAuth.signOut(); } catch(_) {} }
+        } catch(_) {}
+      }
+    } catch(_) {}
+
     const email = this.elements.emailInput?.value.trim();
     const password = this.elements.passwordInput?.value;
 
@@ -302,15 +326,21 @@ class LoginPageController {
 
       this.showMessage("Login successful! Redirecting...", false);
 
-      // Route based on role if known
-      if (role === "team-member") {
-        navigateToInternal("/redsracing-dashboard.html");
-        return;
-      } else if (role === "TeamRedFollower") {
-        navigateToInternal("/follower-dashboard.html");
+      const returnTo = this.getReturnTo();
+      if (returnTo) {
+        navigateToInternal(returnTo);
         return;
       }
-      // Fallback to generic dashboard router
+      // Route based on role if known
+      if (role === 'admin' || role === 'team-member') {
+        navigateToInternal('/admin-console.html');
+        return;
+      } else if (role === 'TeamRedFollower') {
+        navigateToInternal('/follower-dashboard.html');
+        return;
+      }
+
+      // Unknown role: use router page (will resolve with Firestore fallback)
       this.handleSuccess();
     } catch (error) {
       console.error("[Login] Email sign-in failed:", error);
@@ -338,7 +368,12 @@ class LoginPageController {
     try {
       await signInWithPopup(this.auth, this.googleProvider);
       this.showMessage("Google sign-in successful! Redirecting...", false);
-      this.handleSuccess();
+      const returnTo = this.getReturnTo();
+      if (returnTo) {
+        navigateToInternal(returnTo);
+      } else {
+        this.handleSuccess();
+      }
     } catch (error) {
       if (error.code !== "auth/popup-closed-by-user") {
         this.showMessage(getFriendlyAuthError(error));
@@ -394,6 +429,22 @@ class LoginPageController {
   }
 
   /**
+   * Get a safe returnTo target from query params (same-origin only)
+   */
+  getReturnTo() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const rt = params.get('returnTo');
+      if (!rt) return null;
+      // Ensure same-origin relative path
+      if (rt.startsWith('/') && !rt.startsWith('//')) {
+        return rt;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /**
    * Handle successful authentication
    */
   handleSuccess() {
@@ -403,15 +454,34 @@ class LoginPageController {
       setPendingInvitationCode(invitationCode);
     }
 
+    const returnTo = this.getReturnTo();
     setTimeout(() => {
-      navigateToInternal("/dashboard.html");
-    }, 1500);
+      navigateToInternal(returnTo || "/dashboard.html");
+    }, 800);
+  }
+
+  /**
+   * Continue as guest handler
+   */
+  handleContinueAsGuest() {
+    try { localStorage.setItem('rr_guest_ok', '1'); } catch(_) {}
+    const returnTo = this.getReturnTo();
+    navigateToInternal(returnTo || "/");
   }
 }
 
 // Initialize login controller when DOM is ready
 document.addEventListener("DOMContentLoaded", async () => {
   console.info("[Login] DOMContentLoaded");
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const rt = params.get('returnTo');
+    if (localStorage.getItem('rr_guest_ok') === '1' && rt) {
+      // If guest flag is set, immediately route to returnTo
+      navigateToInternal(rt);
+      return;
+    }
+  } catch(_) {}
   const loginController = new LoginPageController();
   await loginController.initialize();
 });

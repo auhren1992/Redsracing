@@ -393,18 +393,35 @@ exports.ensureDefaultRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) 
 
     const uid = request.auth.uid;
     const email = request.auth.token?.email || "";
-    const roleToAssign = (ADMIN_EMAIL && email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase())
-      ? "admin"
-      : "public-fan";
 
     const auth = getAuth();
     const db = getFirestore();
 
-    await auth.setCustomUserClaims(uid, { role: roleToAssign });
-    await db.collection("users").doc(uid).set({ role: roleToAssign }, { merge: true });
+    // Preserve existing role if present; only set a default when missing
+    const userRecord = await auth.getUser(uid);
+    const existingRole = userRecord.customClaims && userRecord.customClaims.role;
 
-    logger.info(`ensureDefaultRole: set role '${roleToAssign}' for user ${uid} (${email}).`);
-    return { status: "success", role: roleToAssign };
+    // Admin override: if email matches ADMIN_EMAIL and not already admin, upgrade to admin
+    if (ADMIN_EMAIL && email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+      if (existingRole !== 'admin') {
+        await auth.setCustomUserClaims(uid, { role: 'admin' });
+        await db.collection('users').doc(uid).set({ role: 'admin' }, { merge: true });
+        logger.info(`ensureDefaultRole: upgraded ${uid} to admin based on ADMIN_EMAIL`);
+        return { status: 'upgraded', role: 'admin' };
+      }
+      return { status: 'noop', role: 'admin' };
+    }
+
+    // For non-admins: if role is missing, set to public-fan; do NOT overwrite team-member/follower/etc.
+    if (!existingRole) {
+      await auth.setCustomUserClaims(uid, { role: 'public-fan' });
+      await db.collection('users').doc(uid).set({ role: 'public-fan' }, { merge: true });
+      logger.info(`ensureDefaultRole: set default role 'public-fan' for user ${uid}`);
+      return { status: 'defaulted', role: 'public-fan' };
+    }
+
+    logger.info(`ensureDefaultRole: preserved existing role '${existingRole}' for ${uid}`);
+    return { status: 'noop', role: existingRole };
   } catch (error) {
     logger.error("ensureDefaultRole failed", error);
     try { Sentry.captureException(error); } catch(_) {}
@@ -516,15 +533,15 @@ exports.getInvitationCodes = onCall({ secrets: ["SENTRY_DSN"] }, async (request)
     );
   }
 
-  // Check if the user has team-member role
+  // Check if the user has team-member or admin role
   const userRole = request.auth.token.role;
-  if (userRole !== "team-member") {
+  if (userRole !== "team-member" && userRole !== "admin") {
     logger.error(
       `getInvitationCodes called by user ${request.auth.uid} with role '${userRole}'.`,
     );
     throw new HttpsError(
       "permission-denied",
-      "You must be a team member to view invitation codes.",
+      "You must be a team member or admin to view invitation codes.",
     );
   }
 
@@ -563,6 +580,83 @@ exports.getInvitationCodes = onCall({ secrets: ["SENTRY_DSN"] }, async (request)
       error,
     );
   }
+});
+
+/**
+ * Admin-only: set role for one or more users by email.
+ * data: { emails: string[] | string, role: 'admin'|'team-member'|'TeamRedFollower'|'public-fan' }
+ */
+exports.setUserRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'You must be logged in.');
+  }
+  const callerRole = request.auth.token?.role || '';
+  if (callerRole !== 'admin') {
+    throw new HttpsError('permission-denied', 'Admin only.');
+  }
+  const { emails, role } = request.data || {};
+  if (!emails || !role) {
+    throw new HttpsError('invalid-argument', "Provide 'emails' and 'role'.");
+  }
+  const list = Array.isArray(emails) ? emails : [emails];
+  const auth = getAuth();
+  const db = getFirestore();
+  const results = [];
+  for (const raw of list) {
+    const email = String(raw || '').trim();
+    if (!email) continue;
+    try {
+      const userRecord = await auth.getUserByEmail(email);
+      await auth.setCustomUserClaims(userRecord.uid, { role });
+      await db.collection('users').doc(userRecord.uid).set({ role }, { merge: true });
+      results.push({ email, uid: userRecord.uid, status: 'ok' });
+    } catch (e) {
+      results.push({ email, error: e?.message || String(e) });
+    }
+  }
+  return { status: 'done', results };
+});
+
+/**
+ * Admin-only: create invitation codes.
+ * data: { role: string, codes?: string[], count?: number, prefix?: string, expiresAt?: string }
+ * If codes not provided, generate 'count' random codes.
+ */
+exports.createInvitationCodes = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'You must be logged in.');
+  }
+  const callerRole = request.auth.token?.role || '';
+  if (callerRole !== 'admin') {
+    throw new HttpsError('permission-denied', 'Admin only.');
+  }
+  const { role, codes, count, prefix, expiresAt } = request.data || {};
+  if (!role) throw new HttpsError('invalid-argument', "'role' is required");
+  const db = getFirestore();
+  const out = [];
+  const gen = (n=10)=>{
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s=''; for (let i=0;i<n;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+    return s;
+  };
+  const list = Array.isArray(codes) && codes.length ? codes : Array.from({length: Math.max(1, Number(count)||1)}, ()=> (prefix? (String(prefix)+gen(6)) : gen(10)));
+  let expTs = null;
+  try { if (expiresAt) expTs = new Date(expiresAt); } catch {}
+  for (const code of list) {
+    const id = String(code).trim(); if (!id) continue;
+    try {
+      await db.collection('invitation_codes').doc(id).set({
+        role,
+        used: false,
+        createdAt: FieldValue.serverTimestamp(),
+        ...(expTs ? { expiresAt: expTs } : {}),
+      }, { merge: true });
+      out.push({ code: id, status: 'ok' });
+    } catch (e) {
+      out.push({ code: id, error: e?.message || String(e) });
+    }
+  }
+  return { status: 'done', created: out };
 });
 
 /**

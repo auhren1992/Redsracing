@@ -1,16 +1,16 @@
 import "./app.js";
-import { getFirebaseAuth, getFirebaseDb } from "/assets/js/firebase-core.js";
+import { getFirebaseAuth, getFirebaseDb } from "./firebase-core.js";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
   sendEmailVerification,
-} from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import {
   validateInvitationCode,
   processInvitationCode,
   captureInvitationCodeFromURL,
-} from "/assets/js/invitation-codes.js";
+} from "./invitation-codes.js";
 
 async function createDefaultProfile(user) {
   try {

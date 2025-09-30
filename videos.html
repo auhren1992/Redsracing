@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
+  <script src="assets/js/guest-gate.js"></script>
   </head>
   <body class="bg-dark-blue">
     <header
@@ -33,7 +34,7 @@
         class="container mx-auto px-6 py-3 flex justify-between items-center"
       >
         <a
-          href="index.html"
+href="jons.html"
           class="text-4xl font-racing uppercase tracking-wider"
         >
           <span class="title-blue">Reds</span
@@ -75,11 +76,6 @@
           <!-- User Profile / Login -->
           <div id="auth-section">
             <!-- Login Button (shown when not authenticated) -->
-            <a href="admin-console.html" id="login-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-bold transition duration-300 flex items-center space-x-1">
-              <i class="fas fa-sign-in-alt"></i>
-              <span>Login</span>
-            </a>
-            
             <!-- User Profile Dropdown (shown when authenticated) -->
             <div id="user-profile" class="relative dropdown hidden">
               <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
@@ -171,9 +167,7 @@
           <!-- Mobile Auth Section -->
           <div id="mobile-auth-section">
             <!-- Mobile Login Button (shown when not authenticated) -->
-            <a href="admin-console.html" id="mobile-login-btn" class="mobile-login-btn bg-red-600 hover:bg-red-700">
-              <i class="fas fa-sign-in-alt mr-2"></i>Driver Login
-            </a>
+            
             
             <!-- Mobile User Profile (shown when authenticated) -->
             <div id="mobile-user-profile" class="hidden">
@@ -271,108 +265,9 @@
               </h2>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <!-- Video Card 1 -->
-              <div class="modern-card rounded-2xl overflow-hidden hover:scale-105 transition-all duration-500 group">
-                <div class="aspect-video relative bg-slate-800">
-                  <iframe
-                    src="https://www.youtube.com/embed/Lzi_w8jqgS8"
-                    frameborder="0"
-                    allowfullscreen
-                    class="w-full h-full rounded-t-2xl"
-                    loading="lazy"
-                  ></iframe>
-                  <div class="absolute top-4 right-4">
-                    <div class="bg-red-600/90 backdrop-blur-sm px-2 py-1 rounded-full">
-                      <i class="fas fa-video text-white text-xs mr-1"></i>
-                      <span class="text-white text-xs font-bold">HD</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="p-6">
-                  <div class="flex items-center mb-3">
-                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                      <i class="fas fa-flag-checkered text-white text-sm"></i>
-                    </div>
-                    <h3 class="font-racing text-xl text-white uppercase">Dells Raceway Park</h3>
-                  </div>
-                  <p class="text-slate-400 mb-4">
-                    Experience the thrill of a hot lap around the legendary Dells Raceway Park track.
-                  </p>
-                  <div class="flex items-center justify-between text-sm">
-                    <span class="text-blue-400 font-semibold">Onboard Camera</span>
-                    <span class="text-slate-500">2:34</span>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Video Card 2 -->
-              <div class="modern-card rounded-2xl overflow-hidden hover:scale-105 transition-all duration-500 group">
-                <div class="aspect-video relative bg-slate-800">
-                  <iframe
-                    src="https://www.youtube.com/embed/DMYD64ViS88"
-                    frameborder="0"
-                    allowfullscreen
-                    class="w-full h-full rounded-t-2xl"
-                    loading="lazy"
-                  ></iframe>
-                  <div class="absolute top-4 right-4">
-                    <div class="bg-green-600/90 backdrop-blur-sm px-2 py-1 rounded-full">
-                      <i class="fas fa-trophy text-white text-xs mr-1"></i>
-                      <span class="text-white text-xs font-bold">WIN</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="p-6">
-                  <div class="flex items-center mb-3">
-                    <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
-                      <i class="fas fa-trophy text-white text-sm"></i>
-                    </div>
-                    <h3 class="font-racing text-xl text-white uppercase">Slinger Super Speedway</h3>
-                  </div>
-                  <p class="text-slate-400 mb-4">
-                    Watch the best moments and highlights from our victorious race at Slinger Super Speedway.
-                  </p>
-                  <div class="flex items-center justify-between text-sm">
-                    <span class="text-green-400 font-semibold">Race Highlights</span>
-                    <span class="text-slate-500">4:12</span>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Video Card 3 -->
-              <div class="modern-card rounded-2xl overflow-hidden hover:scale-105 transition-all duration-500 group">
-                <div class="aspect-video relative bg-slate-800">
-                  <iframe
-                    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                    frameborder="0"
-                    allowfullscreen
-                    class="w-full h-full rounded-t-2xl"
-                    loading="lazy"
-                  ></iframe>
-                  <div class="absolute top-4 right-4">
-                    <div class="bg-purple-600/90 backdrop-blur-sm px-2 py-1 rounded-full">
-                      <i class="fas fa-wrench text-white text-xs mr-1"></i>
-                      <span class="text-white text-xs font-bold">TECH</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="p-6">
-                  <div class="flex items-center mb-3">
-                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mr-3">
-                      <i class="fas fa-cog text-white text-sm"></i>
-                    </div>
-                    <h3 class="font-racing text-xl text-white uppercase">Garage Talk: Car Setup</h3>
-                  </div>
-                  <p class="text-slate-400 mb-4">
-                    Go behind the scenes and learn about the technical setup that makes our cars competitive.
-                  </p>
-                  <div class="flex items-center justify-between text-sm">
-                    <span class="text-purple-400 font-semibold">Behind the Scenes</span>
-                    <span class="text-slate-500">8:45</span>
-                  </div>
-                </div>
-              </div>
+            <div id="video-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div id="tiktok-embeds" class="col-span-full"></div>
+              <!-- TikTok content is injected by videos.js; YouTube fallback removed -->
             </div>
             
             <!-- Call to Action -->
