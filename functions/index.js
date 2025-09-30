@@ -8,6 +8,7 @@
  */
 
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const Sentry = require("@sentry/node");
 let __dsn = process.env.SENTRY_DSN;
 try {
@@ -435,9 +436,7 @@ exports.fetchK1AddisonJonny = onRequest({ secrets: ["SENTRY_DSN"] }, async (req,
     const url = 'https://www.k1speed.com/addison-junior-league-results.html';
     const r = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });
     const html = await r.text();
-    // Normalize whitespace
     const text = html.replace(/\s+/g, ' ');
-    // Capture the row for "Jonny|Jonathon|Jonathan Kirsch": a sequence of numbers (GP) then a total
     const rx = /(Jonny|Jonathon|Jonathan)\s+Kirsch\s+((?:\d+\s+){1,24})(\d{1,4})(?!\s*\d)/i;
     const m = text.match(rx);
     if (!m) {
@@ -449,6 +448,236 @@ exports.fetchK1AddisonJonny = onRequest({ secrets: ["SENTRY_DSN"] }, async (req,
   } catch (error) {
     try { Sentry.captureException(error); } catch (_) {}
     res.status(200).json({ ok: false, message: 'Failed to fetch K1 page' });
+  }
+});
+
+// Fetch K1 Addison Adult Challenge GP row for Jonathan Kirsch and persist to Firestore
+exports.fetchK1AddisonJon = onRequest({ secrets: ["SENTRY_DSN"] }, async (req, res) => {
+  try {
+    const url = 'https://www.k1speed.com/challenge-gp-addison.html';
+    const r = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const html = await r.text();
+    const text = html.replace(/\s+/g, ' ');
+    // Match the standings row for Jonathan Kirsch: series of numbers (GP1..GP12) then TOTAL
+    const rx = /Jonathan\s+Kirsch\s+((?:\d+\s+){1,24})(\d{1,4})(?!\s*\d)/i;
+    const m = text.match(rx);
+    if (!m) {
+      return res.status(200).json({ ok: false, message: 'Row for Jonathan Kirsch not found' });
+    }
+    const gpPoints = m[1].trim().split(/\s+/).map(n => parseInt(n, 10)).filter(Number.isFinite);
+    const total = parseInt(m[2], 10);
+
+    // Persist latest into Firestore (for history/diagnostics)
+    try {
+      const db = getFirestore();
+      await db.collection('k1_stats').doc('jon_addison_2025').set({
+        name: 'Jonathan Kirsch',
+        season: 2025,
+        location: 'Addison',
+        series: 'Adult Challenge GP',
+        gpPoints,
+        total,
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    } catch (e) { logger.warn('Failed to persist k1_stats/jon_addison_2025', e); }
+
+    res.status(200).json({ ok: true, season: 2025, gpPoints, total, matchedName: 'Jonathan Kirsch' });
+  } catch (error) {
+    try { Sentry.captureException(error); } catch (_) {}
+    res.status(200).json({ ok: false, message: 'Failed to fetch K1 page' });
+  }
+});
+
+// Scheduled refresh for Jonathan Kirsch K1 Addison standings (every 12 hours)
+exports.k1AutoRefreshAddisonJon = onSchedule({ schedule: 'every 12 hours', timeZone: 'America/Chicago', secrets: ["SENTRY_DSN"] }, async (event) => {
+  try {
+    const url = 'https://www.k1speed.com/challenge-gp-addison.html';
+    const r = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const html = await r.text();
+    const text = html.replace(/\s+/g, ' ');
+
+    // Helper to extract season chunk by label like "2025 Season"
+    function chunkFor(year) {
+      const marker = `${year} Season`;
+      const i = text.indexOf(marker);
+      if (i < 0) return null;
+      let end = text.length;
+      for (const y of [2024,2023,2022,2021]) {
+        const j = text.indexOf(`${y} Season`, i + marker.length);
+        if (j > -1) { end = Math.min(end, j); }
+      }
+      return text.slice(i, end);
+    }
+
+    const db = getFirestore();
+    for (const year of [2025, 2024, 2023, 2022]) {
+      const sect = chunkFor(year);
+      if (!sect) continue;
+      const rxRow = /(?!\bName\b)([A-Z][A-Za-z'\-]+\s+[A-Z][A-Za-z'\-]+)\s+((?:\d+\s+){1,24})(\d{1,4})(?!\s*\d)/g;
+      let match;
+      let rows = [];
+      while ((match = rxRow.exec(sect)) !== null) {
+        const name = match[1].trim();
+        const nums = match[2].trim().split(/\s+/).map(n=>parseInt(n,10)).filter(Number.isFinite);
+        const total = parseInt(match[3],10);
+        rows.push({ name, nums, total });
+      }
+      if (!rows.length) continue;
+      // Find Jonathan's row (case-insensitive)
+      const idx = rows.findIndex(r => /jonathan\s+kirsch/i.test(r.name));
+      if (idx === -1) continue;
+      // Compute place by ranking by total desc
+      const place = 1 + rows.filter(r => r.total > rows[idx].total).length;
+      const gpPoints = rows[idx].nums;
+      const total = rows[idx].total;
+
+      await db.collection('k1_stats').doc(`jon_addison_${year}`).set({
+        name: 'Jonathan Kirsch',
+        season: year,
+        location: 'Addison',
+        series: 'Adult Challenge GP',
+        gpPoints,
+        total,
+        place: year === 2025 ? 2 : place, // user-confirmed for 2025
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    }
+
+    logger.info('k1AutoRefreshAddisonJon updated multi-season standings');
+  } catch (error) {
+    try { Sentry.captureException(error); } catch (_) {}
+    logger.warn('k1AutoRefreshAddisonJon failed');
+  }
+});
+
+// HTTP: return seasons array for 2025..2022 for Jonathan Kirsch
+exports.fetchK1AddisonJonSeasons = onRequest({ secrets: ["SENTRY_DSN"] }, async (req, res) => {
+  try {
+    const url = 'https://www.k1speed.com/challenge-gp-addison.html';
+    const r = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const html = await r.text();
+    const text = html.replace(/\s+/g, ' ');
+
+    function chunkFor(year) {
+      const marker = `${year} Season`;
+      const i = text.indexOf(marker);
+      if (i < 0) return null;
+      let end = text.length;
+      for (const y of [2025,2024,2023,2022,2021]) {
+        if (y === year) continue;
+        const j = text.indexOf(`${y} Season`, i + marker.length);
+        if (j > -1) { end = Math.min(end, j); }
+      }
+      return text.slice(i, end);
+    }
+
+    const seasons = [];
+    for (const year of [2025, 2024, 2023, 2022]) {
+      const sect = chunkFor(year);
+      if (!sect) continue;
+      const rxRow = /(?!\bName\b)([A-Z][A-Za-z'\-]+\s+[A-Z][A-Za-z'\-]+)\s+((?:\d+\s+){1,24})(\d{1,4})(?!\s*\d)/g;
+      let match;
+      let rows = [];
+      while ((match = rxRow.exec(sect)) !== null) {
+        const name = match[1].trim();
+        const nums = match[2].trim().split(/\s+/).map(n=>parseInt(n,10)).filter(Number.isFinite);
+        const total = parseInt(match[3],10);
+        rows.push({ name, nums, total });
+      }
+      if (!rows.length) continue;
+      const idx = rows.findIndex(r => /jonathan\s+kirsch/i.test(r.name));
+      if (idx === -1) continue;
+      const placeComputed = 1 + rows.filter(r => r.total > rows[idx].total).length;
+      const place = year === 2025 ? 2 : placeComputed; // user-provided correction
+      seasons.push({
+        year,
+        series: 'K1 Addison Adult League',
+        points: rows[idx].total,
+        gpPoints: rows[idx].nums,
+        place,
+      });
+    }
+
+    res.status(200).json({ ok: true, seasons });
+  } catch (error) {
+    try { Sentry.captureException(error); } catch (_) {}
+    res.status(200).json({ ok: false, message: 'Failed to fetch K1 page' });
+  }
+});
+
+// Speedhive: scrape profile page for Jonathan Kirsch and persist basic race data
+exports.fetchSpeedhiveJon = onRequest({ secrets: ["SENTRY_DSN"] }, async (req, res) => {
+  try {
+    const PROFILE_URL = 'https://speedhive.mylaps.com/profile/MYLAPS-GA-3a22ae250e154baf8f798908b7e3599e';
+    const r = await fetch(PROFILE_URL, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const html = await r.text();
+    const text = html.replace(/\s+/g, ' ');
+
+    // Attempt to find structured data blocks first
+    const events = [];
+    try {
+      const scriptBlocks = Array.from(html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)).map(m=>m[1]);
+      for (const block of scriptBlocks) {
+        if (/"@type"\s*:\s*"Event"/i.test(block)) {
+          // Extract loose JSON objects with @type Event
+          const objMatches = block.match(/\{[\s\S]*?\}/g) || [];
+          for (const raw of objMatches) {
+            try {
+              const obj = JSON.parse(raw);
+              if (obj['@type']==='Event') {
+                events.push({
+                  name: obj.name || null,
+                  startDate: obj.startDate || null,
+                  location: obj?.location?.name || null,
+                });
+              }
+            } catch {}
+          }
+        }
+      }
+    } catch {}
+
+    // Heuristic fallback: links that look like events with dates nearby
+    if (!events.length) {
+      const linkRx = /<a[^>]+href=\"([^\"]+)\"[^>]*>(.*?)<\/a>/gi;
+      let m;
+      while ((m = linkRx.exec(html)) !== null) {
+        const href = m[1];
+        const label = m[2].replace(/<[^>]+>/g,'').trim();
+        if (/event|result|race/i.test(href) && label && label.length > 3) {
+          // Try to find a nearby date
+          const around = text.slice(Math.max(0, m.index - 120), Math.min(text.length, m.index + 200));
+          const dateMatch = around.match(/\b(\d{1,2}\s+[A-Z][a-z]+\s+\d{4}|\d{4}-\d{2}-\d{2})\b/);
+          events.push({ name: label, date: dateMatch ? dateMatch[0] : null, link: href });
+        }
+      }
+    }
+
+    // Persist snapshot to Firestore for audit and client rendering
+    try {
+      const db = getFirestore();
+      await db.collection('speedhive_profiles').doc('jon_kirsch').set({
+        profileUrl: PROFILE_URL,
+        lastFetchedAt: FieldValue.serverTimestamp(),
+        eventCount: events.length,
+        events: events.slice(0, 100),
+      }, { merge: true });
+    } catch {}
+
+    res.status(200).json({ ok: true, events });
+  } catch (error) {
+    try { Sentry.captureException(error); } catch (_) {}
+    res.status(200).json({ ok: false, message: 'Failed to fetch Speedhive' });
+  }
+});
+
+// Schedule: refresh Speedhive daily
+exports.speedhiveAutoRefreshJon = onSchedule({ schedule: 'every 24 hours', timeZone: 'America/Chicago', secrets: ["SENTRY_DSN"] }, async (event) => {
+  try {
+    const url = 'https://us-central1-redsracing-a7f8b.cloudfunctions.net/fetchSpeedhiveJon';
+    await fetch(url, { method: 'GET' });
+  } catch (e) {
+    try { Sentry.captureException(e); } catch (_) {}
   }
 });
 
@@ -780,7 +1009,6 @@ exports.refreshTikTokVideos = onCall({ secrets: ["SENTRY_DSN"] }, async (request
 });
 
 // Scheduled auto-ingest every 2 hours
-const { onSchedule } = require('firebase-functions/v2/scheduler');
 exports.tiktokAutoIngest = onSchedule('every 120 minutes', async (event) => {
   const db = getFirestore();
   try {

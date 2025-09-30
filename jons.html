@@ -711,12 +711,22 @@
       <!-- Schedule Section -->
       <section id="racer-schedule" class="py-16 md:py-24 bg-black/20"></section>
 
+      <!-- Race Results (Speedhive) -->
+      <section class="py-16 md:py-24 bg-black/10">
+        <div class="container mx-auto px-6">
+          <h2 class="font-racing text-5xl uppercase mb-6 text-center">Race <span class="neon-yellow">Results</span></h2>
+          <div id="race-results" class="card rounded-lg p-6">
+            <p class="text-slate-400">Loading Speedhive results...</p>
+          </div>
+        </div>
+      </section>
+
       <!-- K1 Speed Addison Stats for Jon -->
       <section class="py-16 md:py-24 bg-black/10">
         <div class="container mx-auto px-6">
           <h2 class="font-racing text-5xl uppercase mb-6 text-center">K1 Speed <span class="neon-yellow">Addison</span> Stats</h2>
-          <div id="k1-addison-stats-jon" class="card rounded-lg p-6">
-            <p class="text-slate-400">This section can feature Jon's K1 lap stats if provided.</p>
+          <div id="k1-addison-stats" class="card rounded-lg p-6">
+            <p class="text-slate-400">Loading...</p>
           </div>
           <div class="mt-8">
             <h3 class="font-racing text-3xl mb-4">Prior Years <span class="neon-yellow">Results</span></h3>
@@ -943,5 +953,6 @@
     <script type="module" src="assets/js/driver.js"></script>
     <script type="module" src="assets/js/k1-stats.js"></script>
     <script type="module" src="assets/js/k1-history.js"></script>
+    <script type="module" src="assets/js/speedhive-results.js"></script>
   </body>
 </html>

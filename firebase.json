@@ -154,6 +154,27 @@
           "functionId": "fetchK1AddisonJonny",
           "codebase": "default"
         }
+      },
+      {
+        "source": "/k1/addison/2025/jon",
+        "function": {
+          "functionId": "fetchK1AddisonJon",
+          "codebase": "default"
+        }
+      },
+      {
+        "source": "/k1/addison/jon/seasons",
+        "function": {
+          "functionId": "fetchK1AddisonJonSeasons",
+          "codebase": "default"
+        }
+      },
+      {
+        "source": "/speedhive/jon",
+        "function": {
+          "functionId": "fetchSpeedhiveJon",
+          "codebase": "default"
+        }
       }
     ]
   },

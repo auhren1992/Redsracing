@@ -423,6 +423,18 @@
               <div class="mt-6 inline-flex items-center bg-red-500/15 border border-red-400/40 px-4 py-2 rounded-full text-red-300 text-xs uppercase tracking-wider">
                 <i class="fas fa-bolt mr-2"></i> Reaction • Precision • Grit
               </div>
+              <!-- CTAs -->
+              <div class="mt-8 flex flex-wrap gap-3 justify-center lg:justify-start">
+                <a href="#jonny-videos" class="bg-slate-800/60 hover:bg-slate-700/60 border border-slate-600/60 text-white font-bold py-2.5 px-5 rounded-md transition inline-flex items-center gap-2">
+                  <i class="fas fa-play"></i> Watch Videos
+                </a>
+                <a href="#racer-schedule" class="bg-slate-800/60 hover:bg-slate-700/60 border border-slate-600/60 text-white font-bold py-2.5 px-5 rounded-md transition inline-flex items-center gap-2">
+                  <i class="fas fa-calendar"></i> View Schedule
+                </a>
+                <a href="sponsorship.html#sponsorshipForm" class="bg-neon-yellow text-slate-900 hover:bg-yellow-300 font-bold py-2.5 px-5 rounded-md transition inline-flex items-center gap-2">
+                  <i class="fas fa-handshake"></i> Join the Team
+                </a>
+              </div>
             </div>
 
             <!-- Speed Dial -->
@@ -473,6 +485,7 @@
                 <h2 class="font-racing text-6xl uppercase">
                   The Rookie <span class="neon-red">Sensation</span>
                 </h2>
+                <div class="mt-2 h-1 w-28 bg-gradient-to-r from-red-500 to-rose-500 rounded reveal-fade"></div>
                 <p class="text-slate-300 mt-4">
                   For nine-year-old Jonny, speed has always been a way of life.
                   His journey began not on asphalt, but on dirt trails,
@@ -503,6 +516,29 @@
                   warm, the green flag is about to drop, and a new rookie
                   sensation is ready to make his mark.
                 </p>
+              </div>
+              <!-- Rookie Highlights -->
+              <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 reveal-up">
+                <div class="stat-card-3d text-center">
+                  <div class="text-sm text-slate-400 uppercase tracking-wider mb-1">Best Lap</div>
+                  <div class="stat-number-3d" id="bio-best-lap">—</div>
+                </div>
+                <div class="stat-card-3d text-center">
+                  <div class="text-sm text-slate-400 uppercase tracking-wider mb-1">Avg Lap</div>
+                  <div class="stat-number-3d" id="bio-avg-lap">—</div>
+                </div>
+                <div class="stat-card-3d text-center">
+                  <div class="text-sm text-slate-400 uppercase tracking-wider mb-1">K1 Season Points</div>
+                  <div class="stat-number-3d" id="bio-k1-points">—</div>
+                </div>
+              </div>
+              <div class="mt-6 flex flex-wrap gap-3 reveal-up">
+                <a href="#the-rookie-car" class="bg-slate-800/60 hover:bg-slate-700/60 border border-slate-600/60 text-white font-bold py-2 px-4 rounded-md transition inline-flex items-center gap-2">
+                  <i class="fas fa-car-side"></i> Meet The Rookie Car
+                </a>
+                <a href="#support-jonny" class="bg-neon-yellow text-slate-900 hover:bg-yellow-300 font-bold py-2 px-4 rounded-md transition inline-flex items-center gap-2">
+                  <i class="fas fa-handshake"></i> Support Jonny
+                </a>
               </div>
               <div class="grid grid-cols-2 gap-4 text-center">
                 <div
@@ -761,6 +797,17 @@
           </div>
         </div>
       </section>
+
+      <!-- Support Jonny CTA -->
+      <section id="support-jonny" class="py-16 md:py-24 bg-black/10">
+        <div class="container mx-auto px-6 text-center">
+          <h3 class="font-racing text-4xl md:text-5xl uppercase mb-4">Support <span class="neon-red">Jonny</span></h3>
+          <p class="text-slate-300 max-w-2xl mx-auto mb-6">Become part of Jonny's rookie journey. Your support helps with car prep, track time, and race entries.</p>
+          <a href="sponsorship.html#sponsorshipForm" class="bg-neon-yellow text-slate-900 hover:bg-yellow-300 font-bold py-3 px-6 rounded-md inline-flex items-center gap-2">
+            <i class="fas fa-handshake"></i> Join the Team
+          </a>
+        </div>
+      </section>
     </main>
 
     <footer class="bg-black/50 border-t border-slate-800 py-16">
@@ -798,6 +845,36 @@
     <script type="module" src="assets/js/racer-schedule.js"></script>
     <script type="module" src="assets/js/jonny.js?v=20250929-1"></script>
     <script type="module" src="assets/js/k1-stats-jonny.js?v=20250929-1"></script>
+    <script>
+      try {
+        const sr = ScrollReveal();
+        sr.reveal('.reveal-left', { origin: 'left', distance: '40px', duration: 800, interval: 80, easing: 'ease-in-out' });
+        sr.reveal('.reveal-right', { origin: 'right', distance: '40px', duration: 800, interval: 80, easing: 'ease-in-out' });
+        sr.reveal('.reveal-fade', { opacity: 0, duration: 800, interval: 60, easing: 'ease-in-out' });
+        sr.reveal('.reveal-up', { origin: 'bottom', distance: '30px', duration: 800, interval: 80, easing: 'ease-in-out' });
+      } catch (e) {}
+      (async () => {
+        try {
+          const r = await fetch('data/k1_jonny_addison_2025.json', { cache: 'no-store' }).catch(()=>null);
+          if (r && r.ok) {
+            const d = await r.json();
+            const best = d?.bestLap || '—';
+            const avg = d?.averageLap || '—';
+            const elBest = document.getElementById('bio-best-lap'); if (elBest) elBest.textContent = best;
+            const elAvg = document.getElementById('bio-avg-lap'); if (elAvg) elAvg.textContent = avg;
+          }
+        } catch {}
+        try {
+          const hr = await fetch('data/k1_jonny_addison_history.json', { cache: 'no-store' }).catch(()=>null);
+          if (hr && hr.ok) {
+            const h = await hr.json();
+            const s2025 = Array.isArray(h?.seasons) ? h.seasons.find(s=>s.year===2025) : null;
+            const pts = (s2025 && typeof s2025.points === 'number') ? s2025.points : '—';
+            const elPts = document.getElementById('bio-k1-points'); if (elPts) elPts.textContent = pts;
+          }
+        } catch {}
+      })();
+    </script>
     <script type="module" src="modern-effects.js"></script>
     <script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
   </body>

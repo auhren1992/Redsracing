@@ -1,5 +1,7 @@
 // Shared schedule renderer for driver pages
 import "./app.js";
+import { getFirebaseDb } from "./firebase-core.js";
+import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 async function fetchJSON(path) {
   try {
@@ -44,11 +46,12 @@ function renderSchedule(root, races, opts = {}) {
     const isPast = opts.seasonOver ? true : new Date(r.date) < now;
     card.className = `schedule-card rounded-lg p-5 card ${isPast ? 'past' : 'upcoming'}`;
     const status = isPast ? '<span class="text-xs text-slate-400">Completed</span>' : '<span class="text-xs text-neon-yellow">Upcoming</span>';
+    const subtitle = r.subtitle || [r.track, r.city && r.state ? `${r.city}, ${r.state}` : null].filter(Boolean).join(' — ');
     card.innerHTML = `
       <div class="flex items-center justify-between">
         <div>
-          <div class="text-xl font-bold">${r.eventName}</div>
-          <div class="text-slate-400 text-sm">${r.track} — ${r.city}, ${r.state}</div>
+          <div class="text-xl font-bold">${r.eventName || r.name}</div>
+          ${subtitle ? `<div class="text-slate-400 text-sm">${subtitle}</div>` : ''}
         </div>
         <div class="text-right">
           <div class="${isPast ? 'text-slate-400' : 'text-neon-yellow'} font-bold">${formatDate(r.date)}</div>
@@ -66,6 +69,29 @@ function renderSchedule(root, races, opts = {}) {
 (async function initRacerSchedule() {
   const root = document.getElementById("racer-schedule");
   if (!root) return;
+
+  // Try Firestore first to mirror schedule.html
+  try {
+    const db = getFirebaseDb();
+    const snap = await getDocs(query(collection(db, 'races'), orderBy('date', 'asc')));
+    const racesFs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (racesFs.length) {
+      // Normalize to renderer format
+      const races = racesFs.map(r => ({
+        date: r.date,
+        eventName: r.name,
+        name: r.name,
+        startTime: r.startTime || null,
+        subtitle: r.special ? String(r.special) : (r.race ? `Race ${r.race}` : null),
+      }));
+      renderSchedule(root, races, { seasonOver: false });
+      return;
+    }
+  } catch (e) {
+    // fall through to JSON
+  }
+
+  // Fallback to static JSON if Firestore unavailable/empty
   const data = await fetchJSON("data/schedule.json");
   if (!data || !data.races) {
     root.innerHTML = '<p class="text-center text-slate-400">Schedule coming soon.</p>';
@@ -73,6 +99,5 @@ function renderSchedule(root, races, opts = {}) {
   }
   const seasonOver = !!data.seasonOver;
   const opts = { seasonOver, seasonYear: data.seasonYear, nextSeasonYear: data.nextSeasonYear };
-  // Show full schedule with past/upcoming styling
   renderSchedule(root, data.races, opts);
 })();

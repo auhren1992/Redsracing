@@ -554,10 +554,12 @@ async function renderVideos() {
     }
 
     if (!vids.length) {
-      const p = document.createElement('p');
-      p.className = 'text-slate-400 text-center col-span-full';
-      p.textContent = "No videos yet. Check back soon!";
-      container.appendChild(p);
+      const wrap = document.createElement('div');
+      wrap.className = 'col-span-full text-center';
+      wrap.innerHTML = `
+        <p class="text-slate-400">No videos yet. Check back soon!</p>
+        <p class="mt-2"><a class="text-neon-yellow underline" href="videos.html">See our Videos page</a></p>`;
+      container.appendChild(wrap);
       return;
     }
 
