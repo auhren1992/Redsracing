@@ -528,7 +528,85 @@ await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js').
   });
 
   renderGallery();
+
+  // Videos rendering
+  try { await renderVideos(); } catch {}
 }
+
+async function renderVideos() {
+  try {
+    const db = getFirebaseDb();
+    const container = document.getElementById('dynamic-video-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const baseCol = collection(db, 'jonny_videos');
+    // Use timestamp desc then fallback to createdAt
+    let vids = [];
+    try {
+      const snap = await getDocs(query(baseCol, orderBy('timestamp','desc')));
+      vids = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch {
+      try {
+        const snap = await getDocs(query(baseCol, orderBy('createdAt','desc')));
+        vids = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch {}
+    }
+
+    if (!vids.length) {
+      const p = document.createElement('p');
+      p.className = 'text-slate-400 text-center col-span-full';
+      p.textContent = "No videos yet. Check back soon!";
+      container.appendChild(p);
+      return;
+    }
+
+    const frag = document.createDocumentFragment();
+    vids.forEach(v => {
+      const url = String(v.url || '').trim();
+      const title = v.title || '';
+      const card = document.createElement('div');
+      card.className = 'rounded-xl overflow-hidden border border-slate-700/50 bg-black/30';
+      const embed = createEmbed(url);
+      if (embed) {
+        card.innerHTML = embed + (title ? `<div class="p-3 text-slate-300 text-sm">${escapeHtml(title)}</div>` : '');
+      } else {
+        card.innerHTML = `<div class="p-4"><a class="text-neon-yellow underline" href="${escapeAttr(url)}" target="_blank" rel="noopener">${title || 'Open video'}</a></div>`;
+      }
+      frag.appendChild(card);
+    });
+    container.appendChild(frag);
+  } catch (e) {
+    // Best-effort; silently fail
+  }
+}
+
+function createEmbed(url) {
+  // TikTok
+  const t = url.match(/\/(video|photo)\/(\d{6,})/);
+  if (t) {
+    const id = t[2];
+    return `<iframe src="https://www.tiktok.com/embed/v2/${id}" width="100%" height="700" frameborder="0" allowfullscreen scrolling="no" loading="lazy"></iframe>`;
+  }
+  // YouTube short/long
+  try {
+    const u = new URL(url, window.location.origin);
+    if (u.hostname.includes('youtu.be')) {
+      const id = u.pathname.slice(1);
+      if (id) return `<iframe width="100%" height="360" src="https://www.youtube.com/embed/${id}" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>`;
+    }
+    if (u.hostname.includes('youtube.com')) {
+      const id = u.searchParams.get('v');
+      if (id) return `<iframe width="100%" height="360" src="https://www.youtube.com/embed/${id}" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>`;
+    }
+  } catch {}
+  return null;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+}
+function escapeAttr(s) { return escapeHtml(s); }
 
 // Auto award achievement helper function
 async function autoAwardAchievement(userId, actionType, actionData = {}) {
