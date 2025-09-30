@@ -861,7 +861,7 @@
             </div>
             
             <!-- Advanced Section -->
-            <div id="advanced" class="space-y-6" style="display: none">
+            <div id="advanced-section" class="space-y-6" style="display: none">
               <div class="flex items-center justify-between">
                 <h2 class="text-3xl font-bold text-white">
                   <i class="fas fa-tools text-yellow-300 mr-3"></i>
@@ -913,6 +913,94 @@
                   <div id="tiktok-video-list" class="space-y-2"></div>
                 </div>
               </div>
+
+              <!-- Role Management -->
+              <div class="admin-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                  <i class="fas fa-user-shield text-green-400 mr-2"></i>
+                  Role Management
+                </h3>
+                <p class="text-slate-400 text-sm mb-4">Assign roles by email. Admin only for role changes.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Email addresses (one per line)</label>
+                    <textarea id="role-emails" class="modern-input w-full p-3 text-white resize-none" rows="5" placeholder="user1@example.com&#10;user2@example.com"></textarea>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Role</label>
+                    <select id="role-select" class="modern-input w-full p-2 text-white">
+                      <option value="team-member">team-member</option>
+                      <option value="TeamRedFollower">TeamRedFollower</option>
+                      <option value="public-fan">public-fan</option>
+                      <option value="admin">admin</option>
+                    </select>
+                    <button id="assign-role-btn" class="success-btn text-white px-4 py-2 rounded-lg text-sm font-semibold mt-3 w-full">
+                      <i class="fas fa-user-check mr-2"></i>Assign Role(s)
+                    </button>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <div id="role-results" class="text-sm text-slate-300"></div>
+                </div>
+              </div>
+
+              <!-- Invitation Codes Manager -->
+              <div class="admin-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                  <i class="fas fa-key text-yellow-400 mr-2"></i>
+                  Invitation Codes
+                </h3>
+                <div class="flex items-center justify-between mb-3">
+                  <p class="text-slate-400 text-sm">Team-members and admins can view codes. Only admins can create codes.</p>
+                  <div class="space-x-2">
+                    <button id="refresh-invites-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-sync mr-1"></i>Refresh</button>
+                  </div>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-sm">
+                    <thead>
+                      <tr class="border-b border-slate-600">
+                        <th class="p-2">Code</th>
+                        <th class="p-2">Role</th>
+                        <th class="p-2">Status</th>
+                        <th class="p-2">Used By</th>
+                        <th class="p-2">Used At</th>
+                        <th class="p-2">Expires</th>
+                      </tr>
+                    </thead>
+                    <tbody id="invites-table-body"></tbody>
+                  </table>
+                </div>
+                <div class="mt-6 p-4 bg-slate-800/50 border border-slate-700/50 rounded-lg">
+                  <h4 class="text-white font-semibold mb-3"><i class="fas fa-plus mr-2 text-yellow-400"></i>Create New Codes (Admin)</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div>
+                      <label class="block text-xs text-slate-300 mb-1">Role</label>
+                      <select id="new-code-role" class="modern-input w-full p-2 text-white">
+                        <option value="team-member">team-member</option>
+                        <option value="TeamRedFollower">TeamRedFollower</option>
+                        <option value="public-fan">public-fan</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-300 mb-1">Count</label>
+                      <input type="number" id="new-code-count" min="1" value="5" class="modern-input w-full p-2 text-white" />
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-300 mb-1">Prefix (optional)</label>
+                      <input type="text" id="new-code-prefix" placeholder="TEAM-" class="modern-input w-full p-2 text-white" />
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-300 mb-1">Expires (optional)</label>
+                      <input type="date" id="new-code-expires" class="modern-input w-full p-2 text-white" />
+                    </div>
+                  </div>
+                  <div class="mt-3 flex justify-end">
+                    <button id="create-codes-btn" class="success-btn text-white px-4 py-2 rounded text-sm"><i class="fas fa-key mr-2"></i>Create</button>
+                  </div>
+                  <div id="create-codes-result" class="text-sm text-slate-300 mt-2"></div>
+                </div>
+              </div>
             </div>
             
             <!-- Quick Actions Footer -->
@@ -937,8 +1025,6 @@
               </div>
             </div>
 
-            <!-- Advanced Section: Roles & Invitations -->
-            <div id="advanced" class="space-y-6 hidden">
               <!-- Role Management -->
               <div class="admin-card rounded-xl p-6">
                 <h3 class="text-xl font-bold text-white mb-4">
@@ -1117,6 +1203,20 @@
       };
       if (getApps().length === 0) initializeApp(cfg);
     </script>
+    <script>
+      // Wire advanced actions after DOM load
+      document.addEventListener('DOMContentLoaded', function(){
+        try { wireAdvancedActions(); } catch {}
+        try {
+          const btn1 = document.getElementById('save-roster-btn');
+          if (btn1) btn1.addEventListener('click', saveRosterSettings);
+          const btn2 = document.getElementById('save-stats-btn');
+          if (btn2) btn2.addEventListener('click', saveHomepageStats);
+          const btn3 = document.getElementById('save-content-btn');
+          if (btn3) btn3.addEventListener('click', saveContentSettings);
+        } catch {}
+      });
+    </script>
     <script src="vendors.js"></script>
     <script type="module" src="assets/js/auth-guard.js"></script>
     <script type="module" src="navigation.js"></script>
@@ -1294,12 +1394,13 @@
         
         function showAdvanced() {
           hideAllSections();
-          const adv = document.getElementById('advanced');
+          const adv = document.getElementById('advanced-section');
           if (adv) {
             adv.classList.remove('hidden');
             adv.style.display = 'block';
-            // Load invites when Advanced is shown
+            // Load invites and TikTok list when Advanced is shown
             try { refreshInvitesUI(); } catch(_) {}
+            try { refreshTikTokList(); } catch(_) {}
           }
         }
         
@@ -1313,10 +1414,12 @@
             settingsSection.classList.remove('hidden');
             settingsSection.style.display = 'block';
           }
+          // Load settings data when opening
+          try { loadSiteSettings(); } catch(_) {}
         }
         
         function hideAllSections() {
-          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced', 'race-section', 'logs-section'];
+          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section'];
           sections.forEach(id => {
             const section = document.getElementById(id);
             if (section) {
@@ -1440,6 +1543,116 @@
           }
           
           return settingsSection;
+        }
+
+        // Settings: load and save
+        async function loadSiteSettings() {
+          try {
+            const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const db = getFirestore();
+            const snap = await getDoc(doc(db, 'config', 'site'));
+            if (!snap.exists()) return;
+            const v = snap.data() || {};
+            // Roster
+            try {
+              if (v.jon) {
+                if (document.getElementById('jon-number')) document.getElementById('jon-number').value = v.jon.number || '';
+                if (document.getElementById('jon-years')) document.getElementById('jon-years').value = v.jon.years || '';
+                if (document.getElementById('jon-wins')) document.getElementById('jon-wins').value = v.jon.wins || '';
+                if (document.getElementById('jon-podiums')) document.getElementById('jon-podiums').value = v.jon.podiums || '';
+                if (document.getElementById('jon-bio')) document.getElementById('jon-bio').value = v.jon.bio || '';
+              }
+              if (v.jonny) {
+                if (document.getElementById('jonny-number')) document.getElementById('jonny-number').value = v.jonny.number || '';
+                if (document.getElementById('jonny-years')) document.getElementById('jonny-years').value = v.jonny.years || '';
+                if (document.getElementById('jonny-wins')) document.getElementById('jonny-wins').value = v.jonny.wins || '';
+                if (document.getElementById('jonny-championships')) document.getElementById('jonny-championships').value = v.jonny.championships || '';
+                if (document.getElementById('jonny-bio')) document.getElementById('jonny-bio').value = v.jonny.bio || '';
+              }
+              // Homepage stats
+              if (v.homepage) {
+                if (document.getElementById('homepage-years')) document.getElementById('homepage-years').value = v.homepage.years || '';
+                if (document.getElementById('homepage-wins')) document.getElementById('homepage-wins').value = v.homepage.wins || '';
+                if (document.getElementById('homepage-numbers')) document.getElementById('homepage-numbers').value = v.homepage.numbers || '';
+                if (document.getElementById('homepage-users')) document.getElementById('homepage-users').value = v.homepage.users || '';
+              }
+              // Content
+              if (v.content) {
+                if (document.getElementById('hero-title')) document.getElementById('hero-title').value = v.content.heroTitle || '';
+                if (document.getElementById('hero-subtitle')) document.getElementById('hero-subtitle').value = v.content.heroSubtitle || '';
+                if (document.getElementById('racing-season')) document.getElementById('racing-season').value = v.content.season || '';
+              }
+              // Socials
+              if (v.social) {
+                if (document.getElementById('facebook-url')) document.getElementById('facebook-url').value = v.social.facebook || '';
+                if (document.getElementById('tiktok-handle')) document.getElementById('tiktok-handle').value = v.social.tiktok || '';
+              }
+              if (v.content && document.getElementById('copyright-year')) document.getElementById('copyright-year').value = v.content.copyright || '';
+            } catch (_) {}
+          } catch (e) { console.warn('Failed to load site settings', e); }
+        }
+
+        async function saveRosterSettings() {
+          try {
+            const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const db = getFirestore();
+            const payload = {
+              jon: {
+                number: document.getElementById('jon-number')?.value || null,
+                years: Number(document.getElementById('jon-years')?.value || 0) || 0,
+                wins: Number(document.getElementById('jon-wins')?.value || 0) || 0,
+                podiums: Number(document.getElementById('jon-podiums')?.value || 0) || 0,
+                bio: document.getElementById('jon-bio')?.value || null,
+              },
+              jonny: {
+                number: document.getElementById('jonny-number')?.value || null,
+                years: Number(document.getElementById('jonny-years')?.value || 0) || 0,
+                wins: Number(document.getElementById('jonny-wins')?.value || 0) || 0,
+                championships: Number(document.getElementById('jonny-championships')?.value || 0) || 0,
+                bio: document.getElementById('jonny-bio')?.value || null,
+              },
+            };
+            await setDoc(doc(db, 'config', 'site'), payload, { merge: true });
+            showToast('Roster saved');
+          } catch (e) { showToast('Failed to save roster', 'error'); }
+        }
+
+        async function saveHomepageStats() {
+          try {
+            const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const db = getFirestore();
+            const payload = {
+              homepage: {
+                years: Number(document.getElementById('homepage-years')?.value || 0) || 0,
+                wins: Number(document.getElementById('homepage-wins')?.value || 0) || 0,
+                numbers: document.getElementById('homepage-numbers')?.value || null,
+                users: Number(document.getElementById('homepage-users')?.value || 0) || 0,
+              },
+            };
+            await setDoc(doc(db, 'config', 'site'), payload, { merge: true });
+            showToast('Homepage stats saved');
+          } catch (e) { showToast('Failed to save homepage stats', 'error'); }
+        }
+
+        async function saveContentSettings() {
+          try {
+            const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const db = getFirestore();
+            const payload = {
+              content: {
+                heroTitle: document.getElementById('hero-title')?.value || null,
+                heroSubtitle: document.getElementById('hero-subtitle')?.value || null,
+                season: document.getElementById('racing-season')?.value || null,
+                copyright: Number(document.getElementById('copyright-year')?.value || new Date().getFullYear()),
+              },
+              social: {
+                facebook: document.getElementById('facebook-url')?.value || null,
+                tiktok: document.getElementById('tiktok-handle')?.value || null,
+              }
+            };
+            await setDoc(doc(db, 'config', 'site'), payload, { merge: true });
+            showToast('Content saved');
+          } catch (e) { showToast('Failed to save content', 'error'); }
         }
 
         // Logs: functions
@@ -1599,12 +1812,39 @@
           }
         }
 
+        // TikTok list rendering
+        async function refreshTikTokList() {
+          try {
+            const { getFirestore, collection, getDocs, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const db = getFirestore();
+            const listEl = document.getElementById('tiktok-video-list');
+            if (!listEl) return;
+            const q = query(collection(db, 'tiktok_videos'), orderBy('createdAt','desc'), limit(50));
+            const snap = await getDocs(q);
+            listEl.innerHTML = '';
+            if (snap.empty) {
+              listEl.innerHTML = '<div class="text-slate-400">No TikTok videos yet.</div>';
+              return;
+            }
+            snap.forEach(d => {
+              const v = d.data() || {};
+              const id = v.videoId || (String(v.url||'').match(/\/(video|photo)\/(\d{6,})/)||[])[2] || d.id;
+              const item = document.createElement('div');
+              item.className = 'flex items-center justify-between p-2 bg-slate-800/50 border border-slate-700/50 rounded';
+              item.innerHTML = `<div class="text-slate-200 text-sm truncate"><a href="${v.url}" target="_blank" class="text-neon-yellow underline">${v.title || id}</a></div><div class="text-xs text-slate-500 ml-2">${id}</div>`;
+              listEl.appendChild(item);
+            });
+          } catch (e) {
+            console.warn('Failed to refresh TikTok list', e);
+          }
+        }
+
         // Enhanced mobile sidebar toggle
         const sidebarToggle = document.getElementById('sidebar-toggle');
         if (sidebarToggle) {
           sidebarToggle.addEventListener('click', () => {
-            const sidebar = document.querySelector('aside');
-            const overlay = createMobileSidebarOverlay();
+          const sidebar = document.querySelector('aside');
+          const overlay = createMobileSidebarOverlay();
             
             if (sidebar) {
               const isHidden = sidebar.classList.contains('hidden');
@@ -1626,8 +1866,8 @@
           });
         }
         
-        // Create mobile sidebar overlay
-        function createMobileSidebarOverlay() {
+          // Create mobile sidebar overlay
+          function createMobileSidebarOverlay() {
           let overlay = document.getElementById('sidebar-overlay');
           if (!overlay) {
             overlay = document.createElement('div');
@@ -1729,6 +1969,57 @@
           }
         }
         
+        // Wire up buttons and forms in Advanced
+        function wireAdvancedActions() {
+          const assignBtn = document.getElementById('assign-role-btn');
+          if (assignBtn) assignBtn.addEventListener('click', handleAssignRoles);
+
+          const createCodesBtn = document.getElementById('create-codes-btn');
+          if (createCodesBtn) createCodesBtn.addEventListener('click', handleCreateCodes);
+
+          const refreshInvBtn = document.getElementById('refresh-invites-btn');
+          if (refreshInvBtn) refreshInvBtn.addEventListener('click', refreshInvitesUI);
+
+          const saveTikTokBtn = document.getElementById('save-tiktok-btn');
+          if (saveTikTokBtn) saveTikTokBtn.addEventListener('click', async () => {
+            try {
+              const handle = (document.getElementById('advanced-tiktok-handle')?.value || '').trim();
+              const url = (document.getElementById('advanced-tiktok-url')?.value || '').trim();
+              const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const db = getFirestore();
+              await setDoc(doc(db, 'config', 'tiktok'), { handle, sampleUrl: url, updatedAt: Date.now() }, { merge: true });
+              showToast('TikTok settings saved');
+            } catch (e) { showToast('Failed to save TikTok settings', 'error'); }
+          });
+
+          const previewBtn = document.getElementById('preview-tiktok-btn');
+          if (previewBtn) previewBtn.addEventListener('click', () => {
+            const url = (document.getElementById('advanced-tiktok-url')?.value || '').trim();
+            const m = url.match(/\/(video|photo)\/(\d{6,})/);
+            const id = m && m[2];
+            const box = document.getElementById('tiktok-inline-preview');
+            if (!box) return;
+            if (!id) { box.innerHTML = '<div class="text-slate-400">Provide a valid TikTok URL</div>'; return; }
+            box.innerHTML = `<iframe src="https://www.tiktok.com/embed/v2/${id}" width="100%" height="600" frameborder="0" allowfullscreen scrolling="no"></iframe>`;
+          });
+
+          const addForm = document.getElementById('add-tiktok-video-form');
+          if (addForm) addForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+              const url = (document.getElementById('new-tiktok-url')?.value || '').trim();
+              const title = (document.getElementById('new-tiktok-title')?.value || '').trim();
+              const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
+              const f = getFunctions(undefined, 'us-central1');
+              const add = httpsCallable(f, 'addTikTokVideo');
+              await add({ url, title, published: true });
+              showToast('TikTok video added');
+              try { (document.getElementById('new-tiktok-url')).value=''; (document.getElementById('new-tiktok-title')).value=''; } catch {}
+              refreshTikTokList();
+            } catch (e) { showToast('Failed to add TikTok video', 'error'); }
+          });
+        }
+
         // Global functions for photo approval
         window.approvePhoto = async function(photoId) {
           try {

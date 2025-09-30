@@ -136,9 +136,13 @@ service cloud.firestore {
     
     // TikTok videos library
     match /tiktok_videos/{videoId} {
-      allow read: if isAuthenticated();
-      allow write: if hasRole('team-member') || hasRole('admin');
-      allow delete: if hasRole('team-member') || hasRole('admin');
+      // Public can read published videos; team-members/admins can read all
+      allow read: if (resource.data.published == true)
+                  || hasRole('team-member')
+                  || hasProfileRole('team-member')
+                  || hasProfileRole('admin');
+      allow write: if hasRole('team-member') || hasRole('admin') || hasProfileRole('admin');
+      allow delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('admin');
     }
 
     // Default deny rule

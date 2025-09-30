@@ -692,3 +692,123 @@ exports.setFollowerRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) =>
     throw new HttpsError("internal", "Failed to assign follower role.", error);
   }
 });
+
+/**
+ * Admin/team: Add a TikTok video by URL.
+ * Upserts into tiktok_videos, ID derived from video/photo ID.
+ */
+exports.addTikTokVideo = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
+  const role = request.auth.token?.role || '';
+  if (role !== 'admin' && role !== 'team-member') {
+    throw new HttpsError('permission-denied', 'Team-member or admin only');
+  }
+  const { url, title, published } = request.data || {};
+  if (!url || typeof url !== 'string') throw new HttpsError('invalid-argument', "'url' required");
+  const m = url.match(/\/(video|photo)\/(\d{6,})/);
+  if (!m) throw new HttpsError('invalid-argument', 'Unsupported TikTok URL');
+  const id = m[2];
+  const db = getFirestore();
+  const docId = id;
+  const data = {
+    platform: 'tiktok',
+    url, title: title || null,
+    videoId: id,
+    published: published !== false,
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+  await db.collection('tiktok_videos').doc(docId).set({
+    createdAt: FieldValue.serverTimestamp(),
+    ...data,
+  }, { merge: true });
+  return { status: 'ok', id: docId };
+});
+
+/**
+ * Refresh TikTok videos for a handle stored in config/tiktok.handle.
+ * Best-effort HTML parse of profile page for /video/ and /photo/ links.
+ */
+exports.refreshTikTokVideos = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
+  const role = request.auth.token?.role || '';
+  if (role !== 'admin' && role !== 'team-member') {
+    throw new HttpsError('permission-denied', 'Team-member or admin only');
+  }
+  const db = getFirestore();
+  const cfgSnap = await db.collection('config').doc('tiktok').get();
+  const handle = (cfgSnap.exists && cfgSnap.data().handle) ? cfgSnap.data().handle : '@redsracing';
+  const handleSlug = handle.startsWith('@') ? handle.slice(1) : handle;
+  const url = `https://www.tiktok.com/@${handleSlug}`;
+  let html = '';
+  try {
+    const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    html = await r.text();
+  } catch (e) {
+    logger.error('Failed to fetch TikTok profile:', e);
+    throw new HttpsError('unavailable', 'TikTok fetch failed');
+  }
+  const ids = new Set();
+  const rx = /\/(video|photo)\/(\d{6,})/g;
+  let m;
+  while ((m = rx.exec(html)) !== null) {
+    ids.add(m[2]);
+  }
+  let found = ids.size;
+  let added = 0;
+  for (const id of ids) {
+    try {
+      const ref = db.collection('tiktok_videos').doc(id);
+      const snap = await ref.get();
+      if (!snap.exists) {
+        await ref.set({
+          platform: 'tiktok',
+          url: `https://www.tiktok.com/@${handleSlug}/video/${id}`,
+          videoId: id,
+          published: true,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        added++;
+      } else {
+        await ref.set({ updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+      }
+    } catch (e) {
+      logger.warn('Failed to upsert video', id, e?.message || e);
+    }
+  }
+  return { status: 'success', found, added };
+});
+
+// Scheduled auto-ingest every 2 hours
+const { onSchedule } = require('firebase-functions/v2/scheduler');
+exports.tiktokAutoIngest = onSchedule('every 120 minutes', async (event) => {
+  const db = getFirestore();
+  try {
+    const cfgSnap = await db.collection('config').doc('tiktok').get();
+    const handle = (cfgSnap.exists && cfgSnap.data().handle) ? cfgSnap.data().handle : '@redsracing';
+    const handleSlug = handle.startsWith('@') ? handle.slice(1) : handle;
+    const url = `https://www.tiktok.com/@${handleSlug}`;
+    const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const html = await r.text();
+    const ids = new Set();
+    const rx = /\/(video|photo)\/(\d{6,})/g;
+    let m; while ((m = rx.exec(html)) !== null) ids.add(m[2]);
+    for (const id of ids) {
+      try {
+        await db.collection('tiktok_videos').doc(id).set({
+          platform: 'tiktok',
+          url: `https://www.tiktok.com/@${handleSlug}/video/${id}`,
+          videoId: id,
+          published: true,
+          updatedAt: FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
+        }, { merge: true });
+      } catch (e) {
+        logger.warn('AutoIngest upsert failed', id, e?.message || e);
+      }
+    }
+    logger.info(`tiktokAutoIngest processed ${ids.size} ids`);
+  } catch (e) {
+    logger.error('tiktokAutoIngest failed', e);
+  }
+});
