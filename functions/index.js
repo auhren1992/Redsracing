@@ -606,7 +606,7 @@ exports.fetchK1AddisonJonSeasons = onRequest({ secrets: ["SENTRY_DSN"] }, async 
 });
 
 // Speedhive: scrape profile page for Jonathan Kirsch and persist basic race data
-exports.fetchSpeedhiveJon = onRequest({ secrets: ["SENTRY_DSN"] }, async (req, res) => {
+exports.fetchSpeedhiveJon = onRequest({ secrets: ["SENTRY_DSN"], timeoutSeconds: 120, memory: "1GiB" }, async (req, res) => {
   try {
     const PROFILE_URL = 'https://speedhive.mylaps.com/profile/MYLAPS-GA-3a22ae250e154baf8f798908b7e3599e';
     const r = await fetch(PROFILE_URL, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });
@@ -653,6 +653,51 @@ exports.fetchSpeedhiveJon = onRequest({ secrets: ["SENTRY_DSN"] }, async (req, r
       }
     }
 
+    // If still no events, render the JS-powered races page via headless browser
+    if (!events.length) {
+      try {
+        const puppeteer = require('puppeteer');
+        const browser = await puppeteer.launch({
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          headless: 'new',
+        });
+        const page = await browser.newPage();
+        const RACES_URL = PROFILE_URL.replace(/\/profile\/.+$/, 'profile/MYLAPS-GA-3a22ae250e154baf8f798908b7e3599e/races');
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36');
+        await page.goto(RACES_URL, { waitUntil: 'networkidle2', timeout: 90000 });
+
+        // Wait for anchor tags to render; adjust selector as needed
+        await page.waitForSelector('a', { timeout: 30000 }).catch(() => {});
+
+        const rendered = await page.evaluate(() => {
+          const anchors = Array.from(document.querySelectorAll('a'));
+          const items = [];
+          for (const a of anchors) {
+            const href = a.getAttribute('href') || '';
+            const label = (a.textContent || '').trim();
+            // Look for race/result links mentioning Jonathan or generic race labels
+            if (/result|event|race/i.test(href) || /Jonathan\s+Kirsch/i.test(label)) {
+              // Try to find a nearby date text in parent containers
+              let date = '';
+              try {
+                const parentText = (a.closest('div,li,section,article') || document.body).innerText || '';
+                const m = parentText.match(/\b(\d{1,2}\s+[A-Z][a-z]+\s+\d{4}|\d{4}-\d{2}-\d{2})\b/);
+                date = m ? m[0] : '';
+              } catch (e) {}
+              items.push({ name: label || 'Race', link: href, date });
+            }
+          }
+          return items.slice(0, 50);
+        });
+        await browser.close();
+        if (Array.isArray(rendered) && rendered.length) {
+          rendered.forEach(r => events.push(r));
+        }
+      } catch (e) {
+        logger.warn('Puppeteer render failed for Speedhive races', e?.message || e);
+      }
+    }
+
     // Persist snapshot to Firestore for audit and client rendering
     try {
       const db = getFirestore();
@@ -678,6 +723,69 @@ exports.speedhiveAutoRefreshJon = onSchedule({ schedule: 'every 24 hours', timeZ
     await fetch(url, { method: 'GET' });
   } catch (e) {
     try { Sentry.captureException(e); } catch (_) {}
+  }
+});
+
+// Speedhive: scrape a specific event or session URL and extract rows for "Jonathan Kirsch"
+exports.fetchSpeedhiveEvent = onRequest({ secrets: ["SENTRY_DSN"], timeoutSeconds: 120, memory: "1GiB" }, async (req, res) => {
+  try {
+    const targetUrl = (req.query.url || req.body?.url || '').toString();
+    if (!targetUrl || !/^https?:\/\//i.test(targetUrl)) {
+      return res.status(400).json({ ok: false, message: 'Missing ?url=' });
+    }
+    const puppeteer = require('puppeteer');
+    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'], headless: 'new' });
+    const page = await browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36');
+    await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 90000 });
+
+    // Wait for any table rows or list items to render
+    await page.waitForSelector('table, .table, tr, li, .results', { timeout: 30000 }).catch(()=>{});
+
+    const eventName = (await page.title()) || 'Speedhive Event';
+
+    const parsed = await page.evaluate(() => {
+      const rows = [];
+      const nameRx = /jonathan\s+kirsch/i;
+      const tables = Array.from(document.querySelectorAll('table'));
+      for (const t of tables) {
+        const trs = Array.from(t.querySelectorAll('tr'));
+        trs.forEach(tr => {
+          const txt = (tr.innerText || '').trim();
+          if (nameRx.test(txt)) {
+            const tds = Array.from(tr.querySelectorAll('td')).map(td => (td.innerText || '').trim());
+            rows.push({ text: txt, cells: tds });
+          }
+        });
+      }
+      // Also scan generic list items
+      const lis = Array.from(document.querySelectorAll('li'));
+      lis.forEach(li => {
+        const txt = (li.innerText || '').trim();
+        if (nameRx.test(txt)) rows.push({ text: txt, cells: [] });
+      });
+      return rows;
+    });
+
+    await browser.close();
+
+    // Persist an event snapshot for reference
+    try {
+      const db = getFirestore();
+      const id = Buffer.from(targetUrl).toString('base64').replace(/=+$/,'');
+      await db.collection('speedhive_events').doc(id).set({
+        url: targetUrl,
+        eventName,
+        matchedName: 'Jonathan Kirsch',
+        entries: Array.isArray(parsed) ? parsed.slice(0, 50) : [],
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    } catch {}
+
+    res.status(200).json({ ok: true, url: targetUrl, eventName, entriesCount: Array.isArray(parsed) ? parsed.length : 0, entries: parsed });
+  } catch (error) {
+    try { Sentry.captureException(error); } catch (_) {}
+    res.status(200).json({ ok: false, message: 'Failed to fetch Speedhive event' });
   }
 });
 

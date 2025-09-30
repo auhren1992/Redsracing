@@ -10,8 +10,17 @@ import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
   async function loadAndRender() {
     try {
       root.innerHTML = '<p class="text-slate-400">Loading Speedhive results...</p>';
-      const r = await fetch('/speedhive/jon', { headers: { 'Accept': 'application/json' } });
-      const data = r.ok ? await r.json() : null;
+      // Prefer Cloud Run Go service if available
+      let data = null;
+      try {
+        const rGo = await fetch('/api/speedhive/events', { headers: { 'Accept': 'application/json' } });
+        if (rGo.ok) { data = await rGo.json(); }
+      } catch {}
+      if (!data || (Array.isArray(data) && !data.length)) {
+        // Fallback to Functions-based scraper
+        const rFn = await fetch('/speedhive/jon', { headers: { 'Accept': 'application/json' } });
+        data = rFn.ok ? await rFn.json() : null;
+      }
 
       const wrap = document.createElement('div');
       wrap.className = 'space-y-4';
@@ -19,22 +28,47 @@ import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
       // Admin controls
       if (isAdmin) {
         const controls = document.createElement('div');
-        controls.className = 'flex items-center justify-between';
+        controls.className = 'space-y-3';
         controls.innerHTML = `
-          <div class="text-slate-400 text-sm">Speedhive auto-refreshes daily.</div>
-          <button id="sh-refresh" class="bg-neon-yellow text-slate-900 hover:bg-yellow-300 font-bold py-2 px-4 rounded-md">Refresh from Speedhive now</button>
+          <div class="flex items-center justify-between">
+            <div class="text-slate-400 text-sm">Speedhive auto-refreshes daily.</div>
+            <button id="sh-refresh" class="bg-neon-yellow text-slate-900 hover:bg-yellow-300 font-bold py-2 px-4 rounded-md">Refresh from Speedhive now</button>
+          </div>
+          <div class="flex gap-2">
+            <input id="sh-url" type="url" placeholder="Paste Speedhive event/session URL" class="flex-1 bg-slate-800 border border-slate-600 rounded-md p-2 text-sm text-white placeholder-slate-400" />
+            <button id="sh-import" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500">Import</button>
+          </div>
+          <p id="sh-status" class="text-slate-400 text-sm"></p>
         `;
         wrap.appendChild(controls);
         controls.querySelector('#sh-refresh').addEventListener('click', async (e) => {
           const btn = e.currentTarget;
           btn.disabled = true;
           btn.textContent = 'Refreshing...';
+          let ok = false;
           try {
-            await fetch('/speedhive/jon', { headers: { 'Accept': 'application/json' } });
+            const rr = await fetch('/speedhive/jon', { headers: { 'Accept': 'application/json' } });
+            ok = rr.ok;
           } catch {}
           btn.disabled = false;
           btn.textContent = 'Refresh from Speedhive now';
-          // Re-load results after refresh
+          const status = controls.querySelector('#sh-status');
+          if (status) status.textContent = ok ? 'Refreshed from Speedhive.' : 'Refresh request sent.';
+          await loadAndRender();
+        });
+        controls.querySelector('#sh-import').addEventListener('click', async () => {
+          const input = controls.querySelector('#sh-url');
+          const status = controls.querySelector('#sh-status');
+          const url = input && input.value ? input.value.trim() : '';
+          if (!url) { if (status) status.textContent = 'Please paste a Speedhive URL.'; return; }
+          if (status) status.textContent = 'Importing...';
+          try {
+            const r = await fetch('/speedhive/event?url=' + encodeURIComponent(url), { headers: { 'Accept': 'application/json' } });
+            const data = r.ok ? await r.json() : null;
+            if (status) status.textContent = data && data.ok ? `Imported ${data.entriesCount || 0} entries from ${data.eventName || 'event'}.` : 'Import failed.';
+          } catch {
+            if (status) status.textContent = 'Import failed.';
+          }
           await loadAndRender();
         });
       }

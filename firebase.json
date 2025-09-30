@@ -58,6 +58,13 @@
     ],
     "rewrites": [
       {
+        "source": "/api/speedhive/**",
+        "run": {
+          "serviceId": "speedhive-go-service",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/add_subscriber",
         "function": {
           "functionId": "handleAddSubscriber",
@@ -173,6 +180,13 @@
         "source": "/speedhive/jon",
         "function": {
           "functionId": "fetchSpeedhiveJon",
+          "codebase": "default"
+        }
+      },
+      {
+        "source": "/speedhive/event",
+        "function": {
+          "functionId": "fetchSpeedhiveEvent",
           "codebase": "default"
         }
       }
