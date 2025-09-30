@@ -172,6 +172,59 @@
         box-shadow: 0 0 30px rgba(239, 68, 68, 0.2), 0 0 12px rgba(239, 68, 68, 0.15);
         border-color: rgba(239, 68, 68, 0.4);
       }
+
+      /* Rookie Sensation banner underline */
+      #jonny-bio h2 {
+        position: relative;
+        display: inline-block;
+        padding-bottom: 10px;
+      }
+      #jonny-bio h2::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 6px;
+        background: linear-gradient(90deg, rgba(239,68,68,1), rgba(239,68,68,0.15));
+        filter: drop-shadow(0 0 8px rgba(239,68,68,0.6));
+        border-radius: 9999px;
+      }
+
+      /* Jonny schedule styling upgrades */
+      .schedule-card-jonny {
+        border: 1px solid rgba(239,68,68,0.35) !important;
+        background: radial-gradient(80% 120% at 100% 0%, rgba(239,68,68,0.08), transparent), rgba(30,41,59,0.6);
+        box-shadow: 0 10px 30px rgba(239, 68, 68, 0.12), 0 0 0 1px rgba(239,68,68,0.15);
+        transform: translateZ(0);
+        transition: transform .35s cubic-bezier(0.4,0,0.2,1), box-shadow .35s;
+        position: relative;
+        overflow: hidden;
+      }
+      .schedule-card-jonny::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 3px;
+        background: linear-gradient(90deg, rgba(239,68,68,.9), rgba(239,68,68,.2));
+      }
+      .schedule-card-jonny:hover {
+        transform: translateY(-6px) rotateX(2deg) rotateY(-2deg);
+        box-shadow: 0 20px 50px rgba(0,0,0,.35), 0 0 0 1px rgba(239,68,68,0.25);
+      }
+      .race-status { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+      .badge-upcoming { color: #fecaca; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.35); }
+      .badge-complete { color: #94a3b8; background: rgba(148,163,184,.12); border: 1px solid rgba(148,163,184,.35); }
+
+      /* Next race countdown widget */
+      .next-race-widget-jonny .countdown-pill { 
+        background: rgba(239,68,68,0.12);
+        border: 1px solid rgba(239,68,68,0.35);
+        border-radius: 12px;
+        padding: 8px 10px;
+        min-width: 60px;
+      }
+      .next-race-widget-jonny .countdown-pill .num { color: #fff; font-weight: 900; font-size: 20px; line-height: 1; }
+      .next-race-widget-jonny .countdown-pill .lbl { color: #fecaca; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
     </style>
   <script src="assets/js/guest-gate.js"></script>
   </head>
