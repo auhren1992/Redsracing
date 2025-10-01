@@ -22,26 +22,27 @@
 .jonny-page.motorsport-premium .heading-premium .accent { color: #ff3333; }
 .jonny-page.motorsport-premium .heading-premium::after {
   content: '';
-  position: absolute; left: 0; bottom: -10px; height: 6px; width: 120px;
+  position: absolute; left: 0; bottom: -12px; height: 8px; width: 180px;
   background: linear-gradient(90deg, #ff3333, rgba(255,51,51,0));
   border-radius: 9999px;
-  box-shadow: 0 0 12px rgba(255,51,51,.5);
+  box-shadow: 0 0 18px rgba(255,51,51,.6), 0 0 4px rgba(255,51,51,.5) inset;
 }
 
 /* Premium section wrapper */
 .jonny-page.motorsport-premium .section-premium {
-  background: rgba(15,23,42,0.55);
-  border: 1px solid rgba(239,68,68,0.28);
+  background: rgba(15,23,42,0.6);
+  border: 1px solid rgba(239,68,68,0.38);
   border-radius: 20px;
-  box-shadow: 0 12px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(239,68,68,0.15);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 46px rgba(0,0,0,.45), 0 0 0 1px rgba(239,68,68,0.22);
+  backdrop-filter: blur(12px);
 }
 
 /* Premium chips */
 .jonny-page.motorsport-premium .chip {
   display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px;
   border-radius: 9999px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
-  color: #fecaca; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.35);
+  color: #fecaca; background: rgba(239,68,68,.18); border: 1px solid rgba(239,68,68,.45);
+  box-shadow: 0 4px 16px rgba(239,68,68,.12);
 }
 
 /* Premium CTA emphasis */
