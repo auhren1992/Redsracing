@@ -50,6 +50,18 @@
         padding-bottom: 2rem;
         border-left: 4px solid #334155; /* slate-700 */
       }
+      .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -2px;
+        top: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, rgba(239,68,68,0), rgba(239,68,68,0.45), rgba(239,68,68,0));
+        opacity: .6;
+        animation: timelineGlow 3s ease-in-out infinite;
+      }
+      @keyframes timelineGlow { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
       .timeline-item:last-child {
         border-left: 4px solid transparent;
         padding-bottom: 0;
@@ -225,9 +237,13 @@
       }
       .album-cta:hover { color: #fff; border-color: rgba(239,68,68,0.6); box-shadow: 0 4px 16px rgba(239,68,68,0.25); }
       .badge-chip { font-size: 10px; color: #fecaca; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35); padding: 4px 8px; border-radius: 9999px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-       /* Rookie hero typography */
+      /* Rookie hero typography */
       .rookie-hero-name { font-size: clamp(42px, 7vw, 88px); line-height: 1.05; }
       .stat-chip { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:#cbd5e1; background:rgba(148,163,184,0.12); border:1px solid rgba(148,163,184,0.35); border-radius:9999px; }
+
+      /* Animated hero stripes overlay */
+      .rookie-stripes { position:absolute; inset:0; background: repeating-linear-gradient(135deg, rgba(239,68,68,0.06) 0 12px, transparent 12px 24px); mix-blend-mode: overlay; animation: stripesMove 8s linear infinite; z-index: -4; }
+      @keyframes stripesMove { from { background-position: 0 0; } to { background-position: 200px 0; } }
 
       /* Rookie 88 watermark */
       .rookie-88-bg {
@@ -457,6 +473,7 @@
         <!-- Rookie Spotlight: red diagonal stripes background -->
         <div class="absolute inset-0 -z-10" style="background: repeating-linear-gradient(135deg, rgba(239,68,68,0.12) 0, rgba(239,68,68,0.12) 16px, rgba(239,68,68,0.04) 16px, rgba(239,68,68,0.04) 32px), radial-gradient(1200px 600px at 10% 10%, rgba(239,68,68,0.25), transparent 60%), radial-gradient(800px 400px at 90% 80%, rgba(255,255,255,0.08), transparent 60%);"></div>
         <div class="rookie-88-bg">88</div>
+        <div class="rookie-stripes"></div>
         <div class="container mx-auto px-6">
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
             <!-- Rookie Card -->
@@ -502,6 +519,10 @@
                 <span class="stat-chip"><i class="fas fa-hashtag mr-1"></i>Number 88</span>
                 <span class="stat-chip"><i class="fas fa-flag-checkered mr-1"></i>Super Cups</span>
                 <span class="stat-chip"><i class="fas fa-bolt mr-1"></i>K1 Trained</span>
+              </div>
+              <div class="rookie-hero-cta mt-6 flex gap-3 justify-center lg:justify-start">
+                <a href="schedule.html" class="btn btn-primary px-5 py-3"><i class="fas fa-calendar-alt mr-2"></i>View Schedule</a>
+                <a href="#jonny-gallery" class="btn btn-ghost px-5 py-3"><i class="fas fa-camera mr-2"></i>Gallery</a>
               </div>
             </div>
 
@@ -650,7 +671,7 @@
                   <a href="https://imgur.com/a/2AKSeCa" target="_blank" class="album-cta">Open Album</a>
                 </div>
                 <h3 class="font-racing text-2xl text-white">
-                  First Racetrack Visit
+                  <i class="fas fa-flag-checkered text-red-400 mr-2"></i>First Racetrack Visit
                 </h3>
                 <div class="time-badge">2018</div>
                 <p class="text-slate-300">
@@ -677,7 +698,7 @@
             <div class="timeline-item">
               <div class="timeline-marker"></div>
               <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
-                <h3 class="font-racing text-2xl text-white">The First Spark</h3>
+                <h3 class="font-racing text-2xl text-white"><i class="fas fa-fire text-orange-400 mr-2"></i>The First Spark</h3>
                 <div class="time-badge">2021–2023</div>
                 <p>
                   Long before any official race, Jonny discovered his love for
@@ -691,7 +712,7 @@
             <div class="timeline-item">
               <div class="timeline-marker"></div>
               <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
-                <h3 class="font-racing text-2xl text-white">Getting Serious</h3>
+                <h3 class="font-racing text-2xl text-white"><i class="fas fa-tachometer-alt text-yellow-400 mr-2"></i>Getting Serious</h3>
                 <div class="time-badge">Early 2024</div>
                 >
                 <p>
@@ -706,7 +727,7 @@
               <div class="timeline-marker"></div>
               <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
                 <h3 class="font-racing text-2xl text-white">
-                  The Dream Begins
+                  <i class="fas fa-bolt text-red-400 mr-2"></i>The Dream Begins
                 </h3>
                 <div class="time-badge">2025</div>
                 <p>
@@ -724,7 +745,7 @@
               <div class="timeline-marker"></div>
               <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
                 <h3 class="font-racing text-2xl text-white">
-                  First Green Flag
+                  <i class="fas fa-flag text-green-400 mr-2"></i>First Green Flag
                 </h3>
                 <div class="time-badge">2026</div>
                 <p>
