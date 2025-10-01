@@ -397,6 +397,22 @@ footer a:hover { color: #f7ff00; }
 .table-modern th, .table-modern td { border-bottom: 1px solid rgba(148,163,184,0.15); padding: 10px 12px; }
 .table-modern tr:hover { background: rgba(59,130,246,0.05); }
 
+/* Map admin button classes to new styles */
+.success-btn { background: linear-gradient(45deg, #10b981, #059669); box-shadow: 0 8px 24px rgba(16,185,129,.25); }
+.success-btn:hover { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(16,185,129,.35); }
+.danger-btn, .bg-red-600 { background: linear-gradient(45deg, #dc2626, #b91c1c); box-shadow: 0 8px 24px rgba(220,38,38,.25); }
+.danger-btn:hover, .bg-red-600:hover { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(220,38,38,.35); }
+
+/* Footer form submit buttons */
+footer form button[type="submit"], footer form button.submit {
+  background: linear-gradient(45deg, #f59e0b, #fbbf24);
+  color: #111827;
+  font-weight: 800;
+  border-radius: 10px;
+  transition: all .3s ease;
+}
+footer form button[type="submit"]:hover, footer form button.submit:hover { transform: translateY(-1px); filter: brightness(1.05); }
+
 input:focus, textarea:focus {
   border-color: #fbbf24;
   box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
