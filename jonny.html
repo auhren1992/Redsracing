@@ -291,13 +291,15 @@
         position: relative;
         overflow: hidden;
       }
-      .schedule-card-jonny::before {
+      .schedule-card-jonny::before,
+      #racer-schedule .schedule-card::before {
         content: '';
         position: absolute;
         top: 0; left: 0; right: 0; height: 3px;
         background: linear-gradient(90deg, rgba(239,68,68,.9), rgba(239,68,68,.2));
       }
-      .schedule-card-jonny:hover {
+      .schedule-card-jonny:hover,
+      #racer-schedule .schedule-card:hover {
         transform: translateY(-6px) rotateX(2deg) rotateY(-2deg);
         box-shadow: 0 20px 50px rgba(0,0,0,.35), 0 0 0 1px rgba(239,68,68,0.25);
       }
@@ -514,8 +516,8 @@
                     <div class="text-[10px] text-slate-400 uppercase tracking-wider">Rookie Year</div>
                   </div>
                   <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
-                    <div class="text-2xl font-bold text-white">K1</div>
-                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Karting</div>
+                    <div class="text-2xl font-bold text-white">ASC</div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Series</div>
                   </div>
                 </div>
               </div>
@@ -536,6 +538,10 @@
                   Jonny <span class="neon-red">Kirsch</span>
                 </h1>
                 <p class="text-slate-300 font-bold tracking-widest">The Next Generation of Speed</p>
+                <div class="mt-3 flex flex-wrap items-center gap-2 text-slate-300 text-xs uppercase tracking-wider">
+                  <span class="stat-chip"><i class="fas fa-flag-checkered"></i> American Super Cups</span>
+                  <span class="stat-chip">Rookie 2026</span>
+                </div>
 
                 <!-- Rookie quick stats -->
                 <div class="grid grid-cols-3 gap-3 mt-5">
@@ -557,6 +563,7 @@
                 <div class="mt-6 flex gap-3 flex-wrap">
                   <a href="schedule.html" class="btn btn-primary px-5 py-3"><i class="fas fa-calendar-alt mr-2"></i>View Schedule</a>
                   <a href="#jonny-gallery" class="btn btn-ghost px-5 py-3"><i class="fas fa-camera mr-2"></i>Gallery</a>
+                  <a href="sponsorship.html" class="btn btn-secondary px-5 py-3"><i class="fas fa-handshake-angle mr-2"></i>Sponsor Jonny</a>
                 </div>
 
                 <!-- Scrolling ticker -->
@@ -792,7 +799,7 @@
       <!-- K1 Speed Addison Stats (Jonny) -->
       <section class="py-16 md:py-24 bg-black/10">
         <div class="container mx-auto px-6">
-          <h2 class="font-racing text-5xl uppercase mb-6 text-center">K1 Speed <span class="neon-yellow">Addison</span> Stats</h2>
+          <h2 class="font-racing text-5xl uppercase mb-6 text-center">Karting <span class="neon-yellow">Stats</span> (Addison)</h2>
           <div id="k1-addison-stats-jonny" class="card rounded-lg p-6">
             <div class="skeleton h-6 w-56 rounded mb-3"></div>
             <div class="skeleton h-4 w-full rounded"></div>
