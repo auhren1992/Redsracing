@@ -317,6 +317,65 @@
       }
       .next-race-widget-jonny .countdown-pill .num { color: #fff; font-weight: 900; font-size: 20px; line-height: 1; }
       .next-race-widget-jonny .countdown-pill .lbl { color: #fecaca; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+
+      /* Esports + Retro full-bleed hero */
+      .hero-fullbleed {
+        position: relative;
+        min-height: 70vh;
+        padding: 4rem 0;
+        background:
+          radial-gradient(1200px 600px at 10% 10%, rgba(239,68,68,0.20), transparent 60%),
+          radial-gradient(1000px 400px at 90% 80%, rgba(255,255,255,0.06), transparent 60%),
+          url('https://placehold.co/1600x900/0a0f1f/ff3333?text=RedsRacing+%2388');
+        background-size: cover;
+        background-position: center;
+      }
+      .hero-fullbleed::before {
+        content: '';
+        position: absolute; inset: 0;
+        background: linear-gradient(180deg, rgba(5,8,15,0.6), rgba(5,8,15,0.2) 30%, rgba(5,8,15,0.6));
+        pointer-events: none;
+      }
+      .hero-fullbleed::after {
+        content: '';
+        position: absolute; inset: 0;
+        /* Checkered overlay */
+        background-image:
+          linear-gradient(45deg, rgba(255,255,255,0.08) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(255,255,255,0.08) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.08) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.08) 75%);
+        background-size: 20px 20px;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+        mix-blend-mode: overlay;
+        opacity: .08;
+        pointer-events: none;
+      }
+      @media (max-width: 640px) {
+        .hero-fullbleed { padding: 2.5rem 0; min-height: 60vh; }
+      }
+
+      .plate-88 {
+        display: inline-flex; align-items: center; gap: 10px;
+        padding: 10px 14px; border-radius: 12px;
+        background: linear-gradient(180deg, #111827, #1f2937);
+        border: 1px solid rgba(239,68,68,.5);
+        color: #fff; font-weight: 900; letter-spacing: .06em;
+        box-shadow: 0 12px 30px rgba(239,68,68,.25), inset 0 1px 0 rgba(255,255,255,.06);
+        transform: rotate(-2deg);
+      }
+      .plate-88 .num { font-size: 28px; color: #ff3333; text-shadow: 0 0 12px rgba(239,68,68,.6); }
+
+      .portrait-diag { position: relative; border-radius: 16px; overflow: hidden; border: 1px solid rgba(239,68,68,.35); }
+      .portrait-diag img { display: block; width: 100%; height: auto; clip-path: polygon(0% 8%, 100% 0, 100% 92%, 0% 100%); }
+      .portrait-diag::before { content: ''; position: absolute; inset: -20%; background: radial-gradient(circle at 30% 20%, rgba(239,68,68,.25), transparent 40%); filter: blur(40px); z-index: -1; }
+
+      .driver-profile { background: rgba(15,23,42,.6); border: 1px solid rgba(239,68,68,.25); border-radius: 16px; padding: 16px; backdrop-filter: blur(10px); }
+      .driver-profile h4 { font-family: 'Racing Sans One', sans-serif; letter-spacing: .08em; text-transform: uppercase; font-size: 16px; color: #fff; margin-bottom: 8px; }
+      .driver-profile ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+      .driver-profile li { font-size: 12px; color: #cbd5e1; }
+      .driver-profile li span { display: block; font-weight: 800; color: #fff; }
+      @media (max-width: 1024px) { .driver-profile ul { grid-template-columns: 1fr; } }
     </style>
   <script src="assets/js/guest-gate.js"></script>
   </head>
@@ -489,118 +548,43 @@
     </header>
 
     <main class="pt-20">
-      <section id="team-hero" class="py-20 md:py-32 relative overflow-hidden">
-        <!-- Rookie Spotlight: red diagonal stripes background -->
-        <div class="absolute inset-0 -z-10" style="background: repeating-linear-gradient(135deg, rgba(239,68,68,0.12) 0, rgba(239,68,68,0.12) 16px, rgba(239,68,68,0.04) 16px, rgba(239,68,68,0.04) 32px), radial-gradient(1200px 600px at 10% 10%, rgba(239,68,68,0.25), transparent 60%), radial-gradient(800px 400px at 90% 80%, rgba(255,255,255,0.08), transparent 60%);"></div>
-        <div class="rookie-88-bg">88</div>
-        <div class="rookie-stripes"></div>
-        <div class="container mx-auto px-6">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-            <!-- Rookie Card -->
-            <div class="order-2 lg:order-1">
-              <div class="bg-black/40 border border-red-400/30 rounded-2xl p-6 backdrop-blur-md shadow-2xl">
-                <div class="flex items-center gap-4">
-                  <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-3xl font-black text-white">88</div>
-                  <div>
-                    <div class="font-racing text-3xl text-white">Jonny Kirsch</div>
-                    <div class="text-slate-300 uppercase tracking-wider text-xs">Rookie • American Super Cups</div>
-                  </div>
+      <section id="team-hero" class="relative overflow-hidden">
+        <div class="hero-fullbleed">
+          <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 items-center gap-8">
+              <!-- Left: Title, plate, CTAs, profile -->
+              <div class="text-white reveal-left">
+                <div class="flex items-center gap-3 mb-4">
+                  <span class="plate-88"><span class="num">#88</span> Jonny Kirsch</span>
                 </div>
-                <div class="mt-4 grid grid-cols-3 gap-3 text-center">
-                  <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
-                    <div class="text-2xl font-bold text-white">#88</div>
-                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Number</div>
-                  </div>
-                  <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
-                    <div class="text-2xl font-bold text-white">2026</div>
-                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Rookie Year</div>
-                  </div>
-                  <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
-                    <div class="text-2xl font-bold text-white">ASC</div>
-                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Series</div>
-                  </div>
+                <h1 class="font-racing uppercase text-5xl md:text-7xl leading-tight text-shadow-strong">Rookie Sensation</h1>
+                <p class="mt-3 text-slate-300 max-w-xl">Aggressive speed. Retro stock car heritage. The next generation of the American Super Cups.</p>
+                <div class="mt-4 flex flex-wrap gap-3">
+                  <a href="schedule.html" class="btn btn-primary px-5 py-3"><i class="fas fa-calendar-alt mr-2"></i>View Schedule</a>
+                  <a href="sponsorship.html" class="btn btn-secondary px-5 py-3"><i class="fas fa-handshake-angle mr-2"></i>Sponsor Jonny</a>
+                  <a href="#jonny-gallery" class="btn btn-ghost px-5 py-3"><i class="fas fa-camera mr-2"></i>Gallery</a>
                 </div>
-              </div>
-            </div>
-
-            <!-- Rookie Sensation Panel (revamped) -->
-            <div class="order-1 lg:order-2">
-              <div class="rookie-panel p-6 md:p-8 rounded-2xl">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="rookie-ribbon inline-flex items-center gap-2">
-                    <span class="dot"></span>
-                    <span>Rookie Sensation</span>
-                  </div>
-                  <div class="number-tile">88</div>
-                </div>
-
-                <h1 class="rookie-hero-name font-racing uppercase tracking-wider text-white mb-2">
-                  Jonny <span class="neon-red">Kirsch</span>
-                </h1>
-                <p class="text-slate-300 font-bold tracking-widest">The Next Generation of Speed</p>
-                <div class="mt-3 flex flex-wrap items-center gap-2 text-slate-300 text-xs uppercase tracking-wider">
+                <div class="mt-4 flex flex-wrap items-center gap-2 text-xs uppercase tracking-wider text-slate-300">
                   <span class="stat-chip"><i class="fas fa-flag-checkered"></i> American Super Cups</span>
                   <span class="stat-chip">Rookie 2026</span>
+                  <span class="stat-chip">#88</span>
                 </div>
-
-                <!-- Rookie quick stats -->
-                <div class="grid grid-cols-3 gap-3 mt-5">
-                  <div class="rookie-stat">
-                    <div class="label">Number</div>
-                    <div class="value">#88</div>
-                  </div>
-                  <div class="rookie-stat">
-                    <div class="label">Rookie Year</div>
-                    <div class="value">2026</div>
-                  </div>
-                  <div class="rookie-stat">
-                    <div class="label">Series</div>
-                    <div class="value">Super Cups</div>
-                  </div>
-                </div>
-
-                <!-- CTAs -->
-                <div class="mt-6 flex gap-3 flex-wrap">
-                  <a href="schedule.html" class="btn btn-primary px-5 py-3"><i class="fas fa-calendar-alt mr-2"></i>View Schedule</a>
-                  <a href="#jonny-gallery" class="btn btn-ghost px-5 py-3"><i class="fas fa-camera mr-2"></i>Gallery</a>
-                  <a href="sponsorship.html" class="btn btn-secondary px-5 py-3"><i class="fas fa-handshake-angle mr-2"></i>Sponsor Jonny</a>
-                </div>
-
-                <!-- Scrolling ticker -->
-                <div class="rookie-marquee mt-6">
-                  <div class="track">
-                    <span>Reaction • Precision • Grit • Karting Foundations • Family Legacy • </span>
-                    <span>Reaction • Precision • Grit • Karting Foundations • Family Legacy • </span>
-                  </div>
+                <div class="mt-6 driver-profile max-w-lg">
+                  <h4>Driver Profile</h4>
+                  <ul>
+                    <li>Age <span>9</span></li>
+                    <li>Hometown <span>Illinois, USA</span></li>
+                    <li>Car <span>American Super Cups Stock Car</span></li>
+                    <li>Team <span>Reds Racing</span></li>
+                  </ul>
                 </div>
               </div>
-            </div>
 
-            <!-- Speed Dial -->
-            <div class="order-3 flex justify-center lg:justify-end">
-              <div class="relative w-48 h-48 rounded-full bg-slate-900/60 border-2 border-red-400/30 shadow-2xl flex items-center justify-center">
-                <svg viewBox="0 0 100 100" class="w-40 h-40">
-                  <defs>
-                    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stop-color="#ef4444"/>
-                      <stop offset="100%" stop-color="#fca5a5"/>
-                    </linearGradient>
-                  </defs>
-                  <path d="M10,70 A40,40 0 1,1 90,70" fill="none" stroke="url(#g)" stroke-width="6" stroke-linecap="round"/>
-                  <circle cx="50" cy="70" r="3" fill="#fff"/>
-                  <line id="needle" x1="50" y1="70" x2="86" y2="70" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <div class="absolute -bottom-3 text-center">
-                  <div class="text-xs text-slate-400 uppercase tracking-wider">Speed Focus</div>
+              <!-- Right: Diagonally clipped portrait with halo -->
+              <div class="reveal-right">
+                <div class="portrait-diag">
+                  <img src="https://placehold.co/800x1000/1e293b/ff3333?text=Jonny+Kirsch+%2388" alt="Jonny Kirsch portrait">
                 </div>
-                <script>
-                  (function(){
-                    try{
-                      var el = document.getElementById('needle') || (document.currentScript && document.currentScript.previousElementSibling.querySelector('#needle'));
-                      var a=0; setInterval(function(){ a=(a+12)%180; if(el){ var rad=(a-90)*Math.PI/180; var x=50+36*Math.cos(rad); var y=70+36*Math.sin(rad); el.setAttribute('x2', x); el.setAttribute('y2', y);} }, 500);
-                    }catch(e){}
-                  })();
-                </script>
               </div>
             </div>
           </div>
