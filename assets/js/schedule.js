@@ -16,7 +16,7 @@ import {
 } from "./invitation-codes.js";
 
 // Import sanitization utilities
-import { html, safeSetHTML } from "./sanitize.js";
+import { html, safeSetHTML, escapeHTML } from "./sanitize.js";
 
 async function main() {
   // Capture invitation code from URL as early as possible
@@ -99,19 +99,23 @@ async function main() {
                 `;
       }
 
-      const cardHTML = html` <div
+      const safeName = escapeHTML(race.name);
+      const safeSpecial = escapeHTML(race.special || `Race ${race.race}`);
+      const safeDate = escapeHTML(formattedDate);
+
+      const cardHTML = ` <div
         class="schedule-card p-4 rounded-lg ${cardClass}"
         data-race-id="${race.id}"
       >
         <div class="flex justify-between items-center">
           <div>
-            <p class="font-bold text-lg text-white">${race.name}</p>
+            <p class="font-bold text-lg text-white">${safeName}</p>
             <p class="text-sm text-slate-400">
-              ${race.special || `Race ${race.race}`}
+              ${safeSpecial}
             </p>
           </div>
           <div class="font-semibold text-right text-slate-300">
-            ${formattedDate}
+            ${safeDate}
           </div>
         </div>
         ${recapHTML}
