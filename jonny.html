@@ -245,6 +245,24 @@
       .rookie-stripes { position:absolute; inset:0; background: repeating-linear-gradient(135deg, rgba(239,68,68,0.06) 0 12px, transparent 12px 24px); mix-blend-mode: overlay; animation: stripesMove 8s linear infinite; z-index: -4; }
       @keyframes stripesMove { from { background-position: 0 0; } to { background-position: 200px 0; } }
 
+      /* Rookie panel */
+      .rookie-panel { position: relative; background: rgba(15,23,42,0.6); border: 1px solid rgba(239,68,68,0.35); backdrop-filter: blur(10px); overflow: hidden; }
+      .rookie-panel::before { content:''; position:absolute; inset:-2px; background: conic-gradient(from 180deg, rgba(239,68,68,.35), transparent, rgba(239,68,68,.35)); filter: blur(12px); opacity:.25; z-index:-1; }
+      .rookie-panel::after { content:'SENSATION'; position:absolute; bottom: -10px; right: 12px; font-family: 'Racing Sans One', sans-serif; font-weight:900; letter-spacing:.12em; font-size: clamp(28px, 8vw, 64px); color: transparent; -webkit-text-stroke: 2px rgba(239,68,68,0.15); opacity:.4; pointer-events:none; }
+
+      .rookie-ribbon { color: #fecaca; font-weight:800; text-transform:uppercase; letter-spacing:.08em; font-size:12px; }
+      .rookie-ribbon .dot { width:8px; height:8px; border-radius:9999px; background:#ef4444; box-shadow:0 0 12px rgba(239,68,68,.7); display:inline-block; }
+
+      .number-tile { font-weight:900; font-size:24px; padding:6px 12px; border-radius:12px; color:#fff; background: linear-gradient(135deg, #ef4444, #f97316); box-shadow:0 10px 30px rgba(239,68,68,0.25); border:1px solid rgba(239,68,68,.45); }
+
+      .rookie-stat { text-align:center; padding:10px; border-radius:12px; background: rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.25); }
+      .rookie-stat .label { font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:#fecaca; }
+      .rookie-stat .value { color:#fff; font-weight:900; font-size:16px; }
+
+      .rookie-marquee { position:relative; overflow:hidden; border-top:1px solid rgba(239,68,68,0.2); border-bottom:1px solid rgba(239,68,68,0.2); }
+      .rookie-marquee .track { display:inline-block; white-space:nowrap; animation: marqueeLeft 12s linear infinite; color:#fecaca; font-size:12px; letter-spacing:.12em; padding:6px 0; }
+      @keyframes marqueeLeft { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
       /* Rookie 88 watermark */
       .rookie-88-bg {
         position: absolute;
@@ -503,26 +521,51 @@
               </div>
             </div>
 
-            <!-- Title + Tagline -->
-            <div class="text-center lg:text-left order-1 lg:order-2">
-              <div class="inline-flex items-center gap-3 mb-2">
-                <div class="px-3 py-1 rounded-full border border-red-400/40 bg-red-500/15 text-red-300 text-xs uppercase tracking-wider">Rookie Sensation</div>
-                <div class="px-3 py-1 rounded-full border border-yellow-400/30 bg-yellow-500/10 text-yellow-300 text-xs uppercase tracking-wider">Rookie Year 2026</div>
-              </div>
-              <h1 class="rookie-hero-name font-racing uppercase tracking-wider text-white">
-                Jonny <span class="neon-red">Kirsch</span> <span class="text-slate-400">#88</span>
-              </h1>
-              <p class="mt-3 text-lg md:text-xl font-bold text-slate-300 tracking-widest">
-                The Next Generation of Speed
-              </p>
-              <div class="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
-                <span class="stat-chip"><i class="fas fa-hashtag mr-1"></i>Number 88</span>
-                <span class="stat-chip"><i class="fas fa-flag-checkered mr-1"></i>Super Cups</span>
-                <span class="stat-chip"><i class="fas fa-bolt mr-1"></i>K1 Trained</span>
-              </div>
-              <div class="rookie-hero-cta mt-6 flex gap-3 justify-center lg:justify-start">
-                <a href="schedule.html" class="btn btn-primary px-5 py-3"><i class="fas fa-calendar-alt mr-2"></i>View Schedule</a>
-                <a href="#jonny-gallery" class="btn btn-ghost px-5 py-3"><i class="fas fa-camera mr-2"></i>Gallery</a>
+            <!-- Rookie Sensation Panel (revamped) -->
+            <div class="order-1 lg:order-2">
+              <div class="rookie-panel p-6 md:p-8 rounded-2xl">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="rookie-ribbon inline-flex items-center gap-2">
+                    <span class="dot"></span>
+                    <span>Rookie Sensation</span>
+                  </div>
+                  <div class="number-tile">88</div>
+                </div>
+
+                <h1 class="rookie-hero-name font-racing uppercase tracking-wider text-white mb-2">
+                  Jonny <span class="neon-red">Kirsch</span>
+                </h1>
+                <p class="text-slate-300 font-bold tracking-widest">The Next Generation of Speed</p>
+
+                <!-- Rookie quick stats -->
+                <div class="grid grid-cols-3 gap-3 mt-5">
+                  <div class="rookie-stat">
+                    <div class="label">Number</div>
+                    <div class="value">#88</div>
+                  </div>
+                  <div class="rookie-stat">
+                    <div class="label">Rookie Year</div>
+                    <div class="value">2026</div>
+                  </div>
+                  <div class="rookie-stat">
+                    <div class="label">Series</div>
+                    <div class="value">Super Cups</div>
+                  </div>
+                </div>
+
+                <!-- CTAs -->
+                <div class="mt-6 flex gap-3 flex-wrap">
+                  <a href="schedule.html" class="btn btn-primary px-5 py-3"><i class="fas fa-calendar-alt mr-2"></i>View Schedule</a>
+                  <a href="#jonny-gallery" class="btn btn-ghost px-5 py-3"><i class="fas fa-camera mr-2"></i>Gallery</a>
+                </div>
+
+                <!-- Scrolling ticker -->
+                <div class="rookie-marquee mt-6">
+                  <div class="track">
+                    <span>Reaction • Precision • Grit • Karting Foundations • Family Legacy • </span>
+                    <span>Reaction • Precision • Grit • Karting Foundations • Family Legacy • </span>
+                  </div>
+                </div>
               </div>
             </div>
 
