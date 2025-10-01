@@ -69,7 +69,9 @@
       .sticker { width:72px; height:72px; user-select:none; touch-action:none; cursor:grab; }
       .sticker:active { cursor:grabbing; }
       /* Rookie Quiz */
-      .quiz-card { background: rgba(255,255,255,0.04); border:1px solid rgba(255,51,51,0.35); border-radius:16px; padding:16px; }
+      .quiz-card { position:relative; overflow:hidden; background: rgba(255,255,255,0.04); border:1px solid rgba(255,51,51,0.35); border-radius:16px; padding:16px; }
+      .quiz-card::after { content:''; position:absolute; left:-40%; top:0; width:30%; height:100%; background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0)); transform: skewX(-20deg); transition: transform .6s ease, left .6s ease; pointer-events:none; }
+      .quiz-card:hover::after { left:130%; }
       .quiz-option { display:block; width:100%; text-align:left; border:1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); padding:10px 12px; margin-top:8px; border-radius:10px; font-weight:700; }
       .quiz-option.correct { border-color: #22c55e; background: rgba(34,197,94,0.1); }
       .quiz-option.incorrect { border-color: #f59e0b; background: rgba(245,158,11,0.08); }

@@ -1,4 +1,5 @@
 // Jonny Kids Edition interactivity
+import { getFirebaseStorage } from "./firebase-core.js";
 // Handles Speed Lab (gas/brake/nitro + sounds + trail), Sticker Garage drag/drop, and Rookie Quiz
 
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
@@ -163,6 +164,33 @@ function initStickerGarage() {
   });
 }
 
+// Confetti + success screen
+function showSuccessScreen(){
+  const overlay = document.createElement('div');
+  overlay.style.position='fixed'; overlay.style.inset='0'; overlay.style.zIndex='10000';
+  overlay.style.background='rgba(0,0,0,0.55)'; overlay.style.backdropFilter='blur(4px)';
+  const panel = document.createElement('div');
+  panel.style.position='absolute'; panel.style.left='50%'; panel.style.top='50%'; panel.style.transform='translate(-50%,-50%)';
+  panel.style.background='rgba(15,23,42,0.9)'; panel.style.border='1px solid rgba(239,68,68,0.4)'; panel.style.borderRadius='16px';
+  panel.style.padding='24px'; panel.style.color='#fff'; panel.style.textAlign='center'; panel.style.width='min(92vw, 520px)';
+  panel.innerHTML = '<div style="font-weight:900;letter-spacing:.1em;text-transform:uppercase" class="font-racing">Rookie Badge Earned!</div><div style="margin-top:8px;color:#cbd5e1">Great focus and race knowledge! You\'re ready to hit the track.</div><button id="close-success" style="margin-top:16px" class="bg-neon-yellow text-slate-900 font-extrabold px-4 py-2 rounded-md">Back to page</button>';
+  const canvas = document.createElement('canvas'); canvas.width = window.innerWidth; canvas.height = window.innerHeight; canvas.style.position='fixed'; canvas.style.inset='0'; canvas.style.zIndex='-1';
+  overlay.appendChild(canvas); overlay.appendChild(panel); document.body.appendChild(overlay);
+  const ctx = canvas.getContext('2d');
+  const parts = Array.from({length: 160}, () => ({ x: Math.random()*canvas.width, y: -20, vx: (Math.random()-0.5)*2, vy: 2+Math.random()*3, s: 4+Math.random()*4, c: `hsl(${Math.random()*360},90%,60%)`, a: 1 }));
+  let animId = 0;
+  const step = () => {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    parts.forEach(p => { p.x += p.vx; p.y += p.vy; p.a *= 0.996; ctx.globalAlpha = p.a; ctx.fillStyle = p.c; ctx.fillRect(p.x, p.y, p.s, p.s); });
+    ctx.globalAlpha = 1;
+    animId = requestAnimationFrame(step);
+  };
+  step();
+  const close = () => { cancelAnimationFrame(animId); overlay.remove(); };
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  panel.querySelector('#close-success').addEventListener('click', close);
+}
+
 function initQuiz() {
   const list = document.getElementById('quiz-list');
   const badge = document.getElementById('quiz-badge');
@@ -201,6 +229,7 @@ function initQuiz() {
           correctCount += 1;
           if (correctCount >= questions.length) {
             badge?.classList.remove('hidden');
+            try { showSuccessScreen(); } catch(e) {}
           }
         } else {
           btn.classList.add('incorrect');
@@ -247,22 +276,40 @@ function initGalleryUpload(){
     if (!file) return;
     btn.disabled = true; status.textContent = 'Preparing upload...'; bar.style.width = '0%';
     try {
-      // For now, immediately display locally (preview) and simulate upload progress
-      const url = URL.createObjectURL(file);
+      // Show local preview immediately, then swap to final URL
+      const previewUrl = URL.createObjectURL(file);
       const img = document.createElement('img');
-      img.src = url; img.alt = file.name; img.className = 'rounded-lg w-full h-auto';
+      img.src = previewUrl; img.alt = file.name; img.className = 'rounded-lg w-full h-auto';
       const wrap = document.createElement('div'); wrap.className = 'gallery-item-3d'; wrap.appendChild(img);
       gallery.prepend(wrap);
 
-      // Simulate smooth progress
-      let p = 0; const timer = setInterval(()=>{ p = Math.min(100, p+12); bar.style.width = p + '%'; if (p>=100) { clearInterval(timer); } }, 120);
+      const storage = getFirebaseStorage();
+      const { ref, uploadBytesResumable, getDownloadURL } = await import("https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js");
+      const path = `jonny/${Date.now()}-${file.name}`;
+      const storageRef = ref(storage, path);
+      const uploadTask = uploadBytesResumable(storageRef, file);
 
-      // If you want Firebase Storage later, replace this block with real upload & getDownloadURL
-      await new Promise(res=> setTimeout(res, 1400));
+      await new Promise((resolve, reject) => {
+        uploadTask.on('state_changed', (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          bar.style.width = progress + '%';
+          status.textContent = `Uploading... ${Math.round(progress)}%`;
+        }, (error) => {
+          reject(error);
+        }, async () => {
+          try {
+            const url = await getDownloadURL(uploadTask.snapshot.ref);
+            img.src = url; // swap to permanent URL
+            resolve();
+          } catch (e) { reject(e); }
+        });
+      });
+
       status.textContent = 'Uploaded!'; showToast('Photo uploaded', 'success');
       input.value = ''; btn.disabled = true;
     } catch (e) {
       console.error(e); status.textContent = 'Upload failed'; showToast('Upload failed', 'error');
+      btn.disabled = false;
     }
   });
 }
