@@ -636,7 +636,7 @@
             <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-flag text-red-400 mr-2"></i>Respect Flags</div><p class="text-slate-300 text-sm">Yellow = slow, no passing. Red = stop safely. Checkered = race finish.</p></div>
             <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-hourglass-half text-red-400 mr-2"></i>Build Pace</div><p class="text-slate-300 text-sm">First laps: learn grip, warm tires, and leave space. Speed comes with consistency.</p></div>
             <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-tint text-red-400 mr-2"></i>Stay Hydrated</div><p class="text-slate-300 text-sm">Water and rest make better focus and reaction time.</p></div>
-            <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-tools text-red-400 mr-2"></i>Pit Etiquette</div><p class="text-slate-300 text-sm">Enter/exit pits at walking speed; watch for crew and other cars.</p></div>
+            <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-people-arrows text-red-400 mr-2"></i>Grid & Caution Etiquette</div><p class="text-slate-300 text-sm">Line up cleanly, respect the yellow (no passing), and be predictable on restarts.</p></div>
             <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-arrows-alt-h text-red-400 mr-2"></i>Leave Room</div><p class="text-slate-300 text-sm">Give space when side-by-side. Finishing the lap is the win!</p></div>
           </div>
         </div>
@@ -716,6 +716,13 @@
       <section id="rookie-quiz" class="py-14 md:py-20">
         <div class="container mx-auto px-6 max-w-5xl">
           <h2 class="font-racing text-5xl uppercase text-center text-white mb-8">Rookie <span class="neon-red">Quiz</span></h2>
+          <div class="flex items-center justify-center gap-3 mb-6">
+            <label for="track-filter" class="text-slate-300 text-sm">Practice for:</label>
+            <select id="track-filter" class="bg-slate-800 border border-slate-600 text-white px-3 py-2 rounded-md">
+              <option value="all">All Tracks</option>
+            </select>
+          </div>
+          <div id="track-tips-panel" class="max-w-3xl mx-auto mb-6 hidden"></div>
           <div id="quiz-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
           <div id="quiz-badge" class="hidden mt-8 text-center">
             <span class="badge-earned"><i class="fas fa-medal"></i> Rookie Badge Earned!</span>

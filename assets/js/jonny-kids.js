@@ -191,26 +191,184 @@ function showSuccessScreen(){
   panel.querySelector('#close-success').addEventListener('click', close);
 }
 
-function initQuiz() {
+async function initQuiz() {
   const list = document.getElementById('quiz-list');
   const badge = document.getElementById('quiz-badge');
+  const filterEl = document.getElementById('track-filter');
   if (!list) return;
 
-  const questions = [
+  // Asphalt-only quiz content
+  const general = [
     { q: 'What number does Jonny race?', options: ['#8', '#88', '#1'], a: '#88' },
     { q: 'Which series is Jonny entering?', options: ['Karting Only', 'American Super Cups', 'Formula E'], a: 'American Super Cups' },
-    { q: 'Where should you focus your eyes in a corner?', options: ['Directly at the nose of the car', 'At the dashboard', 'At the apex and exit'], a: 'At the apex and exit' },
-    { q: 'When should most braking happen?', options: ['Mid-corner', 'In a straight line before turn-in', 'After the apex'], a: 'In a straight line before turn-in' },
-    { q: 'Yellow flag means...', options: ['Speed up to pass', 'Slow down, no passing', 'Go to pits immediately'], a: 'Slow down, no passing' },
-    { q: 'Why smooth steering/throttle/brake?', options: ['To impress the crowd', 'To keep the car balanced and fast', 'To heat up the seat'], a: 'To keep the car balanced and fast' },
-    { q: 'First laps are for...', options: ['Sending it!', 'Learning grip, warming tires, leaving space', 'Practicing burnouts'], a: 'Learning grip, warming tires, leaving space' },
-    { q: 'In pit lane you should...', options: ['Drive at race speed', 'Stop on track', 'Go walking speed and watch for people'], a: 'Go walking speed and watch for people' },
-    { q: 'Racing side-by-side means...', options: ['Squeeze the other car', 'Leave room and finish the lap', 'Aim for the grass'], a: 'Leave room and finish the lap' },
-    { q: 'What does Nitro do?', options: ['Turn on lights', 'Make car slower', 'Give a speed boost'], a: 'Give a speed boost' }
+    { q: 'Where should you focus your eyes in a corner?', options: ['At the nose of the car', 'At the apex and exit', 'At the dashboard'], a: 'At the apex and exit' },
+    { q: 'When should most braking happen on ovals?', options: ['Mid-corner', 'In a straight line before turn-in', 'After the apex'], a: 'In a straight line before turn-in' },
+    { q: 'Smooth hands and feet help to...', options: ['Keep the car balanced and fast', 'Impress the crowd', 'Heat up the seat'], a: 'Keep the car balanced and fast' },
+    { q: 'First laps are for...', options: ['Sending it!', 'Learning grip and warming tires', 'Practicing burnouts'], a: 'Learning grip and warming tires' },
+    { q: 'Yellow flag means...', options: ['Slow down, no passing', 'Drive to pits immediately', 'Speed up to pass'], a: 'Slow down, no passing' },
+    { q: 'Side-by-side racing means...', options: ['Squeeze the other car', 'Leave room and be predictable', 'Aim for the grass'], a: 'Leave room and be predictable' },
   ];
 
+  const shortOval = [
+    { q: 'Overdriving entry usually causes...', options: ['Great exits', 'Poor exit speed', 'Nothing'], a: 'Poor exit speed' },
+    { q: 'A later apex on flat short ovals helps you...', options: ['Turn earlier', 'Straighten the wheel sooner for better exit', 'Brake longer on exit'], a: 'Straighten the wheel sooner for better exit' },
+    { q: 'Best passing setup is...', options: ['Divebomb low every time', 'Build exit momentum and position', 'Slow in/slow out'], a: 'Build exit momentum and position' },
+  ];
+
+  const etiquette = [
+    { q: 'On cautions you should...', options: ['Pass the leader', 'Hold position and form up safely', 'Stop on track'], a: 'Hold position and form up safely' },
+    { q: 'On restarts you should...', options: ['Weave across lanes', 'Be predictable and hold lane to T1', 'Stop at the line'], a: 'Be predictable and hold lane to T1' },
+  ];
+
+  // Load tracks from Firestore schedule (same as schedule.html)
+  let tracks = ['General'];
+  try {
+    const { getFirebaseDb } = await import('./firebase-core.js');
+    const db = getFirebaseDb();
+    const { collection, getDocs, orderBy, query } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+    const snap = await getDocs(query(collection(db, 'races'), orderBy('date', 'asc')));
+    const names = new Set();
+    snap.docs.forEach(d => { const n = (d.data().name || '').trim(); if (n) names.add(n); });
+    tracks = ['All Tracks', ...Array.from(names)];
+  } catch {}
+
+  // Populate filter
+  if (filterEl && tracks.length) {
+    filterEl.innerHTML = '';
+    tracks.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t === 'All Tracks' ? 'all' : t; opt.textContent = t; filterEl.appendChild(opt);
+    });
+  }
+
+  // Track profiles derived from your notes (asphalt only)
+  const trackProfiles = [
+    {
+      keys: ['grundy'],
+      label: 'Grundy County Speedway',
+      variant: 'semi-banked-1/3',
+      tips: [
+        'Semi-banked 1/3: carry entry speed but protect exit drive.',
+        'Late apex helps you straighten the wheel and throttle earlier.',
+        'Be consistent—string laps with similar lines and brake points.',
+      ],
+      questions: [
+        { q: 'Grundy is about...', options: ['1/2 mile', '1/3 mile', '1 mile'], a: '1/3 mile' },
+        { q: 'Semi-banking helps you...', options: ['Carry mid-corner speed', 'Hit the brakes mid-corner', 'Steer more with the wheel'], a: 'Carry mid-corner speed' },
+      ],
+    },
+    {
+      keys: ['dells'],
+      label: 'Dells Raceway Park',
+      variant: 'moderate-9deg',
+      tips: [
+        '9° corners, 6° straights: keep hands calm and roll speed.',
+        'Focus on mid-to-exit—overdriving entry costs you down the straight.',
+        'Use a later apex to get the car pointed early on exit.',
+      ],
+      questions: [
+        { q: 'Dells corner banking is roughly...', options: ['3°', '9°', '20°'], a: '9°' },
+      ],
+    },
+    {
+      keys: ['golden sands','golden-sands'],
+      label: 'Golden Sands Speedway',
+      variant: 'high-banked-1/3',
+      tips: [
+        'High-banked 1/3: commit early and maintain momentum.',
+        'Outside groove can work—let the banking help your exit.',
+        'Small steering inputs—let the banking carry you.',
+      ],
+      questions: [
+        { q: 'Golden Sands is known for...', options: ['Dirt surface', 'High banking and speed', 'Being a road course'], a: 'High banking and speed' },
+      ],
+    },
+    {
+      keys: ['slinger'],
+      label: 'Slinger Speedway',
+      variant: 'extreme-33deg-1/4',
+      tips: [
+        '33° turns on a 1/4 mile: extreme banking allows big commitment.',
+        'Lift early and little—protect exit; don’t over-slow entry.',
+        'Two grooves often work; be predictable on overlap.',
+      ],
+      questions: [
+        { q: 'Slinger’s turn banking is about...', options: ['12°', '20°', '33°'], a: '33°' },
+      ],
+    },
+    {
+      keys: ['tomah'],
+      label: 'Tomah Speedway',
+      variant: 'slightly-banked-1/3',
+      tips: [
+        'Slight banking with fresh asphalt: expect strong grip early.',
+        'Adjust braking points—new surface may allow later braking.',
+        'Build pace gradually to learn how the resurfacing behaves.',
+      ],
+      questions: [
+        { q: 'Tomah surface update means you should...', options: ['Brake earlier than ever', 'Test later braking cautiously', 'Ignore changes'], a: 'Test later braking cautiously' },
+      ],
+    },
+    {
+      keys: ['la crosse','lacrosse'],
+      label: 'La Crosse Speedway',
+      variant: 'progressive-banking',
+      tips: [
+        'Progressive banking: bottom ~5°, middle ~8°, top ~11°.',
+        'Pick lane by car balance—top can carry momentum.',
+        'Stay smooth transitioning lanes; be predictable near traffic.',
+      ],
+      questions: [
+        { q: 'Progressive banking means...', options: ['Same angle every lane', 'More banking higher up', 'Dirt and asphalt mix'], a: 'More banking higher up' },
+      ],
+    },
+    {
+      keys: ['blackhawk farms','blackhawk'],
+      label: 'Blackhawk Farms Raceway',
+      variant: 'road-course-1.95',
+      tips: [
+        'Road course: eyes up; brake in a straight line, release smoothly.',
+        'Turn-in once; clip apex; let car use all of exit curb/track.',
+        'Be patient with throttle—balance first, then power.',
+      ],
+      questions: [
+        { q: 'On a road course exit you should...', options: ['Stay mid-track', 'Use all available track if safe', 'Add throttle mid-corner suddenly'], a: 'Use all available track if safe' },
+      ],
+    },
+  ];
+
+  const tipsPanel = document.getElementById('track-tips-panel');
+
+  const renderTips = (profile) => {
+    if (!tipsPanel) return;
+    if (!profile) { tipsPanel.classList.add('hidden'); tipsPanel.innerHTML = ''; return; }
+    const items = profile.tips.map(t => `<li class="text-slate-300 text-sm">${t}</li>`).join('');
+    tipsPanel.classList.remove('hidden');
+    tipsPanel.innerHTML = `
+      <div class="quiz-card">
+        <div class="text-white font-extrabold mb-2"><i class="fas fa-lightbulb text-yellow-400 mr-2"></i>Track Tips: ${profile.label}</div>
+        <ul class="list-disc pl-5 space-y-1">${items}</ul>
+      </div>
+    `;
+  };
+
+  const matchProfile = (trackName) => {
+    if (!trackName || trackName === 'all') return null;
+    const k = trackName.toLowerCase();
+    return trackProfiles.find(p => p.keys.some(key => k.includes(key))) || null;
+  };
+
+  const questionsForTrack = (trackName) => {
+    const base = [...general, ...etiquette, ...shortOval, { q: 'What does Nitro do?', options: ['Turn on lights', 'Make car slower', 'Give a speed boost'], a: 'Give a speed boost' }];
+    const prof = matchProfile(trackName);
+    if (prof && prof.questions) return [...base, ...prof.questions];
+    return base;
+  };
+
+  let currentQuestions = questionsForTrack('all');
   let correctCount = 0;
-  const renderCard = (q, idx) => {
+
+  const renderCard = (q) => {
     const card = document.createElement('div');
     card.className = 'quiz-card';
     const title = document.createElement('div');
@@ -227,7 +385,7 @@ function initQuiz() {
         if (opt === q.a) {
           btn.classList.add('correct');
           correctCount += 1;
-          if (correctCount >= questions.length) {
+          if (correctCount >= currentQuestions.length) {
             badge?.classList.remove('hidden');
             try { showSuccessScreen(); } catch(e) {}
           }
@@ -241,7 +399,24 @@ function initQuiz() {
     return card;
   };
 
-  questions.forEach((q, i) => list.appendChild(renderCard(q, i)));
+  const render = () => {
+    list.innerHTML = '';
+    correctCount = 0;
+    currentQuestions.forEach(q => list.appendChild(renderCard(q)));
+  };
+
+  if (filterEl) {
+    filterEl.addEventListener('change', () => {
+      const val = filterEl.value;
+      currentQuestions = questionsForTrack(val);
+      renderTips(matchProfile(val));
+      render();
+    });
+  }
+
+  // Initial tips (hidden for All Tracks)
+  renderTips(null);
+  render();
 }
 
 // Simple toast utility
