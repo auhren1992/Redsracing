@@ -43,7 +43,37 @@
         background-clip: text;
         color: transparent;
       }
-      /* Timeline Styles */
+      /* Kids Edition: hide legacy sections */
+      #team-hero, #jonny-bio, #jonny-timeline, #the-rookie-car, #jonny-gallery, #jonny-videos, #support-jonny { display: none !important; }
+      /* Kids Hero */
+      .kids-hero { position: relative; overflow: hidden; background: radial-gradient(120% 100% at 50% 0%, rgba(255,51,51,0.15), rgba(0,0,0,0.6)), #0b0f17; }
+      .kids-hero::after { content:''; position:absolute; inset:0; background-image:url('assets/images/jonny-hero3.jpg'); background-size: cover; background-position: center; opacity: .15; filter: saturate(1.1) contrast(1.05); z-index:-1; }
+      .kids-hero .checker { position:absolute; inset:0; background-image: linear-gradient(45deg, rgba(255,255,255,0.06) 25%, rgba(0,0,0,0) 25%), linear-gradient(-45deg, rgba(255,255,255,0.06) 25%, rgba(0,0,0,0) 25%), linear-gradient(45deg, rgba(0,0,0,0) 75%, rgba(255,255,255,0.06) 75%), linear-gradient(-45deg, rgba(0,0,0,0) 75%, rgba(255,255,255,0.06) 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; opacity:.4; animation: moveChecker 12s linear infinite; }
+      @keyframes moveChecker { from { transform: translateX(0); } to { transform: translateX(-80px); } }
+      .kids-hero .glow { position:absolute; top:-120px; left:-120px; width:360px; height:360px; background: radial-gradient(circle, rgba(255,51,51,0.3), transparent 60%); filter: blur(20px); }
+      .kids-title { font-size: clamp(40px, 10vw, 96px); line-height: 1; text-shadow: 0 6px 30px rgba(255,51,51,.25); }
+      .kids-sub { letter-spacing: .12em; text-transform: uppercase; color:#ffd1d1; font-weight:800; }
+      /* Speed Lab */
+      .speed-lab { background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,51,51,0.04)); }
+      .gauge { position: relative; width: 240px; height: 120px; border-radius: 240px 240px 0 0; background: radial-gradient(circle at 50% 100%, rgba(255,51,51,0.15), rgba(0,0,0,0) 60%); border: 2px solid rgba(255,51,51,0.35); }
+      .gauge .tick { position: absolute; width: 2px; height: 10px; background: rgba(255,255,255,0.5); left: 50%; transform-origin: bottom center; bottom: 0; }
+      .needle { position:absolute; left:50%; bottom:0; width:2px; height:110px; background:#fff; transform-origin: bottom center; transform: rotate(-90deg) translateX(-50%); box-shadow: 0 0 10px rgba(255,255,255,.6); }
+      .speed-readout { font-size: 32px; font-weight: 900; }
+      .controls-grid button { border:1px solid rgba(255,51,51,0.4); background: rgba(255,51,51,0.12); color:#fff; font-weight:900; }
+      .controls-grid button:focus { outline:3px solid rgba(255,51,51,0.6); outline-offset:2px; }
+      .nitro-flash { animation: nitroFlash .6s ease; }
+      @keyframes nitroFlash { 0% { background-color: rgba(255,255,255,0.0);} 30% { background-color: rgba(255,255,255,0.25);} 100% { background-color: rgba(255,255,255,0.0);} }
+      .speed-trail::after { content:''; position:absolute; inset:auto 0 0 0; height:6px; background: linear-gradient(90deg, rgba(255,51,51,.8), rgba(255,51,51,0)); filter: blur(6px); }
+      /* Sticker Garage */
+      .sticker-canvas { position: relative; width: 100%; max-width: 900px; margin: 0 auto; border:1px dashed rgba(255,51,51,0.35); border-radius:16px; overflow:hidden; background: rgba(255,255,255,0.02); }
+      .sticker { width:72px; height:72px; user-select:none; touch-action:none; cursor:grab; }
+      .sticker:active { cursor:grabbing; }
+      /* Rookie Quiz */
+      .quiz-card { background: rgba(255,255,255,0.04); border:1px solid rgba(255,51,51,0.35); border-radius:16px; padding:16px; }
+      .quiz-option { display:block; width:100%; text-align:left; border:1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); padding:10px 12px; margin-top:8px; border-radius:10px; font-weight:700; }
+      .quiz-option.correct { border-color: #22c55e; background: rgba(34,197,94,0.1); }
+      .quiz-option.incorrect { border-color: #f59e0b; background: rgba(245,158,11,0.08); }
+      .badge-earned { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:9999px; border:1px solid rgba(34,197,94,.6); background: rgba(34,197,94,.12); color:#bbf7d0; font-weight:900; text-transform:uppercase; letter-spacing:.08em; }
       .timeline-item {
         position: relative;
         padding-left: 3rem;
@@ -521,6 +551,155 @@
     </header>
 
     <main class="pt-20">
+      <!-- Kids Edition Hero -->
+      <section id="jonny-kids-hero" class="kids-hero py-14 md:py-24 relative">
+        <div class="checker"></div>
+        <div class="glow"></div>
+        <div class="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div class="text-center lg:text-left">
+            <div class="kids-sub mb-2">Rookie Sensation • American Super Cups</div>
+            <h1 class="kids-title font-racing uppercase text-white">Jonny <span class="neon-red">Kirsch</span></h1>
+            <p class="mt-3 text-slate-300 text-lg max-w-xl font-bold tracking-widest">The Next Generation of Speed</p>
+            <div class="mt-3 text-slate-300 max-w-xl">
+              <p>For nine-year-old Jonny, speed has always been a way of life. His journey began not on asphalt, but on dirt trails, mastering 4-wheelers and developing a natural feel for handling a machine at speed.</p>
+              <p class="mt-2">This raw passion was later refined over 1.5 years of disciplined competition in indoor karting, where he learned sophisticated racecraft, precise control, and the art of the overtake. The first time he went to a race track was at 3 years old at Sycamore Speedway in 2018.</p>
+              <p class="mt-2">Now, Jonny is ready to trade his kart for a stock car and step onto the big stage of the American Super Cups. When Jonny climbs behind the wheel of the iconic #88, he’s not just a driver; he’s the future of a family legacy.</p>
+            </div>
+            <div class="mt-6 flex flex-wrap gap-3 justify-center lg:justify-start">
+              <a href="#speed-lab" class="bg-neon-yellow text-slate-900 font-extrabold px-5 py-3 rounded-md">Start Driving</a>
+              <a href="#sticker-garage" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Sticker Garage</a>
+              <a href="#rookie-quiz" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Rookie Quiz</a>
+            </div>
+          </div>
+          <div class="relative">
+            <img src="assets/images/jonny-hero3.jpg" alt="Jonny driving" class="rounded-2xl shadow-2xl w-full object-cover" />
+            <div class="absolute bottom-2 right-2 text-xs text-slate-400">Photo: #88</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Speed Lab -->
+      <section id="speed-lab" class="speed-lab py-14 md:py-20">
+        <div class="container mx-auto px-6">
+          <h2 class="font-racing text-5xl uppercase text-center text-white mb-8">Speed <span class="neon-red">Lab</span></h2>
+          <div id="speed-lab-container" class="relative max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <!-- Gauge -->
+            <div class="flex flex-col items-center">
+              <div class="gauge rounded-t-full">
+                <div id="kids-needle" class="needle" aria-hidden="true"></div>
+                <!-- ticks -->
+                <div class="tick" style="transform: translateX(-50%) rotate(-90deg);"></div>
+                <div class="tick" style="transform: translateX(-50%) rotate(-60deg);"></div>
+                <div class="tick" style="transform: translateX(-50%) rotate(-30deg);"></div>
+                <div class="tick" style="transform: translateX(-50%) rotate(0deg);"></div>
+                <div class="tick" style="transform: translateX(-50%) rotate(30deg);"></div>
+                <div class="tick" style="transform: translateX(-50%) rotate(60deg);"></div>
+                <div class="tick" style="transform: translateX(-50%) rotate(90deg);"></div>
+              </div>
+              <div class="mt-4 speed-readout text-white" aria-live="polite">
+                <span id="speed-val">0</span>% speed
+              </div>
+              <div class="mt-1 text-xs text-slate-400">Space = Gas • S = Brake • N = Nitro • M = Mute</div>
+            </div>
+            <!-- Controls -->
+            <div class="controls-grid grid grid-cols-2 gap-4">
+              <button id="gas" class="rounded-xl px-5 py-6 text-xl" aria-label="Hold to accelerate">
+                <i class="fas fa-gas-pump mr-2"></i>Gas
+              </button>
+              <button id="brake" class="rounded-xl px-5 py-6 text-xl" aria-label="Hold to brake">
+                <i class="fas fa-hand-paper mr-2"></i>Brake
+              </button>
+              <button id="nitro" class="col-span-2 rounded-xl px-5 py-6 text-xl" aria-label="Nitro boost">
+                <i class="fas fa-bolt mr-2"></i>Nitro
+              </button>
+              <button id="mute" class="col-span-2 rounded-xl px-5 py-3 text-base" aria-pressed="false" aria-label="Toggle sound">
+                <i class="fas fa-volume-up mr-2"></i>Sound: On
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sticker Garage -->
+      <section id="sticker-garage" class="py-14 md:py-20">
+        <div class="container mx-auto px-6">
+          <h2 class="font-racing text-5xl uppercase text-center text-white mb-8">Sticker <span class="neon-red">Garage</span></h2>
+          <div class="flex flex-col lg:flex-row gap-6 items-start">
+            <div class="flex-1 sticker-canvas" id="sticker-canvas" aria-label="Car canvas for stickers">
+              <img src="assets/images/jonny-hero3.jpg" alt="Car canvas" class="w-full h-auto object-cover" />
+            </div>
+            <div class="w-full lg:w-64">
+              <div class="font-bold text-slate-300 mb-2">Sticker Palette (drag onto car)</div>
+              <div class="grid grid-cols-3 gap-3">
+                <div class="sticker bg-slate-800/60 rounded-xl flex items-center justify-center text-3xl" data-sticker="⭐" aria-grabbed="false" draggable="false">⭐</div>
+                <div class="sticker bg-slate-800/60 rounded-xl flex items-center justify-center text-3xl" data-sticker="⚡" aria-grabbed="false" draggable="false">⚡</div>
+                <div class="sticker bg-slate-800/60 rounded-xl flex items-center justify-center text-3xl" data-sticker="🔥" aria-grabbed="false" draggable="false">🔥</div>
+                <div class="sticker bg-slate-800/60 rounded-xl flex items-center justify-center text-2xl" data-sticker="#88" aria-grabbed="false" draggable="false">#88</div>
+                <div class="sticker bg-slate-800/60 rounded-xl flex items-center justify-center text-xl" data-sticker="🏁" aria-grabbed="false" draggable="false">🏁</div>
+                <div class="sticker bg-slate-800/60 rounded-xl flex items-center justify-center text-3xl" data-sticker="🚀" aria-grabbed="false" draggable="false">🚀</div>
+              </div>
+              <button id="stickers-reset" class="mt-4 bg-slate-800/60 border border-slate-600/60 text-white font-bold px-4 py-2 rounded-md w-full">Reset Stickers</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Rookie Journey (new timeline) -->
+      <section id="rookie-journey" class="py-14 md:py-20">
+        <div class="container mx-auto px-6">
+          <h2 class="font-racing text-5xl uppercase text-center text-white mb-8">Rookie <span class="neon-red">Journey</span></h2>
+          <div class="overflow-x-auto snap-x snap-mandatory flex gap-6 pb-4" aria-label="Rookie timeline">
+            <!-- Card 1 -->
+            <article class="min-w-[280px] max-w-xs snap-start quiz-card">
+              <div class="text-xs uppercase text-red-200 font-extrabold tracking-widest mb-1">2018</div>
+              <h3 class="text-xl text-white font-extrabold mb-2"><i class="fas fa-flag-checkered text-red-400 mr-2"></i>First Racetrack Visit</h3>
+              <div class="rounded-lg overflow-hidden border border-red-400/20 mb-2">
+                <blockquote class="imgur-embed-pub" lang="en" data-id="a/2AKSeCa" data-context="false"><a href="//imgur.com/a/2AKSeCa"></a></blockquote>
+              </div>
+              <p class="text-slate-300 text-sm">The first time he went to a race track was at 3 years old at Sycamore Speedway in 2018.</p>
+            </article>
+            <!-- Card 2 -->
+            <article class="min-w-[280px] max-w-xs snap-start quiz-card">
+              <div class="text-xs uppercase text-red-200 font-extrabold tracking-widest mb-1">2021–2023</div>
+              <h3 class="text-xl text-white font-extrabold mb-2"><i class="fas fa-fire text-orange-400 mr-2"></i>The First Spark</h3>
+              <img src="assets/images/jonny-hero3.jpg" alt="Jonny riding" class="rounded-lg w-full h-40 object-cover mb-2" />
+              <p class="text-slate-300 text-sm">Exploring trails and learning fundamentals on a 4-wheeler, building the foundation for motorsports.</p>
+            </article>
+            <!-- Card 3 -->
+            <article class="min-w-[280px] max-w-xs snap-start quiz-card">
+              <div class="text-xs uppercase text-red-200 font-extrabold tracking-widest mb-1">Early 2024</div>
+              <h3 class="text-xl text-white font-extrabold mb-2"><i class="fas fa-tachometer-alt text-yellow-400 mr-2"></i>Getting Serious</h3>
+              <img src="assets/images/jonny-hero3.jpg" alt="Indoor karting" class="rounded-lg w-full h-40 object-cover mb-2" />
+              <p class="text-slate-300 text-sm">Competitive indoor karting: wheel-to-wheel racecraft, braking, cornering, and strategy.</p>
+            </article>
+            <!-- Card 4 -->
+            <article class="min-w-[280px] max-w-xs snap-start quiz-card">
+              <div class="text-xs uppercase text-red-200 font-extrabold tracking-widest mb-1">2025</div>
+              <h3 class="text-xl text-white font-extrabold mb-2"><i class="fas fa-bolt text-red-400 mr-2"></i>The Dream Begins</h3>
+              <img src="assets/images/jonny-hero3.jpg" alt="#88 Rookie car" class="rounded-lg w-full h-40 object-cover mb-2" />
+              <p class="text-slate-300 text-sm">The father-son team acquires the #88 and begins intense prep for a 2026 rookie season.</p>
+            </article>
+            <!-- Card 5 -->
+            <article class="min-w-[280px] max-w-xs snap-start quiz-card">
+              <div class="text-xs uppercase text-red-200 font-extrabold tracking-widest mb-1">2026</div>
+              <h3 class="text-xl text-white font-extrabold mb-2"><i class="fas fa-flag text-green-400 mr-2"></i>First Green Flag</h3>
+              <img src="assets/images/jonny-hero3.jpg" alt="First green flag" class="rounded-lg w-full h-40 object-cover mb-2" />
+              <p class="text-slate-300 text-sm">Jonny is slated to take his first green flag in the American Super Cups, launching his stock car career.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Rookie Quiz -->
+      <section id="rookie-quiz" class="py-14 md:py-20">
+        <div class="container mx-auto px-6 max-w-5xl">
+          <h2 class="font-racing text-5xl uppercase text-center text-white mb-8">Rookie <span class="neon-red">Quiz</span></h2>
+          <div id="quiz-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+          <div id="quiz-badge" class="hidden mt-8 text-center">
+            <span class="badge-earned"><i class="fas fa-medal"></i> Rookie Badge Earned!</span>
+          </div>
+        </div>
+      </section>
 <section id="team-hero" class="py-20 md:py-32 relative overflow-hidden">
         <!-- Premium Track Photo Background -->
 <div class="absolute inset-0 overflow-hidden" style="pointer-events:none;">
@@ -1032,7 +1211,7 @@
     <script type="module" src="navigation.js"></script>
     <script type="module" src="main.js"></script>
     <script type="module" src="assets/js/racer-schedule.js"></script>
-    <script type="module" src="assets/js/jonny.js?v=20250929-1"></script>
+    <script type="module" src="assets/js/jonny-kids.js?v=20251001-1"></script>
     <script type="module" src="assets/js/k1-stats-jonny.js?v=20250929-1"></script>
     <script type="module" src="modern-effects.js"></script>
     <script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
