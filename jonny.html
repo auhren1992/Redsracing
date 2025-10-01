@@ -44,7 +44,7 @@
         color: transparent;
       }
       /* Kids Edition: hide legacy sections */
-      #team-hero, #jonny-bio, #jonny-timeline, #the-rookie-car, #jonny-gallery, #jonny-videos, #support-jonny { display: none !important; }
+      #team-hero, #jonny-bio, #jonny-timeline, #the-rookie-car, #jonny-videos, #support-jonny { display: none !important; }
       /* Kids Hero */
       .kids-hero { position: relative; overflow: hidden; background: radial-gradient(120% 100% at 50% 0%, rgba(255,51,51,0.15), rgba(0,0,0,0.6)), #0b0f17; }
       .kids-hero::after { content:''; position:absolute; inset:0; background-image:url('assets/images/jonny-hero3.jpg'); background-size: cover; background-position: center; opacity: .15; filter: saturate(1.1) contrast(1.05); z-index:-1; }
@@ -568,6 +568,8 @@
             <div class="mt-6 flex flex-wrap gap-3 justify-center lg:justify-start">
               <a href="#speed-lab" class="bg-neon-yellow text-slate-900 font-extrabold px-5 py-3 rounded-md">Start Driving</a>
               <a href="#sticker-garage" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Sticker Garage</a>
+              <a href="#track-tips" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Track Tips</a>
+              <a href="#jonny-gallery" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Gallery</a>
               <a href="#rookie-quiz" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Rookie Quiz</a>
             </div>
           </div>
@@ -616,6 +618,24 @@
                 <i class="fas fa-volume-up mr-2"></i>Sound: On
               </button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Track Tips -->
+      <section id="track-tips" class="py-14 md:py-20">
+        <div class="container mx-auto px-6 max-w-6xl">
+          <h2 class="font-racing text-5xl uppercase text-center text-white mb-8">Track <span class="neon-red">Tips</span></h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="quiz-card"><div class="text-white font-extrabold mb-1">Look Ahead</div><p class="text-slate-300 text-sm">Eyes up! Look through the corner to the apex and exit. The car goes where you look.</p></div>
+            <div class="quiz-card"><div class="text-white font-extrabold mb-1">Brake Straight</div><p class="text-slate-300 text-sm">Do most of your braking in a straight line before turn-in. Come off the brakes smoothly.</p></div>
+            <div class="quiz-card"><div class="text-white font-extrabold mb-1">Smooth Hands & Feet</div><p class="text-slate-300 text-sm">Gentle steering, throttle, and brake keep the car balanced and fast.</p></div>
+            <div class="quiz-card"><div class="text-white font-extrabold mb-1">Hit Your Apex</div><p class="text-slate-300 text-sm">Turn in, clip the apex, and unwind the wheel as you accelerate out.</p></div>
+            <div class="quiz-card"><div class="text-white font-extrabold mb-1">Respect Flags</div><p class="text-slate-300 text-sm">Yellow = slow, no passing. Red = stop safely. Checkered = race finish.</p></div>
+            <div class="quiz-card"><div class="text-white font-extrabold mb-1">Build Pace</div><p class="text-slate-300 text-sm">First laps: learn grip, warm tires, and leave space. Speed comes with consistency.</p></div>
+            <div class="quiz-card"><div class="text-white font-extrabold mb-1">Stay Hydrated</div><p class="text-slate-300 text-sm">Water and rest make better focus and reaction time.</p></div>
+            <div class="quiz-card"><div class="text-white font-extrabold mb-1">Pit Etiquette</div><p class="text-slate-300 text-sm">Enter/exit pits at walking speed; watch for crew and other cars.</p></div>
+            <div class="quiz-card"><div class="text-white font-extrabold mb-1">Leave Room</div><p class="text-slate-300 text-sm">Give space when side-by-side. Finishing the lap is the win!</p></div>
           </div>
         </div>
       </section>

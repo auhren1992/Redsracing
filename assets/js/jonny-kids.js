@@ -142,6 +142,13 @@ function initQuiz() {
   const questions = [
     { q: 'What number does Jonny race?', options: ['#8', '#88', '#1'], a: '#88' },
     { q: 'Which series is Jonny entering?', options: ['Karting Only', 'American Super Cups', 'Formula E'], a: 'American Super Cups' },
+    { q: 'Where should you focus your eyes in a corner?', options: ['Directly at the nose of the car', 'At the dashboard', 'At the apex and exit'], a: 'At the apex and exit' },
+    { q: 'When should most braking happen?', options: ['Mid-corner', 'In a straight line before turn-in', 'After the apex'], a: 'In a straight line before turn-in' },
+    { q: 'Yellow flag means...', options: ['Speed up to pass', 'Slow down, no passing', 'Go to pits immediately'], a: 'Slow down, no passing' },
+    { q: 'Why smooth steering/throttle/brake?', options: ['To impress the crowd', 'To keep the car balanced and fast', 'To heat up the seat'], a: 'To keep the car balanced and fast' },
+    { q: 'First laps are for...', options: ['Sending it!', 'Learning grip, warming tires, leaving space', 'Practicing burnouts'], a: 'Learning grip, warming tires, leaving space' },
+    { q: 'In pit lane you should...', options: ['Drive at race speed', 'Stop on track', 'Go walking speed and watch for people'], a: 'Go walking speed and watch for people' },
+    { q: 'Racing side-by-side means...', options: ['Squeeze the other car', 'Leave room and finish the lap', 'Aim for the grass'], a: 'Leave room and finish the lap' },
     { q: 'What does Nitro do?', options: ['Turn on lights', 'Make car slower', 'Give a speed boost'], a: 'Give a speed boost' }
   ];
 
