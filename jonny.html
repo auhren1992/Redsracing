@@ -317,8 +317,31 @@
       }
       .next-race-widget-jonny .countdown-pill .num { color: #fff; font-weight: 900; font-size: 20px; line-height: 1; }
       .next-race-widget-jonny .countdown-pill .lbl { color: #fecaca; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
-    </style>
-  <script src="assets/js/guest-gate.js"></script>
+
+      /* Interactive Gas Pedal */
+      .gas-pedal {
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 10px 16px; border-radius: 12px;
+        background: linear-gradient(180deg, #7f1d1d, #b91c1c);
+        color: #fff; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;
+        border: 1px solid rgba(239,68,68,.6);
+        box-shadow: 0 12px 30px rgba(239,68,68,.25), inset 0 1px 0 rgba(255,255,255,.06);
+        transform: skewX(-8deg);
+        transition: transform .1s ease, box-shadow .1s ease, filter .1s ease;
+        user-select: none;
+      }
+      .gas-pedal:active, .gas-pedal[aria-pressed="true"] {
+        transform: skewX(-8deg) translateY(1px) scale(.98);
+        box-shadow: 0 6px 18px rgba(239,68,68,.25), inset 0 1px 0 rgba(255,255,255,.06);
+        filter: brightness(1.05);
+      }
+
+      /* Speed lights */
+      .speed-lights { display:inline-flex; gap:4px; margin-left:8px; }
+      .speed-light { width:8px; height:8px; border-radius:9999px; background:rgba(239,68,68,.2); box-shadow: 0 0 0 rgba(239,68,68,0); transition: background .2s ease, box-shadow .2s ease; }
+      .speed-light.on { background:#ef4444; box-shadow: 0 0 10px rgba(239,68,68,.8); }
+
+      /* Esports + Retro full-bleed hero */
   </head>
   <body class="jonny-page motorsport-premium">
     <!-- Clean Modern Header -->
@@ -588,16 +611,80 @@
                   </defs>
                   <path d="M10,70 A40,40 0 1,1 90,70" fill="none" stroke="url(#g)" stroke-width="6" stroke-linecap="round"/>
                   <circle cx="50" cy="70" r="3" fill="#fff"/>
-                  <line id="needle" x1="50" y1="70" x2="86" y2="70" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                  <line id="jr-needle" x1="50" y1="70" x2="86" y2="70" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
                 </svg>
-                <div class="absolute -bottom-3 text-center">
+                <div class="absolute -bottom-3 text-center w-full">
                   <div class="text-xs text-slate-400 uppercase tracking-wider">Speed Focus</div>
+                </div>
+                <!-- Kid-friendly controls -->
+                <div class="w-full mt-4 flex flex-col items-center gap-2">
+                  <button id="jr-gas-pedal" class="gas-pedal" aria-pressed="false" aria-label="Press and hold to accelerate">Hold Pedal</button>
+                  <div class="text-xs text-slate-300">Speed: <span id="jr-speed-readout">0</span>% <span class="speed-lights" aria-hidden="true"><span class="speed-light" id="jr-l1"></span><span class="speed-light" id="jr-l2"></span><span class="speed-light" id="jr-l3"></span><span class="speed-light" id="jr-l4"></span><span class="speed-light" id="jr-l5"></span></span></div>
                 </div>
                 <script>
                   (function(){
                     try{
-                      var el = document.getElementById('needle') || (document.currentScript && document.currentScript.previousElementSibling.querySelector('#needle'));
-                      var a=0; setInterval(function(){ a=(a+12)%180; if(el){ var rad=(a-90)*Math.PI/180; var x=50+36*Math.cos(rad); var y=70+36*Math.sin(rad); el.setAttribute('x2', x); el.setAttribute('y2', y);} }, 500);
+                      var needle = document.getElementById('jr-needle') || (document.currentScript && document.currentScript.parentElement.querySelector('#jr-needle'));
+                      var pedal = document.getElementById('jr-gas-pedal');
+                      var readout = document.getElementById('jr-speed-readout');
+                      var lights = [document.getElementById('jr-l1'), document.getElementById('jr-l2'), document.getElementById('jr-l3'), document.getElementById('jr-l4'), document.getElementById('jr-l5')];
+
+                      var angle = 0; // 0..180
+                      var vel = 0;   // degrees/sec
+                      var accelerating = false;
+                      var last = performance.now();
+
+                      function setNeedle(ang){
+                        if (!needle) return;
+                        var rad = (ang - 90) * Math.PI / 180;
+                        var x = 50 + 36 * Math.cos(rad);
+                        var y = 70 + 36 * Math.sin(rad);
+                        needle.setAttribute('x2', x.toFixed(2));
+                        needle.setAttribute('y2', y.toFixed(2));
+                      }
+
+                      function updateLights(pct){
+                        var thresholds = [20, 40, 60, 80, 95];
+                        for (var i=0;i<lights.length;i++){
+                          if (!lights[i]) continue;
+                          if (pct >= thresholds[i]) { lights[i].classList.add('on'); }
+                          else { lights[i].classList.remove('on'); }
+                        }
+                      }
+
+                      function loop(now){
+                        var dt = Math.min(0.05, (now - last)/1000); // cap dt
+                        last = now;
+                        var accel = 180;   // deg/sec^2
+                        var decel = 140;   // deg/sec^2
+                        var vmax = 220;    // max deg/sec
+
+                        if (accelerating) { vel = Math.min(vmax, vel + accel * dt); }
+                        else { vel = Math.max(0, vel - decel * dt); }
+
+                        angle = Math.max(0, Math.min(180, angle + vel * dt));
+                        setNeedle(angle);
+                        var pct = Math.round((angle / 180) * 100);
+                        if (readout) readout.textContent = pct;
+                        updateLights(pct);
+                        requestAnimationFrame(loop);
+                      }
+
+                      function press(){ accelerating = true; if (pedal) pedal.setAttribute('aria-pressed','true'); }
+                      function release(){ accelerating = false; if (pedal) pedal.setAttribute('aria-pressed','false'); }
+
+                      if (pedal){
+                        pedal.addEventListener('pointerdown', function(e){ pedal.setPointerCapture && pedal.setPointerCapture(e.pointerId); press(); });
+                        pedal.addEventListener('pointerup', release);
+                        pedal.addEventListener('pointercancel', release);
+                        pedal.addEventListener('pointerleave', release);
+                        pedal.addEventListener('keydown', function(e){ if (e.code === 'Space' || e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); press(); } });
+                        pedal.addEventListener('keyup', function(e){ if (e.code === 'Space' || e.key === ' ' || e.key === 'Enter'){ release(); } });
+                      }
+
+                      // Initialize
+                      setNeedle(angle);
+                      requestAnimationFrame(loop);
                     }catch(e){}
                   })();
                 </script>
