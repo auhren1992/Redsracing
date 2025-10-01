@@ -4,6 +4,27 @@
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
 function initSpeedLab() {
+  // simple Web Audio context for nitro/brake effects
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let ctx = null;
+  const ensureCtx = () => (ctx ||= new AudioCtx());
+
+  const playTone = (freqStart, freqEnd, durationMs, type='sawtooth', volume=0.08) => {
+    try {
+      const c = ensureCtx();
+      const now = c.currentTime;
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freqStart, now);
+      osc.frequency.linearRampToValueAtTime(freqEnd, now + durationMs/1000);
+      gain.gain.setValueAtTime(volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + durationMs/1000);
+      osc.connect(gain).connect(c.destination);
+      osc.start(now);
+      osc.stop(now + durationMs/1000);
+    } catch {}
+  };
   const needle = document.getElementById('kids-needle');
   const speedVal = document.getElementById('speed-val');
   const gas = document.getElementById('gas');
@@ -60,9 +81,17 @@ function initSpeedLab() {
     btn.addEventListener('pointercancel',() => set(false));
   };
   onHold(gas, v => gasDown = v);
-  onHold(brake, v => brakeDown = v);
+  onHold(brake, v => {
+    brakeDown = v;
+    if (v) {
+      // brake sound: descending pitch blip
+      playTone(600, 180, 180, 'square', 0.08);
+    }
+  });
 
   nitro.addEventListener('click', () => {
+    // nitro sound: quick rising pitch
+    playTone(220, 880, 450, 'sawtooth', 0.12);
     if (nitroCooldown) return;
     nitroCooldown = true;
     speed = clamp(speed + 25, 0, 100);
@@ -186,8 +215,61 @@ function initQuiz() {
   questions.forEach((q, i) => list.appendChild(renderCard(q, i)));
 }
 
+// Simple toast utility
+function showToast(message, kind='info'){
+  const c = document.createElement('div');
+  c.style.position='fixed'; c.style.left='50%'; c.style.bottom='24px'; c.style.transform='translateX(-50%)';
+  c.style.padding='10px 14px'; c.style.borderRadius='10px'; c.style.fontWeight='900'; c.style.letterSpacing='.06em';
+  c.style.zIndex='10000'; c.style.border='1px solid rgba(255,255,255,0.2)'; c.style.backdropFilter='blur(6px)';
+  c.style.color='#fff'; c.style.background = kind==='success' ? 'rgba(34,197,94,0.25)' : kind==='error' ? 'rgba(239,68,68,0.25)' : 'rgba(148,163,184,0.25)';
+  c.textContent = message; document.body.appendChild(c);
+  setTimeout(()=>{ c.remove(); }, 2200);
+}
+
+function initGalleryUpload(){
+  const input = document.getElementById('photo-upload-input');
+  const btn = document.getElementById('upload-btn');
+  const bar = document.getElementById('upload-progress-bar');
+  const status = document.getElementById('upload-status');
+  const gallery = document.getElementById('dynamic-gallery-container');
+  const container = document.getElementById('upload-container');
+  if (!input || !btn || !bar || !status || !gallery) return;
+
+  // Expose the upload form (was hidden inline)
+  if (container) container.style.display = '';
+
+  input.addEventListener('change', () => {
+    btn.disabled = !input.files || input.files.length === 0;
+  });
+
+  btn.addEventListener('click', async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    btn.disabled = true; status.textContent = 'Preparing upload...'; bar.style.width = '0%';
+    try {
+      // For now, immediately display locally (preview) and simulate upload progress
+      const url = URL.createObjectURL(file);
+      const img = document.createElement('img');
+      img.src = url; img.alt = file.name; img.className = 'rounded-lg w-full h-auto';
+      const wrap = document.createElement('div'); wrap.className = 'gallery-item-3d'; wrap.appendChild(img);
+      gallery.prepend(wrap);
+
+      // Simulate smooth progress
+      let p = 0; const timer = setInterval(()=>{ p = Math.min(100, p+12); bar.style.width = p + '%'; if (p>=100) { clearInterval(timer); } }, 120);
+
+      // If you want Firebase Storage later, replace this block with real upload & getDownloadURL
+      await new Promise(res=> setTimeout(res, 1400));
+      status.textContent = 'Uploaded!'; showToast('Photo uploaded', 'success');
+      input.value = ''; btn.disabled = true;
+    } catch (e) {
+      console.error(e); status.textContent = 'Upload failed'; showToast('Upload failed', 'error');
+    }
+  });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   try { initSpeedLab(); } catch(e) {}
   try { initStickerGarage(); } catch(e) {}
   try { initQuiz(); } catch(e) {}
+  try { initGalleryUpload(); } catch(e) {}
 });
