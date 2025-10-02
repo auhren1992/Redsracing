@@ -109,4 +109,3 @@ function initCMSAdmin() {
 }
 
 document.addEventListener('DOMContentLoaded', initCMSAdmin);
-}  }
