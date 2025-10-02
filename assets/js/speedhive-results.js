@@ -14,12 +14,17 @@ import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
       let data = null;
       try {
         const rGo = await fetch('/api/speedhive/events', { headers: { 'Accept': 'application/json' } });
-        if (rGo.ok) { data = await rGo.json(); }
+        if (rGo.ok) {
+          data = await rGo.json();
+          // Normalize raw arrays from Go service
+          if (Array.isArray(data)) data = { ok: true, events: data };
+        }
       } catch {}
-      if (!data || (Array.isArray(data) && !data.length)) {
+      if (!data || (Array.isArray(data) && !data.length) || (data && data.ok === false)) {
         // Fallback to Functions-based scraper
         const rFn = await fetch('/speedhive/jon', { headers: { 'Accept': 'application/json' } });
-        data = rFn.ok ? await rFn.json() : null;
+        const tmp = rFn.ok ? await rFn.json() : null;
+        data = tmp;
       }
 
       const wrap = document.createElement('div');
@@ -73,7 +78,17 @@ import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
         });
       }
 
-      if (!data || !data.ok || !Array.isArray(data.events) || !data.events.length) {
+      if (!data || (data && data.ok === false)) {
+        const empty = document.createElement('p');
+        empty.className = 'text-slate-400';
+        empty.textContent = 'No results found yet.';
+        wrap.appendChild(empty);
+        root.innerHTML = '';
+        root.appendChild(wrap);
+        return;
+      }
+      const events = Array.isArray(data) ? data : (Array.isArray(data?.events) ? data.events : []);
+      if (!events.length) {
         const empty = document.createElement('p');
         empty.className = 'text-slate-400';
         empty.textContent = 'No results found yet.';
@@ -85,7 +100,7 @@ import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
 
       const list = document.createElement('div');
       list.className = 'space-y-3';
-      data.events.slice(0, 20).forEach(ev => {
+      events.slice(0, 20).forEach(ev => {
         const row = document.createElement('div');
         row.className = 'p-4 rounded-lg bg-slate-800/50 border border-slate-700/50';
         const name = (ev.name || ev.title || 'Race');
