@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <script defer src="https://unpkg.com/scrollreveal"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="stylesheet" href="styles/modern-effects.css" />
+  </head>
+  <body class="bg-dark-blue">
+    <header
+      class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50"
+    >
+      <nav
+        class="container mx-auto px-6 py-3 flex justify-between items-center"
+      >
+        <a
+          href="index.html"
+          class="text-4xl font-racing uppercase tracking-wider"
+        >
+          <span class="title-blue">Reds</span
+          ><span class="neon-yellow">Racing</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-6 font-bold">
+          <a href="index.html" class="nav-link">🏠 Home</a>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏎️ Drivers <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="driver.html" class="dropdown-item">Jon Kirsch #8</a>
+              <a href="jonny.html" class="dropdown-item">Jonny Kirsch #88</a>
+              <a href="legends.html" class="dropdown-item">Team Legends</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏁 Racing <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="schedule.html" class="dropdown-item">Schedule</a>
+              <a href="leaderboard.html" class="dropdown-item">Leaderboard</a>
+              <a href="gallery.html" class="dropdown-item">📸 Gallery</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              👥 Community <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="feedback.html" class="dropdown-item">Feedback</a>
+              <a href="sponsorship.html" class="dropdown-item">Sponsorship</a>
+            </div>
+          </div>
+          <!-- User Profile / Login -->
+          <div id="auth-section">
+            <!-- Login Button (shown when not authenticated) -->
+            <!-- User Profile Dropdown (shown when authenticated) -->
+            <div id="user-profile" class="relative dropdown hidden">
+              <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
+                <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <i class="fas fa-user text-white text-xs"></i>
+                </div>
+                <div class="text-left hidden md:block">
+                  <div class="text-sm font-semibold text-white" id="user-name">Driver</div>
+                  <div class="text-xs text-slate-400">Team Member</div>
+                </div>
+                <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+              </button>
+              
+              <div class="dropdown-menu modern-dropdown right-0 w-44">
+                <div class="px-4 py-2 border-b border-slate-600/50">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-green-400 text-sm">Online</span>
+                  </div>
+                </div>
+                
+                <a href="admin-console.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
+                  <span>Dashboard</span>
+                </a>
+                
+                <a href="profile.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-user w-4 mr-3 text-green-400"></i>
+                  <span>My Profile</span>
+                </a>
+                
+                <div class="border-t border-slate-600/50 my-1"></div>
+                
+                <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                  <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button
+          id="mobile-menu-button"
+          class="md:hidden text-white focus:outline-none"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16m-7 6h7"
+            ></path>
+          </svg>
+        </button>
+      </nav>
+      <div id="mobile-menu" class="mobile-menu modern-mobile">
+        <a href="index.html" class="mobile-nav-item">🏠 Home</a>
+        <button class="mobile-accordion">
+          <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="driver.html" class="mobile-nav-subitem">Jon Kirsch #8</a>
+          <a href="jonny.html" class="mobile-nav-subitem">Jonny Kirsch #88</a>
+          <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
+        </div>
+        <button class="mobile-accordion">
+          <span>🏁 Racing</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="schedule.html" class="mobile-nav-subitem">Schedule</a>
+          <a href="leaderboard.html" class="mobile-nav-subitem">Leaderboard</a>
+          <a href="gallery.html" class="mobile-nav-subitem">📸 Gallery</a>
+        </div>
+        <button class="mobile-accordion">
+          <span>👥 Community</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="feedback.html" class="mobile-nav-subitem">Feedback</a>
+          <a href="sponsorship.html" class="mobile-nav-subitem">Sponsorship</a>
+        </div>
+        <div class="border-t border-slate-600 mt-4 pt-4">
+          <!-- Mobile Auth Section -->
+          <div id="mobile-auth-section">
+            <!-- Mobile Login Button (shown when not authenticated) -->
+            
+            
+            <!-- Mobile User Profile (shown when authenticated) -->
+            <div id="mobile-user-profile" class="hidden">
+              <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
+                <div class="flex items-center space-x-3 mb-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white"></i>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold" id="mobile-user-name">Driver</div>
+                    <div class="text-slate-400 text-sm">Team Member</div>
+                    <div class="flex items-center space-x-1 mt-1">
+                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span class="text-green-400 text-xs">Online</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="space-y-1">
+                  <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
+                    <span>Dashboard</span>
+                  </a>
+                  <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-user w-5 mr-3 text-green-400"></i>
+                    <span>My Profile</span>
+                  </a>
+                  <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                    <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main class="flex items-center justify-center min-h-screen p-4">
+      <div class="w-full max-w-md reveal-fade visible">
+        <!-- Form Container -->
+        <div class="form-container p-8 rounded-lg shadow-2xl bg-slate-800/50 backdrop-blur-md border border-slate-700/50">
+          <h2 class="text-3xl font-racing uppercase text-center text-white mb-6">
+            Member <span class="neon-yellow">Access</span>
+          </h2>
+
+        <!-- Error Message Display -->
+        <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
+          <p id="error-text"></p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="space-y-6">
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-300"
+              >Email</label
+            >
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
+            />
+          </div>
+          <div>
+            <div class="flex justify-between items-center">
+              <label
+                for="password"
+                class="block text-sm font-medium text-gray-300"
+                >Password</label
+              >
+              <a
+                href="#"
+                id="forgot-password-link"
+                class="text-sm text-slate-400 hover:text-neon-yellow"
+                >Forgot password?</a
+              >
+            </div>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
+            />
+          </div>
+
+          <!-- Optional Invitation Code Field -->
+          <div>
+            <label
+              for="invitation-code"
+              class="block text-sm font-medium text-gray-300"
+              >Invitation Code (optional)</label
+            >
+            <input
+              type="text"
+              id="invitation-code"
+              name="invitation-code"
+              class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
+              placeholder="Enter invitation code if you have one"
+            />
+            <p class="text-xs text-gray-400 mt-1">
+              Enter an invitation code to access additional features.
+            </p>
+          </div>
+
+          <div class="flex flex-col space-y-4">
+            <button
+              type="button"
+              id="signin-button"
+              class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300"
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              id="signup-button"
+              class="w-full bg-gray-600 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-500 transition duration-300"
+            >
+              Sign Up
+            </button>
+          </div>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-slate-600"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-slate-800 text-gray-400"
+              >Or continue with</span
+            >
+          </div>
+        </div>
+
+        <!-- Google Sign-in -->
+        <div>
+          <button
+            type="button"
+            id="google-signin-button"
+            class="w-full flex justify-center items-center bg-white text-gray-700 font-semibold py-2 px-4 rounded-md shadow-sm hover:bg-gray-200 transition duration-300"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              aria-hidden="true"
+              focusable="false"
+              data-prefix="fab"
+              data-icon="google"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 488 512"
+            >
+              <path
+                fill="currentColor"
+                d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.9 0 129.8 110.3 20 244 20c66.2 0 121.3 24.8 162.2 65.5l-68.5 64.9C314.5 124.9 282.8 108 244 108c-73.2 0-132.3 59.8-132.3 133.1s59.1 133.1 132.3 133.1c76.9 0 114.3-52.3 120.8-79.1H244V261.8h244z"
+              ></path>
+            </svg>
+            Sign in with Google
+          </button>
+        <div class="mt-6">
+          <button
+            type="button"
+            id="continue-guest-button"
+            class="w-full border border-slate-500 text-slate-200 font-semibold py-2 px-4 rounded-md hover:bg-slate-700/50 transition duration-300"
+          >
+            Continue as guest
+          </button>
+          <p class="text-xs text-slate-400 mt-2 text-center">You can browse public pages as a guest. Some features require sign-in.</p>
+        </div>
+        </div>
+        <p class="text-center text-gray-500 text-sm mt-6">
+          Don't have an account?
+          <a
+            href="signup.html"
+            class="font-semibold neon-yellow hover:text-yellow-300"
+            >Sign up</a
+          >.
+        </p>
+      </div>
+    </main>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Scripts -->
+    <script type="module" src="navigation.js"></script>
+    <script src="vendors.js"></script>
+    <script type="module" src="assets/js/login-page.js"></script>
+    <script>
+      // Force-show login card in case any CSS/JS delays hide it
+      (function(){
+        function forceShow(){
+          try {
+            var wrap = document.querySelector('.reveal-fade');
+            if (wrap) { wrap.classList.add('visible'); wrap.style.display='block'; wrap.style.visibility='visible'; wrap.style.opacity='1'; }
+            var card = document.querySelector('.form-container');
+            if (card) { card.style.display='block'; card.style.visibility='visible'; card.style.opacity='1'; }
+          } catch(e) { }
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', forceShow);
+        } else {
+          forceShow();
+        }
+        setTimeout(forceShow, 500);
+        setTimeout(forceShow, 1500);
+      })();
+    </script>
+    <script src="modern-effects.js"></script>
+  </body>
+</html>

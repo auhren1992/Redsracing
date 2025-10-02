@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modern Firebase Auth Test</title>
+    <link rel="stylesheet" href="styles/tailwind.css" />
+</head>
+<body class="p-6 bg-slate-900 text-white">
+    <h1 class="text-3xl mb-4">Modern Firebase Auth Test</h1>
+    
+    <div class="space-y-4">
+        <div id="auth-status" class="mb-4"></div>
+        <div id="user-info" class="mb-4"></div>
+        <div id="role-info" class="mb-4"></div>
+        <div id="api-test" class="mb-4"></div>
+        <div id="errors" class="mb-4 text-red-400"></div>
+    </div>
+
+    <div class="mt-6 space-x-2">
+        <button id="test-api-btn" class="bg-blue-600 px-4 py-2 rounded">Test API</button>
+        <button id="check-auth-btn" class="bg-green-600 px-4 py-2 rounded">Check Auth</button>
+        <a href="login.html" class="bg-yellow-600 px-4 py-2 rounded inline-block">Go to Login</a>
+    </div>
+
+    <!-- Load the compiled scripts that contain Firebase -->
+    <script src="vendors.js"></script>
+    <script src="auth-guard.js"></script>
+    
+    <script>
+        const errors = [];
+        const log = (id, message, type = 'info') => {
+            const colors = {
+                success: 'text-green-400',
+                error: 'text-red-400',
+                warning: 'text-yellow-400',
+                info: 'text-blue-400'
+            };
+            document.getElementById(id).innerHTML = `<span class="${colors[type]}">${message}</span>`;
+        };
+        
+        const logError = (error) => {
+            errors.push(error);
+            document.getElementById('errors').innerHTML = 
+                '<strong>Errors:</strong><br>' + errors.map(e => `• ${e}`).join('<br>');
+        };
+        
+        // Error handling
+        window.addEventListener('error', (e) => {
+            logError(`${e.message} (${e.filename}:${e.lineno})`);
+        });
+        
+        window.addEventListener('unhandledrejection', (e) => {
+            logError(`Promise rejection: ${e.reason}`);
+        });
+        
+        // Wait a bit for scripts to load, then test
+        setTimeout(() => {
+            log('auth-status', '🔄 Testing modern Firebase auth...', 'info');
+            
+            // Test API first
+            document.getElementById('test-api-btn').addEventListener('click', async () => {
+                try {
+                    log('api-test', '🔄 Testing API...', 'info');
+                    const response = await fetch('/test');
+                    const data = await response.json();
+                    log('api-test', `✅ API working: ${data.message}`, 'success');
+                } catch (error) {
+                    log('api-test', `❌ API failed: ${error.message}`, 'error');
+                    logError(`API Error: ${error.message}`);
+                }
+            });
+            
+            // Check auth button
+            document.getElementById('check-auth-btn').addEventListener('click', () => {
+                log('auth-status', '🔄 Checking auth state...', 'info');
+                
+                // Try to check if we're on a protected page
+                const currentPage = window.location.pathname.split('/').pop();
+                log('role-info', `Current page: ${currentPage}`, 'info');
+                
+                // Check if user seems to be redirected away (sign of auth guard working)
+                setTimeout(() => {
+                    if (window.location.pathname.includes('login')) {
+                        log('auth-status', '⚠️ Redirected to login - not authenticated', 'warning');
+                    } else {
+                        log('auth-status', '✅ Still on page - might be authenticated', 'success');
+                    }
+                }, 1000);
+            });
+            
+            // Auto-check API
+            document.getElementById('test-api-btn').click();
+            
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+/* Modern Navigation Enhancements */
+
+/* Enhanced Dropdown Animations */
+.dropdown-menu {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px) scale(0.95);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(16px);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-menu:not(.hidden) {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.dropdown-menu a {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dropdown-menu a::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.1), transparent);
+  transition: left 0.4s ease;
+}
+
+.dropdown-menu a:hover::before {
+  left: 100%;
+}
+
+.dropdown-menu a:hover {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+  transform: translateX(4px);
+}
+
+/* Mobile Navigation Enhancements */
+.mobile-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-accordion.active + .mobile-accordion-content {
+  max-height: 300px;
+}
+
+.mobile-accordion-icon {
+  transition: transform 0.3s ease;
+}
+
+.mobile-accordion.active .mobile-accordion-icon {
+  transform: rotate(180deg);
+}
+
+/* Navigation Hover Effects */
+nav a {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+nav a:hover::after {
+  width: 100%;
+}
+
+/* Enhanced Mobile Menu (legacy accordion is hidden by JS; keep styles minimal) */
+#mobile-menu { display: none; }
+
+/* Mobile dropdown panel specific tweaks */
+.mobile-dropdown-panel {
+  min-width: 14rem;
+  width: 18rem;
+  right: 0;
+}
+.mobile-dropdown-panel a { display:block; }
+@media (min-width: 768px) {
+  .mobile-dropdown-panel { display: none !important; }
+}
+
+/* Hamburger Animation */
+#mobile-menu-toggle svg {
+  transition: all 0.3s ease;
+}
+
+#mobile-menu-toggle:hover svg {
+  transform: scale(1.1);
+  color: #fbbf24;
+}
+
+/* Brand Logo Animation */
+header .font-racing {
+  transition: all 0.3s ease;
+}
+
+header .font-racing:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.3));
+}
+
+/* Sticky Header Enhancement */
+header {
+  transition: all 0.3s ease;
+}
+
+header.scrolled {
+  background: rgba(15, 23, 42, 0.98);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+/* Navigation Button Effects */
+.bg-red-600 {
+  background: linear-gradient(45deg, #dc2626, #b91c1c);
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-red-600::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s;
+}
+
+.bg-red-600:hover::before {
+  left: 100%;
+}
+
+.bg-red-600:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+}

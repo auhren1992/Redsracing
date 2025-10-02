@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body class="flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md">
+      <!-- Logo Header -->
+      <div class="text-center mb-8">
+        <a
+          href="index.html"
+          class="text-5xl font-racing uppercase tracking-wider"
+        >
+          <span class="title-blue">Reds</span
+          ><span class="neon-yellow">Racing</span>
+        </a>
+      </div>
+
+      <!-- Form Container -->
+      <div class="form-container p-8 rounded-lg shadow-2xl">
+        <h2 class="text-2xl font-bold text-center text-white mb-6">
+          Create Your Account
+        </h2>
+
+        <!-- Error Message Display -->
+        <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
+          <p id="error-text"></p>
+        </div>
+
+        <!-- Signup Form -->
+        <form id="signup-form" class="space-y-6">
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Email"
+            required
+            autocomplete="email"
+            class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
+          />
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Password"
+            required
+            autocomplete="new-password"
+            class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
+          />
+          <input
+            type="text"
+            id="invite-code"
+            name="invite-code"
+            placeholder="Invite Code (optional)"
+            class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
+          />
+          
+          <!-- Team Role Selection -->
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-3">Team Role</label>
+            <div class="space-y-3">
+              <label class="flex items-center p-3 rounded-lg border border-slate-600 cursor-pointer hover:border-yellow-400 transition-all duration-200 bg-slate-800/50">
+                <input type="radio" name="team-role" value="racer" class="text-yellow-400 focus:ring-yellow-400 focus:ring-2" required />
+                <div class="flex items-center space-x-3 w-full ml-3">
+                  <div class="text-2xl">🏎️</div>
+                  <div>
+                    <div class="font-bold text-white">Racer</div>
+                    <div class="text-sm text-slate-400">Driver competing in races</div>
+                  </div>
+                </div>
+              </label>
+              
+              <label class="flex items-center p-3 rounded-lg border border-slate-600 cursor-pointer hover:border-yellow-400 transition-all duration-200 bg-slate-800/50">
+                <input type="radio" name="team-role" value="crew" class="text-yellow-400 focus:ring-yellow-400 focus:ring-2" required />
+                <div class="flex items-center space-x-3 w-full ml-3">
+                  <div class="text-2xl">🔧</div>
+                  <div>
+                    <div class="font-bold text-white">Crew Member</div>
+                    <div class="text-sm text-slate-400">Support team, mechanics, strategy</div>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300"
+          >
+            Sign Up
+          </button>
+          <div id="signup-error" style="color: red; margin-top: 8px"></div>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-slate-600"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-slate-800 text-gray-400"
+              >Or continue with</span
+            >
+          </div>
+        </div>
+
+        <!-- Google Sign-in -->
+        <div>
+          <button
+            type="button"
+            id="google-signin-button"
+            class="w-full flex justify-center items-center bg-white text-gray-700 font-semibold py-2 px-4 rounded-md shadow-sm hover:bg-gray-200 transition duration-300"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              focusable="false"
+              data-prefix="fab"
+              data-icon="google"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 488 512"
+            >
+              <path
+                fill="currentColor"
+                d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.9 0 129.8 110.3 20 244 20c66.2 0 121.3 24.8 162.2 65.5l-68.5 64.9C314.5 124.9 282.8 108 244 108c-73.2 0-132.3 59.8-132.3 133.1s59.1 133.1 132.3 133.1c76.9 0 114.3-52.3 120.8-79.1H244V261.8h244z"
+              ></path>
+            </svg>
+            Sign in with Google
+          </button>
+        </div>
+      </div>
+      <p class="text-center text-gray-500 text-sm mt-6">
+        Already have an account?
+        <a
+          href="login.html"
+          class="font-semibold neon-yellow hover:text-yellow-300"
+          >Sign in</a
+        >.
+      </p>
+    </div>
+
+    <script type="module" src="assets/js/signup-page.js"></script>
+  </body>
+</html>

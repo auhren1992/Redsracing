@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Debug</title>
+    <link rel="stylesheet" href="styles/tailwind.css" />
+</head>
+<body class="p-6 bg-slate-900 text-white">
+    <h1 class="text-3xl mb-4">Simple Debug - Script Loading</h1>
+    
+    <div class="space-y-4">
+        <div id="script-checks" class="mb-4"></div>
+        <div id="console-errors" class="mb-4 text-red-400"></div>
+        <div id="network-info" class="mb-4"></div>
+    </div>
+
+    <script>
+        // Capture all errors
+        const errors = [];
+        window.addEventListener('error', (e) => {
+            errors.push(`Error: ${e.message} at ${e.filename}:${e.lineno}`);
+            updateErrorDisplay();
+        });
+        
+        window.addEventListener('unhandledrejection', (e) => {
+            errors.push(`Promise rejection: ${e.reason}`);
+            updateErrorDisplay();
+        });
+        
+        function updateErrorDisplay() {
+            document.getElementById('console-errors').innerHTML = 
+                '<strong>Errors:</strong><br>' + errors.join('<br>');
+        }
+        
+        function checkScripts() {
+            const checks = [];
+            
+            // Check basic globals
+            checks.push(`Window object: ${typeof window !== 'undefined' ? '✅' : '❌'}`);
+            checks.push(`Document: ${typeof document !== 'undefined' ? '✅' : '❌'}`);
+            checks.push(`Fetch available: ${typeof fetch !== 'undefined' ? '✅' : '❌'}`);
+            
+            document.getElementById('script-checks').innerHTML = checks.join('<br>');
+        }
+        
+        function checkNetwork() {
+            const info = [];
+            info.push(`URL: ${window.location.href}`);
+            info.push(`Origin: ${window.location.origin}`);
+            info.push(`User Agent: ${navigator.userAgent.substring(0, 100)}...`);
+            
+            document.getElementById('network-info').innerHTML = 
+                '<strong>Network Info:</strong><br>' + info.join('<br>');
+        }
+        
+        checkScripts();
+        checkNetwork();
+        
+        // Test vendors.js loading
+        const script = document.createElement('script');
+        script.src = 'vendors.js';
+        script.onload = function() {
+            document.getElementById('script-checks').innerHTML += '<br>✅ vendors.js loaded successfully';
+            
+            // Check what's available after vendors.js loads
+            setTimeout(() => {
+                const availableGlobals = [];
+                if (typeof firebase !== 'undefined') availableGlobals.push('firebase (v8)');
+                if (window.firebase) availableGlobals.push('window.firebase');
+                
+                document.getElementById('script-checks').innerHTML += 
+                    '<br><strong>After vendors.js:</strong><br>' + 
+                    (availableGlobals.length ? availableGlobals.join('<br>') : 'No Firebase globals found');
+            }, 500);
+        };
+        script.onerror = function(e) {
+            document.getElementById('script-checks').innerHTML += '<br>❌ vendors.js failed to load';
+            errors.push('vendors.js failed to load');
+            updateErrorDisplay();
+        };
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>

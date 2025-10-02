@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sponsorship - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://redsracing-a7f8b.firebasestorage.app" crossorigin />
+    <link rel="dns-prefetch" href="//redsracing-a7f8b.firebasestorage.app" />
+    <script defer src="https://unpkg.com/scrollreveal"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="stylesheet" href="styles/modern-effects.css" />
+  <script src="assets/js/guest-gate.js"></script>
+  </head>
+  <body class="bg-dark-blue">
+    <!-- Header -->
+    <header
+      class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50"
+    >
+      <nav
+        class="container mx-auto px-6 py-3 flex justify-between items-center"
+      >
+        <a
+href="jons.html"
+          class="text-4xl font-racing uppercase tracking-wider"
+        >
+          <span class="title-blue">Reds</span
+          ><span class="neon-yellow">Racing</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-6 font-bold">
+          <a href="index.html" class="nav-link">🏠 Home</a>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏎️ Drivers <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="driver.html" class="dropdown-item">Jon Kirsch #8</a>
+              <a href="jonny.html" class="dropdown-item">Jonny Kirsch #88</a>
+              <a href="legends.html" class="dropdown-item">Team Legends</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏁 Racing <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="schedule.html" class="dropdown-item">Schedule</a>
+              <a href="leaderboard.html" class="dropdown-item">Leaderboard</a>
+              <a href="gallery.html" class="dropdown-item">Gallery</a>
+              <a href="videos.html" class="dropdown-item">Videos</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              👥 Community <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="qna.html" class="dropdown-item">❓ Q&A</a>
+              <a href="feedback.html" class="dropdown-item">💬 Feedback</a>
+              <a href="sponsorship.html" class="dropdown-item active">💰 Sponsorship</a>
+            </div>
+          </div>
+          <!-- User Profile / Login -->
+          <div id="auth-section">
+            <!-- Login Button (shown when not authenticated) -->
+            <!-- User Profile Dropdown (shown when authenticated) -->
+            <div id="user-profile" class="relative dropdown hidden">
+              <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
+                <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <i class="fas fa-user text-white text-xs"></i>
+                </div>
+                <div class="text-left hidden md:block">
+                  <div class="text-sm font-semibold text-white" id="user-name">Driver</div>
+                  <div class="text-xs text-slate-400">Team Member</div>
+                </div>
+                <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+              </button>
+              
+              <div class="dropdown-menu modern-dropdown right-0 w-44">
+                <div class="px-4 py-2 border-b border-slate-600/50">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-green-400 text-sm">Online</span>
+                  </div>
+                </div>
+                
+                <a href="admin-console.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
+                  <span>Dashboard</span>
+                </a>
+                
+                <a href="profile.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-user w-4 mr-3 text-green-400"></i>
+                  <span>My Profile</span>
+                </a>
+                
+                <div class="border-t border-slate-600/50 my-1"></div>
+                
+                <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                  <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button
+          id="mobile-menu-button"
+          class="md:hidden text-white focus:outline-none"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16m-7 6h7"
+            ></path>
+          </svg>
+        </button>
+      </nav>
+      <div id="mobile-menu" class="mobile-menu modern-mobile">
+        <a href="index.html" class="mobile-nav-item">🏠 Home</a>
+        <button class="mobile-accordion">
+          <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="driver.html" class="mobile-nav-subitem">Jon Kirsch #8</a>
+          <a href="jonny.html" class="mobile-nav-subitem">Jonny Kirsch #88</a>
+          <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
+        </div>
+        <button class="mobile-accordion">
+          <span>🏁 Racing</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="schedule.html" class="mobile-nav-subitem">Schedule</a>
+          <a href="leaderboard.html" class="mobile-nav-subitem">Leaderboard</a>
+          <a href="gallery.html" class="mobile-nav-subitem">Gallery</a>
+          <a href="videos.html" class="mobile-nav-subitem">Videos</a>
+        </div>
+        <button class="mobile-accordion">
+          <span>👥 Community</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="qna.html" class="mobile-nav-subitem">❓ Q&A</a>
+          <a href="feedback.html" class="mobile-nav-subitem">💬 Feedback</a>
+          <a href="sponsorship.html" class="mobile-nav-subitem active">💰 Sponsorship</a>
+        </div>
+        <div class="border-t border-slate-600 mt-4 pt-4">
+          <!-- Mobile Auth Section -->
+          <div id="mobile-auth-section">
+            <!-- Mobile Login Button (shown when not authenticated) -->
+            
+            
+            <!-- Mobile User Profile (shown when authenticated) -->
+            <div id="mobile-user-profile" class="hidden">
+              <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
+                <div class="flex items-center space-x-3 mb-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white"></i>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold" id="mobile-user-name">Driver</div>
+                    <div class="text-slate-400 text-sm">Team Member</div>
+                    <div class="flex items-center space-x-1 mt-1">
+                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span class="text-green-400 text-xs">Online</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="space-y-1">
+                  <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
+                    <span>Dashboard</span>
+                  </a>
+                  <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-user w-5 mr-3 text-green-400"></i>
+                    <span>My Profile</span>
+                  </a>
+                  <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                    <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Modern Hero Section -->
+      <section class="py-20 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
+        <div class="container mx-auto px-6 relative z-10">
+          <div class="text-center mb-16">
+            <div class="inline-flex items-center bg-green-600/20 backdrop-blur-sm px-6 py-3 rounded-full border border-green-400/30 mb-6">
+              <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-3"></div>
+              <span class="text-green-400 font-bold uppercase tracking-wider text-sm">
+                <i class="fas fa-handshake mr-2"></i>Partnership Opportunities
+              </span>
+            </div>
+            
+            <h1 class="font-racing text-6xl md:text-8xl lg:text-9xl uppercase tracking-wider mb-6">
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-blue-500 to-green-600">
+                Sponsorship
+              </span>
+            </h1>
+            
+            <p class="text-xl md:text-2xl text-slate-300 font-bold tracking-wide max-w-4xl mx-auto mb-8">
+              Join our journey • Accelerate your brand • Win together
+            </p>
+            
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              <div class="modern-card p-4 border border-green-400/20">
+                <div class="text-3xl font-bold text-green-400">50K+</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Annual Reach</div>
+              </div>
+              <div class="modern-card p-4 border border-blue-400/20">
+                <div class="text-3xl font-bold text-blue-400">24</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Race Events</div>
+              </div>
+              <div class="modern-card p-4 border border-yellow-400/20">
+                <div class="text-3xl font-bold text-yellow-400">5+</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Media Platforms</div>
+              </div>
+              <div class="modern-card p-4 border border-purple-400/20">
+                <div class="text-3xl font-bold text-purple-400">100%</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Dedication</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sponsorship Packages Section -->
+      <section class="py-20 md:py-32 bg-gradient-to-b from-black to-slate-900">
+        <div class="container mx-auto px-6">
+          <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+              <div class="inline-flex items-center bg-blue-500/20 px-4 py-2 rounded-full mb-4">
+                <i class="fas fa-trophy text-blue-400 mr-2"></i>
+                <span class="text-blue-400 font-bold uppercase tracking-wider text-sm">Partnership Tiers</span>
+              </div>
+              <h2 class="font-racing text-4xl md:text-5xl text-white uppercase mb-6">
+                Choose Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-500">Partnership Level</span>
+              </h2>
+              <p class="text-slate-300 text-lg max-w-3xl mx-auto">
+                From trackside presence to full team partnership, we offer flexible sponsorship packages designed to maximize your brand's racing exposure.
+              </p>
+            </div>
+            
+            <!-- Sponsorship Tiers -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+              <!-- Bronze Package -->
+              <div class="modern-card p-8 rounded-2xl border border-orange-400/30 hover:border-orange-400/50 transition-all group">
+                <div class="text-center mb-6">
+                  <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-medal text-white text-2xl"></i>
+                  </div>
+                  <h3 class="font-racing text-2xl text-white uppercase mb-2">Bronze Partner</h3>
+                  <div class="text-orange-400 font-bold text-lg">Starting at $500</div>
+                </div>
+                
+                <ul class="space-y-3 mb-8">
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-orange-400 w-5 mr-3"></i>
+                    <span>Logo on race car</span>
+                  </li>
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-orange-400 w-5 mr-3"></i>
+                    <span>Website recognition</span>
+                  </li>
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-orange-400 w-5 mr-3"></i>
+                    <span>Social media mentions</span>
+                  </li>
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-orange-400 w-5 mr-3"></i>
+                    <span>Race day updates</span>
+                  </li>
+                </ul>
+                
+                <button class="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">
+                  Choose Bronze
+                </button>
+              </div>
+              
+              <!-- Silver Package -->
+              <div class="modern-card p-8 rounded-2xl border border-gray-400/30 hover:border-gray-400/50 transition-all group transform scale-105">
+                <div class="text-center mb-6">
+                  <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-1 rounded-full text-sm font-bold">POPULAR</span>
+                  </div>
+                  <div class="w-16 h-16 bg-gradient-to-br from-gray-400 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-award text-white text-2xl"></i>
+                  </div>
+                  <h3 class="font-racing text-2xl text-white uppercase mb-2">Silver Partner</h3>
+                  <div class="text-gray-300 font-bold text-lg">Starting at $1,000</div>
+                </div>
+                
+                <ul class="space-y-3 mb-8">
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-gray-400 w-5 mr-3"></i>
+                    <span>All Bronze benefits</span>
+                  </li>
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-gray-400 w-5 mr-3"></i>
+                    <span>Larger car logo placement</span>
+                  </li>
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-gray-400 w-5 mr-3"></i>
+                    <span>Driver suit branding</span>
+                  </li>
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-gray-400 w-5 mr-3"></i>
+                    <span>Pit crew uniforms</span>
+                  </li>
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-gray-400 w-5 mr-3"></i>
+                    <span>VIP race day access</span>
+                  </li>
+                </ul>
+                
+                <button class="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">
+                  Choose Silver
+                </button>
+              </div>
+              
+              <!-- Gold Package -->
+              <div class="modern-card p-8 rounded-2xl border border-yellow-400/30 hover:border-yellow-400/50 transition-all group">
+                <div class="text-center mb-6">
+                  <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-crown text-white text-2xl"></i>
+                  </div>
+                  <h3 class="font-racing text-2xl text-white uppercase mb-2">Gold Partner</h3>
+                  <div class="text-yellow-400 font-bold text-lg">Starting at $2,000</div>
+                </div>
+                
+                <ul class="space-y-3 mb-8">
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-yellow-400 w-5 mr-3"></i>
+                    <span>All Silver benefits</span>
+                  </li>
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-yellow-400 w-5 mr-3"></i>
+                    <span>Primary car sponsorship</span>
+                  </li>
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-yellow-400 w-5 mr-3"></i>
+                    <span>Hauler/trailer branding</span>
+                  </li>
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-yellow-400 w-5 mr-3"></i>
+                    <span>Video content featuring</span>
+                  </li>
+                  <li class="flex items-center text-slate-300">
+                    <i class="fas fa-check text-yellow-400 w-5 mr-3"></i>
+                    <span>Event hospitality</span>
+                  </li>
+                </ul>
+                
+                <button class="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">
+                  Choose Gold
+                </button>
+              </div>
+            </div>
+            
+            <!-- Contact Form Section -->
+            <div class="modern-card p-8 md:p-12 rounded-2xl">
+              <div class="text-center mb-8">
+                <div class="inline-flex items-center bg-purple-500/20 px-4 py-2 rounded-full mb-4">
+                  <i class="fas fa-rocket text-purple-400 mr-2"></i>
+                  <span class="text-purple-400 font-bold uppercase tracking-wider text-sm">Start Your Partnership</span>
+                </div>
+                  <h3 class="font-racing text-3xl md:text-4xl text-white uppercase mb-4">
+                  Ready to <span class="neon-yellow">Join the Team?</span>
+                </h3>
+                <p class="text-slate-300 text-lg max-w-2xl mx-auto">
+                  Let's discuss how we can create a winning partnership that accelerates both your brand and our racing success.
+                </p>
+              </div>
+              
+              <form id="sponsorshipForm" class="max-w-3xl mx-auto space-y-6">
+                <div class="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label for="companyName" class="block text-sm font-bold text-slate-300 mb-2">
+                      <i class="fas fa-building text-blue-400 mr-2"></i>Company Name
+                    </label>
+                    <input
+                      type="text"
+                      id="companyName"
+                      name="companyName"
+                      required
+                      class="w-full bg-slate-800 border border-slate-600 rounded-lg p-4 text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                      placeholder="ACME Corporation"
+                    />
+                  </div>
+                  <div>
+                    <label for="contactName" class="block text-sm font-bold text-slate-300 mb-2">
+                      <i class="fas fa-user text-green-400 mr-2"></i>Contact Name
+                    </label>
+                    <input
+                      type="text"
+                      id="contactName"
+                      name="contactName"
+                      required
+                      class="w-full bg-slate-800 border border-slate-600 rounded-lg p-4 text-white placeholder-slate-400 focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label for="email" class="block text-sm font-bold text-slate-300 mb-2">
+                      <i class="fas fa-envelope text-purple-400 mr-2"></i>Email Address
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      required
+                      class="w-full bg-slate-800 border border-slate-600 rounded-lg p-4 text-white placeholder-slate-400 focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all"
+                      placeholder="you@company.com"
+                    />
+                  </div>
+                  <div>
+                    <label for="phone" class="block text-sm font-bold text-slate-300 mb-2">
+                      <i class="fas fa-phone text-orange-400 mr-2"></i>Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      class="w-full bg-slate-800 border border-slate-600 rounded-lg p-4 text-white placeholder-slate-400 focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
+                      placeholder="555-555-5555"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label for="sponsorshipLevel" class="block text-sm font-bold text-slate-300 mb-2">
+                    <i class="fas fa-star text-yellow-400 mr-2"></i>Interested Partnership Level
+                  </label>
+                  <select
+                    id="sponsorshipLevel"
+                    name="sponsorshipLevel"
+                    class="w-full bg-slate-800 border border-slate-600 rounded-lg p-4 text-white focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all"
+                  >
+                    <option value="">Select a partnership level</option>
+                    <option value="bronze">Bronze Partner ($500+)</option>
+                    <option value="silver">Silver Partner ($1,000+)</option>
+                    <option value="gold">Gold Partner ($2,000+)</option>
+                    <option value="custom">Custom Partnership</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label for="message" class="block text-sm font-bold text-slate-300 mb-2">
+                    <i class="fas fa-comment text-red-400 mr-2"></i>Tell Us About Your Goals
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    rows="6"
+                    required
+                    class="w-full bg-slate-800 border border-slate-600 rounded-lg p-4 text-white placeholder-slate-400 focus:ring-2 focus:ring-red-400 focus:border-transparent transition-all"
+                    placeholder="Tell us about your company, marketing goals, and why you'd like to partner with RedsRacing..."
+                  ></textarea>
+                </div>
+                
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                  <i class="fas fa-paper-plane mr-2"></i>
+                  Start Our Partnership Journey
+                </button>
+                
+                <p id="sponsorshipStatus" class="text-sm text-center mt-4 h-4"></p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bg-black/50 border-t border-slate-800 py-16">
+      <div class="container mx-auto px-6 text-center">
+        <h3 class="font-racing text-4xl uppercase mb-2 neon-yellow">
+          Get In Touch
+        </h3>
+        <p class="text-slate-400 mb-8">
+          Subscribe for race updates and follow the journey on social media.
+        </p>
+        <div class="max-w-md mx-auto mb-8">
+          <form id="subscribeForm" class="flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              id="emailInput"
+              placeholder="Enter your email"
+              required
+              class="flex-grow bg-slate-800 text-white px-4 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring--yellow w-full"
+            />
+            <button
+              type="submit"
+              class="bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300"
+            >
+              Subscribe
+            </button>
+          </form>
+          <p id="subscribeStatus" class="text-sm mt-2 h-4"></p>
+        </div>
+        <div class="flex justify-center space-x-6 mb-8">
+          <a
+            href="https://www.facebook.com/share/1F1RTxz9xa/"
+            target="_blank"
+            class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"
+            ><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                fill-rule="evenodd"
+                d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
+                clip-rule="evenodd"
+              /></svg
+          ></a>
+          <a
+            href="https://www.tiktok.com/@redsracing"
+            target="_blank"
+            class="text-slate-400 hover:text-neon-yellow transition transform hover:scale-110"
+            ><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"
+              /></svg
+          ></a>
+        </div>
+        <p class="mt-8 text-slate-500 text-sm">
+          © <span id="year"></span> RedsRacing #8. All Rights Reserved.
+        </p>
+      </div>
+    </footer>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Scripts -->
+    <script type="module" src="navigation.js"></script>
+    <script type="module" src="main.js"></script>
+    <script type="module" src="assets/js/sponsorship.js"></script>
+    <script src="modern-effects.js"></script>
+  </body>
+</html>
