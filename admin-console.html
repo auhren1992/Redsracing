@@ -1075,7 +1075,13 @@
                 <i class="fas fa-file-pen text-yellow-300 mr-2"></i>
                 Page Management
               </h2>
-              <p class="text-slate-400 text-sm">Edit site pages and sections (hero, tips, quiz, etc). Choose the page slug in the CMS panel below.</p>
+              <p class="text-slate-400 text-sm mb-3">Edit site pages and sections (hero, tips, quiz, etc). Choose the page slug in the CMS panel below.</p>
+              <!-- Visible fallback so this area is never empty -->
+              <div id="cms-fallback" class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                <div class="text-slate-300 text-sm mb-2">CMS Editor</div>
+                <p class="text-slate-400 text-sm mb-3">Click the button to load the editor if it does not appear automatically.</p>
+                <button id="cms-load-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-pen-to-square mr-2"></i>Load Editor</button>
+              </div>
             </div>
           </div>
 
@@ -1085,6 +1091,7 @@
               <div class="flex items-center justify-between mb-3">
                 <h2 class="text-2xl font-bold text-white"><i class="fas fa-bug text-red-400 mr-2"></i>Error Logs</h2>
                 <div class="space-x-2">
+                  <button id="generate-log-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-plus mr-1"></i>Generate Test Log</button>
                   <button id="refresh-logs-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-sync mr-1"></i>Refresh</button>
                 </div>
               </div>
@@ -1102,7 +1109,7 @@
                   <tbody id="logs-table-body"></tbody>
                 </table>
               </div>
-              <p class="text-slate-500 text-xs mt-2">Frontend errors are sampled and stored as a fallback when developer tools are not available.</p>
+              <p class="text-slate-500 text-xs mt-2">Frontend errors are sampled and stored as a fallback when developer tools are not available. Use <span class="text-accent">Generate Test Log</span> to verify permissions.</p>
             </div>
           </div>
         </div>
@@ -1498,6 +1505,9 @@
             sec.classList.remove('hidden');
             sec.style.display = 'block';
             try { if (window.initCMSAdmin) window.initCMSAdmin(); } catch(_) {}
+            // Fallback button to manually load
+            const btn = document.getElementById('cms-load-btn');
+            if (btn) btn.onclick = () => { try { if (window.initCMSAdmin) window.initCMSAdmin(); } catch(_) {} };
           }
         }
 
@@ -2372,6 +2382,23 @@
           }
         }
         
+        async function generateTestLog() {
+          try {
+            const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            await addDoc(collection(db, 'client_logs'), {
+              level: 'info',
+              message: 'Admin test log entry',
+              page: 'admin-console.html',
+              createdAt: serverTimestamp(),
+              uid: (await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js')).getAuth().currentUser?.uid || null,
+            });
+            showToast('Test log added');
+            await refreshLogsUI();
+          } catch(e) { console.error('Failed to generate test log', e); showToast('Failed to generate test log', 'error'); }
+        }
+
         async function saveTikTokSettings() {
           try {
             const role = await getUserRole();
@@ -2730,6 +2757,10 @@
               await addTikTokVideo();
             });
           }
+
+          // Error Logs: generate test log
+          const genLogBtn = document.getElementById('generate-log-btn');
+          if (genLogBtn) genLogBtn.addEventListener('click', async () => { await generateTestLog(); });
 
           // Logs
           const refreshLogsBtn = document.getElementById('refresh-logs-btn');
