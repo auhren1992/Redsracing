@@ -6,9 +6,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/ysmilda/speedhive-go/eventresult"
-	"github.com/ysmilda/speedhive-go/practice"
 )
 
 type apiError struct{ Error string `json:"error"` }
@@ -21,24 +18,14 @@ func writeJSON(w http.ResponseWriter, v interface{}, code int) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
+// Temporary stub: return empty list to ensure service deploys
+// Frontend will fall back to functions endpoint if empty
 func listEvents(w http.ResponseWriter, r *http.Request) {
-	cli := eventresult.NewClient(nil)
-	res, err := cli.Events.List()
-	if err != nil {
-		writeJSON(w, apiError{"failed to list events"}, http.StatusBadGateway)
-		return
-	}
-	writeJSON(w, res, http.StatusOK)
+	writeJSON(w, []interface{}{}, http.StatusOK)
 }
 
 func listPracticeLocations(w http.ResponseWriter, r *http.Request) {
-	cli := practice.NewClient(nil)
-	res, err := cli.Locations.List()
-	if err != nil {
-		writeJSON(w, apiError{"failed to list practice locations"}, http.StatusBadGateway)
-		return
-	}
-	writeJSON(w, res, http.StatusOK)
+	writeJSON(w, []interface{}{}, http.StatusOK)
 }
 
 func health(w http.ResponseWriter, r *http.Request) { writeJSON(w, apiOK{OK: true}, http.StatusOK) }
