@@ -367,23 +367,14 @@
               <i class="fas fa-flag-checkered w-5 mr-3 text-green-400"></i>
               <span>Race Management</span>
             </a>
-            <a href="#gallery-approvals" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
-              <i class="fas fa-images w-5 mr-3 text-purple-400"></i>
-              <span>Gallery Approvals</span>
+            <a href="#media" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+              <i class="fas fa-photo-video w-5 mr-3 text-purple-400"></i>
+              <span>Media</span>
               <span class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full" id="gallery-pending-count">0</span>
-            </a>
-            <a href="#jonny-approvals" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
-              <i class="fas fa-user-check w-5 mr-3 text-indigo-400"></i>
-              <span>Jonny Approvals</span>
-              <span class="ml-auto bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full" id="jonny-pending-count">0</span>
             </a>
             <a href="#qna" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
               <i class="fas fa-question-circle w-5 mr-3 text-cyan-400"></i>
               <span>Q&A Management</span>
-            </a>
-            <a href="#videos" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
-              <i class="fas fa-video w-5 mr-3 text-pink-400"></i>
-              <span>Video Library</span>
             </a>
             <a href="#logs" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
               <i class="fas fa-bug w-5 mr-3 text-red-400"></i>
@@ -1280,16 +1271,14 @@
               // Handle section switching
               if (href === '#gallery-approvals') {
                 showGalleryApprovals();
-              } else if (href === '#jonny-approvals') {
-                showJonnyApprovals();
               } else if (href === '#advanced') {
                 showAdvanced();
               } else if (href === '#race') {
                 showRace();
+              } else if (href === '#media') {
+                showMedia();
               } else if (href === '#qna') {
                 showQnA();
-              } else if (href === '#videos') {
-                showVideos();
               } else if (href === '#admin-pages') {
                 showAdminPages();
               } else if (href === '#logs') {
@@ -1526,6 +1515,24 @@
           if (sec) {
             sec.classList.remove('hidden');
             sec.style.display = 'block';
+            try { loadVideoPending(); } catch(_) {}
+            try { loadVideoSettings(); } catch(_) {}
+          }
+        }
+
+        // Media shows both gallery approvals and videos panels together
+        function showMedia() {
+          hideAllSections();
+          const gal = document.getElementById('gallery-approvals');
+          const vid = document.getElementById('videos-section');
+          if (gal) {
+            gal.classList.remove('hidden');
+            gal.style.display = 'block';
+            try { loadPendingPhotos(); } catch(_) {}
+          }
+          if (vid) {
+            vid.classList.remove('hidden');
+            vid.style.display = 'block';
             try { loadVideoPending(); } catch(_) {}
             try { loadVideoSettings(); } catch(_) {}
           }
