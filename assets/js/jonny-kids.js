@@ -30,7 +30,7 @@ function initSpeedLab() {
   const speedVal = document.getElementById('speed-val');
   const gas = document.getElementById('gas');
   const brake = document.getElementById('brake');
-  const nitro = document.getElementById('nitro');
+  // Nitro removed per request
   const muteBtn = document.getElementById('mute');
   const lab = document.getElementById('speed-lab');
 
@@ -38,16 +38,35 @@ function initSpeedLab() {
   let gasDown = false;
   let brakeDown = false;
   let muted = false;
-  let nitroCooldown = false;
 
   // Audio
-  const idle = new Audio('assets/audio/idle.mp3');
-  const rev = new Audio('assets/audio/rev.mp3');
-  idle.loop = true; rev.loop = false;
-  idle.volume = 0.35; rev.volume = 0.5;
-  const playSafe = (a) => { try { if (!muted) a.currentTime = 0, a.play(); } catch(e) {} };
-  const stopSafe = (a) => { try { a.pause(); a.currentTime = 0; } catch(e) {} };
+  // Engine synth (NASCAR-like) using Web Audio API
+  let engine = null;
+  function ensureEngine() {
+    const c = ensureCtx();
+    if (engine) return engine;
+    const osc1 = c.createOscillator();
+    const osc2 = c.createOscillator();
+    osc1.type = 'sawtooth';
+    osc2.type = 'sawtooth';
+    osc2.detune.value = 7; // slight detune for richness
+    const lp = c.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 400; // will be modulated
+    const gain = c.createGain();
+    gain.gain.value = 0.0;    // silent until gas held
+    osc1.connect(lp);
+    osc2.connect(lp);
+    lp.connect(gain).connect(c.destination);
+    osc1.start();
+    osc2.start();
+    engine = { c, osc1, osc2, lp, gain };
+    return engine;
+  }
 
+  let targetRpm = 800; // idle
+  let rpm = 800;       // current rpm
+  const rpmMin = 800, rpmMax = 8000;
   const updateUI = () => {
     if (needle) {
       const deg = -90 + (speed * 1.8); // -90..+90
@@ -64,12 +83,29 @@ function initSpeedLab() {
     const accel = gasDown ? 0.9 : 0;
     const decel = brakeDown ? 2.0 : 0.25; // natural drag
     speed = clamp(speed + accel - decel, 0, 100);
+
+    // Map speed (0-100) to target RPM (idle to redline)
+    targetRpm = rpmMin + (rpmMax - rpmMin) * (speed / 100);
+    // Smooth ramp for realism
+    rpm += (targetRpm - rpm) * 0.08;
+
+    // Drive engine synth
+    if (!muted) {
+      const eng = ensureEngine();
+      // Base frequency roughly proportional to RPM/60 * harmonics
+      const baseHz = (rpm / 60) * 2.0; // scale factor for pleasant range
+      eng.osc1.frequency.setTargetAtTime(baseHz, eng.c.currentTime, 0.05);
+      eng.osc2.frequency.setTargetAtTime(baseHz * 1.01, eng.c.currentTime, 0.05);
+      // Filter and volume follow rpm
+      const cut = 300 + (rpm - rpmMin) * 0.15; // 300.. approx 1500+
+      eng.lp.frequency.setTargetAtTime(cut, eng.c.currentTime, 0.05);
+      const vol = speed > 1 ? 0.08 + 0.22 * (speed/100) : 0.0; // 0..~0.3
+      eng.gain.gain.setTargetAtTime(vol, eng.c.currentTime, 0.05);
+    } else if (engine) {
+      engine.gain.gain.setTargetAtTime(0.0, engine.c.currentTime, 0.05);
+    }
+
     updateUI();
-    // audio
-    if (gasDown && speed > 5) playSafe(rev);
-    if (!gasDown && speed < 5) stopSafe(rev);
-    if (!muted && speed > 0 && idle.paused) playSafe(idle);
-    if ((muted || speed === 0) && !idle.paused) stopSafe(idle);
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
@@ -81,7 +117,7 @@ function initSpeedLab() {
     btn.addEventListener('pointerleave',() => set(false));
     btn.addEventListener('pointercancel',() => set(false));
   };
-  onHold(gas, v => gasDown = v);
+  onHold(gas, v => { gasDown = v; try { ensureEngine(); } catch(e){} });
   onHold(brake, v => {
     brakeDown = v;
     if (v) {
@@ -90,23 +126,18 @@ function initSpeedLab() {
     }
   });
 
-  nitro.addEventListener('click', () => {
-    // nitro sound: quick rising pitch
-    playTone(220, 880, 450, 'sawtooth', 0.12);
+  // Nitro removed
     if (nitroCooldown) return;
     nitroCooldown = true;
     speed = clamp(speed + 25, 0, 100);
     lab?.classList.add('nitro-flash');
-    setTimeout(()=> lab?.classList.remove('nitro-flash'), 600);
-    setTimeout(()=> nitroCooldown = false, 2000);
-    playSafe(rev);
-  });
 
   muteBtn.addEventListener('click', () => {
     muted = !muted;
     muteBtn.setAttribute('aria-pressed', String(!muted ? false : true));
     muteBtn.innerHTML = muted ? '<i class="fas fa-volume-mute mr-2"></i>Sound: Off' : '<i class="fas fa-volume-up mr-2"></i>Sound: On';
-    if (muted) { stopSafe(idle); stopSafe(rev); }
+    // When muted, ramp engine volume to zero
+    if (muted && engine) { try { engine.gain.gain.setTargetAtTime(0.0, engine.c.currentTime, 0.05); } catch(e){} }
   });
 
   // Keyboard
@@ -114,7 +145,7 @@ function initSpeedLab() {
     if (e.repeat) return;
     if (e.code === 'Space') { gasDown = true; e.preventDefault(); }
     if (e.code === 'KeyS')  { brakeDown = true; }
-    if (e.code === 'KeyN')  { nitro.click(); }
+    // Nitro removed
     if (e.code === 'KeyM')  { muteBtn.click(); }
   });
   window.addEventListener('keyup', (e) => {
