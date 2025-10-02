@@ -9,7 +9,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
 function ensurePanel() {
-  const container = document.getElementById('dashboard-content') || document.querySelector('main .p-4');
+  const container = document.getElementById('admin-pages') || document.getElementById('dashboard-content') || document.querySelector('main .p-4');
   if (!container) return null;
   let existing = document.getElementById('cms-pages-panel');
   if (existing) return existing;
@@ -20,8 +20,8 @@ function ensurePanel() {
     <h3 class="text-xl font-bold text-white mb-4"><i class="fas fa-pen-to-square text-yellow-400 mr-2"></i> Page Manager (CMS)</h3>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div>
-        <label class="block text-sm font-medium text-slate-300 mb-1">Page Slug</label>
-        <input id="cms-page-slug" class="modern-input w-full p-3 text-white" value="jonny" />
+        <label class="block text-sm font-medium text-slate-300 mb-1">Page Slug <span class="text-slate-500 text-xs">(e.g., index, driver, schedule, qna, gallery, videos, leaderboard, legends, jonny)</span></label>
+        <input id="cms-page-slug" class="modern-input w-full p-3 text-white" value="index" />
       </div>
       <div>
         <label class="block text-sm font-medium text-slate-300 mb-1">Hero Title (HTML allowed)</label>

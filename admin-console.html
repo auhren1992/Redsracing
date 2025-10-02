@@ -395,6 +395,11 @@
             </a>
             
             <div class="border-t border-white/10 my-4"></div>
+            <h3 class="text-xs uppercase tracking-wider text-slate-400 px-3 mt-3">Admin Only</h3>
+            <a href="#admin-pages" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+              <i class="fas fa-file-pen w-5 mr-3 text-yellow-300"></i>
+              <span>Page Management</span>
+            </a>
             
             <a href="#analytics" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
               <i class="fas fa-chart-line w-5 mr-3 text-emerald-400"></i>
@@ -1050,6 +1055,17 @@
             </div>
           </div>
 
+          <!-- Admin Pages (CMS) Section -->
+          <div id="admin-pages" class="space-y-6 hidden">
+            <div class="admin-card rounded-xl p-6">
+              <h2 class="text-2xl font-bold text-white mb-2">
+                <i class="fas fa-file-pen text-yellow-300 mr-2"></i>
+                Page Management
+              </h2>
+              <p class="text-slate-400 text-sm">Edit site pages and sections (hero, tips, quiz, etc). Choose the page slug in the CMS panel below.</p>
+            </div>
+          </div>
+
           <!-- Error Logs Section -->
           <div id="logs-section" class="space-y-6 hidden">
             <div class="admin-card rounded-xl p-6">
@@ -1248,6 +1264,8 @@
                 showAdvanced();
               } else if (href === '#race') {
                 showRace();
+              } else if (href === '#admin-pages') {
+                showAdminPages();
               } else if (href === '#logs') {
                 showLogs();
               } else {
@@ -1332,7 +1350,7 @@
         }
         
         function hideAllSections() {
-          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section'];
+          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'admin-pages'];
           sections.forEach(id => {
             const section = document.getElementById(id);
             if (section) {
@@ -1457,7 +1475,15 @@
           
           return settingsSection;
         }
-
+        function showAdminPages() {
+          hideAllSections();
+          const sec = document.getElementById('admin-pages');
+          if (sec) {
+            sec.classList.remove('hidden');
+            sec.style.display = 'block';
+          }
+        }
+        
         // Settings: load and save
         async function loadSiteSettings() {
           try {
