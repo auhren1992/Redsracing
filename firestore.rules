@@ -89,10 +89,14 @@ service cloud.firestore {
     
     // Q&A submissions
     match /qna_submissions/{submissionId} {
-      allow read: if hasRole('team-member') || 
-        (resource.data.status == 'published');
+      // Public can read published questions; team-members/admins can read all
+      allow read: if (resource.data.status == 'published')
+                  || hasRole('team-member') || hasRole('admin')
+                  || hasProfileRole('team-member') || hasProfileRole('admin');
       allow create: if isAuthenticated();
-      allow update: if hasRole('team-member');
+      // Moderation (answer/publish/reject) restricted to team-members/admins (claims or users doc role)
+      allow update: if hasRole('team-member') || hasRole('admin')
+                    || hasProfileRole('team-member') || hasProfileRole('admin');
     }
     
     // Subscribers (newsletter)
