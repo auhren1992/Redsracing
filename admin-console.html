@@ -1091,7 +1091,6 @@
               <div class="flex items-center justify-between mb-3">
                 <h2 class="text-2xl font-bold text-white"><i class="fas fa-bug text-red-400 mr-2"></i>Error Logs</h2>
                 <div class="space-x-2">
-                  <button id="generate-log-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-plus mr-1"></i>Generate Test Log</button>
                   <button id="refresh-logs-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-sync mr-1"></i>Refresh</button>
                 </div>
               </div>
@@ -1109,7 +1108,7 @@
                   <tbody id="logs-table-body"></tbody>
                 </table>
               </div>
-              <p class="text-slate-500 text-xs mt-2">Frontend errors are sampled and stored as a fallback when developer tools are not available. Use <span class="text-accent">Generate Test Log</span> to verify permissions.</p>
+              <p class="text-slate-500 text-xs mt-2">Frontend errors are sampled and stored as a fallback when developer tools are not available.</p>
             </div>
           </div>
         </div>
@@ -1586,7 +1585,134 @@
                 </td>`;
               tbody.appendChild(tr);
             });
+
+            // Attach event delegation for edit/delete
+            try {
+              const container = document.getElementById('races-table-body');
+              if (container && !container.__raceDelegated) {
+                container.__raceDelegated = true;
+                container.addEventListener('click', (e) => {
+                  const editBtn = e.target.closest('.edit-race-btn');
+                  const delBtn = e.target.closest('.delete-race-btn');
+                  if (editBtn) {
+                    const id = editBtn.getAttribute('data-id');
+                    if (id) openRaceEditor(id);
+                  } else if (delBtn) {
+                    const id = delBtn.getAttribute('data-id');
+                    if (id) deleteRaceById(id);
+                  }
+                });
+              }
+            } catch(_) {}
           } catch (e) { console.error('Failed to load races', e); }
+        }
+
+        // Race Editor Modal
+        async function openRaceEditor(raceId) {
+          try {
+            const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            let data = { name: '', status: 'upcoming', date: '' };
+            if (raceId) {
+              const snap = await getDoc(doc(db, 'races', raceId));
+              if (snap.exists()) {
+                const v = snap.data() || {};
+                data = {
+                  name: v.name || '',
+                  status: v.status || 'upcoming',
+                  date: v.date ? new Date(v.date) : null
+                };
+              }
+            }
+            renderRaceModal(raceId, data);
+          } catch (e) { console.error('Open race editor failed', e); }
+        }
+
+        function renderRaceModal(raceId, data) {
+          closeRaceModal();
+          const overlay = document.createElement('div');
+          overlay.id = 'race-editor-overlay';
+          overlay.className = 'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4';
+          const modal = document.createElement('div');
+          modal.id = 'race-editor-modal';
+          modal.className = 'admin-card rounded-xl p-6 w-full max-w-xl border border-slate-700/60';
+          const dateVal = data.date ? new Date(data.date).toISOString().slice(0,10) : '';
+          modal.innerHTML = `
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-bold text-white">${raceId ? 'Edit Race' : 'Add Race'}</h3>
+              <button class="danger-btn px-2 py-1 text-sm" onclick="window.closeRaceModal()"><i class='fas fa-times'></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm text-slate-300 mb-1">Date</label>
+                <input type="date" id="race-edit-date" class="modern-input w-full p-2 text-white" value="${dateVal}" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm text-slate-300 mb-1">Name</label>
+                <input type="text" id="race-edit-name" class="modern-input w-full p-2 text-white" value="${(data.name||'').replace(/"/g,'&quot;')}" placeholder="Race Name" />
+              </div>
+              <div>
+                <label class="block text-sm text-slate-300 mb-1">Status</label>
+                <select id="race-edit-status" class="modern-input w-full p-2 text-white">
+                  <option value="upcoming" ${data.status==='upcoming'?'selected':''}>Upcoming</option>
+                  <option value="active" ${data.status==='active'?'selected':''}>Active</option>
+                  <option value="completed" ${data.status==='completed'?'selected':''}>Completed</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-6 flex items-center justify-end space-x-2">
+              ${raceId ? '<button class="danger-btn px-4 py-2 rounded" onclick="window.deleteRaceById(\'' + raceId + '\')"><i class=\'fas fa-trash mr-1\'></i>Delete</button>' : ''}
+              <button class="modern-btn px-4 py-2 rounded" onclick="window.closeRaceModal()">Cancel</button>
+              <button class="success-btn px-4 py-2 rounded" onclick="window.saveRaceEdits('${raceId||''}')"><i class='fas fa-save mr-1'></i>Save</button>
+            </div>
+          `;
+          overlay.appendChild(modal);
+          document.body.appendChild(overlay);
+          window.closeRaceModal = closeRaceModal;
+          window.saveRaceEdits = saveRaceEdits;
+          window.deleteRaceById = deleteRaceById;
+        }
+
+        function closeRaceModal() {
+          const o = document.getElementById('race-editor-overlay');
+          if (o && o.parentNode) o.parentNode.removeChild(o);
+        }
+
+        async function saveRaceEdits(raceId) {
+          try {
+            const { getFirestore, doc, setDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const name = document.getElementById('race-edit-name')?.value?.trim();
+            const dateStr = document.getElementById('race-edit-date')?.value;
+            const status = document.getElementById('race-edit-status')?.value || 'upcoming';
+            if (!name || !dateStr) { showToast('Please provide name and date', 'error'); return; }
+            const payload = { name, status, date: new Date(dateStr) };
+            if (raceId) {
+              await updateDoc(doc(db, 'races', raceId), payload);
+            } else {
+              await setDoc(doc(db, 'races', crypto.randomUUID()), { ...payload, createdAt: new Date() });
+            }
+            showToast('Race saved');
+            closeRaceModal();
+            await loadRaceTable();
+            await loadRealFirebaseData();
+          } catch (e) { console.error('Save race failed', e); showToast('Failed to save race', 'error'); }
+        }
+
+        async function deleteRaceById(raceId) {
+          if (!raceId) return; if (!confirm('Delete this race?')) return;
+          try {
+            const { getFirestore, doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            await deleteDoc(doc(db, 'races', raceId));
+            showToast('Race deleted');
+            closeRaceModal();
+            await loadRaceTable();
+            await loadRealFirebaseData();
+          } catch (e) { console.error('Delete race failed', e); showToast('Failed to delete race', 'error'); }
         }
 
         // Q&A: load pending submissions
@@ -2758,9 +2884,7 @@
             });
           }
 
-          // Error Logs: generate test log
-          const genLogBtn = document.getElementById('generate-log-btn');
-          if (genLogBtn) genLogBtn.addEventListener('click', async () => { await generateTestLog(); });
+          // Error Logs: generate test log removed per request
 
           // Logs
           const refreshLogsBtn = document.getElementById('refresh-logs-btn');
