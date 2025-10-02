@@ -170,15 +170,79 @@ const core = await import('./assets/js/firebase-core.js');
 
   function initMobileMenu() {
     const btn = document.getElementById('mobile-menu-button');
-    const menu = document.getElementById('mobile-menu');
-    if (!btn || !menu) return;
-    // Ensure hidden on load
-    menu.classList.add('hidden');
+    const legacy = document.getElementById('mobile-menu');
+    if (!btn) return;
+
+    // Always hide legacy accordion menu to reduce clutter on mobile
+    if (legacy) {
+      try { legacy.classList.add('hidden'); legacy.style.display = 'none'; } catch(_) {}
+    }
+
+    // Build a compact dropdown panel for mobile
+    let panel = document.getElementById('mobile-menu-dropdown');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'mobile-menu-dropdown';
+      panel.className = 'dropdown-menu modern-dropdown mobile-dropdown-panel hidden';
+      // Populate with grouped links (same items you already use)
+      panel.innerHTML = `
+        <div class="px-3 py-2 text-xs uppercase tracking-wider text-slate-400">Quick Links</div>
+        <a href="index.html">🏠 Home</a>
+        <div class="border-t border-slate-600/50 my-2"></div>
+        <div class="px-3 py-2 text-xs uppercase tracking-wider text-slate-400">Drivers</div>
+        <a href="driver.html">Jon Kirsch #8</a>
+        <a href="jonny.html">Jonny Kirsch #88</a>
+        <a href="legends.html">Team Legends</a>
+        <div class="border-t border-slate-600/50 my-2"></div>
+        <div class="px-3 py-2 text-xs uppercase tracking-wider text-slate-400">Racing</div>
+        <a href="schedule.html">Schedule</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="gallery.html">📸 Gallery</a>
+        <a href="videos.html">🎥 Videos</a>
+        <div class="border-t border-slate-600/50 my-2"></div>
+        <div class="px-3 py-2 text-xs uppercase tracking-wider text-slate-400">Community</div>
+        <a href="qna.html">❓ Q&A</a>
+        <a href="feedback.html">💬 Feedback</a>
+        <a href="sponsorship.html">💰 Sponsorship</a>
+        <div class="border-t border-slate-600/50 my-2"></div>
+        <a href="admin-console.html">🛠️ Dashboard</a>
+        <a href="profile.html">👤 My Profile</a>
+      `;
+      // Attach near the button
+      try {
+        const nav = btn.closest('nav') || document.body;
+        nav.appendChild(panel);
+      } catch(_) { document.body.appendChild(panel); }
+    }
+
+    function positionPanel() {
+      try {
+        const rect = btn.getBoundingClientRect();
+        panel.style.position = 'absolute';
+        panel.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+        panel.style.right = '1rem';
+        panel.style.zIndex = 10000;
+      } catch(_) {}
+    }
+
+    // Toggle behavior
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      menu.classList.toggle('hidden');
+      positionPanel();
+      const hidden = panel.classList.contains('hidden');
+      hideAllDropdowns();
+      if (hidden) panel.classList.remove('hidden');
     });
+
+    // Close on outside click or resize/scroll
+    document.addEventListener('click', (evt) => {
+      if (!panel.contains(evt.target) && evt.target !== btn) {
+        panel.classList.add('hidden');
+      }
+    });
+    window.addEventListener('resize', () => { panel.classList.add('hidden'); });
+    window.addEventListener('scroll', () => { panel.classList.add('hidden'); });
   }
 
   async function initSentryGlobal() {

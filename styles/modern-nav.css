@@ -86,32 +86,18 @@ nav a:hover::after {
   width: 100%;
 }
 
-/* Enhanced Mobile Menu */
-#mobile-menu {
-  transform: translateY(-20px);
-  opacity: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Hide mobile menu on desktop screens (md breakpoint and up) */
-  display: none;
-}
+/* Enhanced Mobile Menu (legacy accordion is hidden by JS; keep styles minimal) */
+#mobile-menu { display: none; }
 
-/* Show mobile menu only on mobile screens */
-@media (max-width: 767px) {
-  #mobile-menu {
-    display: block;
-  }
+/* Mobile dropdown panel specific tweaks */
+.mobile-dropdown-panel {
+  min-width: 14rem;
+  width: 18rem;
+  right: 0;
 }
-
-#mobile-menu:not(.hidden) {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-/* Force hide mobile menu on desktop */
+.mobile-dropdown-panel a { display:block; }
 @media (min-width: 768px) {
-  #mobile-menu {
-    display: none !important;
-  }
+  .mobile-dropdown-panel { display: none !important; }
 }
 
 /* Hamburger Animation */
