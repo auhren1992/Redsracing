@@ -143,6 +143,10 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
+                // If launched as guest, set a flag in localStorage for the web app
+                if (intent.getBooleanExtra("guest", false)) {
+                    view?.evaluateJavascript("try{localStorage.setItem('guest','1');}catch(e){}", null)
+                }
             }
         }
 
@@ -182,8 +186,9 @@ class MainActivity : AppCompatActivity() {
         // JS interface for simple local notifications
         webView.addJavascriptInterface(NotificationsBridge(this), "AndroidNotifications")
 
-        // Load bundled site from assets
-        webView.loadUrl("file:///android_asset/www/index.html")
+        // Load bundled site from assets or a specific page
+        val initialUrl = intent.getStringExtra("initialUrl") ?: "file:///android_asset/www/index.html"
+        webView.loadUrl(initialUrl)
     }
 
     private fun ensureMediaAndCameraPermissions() {

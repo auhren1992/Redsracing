@@ -7,4 +7,6 @@
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
     <color name="ic_launcher_background">#202020</color>
+    <!-- Match website background (#05080F) -->
+    <color name="website_background">#05080F</color>
 </resources>
