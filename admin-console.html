@@ -588,35 +588,6 @@
                 </div>
               </div>
               
-              <!-- Driver Notes -->
-              <div class="admin-card rounded-xl p-6">
-                <div class="flex items-center justify-between mb-4">
-                  <h2 class="text-xl font-bold text-white">
-                    <i class="fas fa-sticky-note text-yellow-400 mr-2"></i>
-                    Racing Notes
-                  </h2>
-                  <button id="save-notes-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold">
-                    <i class="fas fa-save mr-1"></i>Auto-Save
-                  </button>
-                </div>
-                
-                <p class="text-slate-400 text-sm mb-4">
-                  <i class="fas fa-lock text-green-400 mr-1"></i>
-                  Private workspace for race strategy and notes
-                </p>
-                
-                <textarea id="driver-notes" class="modern-input w-full h-32 p-4 text-white placeholder-slate-500 resize-none" placeholder="Strategy notes, car setup, track conditions..."></textarea>
-                
-                <div class="flex items-center justify-between mt-3">
-                  <div class="flex items-center space-x-2">
-                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span id="notes-status" class="text-sm text-green-400">Auto-saved</span>
-                  </div>
-                  <div class="text-xs text-slate-500">
-                    Last updated: <span id="notes-timestamp">Just now</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -1055,6 +1026,61 @@
             </div>
           </div>
 
+          <!-- Q&A Management Section -->
+          <div id="qna-section" class="space-y-6 hidden">
+            <div class="admin-card rounded-xl p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-bold text-white"><i class="fas fa-question-circle text-cyan-400 mr-2"></i>Q&A Management</h2>
+                <button id="refresh-qna-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-sync mr-1"></i>Refresh</button>
+              </div>
+              <p class="text-slate-400 text-sm mb-4">Review questions submitted by fans. Add an answer and publish, or reject.</p>
+              <div id="qna-management-card" class="space-y-4">
+                <div id="qna-list" class="space-y-3"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Videos Section (Approvals + Size Settings) -->
+          <div id="videos-section" class="space-y-6 hidden">
+            <div class="admin-card rounded-xl p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-bold text-white"><i class="fas fa-video text-pink-400 mr-2"></i>Video Approvals</h2>
+                <button id="refresh-videos-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-sync mr-1"></i>Refresh</button>
+              </div>
+              <p class="text-slate-400 text-sm mb-4">Approve or reject submitted videos. Only unapproved items appear here.</p>
+              <div id="video-approvals-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+            </div>
+            <div class="admin-card rounded-xl p-6">
+              <h3 class="text-xl font-bold text-white mb-4"><i class="fas fa-ruler-combined text-yellow-400 mr-2"></i>Video Size Settings</h3>
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-slate-300 mb-1">Width (px)</label>
+                  <input type="number" id="video-width" class="modern-input w-full p-2 text-white" placeholder="1280" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-300 mb-1">Height (px)</label>
+                  <input type="number" id="video-height" class="modern-input w-full p-2 text-white" placeholder="720" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-300 mb-1">Aspect Ratio</label>
+                  <select id="video-aspect" class="modern-input w-full p-2 text-white">
+                    <option value="16:9">16:9</option>
+                    <option value="4:3">4:3</option>
+                    <option value="1:1">1:1</option>
+                    <option value="9:16">9:16</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-300 mb-1">Max Width (CSS)</label>
+                  <input type="text" id="video-max-width" class="modern-input w-full p-2 text-white" placeholder="100%" />
+                </div>
+              </div>
+              <div class="mt-4 flex justify-end">
+                <button id="save-video-settings" class="success-btn px-4 py-2 rounded-lg text-white font-semibold"><i class="fas fa-save mr-2"></i>Save</button>
+              </div>
+            </div>
+          </div>
+
           <!-- Admin Pages (CMS) Section -->
           <div id="admin-pages" class="space-y-6 hidden">
             <div class="admin-card rounded-xl p-6">
@@ -1264,6 +1290,10 @@
                 showAdvanced();
               } else if (href === '#race') {
                 showRace();
+              } else if (href === '#qna') {
+                showQnA();
+              } else if (href === '#videos') {
+                showVideos();
               } else if (href === '#admin-pages') {
                 showAdminPages();
               } else if (href === '#logs') {
@@ -1350,7 +1380,7 @@
         }
         
         function hideAllSections() {
-          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'admin-pages'];
+          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'admin-pages', 'qna-section', 'videos-section'];
           sections.forEach(id => {
             const section = document.getElementById(id);
             if (section) {
@@ -1483,8 +1513,194 @@
             sec.style.display = 'block';
           }
         }
+
+        function showQnA() {
+          hideAllSections();
+          const sec = document.getElementById('qna-section');
+          if (sec) {
+            sec.classList.remove('hidden');
+            sec.style.display = 'block';
+            try { loadQnaPending(); } catch(_) {}
+          }
+        }
+
+        function showVideos() {
+          hideAllSections();
+          const sec = document.getElementById('videos-section');
+          if (sec) {
+            sec.classList.remove('hidden');
+            sec.style.display = 'block';
+            try { loadVideoPending(); } catch(_) {}
+            try { loadVideoSettings(); } catch(_) {}
+          }
+        }
         
         // Settings: load and save
+
+        // Q&A: load pending submissions
+        async function loadQnaPending() {
+          try {
+            const role = await getUserRole();
+            const { getFirestore, collection, query, where, orderBy, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const list = document.getElementById('qna-list');
+            if (!list) return;
+            list.innerHTML = '';
+            const q = query(collection(db, 'qna_submissions'), where('status','==','submitted'), orderBy('submittedAt','desc'));
+            const snap = await getDocs(q);
+            if (snap.empty) {
+              const empty = document.createElement('div');
+              empty.className = 'text-slate-400 text-sm';
+              empty.textContent = 'No questions pending approval.';
+              list.appendChild(empty);
+              return;
+            }
+            snap.forEach(d => {
+              const v = d.data() || {};
+              const card = document.createElement('div');
+              card.className = 'bg-slate-800/50 border border-slate-700/50 rounded-lg p-4';
+              const elId = d.id.replace(/[^a-zA-Z0-9_-]/g,'');
+              card.innerHTML = `
+                <div class="text-slate-300 text-sm mb-2">Submitted by ${v.submitterName || 'Anonymous'}</div>
+                <div class="text-white font-medium mb-3">${(v.question||'').replace(/</g,'&lt;')}</div>
+                <label class="block text-xs text-slate-400 mb-1">Answer</label>
+                <textarea id="answer-${elId}" rows="3" class="modern-input w-full p-2 text-white resize-none" placeholder="Write your answer..."></textarea>
+                <div class="mt-3 flex items-center justify-end space-x-2">
+                  <button class="danger-btn px-3 py-1.5 rounded text-sm" onclick="window.rejectQna('${d.id}')"><i class='fas fa-times mr-1'></i>Reject</button>
+                  <button class="success-btn px-3 py-1.5 rounded text-sm" onclick="window.publishQna('${d.id}')"><i class='fas fa-check mr-1'></i>Publish</button>
+                </div>
+              `;
+              list.appendChild(card);
+            });
+          } catch(e) { console.error('Failed to load Q&A', e); }
+        }
+
+        window.publishQna = async function(docId) {
+          try {
+            const { getFirestore, doc, updateDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const auth = getAuth();
+            const elId = docId.replace(/[^a-zA-Z0-9_-]/g,'');
+            const ans = document.getElementById(`answer-${elId}`)?.value?.trim();
+            if (!ans) { showToast('Please provide an answer before publishing', 'error'); return; }
+            await updateDoc(doc(db, 'qna_submissions', docId), {
+              status: 'published',
+              answer: ans,
+              answeredAt: new Date(),
+              answeredBy: auth.currentUser?.email || 'admin'
+            });
+            showToast('Question published');
+            loadQnaPending();
+          } catch(e) { console.error('Publish Q&A failed', e); showToast('Failed to publish', 'error'); }
+        }
+
+        window.rejectQna = async function(docId) {
+          if (!confirm('Reject this question?')) return;
+          try {
+            const { getFirestore, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            await updateDoc(doc(db, 'qna_submissions', docId), { status: 'rejected', rejectedAt: new Date() });
+            showToast('Question rejected');
+            loadQnaPending();
+          } catch(e) { console.error('Reject Q&A failed', e); showToast('Failed to reject', 'error'); }
+        }
+
+        // Videos: approvals + size settings
+        async function loadVideoPending() {
+          try {
+            const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const container = document.getElementById('video-approvals-list');
+            if (!container) return;
+            container.innerHTML = '';
+            const snap = await getDocs(collection(db, 'jonny_videos'));
+            const pending = [];
+            snap.forEach(d => { const v = d.data()||{}; if (v.approved !== true) pending.push({ id: d.id, ...v }); });
+            if (!pending.length) {
+              const empty = document.createElement('div');
+              empty.className = 'text-slate-400 text-sm col-span-full';
+              empty.textContent = 'No videos pending approval.';
+              container.appendChild(empty);
+              return;
+            }
+            pending.forEach(v => {
+              const card = document.createElement('div');
+              card.className = 'bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 flex flex-col';
+              const safeTitle = (v.title||'Untitled').replace(/</g,'&lt;');
+              const safeUrl = (v.url||'').replace(/"/g,'&quot;');
+              card.innerHTML = `
+                <div class="font-semibold text-white mb-2 truncate" title="${safeTitle}">${safeTitle}</div>
+                ${v.url ? `<a href="${safeUrl}" target="_blank" class="text-neon-yellow text-sm mb-3">Open Video</a>` : ''}
+                <div class="mt-auto flex items-center justify-end space-x-2">
+                  <button class="danger-btn px-3 py-1.5 rounded text-sm" onclick="window.rejectVideo('${v.id}')"><i class='fas fa-times mr-1'></i>Reject</button>
+                  <button class="success-btn px-3 py-1.5 rounded text-sm" onclick="window.approveVideo('${v.id}')"><i class='fas fa-check mr-1'></i>Approve</button>
+                </div>
+              `;
+              container.appendChild(card);
+            });
+          } catch(e) { console.error('Failed to load video approvals', e); }
+        }
+
+        window.approveVideo = async function(docId) {
+          try {
+            const { getFirestore, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            await updateDoc(doc(db, 'jonny_videos', docId), { approved: true, approvedAt: new Date() });
+            showToast('Video approved');
+            loadVideoPending();
+          } catch(e) { console.error('Approve video failed', e); showToast('Failed to approve', 'error'); }
+        }
+
+        window.rejectVideo = async function(docId) {
+          if (!confirm('Reject and delete this video?')) return;
+          try {
+            const { getFirestore, doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            await deleteDoc(doc(db, 'jonny_videos', docId));
+            showToast('Video rejected');
+            loadVideoPending();
+          } catch(e) { console.error('Reject video failed', e); showToast('Failed to reject', 'error'); }
+        }
+
+        async function loadVideoSettings() {
+          try {
+            const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const ref = doc(db, 'config', 'videos');
+            const snap = await getDoc(ref);
+            const v = (snap.exists() ? snap.data() : {}) || {};
+            const w = document.getElementById('video-width'); if (w) w.value = v.width || '';
+            const h = document.getElementById('video-height'); if (h) h.value = v.height || '';
+            const a = document.getElementById('video-aspect'); if (a) a.value = v.aspect || '16:9';
+            const mw = document.getElementById('video-max-width'); if (mw) mw.value = v.maxWidth || '100%';
+          } catch(e) { console.error('Load video settings failed', e); }
+        }
+
+        async function saveVideoSettings() {
+          try {
+            const role = await getUserRole();
+            if (!isModeratorRole(role)) { showToast('Team-member or admin only', 'error'); return; }
+            const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const payload = {
+              width: Number(document.getElementById('video-width')?.value || 0) || null,
+              height: Number(document.getElementById('video-height')?.value || 0) || null,
+              aspect: document.getElementById('video-aspect')?.value || '16:9',
+              maxWidth: document.getElementById('video-max-width')?.value || '100%'
+            };
+            await setDoc(doc(db, 'config', 'videos'), payload, { merge: true });
+            showToast('Video settings saved');
+          } catch(e) { console.error('Save video settings failed', e); showToast('Failed to save settings', 'error'); }
+        }
         async function loadSiteSettings() {
           try {
             const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
@@ -2457,6 +2673,14 @@
           if (lb) { lb.className = clsDanger; lb.innerHTML = htmlLabel; }
           if (lbt) { lbt.className = clsGhost; lbt.innerHTML = htmlLabel; }
           if (mlb) { mlb.className = clsDanger + ' justify-center'; mlb.innerHTML = htmlLabel; }
+
+          // Q&A and Videos section buttons
+          const rq = document.getElementById('refresh-qna-btn');
+          if (rq) rq.addEventListener('click', (e)=>{ e.preventDefault(); loadQnaPending(); });
+          const rv = document.getElementById('refresh-videos-btn');
+          if (rv) rv.addEventListener('click', (e)=>{ e.preventDefault(); loadVideoPending(); });
+          const svs = document.getElementById('save-video-settings');
+          if (svs) svs.addEventListener('click', (e)=>{ e.preventDefault(); saveVideoSettings(); });
         }
         
         // Add Race Modal/Form functionality
