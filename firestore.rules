@@ -70,6 +70,22 @@ service cloud.firestore {
       allow read: if true; // Public read for race schedule
       allow write: if hasRole('team-member');
     }
+
+    // CMS pages and sections (public read, admin write)
+    match /pages/{slug} {
+      allow read: if true;
+      allow write: if hasRole('admin') || hasProfileRole('admin');
+
+      match /sections/{sectionId} {
+        allow read: if true;
+        allow write: if hasRole('admin') || hasProfileRole('admin');
+      }
+
+      match /versions/{versionId} {
+        allow read: if true;
+        allow write: if hasRole('admin') || hasProfileRole('admin');
+      }
+    }
     
     // Q&A submissions
     match /qna_submissions/{submissionId} {
