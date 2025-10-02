@@ -104,7 +104,7 @@ function toast(msg, kind='info') {
   setTimeout(() => el.classList.add('hidden'), 1800);
 }
 
-function initCMSAdmin() {
+export function initCMSAdmin() {
   const p = ensurePanel();
   if (!p) return;
   const saveBtn = p.querySelector('#cms-save-hero');
@@ -114,3 +114,5 @@ function initCMSAdmin() {
 }
 
 document.addEventListener('DOMContentLoaded', initCMSAdmin);
+// Also expose on window for non-module inline calls
+try { window.initCMSAdmin = initCMSAdmin; } catch(_) {}

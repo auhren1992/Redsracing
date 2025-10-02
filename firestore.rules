@@ -29,7 +29,8 @@ service cloud.firestore {
     
     // Users collection - profiles
     match /users/{userId} {
-      allow read: if isAuthenticated();
+      // Allow public read if user has enabled publicProfile; otherwise require auth
+      allow read: if (resource.data.publicProfile == true) || isAuthenticated();
       allow write: if isOwner(userId) || hasRole('team-member');
     }
     

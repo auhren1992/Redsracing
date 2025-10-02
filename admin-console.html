@@ -1320,6 +1320,7 @@
           if (race) {
             race.classList.remove('hidden');
             race.style.display = 'block';
+            try { loadRaceTable(); } catch(_) {}
           }
         }
 
@@ -1496,6 +1497,7 @@
           if (sec) {
             sec.classList.remove('hidden');
             sec.style.display = 'block';
+            try { if (window.initCMSAdmin) window.initCMSAdmin(); } catch(_) {}
           }
         }
 
@@ -1540,8 +1542,50 @@
         
         // Settings: load and save
 
+        // Race table loader (inline) – ensures the editor is visible under Race Management
+        async function loadRaceTable() {
+          try {
+            const { getFirestore, collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const tbody = document.getElementById('races-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            const q = query(collection(db, 'races'), orderBy('date','asc'));
+            const snap = await getDocs(q);
+            if (snap.empty) {
+              const tr = document.createElement('tr');
+              tr.innerHTML = '<td class="p-3 text-slate-400" colspan="4">No races added yet.</td>';
+              tbody.appendChild(tr);
+              return;
+            }
+            snap.forEach(d => {
+              const v = d.data() || {};
+              const dateStr = v.date ? new Date(v.date).toLocaleDateString() : 'TBD';
+              const name = v.name || 'Unnamed Race';
+              const status = v.status || 'upcoming';
+              const tr = document.createElement('tr');
+              tr.className = 'border-b border-slate-700/50 hover:bg-slate-800/40';
+              tr.innerHTML = `
+                <td class="p-3">${dateStr}</td>
+                <td class="p-3">${name}</td>
+                <td class="p-3 capitalize">${status}</td>
+                <td class="p-3 text-right whitespace-nowrap">
+                  <button class="edit-race-btn bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-500 transition mr-2" data-id="${d.id}">Edit</button>
+                  <button class="delete-race-btn bg-red-600 text-white px-3 py-1.5 rounded text-xs hover:bg-red-500 transition" data-id="${d.id}">Delete</button>
+                </td>`;
+              tbody.appendChild(tr);
+            });
+          } catch (e) { console.error('Failed to load races', e); }
+        }
+
         // Q&A: load pending submissions
         async function loadQnaPending() {
+          // Render a header and buckets for Pending and Published
+          try {
+            const list = document.getElementById('qna-list');
+            if (list) list.innerHTML = '<h3 class="text-white font-semibold mb-2">Pending Questions</h3>';
+          } catch(_) {}
           try {
             const role = await getUserRole();
             const { getFirestore, collection, query, where, orderBy, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
@@ -1597,7 +1641,38 @@
             });
             showToast('Question published');
             loadQnaPending();
+            loadQnaPublished();
           } catch(e) { console.error('Publish Q&A failed', e); showToast('Failed to publish', 'error'); }
+        }
+
+        // Also load recently published to give context
+        async function loadQnaPublished() {
+          try {
+            const { getFirestore, collection, getDocs, query, where, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const list = document.getElementById('qna-list');
+            if (!list) return;
+            const header = document.createElement('div');
+            header.className = 'mt-6 text-slate-300 font-semibold';
+            header.textContent = 'Recently Published';
+            list.appendChild(header);
+            const wrap = document.createElement('div');
+            wrap.className = 'mt-2 space-y-2';
+            list.appendChild(wrap);
+            const q = query(collection(db, 'qna_submissions'), where('status','==','published'), orderBy('answeredAt','desc'), limit(6));
+            const snap = await getDocs(q);
+            if (snap.empty) {
+              const p = document.createElement('div'); p.className = 'text-slate-500 text-sm'; p.textContent = 'No published Q&A yet.'; wrap.appendChild(p); return;
+            }
+            snap.forEach(d => {
+              const v = d.data() || {};
+              const card = document.createElement('div');
+              card.className = 'bg-slate-800/40 border border-slate-700/40 rounded p-3';
+              card.innerHTML = `<div class="text-slate-300">Q: ${(v.question||'').replace(/</g,'&lt;')}</div><div class="text-white mt-1">A: ${(v.answer||'').replace(/</g,'&lt;')}</div>`;
+              wrap.appendChild(card);
+            });
+          } catch(_) {}
         }
 
         window.rejectQna = async function(docId) {
@@ -2473,8 +2548,10 @@
               try { await getAuth().currentUser?.getIdToken(true); } catch(_) {}
             } catch (_) {}
 
-            // Load pending photos on startup (after claims ensured)
+          // Load pending photos on startup (after claims ensured)
             loadPendingPhotos();
+            // Preload races table so editor appears when opening Race Management
+            try { loadRaceTable(); } catch(_) {}
             
             // Setup navigation click handlers
             const galleryApprovalLink = document.querySelector('a[href="#gallery-approvals"]');
