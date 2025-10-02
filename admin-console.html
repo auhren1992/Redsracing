@@ -2926,76 +2926,11 @@
           if (raceSection) {
             raceSection.scrollIntoView({ behavior: 'smooth' });
           }
-          
-          // Create add race form if it doesn't exist
-          const tableBody = document.getElementById('races-table-body');
-          if (tableBody && !document.getElementById('add-race-form')) {
-            const formRow = document.createElement('div');
-            formRow.id = 'add-race-form';
-            formRow.className = 'table-row p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg mb-4';
-            formRow.innerHTML = `
-              <div class="grid grid-cols-4 gap-4">
-                <input type="date" id="race-date" class="modern-input p-2 text-white" required>
-                <input type="text" id="race-name" placeholder="Race Name" class="modern-input p-2 text-white" required>
-                <select id="race-status" class="modern-input p-2 text-white">
-                  <option value="upcoming">Upcoming</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                </select>
-                <div class="flex space-x-2">
-                  <button onclick="saveNewRace()" class="success-btn px-4 py-2 rounded text-sm">
-                    <i class="fas fa-save mr-1"></i>Save
-                  </button>
-                  <button onclick="cancelAddRace()" class="danger-btn px-4 py-2 rounded text-sm">
-                    <i class="fas fa-times mr-1"></i>Cancel
-                  </button>
-                </div>
-              </div>
-            `;
-            tableBody.insertBefore(formRow, tableBody.firstChild);
-          }
+          // Open modal for creating a new race (no inline form in table to avoid layout issues)
+          try { openRaceEditor(null); } catch(_) {}
         }
         
-        // Save new race
-        window.saveNewRace = async function() {
-          const date = document.getElementById('race-date').value;
-          const name = document.getElementById('race-name').value;
-          const status = document.getElementById('race-status').value;
-          
-          if (!date || !name) {
-            alert('Please fill in all required fields');
-            return;
-          }
-          
-          try {
-            const { getFirestore, collection, addDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-            const app = await ensureDefaultApp();
-            const db = getFirestore(app);
-            
-            await addDoc(collection(db, 'races'), {
-              date: new Date(date),
-              name: name,
-              status: status,
-              createdAt: new Date(),
-              createdBy: 'admin'
-            });
-            
-            alert('Race added successfully!');
-            cancelAddRace();
-            loadRealFirebaseData();
-          } catch (error) {
-            console.error('Error adding race:', error);
-            alert('Error adding race. Please try again.');
-          }
-        };
         
-        // Cancel add race
-        window.cancelAddRace = function() {
-          const form = document.getElementById('add-race-form');
-          if (form) {
-            form.remove();
-          }
-        };
         
         // Approve all photos
         async function approveAllPhotos() {
