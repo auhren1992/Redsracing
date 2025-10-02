@@ -9,8 +9,8 @@ import {
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
 function ensurePanel() {
-  const main = document.querySelector('main .p-4');
-  if (!main) return null;
+  const container = document.getElementById('dashboard-content') || document.querySelector('main .p-4');
+  if (!container) return null;
   let existing = document.getElementById('cms-pages-panel');
   if (existing) return existing;
   const wrap = document.createElement('div');
@@ -42,7 +42,12 @@ function ensurePanel() {
     </div>
     <p class="text-slate-400 text-sm mt-2">Page content is public-read. Writes require admin role.</p>
   `;
-  main.appendChild(wrap);
+  // Place CMS panel near the top of the dashboard
+  if (container.firstChild) {
+    container.insertBefore(wrap, container.firstChild);
+  } else {
+    container.appendChild(wrap);
+  }
   return wrap;
 }
 
