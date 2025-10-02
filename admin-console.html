@@ -966,27 +966,6 @@
               </div>
             </div>
             
-            <!-- Quick Actions Footer -->
-            <div class="admin-card rounded-xl p-6 mt-8">
-              <h3 class="text-lg font-bold text-white mb-4">
-                <i class="fas fa-bolt text-yellow-400 mr-2"></i>
-                Quick Actions
-              </h3>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <button id="approve-all-btn" class="success-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
-                  <i class="fas fa-check mr-1"></i>Approve All
-                </button>
-                <button id="refresh-data-btn" class="modern-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
-                  <i class="fas fa-sync mr-1"></i>Refresh Data
-                </button>
-                <button id="export-data-btn" class="modern-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
-                  <i class="fas fa-download mr-1"></i>Export
-                </button>
-                <button id="cleanup-btn" class="danger-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
-                  <i class="fas fa-trash mr-1"></i>Cleanup
-                </button>
-              </div>
-            </div>
             </div>
           </div>
 
@@ -1109,6 +1088,28 @@
                 </table>
               </div>
               <p class="text-slate-500 text-xs mt-2">Frontend errors are sampled and stored as a fallback when developer tools are not available.</p>
+
+              <!-- Quick Actions (moved here per request) -->
+              <div class="admin-card rounded-xl p-6 mt-6">
+                <h3 class="text-lg font-bold text-white mb-4">
+                  <i class="fas fa-bolt text-yellow-400 mr-2"></i>
+                  Quick Actions
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <button id="approve-all-btn" class="success-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                    <i class="fas fa-check mr-1"></i>Approve All
+                  </button>
+                  <button id="refresh-data-btn" class="modern-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                    <i class="fas fa-sync mr-1"></i>Refresh Data
+                  </button>
+                  <button id="export-data-btn" class="modern-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                    <i class="fas fa-download mr-1"></i>Export
+                  </button>
+                  <button id="cleanup-btn" class="danger-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                    <i class="fas fa-trash mr-1"></i>Cleanup
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
