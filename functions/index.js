@@ -746,7 +746,8 @@ exports.fetchSpeedhiveEvent = onRequest({ secrets: ["SENTRY_DSN"], timeoutSecond
 
     const parsed = await page.evaluate(() => {
       const rows = [];
-      const nameRx = /jonathan\s+kirsch/i;
+      // Match "Jonathan Kirsch", "Jon Kirsch", or "Kirsch, Jonathan|Jon"
+      const nameRx = /(jonathan|jon)\s+kirsch|kirsch\s*,\s*(jonathan|jon)/i;
       const tables = Array.from(document.querySelectorAll('table'));
       for (const t of tables) {
         const trs = Array.from(t.querySelectorAll('tr'));
