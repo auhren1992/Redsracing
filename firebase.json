@@ -182,6 +182,10 @@
           "functionId": "fetchSpeedhiveEvent",
           "codebase": "default"
         }
+      },
+      {
+        "source": "/api/speedhive/**",
+        "run": { "serviceId": "speedhive-go-service", "region": "us-central1" }
       }
     ]
   },
