@@ -279,6 +279,9 @@ body {
 /* Improve input visibility on dark backgrounds */
 input, textarea { color: #e5e7eb; caret-color: #f7ff00; }
 input::placeholder, textarea::placeholder { color: #94a3b8; }
+/* Ensure visibility when inputs use a white background */
+input.bg-white, textarea.bg-white { color: #111827 !important; }
+input.bg-white::placeholder, textarea.bg-white::placeholder { color: #6b7280 !important; }
 
 /* Navigation specific styles */
 .avatar-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9999px; background-color: #0ea5e9; color: white; font-weight: 700; font-size: 0.8rem; overflow: hidden; border: 2px solid rgba(255,255,255,0.2); }
