@@ -73,34 +73,40 @@
         const snapCol = await getDocs(q);
         videos = snapCol.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
       } catch (_) {}
-      // Single config doc as fallback
-      let configDoc = {};
+      // Single config doc as fallback for TikTok
+      let tiktokConfig = {};
       try {
         const snap = await getDoc(doc(db, 'config', 'tiktok'));
-        if (snap.exists()) configDoc = snap.data() || {};
+        if (snap.exists()) tiktokConfig = snap.data() || {};
       } catch (_) {}
-      return { videos, config: configDoc };
+      // Video display settings
+      let videoSettings = {};
+      try {
+        const snapVs = await getDoc(doc(db, 'config', 'videos'));
+        if (snapVs.exists()) videoSettings = snapVs.data() || {};
+      } catch (_) {}
+      return { videos, tiktokConfig, videoSettings };
     } catch (e) {
-      return { videos: [], config: {} };
+      return { videos: [], tiktokConfig: {}, videoSettings: {} };
     }
   }
 
-  function renderMany(videos, config) {
+  function renderMany(videos, tiktokConfig, videoSettings) {
     let renderedAny = false;
     if (Array.isArray(videos) && videos.length > 0) {
       for (const v of videos) {
-        const ok = renderOne(v.sampleUrl || v.url || '', v.handle || config.handle || '');
+        const ok = renderOne(v.sampleUrl || v.url || '', v.handle || tiktokConfig.handle || '', videoSettings);
         if (ok) renderedAny = true;
       }
     }
-    if (!renderedAny && (config.sampleUrl || config.handle)) {
-      const ok = renderOne(config.sampleUrl || '', config.handle || '');
+    if (!renderedAny && (tiktokConfig.sampleUrl || tiktokConfig.handle)) {
+      const ok = renderOne(tiktokConfig.sampleUrl || '', tiktokConfig.handle || '', videoSettings);
       if (ok) renderedAny = true;
     }
     return renderedAny;
   }
 
-  function renderOne(sampleUrl, handle) {
+  function renderOne(sampleUrl, handle, videoSettings) {
     const embeds = document.getElementById('tiktok-embeds');
     if (!embeds) return false;
     let rendered = false;
@@ -112,8 +118,23 @@
         block.className = 'tiktok-embed';
         block.setAttribute('cite', sampleUrl);
         block.setAttribute('data-video-id', vid);
-        block.style.maxWidth = '605px';
-        block.style.minWidth = '325px';
+        // Apply admin-configured sizing
+        const vs = videoSettings || {};
+        const widthNum = Number(vs.width || 0);
+        const heightNum = Number(vs.height || 0);
+        if (vs.maxWidth) block.style.maxWidth = String(vs.maxWidth);
+        else block.style.maxWidth = '100%';
+        if (widthNum > 0) block.style.width = widthNum + 'px';
+        if (heightNum > 0) block.style.height = heightNum + 'px';
+        if (vs.aspect && CSS && CSS.supports && CSS.supports('aspect-ratio: 16/9')) {
+          const parts = String(vs.aspect).split(':');
+          if (parts.length === 2 && Number(parts[0])>0 && Number(parts[1])>0) {
+            block.style.aspectRatio = `${Number(parts[0])}/${Number(parts[1])}`;
+          }
+        }
+        // Sensible defaults if no settings
+        if (!block.style.maxWidth) block.style.maxWidth = '605px';
+        if (!block.style.minWidth) block.style.minWidth = '325px';
         const section = document.createElement('section');
         block.appendChild(section);
         embeds.appendChild(block);
@@ -137,8 +158,8 @@
   }
 
   try {
-    const { videos, config } = await loadConfig();
-    const ok = renderMany(videos, config);
+    const { videos, tiktokConfig, videoSettings } = await loadConfig();
+    const ok = renderMany(videos, tiktokConfig, videoSettings);
     if (ok) {
       clearYouTubeFallback();
     }
