@@ -35,7 +35,7 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.signInButton.setOnClickListener {
-            if (binding.rememberCheck.isChecked) remember("signin")
+            // Do not remember here; remember only after the web app confirms successful sign-in via AndroidAuth.onLoginSuccess()
             startMain("file:///android_asset/www/login.html", guest = false)
         }
         binding.guestButton.setOnClickListener {
@@ -43,7 +43,7 @@ class LoginActivity : AppCompatActivity() {
             startMain("file:///android_asset/www/index.html", guest = true)
         }
         binding.createAccountLink.setOnClickListener {
-            if (binding.rememberCheck.isChecked) remember("signin")
+            // Do not remember yet; only after account creation + login is successful in the web app
             startMain("file:///android_asset/www/signup.html", guest = false)
         }
     }

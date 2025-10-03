@@ -75,13 +75,13 @@ class MainActivity : AppCompatActivity() {
             val base = "https://www.redsracing.org/"
             when (item.itemId) {
                 R.id.nav_home -> binding.webview.loadUrl(base)
-                R.id.nav_drivers -> binding.webview.loadUrl(base + "drivers.html")
+                R.id.nav_drivers -> binding.webview.loadUrl(base + "driver.html")
                 R.id.nav_schedule -> binding.webview.loadUrl(base + "schedule.html")
                 R.id.nav_gallery -> binding.webview.loadUrl(base + "gallery.html")
                 R.id.nav_videos -> binding.webview.loadUrl(base + "videos.html")
-                R.id.nav_admin -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(base + "admin-console.html")))
+                R.id.nav_admin -> binding.webview.loadUrl(base + "admin-console.html")
                 R.id.nav_login -> binding.webview.loadUrl(base + "login.html")
-                R.id.nav_signout -> binding.webview.evaluateJavascript("try{localStorage.clear(); sessionStorage.clear();}catch(e){}", null)
+                R.id.nav_signout -> binding.webview.evaluateJavascript("try{localStorage.clear(); sessionStorage.clear(); if(window.AndroidAuth&&AndroidAuth.onLogout){AndroidAuth.onLogout();}}catch(e){}", null)
             }
             binding.drawerLayout.closeDrawers()
             true
@@ -326,8 +326,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // JS interface for simple local notifications
+        // JS interface for simple local notifications and auth callbacks
         webView.addJavascriptInterface(NotificationsBridge(this), "AndroidNotifications")
+        webView.addJavascriptInterface(AuthBridge(this), "AndroidAuth")
 
         // Load live site by default for full functionality, fallback to assets if given
         var initialUrl = intent.getStringExtra("initialUrl") ?: "https://www.redsracing.org/"
@@ -412,6 +413,26 @@ class MainActivity : AppCompatActivity() {
                 permissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
             }
         }
+    }
+}
+
+class AuthBridge(private val context: Context) {
+    private val prefs by lazy { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
+
+    @android.webkit.JavascriptInterface
+    fun onLoginSuccess() {
+        prefs.edit()
+            .putBoolean("remember_choice", true)
+            .putString("mode", "signin")
+            .apply()
+    }
+
+    @android.webkit.JavascriptInterface
+    fun onLogout() {
+        prefs.edit()
+            .remove("remember_choice")
+            .remove("mode")
+            .apply()
     }
 }
 
