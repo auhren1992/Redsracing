@@ -246,6 +246,50 @@ class MainActivity : AppCompatActivity() {
                 if (intent.getBooleanExtra("guest", false)) {
                     view?.evaluateJavascript("try{localStorage.setItem('guest','1');}catch(e){}", null)
                 }
+                // If user session is present in localStorage, persist remember choice in app
+                val persistLoginJs = """
+                    (function(){
+                      try{
+                        var uid = localStorage.getItem('rr_auth_uid');
+                        if(uid && window.AndroidAuth && AndroidAuth.onLoginSuccess){ AndroidAuth.onLoginSuccess(); }
+                      }catch(e){}
+                    })();
+                """.trimIndent()
+                view?.evaluateJavascript(persistLoginJs, null)
+
+                // Ensure a visible Sign Out is available inside mobile menu/hamburger
+                val injectSignOutJs = """
+                    (function(){
+                      try{
+                        var panel = document.getElementById('mobile-menu-dropdown') || document.getElementById('mobile-menu');
+                        if(!panel) return;
+                        if(!document.getElementById('rr-signout-hamburger')){
+                          var btn = document.createElement('a');
+                          btn.id = 'rr-signout-hamburger';
+                          btn.href = '#';
+                          btn.textContent = 'Sign Out';
+                          btn.style.display = 'block';
+                          btn.style.padding = '10px 16px';
+                          btn.style.color = '#fca5a5';
+                          btn.style.fontWeight = '600';
+                          btn.style.borderTop = '1px solid rgba(100,116,139,0.5)';
+                          panel.appendChild(btn);
+                          btn.addEventListener('click', async function(e){
+                            try{ e.preventDefault(); }catch(_){}
+                            try{
+                              // Try Firebase signOut (CDN v9 compat)
+                              const { getAuth, signOut } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+                              try { await signOut(getAuth()); } catch(_){ try{ await getAuth().signOut(); }catch(_){} }
+                            }catch(_){ }
+                            try{ localStorage.clear(); sessionStorage.clear(); }catch(_){}
+                            try{ if (window.AndroidAuth && AndroidAuth.onLogout) AndroidAuth.onLogout(); }catch(_){}
+                            try{ window.location.href = 'login.html'; }catch(_){}
+                          }, {passive:false});
+                        }
+                      }catch(_){ }
+                    })();
+                """.trimIndent()
+                view?.evaluateJavascript(injectSignOutJs, null)
                 // Inject generic hamburger/menu toggle fixer for pages that rely on JS/CSS toggles
                 val js = """
                     (function(){

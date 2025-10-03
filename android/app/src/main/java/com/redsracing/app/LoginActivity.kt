@@ -21,11 +21,12 @@ class LoginActivity : AppCompatActivity() {
         if (prefs.getBoolean("remember_choice", false)) {
             when (prefs.getString("mode", "")) {
                 "signin" -> {
-                    startMain("file:///android_asset/www/login.html", guest = false)
+                    // Open site home; app flow will route as needed
+                    startMain("https://www.redsracing.org/", guest = false)
                     return
                 }
                 "guest" -> {
-                    startMain("file:///android_asset/www/index.html", guest = true)
+                    startMain("https://www.redsracing.org/index.html", guest = true)
                     return
                 }
             }
@@ -36,7 +37,8 @@ class LoginActivity : AppCompatActivity() {
 
         binding.signInButton.setOnClickListener {
             // Do not remember here; remember only after the web app confirms successful sign-in via AndroidAuth.onLoginSuccess()
-            startMain("file:///android_asset/www/login.html", guest = false)
+            // Open the login page to sign in
+            startMain("https://www.redsracing.org/login.html", guest = false)
         }
         binding.guestButton.setOnClickListener {
             if (binding.rememberCheck.isChecked) remember("guest")

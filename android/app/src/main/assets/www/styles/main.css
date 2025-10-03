@@ -397,6 +397,12 @@ input::placeholder, textarea::placeholder { color: #94a3b8; }
   }
 }
 
+/* Mobile header adjustments: shrink brand text and space hamburger */
+@media (max-width: 420px) {
+  nav .font-racing { font-size: 1.75rem !important; letter-spacing: 0.05em; }
+  #mobile-menu-button { margin-left: 8px; }
+}
+
 /* Aspect ratio utilities for video embeds */
 .aspect-w-16 {
   position: relative;
