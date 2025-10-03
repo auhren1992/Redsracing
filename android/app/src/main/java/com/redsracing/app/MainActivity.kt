@@ -12,22 +12,29 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Message
 import android.provider.MediaStore
 import android.webkit.CookieManager
 import android.webkit.MimeTypeMap
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.activity.OnBackPressedCallback
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.webkit.WebViewAssetLoader
+import com.google.android.material.navigation.NavigationView
 import com.redsracing.app.databinding.ActivityMainBinding
 import java.io.File
 import java.io.IOException
@@ -51,15 +58,42 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Enable remote debugging for WebView (inspect via chrome://inspect)
+        WebView.setWebContentsDebuggingEnabled(true)
+
+        // Drawer + toolbar setup
+        val toggle = ActionBarDrawerToggle(
+            this,
+            binding.drawerLayout,
+            binding.toolbar,
+            0, 0
+        )
+        binding.drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+
+        binding.navView.setNavigationItemSelectedListener { item ->
+            val base = "https://www.redsracing.org/"
+            when (item.itemId) {
+                R.id.nav_home -> binding.webview.loadUrl(base)
+                R.id.nav_drivers -> binding.webview.loadUrl(base + "drivers.html")
+                R.id.nav_schedule -> binding.webview.loadUrl(base + "schedule.html")
+                R.id.nav_gallery -> binding.webview.loadUrl(base + "gallery.html")
+                R.id.nav_videos -> binding.webview.loadUrl(base + "videos.html")
+                R.id.nav_admin -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(base + "admin-console.html")))
+                R.id.nav_login -> binding.webview.loadUrl(base + "login.html")
+                R.id.nav_signout -> binding.webview.evaluateJavascript("try{localStorage.clear(); sessionStorage.clear();}catch(e){}", null)
+            }
+            binding.drawerLayout.closeDrawers()
+            true
+        }
+
         createNotificationChannel()
-        requestNotificationPermissionIfNeeded()
 
-        setupWebView(binding.webview)
-
+        // Register activity result launchers before any use
         permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { result ->
-            // Notify web or proceed silently; we only requested before opening chooser
+            // Permissions result handled as needed
         }
 
         fileChooserLauncher = registerForActivityResult(
@@ -70,7 +104,6 @@ class MainActivity : AppCompatActivity() {
 
             // Camera capture result
             cameraPhotoUri?.let { uri ->
-                // If no data returned but we had a camera intent, use the saved URI
                 if (activityResult.resultCode == RESULT_OK) {
                     results.add(uri)
                 }
@@ -93,10 +126,29 @@ class MainActivity : AppCompatActivity() {
             filePathCallback?.onReceiveValue(if (results.isNotEmpty()) results.toTypedArray() else null)
             filePathCallback = null
         }
+
+        requestNotificationPermissionIfNeeded()
+
+        setupWebView(binding.webview)
+
+        // Handle system back using OnBackPressedDispatcher
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.drawerLayout.isDrawerOpen(android.view.Gravity.START)) {
+                    binding.drawerLayout.closeDrawers(); return
+                }
+                if (binding.webview.canGoBack()) binding.webview.goBack() else finish()
+            }
+        })
     }
 
     @Suppress("SetJavaScriptEnabled")
     private fun setupWebView(webView: WebView) {
+        // Serve app assets over a safe, consistent origin to avoid CORS/cookie issues
+        val assetLoader = WebViewAssetLoader.Builder()
+            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+            .build()
+
         with(webView.settings) {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -108,6 +160,8 @@ class MainActivity : AppCompatActivity() {
             loadWithOverviewMode = true
             useWideViewPort = true
             cacheMode = WebSettings.LOAD_DEFAULT
+            setSupportMultipleWindows(true)
+            javaScriptCanOpenWindowsAutomatically = true
         }
 
         CookieManager.getInstance().setAcceptCookie(true)
@@ -116,21 +170,66 @@ class MainActivity : AppCompatActivity() {
         }
 
         webView.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                val url = request?.url?.toString() ?: return false
-
-                // Keep all http/https/file URLs inside the WebView
-                return when {
-                    url.startsWith("http://") || url.startsWith("https://") || url.startsWith("file://") -> {
-                        false // load in WebView
+            override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest): WebResourceResponse? {
+                val url = request.url
+                // Intercept appassets host; map missing "/assets/" prefix to our assets/www folder
+                if (url.host == "appassets.androidplatform.net") {
+                    val path = url.encodedPath ?: "/"
+                    if (path == "/favicon.ico") {
+                        val favicon = Uri.parse("https://appassets.androidplatform.net/assets/www/favicon.svg")
+                        assetLoader.shouldInterceptRequest(favicon)?.let { return it }
                     }
-                    url.startsWith("tel:") || url.startsWith("mailto:") -> {
-                        // Delegate to external apps for phone/email
-                        try {
-                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                        } catch (_: ActivityNotFoundException) {
-                            Toast.makeText(this@MainActivity, "No app to handle this action", Toast.LENGTH_SHORT).show()
-                        }
+                    if (!path.startsWith("/assets/")) {
+                        val fixed = Uri.parse("https://appassets.androidplatform.net/assets/www" + (if (path.startsWith("/")) path else "/$path"))
+                        assetLoader.shouldInterceptRequest(fixed)?.let { return it }
+                    }
+                    if (path.startsWith("/assets/") && !path.startsWith("/assets/www/")) {
+                        val fixed = Uri.parse("https://appassets.androidplatform.net/assets/www$path")
+                        assetLoader.shouldInterceptRequest(fixed)?.let { return it }
+                    }
+                    return assetLoader.shouldInterceptRequest(url)
+                }
+                if (url.host == "www.redsracing.org" && url.encodedPath == "/favicon.ico") {
+                    val favicon = Uri.parse("https://appassets.androidplatform.net/assets/www/favicon.svg")
+                    return assetLoader.shouldInterceptRequest(favicon)
+                }
+                return super.shouldInterceptRequest(view, request)
+            }
+
+            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                val url = request?.url ?: return false
+                val urlStr = url.toString()
+
+                // Open OAuth/external intents in browser to avoid WebView restrictions
+                if (url.host?.endsWith("google.com") == true || urlStr.startsWith("intent:") || urlStr.startsWith("market:")) {
+                    return try {
+                        startActivity(Intent(Intent.ACTION_VIEW, url))
+                        true
+                    } catch (_: Exception) {
+                        false
+                    }
+                }
+
+                // If a login/admin page is requested from appassets, force the live site origin
+                if (url.host == "appassets.androidplatform.net") {
+                    val path = url.encodedPath ?: "/"
+                    val loginPaths = listOf(
+                        "/assets/www/login.html",
+                        "/assets/www/follower-login.html",
+                        "/assets/www/admin-console.html"
+                    )
+                    if (loginPaths.any { path.equals(it, ignoreCase = true) }) {
+                        val live = Uri.parse("https://www.redsracing.org/" + path.removePrefix("/assets/www/"))
+                        view?.loadUrl(live.toString())
+                        return true
+                    }
+                }
+
+                // Keep http/https/file in WebView
+                return when {
+                    urlStr.startsWith("http://") || urlStr.startsWith("https://") || urlStr.startsWith("file://") -> false
+                    urlStr.startsWith("tel:") || urlStr.startsWith("mailto:") -> {
+                        try { startActivity(Intent(Intent.ACTION_VIEW, url)) } catch (_: Exception) {}
                         true
                     }
                     else -> false
@@ -147,10 +246,54 @@ class MainActivity : AppCompatActivity() {
                 if (intent.getBooleanExtra("guest", false)) {
                     view?.evaluateJavascript("try{localStorage.setItem('guest','1');}catch(e){}", null)
                 }
+                // Inject generic hamburger/menu toggle fixer for pages that rely on JS/CSS toggles
+                val js = """
+                    (function(){
+                      function findMenu(){
+                        return document.getElementById('mobile-menu') ||
+                               document.querySelector('.mobile-menu') ||
+                               document.querySelector('nav .menu') ||
+                               document.querySelector('.nav-menu') ||
+                               document.getElementById('menu');
+                      }
+                      function toggle(){
+                        var m = findMenu(); if(!m) return;
+                        if (m.classList) m.classList.toggle('hidden');
+                        var st = window.getComputedStyle(m).display;
+                        if (st === 'none') { m.style.display='block'; } else if (!m.classList.contains('hidden')) { m.style.display='none'; }
+                      }
+                      var selectors = ['#menu-toggle','#hamburger','.hamburger','.menu-toggle','.nav-toggle','.menu-btn','.mobile-menu-button','[aria-controls]'];
+                      selectors.forEach(function(s){
+                        Array.prototype.forEach.call(document.querySelectorAll(s), function(btn){
+                          btn.addEventListener('click', function(e){ try{ e.preventDefault(); }catch(_){} toggle(); }, {passive:false});
+                          btn.addEventListener('touchstart', function(e){ try{ e.preventDefault(); }catch(_){} toggle(); }, {passive:false});
+                        });
+                      });
+                    })();
+                """.trimIndent()
+                view?.evaluateJavascript(js, null)
             }
         }
 
         webView.webChromeClient = object : WebChromeClient() {
+            override fun onCreateWindow(view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message?): Boolean {
+                // Handle target="_blank" and window.open by loading URL in the same WebView
+                val context = view?.context ?: return false
+                val tempWebView = WebView(context)
+                tempWebView.settings.javaScriptEnabled = true
+                tempWebView.webViewClient = object : WebViewClient() {
+                    override fun onPageStarted(v: WebView?, url: String?, favicon: Bitmap?) {
+                        if (url != null && view != null) {
+                            view.loadUrl(url)
+                        }
+                    }
+                }
+                val transport = resultMsg?.obj as? WebView.WebViewTransport ?: return false
+                transport.webView = tempWebView
+                resultMsg.sendToTarget()
+                return true
+            }
+
             override fun onShowFileChooser(
                 webView: WebView?,
                 filePathCallback: ValueCallback<Array<Uri>>?,
@@ -186,8 +329,11 @@ class MainActivity : AppCompatActivity() {
         // JS interface for simple local notifications
         webView.addJavascriptInterface(NotificationsBridge(this), "AndroidNotifications")
 
-        // Load bundled site from assets or a specific page
-        val initialUrl = intent.getStringExtra("initialUrl") ?: "file:///android_asset/www/index.html"
+        // Load live site by default for full functionality, fallback to assets if given
+        var initialUrl = intent.getStringExtra("initialUrl") ?: "https://www.redsracing.org/"
+        if (initialUrl.startsWith("file:///android_asset/")) {
+            initialUrl = initialUrl.replace("file:///android_asset/", "https://appassets.androidplatform.net/assets/")
+        }
         webView.loadUrl(initialUrl)
     }
 
@@ -247,13 +393,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    override fun onBackPressed() {
-        if (binding.webview.canGoBack()) {
-            binding.webview.goBack()
-        } else {
-            super.onBackPressed()
-        }
-    }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

@@ -1,0 +1,26 @@
+# Android/Gradle
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/captures/
+.externalNativeBuild/
+.cxx/
+**/build/
+app/build/
+
+# Gradle caches and distributions
+/caches/
+/daemon/
+/kotlin-profile/
+/native/
+
+# Logs
+*.log
+
+# Keystores (uncomment and add your actual keystore file names if needed)
+# *.jks
+# *.keystore
+
+# Node/others if present
+node_modules/

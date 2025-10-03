@@ -2,7 +2,7 @@
 import { getFirebaseConfig } from "./firebase-config.js";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
 // Singleton pattern to prevent multiple initializations
@@ -20,7 +20,12 @@ function initializeFirebaseIfNeeded() {
     try {
       setPersistence(auth, browserLocalPersistence).catch(() => {});
     } catch (e) {}
-    db = getFirestore(app);
+    // Use long-polling in WebView environments to avoid streaming issues (400s)
+    try {
+      db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true, useFetchStreams: false });
+    } catch (_) {
+      db = getFirestore(app);
+    }
     storage = getStorage(app);
   }
   return { app, auth, db, storage };

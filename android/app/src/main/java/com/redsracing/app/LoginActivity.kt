@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.redsracing.app.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
@@ -11,7 +12,8 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Splash theme is applied via manifest
+        // Ensure SplashScreen compat switches to postSplashScreenTheme early on pre-Android 12
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
 
@@ -54,8 +56,17 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun startMain(url: String, guest: Boolean) {
+        // Prefer live site URLs to ensure all navigation and dynamic data work
+        val base = "https://www.redsracing.org/"
+        val resolved = when {
+            url.startsWith("http://") || url.startsWith("https://") -> url
+            url.startsWith("file:///android_asset/www/") -> url
+            url.startsWith("file://") -> url
+            url.startsWith("/") -> base + url.removePrefix("/")
+            else -> base + url
+        }
         val i = Intent(this, MainActivity::class.java)
-            .putExtra("initialUrl", url)
+            .putExtra("initialUrl", resolved)
             .putExtra("guest", guest)
         startActivity(i)
         finish()

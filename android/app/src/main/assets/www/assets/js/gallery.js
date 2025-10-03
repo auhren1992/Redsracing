@@ -39,24 +39,16 @@ async function main() {
 
   // --- Auth State ---
   const uploadContainer = document.getElementById("upload-container");
-  let isModerator = false; // team-member or admin
-  let unsubscribePending = null;
 
-  onAuthStateChanged(auth, async (user) => {
-    updateUploadVisibility(user);
-    await checkModerator();
-  });
-
-  // Apply initial state in case the listener fires later
-  updateUploadVisibility(auth.currentUser);
-  await checkModerator();
-
-  // --- Photo Upload Logic ---
+  // --- Photo Upload Elements (declare before using in visibility logic) ---
   const uploadInput = document.getElementById("photo-upload-input");
   const uploadBtn = document.getElementById("upload-btn");
   const progressBar = document.getElementById("upload-progress-bar");
   const uploadStatus = document.getElementById("upload-status");
   let selectedFile = null;
+
+  let isModerator = false; // team-member or admin
+  let unsubscribePending = null;
 
   // Ensure upload UI is visible with proper state based on auth
   function updateUploadVisibility(user) {
@@ -80,6 +72,16 @@ async function main() {
       }
     }
   }
+
+  // Register auth state listener after elements and helpers exist
+  onAuthStateChanged(auth, async (user) => {
+    updateUploadVisibility(user);
+    await checkModerator();
+  });
+
+  // Apply initial state in case the listener fires later
+  updateUploadVisibility(auth.currentUser);
+  await checkModerator();
 
   if (uploadInput) {
     uploadInput.addEventListener("change", (e) => {
