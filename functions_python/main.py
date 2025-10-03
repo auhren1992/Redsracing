@@ -4,14 +4,25 @@ import sendgrid
 from sendgrid.helpers.mail import Mail
 import os
 import json
-from datetime import datetime
+import random
+from datetime import datetime, timedelta
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
 
 # Sentry error monitoring
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 # Initialize Firebase Admin SDK.
-initialize_app()
+# In local analysis environments, ADC may be unavailable; avoid failing hard.
+try:
+    initialize_app()
+except Exception as e:
+    try:
+        # Best-effort capture; don’t block function analysis
+        sentry_sdk.capture_exception(e)
+    except Exception:
+        pass
 
 # Configure secrets for email functionality
 # Keep SENTRY_DSN optional to avoid deployment failure when the secret is not present
@@ -75,9 +86,35 @@ def get_user_agent(req):
     return req.headers.get("User-Agent", "unknown")
 
 
+def queue_fallback(collection_name: str, payload: dict, req: https_fn.Request):
+    """Queue the payload to Firestore so it is not lost if email fails.
+    Returns (True, doc_ref_id) on success, (False, error_message) on failure.
+    """
+    try:
+        db = firestore.client()
+        now = datetime.utcnow()
+        record = {
+            **payload,
+            "status": "queued",
+            "retryCount": 0,
+            "queuedAt": firestore.SERVER_TIMESTAMP,
+            "nextAttemptAt": now,
+            "clientIp": get_client_ip(req),
+            "userAgent": get_user_agent(req),
+        }
+        doc_ref = db.collection(collection_name).add(record)
+        return True, str(doc_ref[1].id)
+    except Exception as e:
+        try:
+            sentry_sdk.capture_exception(e)
+        except Exception:
+            pass
+        return False, str(e)
+
 # Define a default CORS policy to allow requests from any origin.
 CORS_OPTIONS = options.CorsOptions(
     cors_origins="*", cors_methods=["get", "post", "put", "options"]
+)
 )
 
 
@@ -112,13 +149,21 @@ def handleAddSubscriber(req: https_fn.Request) -> https_fn.Response:
         db.collection("subscribers").add(
             {"email": email, "timestamp": firestore.SERVER_TIMESTAMP}
         )
-        return https_fn.Response("Subscription successful!", status=200)
+        return https_fn.Response(
+            json.dumps({"message": "Subscription successful!"}),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        )
     except Exception as e:
         try:
             sentry_sdk.capture_exception(e)
         except Exception:
             pass
-        return https_fn.Response(f"An error occurred: {e}", status=500)
+        return https_fn.Response(
+            json.dumps({"message": f"An error occurred: {str(e)}"}),
+            status=500,
+            headers={"Content-Type": "application/json"},
+        )
 
 
 @https_fn.on_request(cors=CORS_OPTIONS)
@@ -182,26 +227,84 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
         response = sg_client.send(message)
 
         if response.status_code >= 200 and response.status_code < 300:
-            return https_fn.Response("Feedback sent successfully!", status=200)
-        else:
             return https_fn.Response(
-                f"Error sending email: {response.body}", status=response.status_code
+                json.dumps({"message": "Feedback sent successfully!"}),
+                status=200,
+                headers={"Content-Type": "application/json"},
+            )
+        else:
+            # Email failed — queue to Firestore so it isn't lost
+            ok, info = queue_fallback(
+                "feedback_queue",
+                {"name": name, "email": email, "message": message_content},
+                req,
+            )
+            if ok:
+                return https_fn.Response(
+                    json.dumps({
+                        "message": "Feedback received and queued due to email error.",
+                        "queueId": info,
+                    }),
+                    status=202,
+                    headers={"Content-Type": "application/json"},
+                )
+            # Queueing also failed; return original error
+            return https_fn.Response(
+                json.dumps({"message": f"Error sending email: {response.body}"}),
+                status=response.status_code,
+                headers={"Content-Type": "application/json"},
             )
 
     except ValueError as ve:
-        # Handle specifically the case where SendGrid API key is not configured
+        # Email service not configured — queue instead
+        ok, info = queue_fallback(
+            "feedback_queue",
+            {"name": name, "email": email, "message": message_content},
+            req,
+        )
+        if ok:
+            return https_fn.Response(
+                json.dumps({
+                    "message": "Feedback received and queued (email service temporarily unavailable).",
+                    "queueId": info,
+                }),
+                status=202,
+                headers={"Content-Type": "application/json"},
+            )
+        # If queueing fails, report configuration error
         try:
             sentry_sdk.capture_exception(ve)
         except Exception:
             pass
-        return https_fn.Response(f"Email service not configured: {ve}", status=503)
+        return https_fn.Response(
+            json.dumps({"message": f"Email service not configured: {str(ve)}"}),
+            status=503,
+            headers={"Content-Type": "application/json"},
+        )
     except Exception as e:
+        # Other unexpected errors — queue and acknowledge receipt
+        ok, info = queue_fallback(
+            "feedback_queue",
+            {"name": name, "email": email, "message": message_content},
+            req,
+        )
+        if ok:
+            return https_fn.Response(
+                json.dumps({
+                    "message": "Feedback received and queued due to temporary error.",
+                    "queueId": info,
+                }),
+                status=202,
+                headers={"Content-Type": "application/json"},
+            )
         try:
             sentry_sdk.capture_exception(e)
         except Exception:
             pass
         return https_fn.Response(
-            f"An error occurred while sending email: {e}", status=500
+            json.dumps({"message": f"An error occurred while sending email: {str(e)}"}),
+            status=500,
+            headers={"Content-Type": "application/json"},
         )
 
 
@@ -250,28 +353,264 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
 
         if response.status_code >= 200 and response.status_code < 300:
             return https_fn.Response(
-                "Sponsorship inquiry sent successfully!", status=200
+                json.dumps({"message": "Sponsorship inquiry sent successfully!"}),
+                status=200,
+                headers={"Content-Type": "application/json"},
             )
         else:
+            ok, info = queue_fallback(
+                "sponsorship_queue",
+                {
+                    "company": company,
+                    "name": name,
+                    "email": email,
+                    "phone": phone,
+                    "message": message_content,
+                },
+                req,
+            )
+            if ok:
+                return https_fn.Response(
+                    json.dumps({
+                        "message": "Sponsorship inquiry received and queued due to email error.",
+                        "queueId": info,
+                    }),
+                    status=202,
+                    headers={"Content-Type": "application/json"},
+                )
             return https_fn.Response(
-                f"Error sending email: {response.body}", status=response.status_code
+                json.dumps({"message": f"Error sending email: {response.body}"}),
+                status=response.status_code,
+                headers={"Content-Type": "application/json"},
             )
 
     except ValueError as ve:
-        # Handle specifically the case where SendGrid API key is not configured
+        ok, info = queue_fallback(
+            "sponsorship_queue",
+            {
+                "company": company,
+                "name": name,
+                "email": email,
+                "phone": phone,
+                "message": message_content,
+            },
+            req,
+        )
+        if ok:
+            return https_fn.Response(
+                json.dumps({
+                    "message": "Sponsorship inquiry received and queued (email service temporarily unavailable).",
+                    "queueId": info,
+                }),
+                status=202,
+                headers={"Content-Type": "application/json"},
+            )
         try:
             sentry_sdk.capture_exception(ve)
         except Exception:
             pass
-        return https_fn.Response(f"Email service not configured: {ve}", status=503)
+        return https_fn.Response(
+            json.dumps({"message": f"Email service not configured: {str(ve)}"}),
+            status=503,
+            headers={"Content-Type": "application/json"},
+        )
     except Exception as e:
+        ok, info = queue_fallback(
+            "sponsorship_queue",
+            {
+                "company": company,
+                "name": name,
+                "email": email,
+                "phone": phone,
+                "message": message_content,
+            },
+            req,
+        )
+        if ok:
+            return https_fn.Response(
+                json.dumps({
+                    "message": "Sponsorship inquiry received and queued due to temporary error.",
+                    "queueId": info,
+                }),
+                status=202,
+                headers={"Content-Type": "application/json"},
+            )
         try:
             sentry_sdk.capture_exception(e)
         except Exception:
             pass
         return https_fn.Response(
-            f"An error occurred while sending email: {e}", status=500
+            json.dumps({"message": f"An error occurred while sending email: {str(e)}"}),
+            status=500,
+            headers={"Content-Type": "application/json"},
         )
+
+
+@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY", "SENTRY_DSN"])
+def handleProcessQueues(req: https_fn.Request) -> https_fn.Response:
+    """HTTP endpoint to process queued feedback and sponsorship items.
+    Intended to be invoked by Cloud Scheduler (OIDC) or Admins.
+    Only POST is allowed. Valid callers:
+      - Cloud Scheduler with OIDC Bearer token (service account email ends with gserviceaccount.com)
+      - Authenticated Firebase user with admin/team-member role
+    """
+    if req.method == "OPTIONS":
+        return https_fn.Response("", status=204)
+    if req.method != "POST":
+        return https_fn.Response("Method not allowed", status=405)
+
+    # AuthZ: Try Cloud Scheduler OIDC first
+    authorized = False
+    auth_header = req.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            oidc_token = auth_header.split("Bearer ")[1]
+            info = google_id_token.verify_oauth2_token(oidc_token, google_requests.Request())
+            email = info.get("email", "")
+            if email.endswith("gserviceaccount.com"):
+                authorized = True
+        except Exception:
+            authorized = False
+
+    # If not OIDC authorized, require Firebase Admin user
+    if not authorized:
+        decoded, err_resp = _get_user_from_token(req)
+        if err_resp is None and decoded and _is_admin(decoded):
+            authorized = True
+
+    if not authorized:
+        return https_fn.Response(
+            json.dumps({"message": "Unauthorized"}),
+            status=401,
+            headers={"Content-Type": "application/json"},
+        )
+
+    db = firestore.client()
+
+    def _compute_next_attempt(retry_count: int) -> datetime:
+        base = 30  # seconds
+        # cap individual delay to 1 hour
+        delay = min(3600, base * (2 ** max(0, retry_count)))
+        jitter = delay * 0.2
+        actual = delay - jitter + (random.random() * 2 * jitter)
+        return datetime.utcnow() + timedelta(seconds=actual)
+
+    def _send_email(subject: str, body: str, from_email: str) -> tuple[bool, str]:
+        try:
+            message = Mail(
+                from_email=from_email,
+                to_emails="aaron@redsracing.org",
+                subject=subject,
+                plain_text_content=body,
+            )
+            sg_client = get_sendgrid_client()
+            resp = sg_client.send(message)
+            if 200 <= resp.status_code < 300:
+                return True, "sent"
+            return False, f"sendgrid_non_2xx:{resp.status_code}:{resp.body}"
+        except Exception as ex:
+            try:
+                sentry_sdk.capture_exception(ex)
+            except Exception:
+                pass
+            return False, f"exception:{str(ex)}"
+
+    def _process_collection(col_name: str, kind: str):
+        coll = db.collection(col_name)
+        # Fetch a limited number of queued/retry items ordered by nextAttemptAt
+        docs = (
+            coll.where("status", "in", ["queued", "retry"]).order_by("nextAttemptAt").limit(50).stream()
+        )
+        processed = 0
+        moved_to_dlq = 0
+        for doc in docs:
+            d = doc.to_dict() or {}
+            retry_count = int(d.get("retryCount", 0))
+            # Respect nextAttemptAt backoff window
+            try:
+                naa = d.get("nextAttemptAt")
+                if naa is not None and isinstance(naa, datetime):
+                    if naa > datetime.utcnow():
+                        continue
+            except Exception:
+                pass
+            try:
+                # Build subject/body
+                if kind == "feedback":
+                    subject = f"Queued Feedback from {d.get('name','Unknown')}"
+                    body = (
+                        f"Name: {d.get('name','')}\n"
+                        f"Email: {d.get('email','')}\n\n"
+                        f"Message:\n{d.get('message','')}"
+                    )
+                    from_email = "feedback@redsracing.org"
+                else:
+                    subject = f"Queued Sponsorship from {d.get('name','Unknown')}"
+                    body = (
+                        f"Company: {d.get('company','N/A')}\n"
+                        f"Contact Name: {d.get('name','')}\n"
+                        f"Email: {d.get('email','')}\n"
+                        f"Phone: {d.get('phone','N/A')}\n\n"
+                        f"Message:\n{d.get('message','')}"
+                    )
+                    from_email = "sponsorship@redsracing.org"
+
+                ok, info = _send_email(subject, body, from_email)
+                if ok:
+                    doc.reference.update({
+                        "status": "sent",
+                        "sentAt": firestore.SERVER_TIMESTAMP,
+                        "lastError": firestore.DELETE_FIELD if hasattr(firestore, 'DELETE_FIELD') else None,
+                    })
+                else:
+                    retry_count += 1
+                    if retry_count >= 5:
+                        # Move to dead-letter
+                        dlq = db.collection("queue_dead_letter")
+                        dlq.add({
+                            **d,
+                            "originalCollection": col_name,
+                            "movedAt": firestore.SERVER_TIMESTAMP,
+                            "lastError": info,
+                            "retryCount": retry_count,
+                        })
+                        doc.reference.delete()
+                        moved_to_dlq += 1
+                    else:
+                        # Exponential backoff and set next attempt window
+                        doc.reference.update({
+                            "status": "retry",
+                            "retryCount": retry_count,
+                            "lastError": info,
+                            "updatedAt": firestore.SERVER_TIMESTAMP,
+                            "nextAttemptAt": _compute_next_attempt(retry_count),
+                        })
+                processed += 1
+            except Exception as ex2:
+                try:
+                    sentry_sdk.capture_exception(ex2)
+                except Exception:
+                    pass
+                # mark error but keep queued
+                doc.reference.update({
+                    "status": "retry",
+                    "lastError": f"processor:{str(ex2)}",
+                    "updatedAt": firestore.SERVER_TIMESTAMP,
+                })
+        return processed, moved_to_dlq
+
+    fb_done, fb_dlq = _process_collection("feedback_queue", "feedback")
+    sp_done, sp_dlq = _process_collection("sponsorship_queue", "sponsorship")
+
+    return https_fn.Response(
+        json.dumps({
+            "status": "ok",
+            "feedback": {"processed": fb_done, "dead_letter": fb_dlq},
+            "sponsorship": {"processed": sp_done, "dead_letter": sp_dlq},
+        }),
+        status=200,
+        headers={"Content-Type": "application/json"},
+    )
 
 
 # ============================================================================

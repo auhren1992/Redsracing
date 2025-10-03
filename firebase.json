@@ -149,6 +149,13 @@
         }
       },
       {
+        "source": "/process_queues",
+        "function": {
+          "functionId": "handleProcessQueues",
+          "codebase": "python-api"
+        }
+      },
+      {
         "source": "/k1/addison/2025/jonny",
         "function": {
           "functionId": "fetchK1AddisonJonny",

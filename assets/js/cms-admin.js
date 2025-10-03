@@ -272,50 +272,10 @@ async function saveHero() {
   // Deprecated in full editor; keep for back-compat no-op
   return;
 }
-  try {
-    const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
-    const slug = document.getElementById('cms-page-slug').value.trim() || 'jonny';
-    const title = document.getElementById('cms-hero-title').value || '';
-    const subtitle = document.getElementById('cms-hero-subtitle').value || '';
-    const imageUrl = document.getElementById('cms-hero-image').value || '';
-
-    // Upsert page
-    await setDoc(doc(db, 'pages', slug), { updatedAt: new Date() }, { merge: true });
-    // Create/update hero section at order 1 (simple approach: add new hero each time)
-    await addDoc(collection(db, 'pages', slug, 'sections'), {
-      type: 'hero',
-      order: 1,
-      data: { title, subtitle, imageUrl },
-    });
-    toast('Hero saved to CMS');
-  } catch (e) {
-    console.error(e); toast('Failed to save hero', 'error');
-  }
-}
 
 async function addTrackTips() {
   // Deprecated in full editor; use Add Section
   return;
-}
-  try {
-    const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
-    const slug = document.getElementById('cms-page-slug').value.trim() || 'jonny';
-    await setDoc(doc(db, 'pages', slug), { updatedAt: new Date() }, { merge: true });
-    await addDoc(collection(db, 'pages', slug, 'sections'), {
-      type: 'trackTips',
-      order: 2,
-      data: {
-        tips: [
-          { title: 'Look Ahead', body: 'Eyes to apex and exit—car goes where you look.' },
-          { title: 'Brake Straight', body: 'Do most braking before turn-in; release smoothly.' },
-          { title: 'Smooth Inputs', body: 'Gentle hands and feet keep the car fast.' },
-        ],
-      },
-    });
-    toast('Track Tips section added');
-  } catch (e) {
-    console.error(e); toast('Failed to add Track Tips', 'error');
-  }
 }
 
 function toast(msg, kind='info') {
