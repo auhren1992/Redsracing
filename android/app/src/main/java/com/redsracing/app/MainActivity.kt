@@ -251,22 +251,29 @@ class MainActivity : AppCompatActivity() {
                     (function(){
                       function findMenu(){
                         return document.getElementById('mobile-menu') ||
+                               document.querySelector('#mobile-menu-dropdown') ||
                                document.querySelector('.mobile-menu') ||
                                document.querySelector('nav .menu') ||
                                document.querySelector('.nav-menu') ||
                                document.getElementById('menu');
                       }
-                      function toggle(){
+                      function toggle(btn){
                         var m = findMenu(); if(!m) return;
+                        // Ensure panel is visible on top
+                        try{ m.style.zIndex = 10000; }catch(_){ }
                         if (m.classList) m.classList.toggle('hidden');
                         var st = window.getComputedStyle(m).display;
                         if (st === 'none') { m.style.display='block'; } else if (!m.classList.contains('hidden')) { m.style.display='none'; }
+                        // Update aria
+                        try { if(btn) btn.setAttribute('aria-expanded', String(!(m.classList&&m.classList.contains('hidden')))); } catch(_){}
                       }
-                      var selectors = ['#menu-toggle','#hamburger','.hamburger','.menu-toggle','.nav-toggle','.menu-btn','.mobile-menu-button','[aria-controls]'];
+                      var selectors = ['#mobile-menu-button','#menu-toggle','#hamburger','.hamburger','.menu-toggle','.nav-toggle','.menu-btn','[aria-controls]'];
                       selectors.forEach(function(s){
                         Array.prototype.forEach.call(document.querySelectorAll(s), function(btn){
-                          btn.addEventListener('click', function(e){ try{ e.preventDefault(); }catch(_){} toggle(); }, {passive:false});
-                          btn.addEventListener('touchstart', function(e){ try{ e.preventDefault(); }catch(_){} toggle(); }, {passive:false});
+                          // De-dupe: replace node to clear old handlers
+                          try { var clone = btn.cloneNode(true); btn.parentNode.replaceChild(clone, btn); btn = clone; } catch(_){ }
+                          btn.addEventListener('click', function(e){ try{ e.preventDefault(); e.stopPropagation(); }catch(_){} toggle(btn); }, {passive:false});
+                          btn.addEventListener('touchstart', function(e){ try{ e.preventDefault(); e.stopPropagation(); }catch(_){} toggle(btn); }, {passive:false});
                         });
                       });
                     })();
