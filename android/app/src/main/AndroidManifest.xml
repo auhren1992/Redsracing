@@ -20,7 +20,7 @@
         <!-- FileProvider for camera capture -->
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.redsracing.app.fileprovider"
+            android:authorities="com.example.redsracing.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

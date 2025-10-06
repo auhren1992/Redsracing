@@ -1,11 +1,11 @@
-package com.redsracing.app
+package com.example.redsracing
 
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.redsracing.app.databinding.ActivityLoginBinding
+import com.example.redsracing.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding

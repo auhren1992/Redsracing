@@ -1,4 +1,4 @@
-package com.redsracing.app
+package com.example.redsracing
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -35,7 +35,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.webkit.WebViewAssetLoader
 import com.google.android.material.navigation.NavigationView
-import com.redsracing.app.databinding.ActivityMainBinding
+import com.example.redsracing.databinding.ActivityMainBinding
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -422,7 +422,7 @@ class MainActivity : AppCompatActivity() {
         return if (photoFile != null) {
             val photoURI = FileProvider.getUriForFile(
                 this,
-                "com.redsracing.app.fileprovider",
+                "com.example.redsracing.fileprovider",
                 photoFile
             )
             cameraPhotoUri = photoURI

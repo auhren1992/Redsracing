@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.redsracing.app"
+    namespace = "com.example.redsracing"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.redsracing.app"
+        applicationId = "com.example.redsracing"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
