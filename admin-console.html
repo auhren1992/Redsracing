@@ -3011,29 +3011,116 @@
             console.error('Error refreshing data:', error);
             button.innerHTML = '<i class="fas fa-sync mr-1"></i>Refresh Data';
             button.disabled = false;
-            alert('Error refreshing data. Please try again.');
           });
         }
+        
+        // Emergency modal cleanup function
+        function clearStuckModals() {
+          // Remove any stuck overlays
+          const overlays = document.querySelectorAll('[id$="-overlay"], .fixed.inset-0, .z-50, .z-40');
+          overlays.forEach(overlay => {
+            if (overlay.style.position === 'fixed' || overlay.classList.contains('fixed')) {
+              overlay.remove();
+            }
+          });
+          
+          // Remove any stuck modals
+          const modals = document.querySelectorAll('[id$="-modal"]');
+          modals.forEach(modal => modal.remove());
+          
+          // Reset body overflow
+          document.body.style.overflow = '';
+          
+          // Clear any disabled states
+          document.querySelectorAll('button[disabled]').forEach(btn => {
+            if (!btn.classList.contains('permanently-disabled')) {
+              btn.disabled = false;
+            }
+          });
+          
+          console.log('🔧 Cleared stuck modals and overlays');
+        }
+        
+        // Add escape key handler to close modals
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            // Try specific close functions first
+            if (typeof closeRaceModal === 'function') closeRaceModal();
+            
+            // Emergency cleanup
+            clearStuckModals();
+          }
+        });
+        
+        // Add global click handler for modal backgrounds
+        document.addEventListener('click', (e) => {
+          if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
+            clearStuckModals();
+          }
+        });
+        
+        // Expose cleanup function globally for manual use
+        window.clearStuckModals = clearStuckModals;
+        
+        // Specific fix for the stuck "Queued Item" modal
+        function closeQueuedItemModal() {
+          // Find and remove the specific queued item modal
+          const queuedModals = document.querySelectorAll('div:has(h4)');
+          queuedModals.forEach(modal => {
+            const h4 = modal.querySelector('h4');
+            if (h4 && h4.textContent.includes('Queued Item')) {
+              modal.remove();
+              console.log('🗑️ Removed stuck Queued Item modal');
+            }
+          });
+          
+          // Also try more specific selectors
+          const inspectClose = document.getElementById('inspect-close');
+          if (inspectClose) {
+            const modal = inspectClose.closest('div');
+            if (modal) modal.remove();
+          }
+          
+          // Remove any modals with inspect-json elements
+          const inspectElements = document.querySelectorAll('#inspect-json');
+          inspectElements.forEach(el => {
+            const modal = el.closest('.bg-slate-900, .border, .rounded-lg');
+            if (modal) modal.remove();
+          });
+          
+          // Clean up any remaining overlays
+          clearStuckModals();
+        }
+        
+        // Auto-run the fix on page load
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(closeQueuedItemModal, 1000);
+        });
+        
+        // Expose the function globally
+        window.closeQueuedItemModal = closeQueuedItemModal;
+        
+        // Try to close it immediately
+        setTimeout(closeQueuedItemModal, 500);
         
         // Export data functionality
         function exportData() {
           const button = document.getElementById('export-data-btn');
+          if (!button) return;
           button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Exporting...';
           button.disabled = true;
           
-          // Simulate export process
           setTimeout(() => {
             const exportData = {
               timestamp: new Date().toISOString(),
-              totalPhotos: document.getElementById('total-photos').textContent,
-              pendingApprovals: document.getElementById('pending-approvals').textContent,
-              totalRaces: document.getElementById('total-races').textContent,
-              activeUsers: document.getElementById('active-users').textContent
+              totalPhotos: document.getElementById('total-photos')?.textContent || '0',
+              pendingApprovals: document.getElementById('pending-approvals')?.textContent || '0',
+              totalRaces: document.getElementById('total-races')?.textContent || '0',
+              activeUsers: document.getElementById('active-users')?.textContent || '0'
             };
             
             const dataStr = JSON.stringify(exportData, null, 2);
             const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
             const exportFileDefaultName = `redsracing-admin-data-${new Date().toISOString().split('T')[0]}.json`;
             
             const linkElement = document.createElement('a');
@@ -3043,26 +3130,22 @@
             
             button.innerHTML = '<i class="fas fa-download mr-1"></i>Export';
             button.disabled = false;
-            
             alert('Data exported successfully!');
           }, 2000);
         }
         
         // Cleanup functionality
         function performCleanup() {
-          if (!confirm('This will clean up old rejected photos and temporary data. Continue?')) {
-            return;
-          }
+          if (!confirm('This will clean up old rejected photos and temporary data. Continue?')) return;
           
           const button = document.getElementById('cleanup-btn');
+          if (!button) return;
           button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Cleaning...';
           button.disabled = true;
           
-          // Simulate cleanup process
           setTimeout(() => {
             button.innerHTML = '<i class="fas fa-trash mr-1"></i>Cleanup';
             button.disabled = false;
-            
             alert('Cleanup completed successfully!');
             loadRealFirebaseData();
           }, 3000);

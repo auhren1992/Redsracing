@@ -918,11 +918,35 @@
                 </div>
               </div>
               <div class="p-6">
-                <div class="grid grid-cols-1 gap-4 mb-4">
-                  <div class="stat-card-3d text-center py-2">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Heat 2</div>
+                    <div class="text-3xl font-bold text-white">6th</div>
+                    <div class="text-sm text-green-400 mb-1">17.758s</div>
+                    <div class="text-xs text-slate-500">2:29.929 (8 laps)</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
                     <div class="text-sm text-slate-400 mb-1">Feature-1</div>
-                    <div class="text-xl font-bold text-white">12th</div>
-                    <div class="text-xs text-slate-500">17.836s (15 laps)</div>
+                    <div class="text-3xl font-bold text-red-400">12th</div>
+                    <div class="text-sm text-blue-400 mb-1">17.836s</div>
+                    <div class="text-xs text-red-400">DNF (15 laps)</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature-2</div>
+                    <div class="text-3xl font-bold text-blue-400">4th</div>
+                    <div class="text-sm text-yellow-400 mb-1">17.525s</div>
+                    <div class="text-xs text-slate-500">5:33.459 (18 laps)</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Race Day Comeback Story</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Perseverance Pays Off:</strong> 
+                      Despite a challenging start with a 6th place heat finish and a DNF in Feature-1, Jon Kirsch showed true racing spirit by bouncing back with an impressive 4th place finish in Feature-2. His improving lap times throughout the day (17.758s → 17.836s → 17.525s) demonstrated his ability to adapt and find speed when it mattered most.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1504,7 +1528,7 @@
         <div class="container mx-auto px-6">
           <h2 class="font-racing text-5xl uppercase mb-6 text-center">Additional Race <span class="neon-yellow">Results</span></h2>
           <div id="race-results" class="card rounded-lg p-6">
-            <p class="text-slate-400">Loading Speedhive results...</p>
+            <p class="text-slate-400">Manual race results entry mode - API disabled for reliability.</p>
           </div>
         </div>
       </section>
@@ -2228,7 +2252,5 @@
     <script type="module" src="assets/js/racer-schedule.js"></script>
     <script type="module" src="assets/js/driver.js"></script>
     <script type="module" src="assets/js/k1-stats.js"></script>
-    <script type="module" src="assets/js/k1-history.js"></script>
-    <script type="module" src="assets/js/speedhive-results.js"></script>
   </body>
 </html>
