@@ -59,12 +59,47 @@ function closeModal() {
 
 async function adminCheck() {
   try {
-    // Import the proper auth utilities
-    const { validateUserClaims } = await import('./auth-utils.js');
-    const result = await validateUserClaims(['admin', 'team-member']);
-    return result.success;
+    const { getAuth } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) {
+      console.log('[CMS] No authenticated user');
+      return false;
+    }
+
+    // First try custom claims
+    try {
+      const token = await user.getIdTokenResult(true);
+      const claimRole = token?.claims?.role;
+      if (claimRole === 'admin' || claimRole === 'team-member') {
+        console.log('[CMS] Admin access via custom claims:', claimRole);
+        return true;
+      }
+    } catch (claimError) {
+      console.warn('[CMS] Custom claims check failed:', claimError);
+    }
+
+    // Fallback to Firestore role check
+    try {
+      const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+      const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const firestoreRole = userData.role;
+        if (firestoreRole === 'admin' || firestoreRole === 'team-member') {
+          console.log('[CMS] Admin access via Firestore role:', firestoreRole);
+          return true;
+        }
+      }
+    } catch (firestoreError) {
+      console.warn('[CMS] Firestore role check failed:', firestoreError);
+    }
+
+    console.log('[CMS] No admin access found in claims or Firestore');
+    return false;
   } catch (error) {
-    console.error('Admin check failed:', error);
+    console.error('[CMS] Admin check failed:', error);
     return false;
   }
 }
