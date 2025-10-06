@@ -59,20 +59,25 @@ function closeModal() {
 
 async function adminCheck() {
   try {
-    const { getAuth } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
-    const auth = getAuth();
+    // Use the existing Firebase services from firebase-core
+    const { getFirebaseAuth, getFirebaseDb } = await import('./firebase-core.js');
+    const auth = getFirebaseAuth();
     const user = auth.currentUser;
+    
     if (!user) {
       console.log('[CMS] No authenticated user');
       return false;
     }
 
+    console.log('[CMS] Checking admin access for user:', user.email);
+
     // First try custom claims
     try {
       const token = await user.getIdTokenResult(true);
       const claimRole = token?.claims?.role;
+      console.log('[CMS] Custom claims role:', claimRole);
       if (claimRole === 'admin' || claimRole === 'team-member') {
-        console.log('[CMS] Admin access via custom claims:', claimRole);
+        console.log('[CMS] ✅ Admin access via custom claims:', claimRole);
         return true;
       }
     } catch (claimError) {
@@ -82,21 +87,24 @@ async function adminCheck() {
     // Fallback to Firestore role check
     try {
       const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
-      const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
+      const db = getFirebaseDb();
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       if (userDoc.exists()) {
         const userData = userDoc.data();
         const firestoreRole = userData.role;
+        console.log('[CMS] Firestore role:', firestoreRole);
         if (firestoreRole === 'admin' || firestoreRole === 'team-member') {
-          console.log('[CMS] Admin access via Firestore role:', firestoreRole);
+          console.log('[CMS] ✅ Admin access via Firestore role:', firestoreRole);
           return true;
         }
+      } else {
+        console.warn('[CMS] No Firestore user document found');
       }
     } catch (firestoreError) {
       console.warn('[CMS] Firestore role check failed:', firestoreError);
     }
 
-    console.log('[CMS] No admin access found in claims or Firestore');
+    console.log('[CMS] ❌ No admin access found in claims or Firestore');
     return false;
   } catch (error) {
     console.error('[CMS] Admin check failed:', error);
