@@ -30,3 +30,16 @@ build
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Android
+*.keystore
+*.jks
+android/app/build/
+android/build/
+android/gradle.local.properties
+android/local.properties
+android/.gradle/
+*.apk
+*.aab
+android/app/release/
+android/app/debug/

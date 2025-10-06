@@ -19,6 +19,15 @@ android {
         resourceConfigurations += listOf("en")
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("../redsracing-release-key.keystore")
+            storePassword = project.findProperty("REDSRACING_KEYSTORE_PASSWORD") as String? ?: ""
+            keyAlias = "redsracing"
+            keyPassword = project.findProperty("REDSRACING_KEY_PASSWORD") as String? ?: ""
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -26,6 +35,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isMinifyEnabled = false
