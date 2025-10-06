@@ -115,7 +115,6 @@ def queue_fallback(collection_name: str, payload: dict, req: https_fn.Request):
 CORS_OPTIONS = options.CorsOptions(
     cors_origins="*", cors_methods=["get", "post", "put", "options"]
 )
-)
 
 
 def ts_to_dict(value):

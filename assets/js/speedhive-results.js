@@ -10,22 +10,8 @@ import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
   async function loadAndRender() {
     try {
       root.innerHTML = '<p class="text-slate-400">Loading Speedhive results...</p>';
-      // Prefer Cloud Run Go service if available
+      // API calls disabled - ready for manual data entry
       let data = null;
-      try {
-        const rGo = await fetch('/api/speedhive/events', { headers: { 'Accept': 'application/json' } });
-        if (rGo.ok) {
-          data = await rGo.json();
-          // Normalize raw arrays from Go service
-          if (Array.isArray(data)) data = { ok: true, events: data };
-        }
-      } catch {}
-      if (!data || (Array.isArray(data) && !data.length) || (data && data.ok === false)) {
-        // Fallback to Functions-based scraper
-        const rFn = await fetch('/speedhive/jon', { headers: { 'Accept': 'application/json' } });
-        const tmp = rFn.ok ? await rFn.json() : null;
-        data = tmp;
-      }
 
       const wrap = document.createElement('div');
       wrap.className = 'space-y-4';
@@ -49,32 +35,17 @@ import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
         controls.querySelector('#sh-refresh').addEventListener('click', async (e) => {
           const btn = e.currentTarget;
           btn.disabled = true;
-          btn.textContent = 'Refreshing...';
-          let ok = false;
-          try {
-            const rr = await fetch('/speedhive/jon', { headers: { 'Accept': 'application/json' } });
-            ok = rr.ok;
-          } catch {}
-          btn.disabled = false;
-          btn.textContent = 'Refresh from Speedhive now';
+          btn.textContent = 'Manual Entry Mode';
           const status = controls.querySelector('#sh-status');
-          if (status) status.textContent = ok ? 'Refreshed from Speedhive.' : 'Refresh request sent.';
-          await loadAndRender();
+          if (status) status.textContent = 'API disabled - ready for manual race results entry.';
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = 'Manual Entry Mode';
+          }, 2000);
         });
         controls.querySelector('#sh-import').addEventListener('click', async () => {
-          const input = controls.querySelector('#sh-url');
           const status = controls.querySelector('#sh-status');
-          const url = input && input.value ? input.value.trim() : '';
-          if (!url) { if (status) status.textContent = 'Please paste a Speedhive URL.'; return; }
-          if (status) status.textContent = 'Importing...';
-          try {
-            const r = await fetch('/speedhive/event?url=' + encodeURIComponent(url), { headers: { 'Accept': 'application/json' } });
-            const data = r.ok ? await r.json() : null;
-            if (status) status.textContent = data && data.ok ? `Imported ${data.entriesCount || 0} entries from ${data.eventName || 'event'}.` : 'Import failed.';
-          } catch {
-            if (status) status.textContent = 'Import failed.';
-          }
-          await loadAndRender();
+          if (status) status.textContent = 'Manual import mode - API disabled. Please add race results manually to the website.';
         });
       }
 
