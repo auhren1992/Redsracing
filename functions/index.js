@@ -726,6 +726,208 @@ exports.speedhiveAutoRefreshJon = onSchedule({ schedule: 'every 24 hours', timeZ
   }
 });
 
+// Process queues for admin operations
+exports.process_queues = onRequest({ secrets: ["SENTRY_DSN"] }, async (req, res) => {
+  try {
+    cors(req, res, async () => {
+      if (req.method !== 'POST') {
+        return res.status(405).json({ ok: false, message: 'Method not allowed' });
+      }
+
+      const db = getFirestore();
+      let processed = 0;
+      let errors = 0;
+
+      try {
+        // Process pending gallery approvals
+        const galleryQuery = db.collection('gallery_images')
+          .where('approved', '==', false)
+          .limit(50);
+        const gallerySnapshot = await galleryQuery.get();
+        
+        for (const doc of gallerySnapshot.docs) {
+          try {
+            const data = doc.data();
+            // Auto-approve images that have been pending for more than 24 hours
+            const createdAt = data.createdAt?.toDate();
+            if (createdAt && (Date.now() - createdAt.getTime()) > 24 * 60 * 60 * 1000) {
+              await doc.ref.update({
+                approved: true,
+                approvedAt: FieldValue.serverTimestamp(),
+                approvedBy: 'system-auto'
+              });
+              processed++;
+            }
+          } catch (e) {
+            errors++;
+            logger.warn(`Failed to process gallery image ${doc.id}:`, e.message);
+          }
+        }
+
+        // Process pending Q&A submissions
+        const qnaQuery = db.collection('qna_submissions')
+          .where('status', '==', 'pending')
+          .limit(50);
+        const qnaSnapshot = await qnaQuery.get();
+        
+        for (const doc of qnaSnapshot.docs) {
+          try {
+            const data = doc.data();
+            // Auto-publish questions that have been pending for more than 48 hours
+            const submittedAt = data.submittedAt?.toDate();
+            if (submittedAt && (Date.now() - submittedAt.getTime()) > 48 * 60 * 60 * 1000) {
+              await doc.ref.update({
+                status: 'published',
+                publishedAt: FieldValue.serverTimestamp(),
+                publishedBy: 'system-auto'
+              });
+              processed++;
+            }
+          } catch (e) {
+            errors++;
+            logger.warn(`Failed to process Q&A submission ${doc.id}:`, e.message);
+          }
+        }
+
+        // Clean up old client logs (older than 30 days)
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const logsQuery = db.collection('client_logs')
+          .where('timestamp', '<', thirtyDaysAgo)
+          .limit(100);
+        const logsSnapshot = await logsQuery.get();
+        
+        const batch = db.batch();
+        logsSnapshot.docs.forEach(doc => {
+          batch.delete(doc.ref);
+        });
+        await batch.commit();
+        processed += logsSnapshot.docs.length;
+
+        res.status(200).json({
+          ok: true,
+          message: 'Queue processing completed',
+          processed,
+          errors,
+          timestamp: new Date().toISOString()
+        });
+
+      } catch (error) {
+        logger.error('Queue processing failed:', error);
+        try { Sentry.captureException(error); } catch (_) {}
+        res.status(500).json({
+          ok: false,
+          message: 'Queue processing failed',
+          error: error.message
+        });
+      }
+    });
+  } catch (error) {
+    logger.error('process_queues function error:', error);
+    try { Sentry.captureException(error); } catch (_) {}
+    res.status(500).json({ ok: false, message: 'Internal server error' });
+  }
+});
+
+// Set admin role for a user (admin-only function)
+exports.setAdminRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
+  // Check if the user is authenticated
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated');
+  }
+
+  // Check if the current user is an admin (or allow initial admin setup)
+  const currentUserRole = request.auth.token.role;
+  const { targetEmail, role = 'admin' } = request.data;
+
+  if (!targetEmail) {
+    throw new HttpsError('invalid-argument', 'Target email is required');
+  }
+
+  // Allow initial admin setup for your email specifically
+  const isInitialSetup = targetEmail === 'partspimp75@gmail.com' && !currentUserRole;
+  const isCurrentAdmin = currentUserRole === 'admin';
+
+  if (!isInitialSetup && !isCurrentAdmin) {
+    throw new HttpsError('permission-denied', 'Only admins can assign roles');
+  }
+
+  try {
+    const auth = getAuth();
+    const db = getFirestore();
+    
+    // Get user by email
+    const userRecord = await auth.getUserByEmail(targetEmail);
+    const uid = userRecord.uid;
+
+    // Set custom claims
+    await auth.setCustomUserClaims(uid, { role });
+    
+    // Also update the user document in Firestore
+    await db.collection('users').doc(uid).set({
+      email: targetEmail,
+      role: role,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: request.auth.uid
+    }, { merge: true });
+
+    logger.info(`Role '${role}' assigned to user ${targetEmail} (${uid}) by ${request.auth.uid}`);
+    
+    return {
+      success: true,
+      message: `Role '${role}' assigned successfully to ${targetEmail}`,
+      uid: uid
+    };
+  } catch (error) {
+    logger.error('Error setting admin role:', error);
+    try { Sentry.captureException(error); } catch (_) {}
+    throw new HttpsError('internal', 'Failed to set role: ' + error.message);
+  }
+});
+
+// Get current user's role and permissions
+exports.getUserRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated');
+  }
+
+  try {
+    const auth = getAuth();
+    const db = getFirestore();
+    const uid = request.auth.uid;
+    
+    // Get fresh user record to check claims
+    const userRecord = await auth.getUser(uid);
+    const customClaims = userRecord.customClaims || {};
+    
+    // Also check Firestore document as fallback
+    let firestoreRole = null;
+    try {
+      const userDoc = await db.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        firestoreRole = userDoc.data()?.role;
+      }
+    } catch (e) {
+      logger.warn('Could not fetch user document:', e.message);
+    }
+    
+    const role = customClaims.role || firestoreRole || 'public-fan';
+    
+    return {
+      uid: uid,
+      email: userRecord.email,
+      role: role,
+      customClaims: customClaims,
+      firestoreRole: firestoreRole,
+      isAdmin: role === 'admin',
+      isTeamMember: ['admin', 'team-member'].includes(role)
+    };
+  } catch (error) {
+    logger.error('Error getting user role:', error);
+    try { Sentry.captureException(error); } catch (_) {}
+    throw new HttpsError('internal', 'Failed to get user role: ' + error.message);
+  }
+});
+
 // Speedhive: scrape a specific event or session URL and extract rows for "Jonathan Kirsch"
 exports.fetchSpeedhiveEvent = onRequest({ secrets: ["SENTRY_DSN"], timeoutSeconds: 120, memory: "1GiB" }, async (req, res) => {
   try {

@@ -6,7 +6,7 @@ import {
   setDoc,
   collection,
   addDoc,
-} from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
 function ensurePanel() {
   const container = document.getElementById('admin-pages') || document.querySelector('main .p-4');
@@ -59,18 +59,19 @@ function closeModal() {
 
 async function adminCheck() {
   try {
-    const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
-    const auth = getAuth();
-    const user = auth.currentUser;
-    if (!user) return false;
-    const token = await user.getIdTokenResult(true);
-    return token?.claims?.role === 'admin';
-  } catch (_) { return false; }
+    // Import the proper auth utilities
+    const { validateUserClaims } = await import('./auth-utils.js');
+    const result = await validateUserClaims(['admin', 'team-member']);
+    return result.success;
+  } catch (error) {
+    console.error('Admin check failed:', error);
+    return false;
+  }
 }
 
 async function listPages() {
   const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
-  const { getDocs, collection } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+  const { getDocs, collection } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
   const snap = await getDocs(collection(db, 'pages'));
   const pages = [];
   snap.forEach(d => pages.push({ id: d.id, ...(d.data()||{}) }));
@@ -79,7 +80,7 @@ async function listPages() {
 
 async function loadSections(slug) {
   const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
-  const { getDocs, collection, query, orderBy } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+  const { getDocs, collection, query, orderBy } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
   const q = query(collection(db, 'pages', slug, 'sections'), orderBy('order','asc'));
   const snap = await getDocs(q);
   const sections = [];
@@ -171,7 +172,7 @@ async function editSection(slug, sec) {
       const json = overlay.querySelector('#cms-sec-json').value;
       let data; try { data = JSON.parse(json); } catch { alert('Invalid JSON'); return; }
       const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
-      const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+      const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
       await updateDoc(doc(db, 'pages', slug, 'sections', sec.id), { type, order, data });
       closeModal();
       const sections = await loadSections(slug);
@@ -184,7 +185,7 @@ async function deleteSection(slug, id) {
   if (!confirm('Delete this section?')) return;
   try {
     const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
-    const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+    const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
     await deleteDoc(doc(db, 'pages', slug, 'sections', id));
     const sections = await loadSections(slug);
     renderSectionList(slug, sections);
@@ -207,7 +208,7 @@ async function addPageDialog() {
       const slug = (overlay.querySelector('#cms-new-page-slug').value||'').trim();
       if (!slug) return;
       const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
-      const { setDoc, doc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+      const { setDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
       await setDoc(doc(db, 'pages', slug), { createdAt: new Date() }, { merge: true });
       closeModal();
       const pages = await listPages();
@@ -251,7 +252,7 @@ async function addSectionDialog(currentSlug) {
       const json = overlay.querySelector('#cms-new-json').value;
       let data; try { data = JSON.parse(json); } catch { alert('Invalid JSON'); return; }
       const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
-      const { addDoc, collection, setDoc, doc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+      const { addDoc, collection, setDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
       await setDoc(doc(db, 'pages', currentSlug), { updatedAt: new Date() }, { merge: true });
       await addDoc(collection(db, 'pages', currentSlug, 'sections'), { type, order, data });
       closeModal();
@@ -288,21 +289,64 @@ function toast(msg, kind='info') {
 }
 
 export async function initCMSAdmin() {
-  const isAdmin = await adminCheck();
-  const p = ensurePanel();
-  if (!p) return;
-  if (!isAdmin) {
-    p.innerHTML = '<div class="text-slate-300">Admin only. You do not have permission to edit site content.</div>';
-    return;
+  console.log('[CMS] Initializing CMS Admin...');
+  try {
+    const isAdmin = await adminCheck();
+    console.log('[CMS] Admin check result:', isAdmin);
+    
+    const p = ensurePanel();
+    if (!p) {
+      console.error('[CMS] Could not create/find CMS panel container');
+      return;
+    }
+    
+    if (!isAdmin) {
+      console.warn('[CMS] User is not admin, showing access denied message');
+      p.innerHTML = `
+        <div class="bg-yellow-900/20 border border-yellow-600/40 rounded-lg p-4 text-yellow-200">
+          <div class="flex items-center mb-2">
+            <i class="fas fa-lock text-yellow-400 mr-2"></i>
+            <h4 class="font-semibold">Access Restricted</h4>
+          </div>
+          <p class="text-sm">You need admin or team-member privileges to access the page editor.</p>
+          <p class="text-xs text-yellow-300 mt-2">If you believe this is an error, please check your user role assignments.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    console.log('[CMS] User has admin access, setting up CMS editor...');
+    
+    // Load pages and wire actions
+    const addPageBtn = p.querySelector('#cms-add-page');
+    const addSectionBtn = p.querySelector('#cms-add-section');
+    if (addPageBtn) addPageBtn.addEventListener('click', addPageDialog);
+    if (addSectionBtn) addSectionBtn.addEventListener('click', ()=>{ if (__currentSlug) addSectionDialog(__currentSlug); });
+    
+    console.log('[CMS] Loading pages...');
+    const pages = await listPages();
+    console.log('[CMS] Found pages:', pages.length);
+    
+    renderPageList(pages, selectPage);
+    if (pages.length) selectPage(pages[0].id);
+    
+    console.log('[CMS] CMS Admin initialization complete');
+  } catch (error) {
+    console.error('[CMS] Failed to initialize CMS Admin:', error);
+    const p = ensurePanel();
+    if (p) {
+      p.innerHTML = `
+        <div class="bg-red-900/20 border border-red-600/40 rounded-lg p-4 text-red-200">
+          <div class="flex items-center mb-2">
+            <i class="fas fa-exclamation-triangle text-red-400 mr-2"></i>
+            <h4 class="font-semibold">CMS Loading Error</h4>
+          </div>
+          <p class="text-sm">Failed to initialize the page editor.</p>
+          <p class="text-xs text-red-300 mt-2">Error: ${error.message}</p>
+        </div>
+      `;
+    }
   }
-  // Load pages and wire actions
-  const addPageBtn = p.querySelector('#cms-add-page');
-  const addSectionBtn = p.querySelector('#cms-add-section');
-  if (addPageBtn) addPageBtn.addEventListener('click', addPageDialog);
-  if (addSectionBtn) addSectionBtn.addEventListener('click', ()=>{ if (__currentSlug) addSectionDialog(__currentSlug); });
-  const pages = await listPages();
-  renderPageList(pages, selectPage);
-  if (pages.length) selectPage(pages[0].id);
 }
 
 document.addEventListener('DOMContentLoaded', initCMSAdmin);

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Setup - RedsRacing</title>
+    <link rel="stylesheet" href="styles/tailwind.css">
+    <style>
+        body { 
+            background: linear-gradient(135deg, #1e293b, #0f172a); 
+            min-height: 100vh; 
+            font-family: 'Inter', sans-serif;
+        }
+        .setup-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #3b82f6, #1e40af);
+            border: none;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #10b981, #059669);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex items-center justify-center p-6">
+        <div class="setup-card p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-white mb-2">🏁 Admin Setup</h1>
+                <p class="text-slate-400">Initial admin configuration for RedsRacing</p>
+            </div>
+
+            <div id="setup-steps" class="space-y-6">
+                <!-- Step 1: Authentication -->
+                <div class="setup-step" id="auth-step">
+                    <h2 class="text-xl font-semibold text-white mb-4">Step 1: Sign In</h2>
+                    <div id="auth-status" class="mb-4 p-3 rounded bg-slate-700/50 text-slate-300 text-sm">
+                        Please sign in with your Google account first.
+                    </div>
+                    <button id="sign-in-btn" class="btn-primary text-white px-6 py-3 rounded-lg w-full font-semibold">
+                        Sign In with Google
+                    </button>
+                </div>
+
+                <!-- Step 2: Role Assignment -->
+                <div class="setup-step hidden" id="role-step">
+                    <h2 class="text-xl font-semibold text-white mb-4">Step 2: Set Admin Role</h2>
+                    <div id="role-status" class="mb-4 p-3 rounded bg-slate-700/50 text-slate-300 text-sm">
+                        Click below to assign admin role to your account.
+                    </div>
+                    <button id="set-admin-btn" class="btn-success text-white px-6 py-3 rounded-lg w-full font-semibold">
+                        Set Admin Role
+                    </button>
+                </div>
+
+                <!-- Step 3: Verification -->
+                <div class="setup-step hidden" id="verify-step">
+                    <h2 class="text-xl font-semibold text-white mb-4">Step 3: Verify</h2>
+                    <div id="verify-status" class="mb-4 p-3 rounded bg-slate-700/50 text-slate-300 text-sm">
+                        Verifying admin permissions...
+                    </div>
+                    <button id="verify-btn" class="btn-primary text-white px-6 py-3 rounded-lg w-full font-semibold">
+                        Check Admin Status
+                    </button>
+                </div>
+
+                <!-- Success -->
+                <div class="setup-step hidden" id="success-step">
+                    <div class="text-center">
+                        <div class="text-6xl mb-4">🎉</div>
+                        <h2 class="text-2xl font-bold text-green-400 mb-4">Setup Complete!</h2>
+                        <p class="text-slate-300 mb-6">You now have admin access to the RedsRacing system.</p>
+                        <a href="admin-console.html" class="btn-success text-white px-6 py-3 rounded-lg inline-block font-semibold">
+                            Go to Admin Console
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="error-display" class="hidden mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded text-red-300 text-sm"></div>
+            
+            <div class="mt-8 pt-6 border-t border-slate-600">
+                <p class="text-slate-500 text-xs text-center">
+                    This is a one-time setup process. Only run this if you need to establish initial admin access.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Setup -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js';
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+            authDomain: "redsracing-a7f8b.firebaseapp.com",
+            projectId: "redsracing-a7f8b",
+            storageBucket: "redsracing-a7f8b.firebasestorage.app",
+            messagingSenderId: "517034606151",
+            appId: "1:517034606151:web:24cae262e1d98832757b62"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const functions = getFunctions(app);
+
+        // UI Elements
+        const authStep = document.getElementById('auth-step');
+        const roleStep = document.getElementById('role-step');
+        const verifyStep = document.getElementById('verify-step');
+        const successStep = document.getElementById('success-step');
+        const errorDisplay = document.getElementById('error-display');
+
+        const authStatus = document.getElementById('auth-status');
+        const roleStatus = document.getElementById('role-status');
+        const verifyStatus = document.getElementById('verify-status');
+
+        const signInBtn = document.getElementById('sign-in-btn');
+        const setAdminBtn = document.getElementById('set-admin-btn');
+        const verifyBtn = document.getElementById('verify-btn');
+
+        function showError(message) {
+            errorDisplay.textContent = message;
+            errorDisplay.classList.remove('hidden');
+            setTimeout(() => errorDisplay.classList.add('hidden'), 5000);
+        }
+
+        function showStep(stepId) {
+            document.querySelectorAll('.setup-step').forEach(step => step.classList.add('hidden'));
+            document.getElementById(stepId).classList.remove('hidden');
+        }
+
+        // Step 1: Sign In
+        signInBtn.addEventListener('click', async () => {
+            try {
+                signInBtn.disabled = true;
+                signInBtn.textContent = 'Signing in...';
+                
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                
+                authStatus.textContent = `Signed in as: ${result.user.email}`;
+                authStatus.classList.add('text-green-400');
+                
+                setTimeout(() => {
+                    showStep('role-step');
+                    roleStatus.textContent = `Ready to set admin role for: ${result.user.email}`;
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Sign in error:', error);
+                showError('Failed to sign in: ' + error.message);
+                signInBtn.disabled = false;
+                signInBtn.textContent = 'Sign In with Google';
+            }
+        });
+
+        // Step 2: Set Admin Role
+        setAdminBtn.addEventListener('click', async () => {
+            try {
+                setAdminBtn.disabled = true;
+                setAdminBtn.textContent = 'Setting admin role...';
+                roleStatus.textContent = 'Assigning admin permissions...';
+                
+                const setAdminRole = httpsCallable(functions, 'setAdminRole');
+                const result = await setAdminRole({
+                    targetEmail: auth.currentUser.email,
+                    role: 'admin'
+                });
+                
+                roleStatus.textContent = 'Admin role assigned successfully!';
+                roleStatus.classList.add('text-green-400');
+                
+                setTimeout(() => {
+                    showStep('verify-step');
+                    verifyStatus.textContent = 'Verifying your admin permissions...';
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Set admin role error:', error);
+                showError('Failed to set admin role: ' + error.message);
+                setAdminBtn.disabled = false;
+                setAdminBtn.textContent = 'Set Admin Role';
+            }
+        });
+
+        // Step 3: Verify Admin Role
+        verifyBtn.addEventListener('click', async () => {
+            try {
+                verifyBtn.disabled = true;
+                verifyBtn.textContent = 'Verifying...';
+                
+                // Force token refresh to get new claims
+                await auth.currentUser.getIdToken(true);
+                
+                const getUserRole = httpsCallable(functions, 'getUserRole');
+                const result = await getUserRole();
+                
+                if (result.data.isAdmin) {
+                    verifyStatus.textContent = 'Admin verification successful!';
+                    verifyStatus.classList.add('text-green-400');
+                    
+                    setTimeout(() => {
+                        showStep('success-step');
+                    }, 1000);
+                } else {
+                    throw new Error('Admin role not detected. Please try the setup again.');
+                }
+                
+            } catch (error) {
+                console.error('Verify role error:', error);
+                showError('Verification failed: ' + error.message);
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'Check Admin Status';
+            }
+        });
+
+        // Check if user is already signed in
+        auth.onAuthStateChanged((user) => {
+            if (user && !signInBtn.disabled) {
+                authStatus.textContent = `Already signed in as: ${user.email}`;
+                authStatus.classList.add('text-green-400');
+                showStep('role-step');
+                roleStatus.textContent = `Ready to set admin role for: ${user.email}`;
+            }
+        });
+    </script>
+</body>
+</html>

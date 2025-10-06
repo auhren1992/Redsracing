@@ -1,5 +1,5 @@
 import "./app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
   getFirestore,
   collection,
@@ -15,13 +15,13 @@ import {
   arrayRemove,
   increment,
   getDocs,
-} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import {
   getStorage,
   ref,
   uploadBytesResumable,
   getDownloadURL,
-} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import {
   getFirebaseAuth,
   getFirebaseDb,
@@ -441,12 +441,27 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-btn flex items-center space-x-1 text-xs text-red-400 hover:text-red-300 transition';
             deleteBtn.setAttribute('data-image-id', imageId);
-            deleteBtn.innerHTML = `
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-              </svg>
-              <span>Delete</span>
-            `;
+            
+            // Create SVG element programmatically for security
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', 'w-4 h-4');
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke', 'currentColor');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linejoin', 'round');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('d', 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16');
+            
+            svg.appendChild(path);
+            
+            const span = document.createElement('span');
+            span.textContent = 'Delete';
+            
+            deleteBtn.appendChild(svg);
+            deleteBtn.appendChild(span);
             actionContainer.appendChild(deleteBtn);
           }
         }
@@ -468,13 +483,18 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
             if (!confirm('Delete this photo? This action cannot be undone.')) return;
             try {
               // Delete from Firestore
-const { deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-              await deleteDoc(doc(db, 'gallery_images', imageId));
+              try {
+                const { deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+                await deleteDoc(doc(db, 'gallery_images', imageId));
+              } catch (firestoreError) {
+                console.error('Failed to delete from Firestore:', firestoreError);
+                throw firestoreError;
+              }
               
               // Try to delete from Storage if we have the path
               if (image.storagePath) {
                 try {
-const { deleteObject, ref } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js');
+                  const { deleteObject, ref } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js');
                   const storageRef = ref(storage, image.storagePath);
                   await deleteObject(storageRef);
                 } catch (storageError) {
