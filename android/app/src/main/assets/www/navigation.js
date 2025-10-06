@@ -170,79 +170,73 @@ const core = await import('./assets/js/firebase-core.js');
 
   function initMobileMenu() {
     const btn = document.getElementById('mobile-menu-button');
-    const legacy = document.getElementById('mobile-menu');
-    if (!btn) return;
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (!btn || !mobileMenu) return;
 
-    // Always hide legacy accordion menu to reduce clutter on mobile
-    if (legacy) {
-      try { legacy.classList.add('hidden'); legacy.style.display = 'none'; } catch(_) {}
-    }
-
-    // Build a compact dropdown panel for mobile
-    let panel = document.getElementById('mobile-menu-dropdown');
-    if (!panel) {
-      panel = document.createElement('div');
-      panel.id = 'mobile-menu-dropdown';
-      panel.className = 'dropdown-menu modern-dropdown mobile-dropdown-panel hidden';
-      // Populate with grouped links (same items you already use)
-      panel.innerHTML = `
-        <div class="px-3 py-2 text-xs uppercase tracking-wider text-slate-400">Quick Links</div>
-        <a href="index.html">🏠 Home</a>
-        <div class="border-t border-slate-600/50 my-2"></div>
-        <div class="px-3 py-2 text-xs uppercase tracking-wider text-slate-400">Drivers</div>
-        <a href="driver.html">Jon Kirsch #8</a>
-        <a href="jonny.html">Jonny Kirsch #88</a>
-        <a href="legends.html">Team Legends</a>
-        <div class="border-t border-slate-600/50 my-2"></div>
-        <div class="px-3 py-2 text-xs uppercase tracking-wider text-slate-400">Racing</div>
-        <a href="schedule.html">Schedule</a>
-        <a href="leaderboard.html">Leaderboard</a>
-        <a href="gallery.html">📸 Gallery</a>
-        <a href="videos.html">🎥 Videos</a>
-        <div class="border-t border-slate-600/50 my-2"></div>
-        <div class="px-3 py-2 text-xs uppercase tracking-wider text-slate-400">Community</div>
-        <a href="qna.html">❓ Q&A</a>
-        <a href="feedback.html">💬 Feedback</a>
-        <a href="sponsorship.html">💰 Sponsorship</a>
-        <div class="border-t border-slate-600/50 my-2"></div>
-        <a href="admin-console.html">🛠️ Dashboard</a>
-        <a href="profile.html">👤 My Profile</a>
-      `;
-      // Attach near the button
-      try {
-        const nav = btn.closest('nav') || document.body;
-        nav.appendChild(panel);
-      } catch(_) { document.body.appendChild(panel); }
-    }
-
-    function positionPanel() {
-      try {
-        const rect = btn.getBoundingClientRect();
-        panel.style.position = 'absolute';
-        panel.style.top = (rect.bottom + window.scrollY + 8) + 'px';
-        panel.style.right = '1rem';
-        panel.style.zIndex = 10000;
-      } catch(_) {}
-    }
-
-    // Toggle behavior
+    // Make mobile menu visible and functional
+    mobileMenu.classList.add('hidden'); // Start hidden
+    
+    // Mobile menu toggle functionality
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      positionPanel();
-      const hidden = panel.classList.contains('hidden');
-      hideAllDropdowns();
-      if (hidden) panel.classList.remove('hidden');
+      mobileMenu.classList.toggle('hidden');
     });
-
-    // Close on outside click or resize/scroll
-    document.addEventListener('click', (evt) => {
-      if (!panel.contains(evt.target) && evt.target !== btn) {
-        panel.classList.add('hidden');
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!mobileMenu.contains(e.target) && !btn.contains(e.target)) {
+        mobileMenu.classList.add('hidden');
       }
     });
-    window.addEventListener('resize', () => { panel.classList.add('hidden'); });
-    window.addEventListener('scroll', () => { panel.classList.add('hidden'); });
+    
+    // Mobile accordion functionality
+    const accordions = mobileMenu.querySelectorAll('.mobile-accordion');
+    accordions.forEach(accordion => {
+      accordion.addEventListener('click', (e) => {
+        e.preventDefault();
+        const content = accordion.nextElementSibling;
+        const icon = accordion.querySelector('.accordion-icon');
+        
+        // Toggle active state
+        accordion.classList.toggle('active');
+        
+        // Show/hide content
+        if (accordion.classList.contains('active')) {
+          content.style.maxHeight = content.scrollHeight + 'px';
+        } else {
+          content.style.maxHeight = '0';
+        }
+      });
+    });
+    
+    // Close mobile menu when clicking on navigation links
+    const navLinks = mobileMenu.querySelectorAll('a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+      });
+    });
+  }
+
+  // Add real-time clock for mobile app
+  function initClock() {
+    const clockElement = document.getElementById('mobile-clock');
+    if (clockElement) {
+      function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', {
+          hour12: true,
+          hour: 'numeric',
+          minute: '2-digit'
+        });
+        clockElement.textContent = timeString;
+      }
+      
+      // Update immediately and then every second
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
   }
 
   async function initSentryGlobal() {
@@ -288,6 +282,7 @@ const core = await import('./assets/js/firebase-core.js');
   function ready() {
     try { initDropdowns(); } catch (_) {}
     try { initMobileMenu(); } catch (_) {}
+    try { initClock(); } catch (_) {}
     // Initialize Sentry (error monitoring, tracing, profiling, replay) if DSN present
     try { initSentryGlobal(); } catch (_) {}
     // Global frontend error fallback to Firestore
