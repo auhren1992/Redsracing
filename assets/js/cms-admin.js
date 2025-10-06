@@ -113,7 +113,8 @@ async function adminCheck() {
 }
 
 async function listPages() {
-  const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
+  const { getFirebaseDb } = await import('./firebase-core.js');
+  const db = getFirebaseDb();
   const { getDocs, collection } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
   const snap = await getDocs(collection(db, 'pages'));
   const pages = [];
@@ -122,7 +123,8 @@ async function listPages() {
 }
 
 async function loadSections(slug) {
-  const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
+  const { getFirebaseDb } = await import('./firebase-core.js');
+  const db = getFirebaseDb();
   const { getDocs, collection, query, orderBy } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
   const q = query(collection(db, 'pages', slug, 'sections'), orderBy('order','asc'));
   const snap = await getDocs(q);
@@ -214,7 +216,8 @@ async function editSection(slug, sec) {
       const order = Number(overlay.querySelector('#cms-sec-order').value || 0) || 0;
       const json = overlay.querySelector('#cms-sec-json').value;
       let data; try { data = JSON.parse(json); } catch { alert('Invalid JSON'); return; }
-      const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
+      const { getFirebaseDb } = await import('./firebase-core.js');
+      const db = getFirebaseDb();
       const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
       await updateDoc(doc(db, 'pages', slug, 'sections', sec.id), { type, order, data });
       closeModal();
@@ -227,7 +230,8 @@ async function editSection(slug, sec) {
 async function deleteSection(slug, id) {
   if (!confirm('Delete this section?')) return;
   try {
-    const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
+    const { getFirebaseDb } = await import('./firebase-core.js');
+    const db = getFirebaseDb();
     const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
     await deleteDoc(doc(db, 'pages', slug, 'sections', id));
     const sections = await loadSections(slug);
@@ -250,7 +254,8 @@ async function addPageDialog() {
     try {
       const slug = (overlay.querySelector('#cms-new-page-slug').value||'').trim();
       if (!slug) return;
-      const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
+      const { getFirebaseDb } = await import('./firebase-core.js');
+      const db = getFirebaseDb();
       const { setDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
       await setDoc(doc(db, 'pages', slug), { createdAt: new Date() }, { merge: true });
       closeModal();
@@ -294,7 +299,8 @@ async function addSectionDialog(currentSlug) {
       const order = Number(overlay.querySelector('#cms-new-order').value||1)||1;
       const json = overlay.querySelector('#cms-new-json').value;
       let data; try { data = JSON.parse(json); } catch { alert('Invalid JSON'); return; }
-      const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
+      const { getFirebaseDb } = await import('./firebase-core.js');
+      const db = getFirebaseDb();
       const { addDoc, collection, setDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
       await setDoc(doc(db, 'pages', currentSlug), { updatedAt: new Date() }, { merge: true });
       await addDoc(collection(db, 'pages', currentSlug, 'sections'), { type, order, data });
