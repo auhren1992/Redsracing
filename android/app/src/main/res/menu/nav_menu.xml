@@ -1,11 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/nav_home" android:title="Home" />
-    <item android:id="@+id/nav_drivers" android:title="Drivers" />
-    <item android:id="@+id/nav_schedule" android:title="Schedule" />
-    <item android:id="@+id/nav_gallery" android:title="Gallery" />
-    <item android:id="@+id/nav_videos" android:title="Videos" />
-    <item android:id="@+id/nav_admin" android:title="Admin Console" />
-    <item android:id="@+id/nav_login" android:title="Sign In" />
-    <item android:id="@+id/nav_signout" android:title="Sign Out" />
+    <group android:checkableBehavior="single">
+        <item 
+            android:id="@+id/nav_home" 
+            android:title="🏠 Home" />
+        <item 
+            android:id="@+id/nav_drivers" 
+            android:title="🏎️ Drivers" />
+        <item 
+            android:id="@+id/nav_schedule" 
+            android:title="📅 Schedule" />
+        <item 
+            android:id="@+id/nav_gallery" 
+            android:title="📸 Gallery" />
+        <item 
+            android:id="@+id/nav_videos" 
+            android:title="🎥 Videos" />
+    </group>
+    <group android:id="@+id/group_admin">
+        <item 
+            android:id="@+id/nav_admin" 
+            android:title="⚙️ Admin Console" />
+    </group>
+    <group android:id="@+id/group_auth">
+        <item 
+            android:id="@+id/nav_login" 
+            android:title="🔐 Sign In" />
+        <item 
+            android:id="@+id/nav_signout" 
+            android:title="🚪 Sign Out" />
+    </group>
 </menu>

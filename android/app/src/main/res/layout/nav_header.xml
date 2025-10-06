@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="176dp"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="bottom"
+    android:background="@drawable/nav_header_bg">
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/redsracing_logo"
+        android:contentDescription="Redsracing logo"
+        android:layout_marginBottom="8dp"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="RedsRacing"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Jon &amp; Jonny Kirsch Racing"
+        android:textSize="14sp"
+        android:textColor="@color/accent_yellow"
+        android:alpha="0.8" />
+
+</LinearLayout>

@@ -323,6 +323,57 @@ class MainActivity : AppCompatActivity() {
                     })();
                 """.trimIndent()
                 view?.evaluateJavascript(js, null)
+                
+                // Hide web navigation to avoid double navigation (Android drawer + web nav)
+                val hideWebNavCSS = """
+                    (function(){
+                        var style = document.createElement('style');
+                        style.textContent = `
+                            /* Hide main website navigation */
+                            nav, .nav, .navbar, .navigation, .main-nav,
+                            header nav, .header-nav, .site-nav, .primary-nav,
+                            .nav-container, .navigation-container,
+                            /* Hide mobile menu toggles since we use Android drawer */
+                            .mobile-menu-button, #mobile-menu-button, .hamburger,
+                            .menu-toggle, .nav-toggle, #menu-toggle,
+                            /* Hide any fixed headers that might conflict */
+                            .fixed-header, .sticky-header,
+                            /* Common navigation selectors */
+                            [role="navigation"]:not(.drawer):not(.sidebar) {
+                                display: none !important;
+                                visibility: hidden !important;
+                            }
+                            
+                            /* Adjust body padding/margin if header was fixed */
+                            body {
+                                padding-top: 0 !important;
+                                margin-top: 0 !important;
+                            }
+                            
+                            /* Ensure content flows properly */
+                            main, .main, .content, .main-content {
+                                margin-top: 0 !important;
+                                padding-top: 0 !important;
+                            }
+                            
+                            /* Hide any overlays or backdrops from web mobile menus */
+                            .menu-overlay, .nav-overlay, .mobile-menu-backdrop {
+                                display: none !important;
+                            }
+                        `;
+                        document.head.appendChild(style);
+                        
+                        // Also hide any visible mobile menus that might be open
+                        var mobileMenus = document.querySelectorAll('#mobile-menu, .mobile-menu, #mobile-menu-dropdown');
+                        mobileMenus.forEach(function(menu) {
+                            if (menu) {
+                                menu.style.display = 'none';
+                                menu.style.visibility = 'hidden';
+                            }
+                        });
+                    })();
+                """.trimIndent()
+                view?.evaluateJavascript(hideWebNavCSS, null)
             }
         }
 
