@@ -127,11 +127,15 @@ const core = await import('./assets/js/firebase-core.js');
   })();
 
   function hideAllDropdowns() {
-    document.querySelectorAll('.dropdown-menu').forEach((menu) => {
+    document.querySelectorAll('.dropdown-menu, .modern-dropdown').forEach((menu) => {
       menu.classList.add('hidden');
       menu.setAttribute('aria-hidden', 'true');
       // Ensure it's not visually visible if CSS missing
-      try { menu.style.display = 'none'; } catch (_) {}
+      try {
+        menu.style.display = 'none';
+        menu.style.visibility = 'hidden';
+        menu.style.opacity = '0';
+      } catch (_) {}
     });
   }
 
@@ -139,7 +143,11 @@ const core = await import('./assets/js/firebase-core.js');
     if (!menu) return;
     menu.classList.remove('hidden');
     menu.removeAttribute('aria-hidden');
-    try { menu.style.display = ''; } catch (_) {}
+    try {
+      menu.style.display = 'block';
+      menu.style.visibility = 'visible';
+      menu.style.opacity = '1';
+    } catch (_) {}
   }
 
   function toggleMenu(button, menu) {
@@ -157,15 +165,42 @@ const core = await import('./assets/js/firebase-core.js');
     // Wire toggles
     document.querySelectorAll('.dropdown-toggle').forEach((btn) => {
       const menu = btn.nextElementSibling;
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleMenu(btn, menu);
-      });
+      if (menu && menu.classList.contains('dropdown-menu')) {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleMenu(btn, menu);
+        });
+
+        // Add hover support for desktop dropdowns
+        if (window.matchMedia && !window.matchMedia("(hover: none)").matches) {
+          const dropdown = btn.closest('.dropdown');
+          if (dropdown) {
+            dropdown.addEventListener('mouseenter', () => {
+              hideAllDropdowns();
+              showMenu(menu);
+            });
+            dropdown.addEventListener('mouseleave', () => {
+              setTimeout(() => hideAllDropdowns(), 300);
+            });
+          }
+        }
+      }
     });
 
     // Close on outside click
-    document.addEventListener('click', () => hideAllDropdowns());
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dropdown')) {
+        hideAllDropdowns();
+      }
+    });
+
+    // Keyboard navigation support
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        hideAllDropdowns();
+      }
+    });
   }
 
   function initMobileMenu() {
@@ -195,17 +230,43 @@ const core = await import('./assets/js/firebase-core.js');
     accordions.forEach(accordion => {
       accordion.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
+        
         const content = accordion.nextElementSibling;
         const icon = accordion.querySelector('.accordion-icon');
         
-        // Toggle active state
-        accordion.classList.toggle('active');
-        
-        // Show/hide content
-        if (accordion.classList.contains('active')) {
-          content.style.maxHeight = content.scrollHeight + 'px';
-        } else {
-          content.style.maxHeight = '0';
+        if (content && content.classList.contains('mobile-accordion-content')) {
+          const isCurrentlyHidden = content.classList.contains('hidden') || 
+            content.style.display === 'none' || 
+            getComputedStyle(content).display === 'none';
+            
+          // Close other accordions (optional)
+          accordions.forEach(otherAccordion => {
+            if (otherAccordion !== accordion) {
+              const otherContent = otherAccordion.nextElementSibling;
+              if (otherContent) {
+                otherContent.classList.add('hidden');
+                otherContent.style.display = 'none';
+                otherAccordion.classList.remove('active');
+              }
+            }
+          });
+          
+          // Toggle current accordion
+          if (isCurrentlyHidden) {
+            content.classList.remove('hidden');
+            content.style.display = 'block';
+            accordion.classList.add('active');
+          } else {
+            content.classList.add('hidden');
+            content.style.display = 'none';
+            accordion.classList.remove('active');
+          }
+          
+          // Rotate icon if present
+          if (icon) {
+            icon.style.transform = !isCurrentlyHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+          }
         }
       });
     });

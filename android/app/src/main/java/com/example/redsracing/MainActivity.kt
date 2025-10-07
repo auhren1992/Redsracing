@@ -79,7 +79,14 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_schedule -> binding.webview.loadUrl(base + "schedule.html")
                 R.id.nav_gallery -> binding.webview.loadUrl(base + "gallery.html")
                 R.id.nav_videos -> binding.webview.loadUrl(base + "videos.html")
+                // Community navigation items
+                R.id.nav_qna -> binding.webview.loadUrl(base + "qna.html")
+                R.id.nav_feedback -> binding.webview.loadUrl(base + "feedback.html")
+                R.id.nav_sponsorship -> binding.webview.loadUrl(base + "sponsorship.html")
+                // Admin and Profile
                 R.id.nav_admin -> binding.webview.loadUrl(base + "admin-console.html")
+                R.id.nav_profile -> binding.webview.loadUrl(base + "profile.html")
+                // Authentication
                 R.id.nav_login -> binding.webview.loadUrl(base + "login.html")
                 R.id.nav_signout -> binding.webview.evaluateJavascript("try{localStorage.clear(); sessionStorage.clear(); if(window.AndroidAuth&&AndroidAuth.onLogout){AndroidAuth.onLogout();}}catch(e){}", null)
             }

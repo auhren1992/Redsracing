@@ -17,12 +17,26 @@
             android:id="@+id/nav_videos" 
             android:title="🎥 Videos" />
     </group>
-    <group android:id="@+id/group_admin">
+    <group android:id="@+id/group_community" android:checkableBehavior="none">
+        <item 
+            android:id="@+id/nav_qna" 
+            android:title="❓ Q&A" />
+        <item 
+            android:id="@+id/nav_feedback" 
+            android:title="💬 Feedback" />
+        <item 
+            android:id="@+id/nav_sponsorship" 
+            android:title="💰 Sponsorship" />
+    </group>
+    <group android:id="@+id/group_admin" android:checkableBehavior="none">
         <item 
             android:id="@+id/nav_admin" 
             android:title="⚙️ Admin Console" />
+        <item 
+            android:id="@+id/nav_profile" 
+            android:title="👤 My Profile" />
     </group>
-    <group android:id="@+id/group_auth">
+    <group android:id="@+id/group_auth" android:checkableBehavior="none">
         <item 
             android:id="@+id/nav_login" 
             android:title="🔐 Sign In" />
