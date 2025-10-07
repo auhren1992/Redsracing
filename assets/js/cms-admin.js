@@ -58,18 +58,38 @@ function closeModal() {
 }
 
 async function adminCheck() {
+  console.log('[CMS] Starting admin check...');
   try {
     // Development bypass - check for localhost or specific development domains
     const isDevelopment = window.location.hostname === 'localhost' || 
                          window.location.hostname === '127.0.0.1' ||
                          window.location.hostname.includes('firebase') ||
-                         window.location.hostname.includes('web.app');
+                         window.location.hostname.includes('web.app') ||
+                         window.location.hostname.includes('redsracing');
     
-    console.log('[CMS] Development environment detected:', isDevelopment);
+    console.log('[CMS] Development environment detected:', isDevelopment, 'hostname:', window.location.hostname);
     
     // Use the existing Firebase services from firebase-core
     const { getFirebaseAuth, getFirebaseDb } = await import('./firebase-core.js');
     const auth = getFirebaseAuth();
+    
+    // Wait for auth state to be ready
+    await new Promise((resolve) => {
+      if (auth.currentUser) {
+        resolve();
+      } else {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+          unsubscribe();
+          resolve();
+        });
+        // Timeout after 3 seconds
+        setTimeout(() => {
+          unsubscribe();
+          resolve();
+        }, 3000);
+      }
+    });
+    
     const user = auth.currentUser;
     
     if (!user) {
@@ -96,11 +116,14 @@ async function adminCheck() {
       return true;
     }
 
-    // First try custom claims
+    // Force token refresh to get latest claims
+    console.log('[CMS] Refreshing auth token to get latest claims...');
+    
+    // First try custom claims with refreshed token
     try {
-      const token = await user.getIdTokenResult(true);
+      const token = await user.getIdTokenResult(true); // Force refresh
       const claims = token?.claims || {};
-      console.log('[CMS] Custom claims:', claims);
+      console.log('[CMS] Custom claims (refreshed):', claims);
       
       const claimRole = claims.role;
       const isAdmin = claims.admin === true;
@@ -114,21 +137,29 @@ async function adminCheck() {
       console.warn('[CMS] Custom claims check failed:', claimError);
     }
 
-    // Fallback to Firestore role check
+    // Fallback to Firestore role check with fresh data
+    console.log('[CMS] Checking Firestore user document...');
     try {
       const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
       const db = getFirebaseDb();
+      
+      // Get fresh data from Firestore
       const userDoc = await getDoc(doc(db, 'users', user.uid));
+      console.log('[CMS] Firestore document exists:', userDoc.exists());
+      
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        console.log('[CMS] Firestore user data:', userData);
+        console.log('[CMS] Firestore user data (fresh):', userData);
         
         const firestoreRole = userData.role;
         const isAdmin = userData.isAdmin === true;
         const isTeamMember = userData.isTeamMember === true;
+        const isOwner = userData.isOwner === true;
+        
+        console.log('[CMS] Parsed roles - role:', firestoreRole, 'isAdmin:', isAdmin, 'isTeamMember:', isTeamMember, 'isOwner:', isOwner);
         
         if (firestoreRole === 'admin' || firestoreRole === 'team-member' || 
-            firestoreRole === 'owner' || isAdmin || isTeamMember) {
+            firestoreRole === 'owner' || isAdmin || isTeamMember || isOwner) {
           console.log('[CMS] ✅ Admin access via Firestore role:', firestoreRole || 'admin flag');
           return true;
         }
@@ -167,7 +198,8 @@ async function adminCheck() {
     const isDevelopment = window.location.hostname === 'localhost' || 
                          window.location.hostname === '127.0.0.1' ||
                          window.location.hostname.includes('firebase') ||
-                         window.location.hostname.includes('web.app');
+                         window.location.hostname.includes('web.app') ||
+                         window.location.hostname.includes('redsracing');
     
     if (isDevelopment) {
       console.log('[CMS] 🔓 Development bypass: Allowing access despite admin check failure');
@@ -413,6 +445,12 @@ function toast(msg, kind='info') {
   el.style.borderColor = kind==='error' ? 'rgba(239,68,68,0.4)' : 'rgba(148,163,184,0.3)';
   setTimeout(() => el.classList.add('hidden'), 1800);
 }
+
+// Manual refresh function for testing
+window.refreshCMSAdmin = async function() {
+  console.log('[CMS] Manual refresh triggered...');
+  await initCMSAdmin();
+};
 
 export async function initCMSAdmin() {
   console.log('[CMS] Initializing CMS Admin...');

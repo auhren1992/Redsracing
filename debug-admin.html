@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Admin Debug - RedsRacing</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .debug-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .debug-section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .debug-button {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        .debug-button:hover {
+            transform: translateY(-2px);
+        }
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .success-box {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .console-output {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔧 CMS Admin Debug Tool</h1>
+        <p>This tool helps diagnose admin access issues with the RedsRacing CMS.</p>
+        
+        <div class="debug-section">
+            <h3>Environment Info</h3>
+            <div id="env-info" class="info-box">
+                <strong>Hostname:</strong> <span id="hostname"></span><br>
+                <strong>URL:</strong> <span id="full-url"></span><br>
+                <strong>Development Mode:</strong> <span id="dev-mode"></span>
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <h3>Authentication Status</h3>
+            <button class="debug-button" onclick="checkAuth()">Check Auth Status</button>
+            <div id="auth-status" class="info-box">
+                Click "Check Auth Status" to see current authentication state.
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <h3>Admin Access Test</h3>
+            <button class="debug-button" onclick="testAdminAccess()">Test Admin Access</button>
+            <button class="debug-button" onclick="refreshAndTest()">Refresh Token & Test</button>
+            <div id="admin-result" class="info-box">
+                Click "Test Admin Access" to check admin permissions.
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <h3>Grant Admin Access</h3>
+            <button class="debug-button" onclick="grantAdminToSelf()">Grant Admin to Current User</button>
+            <div id="grant-result" class="info-box">
+                Click "Grant Admin" if you need to give yourself admin access.
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <h3>CMS Test</h3>
+            <button class="debug-button" onclick="testCMSInit()">Initialize CMS</button>
+            <button class="debug-button" onclick="manualRefresh()">Manual CMS Refresh</button>
+            <div id="cms-result" class="info-box">
+                Test CMS initialization after fixing admin access.
+            </div>
+        </div>
+
+        <div class="debug-section">
+            <h3>Console Output</h3>
+            <button class="debug-button" onclick="clearConsole()">Clear Console</button>
+            <div id="console-output" class="console-output">
+                Console messages will appear here...
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Capture console messages
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+        
+        function addToConsoleOutput(message, type = 'log') {
+            const output = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff4444' : type === 'warn' ? '#ffaa00' : '#00ff00';
+            output.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsoleOutput(args.join(' '), 'log');
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToConsoleOutput(args.join(' '), 'warn');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsoleOutput(args.join(' '), 'error');
+        };
+
+        // Set environment info
+        document.getElementById('hostname').textContent = window.location.hostname;
+        document.getElementById('full-url').textContent = window.location.href;
+        
+        const isDev = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1' ||
+                     window.location.hostname.includes('firebase') ||
+                     window.location.hostname.includes('web.app') ||
+                     window.location.hostname.includes('redsracing');
+        
+        document.getElementById('dev-mode').textContent = isDev ? 'Yes' : 'No';
+        document.getElementById('dev-mode').style.color = isDev ? '#00ff00' : '#ff4444';
+
+        // Global functions
+        window.checkAuth = async function() {
+            try {
+                const { getFirebaseAuth } = await import('./assets/js/firebase-core.js');
+                const auth = getFirebaseAuth();
+                const user = auth.currentUser;
+                
+                const statusDiv = document.getElementById('auth-status');
+                if (user) {
+                    statusDiv.className = 'success-box';
+                    statusDiv.innerHTML = `
+                        <strong>✅ User Authenticated</strong><br>
+                        <strong>Email:</strong> ${user.email}<br>
+                        <strong>UID:</strong> ${user.uid}<br>
+                        <strong>Email Verified:</strong> ${user.emailVerified}
+                    `;
+                } else {
+                    statusDiv.className = 'error-box';
+                    statusDiv.innerHTML = '<strong>❌ No authenticated user</strong>';
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                document.getElementById('auth-status').className = 'error-box';
+                document.getElementById('auth-status').innerHTML = `<strong>❌ Auth Error:</strong> ${error.message}`;
+            }
+        };
+
+        window.testAdminAccess = async function() {
+            try {
+                // Import the admin check from cms-admin
+                const cmsModule = await import('./assets/js/cms-admin.js');
+                // We need to access the adminCheck function - it's not exported, so let's recreate the logic
+                
+                const { getFirebaseAuth, getFirebaseDb } = await import('./assets/js/firebase-core.js');
+                const auth = getFirebaseAuth();
+                const user = auth.currentUser;
+                
+                const resultDiv = document.getElementById('admin-result');
+                
+                if (!user) {
+                    resultDiv.className = 'error-box';
+                    resultDiv.innerHTML = '<strong>❌ No authenticated user - please sign in first</strong>';
+                    return;
+                }
+
+                // Check admin emails
+                const adminEmails = ['auhren1992@gmail.com', 'admin@redsracing.com', 'team@redsracing.com'];
+                if (adminEmails.includes(user.email)) {
+                    resultDiv.className = 'success-box';
+                    resultDiv.innerHTML = `<strong>✅ Admin access via email whitelist: ${user.email}</strong>`;
+                    return;
+                }
+
+                // Check custom claims
+                const token = await user.getIdTokenResult(true);
+                const claims = token?.claims || {};
+                console.log('Custom claims:', claims);
+                
+                if (claims.role === 'admin' || claims.admin === true || claims.teamMember === true) {
+                    resultDiv.className = 'success-box';
+                    resultDiv.innerHTML = `<strong>✅ Admin access via custom claims</strong><br>Claims: ${JSON.stringify(claims, null, 2)}`;
+                    return;
+                }
+
+                // Check Firestore
+                const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+                const db = getFirebaseDb();
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    console.log('Firestore user data:', userData);
+                    
+                    if (userData.role === 'admin' || userData.isAdmin === true || userData.isTeamMember === true || userData.isOwner === true) {
+                        resultDiv.className = 'success-box';
+                        resultDiv.innerHTML = `<strong>✅ Admin access via Firestore</strong><br>User data: ${JSON.stringify(userData, null, 2)}`;
+                        return;
+                    }
+                }
+
+                resultDiv.className = 'error-box';
+                resultDiv.innerHTML = `
+                    <strong>❌ No admin access found</strong><br>
+                    <strong>Custom Claims:</strong> ${JSON.stringify(claims, null, 2)}<br>
+                    <strong>Firestore Data:</strong> ${userDoc.exists() ? JSON.stringify(userDoc.data(), null, 2) : 'No document'}
+                `;
+            } catch (error) {
+                console.error('Admin access test failed:', error);
+                document.getElementById('admin-result').className = 'error-box';
+                document.getElementById('admin-result').innerHTML = `<strong>❌ Test Error:</strong> ${error.message}`;
+            }
+        };
+
+        window.refreshAndTest = async function() {
+            try {
+                const { getFirebaseAuth } = await import('./assets/js/firebase-core.js');
+                const auth = getFirebaseAuth();
+                const user = auth.currentUser;
+                
+                if (!user) {
+                    alert('Please sign in first');
+                    return;
+                }
+
+                console.log('Forcing token refresh...');
+                await user.getIdToken(true); // Force refresh
+                
+                // Wait a moment for the refresh to complete
+                setTimeout(() => {
+                    testAdminAccess();
+                }, 1000);
+            } catch (error) {
+                console.error('Token refresh failed:', error);
+            }
+        };
+
+        window.grantAdminToSelf = async function() {
+            try {
+                const { getFirebaseAuth, getFirebaseDb } = await import('./assets/js/firebase-core.js');
+                const auth = getFirebaseAuth();
+                const user = auth.currentUser;
+                
+                if (!user) {
+                    alert('Please sign in first');
+                    return;
+                }
+
+                const { setDoc, doc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+                const db = getFirebaseDb();
+                
+                await setDoc(doc(db, 'users', user.uid), {
+                    email: user.email,
+                    role: 'admin',
+                    isAdmin: true,
+                    isOwner: true,
+                    updatedAt: new Date(),
+                    grantedBy: 'self-grant'
+                }, { merge: true });
+
+                document.getElementById('grant-result').className = 'success-box';
+                document.getElementById('grant-result').innerHTML = '<strong>✅ Admin access granted! Please refresh the page and test again.</strong>';
+                
+                console.log('Admin access granted via Firestore');
+                
+                // Auto-test after granting
+                setTimeout(() => {
+                    testAdminAccess();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Grant admin failed:', error);
+                document.getElementById('grant-result').className = 'error-box';
+                document.getElementById('grant-result').innerHTML = `<strong>❌ Grant Error:</strong> ${error.message}`;
+            }
+        };
+
+        window.testCMSInit = async function() {
+            try {
+                const { initCMSAdmin } = await import('./assets/js/cms-admin.js');
+                await initCMSAdmin();
+                
+                document.getElementById('cms-result').className = 'success-box';
+                document.getElementById('cms-result').innerHTML = '<strong>✅ CMS initialized successfully! Check console for details.</strong>';
+            } catch (error) {
+                console.error('CMS init failed:', error);
+                document.getElementById('cms-result').className = 'error-box';
+                document.getElementById('cms-result').innerHTML = `<strong>❌ CMS Init Error:</strong> ${error.message}`;
+            }
+        };
+
+        window.manualRefresh = function() {
+            if (typeof window.refreshCMSAdmin === 'function') {
+                window.refreshCMSAdmin();
+            } else {
+                console.warn('Manual refresh function not available');
+            }
+        };
+
+        window.clearConsole = function() {
+            document.getElementById('console-output').innerHTML = 'Console cleared...';
+        };
+
+        // Auto-check auth on load
+        window.addEventListener('load', () => {
+            setTimeout(checkAuth, 1000);
+        });
+    </script>
+</body>
+</html>
