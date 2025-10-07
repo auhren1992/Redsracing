@@ -283,6 +283,87 @@ input::placeholder, textarea::placeholder { color: #94a3b8; }
 input.bg-white, textarea.bg-white { color: #111827 !important; }
 input.bg-white::placeholder, textarea.bg-white::placeholder { color: #6b7280 !important; }
 
+/* Navigation Link Styles */
+.nav-link {
+  color: #e2e8f0;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.nav-link:hover {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Dropdown Styles */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  backdrop-filter: blur(16px);
+  z-index: 1000;
+  padding: 8px 0;
+  margin-top: 4px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-item {
+  display: block;
+  padding: 10px 16px;
+  color: #e2e8f0;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  margin: 2px 8px;
+}
+
+.dropdown-item:hover {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+}
+
+.modern-dropdown {
+  min-width: 180px;
+}
+
+/* Mobile Menu Styles */
+.mobile-menu {
+  padding: 16px;
+}
+
+.modern-mobile {
+  background: rgba(15, 23, 42, 0.98);
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  backdrop-filter: blur(16px);
+}
+
+.mobile-login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
 /* Force readable styling for modern inputs and Settings page */
 .modern-input {
   background-color: #1e293b !important; /* slate-800 */

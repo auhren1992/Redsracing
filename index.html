@@ -25,6 +25,7 @@
       href="https://unpkg.com/swiper/swiper-bundle.min.css"
     />
     <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
     
@@ -846,40 +847,182 @@
           });
         }
         
-        // Navigation Enhancement
+        // Navigation Enhancement - Fixed for proper mobile menu and dropdowns
         function initNavigation() {
-          // Desktop dropdowns
+          console.log('🔧 Initializing navigation...');
+          
+          // Desktop dropdowns with proper event handling
           document.querySelectorAll(".dropdown-toggle").forEach(function (btn) {
             btn.addEventListener("click", function (e) {
               e.preventDefault();
               e.stopPropagation();
               var menu = btn.nextElementSibling;
               if (menu && menu.classList.contains("dropdown-menu")) {
+                // Close all other dropdowns
                 document.querySelectorAll(".dropdown-menu").forEach(function (m) {
-                  if (m !== menu) m.classList.add("hidden");
+                  if (m !== menu) {
+                    m.classList.add("hidden");
+                    m.style.display = 'none';
+                    m.style.opacity = '0';
+                  }
                 });
-                menu.classList.toggle("hidden");
+                
+                // Toggle current dropdown
+                const isHidden = menu.classList.contains("hidden");
+                if (isHidden) {
+                  menu.classList.remove("hidden");
+                  menu.style.display = 'block';
+                  menu.style.opacity = '1';
+                } else {
+                  menu.classList.add("hidden");
+                  menu.style.display = 'none';
+                  menu.style.opacity = '0';
+                }
               }
             });
+            
+            // Add hover support for desktop
+            if (window.matchMedia && !window.matchMedia("(hover: none)").matches) {
+              const dropdown = btn.closest('.dropdown');
+              if (dropdown) {
+                dropdown.addEventListener('mouseenter', () => {
+                  const menu = btn.nextElementSibling;
+                  if (menu && menu.classList.contains('dropdown-menu')) {
+                    // Close other dropdowns
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                      if (m !== menu) {
+                        m.classList.add('hidden');
+                        m.style.display = 'none';
+                      }
+                    });
+                    // Show this dropdown
+                    menu.classList.remove('hidden');
+                    menu.style.display = 'block';
+                    menu.style.opacity = '1';
+                  }
+                });
+                
+                dropdown.addEventListener('mouseleave', () => {
+                  setTimeout(() => {
+                    const menu = btn.nextElementSibling;
+                    if (menu && menu.classList.contains('dropdown-menu')) {
+                      menu.classList.add('hidden');
+                      menu.style.display = 'none';
+                      menu.style.opacity = '0';
+                    }
+                  }, 300);
+                });
+              }
+            }
           });
           
-          // Outside click to close
-          document.addEventListener("click", function () {
-            document.querySelectorAll(".dropdown-menu").forEach(function (m) {
-              m.classList.add("hidden");
-            });
+          // Outside click to close dropdowns
+          document.addEventListener("click", function (e) {
+            if (!e.target.closest('.dropdown')) {
+              document.querySelectorAll(".dropdown-menu").forEach(function (m) {
+                m.classList.add("hidden");
+                m.style.display = 'none';
+                m.style.opacity = '0';
+              });
+            }
           });
           
-          // Mobile menu
-          var mobileButton = document.getElementById("mobile-menu-toggle");
+          // Mobile menu - using correct ID from HTML
+          var mobileButton = document.getElementById("mobile-menu-button");
           var mobileMenu = document.getElementById("mobile-menu");
+          
           if (mobileButton && mobileMenu) {
+            console.log('🔧 Mobile menu elements found, setting up...');
+            
             mobileButton.addEventListener("click", function (e) {
               e.preventDefault();
               e.stopPropagation();
-              mobileMenu.classList.toggle("hidden");
+              console.log('📱 Mobile menu button clicked');
+              
+              const isHidden = mobileMenu.classList.contains('hidden');
+              if (isHidden) {
+                mobileMenu.classList.remove('hidden');
+                mobileMenu.style.display = 'block';
+                console.log('📱 Mobile menu opened');
+              } else {
+                mobileMenu.classList.add('hidden');
+                mobileMenu.style.display = 'none';
+                console.log('📱 Mobile menu closed');
+              }
+            });
+            
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', function(e) {
+              if (!mobileMenu.contains(e.target) && !mobileButton.contains(e.target)) {
+                mobileMenu.classList.add('hidden');
+                mobileMenu.style.display = 'none';
+              }
+            });
+            
+            // Mobile accordion functionality
+            const accordions = mobileMenu.querySelectorAll('.mobile-accordion');
+            accordions.forEach(accordion => {
+              accordion.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const content = accordion.nextElementSibling;
+                const icon = accordion.querySelector('.accordion-icon');
+                
+                if (content && content.classList.contains('mobile-accordion-content')) {
+                  const isCurrentlyHidden = content.style.display === 'none' || 
+                    !content.style.display || 
+                    getComputedStyle(content).display === 'none';
+                    
+                  // Close other accordions
+                  accordions.forEach(otherAccordion => {
+                    if (otherAccordion !== accordion) {
+                      const otherContent = otherAccordion.nextElementSibling;
+                      if (otherContent) {
+                        otherContent.style.display = 'none';
+                        otherAccordion.classList.remove('active');
+                        const otherIcon = otherAccordion.querySelector('.accordion-icon');
+                        if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
+                      }
+                    }
+                  });
+                  
+                  // Toggle current accordion
+                  if (isCurrentlyHidden) {
+                    content.style.display = 'block';
+                    accordion.classList.add('active');
+                    if (icon) icon.style.transform = 'rotate(180deg)';
+                  } else {
+                    content.style.display = 'none';
+                    accordion.classList.remove('active');
+                    if (icon) icon.style.transform = 'rotate(0deg)';
+                  }
+                }
+              });
+            });
+            
+            // Close mobile menu when clicking navigation links
+            const navLinks = mobileMenu.querySelectorAll('a');
+            navLinks.forEach(link => {
+              link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+                mobileMenu.style.display = 'none';
+              });
+            });
+          } else {
+            console.warn('🚨 Mobile menu elements not found:', {
+              button: !!mobileButton,
+              menu: !!mobileMenu
             });
           }
+          
+          // Initialize mobile accordion content state
+          const accordionContents = document.querySelectorAll('.mobile-accordion-content');
+          accordionContents.forEach(content => {
+            content.style.display = 'none';
+          });
+          
+          console.log('✅ Navigation initialization complete');
         }
         
         // Smooth Scrolling for Anchor Links
