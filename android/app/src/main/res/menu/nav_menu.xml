@@ -20,7 +20,7 @@
     <group android:id="@+id/group_community" android:checkableBehavior="none">
         <item 
             android:id="@+id/nav_qna" 
-            android:title="❓ Q&A" />
+            android:title="❓ Q&amp;A" />
         <item 
             android:id="@+id/nav_feedback" 
             android:title="💬 Feedback" />
