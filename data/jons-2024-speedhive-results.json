@@ -17,12 +17,13 @@
       "eventName": "63rd Annual Bettenhausen 100 Memorial",
       "date": "2024-09-21",
       "track": "Grundy County Speedway, IL",
-      "trackLength": "0.25 mi",
+      "trackLength": "0.33 mi",
       "source": "MYLAPS Speedhive",
       "sessions": [
-        { "sessionType": "Practice", "position": null, "lapTime": null },
-        { "sessionType": "Qualifying", "position": null, "lapTime": null },
-        { "sessionType": "Feature", "position": null, "lapTime": null }
+        { "sessionType": "Practice 1", "position": null, "lapTime": "19.352", "totalLaps": 14 },
+        { "sessionType": "Practice 2", "position": null, "lapTime": "19.274", "totalLaps": 12 },
+        { "sessionType": "Qualifying", "position": 13, "lapTime": "19.274" },
+        { "sessionType": "Feature", "position": 6, "lapTime": "18.962", "totalTime": "13:47.233", "totalLaps": 25 }
       ]
     },
     {
@@ -33,9 +34,10 @@
       "trackLength": "0.25 mi",
       "source": "MYLAPS Speedhive",
       "sessions": [
-        { "sessionType": "Practice", "position": null, "lapTime": null },
-        { "sessionType": "Qualifying", "position": null, "lapTime": null },
-        { "sessionType": "Feature", "position": null, "lapTime": null }
+        { "sessionType": "Practice", "position": null, "lapTime": "15.282", "totalLaps": 23 },
+        { "sessionType": "Qualifying", "position": 6, "lapTime": "15.320" },
+        { "sessionType": "Heat 1", "position": 5, "lapTime": "15.197" },
+        { "sessionType": "Feature", "position": 4, "lapTime": "15.118", "totalTime": "6:35.208", "totalLaps": 25 }
       ]
     },
     {
@@ -43,12 +45,15 @@
       "eventName": "TUNDRA #2",
       "date": "2024-09-02",
       "track": "Golden Sands Speedway, WI",
-      "trackLength": "0.25 mi",
+      "trackLength": "0.3333 mi",
       "source": "MYLAPS Speedhive",
       "sessions": [
-        { "sessionType": "Practice", "position": null, "lapTime": null },
-        { "sessionType": "Qualifying", "position": null, "lapTime": null },
-        { "sessionType": "Feature", "position": null, "lapTime": null }
+        { "sessionType": "Practice 1", "position": null, "lapTime": "15.234", "totalLaps": 19 },
+        { "sessionType": "Practice 2", "position": 2, "lapTime": "15.247", "totalLaps": 14 },
+        { "sessionType": "Practice 3", "position": 2, "lapTime": "15.225", "totalLaps": 7 },
+        { "sessionType": "Qualifying", "position": 4, "lapTime": "15.321" },
+        { "sessionType": "Heat 1", "position": 2, "lapTime": "15.334", "totalTime": "2:08.821", "totalLaps": 8 },
+        { "sessionType": "Feature", "position": 2, "lapTime": "15.330", "totalTime": "5:14.133", "totalLaps": 20 }
       ]
     },
     {
@@ -59,9 +64,9 @@
       "trackLength": "0.3333 mi",
       "source": "MYLAPS Speedhive",
       "sessions": [
-        { "sessionType": "Practice", "position": null, "lapTime": null },
-        { "sessionType": "Qualifying", "position": null, "lapTime": null },
-        { "sessionType": "Feature", "position": null, "lapTime": null }
+        { "sessionType": "ACS Qualifying", "position": null, "lapTime": null },
+        { "sessionType": "ASC Heat 2", "position": 6, "lapTime": "17.758", "totalTime": "2:29.929", "totalLaps": 8 },
+        { "sessionType": "ASC Feature-1", "position": 12, "lapTime": "17.836", "totalTime": "5:40.310", "totalLaps": 15 }
       ]
     },
     {
@@ -72,8 +77,9 @@
       "trackLength": "0.25 mi",
       "source": "MYLAPS Speedhive",
       "sessions": [
-        { "sessionType": "Practice", "position": null, "lapTime": null },
-        { "sessionType": "Qualifying", "position": null, "lapTime": null },
+        { "sessionType": "Practice", "position": null, "lapTime": "15.562", "totalLaps": 15 },
+        { "sessionType": "Qualifying", "position": 5, "lapTime": "15.947" },
+        { "sessionType": "Heat 1", "position": 6, "lapTime": "15.444" },
         { "sessionType": "Feature", "position": null, "lapTime": null }
       ]
     },
@@ -85,9 +91,10 @@
       "trackLength": "0.25 mi",
       "source": "MYLAPS Speedhive",
       "sessions": [
-        { "sessionType": "Practice", "position": null, "lapTime": null },
-        { "sessionType": "Qualifying", "position": null, "lapTime": null },
-        { "sessionType": "Feature", "position": null, "lapTime": null }
+        { "sessionType": "Practice", "position": null, "lapTime": "15.869", "totalLaps": 19 },
+        { "sessionType": "Qualifying", "position": 6, "lapTime": "15.905" },
+        { "sessionType": "Heat 2", "position": 1, "lapTime": "15.842", "totalTime": "2:34.559", "totalLaps": 8 },
+        { "sessionType": "Feature", "position": 5, "lapTime": "15.449", "totalTime": "10:25.997", "totalLaps": 25 }
       ]
     }
   ]
