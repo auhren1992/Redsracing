@@ -966,27 +966,6 @@
               </div>
             </div>
             
-            <!-- Quick Actions Footer -->
-            <div class="admin-card rounded-xl p-6 mt-8">
-              <h3 class="text-lg font-bold text-white mb-4">
-                <i class="fas fa-bolt text-yellow-400 mr-2"></i>
-                Quick Actions
-              </h3>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <button id="approve-all-btn" class="success-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
-                  <i class="fas fa-check mr-1"></i>Approve All
-                </button>
-                <button id="refresh-data-btn" class="modern-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
-                  <i class="fas fa-sync mr-1"></i>Refresh Data
-                </button>
-                <button id="export-data-btn" class="modern-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
-                  <i class="fas fa-download mr-1"></i>Export
-                </button>
-                <button id="cleanup-btn" class="danger-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
-                  <i class="fas fa-trash mr-1"></i>Cleanup
-                </button>
-              </div>
-            </div>
             </div>
           </div>
 
@@ -1075,7 +1054,13 @@
                 <i class="fas fa-file-pen text-yellow-300 mr-2"></i>
                 Page Management
               </h2>
-              <p class="text-slate-400 text-sm">Edit site pages and sections (hero, tips, quiz, etc). Choose the page slug in the CMS panel below.</p>
+              <p class="text-slate-400 text-sm mb-3">Edit site pages and sections (hero, tips, quiz, etc). Choose the page slug in the CMS panel below.</p>
+              <!-- Visible fallback so this area is never empty -->
+              <div id="cms-fallback" class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                <div class="text-slate-300 text-sm mb-2">CMS Editor</div>
+                <p class="text-slate-400 text-sm mb-3">Click the button to load the editor if it does not appear automatically.</p>
+                <button id="cms-load-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-pen-to-square mr-2"></i>Load Editor</button>
+              </div>
             </div>
           </div>
 
@@ -1103,6 +1088,28 @@
                 </table>
               </div>
               <p class="text-slate-500 text-xs mt-2">Frontend errors are sampled and stored as a fallback when developer tools are not available.</p>
+
+              <!-- Quick Actions (moved here per request) -->
+              <div class="admin-card rounded-xl p-6 mt-6">
+                <h3 class="text-lg font-bold text-white mb-4">
+                  <i class="fas fa-bolt text-yellow-400 mr-2"></i>
+                  Quick Actions
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <button id="approve-all-btn" class="success-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                    <i class="fas fa-check mr-1"></i>Approve All
+                  </button>
+                  <button id="refresh-data-btn" class="modern-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                    <i class="fas fa-sync mr-1"></i>Refresh Data
+                  </button>
+                  <button id="export-data-btn" class="modern-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                    <i class="fas fa-download mr-1"></i>Export
+                  </button>
+                  <button id="cleanup-btn" class="danger-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
+                    <i class="fas fa-trash mr-1"></i>Cleanup
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1162,7 +1169,7 @@
     <script type="module" src="assets/js/auth-guard.js"></script>
     <script type="module" src="navigation.js"></script>
     <script type="module" src="assets\js\redsracing-dashboard.js"></script>
-    <script type="module" src="assets/js/cms-admin.js?v=20251003-1"></script>
+    <script type="module" src="assets/js/cms-admin.js?v=20251006-2"></script>
     <script type="module" src="assets/js/queue-admin.js?v=20251003-1"></script>
     
     <script>
@@ -1499,6 +1506,9 @@
             sec.classList.remove('hidden');
             sec.style.display = 'block';
             try { if (window.initCMSAdmin) window.initCMSAdmin(); } catch(_) {}
+            // Fallback button to manually load
+            const btn = document.getElementById('cms-load-btn');
+            if (btn) btn.onclick = () => { try { if (window.initCMSAdmin) window.initCMSAdmin(); } catch(_) {} };
           }
         }
 
@@ -1577,7 +1587,134 @@
                 </td>`;
               tbody.appendChild(tr);
             });
+
+            // Attach event delegation for edit/delete
+            try {
+              const container = document.getElementById('races-table-body');
+              if (container && !container.__raceDelegated) {
+                container.__raceDelegated = true;
+                container.addEventListener('click', (e) => {
+                  const editBtn = e.target.closest('.edit-race-btn');
+                  const delBtn = e.target.closest('.delete-race-btn');
+                  if (editBtn) {
+                    const id = editBtn.getAttribute('data-id');
+                    if (id) openRaceEditor(id);
+                  } else if (delBtn) {
+                    const id = delBtn.getAttribute('data-id');
+                    if (id) deleteRaceById(id);
+                  }
+                });
+              }
+            } catch(_) {}
           } catch (e) { console.error('Failed to load races', e); }
+        }
+
+        // Race Editor Modal
+        async function openRaceEditor(raceId) {
+          try {
+            const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            let data = { name: '', status: 'upcoming', date: '' };
+            if (raceId) {
+              const snap = await getDoc(doc(db, 'races', raceId));
+              if (snap.exists()) {
+                const v = snap.data() || {};
+                data = {
+                  name: v.name || '',
+                  status: v.status || 'upcoming',
+                  date: v.date ? new Date(v.date) : null
+                };
+              }
+            }
+            renderRaceModal(raceId, data);
+          } catch (e) { console.error('Open race editor failed', e); }
+        }
+
+        function renderRaceModal(raceId, data) {
+          closeRaceModal();
+          const overlay = document.createElement('div');
+          overlay.id = 'race-editor-overlay';
+          overlay.className = 'fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4';
+          const modal = document.createElement('div');
+          modal.id = 'race-editor-modal';
+          modal.className = 'admin-card rounded-xl p-6 w-full max-w-xl border border-slate-700/60';
+          const dateVal = data.date ? new Date(data.date).toISOString().slice(0,10) : '';
+          modal.innerHTML = `
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-bold text-white">${raceId ? 'Edit Race' : 'Add Race'}</h3>
+              <button class="danger-btn px-2 py-1 text-sm" onclick="window.closeRaceModal()"><i class='fas fa-times'></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm text-slate-300 mb-1">Date</label>
+                <input type="date" id="race-edit-date" class="modern-input w-full p-2 text-white" value="${dateVal}" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm text-slate-300 mb-1">Name</label>
+                <input type="text" id="race-edit-name" class="modern-input w-full p-2 text-white" value="${(data.name||'').replace(/"/g,'&quot;')}" placeholder="Race Name" />
+              </div>
+              <div>
+                <label class="block text-sm text-slate-300 mb-1">Status</label>
+                <select id="race-edit-status" class="modern-input w-full p-2 text-white">
+                  <option value="upcoming" ${data.status==='upcoming'?'selected':''}>Upcoming</option>
+                  <option value="active" ${data.status==='active'?'selected':''}>Active</option>
+                  <option value="completed" ${data.status==='completed'?'selected':''}>Completed</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-6 flex items-center justify-end space-x-2">
+              ${raceId ? '<button class="danger-btn px-4 py-2 rounded" onclick="window.deleteRaceById(\'' + raceId + '\')"><i class=\'fas fa-trash mr-1\'></i>Delete</button>' : ''}
+              <button class="modern-btn px-4 py-2 rounded" onclick="window.closeRaceModal()">Cancel</button>
+              <button class="success-btn px-4 py-2 rounded" onclick="window.saveRaceEdits('${raceId||''}')"><i class='fas fa-save mr-1'></i>Save</button>
+            </div>
+          `;
+          overlay.appendChild(modal);
+          document.body.appendChild(overlay);
+          window.closeRaceModal = closeRaceModal;
+          window.saveRaceEdits = saveRaceEdits;
+          window.deleteRaceById = deleteRaceById;
+        }
+
+        function closeRaceModal() {
+          const o = document.getElementById('race-editor-overlay');
+          if (o && o.parentNode) o.parentNode.removeChild(o);
+        }
+
+        async function saveRaceEdits(raceId) {
+          try {
+            const { getFirestore, doc, setDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const name = document.getElementById('race-edit-name')?.value?.trim();
+            const dateStr = document.getElementById('race-edit-date')?.value;
+            const status = document.getElementById('race-edit-status')?.value || 'upcoming';
+            if (!name || !dateStr) { showToast('Please provide name and date', 'error'); return; }
+            const payload = { name, status, date: new Date(dateStr) };
+            if (raceId) {
+              await updateDoc(doc(db, 'races', raceId), payload);
+            } else {
+              await setDoc(doc(db, 'races', crypto.randomUUID()), { ...payload, createdAt: new Date() });
+            }
+            showToast('Race saved');
+            closeRaceModal();
+            await loadRaceTable();
+            await loadRealFirebaseData();
+          } catch (e) { console.error('Save race failed', e); showToast('Failed to save race', 'error'); }
+        }
+
+        async function deleteRaceById(raceId) {
+          if (!raceId) return; if (!confirm('Delete this race?')) return;
+          try {
+            const { getFirestore, doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            await deleteDoc(doc(db, 'races', raceId));
+            showToast('Race deleted');
+            closeRaceModal();
+            await loadRaceTable();
+            await loadRealFirebaseData();
+          } catch (e) { console.error('Delete race failed', e); showToast('Failed to delete race', 'error'); }
         }
 
         // Q&A: load pending submissions
@@ -2373,6 +2510,23 @@
           }
         }
         
+        async function generateTestLog() {
+          try {
+            const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            await addDoc(collection(db, 'client_logs'), {
+              level: 'info',
+              message: 'Admin test log entry',
+              page: 'admin-console.html',
+              createdAt: serverTimestamp(),
+              uid: (await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js')).getAuth().currentUser?.uid || null,
+            });
+            showToast('Test log added');
+            await refreshLogsUI();
+          } catch(e) { console.error('Failed to generate test log', e); showToast('Failed to generate test log', 'error'); }
+        }
+
         async function saveTikTokSettings() {
           try {
             const role = await getUserRole();
@@ -2732,6 +2886,8 @@
             });
           }
 
+          // Error Logs: generate test log removed per request
+
           // Logs
           const refreshLogsBtn = document.getElementById('refresh-logs-btn');
           if (refreshLogsBtn) refreshLogsBtn.addEventListener('click', (e)=>{ e.preventDefault(); refreshLogsUI(); });
@@ -2772,76 +2928,11 @@
           if (raceSection) {
             raceSection.scrollIntoView({ behavior: 'smooth' });
           }
-          
-          // Create add race form if it doesn't exist
-          const tableBody = document.getElementById('races-table-body');
-          if (tableBody && !document.getElementById('add-race-form')) {
-            const formRow = document.createElement('div');
-            formRow.id = 'add-race-form';
-            formRow.className = 'table-row p-4 bg-blue-600/10 border border-blue-500/30 rounded-lg mb-4';
-            formRow.innerHTML = `
-              <div class="grid grid-cols-4 gap-4">
-                <input type="date" id="race-date" class="modern-input p-2 text-white" required>
-                <input type="text" id="race-name" placeholder="Race Name" class="modern-input p-2 text-white" required>
-                <select id="race-status" class="modern-input p-2 text-white">
-                  <option value="upcoming">Upcoming</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                </select>
-                <div class="flex space-x-2">
-                  <button onclick="saveNewRace()" class="success-btn px-4 py-2 rounded text-sm">
-                    <i class="fas fa-save mr-1"></i>Save
-                  </button>
-                  <button onclick="cancelAddRace()" class="danger-btn px-4 py-2 rounded text-sm">
-                    <i class="fas fa-times mr-1"></i>Cancel
-                  </button>
-                </div>
-              </div>
-            `;
-            tableBody.insertBefore(formRow, tableBody.firstChild);
-          }
+          // Open modal for creating a new race (no inline form in table to avoid layout issues)
+          try { openRaceEditor(null); } catch(_) {}
         }
         
-        // Save new race
-        window.saveNewRace = async function() {
-          const date = document.getElementById('race-date').value;
-          const name = document.getElementById('race-name').value;
-          const status = document.getElementById('race-status').value;
-          
-          if (!date || !name) {
-            alert('Please fill in all required fields');
-            return;
-          }
-          
-          try {
-            const { getFirestore, collection, addDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-            const app = await ensureDefaultApp();
-            const db = getFirestore(app);
-            
-            await addDoc(collection(db, 'races'), {
-              date: new Date(date),
-              name: name,
-              status: status,
-              createdAt: new Date(),
-              createdBy: 'admin'
-            });
-            
-            alert('Race added successfully!');
-            cancelAddRace();
-            loadRealFirebaseData();
-          } catch (error) {
-            console.error('Error adding race:', error);
-            alert('Error adding race. Please try again.');
-          }
-        };
         
-        // Cancel add race
-        window.cancelAddRace = function() {
-          const form = document.getElementById('add-race-form');
-          if (form) {
-            form.remove();
-          }
-        };
         
         // Approve all photos
         async function approveAllPhotos() {
@@ -2920,29 +3011,116 @@
             console.error('Error refreshing data:', error);
             button.innerHTML = '<i class="fas fa-sync mr-1"></i>Refresh Data';
             button.disabled = false;
-            alert('Error refreshing data. Please try again.');
           });
         }
+        
+        // Emergency modal cleanup function
+        function clearStuckModals() {
+          // Remove any stuck overlays
+          const overlays = document.querySelectorAll('[id$="-overlay"], .fixed.inset-0, .z-50, .z-40');
+          overlays.forEach(overlay => {
+            if (overlay.style.position === 'fixed' || overlay.classList.contains('fixed')) {
+              overlay.remove();
+            }
+          });
+          
+          // Remove any stuck modals
+          const modals = document.querySelectorAll('[id$="-modal"]');
+          modals.forEach(modal => modal.remove());
+          
+          // Reset body overflow
+          document.body.style.overflow = '';
+          
+          // Clear any disabled states
+          document.querySelectorAll('button[disabled]').forEach(btn => {
+            if (!btn.classList.contains('permanently-disabled')) {
+              btn.disabled = false;
+            }
+          });
+          
+          console.log('🔧 Cleared stuck modals and overlays');
+        }
+        
+        // Add escape key handler to close modals
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            // Try specific close functions first
+            if (typeof closeRaceModal === 'function') closeRaceModal();
+            
+            // Emergency cleanup
+            clearStuckModals();
+          }
+        });
+        
+        // Add global click handler for modal backgrounds
+        document.addEventListener('click', (e) => {
+          if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
+            clearStuckModals();
+          }
+        });
+        
+        // Expose cleanup function globally for manual use
+        window.clearStuckModals = clearStuckModals;
+        
+        // Specific fix for the stuck "Queued Item" modal
+        function closeQueuedItemModal() {
+          // Find and remove the specific queued item modal
+          const queuedModals = document.querySelectorAll('div:has(h4)');
+          queuedModals.forEach(modal => {
+            const h4 = modal.querySelector('h4');
+            if (h4 && h4.textContent.includes('Queued Item')) {
+              modal.remove();
+              console.log('🗑️ Removed stuck Queued Item modal');
+            }
+          });
+          
+          // Also try more specific selectors
+          const inspectClose = document.getElementById('inspect-close');
+          if (inspectClose) {
+            const modal = inspectClose.closest('div');
+            if (modal) modal.remove();
+          }
+          
+          // Remove any modals with inspect-json elements
+          const inspectElements = document.querySelectorAll('#inspect-json');
+          inspectElements.forEach(el => {
+            const modal = el.closest('.bg-slate-900, .border, .rounded-lg');
+            if (modal) modal.remove();
+          });
+          
+          // Clean up any remaining overlays
+          clearStuckModals();
+        }
+        
+        // Auto-run the fix on page load
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(closeQueuedItemModal, 1000);
+        });
+        
+        // Expose the function globally
+        window.closeQueuedItemModal = closeQueuedItemModal;
+        
+        // Try to close it immediately
+        setTimeout(closeQueuedItemModal, 500);
         
         // Export data functionality
         function exportData() {
           const button = document.getElementById('export-data-btn');
+          if (!button) return;
           button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Exporting...';
           button.disabled = true;
           
-          // Simulate export process
           setTimeout(() => {
             const exportData = {
               timestamp: new Date().toISOString(),
-              totalPhotos: document.getElementById('total-photos').textContent,
-              pendingApprovals: document.getElementById('pending-approvals').textContent,
-              totalRaces: document.getElementById('total-races').textContent,
-              activeUsers: document.getElementById('active-users').textContent
+              totalPhotos: document.getElementById('total-photos')?.textContent || '0',
+              pendingApprovals: document.getElementById('pending-approvals')?.textContent || '0',
+              totalRaces: document.getElementById('total-races')?.textContent || '0',
+              activeUsers: document.getElementById('active-users')?.textContent || '0'
             };
             
             const dataStr = JSON.stringify(exportData, null, 2);
             const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
             const exportFileDefaultName = `redsracing-admin-data-${new Date().toISOString().split('T')[0]}.json`;
             
             const linkElement = document.createElement('a');
@@ -2952,26 +3130,22 @@
             
             button.innerHTML = '<i class="fas fa-download mr-1"></i>Export';
             button.disabled = false;
-            
             alert('Data exported successfully!');
           }, 2000);
         }
         
         // Cleanup functionality
         function performCleanup() {
-          if (!confirm('This will clean up old rejected photos and temporary data. Continue?')) {
-            return;
-          }
+          if (!confirm('This will clean up old rejected photos and temporary data. Continue?')) return;
           
           const button = document.getElementById('cleanup-btn');
+          if (!button) return;
           button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Cleaning...';
           button.disabled = true;
           
-          // Simulate cleanup process
           setTimeout(() => {
             button.innerHTML = '<i class="fas fa-trash mr-1"></i>Cleanup';
             button.disabled = false;
-            
             alert('Cleanup completed successfully!');
             loadRealFirebaseData();
           }, 3000);
