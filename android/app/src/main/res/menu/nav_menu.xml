@@ -4,38 +4,99 @@
         <item 
             android:id="@+id/nav_home" 
             android:title="🏠 Home" />
-        <item 
-            android:id="@+id/nav_drivers" 
-            android:title="🏎️ Drivers" />
-        <item 
-            android:id="@+id/nav_schedule" 
-            android:title="📅 Schedule" />
-        <item 
-            android:id="@+id/nav_gallery" 
-            android:title="📸 Gallery" />
-        <item 
-            android:id="@+id/nav_videos" 
-            android:title="🎥 Videos" />
     </group>
+    
+    <group android:id="@+id/group_drivers" android:checkableBehavior="none">
+        <item android:title="🏎️ Drivers">
+            <menu>
+                <item 
+                    android:id="@+id/nav_driver_jon" 
+                    android:title="• Jon Kirsch #8" />
+                <item 
+                    android:id="@+id/nav_driver_jonny" 
+                    android:title="• Jonny Kirsch #88" />
+                <item 
+                    android:id="@+id/nav_legends" 
+                    android:title="• Team Legends" />
+            </menu>
+        </item>
+    </group>
+    
+    <group android:id="@+id/group_racing" android:checkableBehavior="none">
+        <item android:title="🏁 Racing">
+            <menu>
+                <item 
+                    android:id="@+id/nav_schedule" 
+                    android:title="• Schedule" />
+                <item 
+                    android:id="@+id/nav_leaderboard" 
+                    android:title="• Leaderboard" />
+                <item 
+                    android:id="@+id/nav_gallery" 
+                    android:title="• 📸 Gallery" />
+                <item 
+                    android:id="@+id/nav_videos" 
+                    android:title="• 🎥 Videos" />
+            </menu>
+        </item>
+    </group>
+    
     <group android:id="@+id/group_community" android:checkableBehavior="none">
-        <item 
-            android:id="@+id/nav_qna" 
-            android:title="❓ Q&amp;A" />
-        <item 
-            android:id="@+id/nav_feedback" 
-            android:title="💬 Feedback" />
-        <item 
-            android:id="@+id/nav_sponsorship" 
-            android:title="💰 Sponsorship" />
+        <item android:title="👥 Community">
+            <menu>
+                <item 
+                    android:id="@+id/nav_qna" 
+                    android:title="• ❓ Q&amp;A" />
+                <item 
+                    android:id="@+id/nav_feedback" 
+                    android:title="• 💬 Feedback" />
+                <item 
+                    android:id="@+id/nav_sponsorship" 
+                    android:title="• 💰 Sponsorship" />
+            </menu>
+        </item>
     </group>
+    
     <group android:id="@+id/group_admin" android:checkableBehavior="none">
-        <item 
-            android:id="@+id/nav_admin" 
-            android:title="⚙️ Admin Console" />
+        <item android:title="⚙️ Admin">
+            <menu>
+                <item 
+                    android:id="@+id/nav_admin_overview" 
+                    android:title="• Overview" />
+                <item 
+                    android:id="@+id/nav_admin_race" 
+                    android:title="• Race Management" />
+                <item 
+                    android:id="@+id/nav_admin_media" 
+                    android:title="• Media" />
+                <item 
+                    android:id="@+id/nav_admin_qna" 
+                    android:title="• Q&amp;A Management" />
+                <item 
+                    android:id="@+id/nav_admin_logs" 
+                    android:title="• Error Logs" />
+                <item 
+                    android:id="@+id/nav_admin_pages" 
+                    android:title="• Page Management" />
+                <item 
+                    android:id="@+id/nav_admin_analytics" 
+                    android:title="• Analytics" />
+                <item 
+                    android:id="@+id/nav_admin_team" 
+                    android:title="• Team &amp; Roles" />
+                <item 
+                    android:id="@+id/nav_admin_settings" 
+                    android:title="• Settings" />
+            </menu>
+        </item>
+    </group>
+    
+    <group android:id="@+id/group_profile" android:checkableBehavior="none">
         <item 
             android:id="@+id/nav_profile" 
             android:title="👤 My Profile" />
     </group>
+    
     <group android:id="@+id/group_auth" android:checkableBehavior="none">
         <item 
             android:id="@+id/nav_login" 

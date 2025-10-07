@@ -3,6 +3,7 @@
         <item name="android:statusBarColor" tools:targetApi="l">@color/website_background</item>
         <item name="android:navigationBarColor">@color/website_background</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
         <item name="android:colorBackground">@color/website_background</item>
     </style>
 

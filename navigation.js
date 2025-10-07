@@ -225,6 +225,14 @@ const core = await import('./assets/js/firebase-core.js');
       }
     });
     
+    // Initialize mobile accordion content
+    const accordionContents = mobileMenu.querySelectorAll('.mobile-accordion-content');
+    accordionContents.forEach(content => {
+      content.style.maxHeight = '0';
+      content.style.overflow = 'hidden';
+      content.style.transition = 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    });
+    
     // Mobile accordion functionality
     const accordions = mobileMenu.querySelectorAll('.mobile-accordion');
     accordions.forEach(accordion => {
@@ -236,36 +244,42 @@ const core = await import('./assets/js/firebase-core.js');
         const icon = accordion.querySelector('.accordion-icon');
         
         if (content && content.classList.contains('mobile-accordion-content')) {
-          const isCurrentlyHidden = content.classList.contains('hidden') || 
-            content.style.display === 'none' || 
-            getComputedStyle(content).display === 'none';
+          // Initialize content for CSS transitions
+          content.style.overflow = 'hidden';
+          content.style.transition = 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+          
+          const isCurrentlyOpen = accordion.classList.contains('active');
+          const currentMaxHeight = content.style.maxHeight;
+          const isCurrentlyHidden = !isCurrentlyOpen || currentMaxHeight === '0px' || currentMaxHeight === '';
             
-          // Close other accordions (optional)
+          // Close other accordions
           accordions.forEach(otherAccordion => {
             if (otherAccordion !== accordion) {
               const otherContent = otherAccordion.nextElementSibling;
+              const otherIcon = otherAccordion.querySelector('.accordion-icon');
               if (otherContent) {
-                otherContent.classList.add('hidden');
-                otherContent.style.display = 'none';
+                otherContent.style.maxHeight = '0';
                 otherAccordion.classList.remove('active');
+                if (otherIcon) {
+                  otherIcon.style.transform = 'rotate(0deg)';
+                }
               }
             }
           });
           
           // Toggle current accordion
           if (isCurrentlyHidden) {
-            content.classList.remove('hidden');
-            content.style.display = 'block';
             accordion.classList.add('active');
+            content.style.maxHeight = content.scrollHeight + 'px';
+            if (icon) {
+              icon.style.transform = 'rotate(180deg)';
+            }
           } else {
-            content.classList.add('hidden');
-            content.style.display = 'none';
             accordion.classList.remove('active');
-          }
-          
-          // Rotate icon if present
-          if (icon) {
-            icon.style.transform = !isCurrentlyHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+            content.style.maxHeight = '0';
+            if (icon) {
+              icon.style.transform = 'rotate(0deg)';
+            }
           }
         }
       });

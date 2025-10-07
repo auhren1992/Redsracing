@@ -1,0 +1,357 @@
+<!doctype html>
+<!-- Mobile App Version - Clean layout without header navigation -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RedsRacing Mobile App</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/modern-effects.css" />
+    <style>
+      /* Mobile App Specific Styles */
+      body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        color: white;
+        font-family: 'Inter', sans-serif;
+        overflow-x: hidden;
+      }
+      
+      .mobile-app-container {
+        min-height: 100vh;
+        padding: 0;
+        background: inherit;
+      }
+      
+      .content-section {
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      
+      .section-title {
+        font-family: 'Racing Sans One', sans-serif;
+        font-size: 2rem;
+        color: #fbbf24;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+      
+      .driver-card {
+        background: rgba(30, 41, 59, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+      }
+      
+      .driver-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(251, 191, 36, 0.6);
+        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.2);
+      }
+      
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin: 20px 0;
+      }
+      
+      .stat-card {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+      
+      .stat-card:hover {
+        border-color: rgba(251, 191, 36, 0.4);
+        transform: translateY(-2px);
+      }
+      
+      .stat-number {
+        font-size: 2rem;
+        font-weight: 900;
+        color: #fbbf24;
+        margin-bottom: 4px;
+      }
+      
+      .stat-label {
+        color: #94a3b8;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      
+      .welcome-section {
+        text-align: center;
+        padding: 40px 20px;
+        background: rgba(15, 23, 42, 0.5);
+        margin-bottom: 30px;
+      }
+      
+      .app-title {
+        font-family: 'Racing Sans One', sans-serif;
+        font-size: 3rem;
+        background: linear-gradient(45deg, #ffffff, #fbbf24, #ef4444);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+      }
+      
+      .quick-stats {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 20px;
+        background: rgba(30, 41, 59, 0.4);
+        border-radius: 16px;
+        margin: 20px 0;
+      }
+      
+      .quick-stat {
+        text-align: center;
+        min-width: 80px;
+      }
+      
+      .quick-stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #fbbf24;
+      }
+      
+      .quick-stat-label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        margin-top: 4px;
+      }
+      
+      /* Mobile-friendly responsive design */
+      @media (max-width: 640px) {
+        .app-title {
+          font-size: 2rem;
+        }
+        .section-title {
+          font-size: 1.5rem;
+        }
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      
+      /* Loading animation */
+      .fade-in {
+        animation: fadeIn 0.8s ease-in;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      /* Native app integration styles */
+      .no-select {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      
+      /* Hide any website-specific elements that might appear */
+      header, nav, .website-header, .mobile-menu, #mobile-menu, .dropdown {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body class="mobile-app-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section fade-in">
+      <h1 class="app-title no-select">RedsRacing</h1>
+      <p class="text-slate-300 text-lg">Official Jon & Jonny Kirsch Racing App</p>
+      <div class="flex items-center justify-center mt-4">
+        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
+        <span class="text-green-400 text-sm font-semibold">Racing Season 2025 Live</span>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="content-section fade-in">
+      <div class="quick-stats">
+        <div class="quick-stat">
+          <div class="quick-stat-number">2</div>
+          <div class="quick-stat-label">Years</div>
+        </div>
+        <div class="quick-stat">
+          <div class="quick-stat-number">12</div>
+          <div class="quick-stat-label">Wins</div>
+        </div>
+        <div class="quick-stat">
+          <div class="quick-stat-number">#8 & #88</div>
+          <div class="quick-stat-label">Numbers</div>
+        </div>
+        <div class="quick-stat">
+          <div id="photo-count-mobile" class="quick-stat-number">0</div>
+          <div class="quick-stat-label">Photos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Driver Cards -->
+    <div class="content-section fade-in">
+      <h2 class="section-title">Our Drivers</h2>
+      
+      <div class="driver-card">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center mr-4">
+            <i class="fas fa-car text-white text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-white">Jon Kirsch</h3>
+            <p class="text-slate-400">Driver #8 • Team Captain</p>
+          </div>
+        </div>
+        <p class="text-slate-300 mb-4">Experienced racer with multiple championships and a passion for high-speed competition.</p>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-number">8</div>
+            <div class="stat-label">Wins 2025</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">2nd</div>
+            <div class="stat-label">Points Standing</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="driver-card">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center mr-4">
+            <i class="fas fa-car text-white text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-white">Jonny Kirsch</h3>
+            <p class="text-slate-400">Driver #88 • Rising Star</p>
+          </div>
+        </div>
+        <p class="text-slate-300 mb-4">Young and talented driver making waves in the racing community with impressive performances.</p>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-number">4</div>
+            <div class="stat-label">Wins 2025</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">5th</div>
+            <div class="stat-label">Points Standing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="content-section fade-in">
+      <h2 class="section-title">Recent Activity</h2>
+      <div class="driver-card">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-green-400 text-sm font-semibold">
+            <i class="fas fa-trophy mr-1"></i>Latest Win
+          </span>
+          <span class="text-slate-400 text-xs">2025-09-15</span>
+        </div>
+        <h3 class="text-white font-bold mb-2">Jon Kirsch Takes Victory at Speedway Championship</h3>
+        <p class="text-slate-300 text-sm">Dominant performance in the final races of the season, securing #8's position in the top standings.</p>
+      </div>
+    </div>
+
+    <!-- App JavaScript -->
+    <script>
+      // Mobile app specific JavaScript
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('RedsRacing Mobile App Loaded');
+        
+        // Add fade-in animation to elements
+        const elements = document.querySelectorAll('.fade-in');
+        elements.forEach((el, index) => {
+          el.style.animationDelay = `${index * 0.2}s`;
+        });
+        
+        // Simulate photo count (this would be fetched from Firebase in production)
+        const photoCountElement = document.getElementById('photo-count-mobile');
+        if (photoCountElement) {
+          // This could be connected to Firebase later
+          photoCountElement.textContent = '0';
+        }
+        
+        // Add smooth scrolling
+        document.documentElement.style.scrollBehavior = 'smooth';
+        
+        // Handle Android WebView specific optimizations
+        if (window.AndroidInterface) {
+          console.log('Android Interface Available');
+          // Additional Android-specific functionality can be added here
+        }
+        
+        // Prevent accidental text selection on mobile
+        document.addEventListener('selectstart', function(e) {
+          if (e.target.closest('.no-select')) {
+            e.preventDefault();
+          }
+        });
+        
+        console.log('Mobile app initialization complete');
+      });
+      
+      // Function to update content based on drawer navigation
+      window.loadPage = function(page) {
+        console.log('Loading page:', page);
+        // This function can be called from Android MainActivity
+        // to update content based on drawer selection
+        
+        switch(page) {
+          case 'home':
+            document.querySelector('.welcome-section h1').textContent = 'RedsRacing Home';
+            break;
+          case 'drivers':
+            document.querySelector('.welcome-section h1').textContent = 'Our Drivers';
+            break;
+          case 'schedule':
+            document.querySelector('.welcome-section h1').textContent = 'Race Schedule';
+            break;
+          case 'gallery':
+            document.querySelector('.welcome-section h1').textContent = 'Photo Gallery';
+            break;
+          case 'videos':
+            document.querySelector('.welcome-section h1').textContent = 'Race Videos';
+            break;
+          default:
+            document.querySelector('.welcome-section h1').textContent = 'RedsRacing';
+        }
+      };
+      
+      // Export for Android interface
+      window.MobileApp = {
+        loadPage: window.loadPage,
+        version: '2.3.0'
+      };
+    </script>
+  </body>
+</html>

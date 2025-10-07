@@ -74,21 +74,43 @@ class MainActivity : AppCompatActivity() {
         binding.navView.setNavigationItemSelectedListener { item ->
             val base = "https://www.redsracing.org/"
             when (item.itemId) {
+                // Home
                 R.id.nav_home -> binding.webview.loadUrl(base)
-                R.id.nav_drivers -> binding.webview.loadUrl(base + "driver.html")
+                
+                // Drivers section
+                R.id.nav_driver_jon -> binding.webview.loadUrl(base + "driver.html")
+                R.id.nav_driver_jonny -> binding.webview.loadUrl(base + "jonny.html")
+                R.id.nav_legends -> binding.webview.loadUrl(base + "legends.html")
+                
+                // Racing section
                 R.id.nav_schedule -> binding.webview.loadUrl(base + "schedule.html")
+                R.id.nav_leaderboard -> binding.webview.loadUrl(base + "leaderboard.html")
                 R.id.nav_gallery -> binding.webview.loadUrl(base + "gallery.html")
                 R.id.nav_videos -> binding.webview.loadUrl(base + "videos.html")
-                // Community navigation items
+                
+                // Community section
                 R.id.nav_qna -> binding.webview.loadUrl(base + "qna.html")
                 R.id.nav_feedback -> binding.webview.loadUrl(base + "feedback.html")
                 R.id.nav_sponsorship -> binding.webview.loadUrl(base + "sponsorship.html")
-                // Admin and Profile
-                R.id.nav_admin -> binding.webview.loadUrl(base + "admin-console.html")
+                
+                // Admin section - all link to admin console with specific fragments
+                R.id.nav_admin_overview -> binding.webview.loadUrl(base + "admin-console.html#overview")
+                R.id.nav_admin_race -> binding.webview.loadUrl(base + "admin-console.html#race")
+                R.id.nav_admin_media -> binding.webview.loadUrl(base + "admin-console.html#media")
+                R.id.nav_admin_qna -> binding.webview.loadUrl(base + "admin-console.html#qna")
+                R.id.nav_admin_logs -> binding.webview.loadUrl(base + "admin-console.html#logs")
+                R.id.nav_admin_pages -> binding.webview.loadUrl(base + "admin-console.html#admin-pages")
+                R.id.nav_admin_analytics -> binding.webview.loadUrl(base + "admin-console.html#analytics")
+                R.id.nav_admin_team -> binding.webview.loadUrl(base + "admin-console.html#advanced")
+                R.id.nav_admin_settings -> binding.webview.loadUrl(base + "settings.html")
+                
+                // Profile and Authentication
                 R.id.nav_profile -> binding.webview.loadUrl(base + "profile.html")
-                // Authentication
                 R.id.nav_login -> binding.webview.loadUrl(base + "login.html")
-                R.id.nav_signout -> binding.webview.evaluateJavascript("try{localStorage.clear(); sessionStorage.clear(); if(window.AndroidAuth&&AndroidAuth.onLogout){AndroidAuth.onLogout();}}catch(e){}", null)
+                R.id.nav_signout -> {
+                    binding.webview.evaluateJavascript("try{localStorage.clear(); sessionStorage.clear(); if(window.AndroidAuth&&AndroidAuth.onLogout){AndroidAuth.onLogout();}}catch(e){}", null)
+                    binding.webview.loadUrl(base)
+                }
             }
             binding.drawerLayout.closeDrawers()
             true
@@ -141,7 +163,7 @@ class MainActivity : AppCompatActivity() {
         // Handle system back using OnBackPressedDispatcher
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (binding.drawerLayout.isDrawerOpen(android.view.Gravity.START)) {
+                if (binding.drawerLayout.isDrawerOpen(androidx.core.view.GravityCompat.START)) {
                     binding.drawerLayout.closeDrawers(); return
                 }
                 if (binding.webview.canGoBack()) binding.webview.goBack() else finish()
@@ -331,56 +353,38 @@ class MainActivity : AppCompatActivity() {
                 """.trimIndent()
                 view?.evaluateJavascript(js, null)
                 
-                // Hide web navigation to avoid double navigation (Android drawer + web nav)
-                val hideWebNavCSS = """
+                // Hide website navigation and let app use its own drawer navigation
+                val hideWebsiteNavJS = """
                     (function(){
-                        var style = document.createElement('style');
-                        style.textContent = `
-                            /* Hide main website navigation */
-                            nav, .nav, .navbar, .navigation, .main-nav,
-                            header nav, .header-nav, .site-nav, .primary-nav,
-                            .nav-container, .navigation-container,
-                            /* Hide mobile menu toggles since we use Android drawer */
-                            .mobile-menu-button, #mobile-menu-button, .hamburger,
-                            .menu-toggle, .nav-toggle, #menu-toggle,
-                            /* Hide any fixed headers that might conflict */
-                            .fixed-header, .sticky-header,
-                            /* Common navigation selectors */
-                            [role="navigation"]:not(.drawer):not(.sidebar) {
-                                display: none !important;
-                                visibility: hidden !important;
+                        // Hide the website's navigation header completely
+                        setTimeout(function() {
+                            var header = document.querySelector('header');
+                            if (header) {
+                                header.style.display = 'none';
                             }
                             
-                            /* Adjust body padding/margin if header was fixed */
-                            body {
-                                padding-top: 0 !important;
-                                margin-top: 0 !important;
-                            }
+                            // Hide any navigation elements
+                            var navElements = document.querySelectorAll('nav, .nav, .navbar, .navigation, .header-nav');
+                            navElements.forEach(function(nav) {
+                                nav.style.display = 'none';
+                            });
                             
-                            /* Ensure content flows properly */
-                            main, .main, .content, .main-content {
-                                margin-top: 0 !important;
-                                padding-top: 0 !important;
-                            }
+                            // Adjust body padding/margin since header is hidden
+                            document.body.style.paddingTop = '0';
+                            document.body.style.marginTop = '0';
                             
-                            /* Hide any overlays or backdrops from web mobile menus */
-                            .menu-overlay, .nav-overlay, .mobile-menu-backdrop {
-                                display: none !important;
-                            }
-                        `;
-                        document.head.appendChild(style);
-                        
-                        // Also hide any visible mobile menus that might be open
-                        var mobileMenus = document.querySelectorAll('#mobile-menu, .mobile-menu, #mobile-menu-dropdown');
-                        mobileMenus.forEach(function(menu) {
-                            if (menu) {
-                                menu.style.display = 'none';
-                                menu.style.visibility = 'hidden';
-                            }
-                        });
+                            // Adjust main content positioning
+                            var mainElements = document.querySelectorAll('main, .main-content, .content');
+                            mainElements.forEach(function(main) {
+                                main.style.marginTop = '0';
+                                main.style.paddingTop = '0';
+                            });
+                            
+                            console.log('Website navigation hidden - using Android drawer navigation');
+                        }, 100);
                     })();
                 """.trimIndent()
-                view?.evaluateJavascript(hideWebNavCSS, null)
+                view?.evaluateJavascript(hideWebsiteNavJS, null)
             }
         }
 
@@ -444,7 +448,7 @@ class MainActivity : AppCompatActivity() {
         if (initialUrl.startsWith("file:///android_asset/")) {
             initialUrl = initialUrl.replace("file:///android_asset/", "https://appassets.androidplatform.net/assets/")
         }
-        webView.loadUrl(initialUrl)
+        binding.webview.loadUrl(initialUrl)
     }
 
     private fun ensureMediaAndCameraPermissions() {

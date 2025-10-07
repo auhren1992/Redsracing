@@ -482,7 +482,7 @@
               🏎️ Drivers <i class="fas fa-chevron-down"></i>
             </button>
             <div class="dropdown-menu modern-dropdown">
-<a href="jons.html" class="dropdown-item">Jon Kirsch #8</a>
+              <a href="driver.html" class="dropdown-item">Jon Kirsch #8</a>
               <a href="jonny.html" class="dropdown-item">Jonny Kirsch #88</a>
               <a href="legends.html" class="dropdown-item">Team Legends</a>
             </div>
@@ -530,7 +530,7 @@
                 <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
               </button>
               
-              <div class="dropdown-menu modern-dropdown right-0 w-44">
+              <div class="dropdown-menu modern-dropdown right-0 w-56">
                 <div class="px-4 py-2 border-b border-slate-600/50">
                   <div class="flex items-center space-x-2">
                     <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -538,22 +538,80 @@
                   </div>
                 </div>
                 
-                <a href="admin-console.html" class="dropdown-item flex items-center">
-                  <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
-                  <span>Dashboard</span>
-                </a>
+                <!-- Admin Dashboard -->
+                <div class="py-2 border-b border-slate-600/50">
+                  <div class="px-3 py-1">
+                    <span class="text-xs text-slate-400 uppercase tracking-wider">Admin Dashboard</span>
+                  </div>
+                  <a href="admin-console.html" class="dropdown-item flex items-center">
+                    <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
+                    <span>Dashboard</span>
+                  </a>
+                </div>
                 
-                <a href="profile.html" class="dropdown-item flex items-center">
-                  <i class="fas fa-user w-4 mr-3 text-green-400"></i>
-                  <span>My Profile</span>
-                </a>
+                <!-- Racing Team Management -->
+                <div class="py-2 border-b border-slate-600/50">
+                  <div class="px-3 py-1">
+                    <span class="text-xs text-slate-400 uppercase tracking-wider">Racing Team Management</span>
+                  </div>
+                  <a href="admin-console.html#overview" class="dropdown-item flex items-center">
+                    <i class="fas fa-chart-pie w-4 mr-3 text-green-400"></i>
+                    <span>Overview</span>
+                  </a>
+                  <a href="admin-console.html#race" class="dropdown-item flex items-center">
+                    <i class="fas fa-flag-checkered w-4 mr-3 text-yellow-400"></i>
+                    <span>Race Management</span>
+                  </a>
+                  <a href="admin-console.html#media" class="dropdown-item flex items-center">
+                    <i class="fas fa-photo-video w-4 mr-3 text-purple-400"></i>
+                    <span>Media</span>
+                    <span class="ml-auto bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">0</span>
+                  </a>
+                  <a href="admin-console.html#qna" class="dropdown-item flex items-center">
+                    <i class="fas fa-question-circle w-4 mr-3 text-cyan-400"></i>
+                    <span>Q&A Management</span>
+                  </a>
+                  <a href="admin-console.html#logs" class="dropdown-item flex items-center">
+                    <i class="fas fa-bug w-4 mr-3 text-red-400"></i>
+                    <span>Error Logs</span>
+                  </a>
+                </div>
                 
-                <div class="border-t border-slate-600/50 my-1"></div>
+                <!-- Admin Only -->
+                <div class="py-2 border-b border-slate-600/50">
+                  <div class="px-3 py-1">
+                    <span class="text-xs text-slate-400 uppercase tracking-wider">Admin Only</span>
+                  </div>
+                  <a href="admin-console.html#admin-pages" class="dropdown-item flex items-center">
+                    <i class="fas fa-file-pen w-4 mr-3 text-orange-400"></i>
+                    <span>Page Management</span>
+                  </a>
+                  <a href="admin-console.html#analytics" class="dropdown-item flex items-center">
+                    <i class="fas fa-chart-line w-4 mr-3 text-emerald-400"></i>
+                    <span>Analytics</span>
+                  </a>
+                  <a href="admin-console.html#advanced" class="dropdown-item flex items-center">
+                    <i class="fas fa-users-cog w-4 mr-3 text-yellow-300"></i>
+                    <span>Team & Roles</span>
+                  </a>
+                  <a href="settings.html" class="dropdown-item flex items-center">
+                    <i class="fas fa-cog w-4 mr-3 text-slate-400"></i>
+                    <span>Settings</span>
+                  </a>
+                </div>
                 
-                <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
-                  <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
-                  <span>Sign Out</span>
-                </button>
+                <!-- User Profile -->
+                <div class="py-2">
+                  <a href="profile.html" class="dropdown-item flex items-center">
+                    <i class="fas fa-user w-4 mr-3 text-green-400"></i>
+                    <span>My Profile</span>
+                  </a>
+                  
+                  <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                    <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -574,7 +632,7 @@
           <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
         </button>
         <div class="mobile-accordion-content">
-<a href="jons.html" class="mobile-nav-subitem">Jon Kirsch #8</a>
+          <a href="driver.html" class="mobile-nav-subitem">Jon Kirsch #8</a>
           <a href="jonny.html" class="mobile-nav-subitem">Jonny Kirsch #88</a>
           <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
         </div>
@@ -621,18 +679,94 @@
                 </div>
                 
                 <div class="space-y-1">
-                  <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
-                    <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
-                    <span>Dashboard</span>
-                  </a>
-                  <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
-                    <i class="fas fa-user w-5 mr-3 text-green-400"></i>
-                    <span>My Profile</span>
-                  </a>
-                  <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
-                    <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
-                    <span>Sign Out</span>
-                  </button>
+                  <!-- Admin Dashboard Section -->
+                  <div class="border-b border-slate-600/50 pb-2 mb-2">
+                    <p class="text-xs text-slate-400 uppercase tracking-wider px-2 mb-1">Admin Dashboard</p>
+                    <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
+                      <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
+                      <span>Dashboard</span>
+                    </a>
+                  </div>
+                  
+                  <!-- Racing Team Management -->
+                  <div class="border-b border-slate-600/50 pb-2 mb-2">
+                    <p class="text-xs text-slate-400 uppercase tracking-wider px-2 mb-1">Racing Team Management</p>
+                    
+                    <button class="mobile-accordion w-full flex items-center p-2 rounded text-left">
+                      <i class="fas fa-chart-pie w-5 mr-3 text-green-400"></i>
+                      <span>Overview</span>
+                      <i class="fas fa-chevron-down ml-auto accordion-icon"></i>
+                    </button>
+                    <div class="mobile-accordion-content pl-6 space-y-1">
+                      <a href="admin-console.html#overview" class="mobile-nav-subitem block p-1 text-sm">Dashboard Overview</a>
+                      <a href="admin-console.html#stats" class="mobile-nav-subitem block p-1 text-sm">Performance Stats</a>
+                    </div>
+                    
+                    <a href="admin-console.html#race" class="mobile-nav-item flex items-center p-2 rounded">
+                      <i class="fas fa-flag-checkered w-5 mr-3 text-yellow-400"></i>
+                      <span>Race Management</span>
+                    </a>
+                    
+                    <button class="mobile-accordion w-full flex items-center p-2 rounded text-left">
+                      <i class="fas fa-photo-video w-5 mr-3 text-purple-400"></i>
+                      <span>Media</span>
+                      <span class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full mr-2">0</span>
+                      <i class="fas fa-chevron-down accordion-icon"></i>
+                    </button>
+                    <div class="mobile-accordion-content pl-6 space-y-1">
+                      <a href="admin-console.html#media" class="mobile-nav-subitem block p-1 text-sm">Media Approvals</a>
+                      <a href="gallery.html" class="mobile-nav-subitem block p-1 text-sm">View Gallery</a>
+                      <a href="admin-console.html#media-upload" class="mobile-nav-subitem block p-1 text-sm">Upload Media</a>
+                    </div>
+                    
+                    <a href="admin-console.html#qna" class="mobile-nav-item flex items-center p-2 rounded">
+                      <i class="fas fa-question-circle w-5 mr-3 text-cyan-400"></i>
+                      <span>Q&A Management</span>
+                    </a>
+                    
+                    <a href="admin-console.html#logs" class="mobile-nav-item flex items-center p-2 rounded">
+                      <i class="fas fa-bug w-5 mr-3 text-red-400"></i>
+                      <span>Error Logs</span>
+                    </a>
+                  </div>
+                  
+                  <!-- Admin Only Section -->
+                  <div class="border-b border-slate-600/50 pb-2 mb-2">
+                    <p class="text-xs text-slate-400 uppercase tracking-wider px-2 mb-1">Admin Only</p>
+                    
+                    <a href="admin-console.html#admin-pages" class="mobile-nav-item flex items-center p-2 rounded">
+                      <i class="fas fa-file-pen w-5 mr-3 text-orange-400"></i>
+                      <span>Page Management</span>
+                    </a>
+                    
+                    <a href="admin-console.html#analytics" class="mobile-nav-item flex items-center p-2 rounded">
+                      <i class="fas fa-chart-line w-5 mr-3 text-emerald-400"></i>
+                      <span>Analytics</span>
+                    </a>
+                    
+                    <a href="admin-console.html#advanced" class="mobile-nav-item flex items-center p-2 rounded">
+                      <i class="fas fa-users-cog w-5 mr-3 text-yellow-300"></i>
+                      <span>Team & Roles</span>
+                    </a>
+                    
+                    <a href="settings.html" class="mobile-nav-item flex items-center p-2 rounded">
+                      <i class="fas fa-cog w-5 mr-3 text-slate-400"></i>
+                      <span>Settings</span>
+                    </a>
+                  </div>
+                  
+                  <!-- User Profile -->
+                  <div class="pt-2">
+                    <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
+                      <i class="fas fa-user w-5 mr-3 text-green-400"></i>
+                      <span>My Profile</span>
+                    </a>
+                    
+                    <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                      <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -3126,6 +3260,8 @@
     <script type="module" src="navigation.js"></script>
     <script type="module" src="main.js"></script>
     <script src="assets/js/hotspot-mobile.js"></script>
-    <script src="assets/js/mobile-navigation.js"></script>
+    <script type="module" src="assets/js/jons-2024.js"></script>
+    <script type="module" src="assets/js/jons-2025.js"></script>
+    <script type="module" src="assets/js/jons-k1-stats.js"></script>
   </body>
 </html>

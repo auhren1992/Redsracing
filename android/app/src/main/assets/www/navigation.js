@@ -127,11 +127,15 @@ const core = await import('./assets/js/firebase-core.js');
   })();
 
   function hideAllDropdowns() {
-    document.querySelectorAll('.dropdown-menu').forEach((menu) => {
+    document.querySelectorAll('.dropdown-menu, .modern-dropdown').forEach((menu) => {
       menu.classList.add('hidden');
       menu.setAttribute('aria-hidden', 'true');
       // Ensure it's not visually visible if CSS missing
-      try { menu.style.display = 'none'; } catch (_) {}
+      try {
+        menu.style.display = 'none';
+        menu.style.visibility = 'hidden';
+        menu.style.opacity = '0';
+      } catch (_) {}
     });
   }
 
@@ -139,7 +143,11 @@ const core = await import('./assets/js/firebase-core.js');
     if (!menu) return;
     menu.classList.remove('hidden');
     menu.removeAttribute('aria-hidden');
-    try { menu.style.display = ''; } catch (_) {}
+    try {
+      menu.style.display = 'block';
+      menu.style.visibility = 'visible';
+      menu.style.opacity = '1';
+    } catch (_) {}
   }
 
   function toggleMenu(button, menu) {
@@ -157,15 +165,42 @@ const core = await import('./assets/js/firebase-core.js');
     // Wire toggles
     document.querySelectorAll('.dropdown-toggle').forEach((btn) => {
       const menu = btn.nextElementSibling;
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleMenu(btn, menu);
-      });
+      if (menu && menu.classList.contains('dropdown-menu')) {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleMenu(btn, menu);
+        });
+
+        // Add hover support for desktop dropdowns
+        if (window.matchMedia && !window.matchMedia("(hover: none)").matches) {
+          const dropdown = btn.closest('.dropdown');
+          if (dropdown) {
+            dropdown.addEventListener('mouseenter', () => {
+              hideAllDropdowns();
+              showMenu(menu);
+            });
+            dropdown.addEventListener('mouseleave', () => {
+              setTimeout(() => hideAllDropdowns(), 300);
+            });
+          }
+        }
+      }
     });
 
     // Close on outside click
-    document.addEventListener('click', () => hideAllDropdowns());
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dropdown')) {
+        hideAllDropdowns();
+      }
+    });
+
+    // Keyboard navigation support
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        hideAllDropdowns();
+      }
+    });
   }
 
   function initMobileMenu() {
@@ -190,22 +225,62 @@ const core = await import('./assets/js/firebase-core.js');
       }
     });
     
+    // Initialize mobile accordion content
+    const accordionContents = mobileMenu.querySelectorAll('.mobile-accordion-content');
+    accordionContents.forEach(content => {
+      content.style.maxHeight = '0';
+      content.style.overflow = 'hidden';
+      content.style.transition = 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    });
+    
     // Mobile accordion functionality
     const accordions = mobileMenu.querySelectorAll('.mobile-accordion');
     accordions.forEach(accordion => {
       accordion.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
+        
         const content = accordion.nextElementSibling;
         const icon = accordion.querySelector('.accordion-icon');
         
-        // Toggle active state
-        accordion.classList.toggle('active');
-        
-        // Show/hide content
-        if (accordion.classList.contains('active')) {
-          content.style.maxHeight = content.scrollHeight + 'px';
-        } else {
-          content.style.maxHeight = '0';
+        if (content && content.classList.contains('mobile-accordion-content')) {
+          // Initialize content for CSS transitions
+          content.style.overflow = 'hidden';
+          content.style.transition = 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+          
+          const isCurrentlyOpen = accordion.classList.contains('active');
+          const currentMaxHeight = content.style.maxHeight;
+          const isCurrentlyHidden = !isCurrentlyOpen || currentMaxHeight === '0px' || currentMaxHeight === '';
+            
+          // Close other accordions
+          accordions.forEach(otherAccordion => {
+            if (otherAccordion !== accordion) {
+              const otherContent = otherAccordion.nextElementSibling;
+              const otherIcon = otherAccordion.querySelector('.accordion-icon');
+              if (otherContent) {
+                otherContent.style.maxHeight = '0';
+                otherAccordion.classList.remove('active');
+                if (otherIcon) {
+                  otherIcon.style.transform = 'rotate(0deg)';
+                }
+              }
+            }
+          });
+          
+          // Toggle current accordion
+          if (isCurrentlyHidden) {
+            accordion.classList.add('active');
+            content.style.maxHeight = content.scrollHeight + 'px';
+            if (icon) {
+              icon.style.transform = 'rotate(180deg)';
+            }
+          } else {
+            accordion.classList.remove('active');
+            content.style.maxHeight = '0';
+            if (icon) {
+              icon.style.transform = 'rotate(0deg)';
+            }
+          }
         }
       });
     });
