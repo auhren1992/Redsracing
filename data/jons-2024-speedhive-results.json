@@ -13,79 +13,82 @@
   },
   "events": [
     {
-      "id": "small-car-nationals-aug-3-2024",
-      "eventName": "Small Car Nationals - Aug 3, 2024",
-      "date": "2024-08-03",
-      "track": "Slinger Super Speedway, WI",
-      "trackLength": "0.25 mi",
-      "source": "MYLAPS Speedhive",
-      "sessions": [
-        { "sessionType": "Practice", "position": 4, "lapTime": "11.892" },
-        { "sessionType": "Qualifying", "position": 5, "lapTime": "11.821" },
-        { "sessionType": "Feature", "position": 2, "lapTime": "11.748" }
-      ],
-      "highlights": ["🏆 Podium Finish"],
-      "summary": "P2 at Small Car Nationals with 11.748s best lap in feature."
-    },
-    {
-      "id": "la-crosse-jun-29-2024",
-      "eventName": "La Crosse Speedway - Jun 29, 2024",
-      "date": "2024-06-29",
-      "track": "La Crosse Speedway, WI",
-      "trackLength": "0.33 mi",
-      "source": "MYLAPS Speedhive",
-      "sessions": [
-        { "sessionType": "Practice", "position": 6, "lapTime": "16.245" },
-        { "sessionType": "Qualifying", "position": 4, "lapTime": "16.125" },
-        { "sessionType": "Feature", "position": 3, "lapTime": "16.089" }
-      ],
-      "highlights": ["🏆 Podium Finish"],
-      "summary": "P3 finish with steady pace, best 16.089s."
-    },
-    {
-      "id": "golden-sands-may-27-2024",
-      "eventName": "Golden Sands Speedway - May 27, 2024",
-      "date": "2024-05-27",
-      "track": "Golden Sands Speedway, WI",
-      "trackLength": "0.25 mi",
-      "source": "MYLAPS Speedhive",
-      "sessions": [
-        { "sessionType": "Practice", "position": 5, "lapTime": "14.521" },
-        { "sessionType": "Qualifying", "position": 3, "lapTime": "14.342" },
-        { "sessionType": "Feature", "position": 1, "lapTime": "14.198" }
-      ],
-      "highlights": ["🏆 FEATURE WIN"],
-      "summary": "Feature winner with a 14.198s best lap."
-    },
-    {
-      "id": "dells-may-11-2024",
-      "eventName": "Dells Raceway Park - May 11, 2024",
-      "date": "2024-05-11",
-      "track": "Dells Raceway Park, WI",
-      "trackLength": "0.33 mi",
-      "source": "MYLAPS Speedhive",
-      "sessions": [
-        { "sessionType": "Practice", "position": 7, "lapTime": "16.125" },
-        { "sessionType": "Qualifying", "position": 5, "lapTime": "15.945" },
-        { "sessionType": "Feature", "position": 3, "lapTime": "15.821" }
-      ],
-      "highlights": ["🏆 Podium Finish"],
-      "summary": "P3 finish to open the season momentum."
-    },
-    {
-      "id": "grundy-apr-20-2024",
-      "eventName": "Season Opener - Grundy County Speedway - Apr 20, 2024",
-      "date": "2024-04-20",
+      "id": "bettenhausen-100-sep-21-2024",
+      "eventName": "63rd Annual Bettenhausen 100 Memorial",
+      "date": "2024-09-21",
       "track": "Grundy County Speedway, IL",
       "trackLength": "0.25 mi",
       "source": "MYLAPS Speedhive",
       "sessions": [
-        { "sessionType": "Practice", "position": 8, "lapTime": "15.245" },
-        { "sessionType": "Qualifying", "position": 7, "lapTime": "15.102" },
-        { "sessionType": "Feature", "position": 6, "lapTime": "14.987" }
-      ],
-      "highlights": ["Season opener complete"],
-      "summary": "Solid season opener with consistent lap times."
+        { "sessionType": "Practice", "position": null, "lapTime": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null }
+      ]
+    },
+    {
+      "id": "season-championship-sep-8-2024",
+      "eventName": "Season Championship",
+      "date": "2024-09-08",
+      "track": "Slinger Super Speedway, WI",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null }
+      ]
+    },
+    {
+      "id": "tundra-2-sep-2-2024",
+      "eventName": "TUNDRA #2",
+      "date": "2024-09-02",
+      "track": "Golden Sands Speedway, WI",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null }
+      ]
+    },
+    {
+      "id": "super-cup-nitro-tour-jul-20-2024",
+      "eventName": "Super Cup Nitro Tour",
+      "date": "2024-07-20",
+      "track": "Dells Raceway Park, WI",
+      "trackLength": "0.3333 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null }
+      ]
+    },
+    {
+      "id": "small-car-nationals-jul-14-2024",
+      "eventName": "Small Car Nationals",
+      "date": "2024-07-14",
+      "track": "Slinger Super Speedway, WI",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null }
+      ]
+    },
+    {
+      "id": "scout-night-jun-16-2024",
+      "eventName": "PMF Landscape Supply Scout Night",
+      "date": "2024-06-16",
+      "track": "Slinger Super Speedway, WI",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null }
+      ]
     }
   ]
 }
