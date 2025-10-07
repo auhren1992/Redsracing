@@ -18,7 +18,7 @@ import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
   // Load 2025 MYLAPS Speedhive data
   async function load2025Data() {
     try {
-      const response = await fetch('./data/jons-2025-speedhive-results.json', { 
+      const response = await fetch('./data/jon-2025-speedhive-results.json', { 
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',

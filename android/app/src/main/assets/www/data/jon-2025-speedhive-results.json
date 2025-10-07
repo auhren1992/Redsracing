@@ -272,6 +272,58 @@
         "⏱️ 17.475s Best Lap"
       ],
       "summary": "Outstanding Labor Day Performance: Jon Kirsch delivered an exceptional performance at Dells Raceway Park, capturing a dominant heat race victory with a commanding performance over 8 laps. His consistency continued into the feature race where he secured a well-earned 3rd place podium finish, demonstrating the speed and racecraft that makes #8K a championship contender."
+    },
+    {
+      "id": "small-car-nationals-jul-13-2025",
+      "eventName": "Small Car Nationals - Jul 13, 2025",
+      "date": "2025-07-13",
+      "track": "Slinger Super Speedway, WI",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null, "speed": null }
+      ]
+    },
+    {
+      "id": "la-crosse-jun-28-2025",
+      "eventName": "La Crosse Fairgrounds Speedway - Jun 28, 2025",
+      "date": "2025-06-28",
+      "track": "La Crosse Fairgrounds Speedway, WI",
+      "trackLength": "0.33 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null, "speed": null }
+      ]
+    },
+    {
+      "id": "graduation-celebration-jun-8-2025",
+      "eventName": "Graduation Celebration - Jun 8, 2025",
+      "date": "2025-06-08",
+      "track": "Slinger Super Speedway, WI",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null, "speed": null }
+      ]
+    },
+    {
+      "id": "spring-classic-apr-26-2025",
+      "eventName": "48th Annual Spring Classic - Apr 26, 2025",
+      "date": "2025-04-26",
+      "track": "Grundy County Speedway, IL",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null, "speed": null }
+      ]
     }
   ],
   "seasonSummary": {
