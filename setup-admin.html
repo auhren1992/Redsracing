@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Admin Access - RedsRacing CMS</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        .btn {
+            background: #3b82f6;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            margin: 8px;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .btn.success {
+            background: #10b981;
+        }
+        .btn.success:hover {
+            background: #059669;
+        }
+        .status {
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border-left: 4px solid;
+        }
+        .status.info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+        .status.success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+        }
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+        .user-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 RedsRacing CMS Admin Setup</h1>
+        <p>This tool helps you set up admin access for the CMS system.</p>
+
+        <div id="status-container"></div>
+
+        <div class="user-info">
+            <h3>Current User Status</h3>
+            <div id="user-status">Not checked yet...</div>
+        </div>
+
+        <div>
+            <button class="btn" onclick="checkCurrentUser()">🔍 Check Current User</button>
+            <button class="btn success" onclick="grantAdminAccess()">🛡️ Grant Admin Access</button>
+            <button class="btn" onclick="testCMSAccess()">🧪 Test CMS Access</button>
+        </div>
+
+        <div style="margin-top: 32px;">
+            <h3>Manual Instructions</h3>
+            <p>If the automatic setup doesn't work, you can manually add admin access:</p>
+            <ol>
+                <li>Go to Firebase Console → Firestore Database</li>
+                <li>Navigate to the <code>users</code> collection</li>
+                <li>Find your user document (by your user ID)</li>
+                <li>Add a field: <code>role</code> with value <code>"admin"</code></li>
+                <li>Or add a field: <code>isAdmin</code> with value <code>true</code></li>
+            </ol>
+        </div>
+
+        <div style="margin-top: 24px;">
+            <h4>Debug Information</h4>
+            <pre id="debug-info">Debug info will appear here...</pre>
+        </div>
+    </div>
+
+    <!-- Firebase imports -->
+    <script type="module">
+        import { getFirebaseAuth, getFirebaseDb } from './assets/js/firebase-core.js';
+        import { 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged 
+        } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { 
+            doc, 
+            setDoc, 
+            getDoc, 
+            updateDoc 
+        } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+        let auth, db, currentUser;
+
+        // Initialize Firebase
+        try {
+            auth = getFirebaseAuth();
+            db = getFirebaseDb();
+            
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                updateUserStatus();
+            });
+            
+            showStatus('Firebase initialized successfully', 'success');
+        } catch (error) {
+            showStatus('Firebase initialization failed: ' + error.message, 'error');
+        }
+
+        function showStatus(message, type = 'info') {
+            const container = document.getElementById('status-container');
+            const status = document.createElement('div');
+            status.className = `status ${type}`;
+            status.innerHTML = `<strong>${type.toUpperCase()}:</strong> ${message}`;
+            container.appendChild(status);
+            
+            // Auto-remove after 5 seconds for non-error messages
+            if (type !== 'error') {
+                setTimeout(() => {
+                    if (status.parentNode) {
+                        status.parentNode.removeChild(status);
+                    }
+                }, 5000);
+            }
+        }
+
+        function updateUserStatus() {
+            const statusDiv = document.getElementById('user-status');
+            const debugDiv = document.getElementById('debug-info');
+            
+            if (!currentUser) {
+                statusDiv.innerHTML = `
+                    <div style="color: #fbbf24;">⚠️ Not logged in</div>
+                    <p>Please log in to your RedsRacing account first.</p>
+                    <button class="btn" onclick="window.location.href='login.html'">Go to Login</button>
+                `;
+                debugDiv.textContent = 'No user authenticated';
+                return;
+            }
+
+            statusDiv.innerHTML = `
+                <div style="color: #10b981;">✅ Logged in as: ${currentUser.email}</div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">UID: ${currentUser.uid}</div>
+            `;
+
+            // Show debug info
+            debugDiv.textContent = JSON.stringify({
+                email: currentUser.email,
+                uid: currentUser.uid,
+                emailVerified: currentUser.emailVerified,
+                displayName: currentUser.displayName
+            }, null, 2);
+        }
+
+        window.checkCurrentUser = async function() {
+            if (!currentUser) {
+                showStatus('No user is currently logged in', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Checking user data...', 'info');
+                
+                // Check custom claims
+                const token = await currentUser.getIdTokenResult(true);
+                console.log('Custom claims:', token.claims);
+                
+                // Check Firestore document
+                const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+                let userData = null;
+                if (userDoc.exists()) {
+                    userData = userDoc.data();
+                    console.log('Firestore user data:', userData);
+                }
+
+                // Update debug info
+                document.getElementById('debug-info').textContent = JSON.stringify({
+                    user: {
+                        email: currentUser.email,
+                        uid: currentUser.uid
+                    },
+                    customClaims: token.claims,
+                    firestoreData: userData,
+                    hasFirestoreDoc: userDoc.exists()
+                }, null, 2);
+
+                const hasAdminAccess = 
+                    token.claims?.role === 'admin' || 
+                    token.claims?.admin === true ||
+                    userData?.role === 'admin' ||
+                    userData?.isAdmin === true;
+
+                if (hasAdminAccess) {
+                    showStatus('✅ User already has admin access!', 'success');
+                } else {
+                    showStatus('❌ User does not have admin access', 'error');
+                }
+
+            } catch (error) {
+                showStatus('Error checking user: ' + error.message, 'error');
+                console.error(error);
+            }
+        };
+
+        window.grantAdminAccess = async function() {
+            if (!currentUser) {
+                showStatus('No user is currently logged in', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Granting admin access...', 'info');
+                
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                
+                // Create or update the user document with admin privileges
+                await setDoc(userDocRef, {
+                    email: currentUser.email,
+                    uid: currentUser.uid,
+                    role: 'admin',
+                    isAdmin: true,
+                    isTeamMember: true,
+                    updatedAt: new Date(),
+                    grantedAdminAt: new Date()
+                }, { merge: true });
+
+                showStatus('✅ Admin access granted successfully!', 'success');
+                showStatus('You can now access the CMS system', 'success');
+                
+                // Refresh the user check
+                setTimeout(checkCurrentUser, 1000);
+
+            } catch (error) {
+                showStatus('Error granting admin access: ' + error.message, 'error');
+                console.error(error);
+            }
+        };
+
+        window.testCMSAccess = async function() {
+            showStatus('Testing CMS access...', 'info');
+            
+            try {
+                // Import the admin check function
+                const { initCMSAdmin } = await import('./assets/js/cms-admin.js');
+                
+                showStatus('✅ CMS module loaded successfully', 'success');
+                showStatus('Try accessing the admin console now', 'info');
+                
+                setTimeout(() => {
+                    window.location.href = 'admin-console.html';
+                }, 2000);
+                
+            } catch (error) {
+                showStatus('CMS test failed: ' + error.message, 'error');
+                console.error(error);
+            }
+        };
+
+        // Make functions available globally
+        window.showStatus = showStatus;
+    </script>
+</body>
+</html>
