@@ -194,9 +194,46 @@ import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
 
       // Render events in reverse chronological order (most recent first)
       const sortedEvents = [...data.events].sort((a, b) => new Date(b.date) - new Date(a.date));
+      console.log('Rendering events in order:', sortedEvents.map(e => `${e.date}: ${e.eventName}`));
       sortedEvents.forEach(event => {
         wrap.appendChild(renderEvent(event));
       });
+      
+      // Add season statistics footer
+      if (data.seasonSummary) {
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'bg-slate-800/30 rounded-xl p-6 mt-8 border border-slate-700/50';
+        summaryDiv.innerHTML = `
+          <div class="text-center">
+            <h4 class="font-racing text-xl uppercase text-white mb-4">
+              <i class="fas fa-chart-line text-blue-400 mr-2"></i>
+              2025 Season Statistics
+            </h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-yellow-400">${data.seasonSummary.featureWins}</div>
+                <div class="text-slate-300 text-sm">Feature Wins</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-orange-400">${data.seasonSummary.heatWins}</div>
+                <div class="text-slate-300 text-sm">Heat Wins</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-blue-400">${data.seasonSummary.podiumFinishes}</div>
+                <div class="text-slate-300 text-sm">Podium Finishes</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-green-400">${data.seasonSummary.averageFinishPosition}</div>
+                <div class="text-slate-300 text-sm">Avg. Finish</div>
+              </div>
+            </div>
+            <div class="text-slate-400 text-sm">
+              Best Lap: <span class="text-yellow-400 font-mono">${data.seasonSummary.bestLapTime}s</span> at ${data.seasonSummary.bestTrack}
+            </div>
+          </div>
+        `;
+        wrap.appendChild(summaryDiv);
+      }
 
       root.innerHTML = '';
       root.appendChild(wrap);
