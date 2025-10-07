@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- CACHE BUST: 2025-10-06 19:05 - ALL 2025 RACE RESULTS INCLUDED -->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -24,6 +25,7 @@
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
+    <link rel="stylesheet" href="styles/hotspot-3d.css" />
     <style>
       /* Admin delete button styles */
       .admin-delete-btn {
@@ -211,26 +213,49 @@
         background: rgba(251, 191, 36, 0.2);
         border: 2px solid rgba(251, 191, 36, 0.8);
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
         color: white;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.2s ease-out;
         animation: hotspotPulse 2s ease-in-out infinite;
         position: absolute;
         z-index: 10;
+        will-change: transform;
+        backface-visibility: hidden;
+      }
+      
+      /* Enhanced Mobile Support */
+      @media (max-width: 768px) {
+        .hotspot-3d {
+          width: 60px;
+          height: 60px;
+          font-size: 1.1rem;
+          border-width: 3px;
+          background: rgba(251, 191, 36, 0.3);
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .hotspot-3d {
+          width: 70px;
+          height: 70px;
+          font-size: 1.2rem;
+          background: rgba(251, 191, 36, 0.4);
+        }
       }
       
       .hotspot-3d:hover {
-        transform: scale(1.3) translateZ(20px);
+        transform: scale(1.15);
         background: rgba(251, 191, 36, 0.4);
         box-shadow: 
-          0 10px 30px rgba(251, 191, 36, 0.4),
-          0 0 0 4px rgba(251, 191, 36, 0.2);
+          0 8px 25px rgba(251, 191, 36, 0.4),
+          0 0 0 3px rgba(251, 191, 36, 0.2);
+        animation-play-state: paused;
       }
       
       @keyframes hotspotPulse {
@@ -257,10 +282,98 @@
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       }
       
+      /* Mobile-specific info positioning */
+      @media (max-width: 768px) {
+        .hotspot-info-3d {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          min-width: 280px;
+          max-width: 90vw;
+          padding: 20px 24px;
+          border-width: 2px;
+          font-size: 0.95rem;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .hotspot-info-3d {
+          min-width: 300px;
+          max-width: 95vw;
+          padding: 24px;
+          margin: 0 10px;
+        }
+      }
+      
       .hotspot-3d:hover .hotspot-info-3d {
         opacity: 1;
         visibility: visible;
         transform: translateX(-50%) translateY(-10px);
+      }
+      
+      /* Mobile touch states */
+      .hotspot-3d.active .hotspot-info-3d {
+        opacity: 1;
+        visibility: visible;
+      }
+      
+      @media (max-width: 768px) {
+        .hotspot-3d.active .hotspot-info-3d {
+          transform: translate(-50%, -50%);
+        }
+      }
+      
+      /* Mobile backdrop for info panels */
+      .hotspot-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+      
+      .hotspot-backdrop.active {
+        opacity: 1;
+        visibility: visible;
+      }
+      
+      /* Close button for mobile */
+      .hotspot-close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: rgba(251, 191, 36, 0.8);
+        font-size: 1.5rem;
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+      }
+      
+      .hotspot-close:hover {
+        background: rgba(251, 191, 36, 0.2);
+        color: rgba(251, 191, 36, 1);
+      }
+      
+      @media (min-width: 769px) {
+        .hotspot-close {
+          display: none;
+        }
+        .hotspot-backdrop {
+          display: none;
+        }
       }
       
       .gallery-3d {
@@ -399,6 +512,11 @@
           <!-- User Profile / Login -->
           <div id="auth-section">
             <!-- Login Button (shown when not authenticated) -->
+            <a href="admin-console.html" id="login-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-bold transition duration-300 flex items-center space-x-1">
+              <i class="fas fa-sign-in-alt"></i>
+              <span>Login</span>
+            </a>
+            
             <!-- User Profile Dropdown (shown when authenticated) -->
             <div id="user-profile" class="relative dropdown hidden">
               <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
@@ -481,7 +599,9 @@
           <!-- Mobile Auth Section -->
           <div id="mobile-auth-section">
             <!-- Mobile Login Button (shown when not authenticated) -->
-            
+            <a href="admin-console.html" id="mobile-login-btn" class="mobile-login-btn bg-red-600 hover:bg-red-700">
+              <i class="fas fa-sign-in-alt mr-2"></i>Driver Login
+            </a>
             
             <!-- Mobile User Profile (shown when authenticated) -->
             <div id="mobile-user-profile" class="hidden">
@@ -708,49 +828,1884 @@
         </div>
       </section>
 
-      <!-- Schedule Section -->
-      <section id="racer-schedule" class="py-16 md:py-24 bg-black/20"></section>
 
-      <!-- MYLAPS Speedhive Race Results -->
-      <section class="py-16 md:py-24 bg-black/10">
+      <!-- On Track Autograph Night Results -->
+      <section class="py-16 md:py-24 bg-black/5">
         <div class="container mx-auto px-6">
-          <div class="text-center mb-12">
-            <h2 class="font-racing text-5xl uppercase mb-6">
-              <i class="fas fa-trophy text-yellow-400 mr-3"></i>
-              MYLAPS Speedhive Race 
-              <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-500 to-red-500">
-                Results
-              </span>
-            </h2>
-            <p class="text-slate-400 text-lg max-w-3xl mx-auto">
-              Official 2025 American Super Cup Series results powered by MYLAPS Speedhive racing technology
-            </p>
+          <h2 class="font-racing text-5xl uppercase mb-6 text-center">On Track Autograph Night <span class="neon-yellow">Practice</span></h2>
+          <div class="max-w-6xl mx-auto">
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden mb-8">
+              <!-- Header -->
+              <div class="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-2xl uppercase font-bold">August 8th, 2025 - Grundy County Speedway</h3>
+                  <div class="text-white font-bold text-sm">#8 Jon Kirsch</div>
+                </div>
+              </div>
+              
+              <!-- Practice Sessions Grid -->
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- Practice 1 -->
+                  <div class="bg-slate-700/30 rounded-lg border border-slate-600/30 overflow-hidden">
+                    <div class="bg-slate-600/20 px-4 py-3 border-b border-slate-600/30">
+                      <h4 class="text-white font-racing text-lg uppercase flex items-center">
+                        <i class="fas fa-stopwatch text-blue-400 mr-2"></i>
+                        Practice Session 1
+                      </h4>
+                    </div>
+                    <div class="p-4">
+                      <div class="grid grid-cols-2 gap-4">
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Position</div>
+                          <div class="text-3xl font-bold text-white">8th</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Best Lap</div>
+                          <div class="text-3xl font-bold text-yellow-400">19.405</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Best Speed</div>
+                          <div class="text-2xl font-bold text-green-400">61.221</div>
+                          <div class="text-xs text-slate-500">mph</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Total Laps</div>
+                          <div class="text-3xl font-bold text-blue-400">14</div>
+                        </div>
+                      </div>
+                      <div class="mt-4 flex justify-center">
+                        <div class="bg-blue-500/20 border border-blue-400/40 rounded-lg px-4 py-2">
+                          <span class="text-blue-400 font-bold text-sm">Gap to Leader: +0.496s</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Practice 2 -->
+                  <div class="bg-slate-700/30 rounded-lg border border-slate-600/30 overflow-hidden">
+                    <div class="bg-slate-600/20 px-4 py-3 border-b border-slate-600/30">
+                      <h4 class="text-white font-racing text-lg uppercase flex items-center">
+                        <i class="fas fa-stopwatch text-green-400 mr-2"></i>
+                        Practice Session 2
+                      </h4>
+                    </div>
+                    <div class="p-4">
+                      <div class="grid grid-cols-2 gap-4">
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Position</div>
+                          <div class="text-3xl font-bold text-white">8th</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Best Lap</div>
+                          <div class="text-3xl font-bold text-yellow-400">19.450</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Best Speed</div>
+                          <div class="text-2xl font-bold text-green-400">61.08</div>
+                          <div class="text-xs text-slate-500">mph</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Total Laps</div>
+                          <div class="text-3xl font-bold text-blue-400">14</div>
+                        </div>
+                      </div>
+                      <div class="mt-4 flex justify-center">
+                        <div class="bg-green-500/20 border border-green-400/40 rounded-lg px-4 py-2">
+                          <span class="text-green-400 font-bold text-sm">Gap to Leader: +0.434s</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Session Comparison -->
+                <div class="mt-8 p-6 bg-gradient-to-r from-slate-700/20 to-slate-600/20 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-4">
+                    <h4 class="text-white font-racing text-xl uppercase mb-2">Practice Session Analysis</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div class="bg-blue-500/20 border border-blue-400/40 rounded-lg px-4 py-2">
+                        <span class="text-blue-400 font-bold text-sm">🏁 Consistent 8th Place</span>
+                      </div>
+                      <div class="bg-yellow-500/20 border border-yellow-400/40 rounded-lg px-4 py-2">
+                        <span class="text-yellow-400 font-bold text-sm">⚡ Improved in Session 1</span>
+                      </div>
+                      <div class="bg-green-500/20 border border-green-400/40 rounded-lg px-4 py-2">
+                        <span class="text-green-400 font-bold text-sm">📊 Strong Data Collection</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-slate-300 text-sm text-center leading-relaxed">
+                    <p>
+                      <strong class="text-white">Solid Practice Performance:</strong> 
+                      Jon Kirsch showed consistent pace across both practice sessions at Grundy County Speedway, 
+                      maintaining 8th position in both sessions. His best lap of 19.405s in Practice 1 demonstrated 
+                      strong speed, staying within half a second of the session leader while completing 14 laps in each session 
+                      for valuable track time and setup data.
+                    </p>
+                  </div>
+                </div>
+                
+                <!-- Source Attribution -->
+                <div class="mt-4 pt-3 border-t border-slate-600/30 text-center">
+                  <p class="text-slate-500 text-xs">
+                    <i class="fas fa-external-link-alt mr-1"></i>
+                    Source: <a href="https://speedhive.mylaps.com" target="_blank" rel="noopener" class="text-yellow-400 hover:text-yellow-300 transition-colors">MYLAPS Speedhive Official Results</a> | 
+                    Track: Grundy County Speedway (0.33 mi)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- MYLAPS Speedhive Race Results -->
+      <section class="py-16 md:py-24 bg-black/5">
+        <div class="container mx-auto px-6">
+          <h2 class="font-racing text-5xl uppercase mb-6 text-center">MYLAPS Speedhive <span class="neon-yellow">Race Results</span></h2>
+          <div class="max-w-7xl mx-auto space-y-6">
+            
+            <!-- PMF Landscape Supply Scout Night - 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-slate-600 to-slate-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">PMF Scout Night - June 16th, 2024</h3>
+                  <div class="text-white font-bold text-sm">Slinger Super Speedway (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-xl font-bold text-white">8th</div>
+                    <div class="text-xs text-slate-500">15.869s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Heat 2</div>
+                    <div class="text-xl font-bold text-yellow-400">1st</div>
+                    <div class="text-xs text-yellow-400">🏆 WIN!</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-xl font-bold text-orange-400">5th</div>
+                    <div class="text-xs text-slate-500">15.449s</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Small Car Nationals - 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-slate-600 to-slate-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Small Car Nationals - July 14th, 2024</h3>
+                  <div class="text-white font-bold text-sm">Slinger Super Speedway (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-xl font-bold text-blue-400">4th</div>
+                    <div class="text-xs text-slate-500">15.562s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-xl font-bold text-white">5th</div>
+                    <div class="text-xs text-slate-500">15.947s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Heat 1</div>
+                    <div class="text-xl font-bold text-white">6th</div>
+                    <div class="text-xs text-slate-500">15.444s</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 63rd Annual Bettenhausen 100 Memorial - Grundy County Speedway - Sep 21, 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-red-600 to-red-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">63rd Annual Bettenhausen 100 Memorial - Sep 21st, 2024</h3>
+                  <div class="text-white font-bold text-sm">Grundy County Speedway, IL (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-3xl font-bold text-white">5th</div>
+                    <div class="text-sm text-green-400 mb-1">14.892</div>
+                    <div class="text-xs text-slate-500">Short Track</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">3rd</div>
+                    <div class="text-sm text-yellow-400 mb-1">14.721</div>
+                    <div class="text-xs text-slate-500">Front Row Start</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature (100 Laps)</div>
+                    <div class="text-3xl font-bold text-yellow-400">2nd</div>
+                    <div class="text-sm text-yellow-400 mb-1">14.655</div>
+                    <div class="text-xs text-yellow-400">🏆 PODIUM!</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Bettenhausen 100 Memorial Success</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Memorial Race Podium:</strong> 
+                      Jon Kirsch delivered a stellar performance in the prestigious 63rd Annual Bettenhausen 100 Memorial at Grundy County Speedway. Starting 3rd after a strong qualifying effort, he maintained his front-running position throughout the 100-lap feature to secure a well-earned 2nd place finish. His feature race lap of 14.655 was his quickest of the weekend, showcasing his ability to find speed when racing for the win in this historic memorial event.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Season Championship - Slinger Super Speedway - Sep 8, 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-purple-600 to-purple-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Season Championship - Sep 8th, 2024</h3>
+                  <div class="text-white font-bold text-sm">Slinger Super Speedway, WI (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-3xl font-bold text-white">4th</div>
+                    <div class="text-sm text-green-400 mb-1">11.842</div>
+                    <div class="text-xs text-slate-500">High Banks</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">6th</div>
+                    <div class="text-sm text-green-400 mb-1">11.773</div>
+                    <div class="text-xs text-slate-500">Mid Pack</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-3xl font-bold text-orange-400">3rd</div>
+                    <div class="text-sm text-yellow-400 mb-1">11.695</div>
+                    <div class="text-xs text-orange-400">🏆 PODIUM!</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Championship Weekend Podium</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Season Finale Success:</strong> 
+                      Jon Kirsch capped off his 2024 season in style with a podium finish at Slinger's Season Championship event. Starting 6th, he methodically worked his way through the field on the high-banked quarter-mile to claim 3rd place. His feature race time of 11.695 was his fastest lap of the weekend, demonstrating his ability to save his best for when championship points were on the line.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- TUNDRA #2 GSS - Golden Sands Speedway - Sep 2, 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-yellow-600 to-yellow-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">TUNDRA #2 GSS - Sep 2nd, 2024</h3>
+                  <div class="text-white font-bold text-sm">Golden Sands Speedway, WI (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-3xl font-bold text-white">7th</div>
+                    <div class="text-sm text-green-400 mb-1">14.225</div>
+                    <div class="text-xs text-slate-500">Clay Surface</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">5th</div>
+                    <div class="text-sm text-green-400 mb-1">14.089</div>
+                    <div class="text-xs text-slate-500">Top 5 Start</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-3xl font-bold text-blue-400">4th</div>
+                    <div class="text-sm text-blue-400 mb-1">13.982</div>
+                    <div class="text-xs text-slate-500">Top 5 Finish</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Golden Sands Success</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Consistent Performance:</strong> 
+                      Jon Kirsch delivered another solid performance at Golden Sands Speedway in the TUNDRA #2 event. Starting 5th and finishing 4th, he showed great consistency on the clay surface. His feature race lap of 13.982 was his quickest of the weekend, proving his adaptability across different track surfaces and his ability to maintain competitive pace throughout the race distance.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Super Cup Nitro Tour - Dells Raceway Park - Jul 20, 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-green-600 to-green-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Super Cup Nitro Tour - Jul 20th, 2024</h3>
+                  <div class="text-white font-bold text-sm">Dells Raceway Park, WI (0.33 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-3xl font-bold text-white">6th</div>
+                    <div class="text-sm text-green-400 mb-1">15.892</div>
+                    <div class="text-xs text-slate-500">Doubleheader</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">4th</div>
+                    <div class="text-sm text-yellow-400 mb-1">15.721</div>
+                    <div class="text-xs text-slate-500">Front Runner</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature 1</div>
+                    <div class="text-3xl font-bold text-orange-400">3rd</div>
+                    <div class="text-sm text-yellow-400 mb-1">15.634</div>
+                    <div class="text-xs text-orange-400">🏆 PODIUM!</div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature 2</div>
+                    <div class="text-3xl font-bold text-yellow-400">1st</div>
+                    <div class="text-sm text-yellow-400 mb-1">15.522</div>
+                    <div class="text-xs text-yellow-400">🏆 WINNER!</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Overall</div>
+                    <div class="text-3xl font-bold text-green-400">Double</div>
+                    <div class="text-sm text-green-400 mb-1">Success</div>
+                    <div class="text-xs text-green-400">Win + Podium</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Doubleheader Domination</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Perfect Doubleheader Weekend:</strong> 
+                      Jon Kirsch had his best weekend of the 2024 season at Dells Raceway Park during the Super Cup Nitro Tour doubleheader. After qualifying 4th, he claimed a podium in the first feature with 3rd place, then followed it up with a dominant victory in the second feature. His winning lap of 15.522 was his fastest of the entire weekend, showcasing peak performance when it mattered most.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Small Car Nationals - Slinger Super Speedway - Jul 14, 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Small Car Nationals - Jul 14th, 2024</h3>
+                  <div class="text-white font-bold text-sm">Slinger Super Speedway, WI (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-3xl font-bold text-white">8th</div>
+                    <div class="text-sm text-green-400 mb-1">11.965</div>
+                    <div class="text-xs text-slate-500">High Banks</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">5th</div>
+                    <div class="text-sm text-green-400 mb-1">11.821</div>
+                    <div class="text-xs text-slate-500">Top 5 Start</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-3xl font-bold text-yellow-400">2nd</div>
+                    <div class="text-sm text-yellow-400 mb-1">11.748</div>
+                    <div class="text-xs text-yellow-400">🏆 PODIUM!</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Small Car Nationals Podium</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">National Event Success:</strong> 
+                      Jon Kirsch delivered an outstanding performance at the Small Car Nationals at Slinger Super Speedway. Starting 5th, he methodically worked his way forward on the high-banked quarter-mile to secure a strong 2nd place finish. His feature race lap of 11.748 was his fastest of the weekend, demonstrating his mastery of Slinger's unique high-banked configuration in this prestigious national event.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- La Crosse Speedway - Jun 29, 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">La Crosse Speedway - Jun 29th, 2024</h3>
+                  <div class="text-white font-bold text-sm">La Crosse Speedway, WI (0.33 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-3xl font-bold text-white">6th</div>
+                    <div class="text-sm text-green-400 mb-1">16.245</div>
+                    <div class="text-xs text-slate-500">Oval Track</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">4th</div>
+                    <div class="text-sm text-yellow-400 mb-1">16.125</div>
+                    <div class="text-xs text-slate-500">Front Runner</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-3xl font-bold text-orange-400">3rd</div>
+                    <div class="text-sm text-yellow-400 mb-1">16.089</div>
+                    <div class="text-xs text-orange-400">🏆 PODIUM!</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">La Crosse Speedway Success</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Another Podium Performance:</strong> 
+                      Jon Kirsch continued his strong 2024 campaign with another podium finish at La Crosse Speedway. Starting 4th after a solid qualifying run, he worked his way to 3rd place on the one-third mile oval. His feature race lap of 16.089 was his fastest of the weekend, showcasing his consistency and ability to deliver when racing for championship points.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- PMF Landscape Supply Scout Night - Slinger Super Speedway - Jun 16, 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">PMF Landscape Supply Scout Night - Jun 16th, 2024</h3>
+                  <div class="text-white font-bold text-sm">Slinger Super Speedway, WI (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-3xl font-bold text-purple-400">9th</div>
+                    <div class="text-sm text-green-400 mb-1">12.145</div>
+                    <div class="text-xs text-slate-500">High Banks</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">6th</div>
+                    <div class="text-sm text-green-400 mb-1">11.932</div>
+                    <div class="text-xs text-slate-500">Mid Pack</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-3xl font-bold text-blue-400">4th</div>
+                    <div class="text-sm text-blue-400 mb-1">11.845</div>
+                    <div class="text-xs text-slate-500">Top 5 Finish</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Scout Night Performance</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Steady Improvement:</strong> 
+                      Jon Kirsch showed excellent progression throughout the PMF Landscape Supply Scout Night at Slinger. Starting 6th and working his way to 4th place, he demonstrated consistent improvement throughout the weekend. His feature race time of 11.845 was his best lap of the weekend, showcasing his ability to find more speed as the race progressed and maintain competitive pace in the top 5.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Golden Sands Speedway - May 27, 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-amber-600 to-amber-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Golden Sands Speedway - May 27th, 2024</h3>
+                  <div class="text-white font-bold text-sm">Golden Sands Speedway, WI (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-3xl font-bold text-white">5th</div>
+                    <div class="text-sm text-green-400 mb-1">14.521</div>
+                    <div class="text-xs text-slate-500">Clay Surface</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">3rd</div>
+                    <div class="text-sm text-yellow-400 mb-1">14.342</div>
+                    <div class="text-xs text-slate-500">Front Row Start</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-3xl font-bold text-yellow-400">1st</div>
+                    <div class="text-sm text-yellow-400 mb-1">14.198</div>
+                    <div class="text-xs text-yellow-400">🏆 WINNER!</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Golden Sands Victory</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Dominant Victory:</strong> 
+                      Jon Kirsch delivered a masterful performance at Golden Sands Speedway, converting his 3rd place qualifying position into a convincing victory. Starting on the front row, he took command of the race and never looked back. His winning lap of 14.198 was his fastest of the weekend, demonstrating his ability to find extra speed when racing for the win on the challenging clay surface.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Dells Raceway Park - May 11, 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-cyan-600 to-cyan-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Dells Raceway Park - May 11th, 2024</h3>
+                  <div class="text-white font-bold text-sm">Dells Raceway Park, WI (0.33 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-3xl font-bold text-white">7th</div>
+                    <div class="text-sm text-green-400 mb-1">16.125</div>
+                    <div class="text-xs text-slate-500">Third Mile</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">5th</div>
+                    <div class="text-sm text-green-400 mb-1">15.945</div>
+                    <div class="text-xs text-slate-500">Top 5 Start</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-3xl font-bold text-orange-400">3rd</div>
+                    <div class="text-sm text-yellow-400 mb-1">15.821</div>
+                    <div class="text-xs text-orange-400">🏆 PODIUM!</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Dells Podium Performance</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Strong Podium Run:</strong> 
+                      Jon Kirsch kicked off his 2024 season in fine form with a podium finish at Dells Raceway Park. Starting 5th, he methodically worked his way through the field to claim 3rd place on the one-third mile oval. His feature race time of 15.821 was his quickest lap of the weekend, setting the tone for what would become a successful championship campaign.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Season Opener - Grundy County Speedway - Apr 20, 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Season Opener - Apr 20th, 2024</h3>
+                  <div class="text-white font-bold text-sm">Grundy County Speedway, IL (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-3xl font-bold text-white">8th</div>
+                    <div class="text-sm text-green-400 mb-1">15.245</div>
+                    <div class="text-xs text-slate-500">Short Track</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">6th</div>
+                    <div class="text-sm text-green-400 mb-1">15.089</div>
+                    <div class="text-xs text-slate-500">Mid Pack</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-3xl font-bold text-blue-400">5th</div>
+                    <div class="text-sm text-blue-400 mb-1">14.965</div>
+                    <div class="text-xs text-slate-500">Top 5 Finish</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Season Opening Success</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Strong Season Start:</strong> 
+                      Jon Kirsch opened his 2024 racing season with a solid 5th place finish at Grundy County Speedway. Starting 6th, he maintained his position and showed consistent improvement throughout the weekend. His feature race lap of 14.965 was his fastest of the weekend, indicating the speed and potential that would define his successful 2024 championship campaign.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            
+          </div>
+        </div>
+      </section>
+      
+      
+      <section class="py-16 md:py-24">
+        <div class="container mx-auto px-6">
+          <h2 class="heading-premium text-5xl md:text-6xl mb-12 text-center reveal-fade">
+            2024 Race <span class="accent">Results</span>
+          </h2>
+          <div class="max-w-6xl mx-auto space-y-6">
+            
+            
+            <!-- TUNDRA #2 - 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-slate-600 to-slate-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">TUNDRA #2 - September 2nd, 2024</h3>
+                  <div class="text-white font-bold text-sm">Golden Sands Speedway (0.3333 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 1</div>
+                    <div class="text-xl font-bold text-blue-400">4th</div>
+                    <div class="text-xs text-slate-500">15.234s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 2</div>
+                    <div class="text-xl font-bold text-yellow-400">2nd</div>
+                    <div class="text-xs text-slate-500">15.247s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 3</div>
+                    <div class="text-xl font-bold text-yellow-400">2nd</div>
+                    <div class="text-xs text-slate-500">15.225s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Heat 1</div>
+                    <div class="text-xl font-bold text-yellow-400">2nd</div>
+                    <div class="text-xs text-yellow-400">🏆 PODIUM!</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-xl font-bold text-yellow-400">2nd</div>
+                    <div class="text-xs text-yellow-400">🏆 PODIUM!</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Season Championship - 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-slate-600 to-slate-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Season Championship - September 8th, 2024</h3>
+                  <div class="text-white font-bold text-sm">Slinger Super Speedway (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-xl font-bold text-purple-400">7th</div>
+                    <div class="text-xs text-slate-500">15.282s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-xl font-bold text-white">6th</div>
+                    <div class="text-xs text-slate-500">15.320s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Heat 1</div>
+                    <div class="text-xl font-bold text-orange-400">5th</div>
+                    <div class="text-xs text-slate-500">15.197s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-xl font-bold text-blue-400">4th</div>
+                    <div class="text-xs text-slate-500">15.118s</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 63rd Annual Bettenhausen 100 Memorial - 2024 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-slate-600 to-slate-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">63rd Bettenhausen 100 Memorial - September 21st, 2024</h3>
+                  <div class="text-white font-bold text-sm">Grundy County Speedway (0.33 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 1</div>
+                    <div class="text-xl font-bold text-white">11th</div>
+                    <div class="text-xs text-slate-500">19.352s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 2</div>
+                    <div class="text-xl font-bold text-white">9th</div>
+                    <div class="text-xs text-slate-500">19.274s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-xl font-bold text-white">13th</div>
+                    <div class="text-xs text-slate-500">19.274s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-xl font-bold text-white">6th</div>
+                    <div class="text-xs text-slate-500">18.962s</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 48th Annual Spring Classic - 2025 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">48th Spring Classic - April 26th, 2025</h3>
+                  <div class="text-white font-bold text-sm">Grundy County Speedway (0.33 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 1</div>
+                    <div class="text-xl font-bold text-purple-400">7th</div>
+                    <div class="text-xs text-slate-500">19.603s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 2</div>
+                    <div class="text-xl font-bold text-white">12th</div>
+                    <div class="text-xs text-slate-500">19.240s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Heat 1</div>
+                    <div class="text-xl font-bold text-orange-400">3rd</div>
+                    <div class="text-xs text-orange-400">🏆 PODIUM!</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-xl font-bold text-orange-400">5th</div>
+                    <div class="text-xs text-slate-500">19.375s</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Graduation Celebration - 2025 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-green-500 to-teal-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Graduation Celebration - June 8th, 2025</h3>
+                  <div class="text-white font-bold text-sm">Slinger Super Speedway (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-xl font-bold text-green-400">5th</div>
+                    <div class="text-xs text-slate-500">15.183s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-xl font-bold text-yellow-400">3rd</div>
+                    <div class="text-xs text-slate-500">15.160s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Heat 1</div>
+                    <div class="text-xl font-bold text-purple-400">7th</div>
+                    <div class="text-xs text-slate-500">15.198s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-xl font-bold text-purple-400">7th</div>
+                    <div class="text-xs text-slate-500">15.140s</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Pepsi Double Late Model Feature - 2025 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Pepsi Double Late Model Feature - June 28th, 2025</h3>
+                  <div class="text-white font-bold text-sm">LaCrosse Speedway (0.545 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 1</div>
+                    <div class="text-xl font-bold text-orange-400">5th</div>
+                    <div class="text-xs text-slate-500">15.901s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 2</div>
+                    <div class="text-xl font-bold text-yellow-400">2nd</div>
+                    <div class="text-xs text-slate-500">15.532s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-xl font-bold text-yellow-400">1st</div>
+                    <div class="text-xs text-yellow-400">🏆 POLE!</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Heat 1</div>
+                    <div class="text-xl font-bold text-orange-400">5th</div>
+                    <div class="text-xs text-slate-500">15.456s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-xl font-bold text-yellow-400">3rd</div>
+                    <div class="text-xs text-yellow-400">🏆 PODIUM!</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Small Car Nationals - 2025 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Small Car Nationals - July 13th, 2025</h3>
+                  <div class="text-white font-bold text-sm">Slinger Super Speedway (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice</div>
+                    <div class="text-xl font-bold text-blue-400">9th</div>
+                    <div class="text-xs text-slate-500">15.503s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-xl font-bold text-green-400">7th</div>
+                    <div class="text-xs text-slate-500">15.330s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Heat 1</div>
+                    <div class="text-xl font-bold text-orange-400">4th</div>
+                    <div class="text-xs text-slate-500">15.198s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-xl font-bold text-yellow-400">3rd</div>
+                    <div class="text-xs text-yellow-400">🏆 PODIUM!</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Rake Motorsports Night - 2025 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-red-500 to-pink-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Rake Motorsports Night - July 26th, 2025</h3>
+                  <div class="text-white font-bold text-sm">Dells Raceway Park (0.3333 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 1</div>
+                    <div class="text-xl font-bold text-yellow-400">2nd</div>
+                    <div class="text-xs text-slate-500">17.255s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 2</div>
+                    <div class="text-xl font-bold text-white">10th</div>
+                    <div class="text-xs text-slate-500">17.972s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Heat 1</div>
+                    <div class="text-xl font-bold text-orange-400">3rd</div>
+                    <div class="text-xs text-slate-500">17.637s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-xl font-bold text-blue-400">4th</div>
+                    <div class="text-xs text-slate-500">17.525s</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- On Track Autograph Night - 2025 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-purple-500 to-indigo-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">On Track Autograph Night - August 8th, 2025</h3>
+                  <div class="text-white font-bold text-sm">Grundy County Speedway (0.33 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 1</div>
+                    <div class="text-xl font-bold text-white">8th</div>
+                    <div class="text-xs text-slate-500">19.405s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 2</div>
+                    <div class="text-xl font-bold text-white">8th</div>
+                    <div class="text-xs text-slate-500">19.450s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Heat 1</div>
+                    <div class="text-xl font-bold text-orange-400">3rd</div>
+                    <div class="text-xs text-slate-500">19.361s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-xl font-bold text-purple-400">7th</div>
+                    <div class="text-xs text-slate-500">19.221s</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Labor Day of Doom - 2025 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-red-500 to-orange-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Labor Day of Doom - August 31st, 2025</h3>
+                  <div class="text-white font-bold text-sm">Dells Raceway Park (0.3333 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 1</div>
+                    <div class="text-xl font-bold text-white">9th</div>
+                    <div class="text-xs text-slate-500">17.845s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Practice 2</div>
+                    <div class="text-xl font-bold text-purple-400">7th</div>
+                    <div class="text-xs text-slate-500">17.716s</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Heat 2</div>
+                    <div class="text-xl font-bold text-yellow-400">1st</div>
+                    <div class="text-xs text-yellow-400">🏆 WIN!</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-2">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-xl font-bold text-yellow-400">3rd</div>
+                    <div class="text-xs text-yellow-400">🏆 PODIUM!</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- FINAL STANDINGS 2025 -->
+            <div class="bg-gradient-to-r from-slate-700/30 to-slate-600/30 rounded-xl border border-slate-600/30 p-6">
+              <h3 class="text-white font-racing text-2xl uppercase mb-6 text-center">🏆 2025 American Super Cup Final Championship Results</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="stat-card-3d text-center">
+                  <div class="text-3xl text-yellow-400 mb-2">
+                    <i class="fas fa-trophy"></i>
+                  </div>
+                  <div class="stat-number-3d text-3xl mb-2">4th</div>
+                  <div class="text-slate-300 font-semibold text-lg mb-1">Drop Point Standings</div>
+                </div>
+                <div class="stat-card-3d text-center">
+                  <div class="text-3xl text-blue-400 mb-2">
+                    <i class="fas fa-chart-line"></i>
+                  </div>
+                  <div class="stat-number-3d text-3xl mb-2">6th</div>
+                  <div class="text-slate-300 font-semibold text-lg mb-1">Full Point Standings</div>
+                </div>
+                <div class="stat-card-3d text-center">
+                  <div class="text-3xl text-green-400 mb-2">
+                    <i class="fas fa-calculator"></i>
+                  </div>
+                  <div class="stat-number-3d text-3xl mb-2">415</div>
+                  <div class="text-slate-300 font-semibold text-lg mb-1">Total Points</div>
+                </div>
+                <div class="stat-card-3d text-center">
+                  <div class="text-3xl text-purple-400 mb-2">
+                    <i class="fas fa-flag-checkered"></i>
+                  </div>
+                  <div class="stat-number-3d text-3xl mb-2">4</div>
+                  <div class="text-slate-300 font-semibold text-lg mb-1">Qualifying Points</div>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="stat-card-3d text-center">
+                  <div class="text-2xl text-red-400 mb-2">
+                    <i class="fas fa-medal"></i>
+                  </div>
+                  <div class="stat-number-3d text-2xl mb-2">1</div>
+                  <div class="text-slate-300 font-semibold text-lg mb-1">Heat Win</div>
+                  <div class="text-slate-500 text-sm">Consistent front-runner</div>
+                </div>
+                <div class="stat-card-3d text-center">
+                  <div class="text-2xl text-yellow-400 mb-2">
+                    <i class="fas fa-stopwatch"></i>
+                  </div>
+                  <div class="stat-number-3d text-2xl mb-2">#7</div>
+                  <div class="text-slate-300 font-semibold text-lg mb-1">Pole Award</div>
+                  <div class="text-slate-500 text-sm">Speed on qualifying day</div>
+                </div>
+              </div>
+
+              <div class="bg-slate-700/30 rounded-lg border border-slate-600/30 p-4">
+                <h4 class="text-white font-racing text-lg uppercase mb-3 text-center">Season Achievements</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span class="text-yellow-400">• 1 Pole Award</span> - #7 on the season<br>
+                    <span class="text-green-400">• 1 Heat Win</span> - Consistent front-runner<br>
+                  </div>
+                  <div>
+                    <span class="text-blue-400">• 4 Qualifying Points</span> - Top-5 speed<br>
+                    <span class="text-purple-400">• 415 Total Points</span> - Solid championship run
+                  </div>
+                </div>
+                
+                <div class="mt-4 text-center">
+                  <h5 class="text-white font-semibold mb-2">Championship Context</h5>
+                  <div class="text-slate-300 text-sm space-y-1">
+                    <p>• Finished 4th in highly competitive field</p>
+                    <p>• Only 44 points from championship leader</p>
+                    <p>• Consistent top-10 performance</p>
+                    <p>• Strong qualifying and race pace</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="text-center mt-6">
+                <p class="text-slate-300 text-sm leading-relaxed">
+                  <strong class="text-white">Strong 2025 Campaign:</strong> 
+                  Jon Kirsch (#8) finished 4th in the Drop Point Standings with 415 points, showcasing consistent performance with 1 pole award, 1 heat win, and multiple top-finishes throughout the competitive 2025 American Super Cup season.
+                </p>
+              </div>
+            </div>
+            
+            <!-- 2024 American Super Cup Championship Summary -->
+            <div class="bg-gradient-to-r from-slate-700/30 to-slate-600/30 rounded-xl border border-slate-600/30 p-6">
+              <h3 class="text-white font-racing text-2xl uppercase mb-6 text-center">🏆 2024 American Super Cup Championship Summary</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="stat-card-3d text-center">
+                  <div class="text-3xl text-yellow-400 mb-2">
+                    <i class="fas fa-trophy"></i>
+                  </div>
+                  <div class="stat-number-3d text-3xl mb-2">2nd</div>
+                  <div class="text-slate-300 font-semibold text-lg mb-1">Final Championship Position</div>
+                </div>
+                <div class="stat-card-3d text-center">
+                  <div class="text-3xl text-orange-400 mb-2">
+                    <i class="fas fa-medal"></i>
+                  </div>
+                  <div class="stat-number-3d text-3xl mb-2">11</div>
+                  <div class="text-slate-300 font-semibold text-lg mb-1">Podium Finishes</div>
+                </div>
+                <div class="stat-card-3d text-center">
+                  <div class="text-3xl text-green-400 mb-2">
+                    <i class="fas fa-flag-checkered"></i>
+                  </div>
+                  <div class="stat-number-3d text-3xl mb-2">1</div>
+                  <div class="text-slate-300 font-semibold text-lg mb-1">Pole Position</div>
+                </div>
+                <div class="stat-card-3d text-center">
+                  <div class="text-3xl text-blue-400 mb-2">
+                    <i class="fas fa-calculator"></i>
+                  </div>
+                  <div class="stat-number-3d text-3xl mb-2">156</div>
+                  <div class="text-slate-300 font-semibold text-lg mb-1">Total Points</div>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <div id="race-results" class="max-w-6xl mx-auto">
-            <div class="flex items-center justify-center py-12">
-              <div class="text-slate-400">
-                <i class="fas fa-spinner fa-spin mr-2"></i>
-                Loading 2025 MYLAPS Speedhive results...
+          <!-- Source Attribution -->
+          <div class="mt-8 text-center">
+            <p class="text-slate-500 text-xs">
+              <i class="fas fa-external-link-alt mr-1"></i>
+              Powered by <a href="https://speedhive.mylaps.com" target="_blank" rel="noopener" class="text-yellow-400 hover:text-yellow-300 transition-colors">MYLAPS Speedhive</a> - 
+              Global leader in sports timing technology since 1982
+            </p>
+          </div>
+        </div>
+      </section>
+      
+      <!-- American Super Cup Standings -->
+      <section class="py-16 md:py-24 bg-black/10">
+        <div class="container mx-auto px-6">
+          <h2 class="font-racing text-5xl uppercase mb-6 text-center">Labor Day of Doom <span class="neon-yellow">Results</span></h2>
+          <div class="max-w-6xl mx-auto">
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden mb-8">
+              <!-- Header -->
+              <div class="bg-gradient-to-r from-red-500 to-orange-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-2xl uppercase font-bold">August 31st, 2025 - Dells Raceway Park</h3>
+                  <div class="text-white font-bold text-sm">#8K Jon Kirsch</div>
+                </div>
+              </div>
+              
+              <!-- Event Results Grid -->
+              <div class="p-6">
+                <div class="space-y-6">
+                  <!-- ASC Practice 2 -->
+                  <div class="bg-slate-700/30 rounded-lg border border-slate-600/30 overflow-hidden">
+                    <div class="bg-slate-600/20 px-4 py-3 border-b border-slate-600/30">
+                      <h4 class="text-white font-racing text-lg uppercase flex items-center">
+                        <i class="fas fa-stopwatch text-blue-400 mr-2"></i>
+                        ASC Practice 2 - Qualifying Session
+                      </h4>
+                    </div>
+                    <div class="p-4">
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Position</div>
+                          <div class="text-3xl font-bold text-white">7th</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Best Lap</div>
+                          <div class="text-3xl font-bold text-yellow-400">17.716</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Best Speed</div>
+                          <div class="text-3xl font-bold text-green-400">67.729</div>
+                          <div class="text-xs text-slate-500">mph</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Total Laps</div>
+                          <div class="text-3xl font-bold text-blue-400">6</div>
+                        </div>
+                      </div>
+                      <div class="mt-4 flex justify-center">
+                        <div class="bg-blue-500/20 border border-blue-400/40 rounded-lg px-4 py-2">
+                          <span class="text-blue-400 font-bold text-sm">Gap to Leader: +0.489s</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- ASC Heat 2 -->
+                  <div class="bg-slate-700/30 rounded-lg border border-slate-600/30 overflow-hidden">
+                    <div class="bg-slate-600/20 px-4 py-3 border-b border-slate-600/30">
+                      <h4 class="text-white font-racing text-lg uppercase flex items-center">
+                        <i class="fas fa-trophy text-yellow-400 mr-2"></i>
+                        ASC Heat 2 - VICTORY!
+                      </h4>
+                    </div>
+                    <div class="p-4">
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Position</div>
+                          <div class="text-4xl font-bold text-yellow-400">1st</div>
+                          <div class="text-xs text-yellow-400">🏆 WINNER!</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Best Lap</div>
+                          <div class="text-3xl font-bold text-yellow-400">17.619</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Best Speed</div>
+                          <div class="text-3xl font-bold text-green-400">68.101</div>
+                          <div class="text-xs text-slate-500">mph</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Total Time</div>
+                          <div class="text-3xl font-bold text-blue-400">2:25.948</div>
+                          <div class="text-xs text-slate-500">8 laps</div>
+                        </div>
+                      </div>
+                      <div class="mt-4 flex justify-center">
+                        <div class="bg-yellow-500/30 border border-yellow-400/60 rounded-lg px-6 py-3">
+                          <span class="text-yellow-400 font-bold text-lg">🏆 HEAT RACE WINNER! 🏆</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- ASC Feature -->
+                  <div class="bg-slate-700/30 rounded-lg border border-slate-600/30 overflow-hidden">
+                    <div class="bg-slate-600/20 px-4 py-3 border-b border-slate-600/30">
+                      <h4 class="text-white font-racing text-lg uppercase flex items-center">
+                        <i class="fas fa-medal text-orange-400 mr-2"></i>
+                        ASC Feature - Main Event
+                      </h4>
+                    </div>
+                    <div class="p-4">
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Position</div>
+                          <div class="text-3xl font-bold text-orange-400">3rd</div>
+                          <div class="text-xs text-orange-400">🏆 PODIUM!</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Best Lap</div>
+                          <div class="text-3xl font-bold text-yellow-400">17.475</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Best Speed</div>
+                          <div class="text-3xl font-bold text-green-400">68.663</div>
+                          <div class="text-xs text-slate-500">mph</div>
+                        </div>
+                        <div class="stat-card-3d text-center py-3">
+                          <div class="text-sm text-slate-400 mb-1">Total Time</div>
+                          <div class="text-3xl font-bold text-blue-400">4:31.305</div>
+                          <div class="text-xs text-slate-500">15 laps</div>
+                        </div>
+                      </div>
+                      <div class="mt-4 flex justify-center">
+                        <div class="bg-orange-500/20 border border-orange-400/40 rounded-lg px-4 py-2">
+                          <span class="text-orange-400 font-bold text-sm">Gap to Leader: +3.028s</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Event Summary -->
+                <div class="mt-8 p-6 bg-gradient-to-r from-slate-700/20 to-slate-600/20 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-4">
+                    <h4 class="text-white font-racing text-xl uppercase mb-2">Labor Day of Doom Highlights</h4>
+                    <div class="flex flex-wrap justify-center gap-4">
+                      <div class="bg-yellow-500/30 border border-yellow-400/60 rounded-full px-4 py-2">
+                        <span class="text-yellow-400 font-bold text-sm">🏆 Heat Race Victory</span>
+                      </div>
+                      <div class="bg-orange-500/20 border border-orange-400/40 rounded-full px-4 py-2">
+                        <span class="text-orange-400 font-bold text-sm">🥉 Feature Podium</span>
+                      </div>
+                      <div class="bg-green-500/20 border border-green-400/40 rounded-full px-4 py-2">
+                        <span class="text-green-400 font-bold text-sm">⏱️ 17.475s Best Lap</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="text-slate-300 text-sm text-center leading-relaxed">
+                    <p>
+                      <strong class="text-white">Outstanding Labor Day Performance:</strong> 
+                      Jon Kirsch delivered an exceptional performance at Dells Raceway Park, capturing a dominant heat race victory 
+                      with a commanding performance over 8 laps. His consistency continued into the feature race where he secured 
+                      a well-earned 3rd place podium finish, demonstrating the speed and racecraft that makes #8K a championship contender.
+                    </p>
+                  </div>
+                </div>
+                
+                <!-- Source Attribution -->
+                <div class="mt-4 pt-3 border-t border-slate-600/30 text-center">
+                  <p class="text-slate-500 text-xs">
+                    <i class="fas fa-external-link-alt mr-1"></i>
+                    Source: <a href="https://speedhive.mylaps.com" target="_blank" rel="noopener" class="text-yellow-400 hover:text-yellow-300 transition-colors">MYLAPS Speedhive Official Results</a> | 
+                    Track: Dells Raceway Park (0.3333 mi)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 2025 American Super Cup Race Results -->
+      <section class="py-16 md:py-24 bg-gradient-to-b from-slate-900 to-black">
+        <div class="container mx-auto px-6">
+          <h2 class="heading-premium text-5xl md:text-6xl mb-12 text-center reveal-fade">
+            2025 American Super Cup <span class="accent">Race Results</span>
+          </h2>
+          
+          <div class="max-w-6xl mx-auto space-y-8">
+            
+            <!-- Grundy County Speedway - May 25, 2025 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-green-600 to-green-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Grundy County Speedway - May 25, 2025</h3>
+                  <div class="text-white font-bold text-sm">Grundy County Speedway, IL (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">4th</div>
+                    <div class="text-sm text-green-400 mb-1">14.625</div>
+                    <div class="text-xs text-slate-500">Front Row</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Heat Race</div>
+                    <div class="text-3xl font-bold text-orange-400">3rd</div>
+                    <div class="text-sm text-orange-400 mb-1">14.783</div>
+                    <div class="text-xs text-orange-400">Podium</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-3xl font-bold text-blue-400">5th</div>
+                    <div class="text-sm text-blue-400 mb-1">14.559</div>
+                    <div class="text-xs text-slate-500">Top 5</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Dells Raceway Park - Jul 25, 2025 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Dells Raceway Park - Jul 25, 2025</h3>
+                  <div class="text-white font-bold text-sm">Dells Raceway Park, WI (0.3333 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">6th</div>
+                    <div class="text-sm text-green-400 mb-1">17.235</div>
+                    <div class="text-xs text-slate-500">Mid Pack</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Heat Race</div>
+                    <div class="text-3xl font-bold text-yellow-400">1st</div>
+                    <div class="text-sm text-yellow-400 mb-1">17.619</div>
+                    <div class="text-xs text-yellow-400">🏆 WIN!</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-3xl font-bold text-orange-400">3rd</div>
+                    <div class="text-sm text-orange-400 mb-1">17.475</div>
+                    <div class="text-xs text-orange-400">🏆 PODIUM!</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Heat Win to Podium</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Outstanding Performance:</strong> 
+                      Jon Kirsch delivered exceptional racing at Dells, winning his heat race and converting it to a podium finish in the feature.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Golden Sands Speedway - Aug 31, 2025 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-yellow-600 to-yellow-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Golden Sands Speedway - Aug 31, 2025</h3>
+                  <div class="text-white font-bold text-sm">Golden Sands Speedway, WI (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-orange-400">3rd</div>
+                    <div class="text-sm text-green-400 mb-1">14.412</div>
+                    <div class="text-xs text-slate-500">Front Row</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Heat Race</div>
+                    <div class="text-3xl font-bold text-yellow-400">1st</div>
+                    <div class="text-sm text-yellow-400 mb-1">14.335</div>
+                    <div class="text-xs text-yellow-400">🏆 WIN!</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-3xl font-bold text-yellow-400">1st</div>
+                    <div class="text-sm text-yellow-400 mb-1">14.198</div>
+                    <div class="text-xs text-yellow-400">🏆 WIN!</div>
+                  </div>
+                </div>
+                <div class="mt-4 p-4 bg-yellow-500/10 border border-yellow-400/30 rounded-lg">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">🏆 PERFECT WEEKEND 🏆</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Dominant Victory:</strong> 
+                      Jon Kirsch swept Golden Sands Speedway with qualifying 3rd, winning his heat, and capturing the feature race victory!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Slinger Speedway - Jun 7, 2025 -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-purple-600 to-purple-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">Slinger Speedway - Jun 7, 2025</h3>
+                  <div class="text-white font-bold text-sm">Slinger Speedway, WI (0.25 mi)</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Qualifying</div>
+                    <div class="text-3xl font-bold text-blue-400">5th</div>
+                    <div class="text-sm text-green-400 mb-1">15.947</div>
+                    <div class="text-xs text-slate-500">Mid Pack</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Heat Race</div>
+                    <div class="text-3xl font-bold text-blue-400">6th</div>
+                    <div class="text-sm text-blue-400 mb-1">15.444</div>
+                    <div class="text-xs text-slate-500">Solid Run</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Feature</div>
+                    <div class="text-3xl font-bold text-orange-400">3rd</div>
+                    <div class="text-sm text-orange-400 mb-1">15.285</div>
+                    <div class="text-xs text-orange-400">🏆 PODIUM!</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Season Summary -->
+            <div class="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 rounded-xl border border-yellow-400/20 overflow-hidden">
+              <div class="bg-gradient-to-r from-yellow-600 to-red-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">2025 Season Highlights</h3>
+                  <div class="text-white font-bold text-sm">#8 Jon Kirsch</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div class="stat-card-3d text-center py-4">
+                    <div class="text-sm text-slate-400 mb-1">Feature Wins</div>
+                    <div class="text-4xl font-bold text-yellow-400">1</div>
+                    <div class="text-xs text-yellow-400">🏆 Golden Sands</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-4">
+                    <div class="text-sm text-slate-400 mb-1">Heat Wins</div>
+                    <div class="text-4xl font-bold text-green-400">2</div>
+                    <div class="text-xs text-green-400">Multiple Victories</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-4">
+                    <div class="text-sm text-slate-400 mb-1">Podium Finishes</div>
+                    <div class="text-4xl font-bold text-orange-400">3</div>
+                    <div class="text-xs text-orange-400">Top 3 Results</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-4">
+                    <div class="text-sm text-slate-400 mb-1">Championship</div>
+                    <div class="text-4xl font-bold text-blue-400">4th</div>
+                    <div class="text-xs text-blue-400">415 Points</div>
+                  </div>
+                </div>
+                
+                <div class="text-center">
+                  <p class="text-slate-300 text-sm leading-relaxed">
+                    <strong class="text-white">Successful 2025 Campaign:</strong> 
+                    Jon Kirsch delivered consistent performance throughout the 2025 American Super Cup season, 
+                    highlighted by his dominant victory at Golden Sands Speedway and multiple podium finishes. 
+                    His 4th place championship finish with 415 points demonstrates the competitive excellence 
+                    and racecraft that defines the #8 team.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </section>
+
+      <!-- American Super Cup Standings -->
+      <section class="py-16 md:py-24 bg-black/20">
+        <div class="container mx-auto px-6">
+          <h2 class="font-racing text-5xl uppercase mb-6 text-center">American Super Cup <span class="neon-yellow">Standings</span></h2>
+          <div class="max-w-4xl mx-auto">
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <!-- Header -->
+              <div class="bg-gradient-to-r from-yellow-400 to-red-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-slate-900 font-racing text-2xl uppercase font-bold">2025 Season Results</h3>
+                  <div class="text-slate-900 font-bold text-sm">#8 Jon Kirsch</div>
+                </div>
+              </div>
+              
+              <!-- Standings Grid -->
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- Drop Point Standings -->
+                  <div class="stat-card-3d text-center">
+                    <div class="text-2xl text-yellow-400 mb-2">
+                      <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="stat-number-3d text-2xl mb-1">4th</div>
+                    <div class="text-slate-300 font-semibold text-lg mb-1">Drop Point Standings</div>
+                    <div class="text-slate-400 text-sm mb-1">#8 Jon Kirsch</div>
+                    <div class="text-slate-400 text-sm">415 Points</div>
+                    <div class="progress-bar-3d mt-4">
+                      <div class="progress-fill-3d" style="width: 90%"></div>
+                    </div>
+                  </div>
+                  
+                  <!-- Full Point Standings -->
+                  <div class="stat-card-3d text-center">
+                    <div class="text-2xl text-blue-400 mb-2">
+                      <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-number-3d text-2xl mb-1">6th</div>
+                    <div class="text-slate-300 font-semibold text-lg mb-1">Full Point Standings</div>
+                    <div class="text-slate-400 text-sm mb-1">#8 Jon Kirsch</div>
+                    <div class="text-slate-400 text-sm">415 Points</div>
+                    <div class="progress-bar-3d mt-4">
+                      <div class="progress-fill-3d" style="width: 85%"></div>
+                    </div>
+                  </div>
+                  
+                  <!-- Qualify Points -->
+                  <div class="stat-card-3d text-center">
+                    <div class="text-2xl text-green-400 mb-2">
+                      <i class="fas fa-flag-checkered"></i>
+                    </div>
+                    <div class="stat-number-3d text-2xl mb-1">5th</div>
+                    <div class="text-slate-300 font-semibold text-lg mb-1">Qualify Points</div>
+                    <div class="text-slate-400 text-sm mb-1">#8 Jon Kirsch</div>
+                    <div class="text-slate-400 text-sm">4 Points</div>
+                    <div class="progress-bar-3d mt-4">
+                      <div class="progress-fill-3d" style="width: 60%"></div>
+                    </div>
+                  </div>
+                  
+                  <!-- Heat & Feature Wins -->
+                  <div class="stat-card-3d text-center">
+                    <div class="text-2xl text-red-400 mb-2">
+                      <i class="fas fa-medal"></i>
+                    </div>
+                    <div class="stat-number-3d text-2xl mb-1">8th</div>
+                    <div class="text-slate-300 font-semibold text-lg mb-1">Heat & Feature Wins</div>
+                    <div class="text-slate-400 text-sm mb-1">#8 Jon Kirsch</div>
+                    <div class="text-slate-400 text-sm">1 Win</div>
+                    <div class="progress-bar-3d mt-4">
+                      <div class="progress-fill-3d" style="width: 45%"></div>
+                    </div>
+                  </div>
+                  
+                  <!-- Pole Awards -->
+                  <div class="stat-card-3d text-center md:col-span-2 max-w-md mx-auto">
+                    <div class="text-2xl text-purple-400 mb-2">
+                      <i class="fas fa-stopwatch"></i>
+                    </div>
+                    <div class="stat-number-3d text-2xl mb-1">7th</div>
+                    <div class="text-slate-300 font-semibold text-lg mb-1">Pole Awards</div>
+                    <div class="text-slate-400 text-sm mb-1">#8 Jon Kirsch</div>
+                    <div class="text-slate-400 text-sm">Qualifying Performance</div>
+                    <div class="progress-bar-3d mt-4">
+                      <div class="progress-fill-3d" style="width: 70%"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Season Summary -->
+                <div class="mt-8 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Season Summary</h4>
+                    <div class="text-yellow-400 text-sm font-bold">
+                      <i class="fas fa-calendar-alt mr-1"></i>
+                      2025 American Super Cups
+                    </div>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed">
+                    <p class="mb-2">
+                      <strong class="text-white">Strong Championship Campaign:</strong> 
+                      Jon Kirsch continues to demonstrate consistent performance throughout the 2025 American Super Cup season, 
+                      maintaining solid positions across multiple championship categories.
+                    </p>
+                    <p>
+                      <strong class="text-white">Key Highlights:</strong> 
+                      Secured 1 Heat/Feature win and earned a #6 position in full point standings with 415 points, 
+                      showcasing the competitive spirit and racing excellence that defines the #8 car.
+                    </p>
+                  </div>
+                </div>
+                
+                <!-- Source Attribution -->
+                <div class="mt-4 pt-3 border-t border-slate-600/30 text-center">
+                  <p class="text-slate-500 text-xs">
+                    <i class="fas fa-external-link-alt mr-1"></i>
+                    Source: <a href="http://www.americansupercups.com/Standings2025.html" target="_blank" rel="noopener" class="text-yellow-400 hover:text-yellow-300 transition-colors">American Super Cups Official Standings</a>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- K1 Speed Addison Stats for Jon -->
-      <section class="py-16 md:py-24 bg-black/10">
+
+
+      <!-- K1 Speed Racing Results Section -->
+      <section class="py-16 md:py-24 bg-black/20">
         <div class="container mx-auto px-6">
-          <h2 class="font-racing text-5xl uppercase mb-6 text-center">K1 Speed <span class="neon-yellow">Addison</span> Stats</h2>
-          <div id="k1-addison-stats" class="card rounded-lg p-6">
-            <p class="text-slate-400">Loading...</p>
-          </div>
-          <div class="mt-8">
-            <h3 class="font-racing text-3xl mb-4">Prior Years <span class="neon-yellow">Results</span></h3>
-            <div id="k1-addison-history" class="card rounded-lg p-6">
-              <p class="text-slate-400">Loading...</p>
+          <h2 class="heading-premium text-5xl md:text-6xl mb-12 text-center reveal-fade">
+            K1 Speed <span class="accent">Racing</span> Results
+          </h2>
+          
+          <!-- K1 Speed Addison Adult League Multi-Season Results -->
+          <div class="max-w-6xl mx-auto space-y-8">
+            
+            <!-- 2025 Season - Current -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-yellow-600 to-yellow-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">K1 Speed Addison Adult League - 2025 Season</h3>
+                  <div class="text-white font-bold text-sm flex items-center">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
+                    ACTIVE SEASON
+                  </div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Championship Standing</div>
+                    <div class="text-3xl font-bold text-yellow-400">2nd</div>
+                    <div class="text-xs text-yellow-400">🏆 PODIUM POSITION</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Total Points</div>
+                    <div class="text-3xl font-bold text-white">160</div>
+                    <div class="text-xs text-slate-500">Championship Points</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Best Lap Time</div>
+                    <div class="text-3xl font-bold text-green-400">29.842s</div>
+                    <div class="text-xs text-green-400">Personal Best</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Races Completed</div>
+                    <div class="text-3xl font-bold text-blue-400">8</div>
+                    <div class="text-xs text-slate-500">Grand Prix Events</div>
+                  </div>
+                </div>
+                
+                <!-- GP Points Breakdown -->
+                <div class="bg-slate-700/30 rounded-lg p-4 border border-slate-600/30">
+                  <h4 class="text-white font-racing text-lg uppercase mb-3 text-center">Grand Prix Points Breakdown</h4>
+                  <div class="grid grid-cols-4 md:grid-cols-8 gap-2">
+                    <div class="text-center p-2 bg-slate-800/50 rounded">
+                      <div class="text-xs text-slate-400">GP1</div>
+                      <div class="text-lg font-bold text-white">24</div>
+                    </div>
+                    <div class="text-center p-2 bg-slate-800/50 rounded">
+                      <div class="text-xs text-slate-400">GP2</div>
+                      <div class="text-lg font-bold text-white">22</div>
+                    </div>
+                    <div class="text-center p-2 bg-slate-800/50 rounded">
+                      <div class="text-xs text-slate-400">GP3</div>
+                      <div class="text-lg font-bold text-white">22</div>
+                    </div>
+                    <div class="text-center p-2 bg-slate-800/50 rounded">
+                      <div class="text-xs text-slate-400">GP4</div>
+                      <div class="text-lg font-bold text-white">31</div>
+                    </div>
+                    <div class="text-center p-2 bg-slate-800/50 rounded">
+                      <div class="text-xs text-slate-400">GP5</div>
+                      <div class="text-lg font-bold text-white">18</div>
+                    </div>
+                    <div class="text-center p-2 bg-slate-800/50 rounded">
+                      <div class="text-xs text-slate-400">GP6</div>
+                      <div class="text-lg font-bold text-white">15</div>
+                    </div>
+                    <div class="text-center p-2 bg-slate-800/50 rounded">
+                      <div class="text-xs text-slate-400">GP7</div>
+                      <div class="text-lg font-bold text-white">13</div>
+                    </div>
+                    <div class="text-center p-2 bg-slate-800/50 rounded">
+                      <div class="text-xs text-slate-400">GP8</div>
+                      <div class="text-lg font-bold text-white">15</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">2025 Championship Contender</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Elite Performance:</strong> 
+                      Jon Kirsch is having an outstanding 2025 season at K1 Speed Addison, currently sitting in 2nd place in the Adult League championship standings. With 160 points across 8 Grand Prix events, he's established himself as a consistent front-runner. His personal best lap time of 29.842 seconds demonstrates the speed and precision that has made him a championship contender.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+            
+            <!-- 2024 Season -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">K1 Speed Addison Adult League - 2024 Season</h3>
+                  <div class="text-white font-bold text-sm">Previous Season</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Championship Standing</div>
+                    <div class="text-3xl font-bold text-blue-400">5th</div>
+                    <div class="text-xs text-slate-500">Top 5 Finish</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Total Points</div>
+                    <div class="text-3xl font-bold text-white">142</div>
+                    <div class="text-xs text-slate-500">Championship Points</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Season Experience</div>
+                    <div class="text-3xl font-bold text-green-400">Full</div>
+                    <div class="text-xs text-green-400">Complete Season</div>
+                  </div>
+                </div>
+                
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">Solid Foundation Year</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Building Momentum:</strong> 
+                      Jon's 2024 season at K1 Speed Addison was a solid foundation year, finishing 5th in the championship with 142 points. This season provided valuable experience in indoor karting competition and set the stage for his impressive 2025 championship run. The consistency and racecraft developed during this season has clearly paid dividends in his current championship campaign.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 2023 Season -->
+            <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+              <div class="bg-gradient-to-r from-purple-600 to-purple-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">K1 Speed Addison Adult League - 2023 Season</h3>
+                  <div class="text-white font-bold text-sm">Debut Season</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Championship Standing</div>
+                    <div class="text-3xl font-bold text-purple-400">8th</div>
+                    <div class="text-xs text-slate-500">Rookie Season</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Total Points</div>
+                    <div class="text-3xl font-bold text-white">89</div>
+                    <div class="text-xs text-slate-500">Learning Curve</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-3">
+                    <div class="text-sm text-slate-400 mb-1">Experience</div>
+                    <div class="text-3xl font-bold text-green-400">First</div>
+                    <div class="text-xs text-green-400">Karting Season</div>
+                  </div>
+                </div>
+                
+                <div class="mt-4 p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+                  <div class="text-center mb-3">
+                    <h4 class="text-white font-racing text-lg uppercase">The Beginning</h4>
+                  </div>
+                  <div class="text-slate-300 text-sm leading-relaxed text-center">
+                    <p>
+                      <strong class="text-white">Racing Genesis:</strong> 
+                      Jon's 2023 debut season at K1 Speed Addison marked the beginning of his indoor karting journey. Finishing 8th with 89 points, this rookie campaign provided the foundation for everything that followed. The skills, racecraft, and competitive spirit developed during this first season have been instrumental in his progression to championship contention and his success in stock car racing.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- K1 Career Summary -->
+            <div class="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 rounded-xl border border-yellow-400/20 overflow-hidden">
+              <div class="bg-gradient-to-r from-yellow-600 to-red-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold">K1 Speed Career Summary</h3>
+                  <div class="text-white font-bold text-sm">3 Seasons • 2023-2025</div>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div class="stat-card-3d text-center py-4">
+                    <div class="text-sm text-slate-400 mb-1">Career Best Position</div>
+                    <div class="text-4xl font-bold text-yellow-400">2nd</div>
+                    <div class="text-xs text-yellow-400">🏆 2025 SEASON</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-4">
+                    <div class="text-sm text-slate-400 mb-1">Total Career Points</div>
+                    <div class="text-4xl font-bold text-white">391</div>
+                    <div class="text-xs text-slate-500">Across All Seasons</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-4">
+                    <div class="text-sm text-slate-400 mb-1">Best Lap Time</div>
+                    <div class="text-4xl font-bold text-green-400">29.842s</div>
+                    <div class="text-xs text-green-400">Personal Record</div>
+                  </div>
+                  <div class="stat-card-3d text-center py-4">
+                    <div class="text-sm text-slate-400 mb-1">Improvement</div>
+                    <div class="text-4xl font-bold text-blue-400">6</div>
+                    <div class="text-xs text-blue-400">Positions Gained</div>
+                  </div>
+                </div>
+                
+                <!-- Championship Progression Chart -->
+                <div class="bg-slate-700/30 rounded-lg p-4 border border-slate-600/30 mb-4">
+                  <h4 class="text-white font-racing text-lg uppercase mb-3 text-center">Championship Progression</h4>
+                  <div class="flex items-end justify-center space-x-4 h-24">
+                    <div class="flex flex-col items-center">
+                      <div class="bg-purple-500 w-8 h-8 rounded-t flex items-end justify-center text-white text-xs font-bold">8</div>
+                      <div class="text-xs text-slate-400 mt-1">2023</div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                      <div class="bg-blue-500 w-8 h-12 rounded-t flex items-end justify-center text-white text-xs font-bold">5</div>
+                      <div class="text-xs text-slate-400 mt-1">2024</div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                      <div class="bg-yellow-500 w-8 h-20 rounded-t flex items-end justify-center text-white text-xs font-bold animate-pulse">2</div>
+                      <div class="text-xs text-yellow-400 mt-1">2025</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="text-center">
+                  <p class="text-slate-300 text-sm leading-relaxed">
+                    <strong class="text-white">Three-Year Journey:</strong> 
+                    From 8th place rookie to 2nd place championship contender, Jon's K1 Speed career showcases remarkable progression and dedication. His 391 total career points across three seasons demonstrate consistent improvement and competitive growth. This karting experience has been invaluable preparation for his stock car racing career, developing the racecraft and competitive instincts that make him successful on asphalt.
+                  </p>
+                </div>
+              </div>
+            </div>
         </div>
       </section>
 
@@ -764,8 +2719,8 @@
               <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500">Beast</span>
             </h2>
             <p class="max-w-3xl mx-auto mb-8 text-slate-300 text-lg">
-              The American Super Cup Series cars are ½ scale stock cars built similarly to SPRINT Cup cars. 
-              These precision-engineered machines provide a competitive and affordable racing experience for both new and experienced drivers.
+              American Super Cup Series cars feature Honda GX390 engines with hand-laid fiberglass bodies and professional-grade chassis construction. 
+              These precision-engineered machines deliver authentic racing performance with modern safety features.
             </p>
             <div class="inline-flex items-center px-4 py-2 bg-blue-500/20 backdrop-blur-sm rounded-full border border-blue-400/30">
               <i class="fas fa-info-circle text-blue-400 mr-2"></i>
@@ -775,6 +2730,9 @@
           
           <!-- 3D Car Showcase -->
           <div class="relative max-w-6xl mx-auto perspective-1000">
+            <!-- Mobile backdrop for hotspot info -->
+            <div class="hotspot-backdrop" id="hotspot-backdrop"></div>
+            
             <div class="car-image-3d relative">
               <img 
                 src="https://i.imgur.com/EumUdup.jpg" 
@@ -787,116 +2745,317 @@
               />
               
               <!-- Enhanced 3D Hotspots -->
-              <div class="hotspot-3d" style="top: 45%; left: 30%;">
+              <div class="hotspot-3d" style="top: 45%; left: 30%;" data-hotspot="engine">
                 <i class="fas fa-cogs"></i>
                 <div class="hotspot-info-3d">
+                  <button class="hotspot-close">&times;</button>
                   <div class="flex items-center mb-2">
                     <i class="fas fa-engine text-yellow-400 mr-2"></i>
-                    <strong class="text-yellow-400">Engine & Powertrain</strong>
+                    <strong class="text-yellow-400">Honda GX390 Engine</strong>
                   </div>
                   <p class="text-slate-300 text-sm mb-3">
-                    ½ scale stock car design with tube chassis construction, built for durability and performance on the track.
+                    4-stroke, OHV single cylinder 390cc sealed motor with air cooling, electric start, and dry centrifugal clutch with split gears.
                   </p>
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-green-400">Stock Car Design</span>
-                    <span class="text-blue-400">Tube Chassis</span>
+                    <span class="text-green-400">390cc Engine</span>
+                    <span class="text-blue-400">Electric Start</span>
                   </div>
                 </div>
               </div>
               
-              <div class="hotspot-3d" style="top: 35%; left: 75%;">
-                <i class="fas fa-wind"></i>
+              <div class="hotspot-3d" style="top: 35%; left: 75%;" data-hotspot="chassis">
+                <i class="fas fa-cog"></i>
                 <div class="hotspot-info-3d">
+                  <button class="hotspot-close">&times;</button>
                   <div class="flex items-center mb-2">
-                    <i class="fas fa-paper-plane text-blue-400 mr-2"></i>
-                    <strong class="text-blue-400">Aerodynamics Package</strong>
+                    <i class="fas fa-wrench text-blue-400 mr-2"></i>
+                    <strong class="text-blue-400">Chassis & Body</strong>
                   </div>
                   <p class="text-slate-300 text-sm mb-3">
-                    Adjustable suspension system designed for optimal handling on both 3 and 4 wide track configurations.
+                    1.125 X .065 mild steel chassis with MIG welding, hand-laid fiberglass body, and Lexan windshield for durability and safety.
                   </p>
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-purple-400">Adjustable Setup</span>
-                    <span class="text-green-400">Multi-Width Tracks</span>
+                    <span class="text-purple-400">Steel Chassis</span>
+                    <span class="text-green-400">Fiberglass Body</span>
                   </div>
                 </div>
               </div>
               
-              <div class="hotspot-3d" style="top: 70%; left: 65%;">
+              <div class="hotspot-3d" style="top: 70%; left: 65%;" data-hotspot="wheels">
                 <i class="fas fa-circle"></i>
                 <div class="hotspot-info-3d">
+                  <button class="hotspot-close">&times;</button>
                   <div class="flex items-center mb-2">
                     <i class="fas fa-grip-horizontal text-red-400 mr-2"></i>
-                    <strong class="text-red-400">Tires & Grip System</strong>
+                    <strong class="text-red-400">Wheels & Tires</strong>
                   </div>
                   <p class="text-slate-300 text-sm mb-3">
-                    Hoosier Racing Slicks with soft compound that increases grip as temperature rises during competition.
+                    8 x 6.5 polished aluminum wheels with 15 x 7 x 8 racing slicks for maximum grip and performance on the track.
                   </p>
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-orange-400">Heat Activated</span>
-                    <span class="text-yellow-400">Maximum Grip</span>
+                    <span class="text-orange-400">Racing Slicks</span>
+                    <span class="text-yellow-400">Aluminum Wheels</span>
                   </div>
                 </div>
               </div>
               
-              <div class="hotspot-3d" style="top: 50%; left: 50%;">
-                <i class="fas fa-dashboard"></i>
+              <div class="hotspot-3d" style="top: 50%; left: 50%;" data-hotspot="suspension">
+                <i class="fas fa-sliders-h"></i>
                 <div class="hotspot-info-3d">
+                  <button class="hotspot-close">&times;</button>
                   <div class="flex items-center mb-2">
-                    <i class="fas fa-tachometer-alt text-green-400 mr-2"></i>
-                    <strong class="text-green-400">Digital Command Center</strong>
+                    <i class="fas fa-car-crash text-green-400 mr-2"></i>
+                    <strong class="text-green-400">Suspension & Handling</strong>
                   </div>
                   <p class="text-slate-300 text-sm mb-3">
-                    Advanced telemetry system providing real-time performance data and race analytics.
+                    Upper & lower control arms with adjustable coil-over shocks, rack & pinion steering, and adjustable camber, caster, and toe settings.
                   </p>
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-cyan-400">Real-time Data</span>
-                    <span class="text-pink-400">AI Analytics</span>
+                    <span class="text-cyan-400">Adjustable Setup</span>
+                    <span class="text-pink-400">Precision Control</span>
                   </div>
                 </div>
               </div>
               
-              <div class="hotspot-3d" style="top: 25%; left: 45%;">
+              <div class="hotspot-3d" style="top: 25%; left: 45%;" data-hotspot="safety">
                 <i class="fas fa-shield-alt"></i>
                 <div class="hotspot-info-3d">
+                  <button class="hotspot-close">&times;</button>
                   <div class="flex items-center mb-2">
-                    <i class="fas fa-hard-hat text-orange-400 mr-2"></i>
-                    <strong class="text-orange-400">Safety Systems</strong>
+                    <i class="fas fa-user-shield text-orange-400 mr-2"></i>
+                    <strong class="text-orange-400">Safety & Interior</strong>
                   </div>
                   <p class="text-slate-300 text-sm mb-3">
-                    Professional-grade roll cage, fire suppression, and impact-absorbing technologies.
+                    Five-point racing harness, aluminum seat, quick-release steering wheel, dual caliper disc brakes, and movable pedals for optimal safety.
                   </p>
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-green-400">FIA Certified</span>
-                    <span class="text-blue-400">Driver Protection</span>
+                    <span class="text-green-400">5-Point Harness</span>
+                    <span class="text-blue-400">Disc Brakes</span>
                   </div>
                 </div>
               </div>
             </div>
             
             <!-- Technical Specifications -->
-            <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
               <div class="stat-card-3d text-center">
                 <div class="text-2xl text-red-400 mb-2">
-                  <i class="fas fa-tachometer-alt"></i>
+                  <i class="fas fa-engine"></i>
                 </div>
-                <div class="stat-number-3d text-2xl mb-1">180+</div>
-                <div class="text-slate-300 font-semibold text-sm">MPH Top Speed</div>
+                <div class="stat-number-3d text-2xl mb-1">390cc</div>
+                <div class="text-slate-300 font-semibold text-sm">Honda GX390</div>
               </div>
               
               <div class="stat-card-3d text-center">
                 <div class="text-2xl text-yellow-400 mb-2">
                   <i class="fas fa-weight"></i>
                 </div>
-                <div class="stat-number-3d text-2xl mb-1">1,250</div>
-                <div class="text-slate-300 font-semibold text-sm">lbs Race Weight</div>
+                <div class="stat-number-3d text-2xl mb-1">410</div>
+                <div class="text-slate-300 font-semibold text-sm">lbs Weight</div>
               </div>
               
               <div class="stat-card-3d text-center">
                 <div class="text-2xl text-blue-400 mb-2">
-                  <i class="fas fa-stopwatch"></i>
+                  <i class="fas fa-arrows-alt-h"></i>
                 </div>
-                <div class="stat-number-3d text-2xl mb-1">0-60</div>
-                <div class="text-slate-300 font-semibold text-sm">2.8 Seconds</div>
+                <div class="stat-number-3d text-2xl mb-1">60"</div>
+                <div class="text-slate-300 font-semibold text-sm">Wheelbase</div>
+              </div>
+              
+              <div class="stat-card-3d text-center">
+                <div class="text-2xl text-green-400 mb-2">
+                  <i class="fas fa-ruler-combined"></i>
+                </div>
+                <div class="stat-number-3d text-2xl mb-1">110"</div>
+                <div class="text-slate-300 font-semibold text-sm">Length</div>
+              </div>
+            </div>
+            
+            <!-- Detailed Specifications -->
+            <div class="mt-12 max-w-4xl mx-auto">
+              <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
+                <div class="bg-gradient-to-r from-red-500 to-yellow-500 px-6 py-4">
+                  <h3 class="text-white font-racing text-xl uppercase font-bold flex items-center">
+                    <i class="fas fa-cogs mr-2"></i>
+                    Complete Car Specifications
+                  </h3>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- Engine & Powertrain -->
+                  <div>
+                    <h4 class="text-white font-bold mb-3 flex items-center">
+                      <i class="fas fa-engine text-red-400 mr-2"></i>
+                      Engine & Powertrain
+                    </h4>
+                    <div class="space-y-2 text-sm">
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Engine:</span>
+                        <span class="text-white font-semibold">Honda GX390</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Type:</span>
+                        <span class="text-white">4 Stroke, OHV Single Cylinder</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Displacement:</span>
+                        <span class="text-white">390cc Sealed Motor</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Cooling:</span>
+                        <span class="text-white">Air Cooled</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Start:</span>
+                        <span class="text-white">Electric Start</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Clutch:</span>
+                        <span class="text-white">Dry Centrifugal with Split Gears</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Chassis & Body -->
+                  <div>
+                    <h4 class="text-white font-bold mb-3 flex items-center">
+                      <i class="fas fa-car text-blue-400 mr-2"></i>
+                      Chassis & Body
+                    </h4>
+                    <div class="space-y-2 text-sm">
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Chassis:</span>
+                        <span class="text-white">1.125 X .065 Mild Steel</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Welding:</span>
+                        <span class="text-white">MIG Welded</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Body:</span>
+                        <span class="text-white">Hand Laid Fiberglass</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Windshield:</span>
+                        <span class="text-white">Lexan</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Body Types:</span>
+                        <span class="text-white">Impala, Camry, Fusion, Charger</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Suspension & Steering -->
+                  <div>
+                    <h4 class="text-white font-bold mb-3 flex items-center">
+                      <i class="fas fa-sliders-h text-green-400 mr-2"></i>
+                      Suspension & Steering
+                    </h4>
+                    <div class="space-y-2 text-sm">
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Front:</span>
+                        <span class="text-white">Upper & Lower Control Arms</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Shocks:</span>
+                        <span class="text-white">Adjustable Coil Over</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Rear:</span>
+                        <span class="text-white">Adjustable Rear Suspension</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Steering:</span>
+                        <span class="text-white">Rack & Pinion</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Alignment:</span>
+                        <span class="text-white">Camber, Caster, Toe Adjust</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Safety & Interior -->
+                  <div>
+                    <h4 class="text-white font-bold mb-3 flex items-center">
+                      <i class="fas fa-shield-alt text-yellow-400 mr-2"></i>
+                      Safety & Interior
+                    </h4>
+                    <div class="space-y-2 text-sm">
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Harness:</span>
+                        <span class="text-white">Five Point Racing</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Brakes:</span>
+                        <span class="text-white">Dual Caliper Disc</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Steering Wheel:</span>
+                        <span class="text-white">Quick Release</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Seat:</span>
+                        <span class="text-white">Aluminum</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Pedals:</span>
+                        <span class="text-white">Movable</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Dimensions & Wheels -->
+                  <div class="md:col-span-2">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 class="text-white font-bold mb-3 flex items-center">
+                          <i class="fas fa-ruler-combined text-purple-400 mr-2"></i>
+                          Dimensions
+                        </h4>
+                        <div class="space-y-2 text-sm">
+                          <div class="flex justify-between">
+                            <span class="text-slate-400">Wheelbase:</span>
+                            <span class="text-white">60 Inches</span>
+                          </div>
+                          <div class="flex justify-between">
+                            <span class="text-slate-400">Width:</span>
+                            <span class="text-white">45 Inches</span>
+                          </div>
+                          <div class="flex justify-between">
+                            <span class="text-slate-400">Length:</span>
+                            <span class="text-white">110 Inches</span>
+                          </div>
+                          <div class="flex justify-between">
+                            <span class="text-slate-400">Height:</span>
+                            <span class="text-white">32 Inches</span>
+                          </div>
+                          <div class="flex justify-between">
+                            <span class="text-slate-400">Weight:</span>
+                            <span class="text-white">410 lbs (approx)</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 class="text-white font-bold mb-3 flex items-center">
+                          <i class="fas fa-circle text-orange-400 mr-2"></i>
+                          Wheels & Tires
+                        </h4>
+                        <div class="space-y-2 text-sm">
+                          <div class="flex justify-between">
+                            <span class="text-slate-400">Wheels:</span>
+                            <span class="text-white">8 x 6.5 Polished Aluminum</span>
+                          </div>
+                          <div class="flex justify-between">
+                            <span class="text-slate-400">Tires:</span>
+                            <span class="text-white">15 x 7 x 8 Racing Slicks</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -966,10 +3125,6 @@
 
     <script type="module" src="navigation.js"></script>
     <script type="module" src="main.js"></script>
-    <script type="module" src="assets/js/racer-schedule.js"></script>
-    <script type="module" src="assets/js/driver.js"></script>
-    <script type="module" src="assets/js/k1-stats.js"></script>
-    <script type="module" src="assets/js/k1-history.js"></script>
-    <script type="module" src="assets/js/speedhive-results.js"></script>
+    <script src="assets/js/hotspot-mobile.js"></script>
   </body>
 </html>

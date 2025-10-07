@@ -1,5 +1,5 @@
 import "./app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
   getFirestore,
   collection,
@@ -15,13 +15,13 @@ import {
   arrayRemove,
   increment,
   getDocs,
-} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import {
   getStorage,
   ref,
   uploadBytesResumable,
   getDownloadURL,
-} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 import {
   getFirebaseAuth,
   getFirebaseDb,
@@ -29,7 +29,7 @@ import {
 } from "./firebase-core.js";
 
 // Import sanitization utilities
-import { html, safeSetHTML, createSafeElement } from "./sanitize.js";
+import { html, safeSetHTML, createSafeElement, escapeHTML } from "./sanitize.js";
 import { validateUserClaims } from "./auth-utils.js";
 
 async function main() {
@@ -39,16 +39,24 @@ async function main() {
 
   // --- Auth State ---
   const uploadContainer = document.getElementById("upload-container");
+  let isModerator = false; // team-member or admin
+  let unsubscribePending = null;
 
-  // --- Photo Upload Elements (declare before using in visibility logic) ---
+  // --- Photo Upload Logic ---
   const uploadInput = document.getElementById("photo-upload-input");
   const uploadBtn = document.getElementById("upload-btn");
   const progressBar = document.getElementById("upload-progress-bar");
   const uploadStatus = document.getElementById("upload-status");
   let selectedFile = null;
 
-  let isModerator = false; // team-member or admin
-  let unsubscribePending = null;
+  onAuthStateChanged(auth, async (user) => {
+    updateUploadVisibility(user);
+    await checkModerator();
+  });
+
+  // Apply initial state in case the listener fires later
+  updateUploadVisibility(auth.currentUser);
+  await checkModerator();
 
   // Ensure upload UI is visible with proper state based on auth
   function updateUploadVisibility(user) {
@@ -72,16 +80,6 @@ async function main() {
       }
     }
   }
-
-  // Register auth state listener after elements and helpers exist
-  onAuthStateChanged(auth, async (user) => {
-    updateUploadVisibility(user);
-    await checkModerator();
-  });
-
-  // Apply initial state in case the listener fires later
-  updateUploadVisibility(auth.currentUser);
-  await checkModerator();
 
   if (uploadInput) {
     uploadInput.addEventListener("change", (e) => {
@@ -134,11 +132,35 @@ async function main() {
           if (uploadStatus) uploadStatus.textContent = "Processing...";
           try {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            
+            // Get the best available display name
+            const getDisplayName = () => {
+              const user = auth.currentUser;
+              if (!user) return "Anonymous";
+              
+              // Priority order: displayName > email username > email
+              if (user.displayName && user.displayName.trim()) {
+                return user.displayName.trim();
+              }
+              
+              if (user.email) {
+                // Extract username from email (before @)
+                const emailUsername = user.email.split('@')[0];
+                if (emailUsername && emailUsername !== user.email) {
+                  // Capitalize first letter and clean up
+                  return emailUsername.charAt(0).toUpperCase() + emailUsername.slice(1).replace(/[._-]/g, ' ');
+                }
+                return user.email;
+              }
+              
+              return "Racing Fan";
+            };
+            
             await addDoc(collection(db, "gallery_images"), {
               imageUrl: downloadURL,
               uploaderUid: userId,
               uploaderEmail: auth.currentUser.email, // Kept for internal reference
-              uploaderDisplayName: auth.currentUser.displayName || "Anonymous",
+              uploaderDisplayName: getDisplayName(),
               createdAt: serverTimestamp(),
               tags: [],
               approved: false,
@@ -224,7 +246,19 @@ async function main() {
             </div>
             <div class="p-4 space-y-3">
               <div class="flex items-center justify-between">
-                <div class="text-sm text-slate-300">${image.uploaderDisplayName || "Anonymous"}</div>
+                <div class="text-sm text-slate-300">${(() => {
+                  if (image.uploaderDisplayName && image.uploaderDisplayName.trim() && image.uploaderDisplayName !== 'Anonymous') {
+                    return image.uploaderDisplayName.trim();
+                  }
+                  if (image.uploaderEmail) {
+                    const emailUsername = image.uploaderEmail.split('@')[0];
+                    if (emailUsername && emailUsername !== image.uploaderEmail) {
+                      return emailUsername.charAt(0).toUpperCase() + emailUsername.slice(1).replace(/[._-]/g, ' ');
+                    }
+                    return image.uploaderEmail;
+                  }
+                  return "Racing Fan";
+                })()}</div>
                 <div class="text-xs text-slate-400">${image.uploaderEmail || ""}</div>
               </div>
               <div class="flex items-center gap-3">
@@ -292,7 +326,7 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
         const imageId = docSnapshot.id;
         const galleryItem = document.createElement("div");
         galleryItem.className =
-          "gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group";
+          "gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group max-w-xs";
 
         // Build tags safely
         const tagsContainer = document.createElement("div");
@@ -320,9 +354,27 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
         const adminEmails = ['auhren1992@gmail.com']; // Add your admin emails here
         const isAdmin = currentUser && adminEmails.includes(currentUser.email);
 
-        const galleryHTML = html`
+        // Get better display name for existing photos
+        const getExistingDisplayName = (image) => {
+          if (image.uploaderDisplayName && image.uploaderDisplayName.trim() && image.uploaderDisplayName !== 'Anonymous') {
+            return image.uploaderDisplayName.trim();
+          }
+          
+          if (image.uploaderEmail) {
+            const emailUsername = image.uploaderEmail.split('@')[0];
+            if (emailUsername && emailUsername !== image.uploaderEmail) {
+              return emailUsername.charAt(0).toUpperCase() + emailUsername.slice(1).replace(/[._-]/g, ' ');
+            }
+            return image.uploaderEmail;
+          }
+          
+          return "Racing Fan";
+        };
+        
+        // Create the main gallery HTML without admin buttons
+        const baseHTML = `
           <img
-            src="${image.imageUrl}"
+            src="${escapeHTML(image.imageUrl)}"
             alt="User uploaded race photo"
             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
@@ -330,14 +382,14 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
             class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent"
           >
             <p class="text-sm text-slate-300">
-              Uploaded by: ${image.uploaderDisplayName || "Anonymous"}
+              Uploaded by: ${escapeHTML(getExistingDisplayName(image))}
             </p>
-            <div class="mt-2" id="tags-container-${imageId}"></div>
+            <div class="mt-2" id="tags-container-${escapeHTML(imageId)}"></div>
             <div class="mt-3 flex items-center justify-between">
-              <div class="flex items-center space-x-2">
+              <div class="flex items-center space-x-2" id="action-buttons-${escapeHTML(imageId)}">
                 <button
                   class="like-btn flex items-center space-x-1 text-xs ${likeButtonClass} hover:text-red-400 transition"
-                  data-image-id="${imageId}"
+                  data-image-id="${escapeHTML(imageId)}"
                   ${disabledAttr}
                 >
                   <svg
@@ -355,14 +407,10 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
                   </svg>
                   <span class="like-count">${likeCount}</span>
                 </button>
-                ${isAdmin ? html`<button class="delete-btn flex items-center space-x-1 text-xs text-red-400 hover:text-red-300 transition" data-image-id="${imageId}">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                  <span>Delete</span>
-                </button>` : ""}
               </div>
               <button
                 class="comment-btn flex items-center space-x-1 text-xs text-slate-400 hover:text-blue-400 transition"
-                data-image-id="${imageId}"
+                data-image-id="${escapeHTML(imageId)}"
                 ${disabledAttr}
               >
                 <svg
@@ -384,7 +432,39 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
           </div>
         `;
 
-        safeSetHTML(galleryItem, galleryHTML);
+        safeSetHTML(galleryItem, baseHTML);
+        
+        // Add delete button manually if admin
+        if (isAdmin) {
+          const actionContainer = galleryItem.querySelector(`#action-buttons-${imageId}`);
+          if (actionContainer) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn flex items-center space-x-1 text-xs text-red-400 hover:text-red-300 transition';
+            deleteBtn.setAttribute('data-image-id', imageId);
+            
+            // Create SVG element programmatically for security
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', 'w-4 h-4');
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke', 'currentColor');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linejoin', 'round');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('d', 'M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16');
+            
+            svg.appendChild(path);
+            
+            const span = document.createElement('span');
+            span.textContent = 'Delete';
+            
+            deleteBtn.appendChild(svg);
+            deleteBtn.appendChild(span);
+            actionContainer.appendChild(deleteBtn);
+          }
+        }
 
         // Add tags safely to the tags container
         const tagsContainerInDOM = galleryItem.querySelector(
@@ -403,13 +483,18 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
             if (!confirm('Delete this photo? This action cannot be undone.')) return;
             try {
               // Delete from Firestore
-const { deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-              await deleteDoc(doc(db, 'gallery_images', imageId));
+              try {
+                const { deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+                await deleteDoc(doc(db, 'gallery_images', imageId));
+              } catch (firestoreError) {
+                console.error('Failed to delete from Firestore:', firestoreError);
+                throw firestoreError;
+              }
               
               // Try to delete from Storage if we have the path
               if (image.storagePath) {
                 try {
-const { deleteObject, ref } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js');
+                  const { deleteObject, ref } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js');
                   const storageRef = ref(storage, image.storagePath);
                   await deleteObject(storageRef);
                 } catch (storageError) {

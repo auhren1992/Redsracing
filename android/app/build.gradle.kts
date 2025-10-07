@@ -13,8 +13,8 @@ android {
         applicationId = "com.example.redsracing"
         minSdk = 24
         targetSdk = 34
-        versionCode = 4
-        versionName = "1.4BETA"
+        versionCode = 5
+        versionName = "2.0"
 
         resourceConfigurations += listOf("en")
     }

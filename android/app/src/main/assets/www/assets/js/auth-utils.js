@@ -23,7 +23,6 @@ export function getCurrentUser() {
 export async function safeSignOut() {
   try {
     await auth.signOut();
-    try { if (window.AndroidAuth && AndroidAuth.onLogout) AndroidAuth.onLogout(); } catch(_) {}
     return true;
   } catch (error) {
     return false;

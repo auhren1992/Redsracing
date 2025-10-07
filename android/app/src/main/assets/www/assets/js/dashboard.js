@@ -6,7 +6,7 @@ import {
   getFirebaseDb,
   getFirebaseStorage,
 } from "./firebase-core.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
   doc,
   getDoc,
@@ -19,8 +19,8 @@ import {
   updateDoc,
   deleteDoc,
   where,
-} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
 // Import centralized authentication utilities
 import {

@@ -325,7 +325,6 @@ class LoginPageController {
       }
 
       this.showMessage("Login successful! Redirecting...", false);
-      try { if (window.AndroidAuth && AndroidAuth.onLoginSuccess) AndroidAuth.onLoginSuccess(); } catch(_) {}
 
       const returnTo = this.getReturnTo();
       if (returnTo) {
@@ -369,7 +368,6 @@ class LoginPageController {
     try {
       await signInWithPopup(this.auth, this.googleProvider);
       this.showMessage("Google sign-in successful! Redirecting...", false);
-      try { if (window.AndroidAuth && AndroidAuth.onLoginSuccess) AndroidAuth.onLoginSuccess(); } catch(_) {}
       const returnTo = this.getReturnTo();
       if (returnTo) {
         navigateToInternal(returnTo);

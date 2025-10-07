@@ -279,6 +279,114 @@ body {
 /* Improve input visibility on dark backgrounds */
 input, textarea { color: #e5e7eb; caret-color: #f7ff00; }
 input::placeholder, textarea::placeholder { color: #94a3b8; }
+/* Ensure visibility when inputs use a white background */
+input.bg-white, textarea.bg-white { color: #111827 !important; }
+input.bg-white::placeholder, textarea.bg-white::placeholder { color: #6b7280 !important; }
+
+/* Navigation Link Styles */
+.nav-link {
+  color: #e2e8f0;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.nav-link:hover {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Dropdown Styles */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  backdrop-filter: blur(16px);
+  z-index: 1000;
+  padding: 8px 0;
+  margin-top: 4px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-item {
+  display: block;
+  padding: 10px 16px;
+  color: #e2e8f0;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  margin: 2px 8px;
+}
+
+.dropdown-item:hover {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+}
+
+.modern-dropdown {
+  min-width: 180px;
+}
+
+/* Mobile Menu Styles */
+.mobile-menu {
+  padding: 16px;
+}
+
+.modern-mobile {
+  background: rgba(15, 23, 42, 0.98);
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  backdrop-filter: blur(16px);
+}
+
+.mobile-login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+/* Force readable styling for modern inputs and Settings page */
+.modern-input {
+  background-color: #1e293b !important; /* slate-800 */
+  color: #e5e7eb !important; /* slate-200 */
+  border: 1px solid #334155 !important; /* slate-600 */
+}
+#profile-settings input[type="text"],
+#profile-settings input[type="url"],
+#profile-settings select {
+  background-color: #1e293b !important;
+  color: #e5e7eb !important;
+  border: 1px solid #334155 !important;
+}
+#profile-settings input[type="text"]::placeholder,
+#profile-settings input[type="url"]::placeholder {
+  color: #94a3b8 !important;
+}
+/* Fix WebKit autofill (ensures text stays visible) */
+#profile-settings input:-webkit-autofill,
+#profile-settings input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #e5e7eb !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
 
 /* Navigation specific styles */
 .avatar-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 9999px; background-color: #0ea5e9; color: white; font-weight: 700; font-size: 0.8rem; overflow: hidden; border: 2px solid rgba(255,255,255,0.2); }
