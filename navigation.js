@@ -163,6 +163,7 @@ const core = await import('./assets/js/firebase-core.js');
     hideAllDropdowns();
 
     // Event delegation: toggle dropdown menus on click
+    // Use capture=true to ensure we get the event even if other handlers stopPropagation
     document.addEventListener('click', (e) => {
       const toggleBtn = e.target.closest('.dropdown-toggle');
       const insideMenu = e.target.closest('.dropdown-menu');
@@ -199,7 +200,7 @@ const core = await import('./assets/js/firebase-core.js');
       if (!insideMenu) {
         hideAllDropdowns();
       }
-    });
+    }, true);
 
     // Close on Escape key
     document.addEventListener('keydown', (e) => {
