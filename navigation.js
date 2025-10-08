@@ -159,30 +159,49 @@ const core = await import('./assets/js/firebase-core.js');
   }
 
   function initDropdowns() {
-    // Hide on load
+    // Hide all menus on load
     hideAllDropdowns();
 
-    // Wire toggles
-    document.querySelectorAll('.dropdown-toggle').forEach((btn) => {
-      const menu = btn.nextElementSibling;
-      if (menu && menu.classList.contains('dropdown-menu')) {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          toggleMenu(btn, menu);
-        });
-
-      }
-    });
-
-    // Close on outside click
+    // Event delegation: toggle dropdown menus on click
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.dropdown')) {
+      const toggleBtn = e.target.closest('.dropdown-toggle');
+      const insideMenu = e.target.closest('.dropdown-menu');
+
+      if (toggleBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const menu = toggleBtn.nextElementSibling;
+        if (menu && menu.classList.contains('dropdown-menu')) {
+          // Close all other dropdowns first
+          document.querySelectorAll('.dropdown-menu').forEach((m) => {
+            if (m !== menu) {
+              m.classList.add('hidden');
+              m.setAttribute('aria-hidden', 'true');
+              const otherToggle = m.previousElementSibling;
+              if (otherToggle) otherToggle.setAttribute('aria-expanded', 'false');
+            }
+          });
+
+          const isHidden = menu.classList.contains('hidden');
+          if (isHidden) {
+            showMenu(menu);
+            toggleBtn.setAttribute('aria-expanded', 'true');
+          } else {
+            menu.classList.add('hidden');
+            menu.setAttribute('aria-hidden', 'true');
+            toggleBtn.setAttribute('aria-expanded', 'false');
+          }
+        }
+        return;
+      }
+
+      // Outside click (not inside any dropdown) closes everything
+      if (!insideMenu) {
         hideAllDropdowns();
       }
     });
 
-    // Keyboard navigation support
+    // Close on Escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         hideAllDropdowns();
