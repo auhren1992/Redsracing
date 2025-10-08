@@ -1,5 +1,5 @@
 import "./app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import {
   getFirestore,
   collection,
@@ -15,13 +15,13 @@ import {
   arrayRemove,
   increment,
   getDocs,
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import {
   getStorage,
   ref,
   uploadBytesResumable,
   getDownloadURL,
-} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 import {
   getFirebaseAuth,
   getFirebaseDb,
