@@ -66,10 +66,10 @@ async function main() {
   // Dynamic stats
   // 1) Action shots = approved gallery images count (live)
   try {
+    const { getCountFromServer } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
     const approvedQ = query(collection(db, "gallery_images"), where("approved", "==", true));
-    onSnapshot(approvedQ, (snap) => {
-      if (actionCountEl) actionCountEl.textContent = String(snap.size || 0);
-    });
+    const countSnap = await getCountFromServer(approvedQ);
+    if (actionCountEl) actionCountEl.textContent = String(countSnap.data().count || 0);
   } catch (_) {}
 
   // 2) Victory moments = featureWins from 2024 + 2025 JSON summaries
@@ -537,7 +537,7 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
             try {
               // Delete from Firestore
               try {
-                const { deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+                const { deleteDoc, doc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
                 await deleteDoc(doc(db, 'gallery_images', imageId));
               } catch (firestoreError) {
                 console.error('Failed to delete from Firestore:', firestoreError);
@@ -547,7 +547,7 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
               // Try to delete from Storage if we have the path
               if (image.storagePath) {
                 try {
-                  const { deleteObject, ref } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js');
+                  const { deleteObject, ref } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js');
                   const storageRef = ref(storage, image.storagePath);
                   await deleteObject(storageRef);
                 } catch (storageError) {

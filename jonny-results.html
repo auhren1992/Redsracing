@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jonny #88 — Race Results</title>
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  </head>
+  <body>
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+        <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+          <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-6 font-bold">
+          <a href="index.html" class="nav-link">🏠 Home</a>
+          <a href="jonny.html" class="nav-link">#88 Jonny</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="py-10">
+      <section class="container mx-auto px-6">
+        <h1 class="font-racing text-5xl uppercase text-white mb-2">Jonny <span class="neon-yellow">Race Results</span></h1>
+        <p class="text-slate-400 mb-6">Official season results powered by MYLAPS Speedhive</p>
+        <div id="jonny-results-root"></div>
+      </section>
+    </main>
+
+    <script type="module" src="navigation.js"></script>
+    <script type="module" src="assets/js/jonny-speedhive-results.js"></script>
+  </body>
+</html>

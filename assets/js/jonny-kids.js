@@ -171,23 +171,21 @@ function initStickerGarage() {
     canvas.appendChild(el);
   };
 
+  let currentEmoji = null;
   palette.forEach(p => {
-    let active = false;
-    const onPointerMove = (e) => {
-      if (!active) return;
-      const rect = canvas.getBoundingClientRect();
-      const x = clamp(e.clientX - rect.left, 0, rect.width);
-      const y = clamp(e.clientY - rect.top, 0, rect.height);
-      addStickerAt(p.dataset.sticker || '⭐', x, y);
-      active = false; // drop once per pointer action for simplicity
-      window.removeEventListener('pointermove', onPointerMove);
-    };
     p.addEventListener('pointerdown', (e) => {
-      active = true;
-      window.addEventListener('pointermove', onPointerMove, { once: true });
+      e.preventDefault();
+      currentEmoji = p.dataset.sticker || '⭐';
     });
-    p.addEventListener('pointerup', () => { active = false; });
-    p.addEventListener('pointercancel', () => { active = false; });
+  });
+  // Place sticker where user taps/clicks on the canvas
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!currentEmoji) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = clamp(e.clientX - rect.left, 0, rect.width);
+    const y = clamp(e.clientY - rect.top, 0, rect.height);
+    addStickerAt(currentEmoji, x, y);
+    currentEmoji = null;
   });
 
   reset?.addEventListener('click', () => {
