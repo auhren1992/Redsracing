@@ -72,22 +72,24 @@ async function main() {
     if (actionCountEl) actionCountEl.textContent = String(countSnap.data().count || 0);
   } catch (_) {}
 
-  // 2) Victory moments = featureWins from 2024 + 2025 JSON summaries
+  // 2) Victory moments = (featureWins + heatWins) across Jon (2024+2025) and Jonny (2025)
   try {
     const urls = [
       "/data/jons-2024-speedhive-results.json",
       "/data/jon-2025-speedhive-results.json",
+      "/data/jonny-2025-speedhive-results.json",
     ];
     const responses = await Promise.all(urls.map((u) => fetch(u, { cache: 'no-store' }).catch(() => null)));
-    let totalFeatureWins = 0;
+    let totalWins = 0;
     for (const resp of responses) {
       if (resp && resp.ok) {
         const data = await resp.json();
-        const wins = Number(data?.championship?.featureWins) || 0;
-        totalFeatureWins += wins;
+        const fw = Number(data?.championship?.featureWins) || 0;
+        const hw = Number(data?.championship?.heatWins) || 0;
+        totalWins += (fw + hw);
       }
     }
-    if (victoryCountEl) victoryCountEl.textContent = String(totalFeatureWins);
+    if (victoryCountEl) victoryCountEl.textContent = String(totalWins);
   } catch (_) {}
 
   // --- Auth State ---
