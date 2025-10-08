@@ -50,6 +50,12 @@ service firebase.storage {
         isValidSize();
     }
     
+    // Public data files (JSON) for race results
+    match /public/data/{path=**} {
+      allow read: if true; // public read for JSON data
+      allow write: if hasRole('admin');
+    }
+    
     // Team member uploads (broader access)
     match /team/{path=**} {
       allow read: if true;

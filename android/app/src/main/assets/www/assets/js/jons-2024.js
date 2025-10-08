@@ -1,19 +1,21 @@
-import "./app.js";
-import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
-
 (async function initJons2024Stats() {
-  const root = document.getElementById('jons-2024-stats');
-  if (!root) return;
+  let root = document.getElementById('jons-2024-stats');
+  if (!root) {
+    const fallback = document.createElement('div');
+    fallback.id = 'jons-2024-stats';
+    fallback.className = 'max-w-6xl mx-auto space-y-8';
+    const hostSection = document.querySelector('section') || document.body;
+    hostSection.appendChild(fallback);
+    root = fallback;
+  }
+  try {
+    const marker = document.createElement('div');
+    marker.className = 'text-center text-xs text-slate-500 mb-2';
+    marker.textContent = 'Loading 2024 MYLAPS data...';
+    root.appendChild(marker);
+  } catch {}
 
   let isAdmin = false;
-
-  // Monitor authentication state
-  try {
-    const claims = await validateUserClaims();
-    isAdmin = claims.success && claims.claims.role === 'team-member';
-  } catch (error) {
-    console.warn('Auth validation failed:', error);
-  }
 
   // Load 2024 MYLAPS Speedhive data
   async function load2024Data() {
@@ -273,7 +275,8 @@ import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
     });
     
     // Determine header color based on best result
-    const bestPosition = Math.min(...event.sessions.filter(s => s.position).map(s => s.position));
+    const positions = event.sessions.filter(s => typeof s.position === 'number').map(s => s.position);
+    const bestPosition = positions.length ? Math.min(...positions) : Infinity;
     let headerColor = 'from-slate-600 to-slate-500';
     if (bestPosition === 1) headerColor = 'from-yellow-600 to-yellow-500';
     else if (bestPosition === 2 || bestPosition === 3) headerColor = 'from-orange-600 to-orange-500';

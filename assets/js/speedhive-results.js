@@ -1,23 +1,20 @@
-import "./app.js";
-import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
-
 (async function initSpeedhiveResults(){
   const root = document.getElementById('race-results');
   if (!root) return;
 
   let isAdmin = false;
 
-  // Load 2025 MYLAPS Speedhive data
+  // Load 2025 MYLAPS Speedhive data (Hosting only)
   async function load2025Data() {
     try {
-      const response = await fetch('./data/jon-2025-speedhive-results.json');
+      const response = await fetch('./data/jon-2025-speedhive-results.json', { cache: 'no-store' });
       if (!response.ok) {
-        console.warn('Could not load 2025 race data');
+        console.warn('Local 2025 data fetch failed:', response.status);
         return null;
       }
       return await response.json();
-    } catch (error) {
-      console.warn('Error loading 2025 race data:', error);
+    } catch (err) {
+      console.warn('Local 2025 data error:', err);
       return null;
     }
   }
@@ -248,25 +245,27 @@ import { monitorAuthState, validateUserClaims } from "./auth-utils.js";
     }
   }
 
-  // Auth-aware admin control
-  monitorAuthState(async (user) => {
-    if (user) {
-      try {
-        const res = await validateUserClaims(["team-member"]);
-        isAdmin = res.success || (res?.claims?.role === 'admin');
-      } catch { isAdmin = false; }
+  // Auth-aware admin control (optional). If auth utilities aren't available, just render.
+  try {
+    if (typeof monitorAuthState === 'function' && typeof validateUserClaims === 'function') {
+      monitorAuthState(async (user) => {
+        if (user) {
+          try {
+            const res = await validateUserClaims(["team-member"]);
+            isAdmin = res.success || (res?.claims?.role === 'admin');
+          } catch { isAdmin = false; }
+        } else {
+          isAdmin = false;
+        }
+        await loadAndRender();
+      }, async () => {
+        isAdmin = false;
+        await loadAndRender();
+      });
     } else {
-      isAdmin = false;
+      await loadAndRender();
     }
-    await loadAndRender();
-  }, async () => {
-    isAdmin = false;
-    await loadAndRender();
-  });
-
-  // Fallback initial render
-  if (!root.__initialized) {
-    root.__initialized = true;
+  } catch (e) {
     await loadAndRender();
   }
 })();
