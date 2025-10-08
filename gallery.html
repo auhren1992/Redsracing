@@ -232,24 +232,24 @@ href="jons.html"
             </p>
             
             <!-- Racing Stats Bar -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-              <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-yellow-400/20">
-                <div class="text-3xl font-bold text-yellow-400">127</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider">Action Shots</div>
-              </div>
-              <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-red-400/20">
-                <div class="text-3xl font-bold text-red-400">45</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider">Victory Moments</div>
-              </div>
-              <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-blue-400/20">
-                <div class="text-3xl font-bold text-blue-400">89</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider">Pit Crew</div>
-              </div>
-              <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-green-400/20">
-                <div class="text-3xl font-bold text-green-400">23</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider">Championships</div>
-              </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            <button id="action-stat" type="button" class="w-full text-left bg-black/40 backdrop-blur-md rounded-xl p-4 border border-yellow-400/20 hover:border-yellow-400/50 transition cursor-pointer">
+              <div id="action-count" class="text-3xl font-bold text-yellow-400">0</div>
+              <div class="text-slate-400 text-sm uppercase tracking-wider">Action Shots</div>
+            </button>
+            <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-red-400/20">
+              <div id="victory-count" class="text-3xl font-bold text-red-400">0</div>
+              <div class="text-slate-400 text-sm uppercase tracking-wider">Victory Moments</div>
             </div>
+            <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-blue-400/20">
+              <div id="pit-count" class="text-3xl font-bold text-blue-400">0</div>
+              <div class="text-slate-400 text-sm uppercase tracking-wider">Pit Crew</div>
+            </div>
+            <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-green-400/20">
+              <div id="champions-count" class="text-3xl font-bold text-green-400">0</div>
+              <div class="text-slate-400 text-sm uppercase tracking-wider">Championships</div>
+            </div>
+          </div>
           </div>
         </div>
         

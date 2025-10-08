@@ -37,6 +37,59 @@ async function main() {
   const db = getFirebaseDb();
   const storage = getFirebaseStorage();
 
+  // --- Race Gallery Stats ---
+  const actionCountEl = document.getElementById("action-count");
+  const victoryCountEl = document.getElementById("victory-count");
+  const pitCountEl = document.getElementById("pit-count");
+  const championsCountEl = document.getElementById("champions-count");
+  const actionStatBtn = document.getElementById("action-stat");
+
+  // Link Action Shots to upload section
+  if (actionStatBtn) {
+    actionStatBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const uploadContainer = document.getElementById("upload-container");
+      if (uploadContainer && typeof uploadContainer.scrollIntoView === 'function') {
+        uploadContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      const uploadInput = document.getElementById("photo-upload-input");
+      if (uploadInput) {
+        try { uploadInput.focus({ preventScroll: true }); } catch(_) {}
+      }
+    });
+  }
+
+  // Static stats
+  if (pitCountEl) pitCountEl.textContent = "4"; // pit crew size
+  if (championsCountEl) championsCountEl.textContent = "0"; // championships
+
+  // Dynamic stats
+  // 1) Action shots = approved gallery images count (live)
+  try {
+    const approvedQ = query(collection(db, "gallery_images"), where("approved", "==", true));
+    onSnapshot(approvedQ, (snap) => {
+      if (actionCountEl) actionCountEl.textContent = String(snap.size || 0);
+    });
+  } catch (_) {}
+
+  // 2) Victory moments = featureWins from 2024 + 2025 JSON summaries
+  try {
+    const urls = [
+      "/data/jons-2024-speedhive-results.json",
+      "/data/jon-2025-speedhive-results.json",
+    ];
+    const responses = await Promise.all(urls.map((u) => fetch(u, { cache: 'no-store' }).catch(() => null)));
+    let totalFeatureWins = 0;
+    for (const resp of responses) {
+      if (resp && resp.ok) {
+        const data = await resp.json();
+        const wins = Number(data?.championship?.featureWins) || 0;
+        totalFeatureWins += wins;
+      }
+    }
+    if (victoryCountEl) victoryCountEl.textContent = String(totalFeatureWins);
+  } catch (_) {}
+
   // --- Auth State ---
   const uploadContainer = document.getElementById("upload-container");
   let isModerator = false; // team-member or admin
