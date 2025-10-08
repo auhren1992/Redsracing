@@ -63,13 +63,46 @@ async function main() {
   today.setHours(0, 0, 0, 0);
 
   const qRaces = query(collection(db, "races"), orderBy("date", "asc"));
-  onSnapshot(qRaces, (snapshot) => {
+onSnapshot(qRaces, async (snapshot) => {
     if (superCupsContainer) superCupsContainer.innerHTML = "";
     if (specialEventsContainer) specialEventsContainer.innerHTML = "";
     const allRaces = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
+
+    // Merge in JSON official results as fallback/complement
+    try {
+      const resp = await fetch('/data/jon-2025-speedhive-results.json', { cache: 'no-store' });
+      if (resp.ok) {
+        const results = await resp.json();
+        const jsonEvents = Array.isArray(results.events) ? results.events : [];
+        const byId = new Map(allRaces.map(r => [r.id, true]));
+        jsonEvents.forEach(ev => {
+          if (!ev || !ev.id || byId.has(ev.id)) return;
+          // Build summary from sessions
+          let feature = ev.sessions?.find(s => (s.sessionType||'').toLowerCase().includes('feature')) || null;
+          let qual = ev.sessions?.find(s => (s.sessionType||'').toLowerCase().includes('qual')) || null;
+          const fmtPos = (p) => typeof p === 'number' ? (p === 1 ? '1st' : p === 2 ? '2nd' : p === 3 ? '3rd' : `${p}th`) : '—';
+          const resultsLine = feature ? `Feature: ${fmtPos(feature.position)}${feature.lapTime?` (${feature.lapTime}s)`:''}` : '';
+          const qualLine = qual ? `Qual: ${fmtPos(qual.position)}${qual.lapTime?` (${qual.lapTime}s)`:''}` : '';
+          const sessionsText = (ev.sessions||[]).map(s => `${s.sessionType}${s.position?`: ${fmtPos(s.position)}`:''}${s.lapTime?` • ${s.lapTime}s`:''}`).join(' | ');
+          const merged = {
+            id: ev.id,
+            name: ev.eventName || ev.id,
+            date: ev.date,
+            type: 'superCup',
+            results: [resultsLine, qualLine].filter(Boolean).join(' • '),
+            summary: `${ev.track} (${ev.trackLength}) — ${sessionsText} — Source: ${ev.source || 'MYLAPS Speedhive Official Results'}`
+          };
+          allRaces.push(merged);
+        });
+        // sort by date ascending
+        allRaces.sort((a,b) => new Date(a.date) - new Date(b.date));
+      }
+    } catch (_) {
+      // ignore JSON fetch errors
+    }
 
     allRaces.forEach((race) => {
       const raceDate = new Date(race.date + "T00:00:00");
@@ -85,7 +118,7 @@ async function main() {
         cardClass += " cursor-pointer";
         const resultsHTML = race.results
           ? html`<p class="font-bold text-lg text-neon-yellow">
-              Result: ${race.results}
+              ${race.results}
             </p>`
           : "";
         const summaryHTML = race.summary
@@ -107,7 +140,7 @@ async function main() {
           <div>
             <p class="font-bold text-lg text-white">${race.name}</p>
             <p class="text-sm text-slate-400">
-              ${race.special || `Race ${race.race}`}
+              ${race.special || `Official Results`}
             </p>
           </div>
           <div class="font-semibold text-right text-slate-300">
