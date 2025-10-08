@@ -172,19 +172,6 @@ const core = await import('./assets/js/firebase-core.js');
           toggleMenu(btn, menu);
         });
 
-        // Add hover support for desktop dropdowns
-        if (window.matchMedia && !window.matchMedia("(hover: none)").matches) {
-          const dropdown = btn.closest('.dropdown');
-          if (dropdown) {
-            dropdown.addEventListener('mouseenter', () => {
-              hideAllDropdowns();
-              showMenu(menu);
-            });
-            dropdown.addEventListener('mouseleave', () => {
-              setTimeout(() => hideAllDropdowns(), 300);
-            });
-          }
-        }
       }
     });
 
