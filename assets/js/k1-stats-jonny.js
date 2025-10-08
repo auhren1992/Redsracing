@@ -5,7 +5,7 @@
   // First, try to fetch official K1 points row via backend function (best-effort)
   let k1 = null;
   try {
-    const rr = await fetch('/k1/addison/2025/jonny', { headers: { 'Accept': 'application/json' } });
+    const rr = await fetch('/k1/addison/2025/jon', { headers: { 'Accept': 'application/json' } });
     k1 = await rr.json();
   } catch {}
   try {
