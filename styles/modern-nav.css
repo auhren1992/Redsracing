@@ -147,6 +147,15 @@ header {
   transition: all 0.3s ease;
 }
 
+/* Force-hide any legacy login entry points across the site */
+#login-btn,
+#mobile-login-btn,
+.mobile-login-btn,
+#account-toggle-loggedout,
+nav a[href="login.html"] {
+  display: none !important;
+}
+
 header.scrolled {
   background: rgba(15, 23, 42, 0.98);
   backdrop-filter: blur(20px);

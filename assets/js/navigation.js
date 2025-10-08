@@ -491,44 +491,6 @@ import "./app.js";
           }
         });
 
-        // Add hover support for desktop (but not on touch devices)
-        if (window.matchMedia && !window.matchMedia("(hover: none)").matches) {
-          const dropdown = newButton.closest(".dropdown");
-
-          // Handle mouse enter on the entire dropdown container
-          dropdown.addEventListener("mouseenter", () => {
-            const dropdownMenu = newButton.nextElementSibling;
-            if (dropdownMenu) {
-              // Close other dropdowns
-              document.querySelectorAll(".dropdown-menu").forEach((menu) => {
-                if (menu !== dropdownMenu) {
-                  menu.classList.add("hidden");
-                }
-              });
-
-              // Show current dropdown after a short delay
-              clearTimeout(dropdown.hoverTimeout);
-              dropdown.hoverTimeout = setTimeout(() => {
-                if (!dropdownMenu.classList.contains("hidden")) return;
-                dropdownMenu.classList.remove("hidden");
-                dropdownMenu.setAttribute("aria-hidden", "false");
-                newButton.setAttribute("aria-expanded", "true");
-              }, 150);
-            }
-          });
-
-          // Handle mouse leave on the entire dropdown container
-          dropdown.addEventListener("mouseleave", () => {
-            clearTimeout(dropdown.hoverTimeout);
-            const dropdownMenu = newButton.nextElementSibling;
-            if (dropdownMenu) {
-              // Longer timeout to allow users to move mouse to menu items
-              dropdown.hoverTimeout = setTimeout(() => {
-                hideDropdownMenu(dropdownMenu);
-              }, 500);
-            }
-          });
-        }
       });
 
       // Enhanced outside click handling

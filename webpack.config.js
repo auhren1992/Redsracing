@@ -3,6 +3,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   mode: "production",
+  target: ["web", "es2020"],
   entry: {
     main: "./assets/js/main.js",
     router: "./assets/js/router.js",
@@ -36,6 +37,10 @@ module.exports = {
     path: path.resolve(__dirname, "dist"),
     filename: "[name].js",
     clean: true, // Clean the output directory before emit
+    environment: {
+      module: true,
+      dynamicImport: true,
+    },
   },
   devtool: "source-map",
   module: {
@@ -84,6 +89,9 @@ module.exports = {
   ],
   resolve: {
     extensions: [".js", ".json"],
+  },
+  externalsPresets: {
+    web: true,
   },
   optimization: {
     splitChunks: {

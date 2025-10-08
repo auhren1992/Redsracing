@@ -301,6 +301,15 @@ input.bg-white::placeholder, textarea.bg-white::placeholder { color: #6b7280 !im
   transform: translateY(-1px);
 }
 
+/* Remove login buttons from all pages (Android assets) */
+#login-btn,
+#mobile-login-btn,
+.mobile-login-btn,
+#account-toggle-loggedout,
+nav a[href="login.html"] {
+  display: none !important;
+}
+
 /* Dropdown Styles */
 .dropdown {
   position: relative;

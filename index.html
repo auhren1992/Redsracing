@@ -881,39 +881,6 @@
               }
             });
             
-            // Add hover support for desktop
-            if (window.matchMedia && !window.matchMedia("(hover: none)").matches) {
-              const dropdown = btn.closest('.dropdown');
-              if (dropdown) {
-                dropdown.addEventListener('mouseenter', () => {
-                  const menu = btn.nextElementSibling;
-                  if (menu && menu.classList.contains('dropdown-menu')) {
-                    // Close other dropdowns
-                    document.querySelectorAll('.dropdown-menu').forEach(m => {
-                      if (m !== menu) {
-                        m.classList.add('hidden');
-                        m.style.display = 'none';
-                      }
-                    });
-                    // Show this dropdown
-                    menu.classList.remove('hidden');
-                    menu.style.display = 'block';
-                    menu.style.opacity = '1';
-                  }
-                });
-                
-                dropdown.addEventListener('mouseleave', () => {
-                  setTimeout(() => {
-                    const menu = btn.nextElementSibling;
-                    if (menu && menu.classList.contains('dropdown-menu')) {
-                      menu.classList.add('hidden');
-                      menu.style.display = 'none';
-                      menu.style.opacity = '0';
-                    }
-                  }, 300);
-                });
-              }
-            }
           });
           
           // Outside click to close dropdowns
