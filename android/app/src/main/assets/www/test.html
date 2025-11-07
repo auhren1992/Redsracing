@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Rewrite Test</title>
+  </head>
+  <body>
+    <h1>Firebase Hosting Rewrite Test</h1>
+    <p>
+      This page tests if the rewrite rule for <code>/test</code> is working.
+    </p>
+    <button id="test-btn">Run Test</button>
+    <h2>Result:</h2>
+    <pre id="result">Click the button to run the test.</pre>
+
+    <script>
+      const testBtn = document.getElementById("test-btn");
+      const resultEl = document.getElementById("result");
+
+      testBtn.addEventListener("click", async () => {
+        resultEl.textContent = "Loading...";
+        try {
+          const response = await fetch("/test");
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              `HTTP error! status: ${response.status}, message: ${data.message || "Unknown error"}`,
+            );
+          }
+
+          resultEl.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          resultEl.textContent = `Error: ${error.message}`;
+          console.error("Test failed:", error);
+        }
+      });
+    </script>
+  </body>
+</html>

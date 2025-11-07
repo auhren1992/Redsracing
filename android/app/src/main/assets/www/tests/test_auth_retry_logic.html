@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auth Retry Logic Test - RedsRacing #8</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .test-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .test-result {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+      }
+      .pass {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .fail {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      button {
+        padding: 8px;
+        margin: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Auth Retry Logic Test</h1>
+
+    <div class="test-container">
+      <h2>Generic Error Retry Test</h2>
+      <p>
+        This test verifies that generic programming errors (like a
+        ReferenceError) are not retried.
+      </p>
+      <div id="retry-results"></div>
+      <button onclick="runRetryTest()">Run Test</button>
+    </div>
+
+    <script type="module">
+      import {
+        retryAuthOperation,
+        AUTH_UTILS_CONFIG,
+      } from "../assets/js/auth-utils.js";
+
+      window.runRetryTest = async function () {
+        const resultsContainer = document.getElementById("retry-results");
+        resultsContainer.innerHTML = "";
+
+        let attemptCounter = 0;
+        const operationThatFails = () => {
+          attemptCounter++;
+          // This will throw a ReferenceError because 'nonExistentVariable' is not defined
+          return nonExistentVariable;
+        };
+
+        const startTime = Date.now();
+
+        try {
+          await retryAuthOperation(operationThatFails, "TestFailingOperation");
+        } catch (error) {
+          // We expect an error to be thrown
+          console.log("Caught expected error:", error);
+        }
+
+        const duration = Date.now() - startTime;
+
+        const resultDiv = document.createElement("div");
+
+        // Now that the fix is applied, we expect the operation to be attempted only once.
+        if (attemptCounter === 1) {
+          resultDiv.className = "test-result pass";
+          resultDiv.innerHTML = `
+                    <b>TEST PASSED</b><br>
+                    The operation was attempted ${attemptCounter} time, which is the correct behavior.<br>
+                    Generic errors are not retried.
+                `;
+        } else {
+          resultDiv.className = "test-result fail";
+          resultDiv.innerHTML = `
+                    <b>TEST FAILED</b><br>
+                    The operation was attempted ${attemptCounter} times, but we expected 1.<br>
+                    The fix is not working as expected.
+                `;
+        }
+
+        resultsContainer.appendChild(resultDiv);
+      };
+    </script>
+  </body>
+</html>

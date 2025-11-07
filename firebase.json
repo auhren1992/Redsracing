@@ -1,0 +1,80 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/add-race-result",
+        "function": {
+          "functionId": "handleAddRaceResult",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/race-analytics",
+        "function": {
+          "functionId": "handleGetRaceAnalytics",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/driver-comparison",
+        "function": {
+          "functionId": "handleDriverComparison",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/track-records",
+        "function": {
+          "functionId": "handleGetTrackRecords",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/season-standings",
+        "function": {
+          "functionId": "handleGetSeasonStandings",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/photo-process",
+        "function": {
+          "functionId": "handlePhotoProcess",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/api/photo-sort",
+        "function": {
+          "functionId": "handlePhotoSort",
+          "region": "us-central1"
+        }
+      }
+    ]
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "nodejs20"
+    },
+    {
+      "source": "functions_python",
+      "codebase": "python-api",
+      "runtime": "python312"
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}

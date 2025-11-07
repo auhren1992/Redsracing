@@ -1,0 +1,52 @@
+{
+  "location": "K1 Speed Addison",
+  "locationState": "IL",
+  "driver": "Jon Kirsch",
+  "lastUpdated": "2025-01-11T19:09:00.000Z",
+  "seasons": [
+    {
+      "year": 2025,
+      "status": "ACTIVE SEASON",
+      "championshipStanding": 2,
+      "totalPoints": 214,
+      "bestLapTime": "29.842",
+      "racesCompleted": 12,
+      "gpPoints": [21, 16, 8, 23, 19, 25, 24, 18, 22, 19, 19],
+      "averageLap": "30.123",
+      "topFinishes": 5,
+      "summary": "Elite Performance: Jon Kirsch is having an outstanding 2025 season at K1 Speed Addison, currently sitting in 2nd place in the Adult League championship standings. With 214 points across 12 Grand Prix events, he's established himself as a consistent front-runner."
+    },
+    {
+      "year": 2024,
+      "status": "Previous Season",
+      "championshipStanding": 5,
+      "totalPoints": 142,
+      "bestLapTime": "30.145",
+      "racesCompleted": 12,
+      "gpPoints": [18, 20, 15, 12, 16, 19, 13, 11, 8, 14, 9, 7],
+      "averageLap": "30.789",
+      "topFinishes": 2,
+      "summary": "Building Momentum: Jon's 2024 season at K1 Speed Addison was a solid foundation year, finishing 5th in the championship with 142 points. This season provided valuable experience in indoor karting competition and set the stage for his impressive 2025 championship run."
+    },
+    {
+      "year": 2023,
+      "status": "Debut Season",
+      "championshipStanding": 8,
+      "totalPoints": 89,
+      "bestLapTime": "30.892",
+      "racesCompleted": 10,
+      "gpPoints": [12, 8, 6, 9, 11, 7, 5, 10, 12, 9],
+      "averageLap": "31.456",
+      "topFinishes": 1,
+      "summary": "Racing Genesis: Jon's 2023 debut season at K1 Speed Addison marked the beginning of his indoor karting journey. Finishing 8th with 89 points, this rookie campaign provided the foundation for everything that followed. The skills, racecraft, and competitive spirit developed during this first season have been instrumental in his progression to championship contention and his success in stock car racing."
+    }
+  ],
+  "careerStats": {
+    "totalRaces": 34,
+    "bestOverallLap": "29.842",
+    "totalPoints": 445,
+    "averageFinish": 5.2,
+    "winRate": "12%",
+    "podiumRate": "28%"
+  }
+}

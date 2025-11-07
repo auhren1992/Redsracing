@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Firestore Permission Error Handling Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .test-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .test-result {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+      }
+      .pass {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .fail {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      button {
+        padding: 8px 16px;
+        margin: 5px;
+        border: none;
+        border-radius: 4px;
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .summary {
+        font-weight: bold;
+        font-size: 16px;
+        padding: 15px;
+        text-align: center;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      .code-snippet {
+        background: #f8f9fa;
+        padding: 10px;
+        border-left: 4px solid #007bff;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔥 Firestore Permission Error Handling Test</h1>
+    <p>
+      Testing that Firestore permission-denied and unauthenticated errors are
+      handled as access denied (not network errors)
+    </p>
+
+    <div class="test-container">
+      <h2>📋 Test Scenario</h2>
+      <div class="info test-result">
+        <p>
+          <strong>Issue:</strong> Firestore returns 'permission-denied' or
+          'unauthenticated' errors when accessing restricted profiles
+        </p>
+        <p>
+          <strong>Problem:</strong> These errors were falling into "Network or
+          server error" logging (misleading)
+        </p>
+        <p>
+          <strong>Fix:</strong> Treat these as access denied errors, same as
+          'unauthorized'/'forbidden'
+        </p>
+      </div>
+    </div>
+
+    <div class="test-container">
+      <h2>🧪 Error Code Handling Tests</h2>
+      <button onclick="testPermissionDeniedError()">
+        Test permission-denied Error
+      </button>
+      <button onclick="testUnauthenticatedError()">
+        Test unauthenticated Error
+      </button>
+      <button onclick="testUnauthorizedError()">
+        Test unauthorized Error (existing)
+      </button>
+      <button onclick="testForbiddenError()">
+        Test forbidden Error (existing)
+      </button>
+      <button onclick="testNetworkError()">
+        Test network Error (should remain generic)
+      </button>
+      <div id="error-test-results"></div>
+    </div>
+
+    <div class="test-container">
+      <h2>📊 Test Summary</h2>
+      <div id="test-summary" class="summary">
+        Click tests above to see results
+      </div>
+    </div>
+
+    <script>
+      let testResults = {
+        passed: 0,
+        failed: 0,
+        total: 0,
+      };
+
+      function logResult(elementId, message, success, details = "") {
+        const element = document.getElementById(elementId);
+        const resultDiv = document.createElement("div");
+        resultDiv.className = `test-result ${success ? "pass" : "fail"}`;
+        resultDiv.innerHTML =
+          message + (details ? `<pre>${details}</pre>` : "");
+        element.appendChild(resultDiv);
+
+        testResults.total++;
+        if (success) {
+          testResults.passed++;
+        } else {
+          testResults.failed++;
+        }
+        updateSummary();
+      }
+
+      function updateSummary() {
+        const summaryEl = document.getElementById("test-summary");
+        summaryEl.innerHTML = `Tests: ${testResults.total} | Passed: ${testResults.passed} | Failed: ${testResults.failed}`;
+        summaryEl.className = `summary ${testResults.failed === 0 ? "pass" : "fail"}`;
+      }
+
+      // Mock the error handling logic from profile.js
+      function simulateErrorHandling(error, userId = "test-user") {
+        const logs = [];
+        let result = { action: "", message: "" };
+
+        // Mock console.log and console.error to capture logs
+        const originalLog = console.log;
+        const originalError = console.error;
+
+        console.log = (...args) => {
+          logs.push({ type: "log", message: args.join(" ") });
+          originalLog(...args);
+        };
+
+        console.error = (...args) => {
+          logs.push({ type: "error", message: args.join(" ") });
+          originalError(...args);
+        };
+
+        // Simulate the error handling logic from profile.js
+        if (error.code === "not-found") {
+          console.log(`[Profile] Profile not found for ${userId}`);
+          result = {
+            action: "show-minimal-profile",
+            message: "Profile not found",
+          };
+        } else if (
+          error.code === "unauthorized" ||
+          error.code === "forbidden" ||
+          error.code === "permission-denied" ||
+          error.code === "unauthenticated"
+        ) {
+          console.log(
+            `[Profile] Access denied (${error.code}) for ${userId}, showing minimal profile`,
+          );
+          result = { action: "show-minimal-profile", message: "Access denied" };
+        } else {
+          console.error(
+            `[Profile] Network or server error for ${userId}:`,
+            error,
+          );
+          result = {
+            action: "show-minimal-profile",
+            message: "Network or server error",
+          };
+        }
+
+        // Restore original console methods
+        console.log = originalLog;
+        console.error = originalError;
+
+        return { logs, result };
+      }
+
+      function testPermissionDeniedError() {
+        const error = {
+          code: "permission-denied",
+          message: "Missing or insufficient permissions.",
+        };
+        const { logs, result } = simulateErrorHandling(error);
+
+        const accessDeniedLog = logs.find(
+          (log) =>
+            log.type === "log" &&
+            log.message.includes("Access denied") &&
+            log.message.includes("permission-denied"),
+        );
+
+        const noNetworkErrorLog = logs.every(
+          (log) => !log.message.includes("Network or server error"),
+        );
+
+        if (
+          accessDeniedLog &&
+          noNetworkErrorLog &&
+          result.message === "Access denied"
+        ) {
+          logResult(
+            "error-test-results",
+            "✅ permission-denied error correctly handled as access denied",
+            true,
+            `Log: ${accessDeniedLog.message}\nResult: ${result.message}`,
+          );
+        } else {
+          logResult(
+            "error-test-results",
+            "❌ permission-denied error not handled correctly",
+            false,
+            `Logs: ${JSON.stringify(logs, null, 2)}\nResult: ${JSON.stringify(result, null, 2)}`,
+          );
+        }
+      }
+
+      function testUnauthenticatedError() {
+        const error = {
+          code: "unauthenticated",
+          message:
+            "Request not authenticated due to missing, invalid, or expired OAuth token.",
+        };
+        const { logs, result } = simulateErrorHandling(error);
+
+        const accessDeniedLog = logs.find(
+          (log) =>
+            log.type === "log" &&
+            log.message.includes("Access denied") &&
+            log.message.includes("unauthenticated"),
+        );
+
+        const noNetworkErrorLog = logs.every(
+          (log) => !log.message.includes("Network or server error"),
+        );
+
+        if (
+          accessDeniedLog &&
+          noNetworkErrorLog &&
+          result.message === "Access denied"
+        ) {
+          logResult(
+            "error-test-results",
+            "✅ unauthenticated error correctly handled as access denied",
+            true,
+            `Log: ${accessDeniedLog.message}\nResult: ${result.message}`,
+          );
+        } else {
+          logResult(
+            "error-test-results",
+            "❌ unauthenticated error not handled correctly",
+            false,
+            `Logs: ${JSON.stringify(logs, null, 2)}\nResult: ${JSON.stringify(result, null, 2)}`,
+          );
+        }
+      }
+
+      function testUnauthorizedError() {
+        const error = { code: "unauthorized", message: "Unauthorized access" };
+        const { logs, result } = simulateErrorHandling(error);
+
+        const accessDeniedLog = logs.find(
+          (log) =>
+            log.type === "log" &&
+            log.message.includes("Access denied") &&
+            log.message.includes("unauthorized"),
+        );
+
+        if (accessDeniedLog && result.message === "Access denied") {
+          logResult(
+            "error-test-results",
+            "✅ unauthorized error correctly handled as access denied (existing behavior)",
+            true,
+            `Log: ${accessDeniedLog.message}`,
+          );
+        } else {
+          logResult(
+            "error-test-results",
+            "❌ unauthorized error not handled correctly",
+            false,
+            `Logs: ${JSON.stringify(logs, null, 2)}`,
+          );
+        }
+      }
+
+      function testForbiddenError() {
+        const error = { code: "forbidden", message: "Forbidden access" };
+        const { logs, result } = simulateErrorHandling(error);
+
+        const accessDeniedLog = logs.find(
+          (log) =>
+            log.type === "log" &&
+            log.message.includes("Access denied") &&
+            log.message.includes("forbidden"),
+        );
+
+        if (accessDeniedLog && result.message === "Access denied") {
+          logResult(
+            "error-test-results",
+            "✅ forbidden error correctly handled as access denied (existing behavior)",
+            true,
+            `Log: ${accessDeniedLog.message}`,
+          );
+        } else {
+          logResult(
+            "error-test-results",
+            "❌ forbidden error not handled correctly",
+            false,
+            `Logs: ${JSON.stringify(logs, null, 2)}`,
+          );
+        }
+      }
+
+      function testNetworkError() {
+        const error = { code: "network-error", message: "Failed to fetch" };
+        const { logs, result } = simulateErrorHandling(error);
+
+        const networkErrorLog = logs.find(
+          (log) =>
+            log.type === "error" &&
+            log.message.includes("Network or server error"),
+        );
+
+        const noAccessDeniedLog = logs.every(
+          (log) => !log.message.includes("Access denied"),
+        );
+
+        if (
+          networkErrorLog &&
+          noAccessDeniedLog &&
+          result.message === "Network or server error"
+        ) {
+          logResult(
+            "error-test-results",
+            "✅ network error correctly handled as network/server error",
+            true,
+            `Log: ${networkErrorLog.message}`,
+          );
+        } else {
+          logResult(
+            "error-test-results",
+            "❌ network error not handled correctly",
+            false,
+            `Logs: ${JSON.stringify(logs, null, 2)}`,
+          );
+        }
+      }
+
+      // Add code display section
+      document.addEventListener("DOMContentLoaded", () => {
+        const codeContainer = document.createElement("div");
+        codeContainer.className = "test-container";
+        codeContainer.innerHTML = `
+                <h2>📝 Code Change</h2>
+                <div class="info test-result">
+                    <p><strong>Modified line in profile.js (line 519):</strong></p>
+                    <div class="code-snippet">
+                        <strong>Before:</strong><br>
+                        <code>} else if (error.code === 'unauthorized' || error.code === 'forbidden') {</code>
+                    </div>
+                    <div class="code-snippet">
+                        <strong>After:</strong><br>
+                        <code>} else if (error.code === 'unauthorized' || error.code === 'forbidden' || error.code === 'permission-denied' || error.code === 'unauthenticated') {</code>
+                    </div>
+                    <p><strong>Result:</strong> Firestore permission errors now log as "Access denied" instead of "Network or server error"</p>
+                </div>
+            `;
+        document.body.insertBefore(
+          codeContainer,
+          document.querySelector(".test-container:last-child"),
+        );
+      });
+    </script>
+  </body>
+</html>

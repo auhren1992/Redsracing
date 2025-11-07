@@ -1,0 +1,74 @@
+/* Global Input Text Visibility Fix */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+textarea,
+select {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Ensure dark backgrounds have good contrast */
+input[type="text"]:not([style*="background"]),
+input[type="email"]:not([style*="background"]),
+input[type="password"]:not([style*="background"]),
+input[type="search"]:not([style*="background"]),
+input[type="tel"]:not([style*="background"]),
+input[type="url"]:not([style*="background"]),
+input[type="number"]:not([style*="background"]),
+input[type="date"]:not([style*="background"]),
+input[type="time"]:not([style*="background"]),
+input[type="datetime-local"]:not([style*="background"]),
+textarea:not([style*="background"]),
+select:not([style*="background"]) {
+    background: rgba(30, 41, 59, 0.9) !important;
+}
+
+/* Placeholder text visibility */
+input::placeholder,
+textarea::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1 !important;
+}
+
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+    color: #94a3b8 !important;
+}
+
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+    color: #94a3b8 !important;
+}
+
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+    color: #94a3b8 !important;
+}
+
+/* Focus state - make background slightly lighter */
+input:focus,
+textarea:focus,
+select:focus {
+    background: rgba(30, 41, 59, 1) !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Autofill override - Chrome/Safari */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-text-fill-color: #ffffff !important;
+    -webkit-box-shadow: 0 0 0px 1000px rgba(30, 41, 59, 0.9) inset !important;
+    box-shadow: 0 0 0px 1000px rgba(30, 41, 59, 0.9) inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+}

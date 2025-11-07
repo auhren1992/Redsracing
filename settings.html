@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Reds Racing</title>
+    <link rel="stylesheet" href="styles/main.css">`n    <link rel="stylesheet" href="styles/input-fix.css" />
+    <link rel="stylesheet" href="styles/mobile-menu-tabs.css">
+    <style>
+        .settings-hero {
+            background: linear-gradient(135deg, #c41e3a 0%, #8b0000 100%);
+            padding: 80px 20px 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .settings-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .user-role-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .settings-container {
+            max-width: 900px;
+            margin: -30px auto 60px;
+            padding: 0 20px;
+        }
+
+        .settings-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .settings-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .settings-card h2 {
+            color: #c41e3a;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-card h2::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, #c41e3a 0%, #8b0000 100%);
+            border-radius: 2px;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+
+        .settings-label {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .settings-label strong {
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .settings-label small {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .modern-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .modern-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, #c41e3a 0%, #8b0000 100%);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .settings-select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #333;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .settings-select:focus {
+            outline: none;
+            border-color: #c41e3a;
+        }
+
+        .settings-btn {
+            background: linear-gradient(135deg, #c41e3a 0%, #8b0000 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .settings-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(196, 30, 58, 0.3);
+        }
+
+        .settings-btn.secondary {
+            background: linear-gradient(135deg, #666 0%, #333 100%);
+        }
+
+        .quick-links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .quick-link-btn {
+            padding: 15px;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .quick-link-btn:hover {
+            background: linear-gradient(135deg, #c41e3a 0%, #8b0000 100%);
+            color: white;
+            border-color: #c41e3a;
+            transform: translateY(-2px);
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #c41e3a;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .guest-prompt {
+            background: white;
+            border-radius: 16px;
+            padding: 60px 30px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .guest-prompt h2 {
+            color: #c41e3a;
+            margin-bottom: 15px;
+        }
+
+        .guest-prompt p {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 10000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .settings-hero h1 {
+                font-size: 2rem;
+            }
+
+            .settings-card {
+                padding: 20px;
+            }
+
+            .settings-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .quick-links-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="navigation-placeholder"></div>
+
+    <div class="settings-hero">
+        <h1>Settings</h1>
+        <div class="user-role-badge" id="roleBadge">Loading...</div>
+    </div>
+
+    <div class="settings-container">
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Loading your settings...</p>
+        </div>
+
+        <!-- Guest Settings -->
+        <div id="guest-settings" class="hidden">
+            <div class="guest-prompt">
+                <h2>Sign In Required</h2>
+                <p>Please sign in to access your personalized settings and preferences.</p>
+                <button class="settings-btn" onclick="window.location.href='login.html'">Sign In</button>
+            </div>
+        </div>
+
+        <!-- Fan Settings -->
+        <div id="fan-settings" class="hidden">
+            <div class="settings-card">
+                <h2>Notifications</h2>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Race Updates</strong>
+                        <small>Get notified about upcoming races and results</small>
+                    </div>
+                    <label class="modern-switch">
+                        <input type="checkbox" id="fanRaceUpdates" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Newsletter</strong>
+                        <small>Receive weekly team updates and highlights</small>
+                    </div>
+                    <label class="modern-switch">
+                        <input type="checkbox" id="fanNewsletter" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Social Media</strong>
+                        <small>Notifications for new posts and media</small>
+                    </div>
+                    <label class="modern-switch">
+                        <input type="checkbox" id="fanSocial" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h2>Display Preferences</h2>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Theme</strong>
+                        <small>Choose your preferred color scheme</small>
+                    </div>
+                    <select class="settings-select" id="fanTheme">
+                        <option value="auto">Auto (System)</option>
+                        <option value="light">Light Mode</option>
+                        <option value="dark">Dark Mode</option>
+                    </select>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Autoplay Videos</strong>
+                        <small>Automatically play videos in gallery</small>
+                    </div>
+                    <label class="modern-switch">
+                        <input type="checkbox" id="fanAutoplay">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h2>Favorite Driver</h2>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Select Your Favorite</strong>
+                        <small>Prioritize content from your favorite driver</small>
+                    </div>
+                    <select class="settings-select" id="favoriteDriver">
+                        <option value="">None Selected</option>
+                        <option value="jon">Jon Kirsch</option>
+                        <option value="jonny">Jonny Kirsch</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h2>Account</h2>
+                <div class="settings-row">
+                    <button class="settings-btn" onclick="saveFanSettings()">Save All Settings</button>
+                    <button class="settings-btn secondary" onclick="logout()">Sign Out</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Member Settings -->
+        <div id="team-settings" class="hidden">
+            <div class="settings-card">
+                <h2>Team Notifications</h2>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Race Schedule Changes</strong>
+                        <small>Immediate alerts for schedule updates</small>
+                    </div>
+                    <label class="modern-switch">
+                        <input type="checkbox" id="teamRaceAlerts" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Media Approval Requests</strong>
+                        <small>Notify when media needs approval</small>
+                    </div>
+                    <label class="modern-switch">
+                        <input type="checkbox" id="teamMediaApproval" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Q&A Submissions</strong>
+                        <small>Alert for new fan questions</small>
+                    </div>
+                    <label class="modern-switch">
+                        <input type="checkbox" id="teamQA" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Fan Feedback</strong>
+                        <small>Notifications for comments and messages</small>
+                    </div>
+                    <label class="modern-switch">
+                        <input type="checkbox" id="teamFeedback" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h2>Content Management</h2>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Auto-Approve Uploads</strong>
+                        <small>Automatically approve your own media uploads</small>
+                    </div>
+                    <label class="modern-switch">
+                        <input type="checkbox" id="teamAutoApprove" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Email Notifications</strong>
+                        <small>Receive email digest of pending items</small>
+                    </div>
+                    <label class="modern-switch">
+                        <input type="checkbox" id="teamEmailDigest" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h2>Display Settings</h2>
+                <div class="settings-row">
+                    <div class="settings-label">
+                        <strong>Dashboard Layout</strong>
+                        <small>Choose your admin dashboard view</small>
+                    </div>
+                    <select class="settings-select" id="teamDashboardLayout">
+                        <option value="compact">Compact View</option>
+                        <option value="detailed">Detailed View</option>
+                        <option value="grid">Grid View</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h2>Quick Links</h2>
+                <p style="color: #666; margin-bottom: 15px;">Access team management tools</p>
+                <div class="quick-links-grid">
+                    <a href="admin.html" class="quick-link-btn">Admin Dashboard</a>
+                    <a href="gallery.html" class="quick-link-btn">Gallery</a>
+                    <a href="schedule.html" class="quick-link-btn">Schedule</a>
+                    <a href="questions.html" class="quick-link-btn">Q&A</a>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h2>Team Account</h2>
+                <div class="settings-row">
+                    <button class="settings-btn" onclick="saveTeamSettings()">Save All Settings</button>
+                    <button class="settings-btn secondary" onclick="logout()">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="navigation.js"></script>
+    <script src="assets/js/mobile-menu-tabs.js"></script>
+    <script type="module">
+        import { getApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+        // Use existing Firebase app initialized by navigation.js
+        const app = getApp();
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Check auth state and load appropriate settings
+        onAuthStateChanged(auth, async (user) => {
+            const loadingState = document.getElementById('loadingState');
+            const guestSettings = document.getElementById('guest-settings');
+            const fanSettings = document.getElementById('fan-settings');
+            const teamSettings = document.getElementById('team-settings');
+            const roleBadge = document.getElementById('roleBadge');
+
+            if (!user) {
+                // Not signed in
+                loadingState.classList.add('hidden');
+                guestSettings.classList.remove('hidden');
+                roleBadge.textContent = 'Guest';
+            } else {
+                // Signed in - check role
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    const userData = userDoc.data();
+                    const role = userData?.role || 'fan';
+
+                    loadingState.classList.add('hidden');
+                    
+                    if (role === 'team' || role === 'admin') {
+                        teamSettings.classList.remove('hidden');
+                        roleBadge.textContent = role === 'admin' ? 'Admin' : 'Team Member';
+                        loadTeamSettings();
+                    } else {
+                        fanSettings.classList.remove('hidden');
+                        roleBadge.textContent = 'Fan';
+                        loadFanSettings();
+                    }
+                } catch (error) {
+                    console.error('Error loading user data:', error);
+                    // Default to fan settings
+                    loadingState.classList.add('hidden');
+                    fanSettings.classList.remove('hidden');
+                    roleBadge.textContent = 'Fan';
+                    loadFanSettings();
+                }
+            }
+        });
+
+        // Load Fan Settings
+        function loadFanSettings() {
+            const settings = JSON.parse(localStorage.getItem('rr_fan_settings') || '{}');
+            
+            document.getElementById('fanRaceUpdates').checked = settings.raceUpdates !== false;
+            document.getElementById('fanNewsletter').checked = settings.newsletter !== false;
+            document.getElementById('fanSocial').checked = settings.social !== false;
+            document.getElementById('fanTheme').value = settings.theme || 'auto';
+            document.getElementById('fanAutoplay').checked = settings.autoplay || false;
+            document.getElementById('favoriteDriver').value = settings.favoriteDriver || '';
+        }
+
+        // Save Fan Settings
+        window.saveFanSettings = function() {
+            const settings = {
+                raceUpdates: document.getElementById('fanRaceUpdates').checked,
+                newsletter: document.getElementById('fanNewsletter').checked,
+                social: document.getElementById('fanSocial').checked,
+                theme: document.getElementById('fanTheme').value,
+                autoplay: document.getElementById('fanAutoplay').checked,
+                favoriteDriver: document.getElementById('favoriteDriver').value
+            };
+            
+            localStorage.setItem('rr_fan_settings', JSON.stringify(settings));
+            showToast('Settings saved successfully!');
+        };
+
+        // Load Team Settings
+        function loadTeamSettings() {
+            const settings = JSON.parse(localStorage.getItem('rr_team_settings') || '{}');
+            
+            document.getElementById('teamRaceAlerts').checked = settings.raceAlerts !== false;
+            document.getElementById('teamMediaApproval').checked = settings.mediaApproval !== false;
+            document.getElementById('teamQA').checked = settings.qa !== false;
+            document.getElementById('teamFeedback').checked = settings.feedback !== false;
+            document.getElementById('teamAutoApprove').checked = settings.autoApprove !== false;
+            document.getElementById('teamEmailDigest').checked = settings.emailDigest !== false;
+            document.getElementById('teamDashboardLayout').value = settings.dashboardLayout || 'compact';
+        }
+
+        // Save Team Settings
+        window.saveTeamSettings = function() {
+            const settings = {
+                raceAlerts: document.getElementById('teamRaceAlerts').checked,
+                mediaApproval: document.getElementById('teamMediaApproval').checked,
+                qa: document.getElementById('teamQA').checked,
+                feedback: document.getElementById('teamFeedback').checked,
+                autoApprove: document.getElementById('teamAutoApprove').checked,
+                emailDigest: document.getElementById('teamEmailDigest').checked,
+                dashboardLayout: document.getElementById('teamDashboardLayout').value
+            };
+            
+            localStorage.setItem('rr_team_settings', JSON.stringify(settings));
+            showToast('Settings saved successfully!');
+        };
+
+        // Logout
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                showToast('Error signing out. Please try again.');
+            }
+        };
+
+        // Toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

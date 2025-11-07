@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/main.css" />`n    <link rel="stylesheet" href="styles/input-fix.css" />
+  </head>
+  <body class="flex items-center justify-center min-h-screen p-4 signup-page-bg">
+    <div class="w-full max-w-md signup-container">
+      <!-- Logo Header -->
+      <div class="text-center mb-8 logo-animation">
+        <a
+          href="index.html"
+          class="text-5xl font-racing uppercase tracking-wider hover-glow"
+        >
+          <span class="title-blue">Reds</span
+          ><span class="neon-yellow">Racing</span>
+        </a>
+        <p class="text-slate-400 mt-3 text-sm font-medium">Join the racing community</p>
+      </div>
+
+      <!-- Form Container -->
+      <div class="form-container p-8 rounded-xl shadow-2xl signup-form-card">
+        <h2 class="text-3xl font-bold text-center text-white mb-2">
+          Create Your Account
+        </h2>
+        <p class="text-center text-slate-400 mb-6 text-sm">Start your racing journey today</p>
+
+        <!-- Error Message Display -->
+        <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
+          <p id="error-text"></p>
+        </div>
+
+        <!-- Signup Form -->
+        <form id="signup-form" class="space-y-5">
+          <div class="input-group">
+            <label for="email" class="block text-sm font-semibold text-slate-300 mb-2">Email Address</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="you@example.com"
+              required
+              autocomplete="email"
+              class="form-input modern-input-enhanced mt-1 block w-full px-4 py-3 rounded-lg shadow-sm focus:ring-yellow-400 text-base"
+            />
+          </div>
+          <div class="input-group">
+            <label for="password" class="block text-sm font-semibold text-slate-300 mb-2">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="••••••••"
+              required
+              autocomplete="new-password"
+              class="form-input modern-input-enhanced mt-1 block w-full px-4 py-3 rounded-lg shadow-sm focus:ring-yellow-400 text-base"
+            />
+          </div>
+          <div id="invite-code-container" class="input-group">
+            <label for="invite-code" class="block text-sm font-semibold text-slate-300 mb-2">Invite Code</label>
+            <input
+              type="text"
+              id="invite-code"
+              name="invite-code"
+              placeholder="Optional for fans"
+              class="form-input modern-input-enhanced mt-1 block w-full px-4 py-3 rounded-lg shadow-sm focus:ring-yellow-400 text-base"
+            />
+            <p id="invite-code-help" class="text-xs text-slate-400 mt-2 hidden invite-help-box">
+              <span id="invite-required" class="text-yellow-400 font-semibold">⚠️ Required:</span> 
+              You need an invite code to join as a team member. Contact the team to get your code.
+            </p>
+          </div>
+          
+          <!-- Team Role Selection -->
+          <div class="role-selection-container">
+            <label class="block text-sm font-semibold text-slate-300 mb-4">Choose Your Role</label>
+            <div class="space-y-3">
+              <label class="role-card flex items-center p-4 rounded-xl border-2 border-slate-600 cursor-pointer hover:border-yellow-400 transition-all duration-300 bg-slate-800/50">
+                <input type="radio" name="team-role" value="fan" class="text-yellow-400 focus:ring-yellow-400 focus:ring-2 w-5 h-5" required />
+                <div class="flex items-center space-x-4 w-full ml-3">
+                  <div class="text-3xl role-icon">🏁</div>
+                  <div class="flex-1">
+                    <div class="font-bold text-white text-lg">Racing Fan</div>
+                    <div class="text-sm text-slate-400 mt-1">Follow the team, get updates, view content</div>
+                  </div>
+                </div>
+              </label>
+              
+              <label class="role-card flex items-center p-4 rounded-xl border-2 border-slate-600 cursor-pointer hover:border-yellow-400 transition-all duration-300 bg-slate-800/50">
+                <input type="radio" name="team-role" value="racer" class="text-yellow-400 focus:ring-yellow-400 focus:ring-2 w-5 h-5" />
+                <div class="flex items-center space-x-4 w-full ml-3">
+                  <div class="text-3xl role-icon">🏎️</div>
+                  <div class="flex-1">
+                    <div class="font-bold text-white text-lg">Racer</div>
+                    <div class="text-sm text-slate-400 mt-1">Driver competing in races (requires invite code)</div>
+                  </div>
+                </div>
+              </label>
+              
+              <label class="role-card flex items-center p-4 rounded-xl border-2 border-slate-600 cursor-pointer hover:border-yellow-400 transition-all duration-300 bg-slate-800/50">
+                <input type="radio" name="team-role" value="crew" class="text-yellow-400 focus:ring-yellow-400 focus:ring-2 w-5 h-5" />
+                <div class="flex items-center space-x-4 w-full ml-3">
+                  <div class="text-3xl role-icon">🔧</div>
+                  <div class="flex-1">
+                    <div class="font-bold text-white text-lg">Crew Member</div>
+                    <div class="text-sm text-slate-400 mt-1">Support team, mechanics (requires invite code)</div>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-gradient-to-r from-yellow-400 to-yellow-300 text-slate-900 font-bold py-3.5 px-6 rounded-lg hover:from-yellow-300 hover:to-yellow-200 transition-all duration-300 shadow-lg hover:shadow-yellow-400/50 transform hover:-translate-y-0.5 text-lg signup-btn"
+          >
+            Create Account
+          </button>
+          <div id="signup-error" style="color: red; margin-top: 8px"></div>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-slate-600"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-slate-800 text-gray-400"
+              >Or continue with</span
+            >
+          </div>
+        </div>
+
+        <!-- Google Sign-in -->
+        <div>
+          <button
+            type="button"
+            id="google-signin-button"
+            class="w-full flex justify-center items-center bg-white text-gray-700 font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-gray-100 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              focusable="false"
+              data-prefix="fab"
+              data-icon="google"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 488 512"
+            >
+              <path
+                fill="currentColor"
+                d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.9 0 129.8 110.3 20 244 20c66.2 0 121.3 24.8 162.2 65.5l-68.5 64.9C314.5 124.9 282.8 108 244 108c-73.2 0-132.3 59.8-132.3 133.1s59.1 133.1 132.3 133.1c76.9 0 114.3-52.3 120.8-79.1H244V261.8h244z"
+              ></path>
+            </svg>
+            Sign in with Google
+          </button>
+        </div>
+      </div>
+      <p class="text-center text-slate-400 text-sm mt-8 fade-in-up">
+        Already have an account?
+        <a
+          href="login.html"
+          class="font-bold neon-yellow hover:text-yellow-300 transition-colors underline-offset-2 hover:underline"
+          >Sign in</a
+        >
+      </p>
+    </div>
+
+    <script type="module" src="assets/js/signup-page.js"></script>
+  </body>
+</html>

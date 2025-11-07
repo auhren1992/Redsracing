@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Debug</title>
+    <link rel="stylesheet" href="styles/tailwind.css" />
+</head>
+<body class="p-6 bg-slate-900 text-white">
+    <h1 class="text-3xl mb-4">Authentication Debug</h1>
+    <div id="status" class="mb-4">Checking Firebase...</div>
+    <div id="user-info" class="mb-4"></div>
+    <div id="claims-info" class="mb-4"></div>
+    <div id="error-info" class="mb-4 text-red-400"></div>
+    
+    <script src="vendors.js"></script>
+    <script src="auth-guard.js"></script>
+    <script>
+        // Simple debug without modules
+        const statusEl = document.getElementById('status');
+        const userInfoEl = document.getElementById('user-info');
+        const claimsInfoEl = document.getElementById('claims-info');
+        const errorInfoEl = document.getElementById('error-info');
+        
+        // Check if Firebase is loaded
+        if (typeof firebase === 'undefined') {
+            statusEl.innerHTML = '<span class="text-red-400">❌ Firebase not loaded</span>';
+            errorInfoEl.innerHTML = 'Firebase SDK not found. Check vendors.js loading.';
+        } else {
+            statusEl.innerHTML = '<span class="text-green-400">✅ Firebase loaded</span>';
+            
+            // Check auth
+            if (firebase.auth) {
+                firebase.auth().onAuthStateChanged(async (user) => {
+                    if (user) {
+                        userInfoEl.innerHTML = `
+                            <h2 class="text-xl text-green-400">✅ User Signed In:</h2>
+                            <p><strong>Email:</strong> ${user.email}</p>
+                            <p><strong>UID:</strong> ${user.uid}</p>
+                            <p><strong>Email Verified:</strong> ${user.emailVerified}</p>
+                        `;
+                        
+                        // Get user claims
+                        try {
+                            const idTokenResult = await user.getIdTokenResult();
+                            claimsInfoEl.innerHTML = `
+                                <h2 class="text-xl text-blue-400">User Claims:</h2>
+                                <pre class="bg-slate-800 p-4 rounded text-sm overflow-auto">${JSON.stringify(idTokenResult.claims, null, 2)}</pre>
+                            `;
+                        } catch (error) {
+                            claimsInfoEl.innerHTML = `<p class="text-red-400">Error getting claims: ${error.message}</p>`;
+                        }
+                        
+                    } else {
+                        userInfoEl.innerHTML = '<p class="text-yellow-400">⚠️ No user signed in - <a href="login.html" class="underline">Go to Login</a></p>';
+                    }
+                });
+            } else {
+                errorInfoEl.innerHTML = 'Firebase Auth not initialized.';
+            }
+        }
+    </script>
+</body>
+</html>

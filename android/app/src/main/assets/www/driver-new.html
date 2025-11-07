@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jon Kirsh - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/scrollreveal"></script>
+    <link rel="stylesheet" href="styles/main.css" />`n    <link rel="stylesheet" href="styles/input-fix.css" />
+  <script src="assets/js/guest-gate.js"></script>
+  </head>
+  <body>
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+        <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+          <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-6 font-bold">
+          <a href="index.html" class="hover:text-neon-yellow transition duration-300">Home</a>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
+              The Drivers
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+              <a href="driver.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jon Kirsh</a>
+              <a href="jonny.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Jonny Kirsch #88</a>
+            </div>
+          </div>
+          <a href="schedule.html" class="hover:text-neon-yellow transition duration-300">Schedule</a>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
+              Media
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+              <a href="gallery.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Gallery</a>
+              <a href="videos.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Videos</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle hover:text-neon-yellow transition duration-300 flex items-center">
+              Community
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div class="dropdown-menu absolute hidden bg-slate-800 rounded-md shadow-lg mt-2 py-1 w-48 z-50">
+              <a href="qna.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Q&A</a>
+              <a href="feedback.html" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white">Feedback</a>
+            </div>
+          </div>
+          <a href="sponsorship.html" class="hover:text-neon-yellow transition duration-300">Sponsorship</a>
+        </div>
+        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+      </nav>
+      <div id="mobile-menu" class="hidden md:hidden bg-slate-900/90">
+        <a href="index.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Home</a>
+        <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">The Drivers</button>
+        <div class="mobile-accordion-content hidden pl-4">
+          <a href="driver.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Jon Kirsh</a>
+          <a href="jonny.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Jonny Kirsch #88</a>
+        </div>
+        <a href="schedule.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Schedule</a>
+        <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Media</button>
+        <div class="mobile-accordion-content hidden pl-4">
+          <a href="gallery.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Gallery</a>
+          <a href="videos.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Videos</a>
+        </div>
+        <button class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Community</button>
+        <div class="mobile-accordion-content hidden pl-4">
+          <a href="qna.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Q&A</a>
+          <a href="feedback.html" class="block py-2 pl-6 text-sm hover:bg-slate-800">Feedback</a>
+        </div>
+        <a href="sponsorship.html" class="block py-3 px-6 text-sm hover:bg-slate-800">Sponsorship</a>
+      </div>
+    </header>
+
+    <main class="pt-20">
+      <section id="jon-hero" class="py-20 md:py-32 text-center section-glow">
+        <div class="container mx-auto px-6">
+          <h1 class="text-6xl md:text-8xl font-racing uppercase text-gradient tracking-wider">Jon Kirsh</h1>
+          <p class="mt-4 text-xl md:text-2xl font-bold text-slate-300 tracking-widest">Father • Mentor • Racing Legacy</p>
+        </div>
+      </section>
+
+      <section id="jon-bio" class="py-16 md:py-24 bg-black/20">
+        <div class="container mx-auto px-6">
+          <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 items-center gap-12 lg:gap-16">
+            <div class="lg:col-span-1 reveal-left">
+              <img src="https://placehold.co/600x800/1e293b/f7ff00?text=Jon+Kirsh" alt="Jon Kirsh" class="rounded-lg shadow-2xl w-full" />
+            </div>
+            <div class="lg:col-span-2 text-lg space-y-6 reveal-right">
+              <div>
+                <h2 class="font-racing text-6xl uppercase">The Racing <span class="neon-yellow">Patriarch</span></h2>
+                <p class="text-slate-300 mt-4">
+                  Fueled by a lifelong passion for speed and precision, I'm Jon, and this is my world. This isn't just a hobby; it's a relentless pursuit of the perfect lap, the extra tenth, the top step of the podium. It's about the bond between man and machine, pushing the limits together on the ragged edge.
+                </p>
+                <p class="text-slate-400 mt-2">
+                  From late nights in the garage to the adrenaline of the green flag, this is where I document the unfiltered reality of life on the track. Now, I'm sharing this passion with my son Jonny, building a family racing legacy that spans generations.
+                </p>
+                <p class="text-slate-400 mt-2">
+                  As both competitor and mentor, I bring years of experience to the track while fostering the next generation of racing talent. Together with Jonny, we're not just racing cars—we're racing toward a shared dream, one lap at a time.
+                </p>
+              </div>
+              <div class="grid grid-cols-2 gap-4 text-center">
+                <div class="stat-card p-4 rounded-lg border-l-4 border-neon-yellow">
+                  <div class="text-4xl font-bold">15+</div>
+                  <div class="text-sm font-racing uppercase text-white tracking-wider">Years Racing</div>
+                </div>
+                <div class="stat-card p-4 rounded-lg border-l-4 border-neon-yellow">
+                  <div class="text-4xl font-bold">#8</div>
+                  <div class="text-sm font-racing uppercase text-white tracking-wider">Car Number</div>
+                </div>
+                <div class="stat-card p-4 rounded-lg border-l-4 border-neon-yellow">
+                  <div class="text-4xl font-bold">2</div>
+                  <div class="text-sm font-racing uppercase text-white tracking-wider">Wins</div>
+                </div>
+                <div class="stat-card p-4 rounded-lg border-l-4 border-neon-yellow">
+                  <div class="text-4xl font-bold">4</div>
+                  <div class="text-sm font-racing uppercase text-white tracking-wider">Podiums</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Schedule Section -->
+      <section id="racer-schedule" class="py-16 md:py-24 bg-black/20"></section>
+
+      <section id="the-car" class="py-24 md:py-32 bg-black/10">
+        <div class="container mx-auto px-6 text-center">
+          <h2 class="font-racing text-5xl uppercase mb-4 reveal-fade">Meet The <span class="neon-yellow">Beast</span></h2>
+          <p class="max-w-2xl mx-auto mb-12 text-slate-400 reveal-fade" data-reveal-delay="200">
+            Hover over the points on the car to learn more about the tech that powers every race.
+          </p>
+          <div class="car-hotspot-container max-w-4xl mx-auto reveal-up">
+            <img src="https://i.imgur.com/EumUdup.jpg" alt="Race Car" class="w-full h-auto rounded-lg shadow-2xl" loading="lazy" width="1200" height="675" onerror="this.onerror=null;this.src='https://placehold.co/1200x675';" />
+            <div class="hotspot hotspot-pulse" style="top: 45%; left: 30%">
+              1
+              <div class="hotspot-info">
+                <strong>Engine & Powertrain:</strong> Custom-built 1-cylinder engine, meticulously tuned for optimal power-to-weight ratio.
+              </div>
+            </div>
+            <div class="hotspot hotspot-pulse" style="top: 35%; left: 75%">
+              2
+              <div class="hotspot-info">
+                <strong>Aerodynamics:</strong> Carbon fiber rear wing and front splitter providing over 1000lbs of downforce for high-speed stability.
+              </div>
+            </div>
+            <div class="hotspot hotspot-pulse" style="top: 70%; left: 65%">
+              3
+              <div class="hotspot-info">
+                <strong>Tires & Grip:</strong> Hoosier Racing Slicks, a soft compound that gets stickier as they heat up for maximum grip in the corners.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="jon-gallery" class="py-16 md:py-24 bg-black/20">
+        <div class="container mx-auto px-6">
+          <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Jon's <span class="neon-yellow">Gallery</span></h2>
+
+          <div id="upload-container" class="max-w-xl mx-auto bg-slate-800/50 p-6 rounded-lg mb-12" style="display: none">
+            <h3 class="font-racing text-2xl text-white uppercase mb-4">Share Your <span class="neon-yellow">Photos of Jon</span></h3>
+            <div class="flex items-center space-x-4">
+              <input type="file" id="photo-upload-input" accept="image/jpeg, image/png" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-neon-yellow file:text-slate-900 hover:file:bg-yellow-300" />
+              <button id="upload-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition disabled:opacity-50" disabled>Upload</button>
+            </div>
+            <div class="mt-4">
+              <div class="w-full bg-slate-700 rounded-full h-2.5">
+                <div id="upload-progress-bar" class="bg-neon-yellow h-2.5 rounded-full" style="width: 0%"></div>
+              </div>
+              <p id="upload-status" class="text-sm text-slate-400 mt-2 h-4"></p>
+            </div>
+          </div>
+
+          <div id="dynamic-gallery-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- Photos will be dynamically inserted here -->
+          </div>
+          <p class="text-center mt-8 text-slate-400">This gallery will feature photos from Jon's races and events.</p>
+        </div>
+      </section>
+
+      <section id="jon-videos" class="py-16 md:py-24">
+        <div class="container mx-auto px-6">
+          <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Jon's <span class="neon-yellow">Videos</span></h2>
+          <div id="dynamic-video-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Videos will be dynamically inserted here -->
+            <p class="text-center text-slate-400 col-span-full">Videos coming soon.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+        <!-- Modern Newsletter Footer -->
+    <footer class="newsletter-footer">
+        <div class="newsletter-container">
+            <div class="newsletter-content">
+                <h2 class="newsletter-title">Get In Touch</h2>
+                <p class="newsletter-subtitle">Subscribe for race updates and follow the journey on social media.</p>
+                
+                <form id="newsletter-form" class="newsletter-form">
+                    <div class="newsletter-input-group">
+                        <input type="email" id="newsletter-email" placeholder="Enter your email" required class="newsletter-input" style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;" />
+                        <button type="submit" class="newsletter-button">
+                            <span class="button-text">Subscribe</span>
+                            <span class="button-loader hidden">●●●</span>
+                        </button>
+                    </div>
+                    <p id="newsletter-message" class="newsletter-message"></p>
+                </form>
+                
+                <div class="social-links">
+                    <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="social-link" aria-label="Facebook">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/@redsracing" target="_blank" class="social-link" aria-label="TikTok">
+                        <i class="fab fa-tiktok"></i>
+                    </a>
+                    <a href="https://www.instagram.com/redsracing8/" target="_blank" class="social-link" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 RedsRacing. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <style>
+    .newsletter-footer {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        padding: 60px 20px 30px;
+        color: white;
+    }
+
+    .newsletter-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .newsletter-content {
+        text-align: center;
+    }
+
+    .newsletter-title {
+        font-size: 2.5rem;
+        font-weight: 900;
+        background: linear-gradient(45deg, #fbbf24, #f59e0b);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        margin-bottom: 10px;
+    }
+
+    .newsletter-subtitle {
+        color: #94a3b8;
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+    }
+
+    .newsletter-form {
+        margin-bottom: 40px;
+    }
+
+    .newsletter-input-group {
+        display: flex;
+        gap: 10px;
+        max-width: 500px;
+        margin: 0 auto 15px;
+    }
+
+    .newsletter-input {
+        flex: 1;
+        padding: 15px 20px;
+        border: 2px solid rgba(251, 191, 36, 0.3);
+        border-radius: 12px;
+        background: rgba(30, 41, 59, 0.9);
+        color: #ffffff !important;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .newsletter-input:focus {
+        outline: none;
+        border-color: #fbbf24;
+        background: rgba(30, 41, 59, 0.8);
+    }
+
+    .newsletter-input::placeholder {
+        color: #64748b;
+    }
+
+    .newsletter-button {
+        padding: 15px 35px;
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: #0f172a;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .newsletter-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
+    }
+
+    .newsletter-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .button-loader {
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .newsletter-message {
+        min-height: 24px;
+        font-size: 0.9rem;
+        margin-top: 10px;
+    }
+
+    .newsletter-message.success {
+        color: #4ade80;
+    }
+
+    .newsletter-message.error {
+        color: #ef4444;
+    }
+
+    .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 30px;
+    }
+
+    .social-link {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(251, 191, 36, 0.1);
+        border: 2px solid rgba(251, 191, 36, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fbbf24;
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .social-link:hover {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: #0f172a;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(251, 191, 36, 0.3);
+    }
+
+    .footer-bottom {
+        text-align: center;
+        padding-top: 30px;
+        margin-top: 40px;
+        border-top: 1px solid rgba(148, 163, 184, 0.2);
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+        .newsletter-title {
+            font-size: 2rem;
+        }
+        
+        .newsletter-input-group {
+            flex-direction: column;
+        }
+        
+        .newsletter-button {
+            width: 100%;
+        }
+    }
+    </style>
+
+    <script type="module">
+    import { getApp, initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+    // Initialize dedicated Firebase app for newsletter
+    const firebaseConfig = {
+        apiKey: "AIzaSyDu91Bi9SiF4K6P_sBjHBUNbjXjEB02X74",
+        authDomain: "redsracing-a7f8b.firebaseapp.com",
+        projectId: "redsracing-a7f8b",
+        storageBucket: "redsracing-a7f8b.firebasestorage.app",
+        messagingSenderId: "517034606151",
+        appId: "1:517034606151:web:ea84d9fb6b21f5ba99c8a9"
+    };
+    const newsletterApp = initializeApp(firebaseConfig, "newsletter-app");
+
+    const db = getFirestore(newsletterApp);
+
+    // Newsletter form handler
+    const form = document.getElementById('newsletter-form');
+    const emailInput = document.getElementById('newsletter-email');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const buttonText = submitButton.querySelector('.button-text');
+    const buttonLoader = submitButton.querySelector('.button-loader');
+    const message = document.getElementById('newsletter-message');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = emailInput.value.trim();
+        if (!email) return;
+        
+        // Validate email
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showMessage('Please enter a valid email address', 'error');
+            return;
+        }
+        
+        // Show loading state
+        submitButton.disabled = true;
+        buttonText.classList.add('hidden');
+        buttonLoader.classList.remove('hidden');
+        message.textContent = '';
+        
+        try {
+            // Check if email already exists
+            const subscribersRef = collection(db, 'subscribers');
+            const q = query(subscribersRef, where('email', '==', email));
+            const querySnapshot = await getDocs(q);
+            
+            if (!querySnapshot.empty) {
+                showMessage('You\'re already subscribed! 🎉', 'success');
+                emailInput.value = '';
+                return;
+            }
+            
+            // Add new subscriber
+            await addDoc(subscribersRef, {
+                email: email,
+                subscribed: true,
+                createdAt: serverTimestamp(),
+                source: 'website_footer'
+            });
+            
+            showMessage('Welcome to the team! Check your email 📧', 'success');
+            emailInput.value = '';
+            
+            // Track event
+            if (window.gtag) {
+                gtag('event', 'newsletter_signup', {
+                    method: 'footer_form'
+                });
+            }
+            
+        } catch (error) {
+            console.error('Newsletter signup error:', error);
+            showMessage('Something went wrong. Please try again.', 'error');
+        } finally {
+            submitButton.disabled = false;
+            buttonText.classList.remove('hidden');
+            buttonLoader.classList.add('hidden');
+        }
+    });
+
+    function showMessage(text, type) {
+        message.textContent = text;
+        message.className = `newsletter-message ${type}`;
+    }
+    </script>
+
+    <script type="module" src="navigation.js"></script>
+    <script type="module" src="main.js"></script>
+    <script type="module" src="racer-schedule.js"></script>
+    <script type="module" src="driver.js"></script>
+  </body>
+</html>

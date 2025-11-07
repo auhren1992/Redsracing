@@ -1,0 +1,17 @@
+What's New in v3.5:
+
+🎯 NEW: Nested navigation menus for Jon & Jonny Kirsch profiles
+   • Quick access to driver profiles, galleries, and race results
+   • Better organized menu structure
+
+🔧 FIXES:
+   • Sign-in now properly shows homepage
+   • Menu dropdowns work on all pages
+   • Schedule race recaps display correctly
+   • Mobile interactive elements sized properly
+
+✨ IMPROVEMENTS:
+   • Consistent navigation across entire app
+   • Smoother menu animations
+   • Better mobile experience
+   • Optimized performance

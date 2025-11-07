@@ -1,0 +1,183 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user has specific role
+    function hasRole(role) {
+      return isAuthenticated() && request.auth.token.role == role;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Fallback: check role from users document for current user
+    function hasProfileRole(role) {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+    
+    // ========================================
+    // PUBLIC ACCESS RULES (No auth required)
+    // ========================================
+    
+    // Newsletter subscribers - MUST BE FIRST
+    match /subscribers/{subscriberId} {
+      allow create: if true; // Anyone can subscribe
+      allow read: if true; // Allow checking for duplicates
+      allow update, delete: if hasRole('team-member') || hasRole('admin');
+    }
+    
+    // Users collection - profiles
+    match /users/{userId} {
+      // Allow public read if user has enabled publicProfile; otherwise require auth
+      allow read: if (resource.data.publicProfile == true) || isAuthenticated();
+      allow write: if isOwner(userId) || hasRole('team-member');
+    }
+    
+    // User achievements
+    match /user_achievements/{achievementId} {
+      allow read: if isAuthenticated();
+      allow write: if hasRole('team-member'); // Only admins can assign achievements
+    }
+    
+    // Available achievements
+    match /achievements/{achievementId} {
+      allow read: if isAuthenticated();
+      allow write: if hasRole('team-member');
+    }
+    
+    // Gallery images
+    match /gallery_images/{imageId} {
+      allow read: if true; // Public read for gallery
+      // On create, validate uploader matches the auth user using request.resource.data
+      allow create: if isAuthenticated() &&
+        request.auth.uid == request.resource.data.uploaderUid;
+      // On update, allow uploader or team member
+      allow update: if hasRole('team-member') || hasProfileRole('team-member') || hasRole('admin') || hasProfileRole('admin') ||
+        (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
+      allow delete: if hasRole('team-member') || hasProfileRole('team-member') || hasRole('admin') || hasProfileRole('admin');
+      
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isAuthenticated();
+        allow update, delete: if isAuthenticated() && 
+          request.auth.uid == resource.data.authorUid;
+      }
+    }
+    
+    // Race schedule (old)
+    match /races/{raceId} {
+      allow read: if true; // Public read for race schedule
+      allow write: if hasRole('team-member');
+    }
+    
+    // Race results (new - managed via Python API)
+    match /race_results/{resultId} {
+      allow read: if true; // Public read for race results
+      allow write: if hasRole('team-member'); // Only team members can add results
+    }
+
+    // CMS pages and sections (public read, admin write)
+    match /pages/{slug} {
+      allow read: if true;
+      allow write: if hasRole('admin') || hasProfileRole('admin');
+
+      match /sections/{sectionId} {
+        allow read: if true;
+        allow write: if hasRole('admin') || hasProfileRole('admin');
+      }
+
+      match /versions/{versionId} {
+        allow read: if true;
+        allow write: if hasRole('admin') || hasProfileRole('admin');
+      }
+    }
+    
+    // Q&A submissions
+    match /qna_submissions/{submissionId} {
+      // Public can read published questions; team-members/admins can read all
+      allow read: if (resource.data.status == 'published')
+                  || hasRole('team-member') || hasRole('admin')
+                  || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow create: if isAuthenticated();
+      // Moderation (answer/publish/reject) restricted to team-members/admins (claims or users doc role)
+      allow update: if hasRole('team-member') || hasRole('admin')
+                    || hasProfileRole('team-member') || hasProfileRole('admin');
+    }
+    
+    // Invitation codes
+    match /invitation_codes/{codeId} {
+      // Team members or admins can read (via claim or users doc fallback)
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      // Only admins can create/update/delete (via claim or users doc fallback)
+      allow create: if hasRole('admin') || hasProfileRole('admin');
+      allow update: if hasRole('admin') || hasProfileRole('admin');
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+
+    // Site configuration (e.g., config/tiktok)
+    match /config/{docId} {
+      // Allow any authenticated user to read config (e.g., to show UI),
+      // but restrict writes to team-members or admins
+      allow read: if isAuthenticated();
+      allow write: if hasRole('team-member') || hasRole('admin');
+    }
+    
+    // Jonny-specific images (approvals)
+    match /jonny_gallery_images/{imageId} {
+      // Public can read approved images; team members/admins can read all
+      allow read: if (resource.data.approved == true)
+                  || hasRole('team-member')
+                  || hasProfileRole('team-member')
+                  || hasProfileRole('admin');
+      // Uploader can create; team members can update/approve or delete
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.uploaderUid;
+      allow update: if hasRole('team-member')
+                    || hasProfileRole('team-member')
+                    || (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
+      allow delete: if hasRole('team-member') || hasProfileRole('team-member');
+    }
+
+    // Jonny-specific videos
+    match /jonny_videos/{videoId} {
+      allow read: if true;
+      allow write: if hasRole('team-member');
+    }
+    
+    // Client error logs (frontend)
+    match /client_logs/{logId} {
+      // Any authenticated user may create a log entry
+      allow create: if isAuthenticated();
+      // Team members/admins can read logs (via token or users doc fallback)
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      // Admin can delete (via token or users doc fallback)
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+    
+    // TikTok videos library
+    match /tiktok_videos/{videoId} {
+      // Public can read published videos; team-members/admins can read all
+      allow read: if (resource.data.published == true)
+                  || hasRole('team-member')
+                  || hasProfileRole('team-member')
+                  || hasProfileRole('admin');
+      allow write: if hasRole('team-member') || hasRole('admin') || hasProfileRole('admin');
+      allow delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('admin');
+    }
+    
+    // Default deny - catches everything not explicitly allowed above
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

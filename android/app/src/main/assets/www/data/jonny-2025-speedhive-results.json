@@ -1,0 +1,13 @@
+{
+  "driver": "Jonny Kirsch",
+  "carNumber": "#88",
+  "season": "2025",
+  "series": "American Super Cup",
+  "lastUpdated": "2025-10-08",
+  "championship": {
+    "featureWins": 0,
+    "heatWins": 0,
+    "podiumFinishes": 0
+  },
+  "events": []
+}

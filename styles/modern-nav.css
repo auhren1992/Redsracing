@@ -1,0 +1,323 @@
+/* Modern Navigation Enhancements */
+
+/* Enhanced Dropdown Animations */
+.dropdown-menu {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px) scale(0.95);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(16px);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-menu:not(.hidden) {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.dropdown-menu a {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dropdown-menu a::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.1), transparent);
+  transition: left 0.4s ease;
+}
+
+.dropdown-menu a:hover::before {
+  left: 100%;
+}
+
+.dropdown-menu a:hover {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+  transform: translateX(4px);
+}
+
+/* Mobile Navigation Enhancements */
+.mobile-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-accordion.active + .mobile-accordion-content {
+  max-height: 300px;
+}
+
+.mobile-accordion-icon {
+  transition: transform 0.3s ease;
+}
+
+.mobile-accordion.active .mobile-accordion-icon {
+  transform: rotate(180deg);
+}
+
+/* Navigation Hover Effects */
+nav a {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+nav a:hover::after {
+  width: 100%;
+}
+
+/* Enhanced Mobile Menu - Make it work for mobile app */
+#mobile-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.98);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(-10px);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 9999;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+#mobile-menu:not(.hidden) {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Mobile dropdown panel specific tweaks */
+.mobile-dropdown-panel {
+  min-width: 14rem;
+  width: 18rem;
+  right: 0;
+}
+.mobile-dropdown-panel a { display:block; }
+@media (min-width: 768px) {
+  .mobile-dropdown-panel { display: none !important; }
+}
+
+/* Hamburger Animation */
+#mobile-menu-toggle svg {
+  transition: all 0.3s ease;
+}
+
+#mobile-menu-toggle:hover svg {
+  transform: scale(1.1);
+  color: #fbbf24;
+}
+
+/* Brand Logo Animation */
+header .font-racing {
+  transition: all 0.3s ease;
+}
+
+header .font-racing:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.3));
+}
+
+/* Sticky Header Enhancement */
+header {
+  transition: all 0.3s ease;
+}
+
+/* Force-hide any legacy login entry points across the site */
+#login-btn,
+#mobile-login-btn,
+.mobile-login-btn,
+#account-toggle-loggedout,
+nav a[href="login.html"] {
+  display: none !important;
+}
+
+header.scrolled {
+  background: rgba(15, 23, 42, 0.98);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+/* Navigation Button Effects */
+.bg-red-600 {
+  background: linear-gradient(45deg, #dc2626, #b91c1c);
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-red-600::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s;
+}
+
+.bg-red-600:hover::before {
+  left: 100%;
+}
+
+.bg-red-600:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+}
+
+/* Mobile Navigation Items */
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  color: #e2e8f0;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border-left: 3px solid transparent;
+}
+
+.mobile-nav-item:hover {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+  border-left-color: #fbbf24;
+  transform: translateX(4px);
+}
+
+.mobile-nav-subitem {
+  display: block;
+  padding: 8px 16px 8px 40px;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.mobile-nav-subitem:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+}
+
+.mobile-accordion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  color: #e2e8f0;
+  text-align: left;
+  transition: all 0.3s ease;
+  border-left: 3px solid transparent;
+}
+
+.mobile-accordion:hover {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+  border-left-color: #fbbf24;
+}
+
+.mobile-accordion.active {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border-left-color: #fbbf24;
+}
+
+.accordion-icon {
+  transition: transform 0.3s ease;
+  font-size: 12px;
+}
+
+.mobile-accordion.active .accordion-icon {
+  transform: rotate(180deg);
+}
+
+/* Nested Dropdown Styles (Desktop) */
+.dropdown-nested {
+  position: relative;
+}
+
+.dropdown-nested-toggle {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  text-align: left;
+}
+
+.dropdown-menu-nested {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  min-width: 200px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(16px);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 4px 0;
+  z-index: 1000;
+}
+
+.dropdown-nested:hover > .dropdown-menu-nested {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.dropdown-nested-toggle:hover {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+}
+
+/* Mobile Nested Accordion Styles */
+.mobile-accordion-nested {
+  padding-left: 32px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.mobile-accordion-content-nested {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.mobile-accordion-nested.active + .mobile-accordion-content-nested {
+  max-height: 200px;
+}
+
+.mobile-nav-subitem-nested {
+  padding-left: 60px;
+  font-size: 13px;
+}

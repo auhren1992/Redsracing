@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Reds Racing</title>
+    <link rel="stylesheet" href="styles/main.css">`n    <link rel="stylesheet" href="styles/input-fix.css" />
+    <link rel="stylesheet" href="styles/mobile-menu-tabs.css">
+    <style>
+        .admin-hero {
+            background: linear-gradient(135deg, #c41e3a 0%, #8b0000 100%);
+            padding: 80px 20px 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: -30px auto 60px;
+            padding: 0 20px;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .admin-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .admin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .admin-card h3 {
+            color: #c41e3a;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .admin-card p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .admin-btn {
+            background: linear-gradient(135deg, #c41e3a 0%, #8b0000 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .access-denied {
+            text-align: center;
+            padding: 100px 20px;
+        }
+
+        .access-denied h2 {
+            color: #c41e3a;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="navigation-placeholder"></div>
+
+    <div id="loadingState" class="admin-hero">
+        <h1>Admin Dashboard</h1>
+        <p>Loading...</p>
+    </div>
+
+    <div id="accessDenied" class="access-denied hidden">
+        <h2>Access Denied</h2>
+        <p>This area is restricted to team members only.</p>
+        <button class="admin-btn" onclick="window.location.href='index.html'">Return Home</button>
+    </div>
+
+    <div id="adminContent" class="hidden">
+        <div class="admin-hero">
+            <h1>Team Admin Dashboard</h1>
+            <p>Manage your team content and settings</p>
+        </div>
+
+        <div class="admin-container">
+            <div class="admin-grid">
+                <div class="admin-card">
+                    <h3>📸 Media Gallery</h3>
+                    <p>Manage photos and videos</p>
+                    <a href="gallery.html" class="admin-btn">Open Gallery</a>
+                </div>
+
+                <div class="admin-card">
+                    <h3>📅 Schedule</h3>
+                    <p>View and update race schedule</p>
+                    <a href="schedule.html" class="admin-btn">View Schedule</a>
+                </div>
+
+                <div class="admin-card">
+                    <h3>❓ Q&A Management</h3>
+                    <p>Answer fan questions</p>
+                    <a href="questions.html" class="admin-btn">Manage Q&A</a>
+                </div>
+
+                <div class="admin-card">
+                    <h3>⚙️ Settings</h3>
+                    <p>Configure your preferences</p>
+                    <a href="settings.html" class="admin-btn">Open Settings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="navigation.js"></script>
+    <script src="assets/js/mobile-menu-tabs.js"></script>
+    <script type="module">
+        import { getApp, initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+        // Get existing app or initialize if needed
+        let app;
+        try {
+            app = getApp();
+        } catch (error) {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDu91Bi9SiF4K6P_sBjHBUNbjXjEB02X74",
+                authDomain: "redsracing-d3f36.firebaseapp.com",
+                projectId: "redsracing-d3f36",
+                storageBucket: "redsracing-d3f36.firebasestorage.app",
+                messagingSenderId: "536299135078",
+                appId: "1:536299135078:web:ea84d9fb6b21f5ba99c8a9",
+                measurementId: "G-MNHR1VW81Z"
+            };
+            app = initializeApp(firebaseConfig);
+        }
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            const loadingState = document.getElementById('loadingState');
+            const accessDenied = document.getElementById('accessDenied');
+            const adminContent = document.getElementById('adminContent');
+
+            if (!user) {
+                loadingState.classList.add('hidden');
+                accessDenied.classList.remove('hidden');
+            } else {
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    const userData = userDoc.data();
+                    const role = userData?.role || 'fan';
+
+                    if (role === 'team' || role === 'admin') {
+                        loadingState.classList.add('hidden');
+                        adminContent.classList.remove('hidden');
+                    } else {
+                        loadingState.classList.add('hidden');
+                        accessDenied.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Error checking access:', error);
+                    loadingState.classList.add('hidden');
+                    accessDenied.classList.remove('hidden');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

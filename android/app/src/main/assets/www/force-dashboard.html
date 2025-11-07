@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Dashboard</title>
+    <link rel="stylesheet" href="styles/tailwind.css" />
+</head>
+<body class="p-6 bg-slate-900 text-white">
+    <h1 class="text-3xl mb-4">Force Dashboard Debug</h1>
+    
+    <div class="space-y-4">
+        <button id="force-show" class="bg-green-600 px-6 py-3 rounded text-lg">Force Show Dashboard</button>
+        <button id="open-admin" class="bg-blue-600 px-6 py-3 rounded text-lg">Open Admin Console</button>
+    </div>
+    
+    <div class="mt-6 p-4 bg-slate-800 rounded">
+        <h2 class="text-xl mb-2">Manual Fix Instructions:</h2>
+        <p class="mb-2">If the dashboard is still loading, paste this into your browser console on the admin page:</p>
+        <pre class="bg-slate-700 p-3 rounded text-sm overflow-auto">
+// Force show dashboard content
+const loadingState = document.getElementById('loading-state');
+const dashboardContent = document.getElementById('dashboard-content');
+
+if (loadingState) {
+    loadingState.style.display = 'none';
+    loadingState.classList.add('hidden');
+}
+
+if (dashboardContent) {
+    dashboardContent.classList.remove('hidden');
+    dashboardContent.style.display = 'block';
+}
+
+console.log('Dashboard forced to show');
+        </pre>
+    </div>
+
+    <script>
+        document.getElementById('force-show').addEventListener('click', () => {
+            // Open admin console in new tab and inject the fix
+            const adminWindow = window.open('/admin-console.html', '_blank');
+            
+            setTimeout(() => {
+                try {
+                    const loadingState = adminWindow.document.getElementById('loading-state');
+                    const dashboardContent = adminWindow.document.getElementById('dashboard-content');
+                    
+                    if (loadingState) {
+                        loadingState.style.display = 'none';
+                        loadingState.classList.add('hidden');
+                    }
+                    
+                    if (dashboardContent) {
+                        dashboardContent.classList.remove('hidden');
+                        dashboardContent.style.display = 'block';
+                    }
+                    
+                    alert('Dashboard content forced to show!');
+                } catch (e) {
+                    alert('Could not auto-fix. Use the manual console command instead.');
+                }
+            }, 2000);
+        });
+        
+        document.getElementById('open-admin').addEventListener('click', () => {
+            window.open('/admin-console.html', '_blank');
+        });
+    </script>
+</body>
+</html>

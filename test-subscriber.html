@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Newsletter Signup</title>
+</head>
+<body>
+    <h1>Test Newsletter Signup</h1>
+    <input type="email" id="email" placeholder="Enter email">
+    <button onclick="testSignup()">Test Subscribe</button>
+    <div id="result"></div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDu91Bi9SiF4K6P_sBjHBUNbjXjEB02X74",
+            authDomain: "redsracing-a7f8b.firebaseapp.com",
+            projectId: "redsracing-a7f8b",
+            storageBucket: "redsracing-a7f8b.firebasestorage.app",
+            messagingSenderId: "517034606151",
+            appId: "1:517034606151:web:ea84d9fb6b21f5ba99c8a9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.testSignup = async function() {
+            const email = document.getElementById('email').value;
+            const result = document.getElementById('result');
+            
+            try {
+                result.textContent = 'Testing...';
+                
+                const docRef = await addDoc(collection(db, 'subscribers'), {
+                    email: email,
+                    subscribed: true,
+                    createdAt: serverTimestamp(),
+                    source: 'test_page'
+                });
+                
+                result.textContent = '✅ SUCCESS! Document ID: ' + docRef.id;
+                result.style.color = 'green';
+            } catch (error) {
+                result.textContent = '❌ ERROR: ' + error.message;
+                result.style.color = 'red';
+                console.error('Full error:', error);
+            }
+        };
+    </script>
+</body>
+</html>

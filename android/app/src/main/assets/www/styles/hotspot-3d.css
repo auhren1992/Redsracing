@@ -1,0 +1,331 @@
+/* 3D Hotspot System Styles */
+
+/* 3D Car Showcase Container */
+.car-section-3d {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.car-section-3d::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Car Image Container */
+.car-image-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  transition: transform 0.3s ease;
+}
+
+.car-image-3d:hover {
+  transform: scale(1.02);
+}
+
+/* 3D Hotspot Base Styles */
+.hotspot-3d {
+  position: absolute;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(45deg, rgba(251, 191, 36, 0.9), rgba(245, 158, 11, 0.9));
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #1e293b;
+  font-weight: bold;
+  z-index: 10;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: hotspot-pulse 2s infinite;
+  backdrop-filter: blur(8px);
+  box-shadow: 
+    0 4px 20px rgba(251, 191, 36, 0.4),
+    0 0 0 0 rgba(251, 191, 36, 0.7);
+}
+
+/* Hotspot hover effects */
+.hotspot-3d:hover {
+  transform: scale(1.2);
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
+  border-color: rgba(255, 255, 255, 1);
+  box-shadow: 
+    0 8px 32px rgba(251, 191, 36, 0.6),
+    0 0 0 8px rgba(251, 191, 36, 0.2);
+  animation-play-state: paused;
+}
+
+/* Active hotspot state */
+.hotspot-3d.active {
+  transform: scale(1.1);
+  background: linear-gradient(45deg, #22d3ee, #06b6d4);
+  border-color: rgba(255, 255, 255, 1);
+  box-shadow: 
+    0 8px 32px rgba(34, 211, 238, 0.6),
+    0 0 0 4px rgba(34, 211, 238, 0.3);
+  animation-play-state: paused;
+  z-index: 20;
+}
+
+/* Hotspot pulse animation */
+@keyframes hotspot-pulse {
+  0% {
+    box-shadow: 
+      0 4px 20px rgba(251, 191, 36, 0.4),
+      0 0 0 0 rgba(251, 191, 36, 0.7);
+  }
+  70% {
+    box-shadow: 
+      0 4px 20px rgba(251, 191, 36, 0.4),
+      0 0 0 12px rgba(251, 191, 36, 0);
+  }
+  100% {
+    box-shadow: 
+      0 4px 20px rgba(251, 191, 36, 0.4),
+      0 0 0 0 rgba(251, 191, 36, 0);
+  }
+}
+
+/* 3D Hotspot Info Panel */
+.hotspot-info-3d {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  padding: 1.25rem;
+  width: 280px;
+  max-width: 90vw;
+  z-index: 30;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -50%) scale(0.8);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(251, 191, 36, 0.2);
+}
+
+/* Show info panel on desktop hover */
+.hotspot-3d:hover .hotspot-info-3d {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Show info panel when active (mobile/click) */
+.hotspot-3d.active .hotspot-info-3d {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Close button */
+.hotspot-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(239, 68, 68, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.hotspot-close:hover {
+  background: rgba(239, 68, 68, 1);
+  transform: scale(1.1);
+}
+
+/* Mobile backdrop */
+.hotspot-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 15;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.hotspot-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Technical Specifications Cards */
+.stat-card-3d {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card-3d::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.stat-card-3d:hover::before {
+  left: 100%;
+}
+
+.stat-card-3d:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: rgba(251, 191, 36, 0.4);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(251, 191, 36, 0.2);
+}
+
+.stat-number-3d {
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-weight: bold;
+  animation: stat-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes stat-glow {
+  from { 
+    filter: brightness(1);
+  }
+  to { 
+    filter: brightness(1.2);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hotspot-3d {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.9rem;
+  }
+  
+  .hotspot-info-3d {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: calc(100vw - 3rem);
+    max-width: 280px;
+    padding: 0.875rem;
+    font-size: 0.875rem;
+    z-index: 25;
+  }
+  
+  .hotspot-info-3d p {
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+  
+  .hotspot-info-3d strong {
+    font-size: 0.85rem;
+  }
+  
+  .hotspot-close {
+    display: flex;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+  
+  /* On mobile, only show on click/active, not hover */
+  .hotspot-3d:hover .hotspot-info-3d {
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+}
+
+@media (max-width: 480px) {
+  .hotspot-3d {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.8rem;
+  }
+  
+  .hotspot-info-3d {
+    width: calc(100vw - 2rem);
+    max-width: 260px;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+  
+  .hotspot-info-3d p {
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+  
+  .hotspot-info-3d strong {
+    font-size: 0.8rem;
+  }
+  
+  .stat-card-3d {
+    padding: 0.875rem;
+  }
+}
+
+/* Improved accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .hotspot-3d {
+    animation: none;
+  }
+  
+  .hotspot-3d,
+  .hotspot-info-3d,
+  .stat-card-3d {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .hotspot-3d {
+    border-width: 3px;
+    border-color: #ffffff;
+  }
+  
+  .hotspot-info-3d {
+    border-width: 2px;
+    border-color: #ffffff;
+    background: rgba(0, 0, 0, 0.95);
+  }
+}

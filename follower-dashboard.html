@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Follower Dashboard - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/main.css" />`n    <link rel="stylesheet" href="styles/input-fix.css" />
+    <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
+  <script src="assets/js/guest-gate.js"></script>
+  </head>
+  <body class="flex flex-col min-h-screen">
+    <header
+      class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50"
+    >
+      <nav
+        class="container mx-auto px-6 py-3 flex justify-between items-center"
+      >
+        <a
+          href="index.html"
+          class="text-4xl font-racing uppercase tracking-wider"
+        >
+          <span class="title-blue">Reds</span
+          ><span class="neon-yellow">Racing</span>
+        </a>
+        <div class="flex items-center space-x-6 font-bold">
+          <a
+            href="index.html"
+            class="hover:text-neon-yellow transition duration-300"
+            >Home</a
+          >
+          <a
+            href="jonny.html"
+            class="hover:text-neon-yellow transition duration-300"
+            >Jonny's Page</a
+          >
+          <a
+            href="schedule.html"
+            class="hover:text-neon-yellow transition duration-300"
+            >Full Schedule</a
+          >
+          <a
+            href="profile.html"
+            class="hover:text-neon-yellow transition duration-300"
+            >Profile</a
+          >
+          <a
+            href="leaderboard.html"
+            class="hover:text-neon-yellow transition duration-300"
+            >Leaderboard</a
+          >
+          <a
+            id="logout-button"
+            href="#"
+            class="bg-red-600 text-white py-2 px-5 rounded-md hover:bg-red-500 transition duration-300"
+          >
+            Logout
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-6 py-12">
+      <!-- Authentication and general error container -->
+      <div id="auth-error-container" class="mb-6"></div>
+
+      <div
+        id="loading-state"
+        class="flex flex-col items-center justify-center text-center py-20"
+      >
+        <div
+          class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-neon-yellow"
+        ></div>
+        <p class="text-2xl mt-4 font-racing uppercase tracking-wider">
+          Loading Dashboard...
+        </p>
+      </div>
+
+      <div id="dashboard-content" class="hidden">
+        <h1 class="text-5xl font-racing uppercase mb-2">
+          Follower <span class="neon-yellow">Dashboard</span>
+        </h1>
+        <p class="text-slate-400 mb-8">
+          Welcome back,
+          <span id="user-email" class="font-bold text-white"></span>.
+        </p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Column 1 -->
+          <div class="space-y-8">
+            <!-- Next Race Countdown -->
+            <div class="card rounded-lg p-6">
+              <h2 class="text-3xl font-racing text-white uppercase mb-4">
+                Next <span class="neon-yellow">Race</span>
+              </h2>
+              <p
+                id="next-race-name"
+                class="text-2xl font-bold text-white uppercase mb-4"
+              >
+                Loading...
+              </p>
+              <div
+                id="countdown-timer"
+                class="grid grid-cols-4 gap-4 text-center"
+              >
+                <div>
+                  <div id="days" class="text-4xl font-bold">0</div>
+                  <div class="text-xs uppercase text-slate-400">Days</div>
+                </div>
+                <div>
+                  <div id="hours" class="text-4xl font-bold">0</div>
+                  <div class="text-xs uppercase text-slate-400">Hours</div>
+                </div>
+                <div>
+                  <div id="minutes" class="text-4xl font-bold">0</div>
+                  <div class="text-xs uppercase text-slate-400">Minutes</div>
+                </div>
+                <div>
+                  <div id="seconds" class="text-4xl font-bold">0</div>
+                  <div class="text-xs uppercase text-slate-400">Seconds</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2 -->
+          <div class="space-y-8">
+            <!-- Placeholder for follower content -->
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="bg-black/50 border-t border-slate-800 py-8 mt-12">
+      <div class="container mx-auto px-6 text-center text-slate-500 text-sm">
+        <p>© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+
+    <script src="vendors.js"></script>
+    <script type="module" src="assets/js/auth-guard.js"></script>
+    <script src="navigation.js"></script>
+    <script type="module" src="assets/js/follower-dashboard.js"></script>
+  </body>
+</html>

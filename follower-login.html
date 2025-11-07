@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Follower Login - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/main.css" />`n    <link rel="stylesheet" href="styles/input-fix.css" />
+  </head>
+  <body class="flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md">
+      <!-- Logo Header -->
+      <div class="text-center mb-8">
+        <a
+          href="index.html"
+          class="text-5xl font-racing uppercase tracking-wider"
+        >
+          <span class="title-blue">Reds</span
+          ><span class="neon-yellow">Racing</span>
+        </a>
+        <p class="text-slate-400 mt-2">Follower Access Portal</p>
+      </div>
+
+      <!-- Form Container -->
+      <div class="form-container p-8 rounded-lg shadow-2xl">
+        <h2 class="text-2xl font-bold text-center text-white mb-6">
+          Follower Login
+        </h2>
+
+        <!-- Error Message Display -->
+        <div id="error-box" class="error-message p-4 rounded-md mb-4 hidden">
+          <p id="error-text"></p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="follower-login-form" class="space-y-6">
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-300"
+              >Email</label
+            >
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
+            />
+          </div>
+          <div>
+            <div class="flex justify-between items-center">
+              <label
+                for="password"
+                class="block text-sm font-medium text-gray-300"
+                >Password</label
+              >
+              <a
+                href="#"
+                id="forgot-password-link"
+                class="text-sm text-slate-400 hover:text-neon-yellow"
+                >Forgot password?</a
+              >
+            </div>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              class="form-input mt-1 block w-full px-3 py-2 rounded-md shadow-sm focus:ring-yellow-400 sm:text-sm"
+            />
+          </div>
+
+          <div class="flex flex-col space-y-4">
+            <button
+              type="button"
+              id="signin-button"
+              class="w-full bg-neon-yellow text-slate-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-300 transition duration-300"
+            >
+              Sign In as Follower
+            </button>
+          </div>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-slate-600"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-slate-800 text-gray-400"
+              >Or continue with</span
+            >
+          </div>
+        </div>
+
+        <!-- Google Sign-in -->
+        <div>
+          <button
+            type="button"
+            id="google-signin-button"
+            class="w-full flex justify-center items-center bg-white text-gray-700 font-semibold py-2 px-4 rounded-md shadow-sm hover:bg-gray-200 transition duration-300"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              focusable="false"
+              data-prefix="fab"
+              data-icon="google"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 488 512"
+            >
+              <path
+                fill="currentColor"
+                d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.9 0 129.8 110.3 20 244 20c66.2 0 121.3 24.8 162.2 65.5l-68.5 64.9C314.5 124.9 282.8 108 244 108c-73.2 0-132.3 59.8-132.3 133.1s59.1 133.1 132.3 133.1c76.9 0 114.3-52.3 120.8-79.1H244V261.8h244z"
+              ></path>
+            </svg>
+            Sign in with Google
+          </button>
+        </div>
+
+        <!-- Quick Access Links -->
+        <div class="mt-6 text-center space-y-2">
+          <p class="text-sm text-slate-400">
+            Need access? Contact the team for an invitation code.
+          </p>
+          <div class="flex justify-center space-x-4 text-xs">
+            <a href="login.html" class="text-slate-500 hover:text-neon-yellow"
+              >Team Member Login</a
+            >
+            <span class="text-slate-600">|</span>
+            <a href="signup.html" class="text-slate-500 hover:text-neon-yellow"
+              >Sign Up</a
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-6">
+        <a
+          href="index.html"
+          class="text-slate-500 hover:text-neon-yellow text-sm"
+          >← Back to Home</a
+        >
+      </div>
+    </div>
+    
+
+    <script type="module" src="assets/js/follower-login.js"></script>
+  </body>
+</html>

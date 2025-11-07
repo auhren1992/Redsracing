@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gallery - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://redsracing-a7f8b.firebasestorage.app" crossorigin />
+    <link rel="dns-prefetch" href="//redsracing-a7f8b.firebasestorage.app" />
+    <script defer src="https://unpkg.com/scrollreveal"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="styles/main.css" />`n    <link rel="stylesheet" href="styles/input-fix.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="stylesheet" href="styles/modern-effects.css" />
+  <script src="assets/js/guest-gate.js"></script>
+  </head>
+  <body class="bg-dark-blue">
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+        <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+          <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+        </a>
+        
+        <!-- Navigation Links -->
+        <div class="hidden md:flex items-center space-x-6 font-bold">
+          <a href="index.html" class="nav-link">🏠 Home</a>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏎️ Drivers <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <!-- Jon Kirsch Nested Dropdown -->
+              <div class="relative dropdown-nested">
+                <button class="dropdown-item dropdown-nested-toggle flex items-center justify-between w-full">
+                  <span>Jon Kirsch #8</span>
+                  <i class="fas fa-chevron-right ml-2 text-xs"></i>
+                </button>
+                <div class="dropdown-menu-nested modern-dropdown">
+                  <a href="driver.html" class="dropdown-item">👤 Profile</a>
+                  <a href="gallery.html" class="dropdown-item">📸 Gallery</a>
+                </div>
+              </div>
+              
+              <!-- Jonny Kirsch Nested Dropdown -->
+              <div class="relative dropdown-nested">
+                <button class="dropdown-item dropdown-nested-toggle flex items-center justify-between w-full">
+                  <span>Jonny Kirsch #88</span>
+                  <i class="fas fa-chevron-right ml-2 text-xs"></i>
+                </button>
+                <div class="dropdown-menu-nested modern-dropdown">
+                  <a href="jonny.html" class="dropdown-item">👤 Profile</a>
+                  <a href="jonny-gallery.html" class="dropdown-item">📸 Gallery</a>
+                  <a href="jonny-results.html" class="dropdown-item">📊 Race Results</a>
+                </div>
+              </div>
+              
+              <a href="legends.html" class="dropdown-item">Team Legends</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              🏁 Racing <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="schedule.html" class="dropdown-item">Schedule</a>
+              <a href="leaderboard.html" class="dropdown-item">Leaderboard</a>
+              <a href="videos.html" class="dropdown-item">🎥 Videos</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button class="dropdown-toggle nav-link">
+              👥 Community <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="qna.html" class="dropdown-item">❓ Q&A</a>
+              <a href="feedback.html" class="dropdown-item">💬 Feedback</a>
+              <a href="sponsorship.html" class="dropdown-item">💰 Sponsorship</a>
+            </div>
+          </div>
+          
+          <!-- User Profile / Login -->
+          <div id="auth-section">
+            <!-- Login Button (shown when not authenticated) -->
+            <a href="admin-console.html" id="login-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-bold transition duration-300 flex items-center space-x-1">
+              <i class="fas fa-sign-in-alt"></i>
+              <span>Login</span>
+            </a>
+            
+            <!-- User Profile Dropdown (shown when authenticated) -->
+            <div id="user-profile" class="relative dropdown hidden">
+              <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
+                <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <i class="fas fa-user text-white text-xs"></i>
+                </div>
+                <div class="text-left hidden md:block">
+                  <div class="text-sm font-semibold text-white" id="user-name">Driver</div>
+                  <div class="text-xs text-slate-400">Team Member</div>
+                </div>
+                <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+              </button>
+              
+              <div class="dropdown-menu modern-dropdown right-0 w-44">
+                <div class="px-4 py-2 border-b border-slate-600/50">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-green-400 text-sm">Online</span>
+                  </div>
+                </div>
+                
+                <a href="admin-console.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
+                  <span>Dashboard</span>
+                </a>
+                
+                <a href="profile.html" class="dropdown-item flex items-center">
+                  <i class="fas fa-user w-4 mr-3 text-green-400"></i>
+                  <span>My Profile</span>
+                </a>
+                
+                <div class="border-t border-slate-600/50 my-1"></div>
+                
+                <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                  <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mobile Clock and Menu -->
+        <div class="md:hidden flex items-center space-x-4">
+          <div id="mobile-clock" class="text-yellow-400 font-bold text-sm bg-slate-800/50 px-3 py-1 rounded-lg border border-slate-600/50">
+            12:00 PM
+          </div>
+          <button id="mobile-menu-button" class="text-white focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            </svg>
+          </button>
+        </div>
+      </nav>
+      
+      <!-- Mobile Menu -->
+      <div id="mobile-menu" class="mobile-menu modern-mobile hidden">
+        <a href="index.html" class="mobile-nav-item">🏠 Home</a>
+        <button class="mobile-accordion">
+          <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <!-- Jon Kirsch Nested -->
+          <button class="mobile-accordion mobile-accordion-nested">
+            <span>Jon Kirsch #8</span><i class="fas fa-chevron-down accordion-icon"></i>
+          </button>
+          <div class="mobile-accordion-content mobile-accordion-content-nested">
+            <a href="driver.html" class="mobile-nav-subitem mobile-nav-subitem-nested">👤 Profile</a>
+            <a href="gallery.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📸 Gallery</a>
+          </div>
+          
+          <!-- Jonny Kirsch Nested -->
+          <button class="mobile-accordion mobile-accordion-nested">
+            <span>Jonny Kirsch #88</span><i class="fas fa-chevron-down accordion-icon"></i>
+          </button>
+          <div class="mobile-accordion-content mobile-accordion-content-nested">
+            <a href="jonny.html" class="mobile-nav-subitem mobile-nav-subitem-nested">👤 Profile</a>
+            <a href="jonny-gallery.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📸 Gallery</a>
+            <a href="jonny-results.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📊 Race Results</a>
+          </div>
+          
+          <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
+        </div>
+        <button class="mobile-accordion">
+          <span>🏁 Racing</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="schedule.html" class="mobile-nav-subitem">Schedule</a>
+          <a href="leaderboard.html" class="mobile-nav-subitem">Leaderboard</a>
+          <a href="videos.html" class="mobile-nav-subitem">🎥 Videos</a>
+        </div>
+        <button class="mobile-accordion">
+          <span>👥 Community</span><i class="fas fa-chevron-down accordion-icon"></i>
+        </button>
+        <div class="mobile-accordion-content">
+          <a href="qna.html" class="mobile-nav-subitem">❓ Q&A</a>
+          <a href="feedback.html" class="mobile-nav-subitem">💬 Feedback</a>
+          <a href="sponsorship.html" class="mobile-nav-subitem">💰 Sponsorship</a>
+        </div>
+        <div class="border-t border-slate-600 mt-4 pt-4">
+          <!-- Mobile Auth Section -->
+          <div id="mobile-auth-section">
+            <!-- Mobile Login Button (shown when not authenticated) -->
+            <a href="admin-console.html" id="mobile-login-btn" class="mobile-login-btn bg-red-600 hover:bg-red-700">
+              <i class="fas fa-sign-in-alt mr-2"></i>Driver Login
+            </a>
+            
+            <!-- Mobile User Profile (shown when authenticated) -->
+            <div id="mobile-user-profile" class="hidden">
+              <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
+                <div class="flex items-center space-x-3 mb-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white"></i>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold" id="mobile-user-name">Driver</div>
+                    <div class="text-slate-400 text-sm">Team Member</div>
+                    <div class="flex items-center space-x-1 mt-1">
+                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span class="text-green-400 text-xs">Online</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="space-y-1">
+                  <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
+                    <span>Dashboard</span>
+                  </a>
+                  <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
+                    <i class="fas fa-user w-5 mr-3 text-green-400"></i>
+                    <span>My Profile</span>
+                  </a>
+                  <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
+                    <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main class="pt-20">
+      <!-- Hero Gallery Section -->
+      <section class="racing-gallery-hero py-24 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
+        <div class="container mx-auto px-6 relative z-10">
+          <!-- Racing Track Title Design -->
+          <div class="text-center mb-16">
+            <div class="inline-flex items-center bg-red-600/20 backdrop-blur-sm px-6 py-3 rounded-full border border-red-400/30 mb-6">
+              <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-3"></div>
+              <span class="text-red-400 font-bold uppercase tracking-wider text-sm">Live From The Track</span>
+            </div>
+            
+            <h1 class="font-racing text-6xl md:text-8xl lg:text-9xl uppercase tracking-wider mb-6 relative">
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-yellow-400 to-white">
+                Race
+              </span>
+              <br>
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-red-500 to-yellow-400">
+                Gallery
+              </span>
+            </h1>
+            
+            <p class="text-xl md:text-2xl text-slate-300 font-bold tracking-wide max-w-4xl mx-auto mb-8">
+              HIGH-OCTANE MOMENTS • VICTORY CELEBRATIONS • BEHIND THE SCENES
+            </p>
+            
+            <!-- Racing Stats Bar -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            <button id="action-stat" type="button" class="w-full text-left bg-black/40 backdrop-blur-md rounded-xl p-4 border border-yellow-400/20 hover:border-yellow-400/50 transition cursor-pointer">
+              <div id="action-count" class="text-3xl font-bold text-yellow-400">0</div>
+              <div class="text-slate-400 text-sm uppercase tracking-wider">Action Shots</div>
+            </button>
+            <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-red-400/20">
+              <div id="victory-count" class="text-3xl font-bold text-red-400">0</div>
+              <div class="text-slate-400 text-sm uppercase tracking-wider">Victory Moments</div>
+            </div>
+            <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-blue-400/20">
+              <div id="pit-count" class="text-3xl font-bold text-blue-400">0</div>
+              <div class="text-slate-400 text-sm uppercase tracking-wider">Pit Crew</div>
+            </div>
+            <div class="bg-black/40 backdrop-blur-md rounded-xl p-4 border border-green-400/20">
+              <div id="champions-count" class="text-3xl font-bold text-green-400">0</div>
+              <div class="text-slate-400 text-sm uppercase tracking-wider">Championships</div>
+            </div>
+          </div>
+          </div>
+        </div>
+        
+        <!-- Racing Track Background Animation -->
+        <div class="absolute inset-0 opacity-10">
+          <div class="track-lines"></div>
+        </div>
+      </section>
+
+      <!-- Photo Upload Section -->
+      <section class="py-16 bg-slate-900/50 border-y border-slate-700">
+        <div class="container mx-auto px-6">
+          <div id="upload-container" class="max-w-4xl mx-auto" style="display: none">
+            <div class="bg-gradient-to-r from-red-600/20 via-yellow-400/20 to-red-600/20 backdrop-blur-md rounded-2xl p-8 border border-yellow-400/30">
+              <div class="text-center mb-8">
+                <div class="inline-flex items-center bg-yellow-400/20 px-4 py-2 rounded-full mb-4">
+                  <i class="fas fa-camera text-yellow-400 mr-2"></i>
+                  <span class="text-yellow-400 font-bold uppercase tracking-wider text-sm">Driver Upload Zone</span>
+                </div>
+                <h3 class="font-racing text-4xl text-white uppercase mb-2">Share Your Racing Moments</h3>
+                <p class="text-slate-400">Upload your best shots from the track, pit, or victory lane</p>
+              </div>
+              
+              <div class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                  <label class="block">
+                    <span class="text-white font-semibold mb-2 block">Select Photo</span>
+                    <input type="file" id="photo-upload-input" accept="image/jpeg, image/png" 
+                           class="block w-full text-sm text-slate-300 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-yellow-400 file:text-black hover:file:bg-yellow-300 transition">
+                  </label>
+                  
+                  <div class="grid grid-cols-2 gap-4">
+                    <label class="block">
+                      <span class="text-white font-semibold mb-2 block">Category</span>
+                      <select id="photo-category" class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white">
+                        <option value="action">🏁 Race Action</option>
+                        <option value="victory">🏆 Victory Lane</option>
+                        <option value="pit">🔧 Pit Crew</option>
+                        <option value="behind">📸 Behind Scenes</option>
+                      </select>
+                    </label>
+                    
+                    <label class="block">
+                      <span class="text-white font-semibold mb-2 block">Race Event</span>
+                      <input type="text" id="race-event" placeholder="e.g. Championship Round 5" 
+                             class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-white placeholder-slate-400">
+                    </label>
+                  </div>
+                </div>
+                
+                <div class="flex flex-col justify-center">
+                  <button id="upload-btn" disabled
+                          class="w-full bg-gradient-to-r from-red-600 to-yellow-400 text-black font-bold py-4 px-8 rounded-xl hover:from-red-500 hover:to-yellow-300 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                    <i class="fas fa-cloud-upload-alt mr-2"></i>
+                    Upload to Gallery
+                  </button>
+                  
+                  <div class="mt-6">
+                    <div class="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+                      <div id="upload-progress-bar" class="bg-gradient-to-r from-yellow-400 to-red-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <p id="upload-status" class="text-sm text-slate-400 mt-3 text-center h-5"></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Moderation Section: Visible to team-members/admin only -->
+      <section class="py-12 bg-slate-900/60 border-y border-slate-700/60" id="moderation-section" style="display: none;">
+        <div class="container mx-auto px-6">
+          <div class="max-w-6xl mx-auto">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="font-racing text-3xl text-white uppercase">
+                Pending <span class="neon-yellow">Approvals</span>
+              </h2>
+              <div class="text-slate-400 text-sm" id="pending-count">Loading...</div>
+            </div>
+            <div id="pending-approvals" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <!-- Pending cards injected here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Gallery Grid -->
+      <section class="py-20 bg-gradient-to-b from-slate-800 to-slate-900">
+        <div class="container mx-auto px-6">
+          <!-- Category Filter Tabs -->
+          <div class="flex flex-wrap justify-center gap-4 mb-16">
+            <button class="gallery-filter active" data-category="all">
+              <i class="fas fa-th mr-2"></i>All Photos
+            </button>
+            <button class="gallery-filter" data-category="action">
+              <i class="fas fa-flag-checkered mr-2"></i>Race Action
+            </button>
+            <button class="gallery-filter" data-category="victory">
+              <i class="fas fa-trophy mr-2"></i>Victory Lane
+            </button>
+            <button class="gallery-filter" data-category="pit">
+              <i class="fas fa-wrench mr-2"></i>Pit Crew
+            </button>
+            <button class="gallery-filter" data-category="behind">
+              <i class="fas fa-camera mr-2"></i>Behind Scenes
+            </button>
+          </div>
+          
+          <!-- Dynamic Racing Grid -->
+          <div id="dynamic-gallery-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
+            <!-- Photos will be dynamically inserted here -->
+            
+            <!-- Example Featured Photo Layout -->
+            <div class="photo-card featured" data-category="action">
+              <div class="photo-wrapper">
+                <img src="https://placehold.co/800x600/1e293b/fbbf24?text=🏁+Race+Action" alt="Race Action" class="photo-image">
+                <div class="photo-overlay">
+                  <div class="photo-info">
+                    <div class="photo-category">
+                      <i class="fas fa-flag-checkered mr-1"></i>Race Action
+                    </div>
+                    <h3 class="photo-title">Championship Lap</h3>
+                    <p class="photo-details">Speedway • Round 12 • 2024</p>
+                  </div>
+                  <div class="photo-actions">
+                    <button class="photo-btn view-btn">
+                      <i class="fas fa-expand-alt"></i>
+                    </button>
+                    <button class="photo-btn like-btn">
+                      <i class="fas fa-heart"></i>
+                      <span class="like-count">24</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="racing-streak"></div>
+              </div>
+            </div>
+            
+            <!-- More example photos will be added dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Photo Lightbox Modal -->
+      <div id="photo-lightbox" class="lightbox hidden">
+        <div class="lightbox-backdrop"></div>
+        <div class="lightbox-content">
+          <button class="lightbox-close">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="lightbox-image-container">
+            <img id="lightbox-image" src="" alt="">
+            <div class="lightbox-racing-frame"></div>
+          </div>
+          <div class="lightbox-info">
+            <div class="lightbox-category"></div>
+            <h3 class="lightbox-title"></h3>
+            <p class="lightbox-details"></p>
+            <div class="lightbox-stats">
+              <div class="stat-item">
+                <i class="fas fa-heart text-red-500"></i>
+                <span class="stat-value">0</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-eye text-blue-500"></i>
+                <span class="stat-value">0</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-calendar text-yellow-500"></i>
+                <span class="stat-value">2024</span>
+              </div>
+            </div>
+          </div>
+          <div class="lightbox-navigation">
+            <button class="nav-btn prev-btn">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="nav-btn next-btn">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+        <!-- Modern Newsletter Footer -->
+    <footer class="newsletter-footer">
+        <div class="newsletter-container">
+            <div class="newsletter-content">
+                <h2 class="newsletter-title">Get In Touch</h2>
+                <p class="newsletter-subtitle">Subscribe for race updates and follow the journey on social media.</p>
+                
+                <form id="newsletter-form" class="newsletter-form">
+                    <div class="newsletter-input-group">
+                        <input type="email" id="newsletter-email" placeholder="Enter your email" required class="newsletter-input" style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;" />
+                        <button type="submit" class="newsletter-button">
+                            <span class="button-text">Subscribe</span>
+                            <span class="button-loader hidden">●●●</span>
+                        </button>
+                    </div>
+                    <p id="newsletter-message" class="newsletter-message"></p>
+                </form>
+                
+                <div class="social-links">
+                    <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="social-link" aria-label="Facebook">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/@redsracing" target="_blank" class="social-link" aria-label="TikTok">
+                        <i class="fab fa-tiktok"></i>
+                    </a>
+                    <a href="https://www.instagram.com/redsracing8/" target="_blank" class="social-link" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 RedsRacing. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <style>
+    .newsletter-footer {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        padding: 60px 20px 30px;
+        color: white;
+    }
+
+    .newsletter-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .newsletter-content {
+        text-align: center;
+    }
+
+    .newsletter-title {
+        font-size: 2.5rem;
+        font-weight: 900;
+        background: linear-gradient(45deg, #fbbf24, #f59e0b);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        margin-bottom: 10px;
+    }
+
+    .newsletter-subtitle {
+        color: #94a3b8;
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+    }
+
+    .newsletter-form {
+        margin-bottom: 40px;
+    }
+
+    .newsletter-input-group {
+        display: flex;
+        gap: 10px;
+        max-width: 500px;
+        margin: 0 auto 15px;
+    }
+
+    .newsletter-input {
+        flex: 1;
+        padding: 15px 20px;
+        border: 2px solid rgba(251, 191, 36, 0.3);
+        border-radius: 12px;
+        background: rgba(30, 41, 59, 0.9);
+        color: #ffffff !important;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .newsletter-input:focus {
+        outline: none;
+        border-color: #fbbf24;
+        background: rgba(30, 41, 59, 0.8);
+    }
+
+    .newsletter-input::placeholder {
+        color: #64748b;
+    }
+
+    .newsletter-button {
+        padding: 15px 35px;
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: #0f172a;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .newsletter-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
+    }
+
+    .newsletter-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .button-loader {
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .newsletter-message {
+        min-height: 24px;
+        font-size: 0.9rem;
+        margin-top: 10px;
+    }
+
+    .newsletter-message.success {
+        color: #4ade80;
+    }
+
+    .newsletter-message.error {
+        color: #ef4444;
+    }
+
+    .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 30px;
+    }
+
+    .social-link {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(251, 191, 36, 0.1);
+        border: 2px solid rgba(251, 191, 36, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fbbf24;
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .social-link:hover {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: #0f172a;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(251, 191, 36, 0.3);
+    }
+
+    .footer-bottom {
+        text-align: center;
+        padding-top: 30px;
+        margin-top: 40px;
+        border-top: 1px solid rgba(148, 163, 184, 0.2);
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+        .newsletter-title {
+            font-size: 2rem;
+        }
+        
+        .newsletter-input-group {
+            flex-direction: column;
+        }
+        
+        .newsletter-button {
+            width: 100%;
+        }
+    }
+    </style>
+
+    <script type="module">
+    import { getApp, initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+    // Initialize dedicated Firebase app for newsletter
+    const firebaseConfig = {
+        apiKey: "AIzaSyDu91Bi9SiF4K6P_sBjHBUNbjXjEB02X74",
+        authDomain: "redsracing-a7f8b.firebaseapp.com",
+        projectId: "redsracing-a7f8b",
+        storageBucket: "redsracing-a7f8b.firebasestorage.app",
+        messagingSenderId: "517034606151",
+        appId: "1:517034606151:web:ea84d9fb6b21f5ba99c8a9"
+    };
+    const newsletterApp = initializeApp(firebaseConfig, "newsletter-app");
+
+    const db = getFirestore(newsletterApp);
+
+    // Newsletter form handler
+    const form = document.getElementById('newsletter-form');
+    const emailInput = document.getElementById('newsletter-email');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const buttonText = submitButton.querySelector('.button-text');
+    const buttonLoader = submitButton.querySelector('.button-loader');
+    const message = document.getElementById('newsletter-message');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = emailInput.value.trim();
+        if (!email) return;
+        
+        // Validate email
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showMessage('Please enter a valid email address', 'error');
+            return;
+        }
+        
+        // Show loading state
+        submitButton.disabled = true;
+        buttonText.classList.add('hidden');
+        buttonLoader.classList.remove('hidden');
+        message.textContent = '';
+        
+        try {
+            // Check if email already exists
+            const subscribersRef = collection(db, 'subscribers');
+            const q = query(subscribersRef, where('email', '==', email));
+            const querySnapshot = await getDocs(q);
+            
+            if (!querySnapshot.empty) {
+                showMessage('You\'re already subscribed! 🎉', 'success');
+                emailInput.value = '';
+                return;
+            }
+            
+            // Add new subscriber
+            await addDoc(subscribersRef, {
+                email: email,
+                subscribed: true,
+                createdAt: serverTimestamp(),
+                source: 'website_footer'
+            });
+            
+            showMessage('Welcome to the team! Check your email 📧', 'success');
+            emailInput.value = '';
+            
+            // Track event
+            if (window.gtag) {
+                gtag('event', 'newsletter_signup', {
+                    method: 'footer_form'
+                });
+            }
+            
+        } catch (error) {
+            console.error('Newsletter signup error:', error);
+            showMessage('Something went wrong. Please try again.', 'error');
+        } finally {
+            submitButton.disabled = false;
+            buttonText.classList.remove('hidden');
+            buttonLoader.classList.add('hidden');
+        }
+    });
+
+    function showMessage(text, type) {
+        message.textContent = text;
+        message.className = `newsletter-message ${type}`;
+    }
+    </script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Scripts -->
+    <script type="module" src="navigation.js"></script>
+    <script type="module" src="main.js"></script>
+    <script type="module" src="assets/js/gallery.js"></script>
+    <script src="modern-effects.js"></script>
+  </body>
+</html>

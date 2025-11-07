@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Timestamp Handling Tests</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .test-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .test-result {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+      }
+      .pass {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .fail {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      .summary {
+        font-weight: bold;
+        font-size: 16px;
+        padding: 15px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 Timestamp Handling Tests</h1>
+    <p>Testing formatFirestoreTimestamp() function</p>
+
+    <div class="test-container">
+      <h2>📅 Timestamp Format Tests</h2>
+      <div id="timestamp-results"></div>
+    </div>
+
+    <div class="test-container">
+      <h2>📋 Category Filtering Tests</h2>
+      <div id="category-results"></div>
+    </div>
+
+    <div class="summary" id="test-summary"></div>
+
+    <script>
+      // Mock Firebase and other dependencies
+      let testResults = [];
+      let passCount = 0;
+      let totalTests = 0;
+
+      // Copy the formatFirestoreTimestamp function from profile.js for testing
+      function formatFirestoreTimestamp(timestamp, fallback = "Unknown") {
+        if (!timestamp) {
+          return fallback;
+        }
+
+        try {
+          // Handle Firestore Timestamp objects with .seconds property
+          if (timestamp && typeof timestamp === "object" && timestamp.seconds) {
+            return new Date(timestamp.seconds * 1000).toLocaleDateString();
+          }
+
+          // Handle Date objects
+          if (timestamp instanceof Date) {
+            return timestamp.toLocaleDateString();
+          }
+
+          // Handle string representations
+          if (typeof timestamp === "string") {
+            const date = new Date(timestamp);
+            if (!isNaN(date.getTime())) {
+              return date.toLocaleDateString();
+            }
+          }
+
+          // Handle numeric timestamps (milliseconds)
+          if (typeof timestamp === "number") {
+            const date = new Date(timestamp);
+            if (!isNaN(date.getTime())) {
+              return date.toLocaleDateString();
+            }
+          }
+
+          console.warn("Unable to parse timestamp:", timestamp);
+          return fallback;
+        } catch (error) {
+          console.error("Error formatting timestamp:", error, timestamp);
+          return fallback;
+        }
+      }
+
+      // Mock category filtering logic
+      function filterAchievementsByCategory(achievements, category) {
+        if (category === "all") {
+          return achievements;
+        } else {
+          return achievements.filter((achievement) => {
+            const achievementCategory = achievement.category || "uncategorized";
+            return achievementCategory === category;
+          });
+        }
+      }
+
+      function runTest(testName, testFn) {
+        totalTests++;
+        try {
+          const result = testFn();
+          if (result) {
+            passCount++;
+            testResults.push({
+              name: testName,
+              status: "pass",
+              message: "Test passed",
+            });
+          } else {
+            testResults.push({
+              name: testName,
+              status: "fail",
+              message: "Test failed - assertion failed",
+            });
+          }
+        } catch (error) {
+          testResults.push({
+            name: testName,
+            status: "fail",
+            message: `Test failed - ${error.message}`,
+          });
+        }
+      }
+
+      // Test Firestore Timestamp format
+      runTest("Firestore Timestamp with .seconds property", () => {
+        const firestoreTimestamp = { seconds: 1699200000 }; // Nov 5, 2023
+        const result = formatFirestoreTimestamp(firestoreTimestamp);
+        return result !== "Unknown" && result.includes("2023");
+      });
+
+      // Test Date object
+      runTest("Date object", () => {
+        const dateObj = new Date("2023-11-05");
+        const result = formatFirestoreTimestamp(dateObj);
+        return result !== "Unknown" && result.includes("2023");
+      });
+
+      // Test string date
+      runTest("ISO string date", () => {
+        const isoString = "2023-11-05T10:30:00Z";
+        const result = formatFirestoreTimestamp(isoString);
+        return result !== "Unknown" && result.includes("2023");
+      });
+
+      // Test numeric timestamp
+      runTest("Numeric timestamp (milliseconds)", () => {
+        const numericTimestamp = 1699200000000; // Nov 5, 2023
+        const result = formatFirestoreTimestamp(numericTimestamp);
+        return result !== "Unknown" && result.includes("2023");
+      });
+
+      // Test null/undefined
+      runTest("Null timestamp", () => {
+        const result = formatFirestoreTimestamp(null);
+        return result === "Unknown";
+      });
+
+      runTest("Undefined timestamp", () => {
+        const result = formatFirestoreTimestamp(undefined);
+        return result === "Unknown";
+      });
+
+      // Test invalid string
+      runTest("Invalid string timestamp", () => {
+        const result = formatFirestoreTimestamp("invalid-date");
+        return result === "Unknown";
+      });
+
+      // Test custom fallback
+      runTest("Custom fallback", () => {
+        const result = formatFirestoreTimestamp(null, "Custom Fallback");
+        return result === "Custom Fallback";
+      });
+
+      // Test category filtering with missing categories
+      runTest(
+        "Category filtering - missing category defaults to uncategorized",
+        () => {
+          const achievements = [
+            { name: "Achievement 1" }, // No category
+            { name: "Achievement 2", category: "racing" },
+            { name: "Achievement 3", category: null }, // Null category
+          ];
+          const filtered = filterAchievementsByCategory(
+            achievements,
+            "uncategorized",
+          );
+          return filtered.length === 2; // Should include achievements without category or with null category
+        },
+      );
+
+      runTest("Category filtering - specific category", () => {
+        const achievements = [
+          { name: "Achievement 1", category: "racing" },
+          { name: "Achievement 2", category: "community" },
+          { name: "Achievement 3" }, // No category
+        ];
+        const filtered = filterAchievementsByCategory(achievements, "racing");
+        return filtered.length === 1 && filtered[0].name === "Achievement 1";
+      });
+
+      runTest("Category filtering - all categories", () => {
+        const achievements = [
+          { name: "Achievement 1", category: "racing" },
+          { name: "Achievement 2", category: "community" },
+          { name: "Achievement 3" }, // No category
+        ];
+        const filtered = filterAchievementsByCategory(achievements, "all");
+        return filtered.length === 3;
+      });
+
+      // Display results
+      function displayResults() {
+        const timestampDiv = document.getElementById("timestamp-results");
+        const categoryDiv = document.getElementById("category-results");
+
+        // Separate timestamp and category tests
+        const timestampTests = testResults.filter(
+          (test) =>
+            test.name.includes("timestamp") ||
+            test.name.includes("Date") ||
+            test.name.includes("string") ||
+            test.name.includes("Numeric") ||
+            test.name.includes("fallback") ||
+            test.name.includes("Firestore"),
+        );
+        const categoryTests = testResults.filter((test) =>
+          test.name.includes("Category"),
+        );
+
+        timestampDiv.innerHTML = timestampTests
+          .map(
+            (test) =>
+              `<div class="test-result ${test.status}">
+                    <strong>${test.name}:</strong> ${test.message}
+                </div>`,
+          )
+          .join("");
+
+        categoryDiv.innerHTML = categoryTests
+          .map(
+            (test) =>
+              `<div class="test-result ${test.status}">
+                    <strong>${test.name}:</strong> ${test.message}
+                </div>`,
+          )
+          .join("");
+
+        // Summary
+        const summaryDiv = document.getElementById("test-summary");
+        const summaryClass = passCount === totalTests ? "pass" : "fail";
+        summaryDiv.className = `summary ${summaryClass}`;
+        summaryDiv.textContent = `${passCount}/${totalTests} tests passed`;
+      }
+
+      // Run tests when page loads
+      displayResults();
+    </script>
+  </body>
+</html>
