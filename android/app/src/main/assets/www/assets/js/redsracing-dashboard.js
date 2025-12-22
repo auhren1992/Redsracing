@@ -257,7 +257,8 @@ import { LoadingService } from "./loading.js";
       return;
     }
 
-    if (nextRaceNameEl) safeSetHTML(nextRaceNameEl, html`${nextRace.name}`);
+    const raceName = nextRace.eventName || nextRace.name || 'Next Race';
+    if (nextRaceNameEl) safeSetHTML(nextRaceNameEl, html`${raceName}`);
     const nextRaceDate = new Date(nextRace.date + "T19:00:00").getTime();
 
     if (isNaN(nextRaceDate)) {
@@ -333,11 +334,15 @@ import { LoadingService } from "./loading.js";
       const dateStr = race.date
         ? new Date(race.date).toLocaleDateString()
         : "TBD";
-      const raceName = race.name || "Unnamed Race";
+      const raceName = race.eventName || race.name || "Unnamed Race";
+      const trackName = race.track || "Unknown Track";
+      const location = race.city && race.state ? `${race.city}, ${race.state}` : "";
       const raceType =
         race.type === "specialEvent"
-          ? race.special || "Special Event"
-          : `Race ${race.race || "?"}`;
+          ? "Special Event"
+          : race.type === "superCup"
+          ? "Super Cup"
+          : "Race";
 
       safeSetHTML(
         row,
@@ -345,7 +350,8 @@ import { LoadingService } from "./loading.js";
                 <td class="p-3 align-top">${dateStr}</td>
                 <td class="p-3">
                   <div class="font-bold text-white">${raceName}</div>
-                  <div class="text-slate-400 text-sm mt-1">${raceType}</div>
+                  <div class="text-slate-400 text-sm mt-1">${trackName}${location ? ' - ' + location : ''}</div>
+                  <div class="text-blue-400 text-xs mt-1">${raceType}</div>
                 </td>
                 <td class="p-3 text-right whitespace-nowrap">
                     <button class="edit-race-btn bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-500 transition mr-2" data-id="${race.id}">Edit</button>
@@ -374,9 +380,19 @@ import { LoadingService } from "./loading.js";
         
         try {
             const racesCol = collection(db, "races");
-            const q = query(racesCol, orderBy("date", "asc"));
-            const raceSnapshot = await getDocs(q);
-            const raceList = raceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Get all races, then filter client-side for 2026
+            const raceSnapshot = await getDocs(racesCol);
+            let raceList = raceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Filter for 2026 only
+            raceList = raceList.filter(race => race.season === 2026);
+            
+            // Sort by date ascending
+            raceList.sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                return dateA - dateB;
+            });
             
 
             if (raceManagementCard) raceManagementCard.style.display = 'block';

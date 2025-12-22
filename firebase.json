@@ -55,6 +55,13 @@
           "functionId": "handlePhotoSort",
           "region": "us-central1"
         }
+      },
+      {
+        "source": "/k1/addison/junior/jonny",
+        "function": {
+          "functionId": "fetchK1AddisonJonnyJunior",
+          "region": "us-central1"
+        }
       }
     ]
   },

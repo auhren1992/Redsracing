@@ -367,7 +367,11 @@ import { navigateToInternal } from "./navigation-helpers.js";
 
     try {
       const racesCol = collection(db, "races");
-      const q = query(racesCol, orderBy("date", "asc"));
+      const q = query(
+        racesCol, 
+        where("season", "==", 2026),
+        orderBy("date", "asc")
+      );
       const raceSnapshot = await getDocs(q);
       const raceList = raceSnapshot.docs.map((doc) => ({
         id: doc.id,

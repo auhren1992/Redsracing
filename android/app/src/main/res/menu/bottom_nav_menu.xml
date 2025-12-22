@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="Home" />
+    <item
+        android:id="@+id/nav_drivers"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="Drivers" />
+    <item
+        android:id="@+id/nav_racing"
+        android:icon="@android:drawable/ic_menu_compass"
+        android:title="Racing" />
+    <item
+        android:id="@+id/nav_community"
+        android:icon="@android:drawable/ic_menu_share"
+        android:title="Community" />
+    <item
+        android:id="@+id/nav_more"
+        android:icon="@android:drawable/ic_menu_more"
+        android:title="More" />
+</menu>

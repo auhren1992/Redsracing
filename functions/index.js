@@ -489,6 +489,145 @@ exports.fetchK1AddisonJon = onRequest({ secrets: ["SENTRY_DSN"] }, async (req, r
   }
 });
 
+// Fetch K1 Addison Junior League row for Jonny Kirsch (best-effort parser)
+exports.fetchK1AddisonJonnyJunior = onRequest({ secrets: ["SENTRY_DSN"] }, async (req, res) => {
+  try {
+    const url = 'https://www.k1speed.com/addison-junior-league-results.html';
+    const r = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const html = await r.text();
+    
+    // Try to find Jonny Kirsch row in HTML table
+    // Look for <td>Jonny Kirsch</td> followed by <td> elements with numbers
+    const tableMatch = html.match(/<td>\s*Jonny\s+Kirsch\s*<\/td>([\s\S]*?)<\/tr>/i);
+    if (!tableMatch) {
+      // Fallback to plain text format
+      const text = html.replace(/\s+/g, ' ');
+      const rx = /Jonny\s+Kirsch\s+((?:\d+\s+){1,24})(\d{1,4})(?!\s*\d)/i;
+      const m = text.match(rx);
+      if (!m) {
+        return res.status(200).json({ ok: false, message: 'Row for Jonny Kirsch not found' });
+      }
+      const gpPoints = m[1].trim().split(/\s+/).map(n => parseInt(n, 10)).filter(Number.isFinite);
+      const total = parseInt(m[2], 10);
+      
+      // Persist and return
+      try {
+        const db = getFirestore();
+        await db.collection('k1_stats').doc('jonny_addison_junior_2025').set({
+          name: 'Jonny Kirsch',
+          season: 2025,
+          location: 'Addison',
+          series: 'Junior League',
+          gpPoints,
+          total,
+          updatedAt: FieldValue.serverTimestamp(),
+        }, { merge: true });
+      } catch (e) { logger.warn('Failed to persist k1_stats/jonny_addison_junior_2025', e); }
+      return res.status(200).json({ ok: true, season: 2025, gpPoints, total, matchedName: 'Jonny Kirsch' });
+    }
+    
+    // Parse HTML table cells
+    const rowContent = tableMatch[1];
+    const tdMatches = rowContent.match(/<td[^>]*>([^<]*)<\/td>/g) || [];
+    const gpPoints = tdMatches
+      .map(td => td.replace(/<[^>]+>/g, '').trim())
+      .map(n => parseInt(n, 10))
+      .filter(Number.isFinite);
+    
+    // Last cell should be total
+    const total = gpPoints.length > 0 ? gpPoints.pop() : 0;
+
+    // Persist latest into Firestore (for history/diagnostics)
+    try {
+      const db = getFirestore();
+      await db.collection('k1_stats').doc('jonny_addison_junior_2025').set({
+        name: 'Jonny Kirsch',
+        season: 2025,
+        location: 'Addison',
+        series: 'Junior League',
+        gpPoints,
+        total,
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    } catch (e) { logger.warn('Failed to persist k1_stats/jonny_addison_junior_2025', e); }
+
+    res.status(200).json({ ok: true, season: 2025, gpPoints, total, matchedName: 'Jonny Kirsch' });
+  } catch (error) {
+    try { Sentry.captureException(error); } catch (_) {}
+    res.status(200).json({ ok: false, message: 'Failed to fetch K1 Junior League page' });
+  }
+});
+
+// Scheduled refresh for Jonny Kirsch K1 Addison Junior League standings (every 12 hours)
+exports.k1AutoRefreshAddisonJonny = onSchedule({ schedule: 'every 12 hours', timeZone: 'America/Chicago', secrets: ["SENTRY_DSN"] }, async (event) => {
+  try {
+    const url = 'https://www.k1speed.com/addison-junior-league-results.html';
+    const r = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const html = await r.text();
+
+    // Parse HTML table format: find all <tr> rows with driver data
+    const trMatches = html.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi) || [];
+    const rows = [];
+    
+    for (const tr of trMatches) {
+      // Look for rows that have a driver name in first <td>
+      const nameMatch = tr.match(/<td[^>]*>\s*([A-Z][a-z]+\s+[A-Z][a-z]+)\s*<\/td>/i);
+      if (!nameMatch) continue;
+      
+      const name = nameMatch[1].trim();
+      const tdMatches = tr.match(/<td[^>]*>([^<]*)<\/td>/g) || [];
+      
+      // Extract all numeric cells (skip first which is name)
+      const nums = tdMatches
+        .slice(1) // skip name cell
+        .map(td => td.replace(/<[^>]+>/g, '').trim())
+        .map(n => parseInt(n, 10))
+        .filter(Number.isFinite);
+      
+      if (nums.length > 0) {
+        // Last number is total
+        const total = nums[nums.length - 1];
+        const gpPoints = nums.slice(0, -1); // all except last
+        rows.push({ name, gpPoints, total });
+      }
+    }
+    
+    if (!rows.length) {
+      logger.warn('k1AutoRefreshAddisonJonny: no rows found');
+      return;
+    }
+
+    // Find Jonny's row (case-insensitive)
+    const idx = rows.findIndex(r => /jonny\s+kirsch/i.test(r.name));
+    if (idx === -1) {
+      logger.warn('k1AutoRefreshAddisonJonny: Jonny Kirsch not found');
+      return;
+    }
+
+    // Compute place by ranking by total desc
+    const place = 1 + rows.filter(r => r.total > rows[idx].total).length;
+    const gpPoints = rows[idx].gpPoints;
+    const total = rows[idx].total;
+
+    const db = getFirestore();
+    await db.collection('k1_stats').doc('jonny_addison_junior_2025').set({
+      name: 'Jonny Kirsch',
+      season: 2025,
+      location: 'Addison',
+      series: 'Junior League',
+      gpPoints,
+      total,
+      place,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    logger.info('k1AutoRefreshAddisonJonny updated Jonny standings');
+  } catch (error) {
+    try { Sentry.captureException(error); } catch (_) {}
+    logger.warn('k1AutoRefreshAddisonJonny failed');
+  }
+});
+
 // Scheduled refresh for Jonathan Kirsch K1 Addison standings (every 12 hours)
 exports.k1AutoRefreshAddisonJon = onSchedule({ schedule: 'every 12 hours', timeZone: 'America/Chicago', secrets: ["SENTRY_DSN"] }, async (event) => {
   try {

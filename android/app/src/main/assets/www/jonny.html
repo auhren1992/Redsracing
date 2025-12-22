@@ -21,7 +21,8 @@
     <link rel="preconnect" href="https://redsracing-a7f8b.firebasestorage.app" crossorigin />
     <link rel="dns-prefetch" href="//redsracing-a7f8b.firebasestorage.app" />
     <script defer src="https://unpkg.com/scrollreveal"></script>
-    <link rel="stylesheet" href="styles/main.css" />`n    <link rel="stylesheet" href="styles/input-fix.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/input-fix.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
     <style>
@@ -619,7 +620,6 @@
             </div>
             <div class="mt-6 flex flex-wrap gap-3 justify-center lg:justify-start">
               <a href="#speed-lab" class="bg-neon-yellow text-slate-900 font-extrabold px-5 py-3 rounded-md">Start Driving</a>
-              <a href="#sticker-garage" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Sticker Garage</a>
               <a href="#track-tips" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Track Tips</a>
               <a href="#jonny-gallery" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Gallery</a>
               <a href="#rookie-quiz" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Rookie Quiz</a>
@@ -687,30 +687,6 @@
             <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-tint text-red-400 mr-2"></i>Stay Hydrated</div><p class="text-slate-300 text-sm">Water and rest make better focus and reaction time.</p></div>
             <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-people-arrows text-red-400 mr-2"></i>Grid & Caution Etiquette</div><p class="text-slate-300 text-sm">Line up cleanly, respect the yellow (no passing), and be predictable on restarts.</p></div>
             <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-arrows-alt-h text-red-400 mr-2"></i>Leave Room</div><p class="text-slate-300 text-sm">Give space when side-by-side. Finishing the lap is the win!</p></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Sticker Garage -->
-      <section id="sticker-garage" class="py-14 md:py-20">
-        <div class="container mx-auto px-6">
-          <h2 class="font-racing text-5xl uppercase text-center text-white mb-8">Sticker <span class="neon-red">Garage</span></h2>
-          <div class="flex flex-col lg:flex-row gap-6 items-start">
-            <div class="flex-1 sticker-canvas" id="sticker-canvas" aria-label="Car canvas for stickers">
-              <img src="assets/images/jonny-hero3.jpg" alt="Car canvas" class="w-full h-auto object-cover" />
-            </div>
-            <div class="w-full lg:w-64">
-              <div class="font-bold text-slate-300 mb-2">Sticker Palette (drag onto car)</div>
-              <div class="grid grid-cols-3 gap-3">
-                <div class="sticker bg-slate-800/60 rounded-xl flex items-center justify-center text-3xl" data-sticker="⭐" aria-grabbed="false" draggable="false">⭐</div>
-                <div class="sticker bg-slate-800/60 rounded-xl flex items-center justify-center text-3xl" data-sticker="⚡" aria-grabbed="false" draggable="false">⚡</div>
-                <div class="sticker bg-slate-800/60 rounded-xl flex items-center justify-center text-3xl" data-sticker="🔥" aria-grabbed="false" draggable="false">🔥</div>
-                <div class="sticker bg-slate-800/60 rounded-xl flex items-center justify-center text-2xl" data-sticker="#88" aria-grabbed="false" draggable="false">#88</div>
-                <div class="sticker bg-slate-800/60 rounded-xl flex items-center justify-center text-xl" data-sticker="🏁" aria-grabbed="false" draggable="false">🏁</div>
-                <div class="sticker bg-slate-800/60 rounded-xl flex items-center justify-center text-3xl" data-sticker="🚀" aria-grabbed="false" draggable="false">🚀</div>
-              </div>
-              <button id="stickers-reset" class="mt-4 bg-slate-800/60 border border-slate-600/60 text-white font-bold px-4 py-2 rounded-md w-full">Reset Stickers</button>
-            </div>
           </div>
         </div>
       </section>
@@ -1164,8 +1140,6 @@
         </div>
       </section>
 
-      <section id="racer-schedule" class="py-16 md:py-24 bg-black/20"></section>
-
       <!-- K1 Speed Addison Stats (Jonny) -->
       <section class="py-16 md:py-24 bg-black/10">
         <div class="container mx-auto px-6">
@@ -1536,7 +1510,8 @@
 
     function showMessage(text, type) {
         message.textContent = text;
-        message.className = `newsletter-message ${type}`;
+        message.className = 
+ewsletter-message ${type}`;
     }
     </script>
 

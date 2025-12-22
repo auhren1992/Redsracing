@@ -1,11 +1,11 @@
-// Renders K1 Speed Addison stats for Jonny Kirsh
+// Renders K1 Speed Addison stats for Jonny Kirsch (Junior League)
 (async function(){
   const el = document.getElementById('k1-addison-stats-jonny');
   if (!el) return;
   // First, try to fetch official K1 points row via backend function (best-effort)
   let k1 = null;
   try {
-    const rr = await fetch('/k1/addison/2025/jon', { headers: { 'Accept': 'application/json' } });
+    const rr = await fetch('/k1/addison/junior/jonny', { headers: { 'Accept': 'application/json' } });
     k1 = await rr.json();
   } catch {}
   try {
@@ -15,13 +15,20 @@
     const avg = data?.averageLap || '—';
     const heats = Array.isArray(data?.heats) ? data.heats.length : 0;
 
-    // Build season points block from backend OR local history fallback
+    // Build season points block from backend OR local history fallback OR local data file
     let pointsBlock = '';
     let ptsArray = null;
     let ptsTotal = null;
+    let place = null;
     if (k1 && k1.ok) {
       ptsArray = Array.isArray(k1.gpPoints) ? k1.gpPoints : null;
       ptsTotal = typeof k1.total === 'number' ? k1.total : null;
+      place = typeof k1.place === 'number' ? k1.place : null;
+    }
+    // Try local data file if backend didn't provide points
+    if (!ptsArray && data) {
+      ptsArray = Array.isArray(data.gpPoints) ? data.gpPoints : null;
+      ptsTotal = typeof data.total === 'number' ? data.total : ptsTotal;
     }
     if (!ptsArray) {
       try {
@@ -40,9 +47,10 @@
       const ptsStr = ptsArray.map((n,i)=>`GP${i+1}:${n}`).join(' · ');
       pointsBlock = `
         <div class="mt-6">
-          <h4 class="font-bold mb-2">K1 Season Points (2025)</h4>
-          ${ptsTotal!=null ? `<p class=\"text-slate-300\">Total: ${ptsTotal}</p>` : ''}
-          <p class="text-slate-400 text-sm mt-1">${ptsStr}</p>
+          <h4 class="font-bold mb-2">K1 Junior League Season (2025)</h4>
+          ${place ? `<p class="text-neon-red font-bold text-lg">Championship Standing: P${place}</p>` : ''}
+          ${ptsTotal!=null ? `<p class=\"text-slate-300 font-semibold text-lg mt-1\">Total Points: ${ptsTotal}</p>` : ''}
+          <p class="text-slate-400 text-sm mt-2">${ptsStr}</p>
         </div>`;
     }
 

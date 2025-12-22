@@ -4,5 +4,9 @@
   "heats": [
     { "date": "2025-01-18", "best": "30.412s" },
     { "date": "2025-02-10", "best": "31.120s" }
-  ]
+  ],
+  "season": 2025,
+  "series": "Junior League",
+  "gpPoints": [8, 1, 16, 4, 8, 13, 8, 12, 5],
+  "total": 75
 }

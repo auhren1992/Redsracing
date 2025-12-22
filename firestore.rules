@@ -77,13 +77,13 @@ service cloud.firestore {
     // Race schedule (old)
     match /races/{raceId} {
       allow read: if true; // Public read for race schedule
-      allow write: if hasRole('team-member');
+      allow write: if hasRole('team-member') || hasProfileRole('team-member') || hasRole('admin') || hasProfileRole('admin');
     }
     
     // Race results (new - managed via Python API)
     match /race_results/{resultId} {
       allow read: if true; // Public read for race results
-      allow write: if hasRole('team-member'); // Only team members can add results
+      allow write: if hasRole('team-member') || hasProfileRole('team-member') || hasRole('admin') || hasProfileRole('admin'); // Only team members can add results
     }
 
     // CMS pages and sections (public read, admin write)

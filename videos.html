@@ -21,11 +21,14 @@
     <link rel="dns-prefetch" href="//redsracing-a7f8b.firebasestorage.app" />
     <script defer src="https://unpkg.com/scrollreveal"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <link rel="stylesheet" href="styles/main.css" />`n    <link rel="stylesheet" href="styles/input-fix.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/input-fix.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
   <script src="assets/js/guest-gate.js"></script>
-  </head>
+      <!-- Analytics Tracker -->
+    <script type="module" src="assets/js/analytics-tracker.js"></script>
+</head>
   <body class="bg-dark-blue">
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
       <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
@@ -572,7 +575,8 @@
 
     function showMessage(text, type) {
         message.textContent = text;
-        message.className = `newsletter-message ${type}`;
+        message.className = 
+ewsletter-message ${type}`;
     }
     </script>
     <!-- Font Awesome -->
@@ -584,3 +588,4 @@
     <script src="modern-effects.js"></script>
   </body>
 </html>
+

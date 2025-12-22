@@ -20,7 +20,8 @@
     <link rel="preconnect" href="https://redsracing-a7f8b.firebasestorage.app" crossorigin />
     <link rel="dns-prefetch" href="//redsracing-a7f8b.firebasestorage.app" />
     <script defer src="https://unpkg.com/scrollreveal"></script>
-    <link rel="stylesheet" href="styles/main.css" />`n    <link rel="stylesheet" href="styles/input-fix.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/input-fix.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
@@ -322,6 +323,23 @@
       <!-- Schedule Content -->
       <section class="py-20 md:py-32 bg-gradient-to-b from-slate-900 to-black">
         <div class="container mx-auto px-6">
+          <!-- Season Selector -->
+          <div class="flex flex-col items-center mb-12">
+            <div class="modern-card p-2 inline-flex items-center gap-2">
+              <label for="season-selector" class="text-slate-400 font-bold uppercase tracking-wider text-sm px-3">
+                <i class="fas fa-calendar-alt mr-2"></i>Season:
+              </label>
+              <select id="season-selector" class="bg-slate-800/50 text-white font-bold text-lg px-6 py-3 rounded-lg border border-yellow-400/30 focus:border-yellow-400 focus:outline-none cursor-pointer hover:bg-slate-700/50 transition">
+                <option value="2026">2026 Season</option>
+                <option value="2025">2025 Season</option>
+              </select>
+            </div>
+            <p class="text-amber-400/80 text-sm mt-4 italic">
+              <i class="fas fa-exclamation-triangle mr-1"></i>
+              2026 racing season schedule may change
+            </p>
+          </div>
+          
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
             <div>
               <div class="modern-card p-8 rounded-2xl h-full">
@@ -642,13 +660,14 @@
 
     function showMessage(text, type) {
         message.textContent = text;
-        message.className = `newsletter-message ${type}`;
+        message.className = 
+ewsletter-message ${type}`;
     }
     </script>
 
     <script type="module" src="navigation.js"></script>
     <script type="module" src="main.js"></script>
-    <script type="module" src="assets/js/schedule.js?v=20251104"></script>
+    <script src="assets/js/schedule-handler.js"></script>
     <script type="module" src="modern-effects.js"></script>
   </body>
 </html>

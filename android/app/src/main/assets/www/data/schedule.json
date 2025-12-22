@@ -1,31 +1,341 @@
 {
-  "seasonYear": 2025,
-  "seasonOver": true,
-  "nextSeasonYear": 2026,
-  "races": [
+  "currentSeason": 2026,
+  "seasons": [
     {
-      "date": "2025-10-12",
-      "track": "Sycamore Speedway",
-      "city": "Maple Park",
-      "state": "IL",
-      "eventName": "Fall Nationals",
-      "startTime": "14:00"
+      "year": 2026,
+      "isActive": true,
+      "races": [
+        {
+          "date": "2026-05-25",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "Spring Classic",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2026-06-07",
+          "track": "Golden Sands Speedway",
+          "city": "Wisconsin Rapids",
+          "state": "WI",
+          "eventName": "Memorial Day Show",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2026-07-03",
+          "track": "Slinger Speedway",
+          "city": "Slinger",
+          "state": "WI",
+          "eventName": "Slinger Speedway",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2026-07-04",
+          "track": "Tomah Speedway",
+          "city": "Tomah",
+          "state": "WI",
+          "eventName": "4th of July Show (Back-to-Back)",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2026-07-04",
+          "track": "LaCrosse Speedway",
+          "city": "West Salem",
+          "state": "WI",
+          "eventName": "4th of July Show (Back-to-Back)",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2026-07-11",
+          "track": "Dells Raceway Park",
+          "city": "Wisconsin Dells",
+          "state": "WI",
+          "eventName": "Dells Raceway Park",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2026-07-19",
+          "track": "Slinger Speedway",
+          "city": "Slinger",
+          "state": "WI",
+          "eventName": "Small Car Nationals",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2026-08-02",
+          "track": "Slinger Speedway",
+          "city": "Slinger",
+          "state": "WI",
+          "eventName": "Slinger Speedway",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2026-08-15",
+          "track": "Dells Raceway Park",
+          "city": "Wisconsin Dells",
+          "state": "WI",
+          "eventName": "Dells Raceway Park",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2026-09-06",
+          "track": "Dells Raceway Park",
+          "city": "Wisconsin Dells",
+          "state": "WI",
+          "eventName": "Labor Day of Doom (Back to Back)",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2026-09-07",
+          "track": "Golden Sands Speedway",
+          "city": "Wisconsin Rapids",
+          "state": "WI",
+          "eventName": "Labor Day (Back-to-Back)",
+          "startTime": "TBD",
+          "type": "superCup"
+        }
+      ]
     },
     {
-      "date": "2025-11-02",
-      "track": "Rockford Speedway",
-      "city": "Loves Park",
-      "state": "IL",
-      "eventName": "Championship Weekend",
-      "startTime": "13:00"
-    },
-    {
-      "date": "2025-12-06",
-      "track": "Milwaukee Mile",
-      "city": "West Allis",
-      "state": "WI",
-      "eventName": "Holiday Classic",
-      "startTime": "12:30"
+      "year": 2025,
+      "isActive": false,
+      "races": [
+        {
+          "date": "2025-04-26",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "48th Annual Spring Classic",
+          "startTime": "17:00",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-05-09",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "First Responder Night",
+          "startTime": "19:30",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-05-10",
+          "track": "Dells Raceway Park",
+          "city": "Wisconsin Dells",
+          "state": "WI",
+          "eventName": "Super Cup Series",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-05-16",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "Armed Forces Night",
+          "startTime": "19:30",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-05-23",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "Friday Night Racing",
+          "startTime": "19:30",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-05-25",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "Super Cup Series",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-06-07",
+          "track": "Slinger Speedway",
+          "city": "Slinger",
+          "state": "WI",
+          "eventName": "Super Cup Series",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-06-08",
+          "track": "Slinger Super Speedway",
+          "city": "Slinger",
+          "state": "WI",
+          "eventName": "Graduation Celebration",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-06-13",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "On Track Autograph Night",
+          "startTime": "19:30",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-06-27",
+          "track": "Tomah Speedway",
+          "city": "Tomah",
+          "state": "WI",
+          "eventName": "Super Cup Series",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-06-27",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "Kids Night - Bike Giveaway",
+          "startTime": "19:30",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-06-28",
+          "track": "La Crosse Fairgrounds Speedway",
+          "city": "West Salem",
+          "state": "WI",
+          "eventName": "Super Cup Series",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-07-04",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "Spirit of '76 - Grundy County Fair",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-07-13",
+          "track": "Slinger Super Speedway",
+          "city": "Slinger",
+          "state": "WI",
+          "eventName": "Small Car Nationals",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-07-25",
+          "track": "Dells Raceway Park",
+          "city": "Wisconsin Dells",
+          "state": "WI",
+          "eventName": "Super Cup Series",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-07-25",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "Back to School Night",
+          "startTime": "19:30",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-07-26",
+          "track": "Dells Raceway Park",
+          "city": "Wisconsin Dells",
+          "state": "WI",
+          "eventName": "Rake Motorsports Night",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-08-01",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "Super Cup Special",
+          "startTime": "19:30",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-08-08",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "On Track Autograph Night",
+          "startTime": "18:30",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-08-31",
+          "track": "Dells Raceway Park",
+          "city": "Wisconsin Dells",
+          "state": "WI",
+          "eventName": "Labor Day of Doom",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-08-31",
+          "track": "Golden Sands Speedway",
+          "city": "Wisconsin Rapids",
+          "state": "WI",
+          "eventName": "Labor Day Weekend",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-09-12",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "Super Cup Series",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-10-12",
+          "track": "Sycamore Speedway",
+          "city": "Maple Park",
+          "state": "IL",
+          "eventName": "Fall Nationals",
+          "startTime": "14:00",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-11-02",
+          "track": "Rockford Speedway",
+          "city": "Loves Park",
+          "state": "IL",
+          "eventName": "Championship Weekend",
+          "startTime": "13:00",
+          "type": "superCup"
+        },
+        {
+          "date": "2025-12-06",
+          "track": "Milwaukee Mile",
+          "city": "West Allis",
+          "state": "WI",
+          "eventName": "Holiday Classic",
+          "startTime": "12:30",
+          "type": "superCup"
+        }
+      ]
     }
   ]
 }

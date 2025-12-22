@@ -3,95 +3,440 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RedsRacing #8 - The Ultimate Hub</title>
+    <title>2026 Season Countdown - RedsRacing #8</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="manifest" href="site.webmanifest" />
-    <link rel="stylesheet" href="styles/tailwind.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
       rel="stylesheet"
     />
-    <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
-    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://redsracing-a7f8b.firebasestorage.app" crossorigin />
-    <link rel="dns-prefetch" href="//redsracing-a7f8b.firebasestorage.app" />
-    <script defer src="https://unpkg.com/scrollreveal"></script>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/swiper/swiper-bundle.min.css"
-    />
-    <link rel="stylesheet" href="styles/main.css" />`n    <link rel="stylesheet" href="styles/input-fix.css" />
-    <link rel="stylesheet" href="styles/modern-nav.css" />
-    <link rel="stylesheet" href="styles/premium-effects.css" />
-    <link rel="stylesheet" href="styles/mobile-menu-tabs.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Analytics Tracker -->
+    <script type="module" src="assets/js/analytics-tracker.js"></script>
     
     <style>
-      /* Modern Homepage Animations & Effects */
-      .modern-hero {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #0a0e17 0%, #1a1f2e 50%, #0a0e17 100%);
+        color: white;
+        overflow-x: hidden;
+        min-height: 100vh;
         position: relative;
-        overflow: hidden;
       }
-      
-      .modern-hero::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
-        animation: pulse-glow 4s ease-in-out infinite alternate;
-      }
-      
-      .particles-container {
-        position: absolute;
+
+      /* Animated Background */
+      .bg-animation {
+        position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
       }
-      
-      .particle {
+
+      .bg-gradient {
         position: absolute;
-        width: 2px;
-        height: 2px;
-        background: rgba(251, 191, 36, 0.6);
         border-radius: 50%;
-        animation: float 6s ease-in-out infinite;
+        filter: blur(80px);
+        opacity: 0.3;
+        animation: float 20s ease-in-out infinite;
       }
-      
+
+      .gradient-1 {
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, #3b82f6, transparent);
+        top: -100px;
+        left: -100px;
+        animation-delay: 0s;
+      }
+
+      .gradient-2 {
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, #fbbf24, transparent);
+        bottom: -100px;
+        right: -100px;
+        animation-delay: 5s;
+      }
+
+      .gradient-3 {
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, #ef4444, transparent);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        animation-delay: 10s;
+      }
+
       @keyframes float {
-        0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
-        50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        0%, 100% {
+          transform: translate(0, 0) scale(1);
+        }
+        33% {
+          transform: translate(50px, -50px) scale(1.1);
+        }
+        66% {
+          transform: translate(-50px, 50px) scale(0.9);
+        }
       }
-      
-      .hero-title {
+
+      /* Grid Pattern */
+      .grid-pattern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        z-index: 1;
+        animation: gridMove 20s linear infinite;
+      }
+
+      @keyframes gridMove {
+        0% {
+          transform: translate(0, 0);
+        }
+        100% {
+          transform: translate(50px, 50px);
+        }
+      }
+
+      /* Main Container */
+      .container {
+        position: relative;
+        z-index: 10;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        text-align: center;
+      }
+
+      /* Logo */
+      .logo {
+        margin-bottom: 2rem;
+        animation: fadeInDown 1s ease-out;
+      }
+
+      .logo-text {
+        font-family: 'Racing Sans One', sans-serif;
+        font-size: clamp(2rem, 8vw, 4rem);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      .logo-blue {
+        background: linear-gradient(45deg, #3b82f6, #60a5fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .logo-yellow {
+        background: linear-gradient(45deg, #fbbf24, #fde047);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* Season Badge */
+      .season-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(251, 191, 36, 0.1);
+        border: 2px solid rgba(251, 191, 36, 0.3);
+        border-radius: 9999px;
+        padding: 0.75rem 1.5rem;
+        margin-bottom: 2rem;
+        animation: fadeIn 1s ease-out 0.3s both;
+      }
+
+      .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background: #fbbf24;
+        border-radius: 50%;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.5;
+          transform: scale(1.2);
+        }
+      }
+
+      /* Main Title */
+      .main-title {
+        font-family: 'Racing Sans One', sans-serif;
+        font-size: clamp(3rem, 12vw, 8rem);
+        line-height: 1;
+        margin-bottom: 1rem;
         background: linear-gradient(45deg, #ffffff, #fbbf24, #3b82f6, #ffffff);
         background-size: 300% 300%;
-        background-clip: text;
         -webkit-background-clip: text;
-        color: transparent;
-        animation: gradient-shift 3s ease-in-out infinite alternate;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: gradientShift 4s ease-in-out infinite, fadeInUp 1s ease-out 0.5s both;
       }
-      
-      @keyframes gradient-shift {
-        0% { background-position: 0% 50%; }
-        100% { background-position: 100% 50%; }
+
+      @keyframes gradientShift {
+        0%, 100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
       }
-      
-      .hero-subtitle {
-        animation: slideInUp 1s ease-out 0.5s both;
+
+      /* Subtitle */
+      .subtitle {
+        font-size: clamp(1rem, 3vw, 1.5rem);
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 1rem;
+        animation: fadeIn 1s ease-out 0.7s both;
       }
-      
-      @keyframes slideInUp {
+
+      /* Race Info */
+      .race-info {
+        font-size: clamp(0.875rem, 2vw, 1.125rem);
+        color: #fbbf24;
+        font-weight: 600;
+        margin-bottom: 3rem;
+        animation: fadeIn 1s ease-out 0.9s both;
+      }
+
+      /* Countdown Container */
+      .countdown {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        max-width: 900px;
+        width: 100%;
+        margin-bottom: 3rem;
+        animation: fadeInUp 1s ease-out 1.1s both;
+      }
+
+      .countdown-item {
+        background: rgba(30, 41, 59, 0.4);
+        backdrop-filter: blur(20px);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 2rem 1rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .countdown-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.6s;
+      }
+
+      .countdown-item:hover {
+        transform: translateY(-10px) scale(1.05);
+        border-color: rgba(251, 191, 36, 0.5);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(251, 191, 36, 0.2);
+      }
+
+      .countdown-item:hover::before {
+        left: 100%;
+      }
+
+      .countdown-number {
+        font-family: 'Racing Sans One', sans-serif;
+        font-size: clamp(2.5rem, 8vw, 4rem);
+        font-weight: 900;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+      }
+
+      .countdown-item:nth-child(1) .countdown-number {
+        background: linear-gradient(45deg, #fbbf24, #f59e0b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .countdown-item:nth-child(2) .countdown-number {
+        background: linear-gradient(45deg, #3b82f6, #2563eb);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .countdown-item:nth-child(3) .countdown-number {
+        background: linear-gradient(45deg, #ef4444, #dc2626);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .countdown-item:nth-child(4) .countdown-number {
+        background: linear-gradient(45deg, #10b981, #059669);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .countdown-label {
+        font-size: clamp(0.75rem, 2vw, 1rem);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 700;
+      }
+
+      /* CTA Buttons */
+      .cta-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 3rem;
+        animation: fadeInUp 1s ease-out 1.3s both;
+      }
+
+      .cta-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        font-size: 1.125rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .cta-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s;
+      }
+
+      .cta-button:hover::before {
+        left: 100%;
+      }
+
+      .cta-primary {
+        background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+        color: white;
+        border: 2px solid rgba(59, 130, 246, 0.5);
+      }
+
+      .cta-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);
+      }
+
+      .cta-secondary {
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .cta-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(251, 191, 36, 0.6);
+        transform: translateY(-3px);
+      }
+
+      /* Social Links */
+      .social-links {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        animation: fadeIn 1s ease-out 1.5s both;
+      }
+
+      .social-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        background: rgba(30, 41, 59, 0.4);
+        backdrop-filter: blur(20px);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        color: rgba(255, 255, 255, 0.6);
+        transition: all 0.3s ease;
+        text-decoration: none;
+      }
+
+      .social-link:hover {
+        transform: translateY(-5px) scale(1.1);
+        border-color: #fbbf24;
+        color: #fbbf24;
+        box-shadow: 0 10px 20px rgba(251, 191, 36, 0.3);
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInUp {
         from {
           opacity: 0;
           transform: translateY(30px);
@@ -101,1058 +446,205 @@
           transform: translateY(0);
         }
       }
-      
-      .modern-stats {
-        backdrop-filter: blur(12px);
-        background: rgba(15, 23, 42, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        transition: all 0.3s ease;
-      }
-      
-      .modern-stats:hover {
-        transform: translateY(-5px) scale(1.02);
-        border-color: rgba(251, 191, 36, 0.4);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-      }
-      
-      .stat-number {
-        background: linear-gradient(45deg, #fbbf24, #f59e0b);
-        background-clip: text;
-        -webkit-background-clip: text;
-        color: transparent;
-        animation: countUp 2s ease-out;
-      }
-      
-      @keyframes countUp {
-        from { opacity: 0; transform: scale(0.5); }
-        to { opacity: 1; transform: scale(1); }
-      }
-      
-      .floating-elements {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-      }
-      
-      .floating-icon {
-        position: absolute;
-        font-size: 20px;
-        color: rgba(251, 191, 36, 0.3);
-        animation: floatIcon 8s ease-in-out infinite;
-      }
-      
-      @keyframes floatIcon {
-        0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
-        33% { transform: translateY(-30px) rotate(120deg); opacity: 0.6; }
-        66% { transform: translateY(-15px) rotate(240deg); opacity: 0.4; }
-      }
-      
-      .cta-button {
-        background: linear-gradient(45deg, #3b82f6, #1d4ed8);
-        border: 2px solid rgba(59, 130, 246, 0.3);
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-      }
-      
-      .cta-button::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.6s;
-      }
-      
-      .cta-button:hover::before {
-        left: 100%;
-      }
-      
-      .cta-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
-        border-color: rgba(251, 191, 36, 0.6);
-      }
-      
-      .parallax-bg {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 120%;
-        height: 120%;
-        background-image: 
-          radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(251, 191, 36, 0.1) 0%, transparent 50%),
-          radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
-        animation: parallaxMove 20s ease-in-out infinite;
-      }
-      
-      @keyframes parallaxMove {
-        0%, 100% { transform: translate(0%, 0%) rotate(0deg); }
-        33% { transform: translate(-5%, -5%) rotate(1deg); }
-        66% { transform: translate(-10%, 5%) rotate(-1deg); }
-      }
-      
-      .section-reveal {
-        opacity: 0;
-        transform: translateY(50px);
-        transition: all 0.6s ease-out;
-      }
-      
-      .section-reveal.visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      
-      .modern-card {
-        background: rgba(30, 41, 59, 0.4);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(148, 163, 184, 0.1);
-        transition: all 0.3s ease;
-      }
-      
-      .modern-card:hover {
-        transform: translateY(-8px);
-        border-color: rgba(251, 191, 36, 0.3);
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-      }
-      
-      .sponsor-logo {
-        filter: grayscale(100%) brightness(0.8);
-        transition: all 0.4s ease;
-      }
-      
-      .sponsor-logo:hover {
-        filter: grayscale(0%) brightness(1.1);
-        transform: scale(1.05);
-      }
-      
-      .typing-text {
-        border-right: 2px solid rgba(251, 191, 36, 0.8);
-        animation: typing 4s steps(50) infinite, blink-caret 1s step-end infinite;
-      }
-      
-      @keyframes typing {
-        0% { width: 0; }
-        50% { width: 100%; }
-        100% { width: 0; }
-      }
-      
-      @keyframes blink-caret {
-        0%, 50% { border-color: rgba(251, 191, 36, 0.8); }
-        51%, 100% { border-color: transparent; }
+
+      /* Responsive */
+      @media (max-width: 640px) {
+        .countdown {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
+        }
+
+        .countdown-item {
+          padding: 1.5rem 0.75rem;
+        }
+
+        .cta-container {
+          flex-direction: column;
+          width: 100%;
+          max-width: 300px;
+        }
+
+        .cta-button {
+          width: 100%;
+          justify-content: center;
+        }
       }
     </style>
-  <script src="assets/js/guest-gate.js"></script>
   </head>
   <body>
-    <!-- Clean Modern Header -->
-    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
-      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-        <a href="index.html" class="flex items-center space-x-3 group">
-          <div class="relative">
-            <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-yellow-500 rounded-lg opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
-            <div class="relative bg-slate-800/50 backdrop-blur-sm px-4 py-2 rounded-lg border border-slate-700 group-hover:border-yellow-400 transition-all duration-300">
-              <div class="text-3xl font-racing uppercase tracking-wider">
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-500">Reds</span><span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-500">Racing</span>
-              </div>
-              <div class="text-xs font-bold text-center text-slate-400 tracking-widest">EST. 2023</div>
-            </div>
-          </div>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+      <div class="bg-gradient gradient-1"></div>
+      <div class="bg-gradient gradient-2"></div>
+      <div class="bg-gradient gradient-3"></div>
+    </div>
+    <div class="grid-pattern"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+      <!-- Logo -->
+      <div class="logo">
+        <div class="logo-text">
+          <span class="logo-blue">Reds</span><span class="logo-yellow">Racing</span>
+        </div>
+      </div>
+
+      <!-- Season Badge -->
+      <div class="season-badge">
+        <div class="pulse-dot"></div>
+        <span style="font-weight: 600; font-size: 0.875rem; color: #fbbf24;">2026 SEASON LAUNCHING</span>
+      </div>
+
+      <!-- Main Title -->
+      <h1 class="main-title">READY FOR 2026</h1>
+
+      <!-- Subtitle -->
+      <p class="subtitle">NEW SEASON • NEW GOALS • NEW VICTORIES</p>
+
+      <!-- Race Info -->
+      <p class="race-info">
+        <i class="fas fa-flag-checkered"></i> FIRST RACE: SPRING CLASSIC - GRUNDY COUNTY SPEEDWAY
+      </p>
+
+      <!-- Countdown Timer -->
+      <div class="countdown">
+        <div class="countdown-item">
+          <div id="days" class="countdown-number">0</div>
+          <div class="countdown-label">Days</div>
+        </div>
+        <div class="countdown-item">
+          <div id="hours" class="countdown-number">0</div>
+          <div class="countdown-label">Hours</div>
+        </div>
+        <div class="countdown-item">
+          <div id="minutes" class="countdown-number">0</div>
+          <div class="countdown-label">Minutes</div>
+        </div>
+        <div class="countdown-item">
+          <div id="seconds" class="countdown-number">0</div>
+          <div class="countdown-label">Seconds</div>
+        </div>
+      </div>
+
+      <!-- CTA Buttons -->
+      <div class="cta-container">
+        <a href="team.html" class="cta-button cta-primary">
+          <i class="fas fa-home"></i>
+          <span>Enter Site</span>
         </a>
-        
-        <!-- Navigation Links -->
-        <div class="hidden md:flex items-center space-x-6 font-bold">
-          <a href="index.html" class="nav-link">🏠 Home</a>
-          <div class="relative dropdown">
-            <button class="dropdown-toggle nav-link">
-              🏎️ Drivers <i class="fas fa-chevron-down"></i>
-            </button>
-            <div class="dropdown-menu modern-dropdown">
-              <!-- Jon Kirsch Nested Dropdown -->
-              <div class="relative dropdown-nested">
-                <button class="dropdown-item dropdown-nested-toggle flex items-center justify-between w-full">
-                  <span>Jon Kirsch #8</span>
-                  <i class="fas fa-chevron-right ml-2 text-xs"></i>
-                </button>
-                <div class="dropdown-menu-nested modern-dropdown">
-                  <a href="driver.html" class="dropdown-item">👤 Profile</a>
-                  <a href="gallery.html" class="dropdown-item">📸 Gallery</a>
-                  <a href="jons.html" class="dropdown-item">📊 Racing Stats</a>
-                </div>
-              </div>
-              
-              <!-- Jonny Kirsch Nested Dropdown -->
-              <div class="relative dropdown-nested">
-                <button class="dropdown-item dropdown-nested-toggle flex items-center justify-between w-full">
-                  <span>Jonny Kirsch #88</span>
-                  <i class="fas fa-chevron-right ml-2 text-xs"></i>
-                </button>
-                <div class="dropdown-menu-nested modern-dropdown">
-                  <a href="jonny.html" class="dropdown-item">👤 Profile</a>
-                  <a href="jonny-gallery.html" class="dropdown-item">📸 Gallery</a>
-                  <a href="jonny-results.html" class="dropdown-item">📊 Race Results</a>
-                </div>
-              </div>
-              
-              <a href="legends.html" class="dropdown-item">Team Legends</a>
-            </div>
-          </div>
-          <div class="relative dropdown">
-            <button class="dropdown-toggle nav-link">
-              🏁 Racing <i class="fas fa-chevron-down"></i>
-            </button>
-            <div class="dropdown-menu modern-dropdown">
-              <a href="schedule.html" class="dropdown-item">Schedule</a>
-              <a href="leaderboard.html" class="dropdown-item">Leaderboard</a>
-              <a href="videos.html" class="dropdown-item">🎥 Videos</a>
-            </div>
-          </div>
-          <div class="relative dropdown">
-            <button class="dropdown-toggle nav-link">
-              👥 Community <i class="fas fa-chevron-down"></i>
-            </button>
-            <div class="dropdown-menu modern-dropdown">
-              <a href="qna.html" class="dropdown-item">❓ Q&A</a>
-              <a href="feedback.html" class="dropdown-item">💬 Feedback</a>
-              <a href="sponsorship.html" class="dropdown-item">💰 Sponsorship</a>
-            </div>
-          </div>
-          
-          <!-- User Profile / Login -->
-          <div id="auth-section">
-            <!-- Login Button (shown when not authenticated) -->
-            <a href="admin-console.html" id="login-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-bold transition duration-300 flex items-center space-x-1">
-              <i class="fas fa-sign-in-alt"></i>
-              <span>Login</span>
-            </a>
-            
-            <!-- User Profile Dropdown (shown when authenticated) -->
-            <div id="user-profile" class="relative dropdown hidden">
-              <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
-                <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <i class="fas fa-user text-white text-xs"></i>
-                </div>
-                <div class="text-left hidden md:block">
-                  <div class="text-sm font-semibold text-white" id="user-name">Driver</div>
-                  <div class="text-xs text-slate-400">Team Member</div>
-                </div>
-                <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
-              </button>
-              
-              <div class="dropdown-menu modern-dropdown right-0 w-44">
-                <div class="px-4 py-2 border-b border-slate-600/50">
-                  <div class="flex items-center space-x-2">
-                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span class="text-green-400 text-sm">Online</span>
-                  </div>
-                </div>
-                
-                <a href="admin-console.html" class="dropdown-item flex items-center">
-                  <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
-                  <span>Dashboard</span>
-                </a>
-                
-                <a href="profile.html" class="dropdown-item flex items-center">
-                  <i class="fas fa-user w-4 mr-3 text-green-400"></i>
-                  <span>My Profile</span>
-                </a>
-                
-                <div class="border-t border-slate-600/50 my-1"></div>
-                
-                <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
-                  <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Mobile Clock and Menu -->
-        <div class="md:hidden flex items-center space-x-4">
-          <div id="mobile-clock" class="text-yellow-400 font-bold text-sm bg-slate-800/50 px-3 py-1 rounded-lg border border-slate-600/50">
-            12:00 PM
-          </div>
-          <button id="mobile-menu-button" class="text-white focus:outline-none">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-            </svg>
-          </button>
-        </div>
-      </nav>
-      
-      <!-- Mobile Menu -->
-      <div id="mobile-menu" class="mobile-menu modern-mobile hidden">
-        <a href="index.html" class="mobile-nav-item">🏠 Home</a>
-        <button class="mobile-accordion">
-          <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
-        </button>
-        <div class="mobile-accordion-content">
-          <!-- Jon Kirsch Nested -->
-          <button class="mobile-accordion mobile-accordion-nested">
-            <span>Jon Kirsch #8</span><i class="fas fa-chevron-down accordion-icon"></i>
-          </button>
-          <div class="mobile-accordion-content mobile-accordion-content-nested">
-            <a href="driver.html" class="mobile-nav-subitem mobile-nav-subitem-nested">👤 Profile</a>
-            <a href="gallery.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📸 Gallery</a>
-            <a href="jons.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📊 Racing Stats</a>
-          </div>
-          
-          <!-- Jonny Kirsch Nested -->
-          <button class="mobile-accordion mobile-accordion-nested">
-            <span>Jonny Kirsch #88</span><i class="fas fa-chevron-down accordion-icon"></i>
-          </button>
-          <div class="mobile-accordion-content mobile-accordion-content-nested">
-            <a href="jonny.html" class="mobile-nav-subitem mobile-nav-subitem-nested">👤 Profile</a>
-            <a href="jonny-gallery.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📸 Gallery</a>
-            <a href="jonny-results.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📊 Race Results</a>
-          </div>
-          
-          <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
-        </div>
-        <button class="mobile-accordion">
-          <span>🏁 Racing</span><i class="fas fa-chevron-down accordion-icon"></i>
-        </button>
-        <div class="mobile-accordion-content">
-          <a href="schedule.html" class="mobile-nav-subitem">Schedule</a>
-          <a href="leaderboard.html" class="mobile-nav-subitem">Leaderboard</a>
-          <a href="videos.html" class="mobile-nav-subitem">🎥 Videos</a>
-        </div>
-        <button class="mobile-accordion">
-          <span>👥 Community</span><i class="fas fa-chevron-down accordion-icon"></i>
-        </button>
-        <div class="mobile-accordion-content">
-          <a href="qna.html" class="mobile-nav-subitem">❓ Q&A</a>
-          <a href="feedback.html" class="mobile-nav-subitem">💬 Feedback</a>
-          <a href="sponsorship.html" class="mobile-nav-subitem">💰 Sponsorship</a>
-        </div>
-        <div class="border-t border-slate-600 mt-4 pt-4">
-          <!-- Mobile Auth Section -->
-          <div id="mobile-auth-section">
-            <!-- Mobile Login Button (shown when not authenticated) -->
-            <a href="admin-console.html" id="mobile-login-btn" class="mobile-login-btn bg-red-600 hover:bg-red-700">
-              <i class="fas fa-sign-in-alt mr-2"></i>Driver Login
-            </a>
-            
-            <!-- Mobile User Profile (shown when authenticated) -->
-            <div id="mobile-user-profile" class="hidden">
-              <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
-                <div class="flex items-center space-x-3 mb-3">
-                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <i class="fas fa-user text-white"></i>
-                  </div>
-                  <div>
-                    <div class="text-white font-semibold" id="mobile-user-name">Driver</div>
-                    <div class="text-slate-400 text-sm">Team Member</div>
-                    <div class="flex items-center space-x-1 mt-1">
-                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span class="text-green-400 text-xs">Online</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="space-y-1">
-                  <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
-                    <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
-                    <span>Dashboard</span>
-                  </a>
-                  <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
-                    <i class="fas fa-user w-5 mr-3 text-green-400"></i>
-                    <span>My Profile</span>
-                  </a>
-                  <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
-                    <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <a href="schedule.html" class="cta-button cta-secondary">
+          <i class="fas fa-calendar"></i>
+          <span>View Schedule</span>
+        </a>
       </div>
-    </header>
 
-    <main>
-      <!-- Modern Hero Section -->
-      <section id="home" class="modern-hero h-screen relative flex items-center justify-center text-center overflow-hidden">
-        <!-- Parallax Background -->
-        <div class="parallax-bg"></div>
-        
-        <!-- Particle System -->
-        <div class="particles-container" id="particles"></div>
-        
-        <!-- Floating Icons -->
-        <div class="floating-elements">
-          <i class="floating-icon fas fa-tachometer-alt" style="top: 20%; left: 10%; animation-delay: 0s;"></i>
-          <i class="floating-icon fas fa-flag-checkered" style="top: 30%; right: 15%; animation-delay: 2s;"></i>
-          <i class="floating-icon fas fa-trophy" style="top: 60%; left: 20%; animation-delay: 4s;"></i>
-          <i class="floating-icon fas fa-car" style="top: 70%; right: 25%; animation-delay: 6s;"></i>
-          <i class="floating-icon fas fa-stopwatch" style="top: 15%; right: 30%; animation-delay: 1s;"></i>
-          <i class="floating-icon fas fa-road" style="top: 80%; left: 40%; animation-delay: 3s;"></i>
-        </div>
-        
-        <!-- Hero Content -->
-        <div class="relative z-10 p-8 w-full h-full flex flex-col items-center justify-center">
-          <div class="mb-8">
-            <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-6">
-              <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
-              <span class="text-sm font-semibold text-white">🏁 Racing Season 2025 Live</span>
-            </div>
-          </div>
-          
-          <h1 class="hero-title text-6xl md:text-8xl lg:text-9xl font-racing uppercase tracking-wider mb-6 leading-tight">
-            Push The Limit
-          </h1>
-          
-          <p class="hero-subtitle text-xl md:text-2xl font-bold text-slate-200 tracking-widest mb-8 max-w-4xl">
-            THE OFFICIAL HUB OF JON AND JONNY KIRSCH RACING SAGA
-          </p>
-          
-          <!-- Hero Stats -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 max-w-4xl w-full">
-            <div class="modern-stats glass-card premium-hover hover-3d rounded-xl p-4 text-center">
-              <div class="stat-number text-3xl font-bold mb-1">2</div>
-              <div class="text-slate-400 text-sm uppercase tracking-wider">Years Racing</div>
-            </div>
-            <div class="modern-stats glass-card premium-hover hover-3d rounded-xl p-4 text-center">
-              <div class="stat-number text-3xl font-bold mb-1">12</div>
-              <div class="text-slate-400 text-sm uppercase tracking-wider">Races Won</div>
-            </div>
-            <div class="modern-stats glass-card premium-hover hover-3d rounded-xl p-4 text-center">
-              <div id="photo-count" class="stat-number text-3xl font-bold mb-1">0</div>
-              <div class="text-slate-400 text-sm uppercase tracking-wider">Photos</div>
-            </div>
-            <div class="modern-stats glass-card premium-hover hover-3d rounded-xl p-4 text-center">
-              <div class="stat-number text-3xl font-bold mb-1">#8 & #88</div>
-              <div class="text-slate-400 text-sm uppercase tracking-wider">Racing Numbers</div>
-            </div>
-          </div>
-          
-          <!-- CTA Buttons -->
-          <div class="flex flex-col sm:flex-row gap-4 items-center">
-            <a href="legends.html" class="cta-button ripple hover-magnetic px-8 py-4 rounded-xl font-bold text-white text-lg transition-all duration-300">
-              <i class="fas fa-trophy mr-2"></i>
-              Meet The Team
-            </a>
-            <a href="schedule.html" class="ripple hover-magnetic px-8 py-4 rounded-xl font-bold text-white text-lg border-2 border-white/20 hover:border-yellow-400/60 hover:bg-white/10 transition-all duration-300">
-              <i class="fas fa-calendar mr-2"></i>
-              Race Schedule
-            </a>
-          </div>
-          
-          <!-- Scroll Indicator -->
-          <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <div class="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
-              <div class="w-1 h-3 bg-yellow-400 rounded-full mt-2 animate-pulse"></div>
-            </div>
-            <p class="text-xs text-slate-400 mt-2 uppercase tracking-wider">Scroll Down</p>
-          </div>
-        </div>
-      </section>
-
-
-      <!-- Modern Results Section -->
-      <section class="section-reveal py-20 md:py-32 bg-gradient-to-b from-slate-900 to-slate-800">
-        <div class="container mx-auto px-6">
-          <div class="text-center mb-16">
-            <h2 class="text-4xl md:text-5xl font-racing uppercase mb-4">
-              <i class="fas fa-chart-line text-blue-400 mr-3"></i>
-              Live Racing <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">Data</span>
-            </h2>
-            <p class="text-slate-400 text-lg max-w-2xl mx-auto">Real-time performance metrics and championship standings</p>
-          </div>
-          
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <!-- Stats Card -->
-            <div class="modern-card glass-card premium-hover rounded-2xl p-8">
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-bold text-white">
-                  <i class="fas fa-trophy text-yellow-400 mr-2"></i>
-                  2025 Season Stats
-                </h3>
-                <div class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-semibold">
-                  <i class="fas fa-circle text-xs mr-1"></i>Live
-                </div>
-              </div>
-              
-              <div class="grid grid-cols-2 gap-6">
-                <div class="text-center p-4 bg-slate-800/50 rounded-xl">
-                  <div class="text-3xl font-bold text-yellow-400 mb-1">12</div>
-                  <div class="text-slate-400 text-sm">Races Entered</div>
-                </div>
-                <div class="text-center p-4 bg-slate-800/50 rounded-xl">
-                  <div class="text-3xl font-bold text-green-400 mb-1">1</div>
-                  <div class="text-slate-400 text-sm">Heat/Feature Win</div>
-                </div>
-                <div class="text-center p-4 bg-slate-800/50 rounded-xl">
-                  <div class="text-3xl font-bold text-blue-400 mb-1">4th</div>
-                  <div class="text-slate-400 text-sm">Super Cup Standing</div>
-                </div>
-                <div class="text-center p-4 bg-slate-800/50 rounded-xl">
-                  <div class="text-3xl font-bold text-purple-400 mb-1">415</div>
-                  <div class="text-slate-400 text-sm">Points</div>
-                </div>
-              </div>
-              
-              <div class="mt-6 pt-6 border-t border-slate-700">
-                <div class="flex flex-col sm:flex-row gap-4">
-                  <a href="https://speedhive.mylaps.com/profile/MYLAPS-GA-3a22ae250e154baf8f798908b7e3599e" 
-                     target="_blank" rel="noopener"
-                     class="inline-flex items-center text-yellow-400 hover:text-yellow-300 transition-colors">
-                    <i class="fas fa-external-link-alt mr-2"></i>
-                    View Speedhive Profile
-                  </a>
-                  <a href="http://www.americansupercups.com/Standings2025.html" 
-                     target="_blank" rel="noopener"
-                     class="inline-flex items-center text-blue-400 hover:text-blue-300 transition-colors">
-                    <i class="fas fa-trophy mr-2"></i>
-                    2025 Super Cup Standings
-                  </a>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Performance Chart Placeholder -->
-            <div class="modern-card glass-card premium-hover rounded-2xl p-8">
-              <h3 class="text-2xl font-bold text-white mb-6">
-                <i class="fas fa-tachometer-alt text-red-400 mr-2"></i>
-                Performance Trends
-              </h3>
-              <div class="h-64 bg-slate-800/30 rounded-xl flex items-center justify-center">
-                <div class="text-center">
-                  <i class="fas fa-chart-area text-4xl text-slate-600 mb-4"></i>
-                  <p class="text-slate-400">Interactive performance chart loading...</p>
-                  <div class="mt-4 flex justify-center space-x-1">
-                    <div class="w-2 h-2 bg-yellow-400 rounded-full animate-bounce"></div>
-                    <div class="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                    <div class="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Modern Sponsors Section -->
-      <section class="section-reveal py-20 md:py-32 bg-gradient-to-b from-slate-800 to-slate-900">
-        <div class="container mx-auto px-6 text-center">
-          <div class="mb-16">
-            <h2 class="font-racing text-4xl md:text-5xl uppercase mb-4">
-              <i class="fas fa-handshake text-green-400 mr-3"></i>
-              Powered By Our <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">Partners</span>
-            </h2>
-            <p class="text-slate-400 text-lg max-w-2xl mx-auto">Excellence on track, supported by industry leaders</p>
-          </div>
-          
-          <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Sponsor 1 -->
-            <div class="sponsor-logo modern-card glass-card premium-hover hover-3d p-8 rounded-2xl group cursor-pointer">
-              <div class="mb-4">
-                <img
-                  src="https://placehold.co/300x150/e2e8f0/05080f?text=OK1+Automotive"
-                  alt="OK1 Automotive Technology"
-                  loading="lazy"
-                  width="300"
-                  height="150"
-                  class="w-full h-20 object-contain"
-                />
-              </div>
-              <h3 class="text-xl font-bold text-white mb-2">OK1 Automotive</h3>
-              <p class="text-slate-400 text-sm">Advanced automotive technology and performance solutions</p>
-              <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
-                  <div class="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-1000"></div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Sponsor 2 -->
-            <div class="sponsor-logo modern-card glass-card premium-hover hover-3d p-8 rounded-2xl group cursor-pointer">
-              <div class="mb-4">
-                <img
-                  src="https://placehold.co/300x150/e2e8f0/05080f?text=StepUp+Construction"
-                  alt="StepUp Construction"
-                  loading="lazy"
-                  width="300"
-                  height="150"
-                  class="w-full h-20 object-contain"
-                />
-              </div>
-              <h3 class="text-xl font-bold text-white mb-2">StepUp Construction</h3>
-              <p class="text-slate-400 text-sm">Building champions both on and off the track</p>
-              <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
-                  <div class="h-full bg-gradient-to-r from-blue-400 to-blue-600 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-1000"></div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Sponsor 3 -->
-            <div class="sponsor-logo modern-card glass-card premium-hover hover-3d p-8 rounded-2xl group cursor-pointer">
-              <div class="mb-4">
-                <img
-                  src="https://i.imgur.com/h6p6QLs.png"
-                  alt="Paul Ries and Sons Chicago"
-                  loading="lazy"
-                  width="300"
-                  height="150"
-                  class="w-full h-20 object-contain"
-                />
-              </div>
-              <h3 class="text-xl font-bold text-white mb-2">Paul Ries & Sons</h3>
-              <p class="text-slate-400 text-sm">Chicago's premier automotive specialists since 1962</p>
-              <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
-                  <div class="h-full bg-gradient-to-r from-green-400 to-green-600 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-1000"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Partnership CTA -->
-          <div class="mt-16 max-w-2xl mx-auto modern-card p-8 rounded-2xl">
-            <h3 class="text-2xl font-bold text-white mb-4">
-              <i class="fas fa-rocket text-blue-400 mr-2"></i>
-              Join Our Racing Family
-            </h3>
-            <p class="text-slate-400 mb-6">Partner with RedsRacing and accelerate your brand to victory</p>
-            <a href="sponsorship.html" class="cta-button px-8 py-4 rounded-xl font-bold text-white inline-flex items-center">
-              <i class="fas fa-star mr-2"></i>
-              Become a Partner
-            </a>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="bg-gradient-to-b from-slate-900 via-slate-900 to-black border-t border-slate-800 py-20 relative overflow-hidden">
-      <!-- Background Effects -->
-      <div class="absolute inset-0 opacity-20">
-        <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl"></div>
+      <!-- Social Links -->
+      <div class="social-links">
+        <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" rel="noopener" class="social-link" aria-label="Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="https://www.tiktok.com/@redsracing" target="_blank" rel="noopener" class="social-link" aria-label="TikTok">
+          <i class="fab fa-tiktok"></i>
+        </a>
+        <a href="https://www.instagram.com/redsracing8/" target="_blank" rel="noopener" class="social-link" aria-label="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
       </div>
-      
-      <div class="container mx-auto px-6 relative z-10">
-        <!-- Newsletter Section -->
-        <div class="max-w-3xl mx-auto text-center mb-16">
-          <div class="mb-8">
-            <h3 class="font-racing text-5xl md:text-6xl uppercase mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-yellow-400 to-blue-400 animate-gradient">
-              Stay In The Loop
-            </h3>
-            <p class="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto">
-              Get exclusive race updates, behind-the-scenes content, and be part of the racing family.
-            </p>
-          </div>
-          
-          <div class="max-w-2xl mx-auto">
-            <form id="subscribe-form" class="flex flex-col sm:flex-row gap-3 mb-4">
-              <div class="flex-1 relative group">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-yellow-500 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
-                <input
-                  type="email"
-                  id="subscribe-email"
-                  placeholder="your@email.com"
-                  required
-                  class="relative w-full bg-slate-800/80 backdrop-blur-sm text-white px-6 py-4 rounded-xl border-2 border-slate-700 focus:outline-none focus:border-yellow-400 transition-all duration-300 text-lg"
-                  style="color: #ffffff !important;"
-                />
-              </div>
-              <button
-                type="submit"
-                class="bg-gradient-to-r from-yellow-400 to-yellow-500 text-slate-900 font-bold py-4 px-8 rounded-xl hover:from-yellow-300 hover:to-yellow-400 transition-all duration-300 shadow-lg hover:shadow-yellow-400/50 transform hover:-translate-y-1 text-lg whitespace-nowrap"
-              >
-                <i class="fas fa-paper-plane mr-2"></i>Subscribe
-              </button>
-            </form>
-            <p id="subscribe-message" class="text-sm mt-3 min-h-6 text-slate-400"></p>
-          </div>
-        </div>
-        <!-- Social Media -->
-        <div class="border-t border-slate-800 pt-12">
-          <p class="text-slate-400 text-center mb-6 text-lg">Follow the journey</p>
-          <div class="flex justify-center space-x-4 mb-12">
-            <a
-              href="https://www.facebook.com/share/1F1RTxz9xa/"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="group relative w-14 h-14 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 flex items-center justify-center hover:border-blue-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/30"
-            >
-              <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-500 transition-colors duration-300" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  fill-rule="evenodd"
-                  d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-              <span class="absolute -bottom-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs text-slate-400">Facebook</span>
-            </a>
-            <a
-              href="https://www.tiktok.com/@redsracing"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="group relative w-14 h-14 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 flex items-center justify-center hover:border-pink-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-pink-500/30"
-            >
-              <svg class="w-6 h-6 text-slate-400 group-hover:text-pink-500 transition-colors duration-300" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"
-                />
-              </svg>
-              <span class="absolute -bottom-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs text-slate-400">TikTok</span>
-            </a>
-          </div>
-        </div>
-        <p class="mt-8 text-slate-500 text-sm">
-          © <span id="year"></span> RedsRacing #8. All Rights Reserved.
-        </p>
-      </div>
-    </footer>
+    </div>
 
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-    <script type="module" src="navigation.js"></script>
-    <script type="module" src="main.js"></script>
-    <script src="assets/js/mobile-menu-tabs.js"></script>
     <script>
-      // Modern Homepage JavaScript with Animations
-      (function () {
-        'use strict';
-        
-        // Particle System
-        function createParticleSystem() {
-          const particlesContainer = document.getElementById('particles');
-          if (!particlesContainer) return;
-          
-          const particleCount = 50;
-          
-          for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            
-            // Random positioning
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.top = Math.random() * 100 + '%';
-            
-            // Random animation delay and duration
-            particle.style.animationDelay = Math.random() * 6 + 's';
-            particle.style.animationDuration = (3 + Math.random() * 6) + 's';
-            
-            particlesContainer.appendChild(particle);
-          }
-        }
-        
-        // Scroll Animation Observer
-        function initScrollAnimations() {
-          const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-          };
-          
-          const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                
-                // Animate counters when visible
-                if (entry.target.querySelector('.stat-number')) {
-                  animateCounters(entry.target);
-                }
-              }
-            });
-          }, observerOptions);
-          
-          // Observe all reveal elements
-          document.querySelectorAll('.section-reveal').forEach(el => {
-            observer.observe(el);
-          });
-        }
-        
-        // Counter Animation
-        function animateCounters(container) {
-          const counters = container.querySelectorAll('.stat-number');
-          
-          counters.forEach(counter => {
-            const target = parseInt(counter.textContent) || 0;
-            let current = 0;
-            const increment = target / 30;
-            
-            const timer = setInterval(() => {
-              current += increment;
-              if (current >= target) {
-                counter.textContent = target;
-                clearInterval(timer);
-              } else {
-                counter.textContent = Math.ceil(current);
-              }
-            }, 50);
-          });
-        }
-        
-        // Parallax Effect
-        function initParallax() {
-          const parallaxBg = document.querySelector('.parallax-bg');
-          if (!parallaxBg) return;
-          
-          window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            const rate = scrolled * -0.5;
-            parallaxBg.style.transform = `translate3d(0, ${rate}px, 0)`;
-          });
-        }
-        
-        // Mouse Movement Effects
-        function initMouseEffects() {
-          const hero = document.querySelector('.modern-hero');
-          if (!hero) return;
-          
-          hero.addEventListener('mousemove', (e) => {
-            const { clientX, clientY } = e;
-            const { innerWidth, innerHeight } = window;
-            
-            const xPercent = (clientX / innerWidth) * 100;
-            const yPercent = (clientY / innerHeight) * 100;
-            
-            const floatingIcons = hero.querySelectorAll('.floating-icon');
-            floatingIcons.forEach((icon, index) => {
-              const speed = (index + 1) * 0.02;
-              const x = (xPercent - 50) * speed;
-              const y = (yPercent - 50) * speed;
+      // Firebase Configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyAWwholQM5RJC_LQcymKc6bM8c5hN4YKlw",
+        authDomain: "redsracing-a7f8b.firebaseapp.com",
+        projectId: "redsracing-a7f8b",
+        storageBucket: "redsracing-a7f8b.firebasestorage.app",
+        messagingSenderId: "398769104682",
+        appId: "1:398769104682:web:d1cbbc92c651e94da3a5fe",
+        measurementId: "G-1TJL2WK20C"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      // Countdown Timer with Dynamic First Race
+      (function() {
+        let firstRaceDate = new Date('2026-05-25T00:00:00').getTime(); // Default fallback
+        let raceInfo = 'FIRST RACE: SPRING CLASSIC - GRUNDY COUNTY SPEEDWAY'; // Default fallback
+
+        // Fetch first race from Firestore (excluding special events)
+        async function loadFirstRace() {
+          try {
+            const raceSnapshot = await db.collection('races')
+              .where('season', '==', 2026)
+              .where('type', '==', 'superCup')
+              .orderBy('date', 'asc')
+              .limit(1)
+              .get();
+
+            if (!raceSnapshot.empty) {
+              const firstRace = raceSnapshot.docs[0].data();
+              const raceDate = firstRace.date;
               
-              icon.style.transform = `translate(${x}px, ${y}px) rotate(${x * 0.5}deg)`;
-            });
-          });
-        }
-        
-        // Navigation Enhancement - Fixed for proper mobile menu and dropdowns
-        function initNavigation() {
-          console.log('🔧 Initializing navigation...');
-          
-          // Desktop dropdowns with proper event handling
-          document.querySelectorAll(".dropdown-toggle").forEach(function (btn) {
-            btn.addEventListener("click", function (e) {
-              e.preventDefault();
-              e.stopPropagation();
-              var menu = btn.nextElementSibling;
-              if (menu && menu.classList.contains("dropdown-menu")) {
-                // Close all other dropdowns
-                document.querySelectorAll(".dropdown-menu").forEach(function (m) {
-                  if (m !== menu) {
-                    m.classList.add("hidden");
-                    m.style.display = 'none';
-                    m.style.opacity = '0';
-                  }
-                });
-                
-                // Toggle current dropdown
-                const isHidden = menu.classList.contains("hidden");
-                if (isHidden) {
-                  menu.classList.remove("hidden");
-                  menu.style.display = 'block';
-                  menu.style.opacity = '1';
-                } else {
-                  menu.classList.add("hidden");
-                  menu.style.display = 'none';
-                  menu.style.opacity = '0';
-                }
+              // Parse the date - handle both Firestore Timestamp and string formats
+              if (raceDate && raceDate.toDate) {
+                firstRaceDate = raceDate.toDate().getTime();
+              } else if (typeof raceDate === 'string') {
+                firstRaceDate = new Date(raceDate).getTime();
               }
-            });
-            
-          });
-          
-          // Outside click to close dropdowns
-          document.addEventListener("click", function (e) {
-            if (!e.target.closest('.dropdown')) {
-              document.querySelectorAll(".dropdown-menu").forEach(function (m) {
-                m.classList.add("hidden");
-                m.style.display = 'none';
-                m.style.opacity = '0';
-              });
+
+              // Update race info text
+              const raceName = firstRace.eventName || firstRace.name || 'First Race';
+              const trackName = firstRace.track || '';
+              raceInfo = `FIRST RACE: ${raceName.toUpperCase()}${trackName ? ' - ' + trackName.toUpperCase() : ''}`;
+              
+              // Update the UI
+              const raceInfoEl = document.querySelector('.race-info');
+              if (raceInfoEl) {
+                raceInfoEl.innerHTML = `<i class="fas fa-flag-checkered"></i> ${raceInfo}`;
+              }
+
+              console.log('Loaded first race from Firestore:', firstRace);
+            } else {
+              console.log('No races found for 2026, using fallback');
             }
-          });
-          
-          // Mobile menu - using correct ID from HTML
-          var mobileButton = document.getElementById("mobile-menu-button");
-          var mobileMenu = document.getElementById("mobile-menu");
-          
-          if (mobileButton && mobileMenu) {
-            console.log('🔧 Mobile menu elements found, setting up...');
-            
-            mobileButton.addEventListener("click", function (e) {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log('📱 Mobile menu button clicked');
-              
-              const isHidden = mobileMenu.classList.contains('hidden');
-              if (isHidden) {
-                mobileMenu.classList.remove('hidden');
-                mobileMenu.style.display = 'block';
-                console.log('📱 Mobile menu opened');
-              } else {
-                mobileMenu.classList.add('hidden');
-                mobileMenu.style.display = 'none';
-                console.log('📱 Mobile menu closed');
-              }
-            });
-            
-            // Close mobile menu when clicking outside
-            document.addEventListener('click', function(e) {
-              if (!mobileMenu.contains(e.target) && !mobileButton.contains(e.target)) {
-                mobileMenu.classList.add('hidden');
-                mobileMenu.style.display = 'none';
-              }
-            });
-            
-            // Mobile accordion functionality
-            const accordions = mobileMenu.querySelectorAll('.mobile-accordion');
-            accordions.forEach(accordion => {
-              accordion.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const content = accordion.nextElementSibling;
-                const icon = accordion.querySelector('.accordion-icon');
-                
-                if (content && content.classList.contains('mobile-accordion-content')) {
-                  const isCurrentlyHidden = content.style.display === 'none' || 
-                    !content.style.display || 
-                    getComputedStyle(content).display === 'none';
-                    
-                  // Close other accordions
-                  accordions.forEach(otherAccordion => {
-                    if (otherAccordion !== accordion) {
-                      const otherContent = otherAccordion.nextElementSibling;
-                      if (otherContent) {
-                        otherContent.style.display = 'none';
-                        otherAccordion.classList.remove('active');
-                        const otherIcon = otherAccordion.querySelector('.accordion-icon');
-                        if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
-                      }
-                    }
-                  });
-                  
-                  // Toggle current accordion
-                  if (isCurrentlyHidden) {
-                    content.style.display = 'block';
-                    accordion.classList.add('active');
-                    if (icon) icon.style.transform = 'rotate(180deg)';
-                  } else {
-                    content.style.display = 'none';
-                    accordion.classList.remove('active');
-                    if (icon) icon.style.transform = 'rotate(0deg)';
-                  }
-                }
-              });
-            });
-            
-            // Close mobile menu when clicking navigation links
-            const navLinks = mobileMenu.querySelectorAll('a');
-            navLinks.forEach(link => {
-              link.addEventListener('click', () => {
-                mobileMenu.classList.add('hidden');
-                mobileMenu.style.display = 'none';
-              });
-            });
-          } else {
-            console.warn('🚨 Mobile menu elements not found:', {
-              button: !!mobileButton,
-              menu: !!mobileMenu
-            });
-          }
-          
-          // Initialize mobile accordion content state
-          const accordionContents = document.querySelectorAll('.mobile-accordion-content');
-          accordionContents.forEach(content => {
-            content.style.display = 'none';
-          });
-          
-          console.log('✅ Navigation initialization complete');
-        }
-        
-        // Smooth Scrolling for Anchor Links
-        function initSmoothScrolling() {
-          document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-              e.preventDefault();
-              const target = document.querySelector(this.getAttribute('href'));
-              if (target) {
-                target.scrollIntoView({
-                  behavior: 'smooth',
-                  block: 'start'
-                });
-              }
-            });
-          });
-        }
-        
-        // Performance Optimization
-        function optimizeAnimations() {
-          // Reduce animations on low-end devices
-          if (navigator.hardwareConcurrency < 4) {
-            document.documentElement.style.setProperty('--animation-speed', '0.5s');
-          }
-          
-          // Pause animations when tab is not visible
-          document.addEventListener('visibilitychange', () => {
-            const particles = document.querySelectorAll('.particle, .floating-icon');
-            particles.forEach(particle => {
-              particle.style.animationPlayState = document.hidden ? 'paused' : 'running';
-            });
-          });
-        }
-        
-        // Clean Authentication - No duplicate state management needed
-        
-        // Photo Count Management
-        function initPhotoCount() {
-          // This would normally fetch from Firebase/database
-          // For now, we'll simulate getting the actual count
-          const photoCountElement = document.getElementById('photo-count');
-          if (photoCountElement) {
-            // Simulate fetching photo count (replace with actual Firebase query)
-            const simulatedCount = 0; // Default to 0 until photos are uploaded
-            photoCountElement.textContent = simulatedCount;
-            
-            // If you want to fetch from Firebase later:
-            /*
-            firebase.firestore().collection('photos').get().then((snapshot) => {
-              const count = snapshot.size;
-              photoCountElement.textContent = count;
-            });
-            */
+          } catch (error) {
+            console.error('Error loading first race:', error);
+            // Use fallback values if Firebase fails
           }
         }
-        
-        // Initialize everything
-        function init() {
-          createParticleSystem();
-          initScrollAnimations();
-          initParallax();
-          initMouseEffects();
-          initNavigation();
-          initSmoothScrolling();
-          optimizeAnimations();
-          initPhotoCount();
-          
-          // Set current year
-          const yearElement = document.getElementById('year');
-          if (yearElement) {
-            yearElement.textContent = new Date().getFullYear();
+
+        function updateCountdown() {
+          const now = new Date().getTime();
+          const distance = firstRaceDate - now;
+
+          if (distance < 0) {
+            document.getElementById('days').textContent = '0';
+            document.getElementById('hours').textContent = '0';
+            document.getElementById('minutes').textContent = '0';
+            document.getElementById('seconds').textContent = '0';
+            return;
           }
-          
-          console.log('🏎️ RedsRacing Homepage Enhanced!');
+
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+          document.getElementById('days').textContent = days;
+          document.getElementById('hours').textContent = hours;
+          document.getElementById('minutes').textContent = minutes;
+          document.getElementById('seconds').textContent = seconds;
         }
+
+        // Load first race data
+        loadFirstRace();
         
-        // Initialize when DOM is ready
-        if (document.readyState === "loading") {
-          document.addEventListener("DOMContentLoaded", init);
-        } else {
-          init();
-        }
+        // Start countdown
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
       })();
     </script>
-    <script src="assets/js/premium-effects.js"></script>
   </body>
 </html>

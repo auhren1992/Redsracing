@@ -13,7 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles/main.css" />`n    <link rel="stylesheet" href="styles/input-fix.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/input-fix.css" />
     <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
     
     <!-- Mobile App Detection -->
@@ -545,16 +546,16 @@
               <div class="stat-card rounded-xl p-6">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-slate-400 text-sm font-medium mb-1">Active Users</p>
+                    <p class="text-slate-400 text-sm font-medium mb-1">Analytics</p>
                     <div class="flex items-center space-x-2">
-                      <span class="text-3xl font-bold text-white animated-counter" id="active-users">1,234</span>
-                      <div class="text-purple-400 text-sm flex items-center">
-                        <i class="fas fa-users mr-1"></i>Online
+                      <span class="text-2xl font-bold text-white" id="active-users">--</span>
+                      <div class="text-purple-400 text-xs flex items-center">
+                        <i class="fas fa-chart-line mr-1"></i>Not configured
                       </div>
                     </div>
                   </div>
                   <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-users text-white text-xl"></i>
+                    <i class="fas fa-chart-bar text-white text-xl"></i>
                   </div>
                 </div>
               </div>
@@ -597,6 +598,108 @@
                 </div>
               </div>
               
+            </div>
+          </div>
+
+          <!-- Analytics Section -->
+          <div id="analytics-section" class="space-y-6 hidden">
+            <div class="admin-card rounded-xl p-6">
+              <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-white">
+                  <i class="fas fa-chart-line text-emerald-400 mr-2"></i>
+                  Analytics Dashboard
+                </h2>
+                <div class="flex items-center space-x-2">
+                  <div class="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                  <span class="text-orange-400 text-sm">Integration Needed</span>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Google Analytics Integration -->
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
+                  <div class="flex items-start space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <i class="fas fa-chart-area text-white text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="text-lg font-bold text-white mb-2">Google Analytics</h3>
+                      <p class="text-slate-400 text-sm mb-4">Track website visitors, page views, and user behavior</p>
+                      <div class="space-y-2">
+                        <div class="text-sm text-slate-300">
+                          <i class="fas fa-circle text-xs text-orange-400 mr-2"></i>Status: Not Configured
+                        </div>
+                        <div class="text-xs text-slate-500">
+                          Add your Google Analytics tracking ID to enable visitor tracking
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Firebase Analytics -->
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
+                  <div class="flex items-start space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <i class="fab fa-google text-white text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="text-lg font-bold text-white mb-2">Firebase Analytics</h3>
+                      <p class="text-slate-400 text-sm mb-4">Built-in analytics for app and web usage</p>
+                      <div class="space-y-2">
+                        <div class="text-sm text-slate-300">
+                          <i class="fas fa-circle text-xs text-green-400 mr-2"></i>Status: Available
+                        </div>
+                        <div class="text-xs text-slate-500">
+                          Firebase is configured - enable Analytics in Firebase Console
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Placeholder Stats -->
+              <div class="mt-8">
+                <h3 class="text-lg font-bold text-white mb-4">
+                  <i class="fas fa-info-circle text-blue-400 mr-2"></i>
+                  What You'll See Here
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div class="bg-slate-800/30 border border-slate-700/30 rounded-lg p-4">
+                    <div class="text-slate-500 text-xs mb-1">Page Views</div>
+                    <div class="text-2xl font-bold text-slate-600">--</div>
+                  </div>
+                  <div class="bg-slate-800/30 border border-slate-700/30 rounded-lg p-4">
+                    <div class="text-slate-500 text-xs mb-1">Unique Visitors</div>
+                    <div class="text-2xl font-bold text-slate-600">--</div>
+                  </div>
+                  <div class="bg-slate-800/30 border border-slate-700/30 rounded-lg p-4">
+                    <div class="text-slate-500 text-xs mb-1">Avg. Session</div>
+                    <div class="text-2xl font-bold text-slate-600">--</div>
+                  </div>
+                  <div class="bg-slate-800/30 border border-slate-700/30 rounded-lg p-4">
+                    <div class="text-slate-500 text-xs mb-1">Bounce Rate</div>
+                    <div class="text-2xl font-bold text-slate-600">--</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Integration Instructions -->
+              <div class="mt-6 bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                <div class="flex items-start space-x-3">
+                  <i class="fas fa-lightbulb text-blue-400 mt-1"></i>
+                  <div>
+                    <h4 class="text-white font-semibold mb-2">Enable Analytics</h4>
+                    <p class="text-slate-300 text-sm mb-3">To see real visitor data:</p>
+                    <ol class="text-slate-400 text-sm space-y-1 list-decimal list-inside">
+                      <li>Enable Google Analytics in Firebase Console</li>
+                      <li>Or add Google Analytics 4 tracking code to your website</li>
+                      <li>Data will automatically populate here once configured</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1042,8 +1145,19 @@
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-slate-300 mb-2">Season *</label>
-                      <input type="number" id="race-season" class="modern-input w-full p-3 text-white" value="2025" min="2020" max="2030" required />
+                      <input type="number" id="race-season" class="modern-input w-full p-3 text-white" value="2026" min="2020" max="2030" required />
                     </div>
+                  </div>
+                  
+                  <!-- Select from Schedule -->
+                  <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">
+                      <i class="fas fa-calendar text-yellow-400 mr-1"></i>Or Select from Schedule
+                    </label>
+                    <select id="race-from-schedule" class="modern-input w-full p-3 text-white">
+                      <option value="">-- Select a scheduled race --</option>
+                    </select>
+                    <p class="text-xs text-slate-400 mt-1">Auto-fill race details from your schedule</p>
                   </div>
                   
                   <!-- Track Info -->
@@ -1129,9 +1243,9 @@
                 </h2>
                 <div class="flex items-center space-x-2">
                   <select id="race-filter-season" class="modern-input px-3 py-2 text-white text-sm rounded">
-                    <option value="">All Seasons</option>
-                    <option value="2025" selected>2025</option>
-                    <option value="2024">2024</option>
+                    <option value="2026" selected>2026 Season</option>
+                    <option value="2025">2025 Season</option>
+                    <option value="2024">2024 Season</option>
                   </select>
                   <select id="race-filter-driver" class="modern-input px-3 py-2 text-white text-sm rounded">
                     <option value="">All Drivers</option>
@@ -1451,7 +1565,13 @@
               
               // Handle section switching
               try {
-                if (href === '#gallery-approvals') {
+                if (href === '#overview') {
+                  console.log('[NAV] Showing overview...');
+                  showOverview();
+                } else if (href === '#analytics') {
+                  console.log('[NAV] Showing analytics...');
+                  showAnalytics();
+                } else if (href === '#gallery-approvals') {
                   console.log('[NAV] Showing gallery approvals...');
                   showGalleryApprovals();
                 } else if (href === '#advanced') {
@@ -1463,6 +1583,9 @@
                 } else if (href === '#media') {
                   console.log('[NAV] Showing media...');
                   showMedia();
+                } else if (href === '#videos') {
+                  console.log('[NAV] Showing videos...');
+                  showVideos();
                 } else if (href === '#qna') {
                   console.log('[NAV] Showing Q&A...');
                   showQnA();
@@ -1514,7 +1637,10 @@
           if (race) {
             race.classList.remove('hidden');
             race.style.display = 'block';
-            try { loadRaceTable(); } catch(_) {}
+            // Load race schedule from Firestore
+            setTimeout(() => {
+              try { loadRaceTable(); } catch(e) { console.error('Failed to load races:', e); }
+            }, 100);
           }
         }
 
@@ -1560,7 +1686,7 @@
         }
         
         function hideAllSections() {
-          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'admin-pages', 'qna-section', 'videos-section'];
+          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'admin-pages', 'qna-section', 'videos-section', 'analytics-section'];
           sections.forEach(id => {
             const section = document.getElementById(id);
             if (section) {
@@ -1707,6 +1833,22 @@
             try { loadQnaPending(); } catch(_) {}
           }
         }
+        
+        function showAnalytics() {
+          console.log('🔍 [ANALYTICS] showAnalytics() called');
+          hideAllSections();
+          const sec = document.getElementById('analytics-section');
+          console.log('🔍 [ANALYTICS] analytics-section element:', sec);
+          console.log('🔍 [ANALYTICS] dashboard-content element:', document.getElementById('dashboard-content'));
+          if (sec) {
+            sec.classList.remove('hidden');
+            sec.style.display = 'block';
+            console.log('🔍 [ANALYTICS] Analytics section shown, display:', sec.style.display, 'hidden class:', sec.classList.contains('hidden'));
+            try { loadAnalyticsData(); } catch(e) { console.error('Failed to load analytics:', e); }
+          } else {
+            console.error('🔍 [ANALYTICS] analytics-section element not found!');
+          }
+        }
 
         function showVideos() {
           hideAllSections();
@@ -1741,35 +1883,73 @@
 
         // Race table loader (inline) – ensures the editor is visible under Race Management
         async function loadRaceTable() {
+          console.log('[Admin] loadRaceTable called');
           try {
             const { getFirestore, collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
             const tbody = document.getElementById('races-table-body');
             if (!tbody) return;
-            tbody.innerHTML = '';
+            
+            // Show loading
+            tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400"><i class="fas fa-spinner fa-spin mr-2"></i>Loading schedule...</td></tr>';
+            
+            // Get season filter
+            const seasonFilter = document.getElementById('race-filter-season')?.value || '2026';
+            
             const q = query(collection(db, 'races'), orderBy('date','asc'));
             const snap = await getDocs(q);
-            if (snap.empty) {
+            
+            console.log('[Admin] Fetched', snap.docs.length, 'races from Firestore');
+            
+            // Get all races and filter by season
+            let allRaces = snap.docs.map(d => ({id: d.id, ...d.data()}));
+            const filteredRaces = allRaces.filter(r => r.season === parseInt(seasonFilter));
+            
+            console.log('[Admin] After season filter (' + seasonFilter + '):', filteredRaces.length, 'races');
+            
+            tbody.innerHTML = '';
+            
+            if (filteredRaces.length === 0) {
               const tr = document.createElement('tr');
-              tr.innerHTML = '<td class="p-3 text-slate-400" colspan="4">No races added yet.</td>';
+              tr.innerHTML = '<td class="p-3 text-slate-400" colspan="8">No races found for ' + seasonFilter + ' season.</td>';
               tbody.appendChild(tr);
               return;
             }
-            snap.forEach(d => {
-              const v = d.data() || {};
-              const dateStr = v.date ? new Date(v.date).toLocaleDateString() : 'TBD';
-              const name = v.name || 'Unnamed Race';
+            filteredRaces.forEach(v => {
+              // Handle Firestore Timestamp objects
+              let dateStr = 'TBD';
+              if (v.date) {
+                try {
+                  // Check if it's a Firestore Timestamp
+                  if (v.date.toDate && typeof v.date.toDate === 'function') {
+                    dateStr = v.date.toDate().toLocaleDateString();
+                  } else if (typeof v.date === 'string') {
+                    dateStr = new Date(v.date).toLocaleDateString();
+                  } else if (v.date instanceof Date) {
+                    dateStr = v.date.toLocaleDateString();
+                  }
+                } catch (e) {
+                  console.warn('Failed to parse date:', v.date, e);
+                }
+              }
+              const name = v.eventName || v.name || 'Unnamed Race';
+              const track = v.track || 'TBD';
+              const location = v.city && v.state ? v.city + ', ' + v.state : '';
               const status = v.status || 'upcoming';
               const tr = document.createElement('tr');
               tr.className = 'border-b border-slate-700/50 hover:bg-slate-800/40';
               tr.innerHTML = `
-                <td class="p-3">${dateStr}</td>
-                <td class="p-3">${name}</td>
-                <td class="p-3 capitalize">${status}</td>
+                <td class="p-3 text-slate-300">${dateStr}</td>
+                <td class="p-3 text-white font-medium">${name}</td>
+                <td class="p-3 text-slate-300">${track}</td>
+                <td class="p-3 text-slate-400 text-xs">${location}</td>
+                <td class="p-3 text-center">--</td>
+                <td class="p-3 text-center">--</td>
+                <td class="p-3 text-center">--</td>
                 <td class="p-3 text-right whitespace-nowrap">
-                  <button class="edit-race-btn bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-500 transition mr-2" data-id="${d.id}">Edit</button>
-                  <button class="delete-race-btn bg-red-600 text-white px-3 py-1.5 rounded text-xs hover:bg-red-500 transition" data-id="${d.id}">Delete</button>
+                  <button class="edit-race-btn bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-500 transition mr-2" data-id="${v.id}">Edit</button>
+                  <button class="delete-race-btn bg-red-600 text-white px-3 py-1.5 rounded text-xs hover:bg-red-500 transition" data-id="${v.id}">Delete</button>
                 </td>`;
               tbody.appendChild(tr);
             });
@@ -2396,28 +2576,39 @@
           }
         }
 
-        // Enhanced mobile sidebar toggle
+        // Enhanced mobile sidebar toggle - use mobile menu on small screens
         const sidebarToggle = document.getElementById('sidebar-toggle');
         if (sidebarToggle) {
           sidebarToggle.addEventListener('click', () => {
-          const sidebar = document.querySelector('aside');
-          const overlay = createMobileSidebarOverlay();
+            // On mobile (< 1024px), use the mobile menu instead of sidebar
+            const isMobile = window.innerWidth < 1024;
             
-            if (sidebar) {
-              const isHidden = sidebar.classList.contains('hidden');
+            if (isMobile) {
+              const mobileMenu = document.getElementById('mobile-menu');
+              if (mobileMenu) {
+                mobileMenu.classList.toggle('hidden');
+              }
+            } else {
+              // Desktop: show/hide sidebar with overlay
+              const sidebar = document.querySelector('aside');
+              const overlay = createMobileSidebarOverlay();
               
-              if (isHidden) {
-                // Show sidebar
-                sidebar.classList.remove('hidden');
-                sidebar.classList.add('fixed', 'top-0', 'left-0', 'z-50', 'h-full');
-                overlay.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-              } else {
-                // Hide sidebar
-                sidebar.classList.add('hidden');
-                sidebar.classList.remove('fixed', 'top-0', 'left-0', 'z-50', 'h-full');
-                overlay.classList.add('hidden');
-                document.body.style.overflow = '';
+              if (sidebar) {
+                const isHidden = sidebar.classList.contains('hidden');
+                
+                if (isHidden) {
+                  // Show sidebar
+                  sidebar.classList.remove('hidden');
+                  sidebar.classList.add('fixed', 'top-0', 'left-0', 'z-50', 'h-full');
+                  overlay.classList.remove('hidden');
+                  document.body.style.overflow = 'hidden';
+                } else {
+                  // Hide sidebar
+                  sidebar.classList.add('hidden');
+                  sidebar.classList.remove('fixed', 'top-0', 'left-0', 'z-50', 'h-full');
+                  overlay.classList.add('hidden');
+                  document.body.style.overflow = '';
+                }
               }
             }
           });
@@ -2440,6 +2631,38 @@
             document.body.appendChild(overlay);
           }
           return overlay;
+        }
+        
+        // Mobile menu navigation - close menu when clicking nav items
+        document.querySelectorAll('#mobile-menu .mobile-nav-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu && !item.getAttribute('href').startsWith('http')) {
+              setTimeout(() => mobileMenu.classList.add('hidden'), 100);
+            }
+          });
+        });
+        
+        // Mobile menu button toggle (hamburger)
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        if (mobileMenuButton) {
+          mobileMenuButton.addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu) {
+              mobileMenu.classList.toggle('hidden');
+            }
+          });
+        }
+        
+        // Mobile logout button
+        const mobileLogoutButton = document.getElementById('mobile-logout-button');
+        if (mobileLogoutButton) {
+          mobileLogoutButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('Are you sure you want to sign out?')) {
+              handleLogout();
+            }
+          });
         }
         
         // Gallery approval functionality
@@ -2893,11 +3116,14 @@
           try {
             switch (hash) {
               case '#overview':
-              case '#analytics':
               case '#':
               case '':
                 console.log('🔗 [HASH] Showing overview...');
                 showOverview();
+                break;
+              case '#analytics':
+                console.log('🔗 [HASH] Showing analytics...');
+                showAnalytics();
                 break;
               case '#gallery-approvals':
                 console.log('🔗 [HASH] Showing gallery approvals...');
@@ -2954,6 +3180,8 @@
           window.showAdvanced = showAdvanced;
           window.showGalleryApprovals = showGalleryApprovals;
           window.showQnA = showQnA;
+          window.showVideos = showVideos;
+          window.showAnalytics = showAnalytics;
           window.showOverview = showOverview;
           window.hideAllSections = hideAllSections;
           
@@ -3081,12 +3309,174 @@
           } catch(_) { showToast('Add failed', 'error'); }
         }
 
+        // Countdown timer for next race
+        let countdownInterval = null;
+        function startCountdownTimer(targetDate) {
+          // Clear any existing countdown
+          if (countdownInterval) {
+            clearInterval(countdownInterval);
+          }
+          
+          function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = targetDate.getTime() - now;
+            
+            if (distance < 0) {
+              // Race has passed
+              clearInterval(countdownInterval);
+              const daysEl = document.getElementById('days');
+              const hoursEl = document.getElementById('hours');
+              const minutesEl = document.getElementById('minutes');
+              const secondsEl = document.getElementById('seconds');
+              if (daysEl) daysEl.textContent = '0';
+              if (hoursEl) hoursEl.textContent = '0';
+              if (minutesEl) minutesEl.textContent = '0';
+              if (secondsEl) secondsEl.textContent = '0';
+              return;
+            }
+            
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            const daysEl = document.getElementById('days');
+            const hoursEl = document.getElementById('hours');
+            const minutesEl = document.getElementById('minutes');
+            const secondsEl = document.getElementById('seconds');
+            
+            if (daysEl) daysEl.textContent = days;
+            if (hoursEl) hoursEl.textContent = hours;
+            if (minutesEl) minutesEl.textContent = minutes;
+            if (secondsEl) secondsEl.textContent = seconds;
+          }
+          
+          // Update immediately
+          updateCountdown();
+          
+          // Update every second
+          countdownInterval = setInterval(updateCountdown, 1000);
+        }
+        
+        // Load analytics data from Firestore
+        async function loadAnalyticsData() {
+          console.log('[Analytics] Loading visitor data...');
+          try {
+            const { getFirestore, collection, getDocs, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            
+            // Get page views from Firestore (last 30 days)
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            const pageViewsQuery = query(
+              collection(db, 'page_views'),
+              orderBy('timestamp', 'desc'),
+              limit(1000)
+            );
+            
+            const snapshot = await getDocs(pageViewsQuery);
+            const pageViews = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+            
+            console.log('[Analytics] Loaded', pageViews.length, 'page views');
+            
+            // Calculate stats
+            const totalViews = pageViews.length;
+            const uniqueVisitors = new Set(pageViews.map(v => v.visitorId || v.sessionId)).size;
+            
+            // Count by page
+            const pageCount = {};
+            pageViews.forEach(v => {
+              const page = v.page || 'Unknown';
+              pageCount[page] = (pageCount[page] || 0) + 1;
+            });
+            
+            // Update the stats in the Analytics section
+            const pageViewsEl = document.querySelector('#analytics-section .grid .bg-slate-800\/30:nth-child(1) .text-2xl');
+            const uniqueVisitorsEl = document.querySelector('#analytics-section .grid .bg-slate-800\/30:nth-child(2) .text-2xl');
+            
+            if (pageViewsEl) pageViewsEl.textContent = totalViews.toLocaleString();
+            if (pageViewsEl) pageViewsEl.className = 'text-2xl font-bold text-white';
+            if (uniqueVisitorsEl) uniqueVisitorsEl.textContent = uniqueVisitors.toLocaleString();
+            if (uniqueVisitorsEl) uniqueVisitorsEl.className = 'text-2xl font-bold text-white';
+            
+            // Show top pages
+            const topPages = Object.entries(pageCount)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 5);
+            
+            console.log('[Analytics] Top pages:', topPages);
+            console.log('[Analytics] Total views:', totalViews, 'Unique visitors:', uniqueVisitors);
+            
+          } catch (error) {
+            console.error('[Analytics] Error loading data:', error);
+          }
+        }
+        
         // Load real Firebase data for all stats
         async function loadRealFirebaseData() {
           try {
-            const { getFirestore, collection, getDocs, query, where } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getFirestore, collection, getDocs, query, where, orderBy } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
+            
+            // Load races count and next race
+            const racesQuery = query(collection(db, 'races'), orderBy('date', 'asc'));
+            const racesSnapshot = await getDocs(racesQuery);
+            const allRaces = racesSnapshot.docs.map(d => ({id: d.id, ...d.data()}));
+            
+            // Filter to 2026 season
+            const currentSeasonRaces = allRaces.filter(r => r.season === 2026);
+            
+            // Update total races count
+            const totalRacesEl = document.getElementById('total-races');
+            if (totalRacesEl) {
+              totalRacesEl.textContent = currentSeasonRaces.length;
+            }
+            
+            // Find next upcoming race
+            const now = new Date();
+            const upcomingRaces = currentSeasonRaces.filter(r => {
+              const raceDate = r.date && r.date.toDate ? r.date.toDate() : new Date(r.date);
+              return raceDate > now;
+            }).sort((a, b) => {
+              const dateA = a.date && a.date.toDate ? a.date.toDate() : new Date(a.date);
+              const dateB = b.date && b.date.toDate ? b.date.toDate() : new Date(b.date);
+              return dateA - dateB;
+            });
+            
+            const nextRaceNameEl = document.getElementById('next-race-name');
+            const raceStatusEl = document.getElementById('race-status');
+            
+            if (upcomingRaces.length > 0) {
+              const nextRace = upcomingRaces[0];
+              if (nextRaceNameEl) {
+                nextRaceNameEl.textContent = nextRace.eventName || nextRace.name || 'Next Race';
+              }
+              if (raceStatusEl) {
+                raceStatusEl.textContent = upcomingRaces.length + ' Upcoming';
+                raceStatusEl.className = 'status-badge status-pending';
+              }
+              
+              // Start countdown for next race
+              const nextRaceDate = nextRace.date && nextRace.date.toDate ? nextRace.date.toDate() : new Date(nextRace.date);
+              startCountdownTimer(nextRaceDate);
+            } else {
+              // No upcoming races
+              if (nextRaceNameEl) {
+                nextRaceNameEl.textContent = 'Season Complete!';
+              }
+              if (raceStatusEl) {
+                raceStatusEl.textContent = '0 Pending';
+                raceStatusEl.className = 'status-badge status-completed';
+              }
+              // Show completion message
+              const countdownEl = document.getElementById('countdown-timer');
+              if (countdownEl) {
+                countdownEl.innerHTML = '<div class="col-span-4 text-center text-slate-400"><i class="fas fa-trophy mr-2 text-yellow-400"></i>Thanks for a great season!</div>';
+              }
+            }
             
             // Load gallery photos count
             const approvedPhotosQuery = query(collection(db, 'gallery_images'), where('approved', '==', true));
@@ -3468,6 +3858,144 @@
           });
         }
         
+        // Load scheduled races from schedule.json
+        async function loadScheduledRaces() {
+          try {
+            // Try multiple paths for compatibility with web and Android WebView
+            let response;
+            try {
+              response = await fetch('data/schedule.json');
+              if (!response.ok) throw new Error('Path 1 failed');
+            } catch {
+              try {
+                response = await fetch('./data/schedule.json');
+                if (!response.ok) throw new Error('Path 2 failed');
+              } catch {
+                response = await fetch('/data/schedule.json');
+              }
+            }
+            const scheduleData = await response.json();
+            console.log('[Admin] Schedule data loaded:', scheduleData);
+            
+            const raceSelect = document.getElementById('race-from-schedule');
+            if (!raceSelect) {
+              console.error('[Admin] race-from-schedule element not found');
+              return;
+            }
+            
+            // Clear existing options except the first one
+            raceSelect.innerHTML = '<option value="">-- Select a scheduled race --</option>';
+            
+            // Validate schedule data structure
+            if (!scheduleData || !scheduleData.seasons) {
+              console.error('[Admin] Invalid schedule data structure:', scheduleData);
+              raceSelect.innerHTML = '<option value="">⚠️ Invalid schedule format</option>';
+              return;
+            }
+            
+            // Find 2026 season
+            const season2026 = scheduleData.seasons.find(s => s.year === 2026);
+            console.log('[Admin] 2026 season found:', season2026);
+            
+            if (!season2026 || !season2026.races) {
+              console.warn('[Admin] No 2026 season or races found');
+              raceSelect.innerHTML = '<option value="">⚠️ No 2026 races found</option>';
+              return;
+            }
+            
+            if (season2026.races.length === 0) {
+              console.warn('[Admin] 2026 season has no races');
+              raceSelect.innerHTML = '<option value="">⚠️ No races in 2026 season</option>';
+              return;
+            }
+            
+            season2026.races.forEach((race, index) => {
+              const option = document.createElement('option');
+              option.value = index;
+              option.dataset.race = JSON.stringify(race);
+              
+              const dateStr = race.date ? new Date(race.date).toLocaleDateString() : 'TBD';
+              const raceName = race.eventName || 'Race';
+              const track = race.track || '';
+              
+              option.textContent = `${dateStr} - ${raceName}${track ? ' @ ' + track : ''}`;
+              raceSelect.appendChild(option);
+            });
+            
+            console.log('[Admin] Successfully loaded schedule with', season2026.races.length, 'races');
+          } catch (error) {
+            console.error('[Admin] Error loading scheduled races:', error);
+            console.error('[Admin] Error details:', error.message, error.stack);
+            
+            // Show more detailed error in dropdown
+            const raceSelect = document.getElementById('race-from-schedule');
+            if (raceSelect) {
+              raceSelect.innerHTML = '<option value="">⚠️ Failed to load schedule - check console</option>';
+            }
+            
+            // Try to show user-friendly message
+            if (typeof showToast === 'function') {
+              showToast('Failed to load schedule: ' + error.message, 'error');
+            } else {
+              alert('Failed to load race schedule. Please check browser console.');
+            }
+          }
+        }
+        
+        // Auto-fill form when schedule race is selected
+        const raceFromScheduleSelect = document.getElementById('race-from-schedule');
+        if (raceFromScheduleSelect) {
+          raceFromScheduleSelect.addEventListener('change', (e) => {
+            const selectedOption = e.target.selectedOptions[0];
+            if (!selectedOption || !selectedOption.dataset.race) return;
+            
+            try {
+              const race = JSON.parse(selectedOption.dataset.race);
+              
+              // Auto-fill form fields
+              if (race.date) {
+                const dateObj = new Date(race.date);
+                document.getElementById('race-date').value = dateObj.toISOString().split('T')[0];
+              }
+              
+              if (race.track) {
+                document.getElementById('race-track-name').value = race.track;
+              }
+              
+              if (race.city && race.state) {
+                document.getElementById('race-track-location').value = `${race.city}, ${race.state}`;
+              }
+              
+              document.getElementById('race-season').value = '2026';
+              
+              // Set race type based on schedule
+              if (race.type) {
+                const typeMap = {
+                  'specialEvent': 'Feature',
+                  'superCup': 'Feature'
+                };
+                document.getElementById('race-type').value = typeMap[race.type] || 'Feature';
+              }
+              
+              showToast('Race details auto-filled from schedule!', 'success');
+            } catch (error) {
+              console.error('Error auto-filling race:', error);
+            }
+          });
+          
+          // Load scheduled races when form is shown
+          if (toggleRaceFormBtn) {
+            const originalClick = toggleRaceFormBtn.onclick;
+            toggleRaceFormBtn.addEventListener('click', () => {
+              setTimeout(() => {
+                if (!raceFormContainer.classList.contains('hidden')) {
+                  loadScheduledRaces();
+                }
+              }, 100);
+            });
+          }
+        }
+        
         // Handle race form submission
         const addRaceForm = document.getElementById('add-race-form');
         if (addRaceForm) {
@@ -3514,7 +4042,7 @@
                 raceDate: document.getElementById('race-date').value,
                 trackName: document.getElementById('race-track-name').value,
                 trackLocation: document.getElementById('race-track-location').value || '',
-                season: document.getElementById('race-season').value,
+                season: parseInt(document.getElementById('race-season').value),
                 raceType: document.getElementById('race-type').value,
                 startPosition: parseInt(document.getElementById('race-start-pos').value) || null,
                 finishPosition: parseInt(document.getElementById('race-finish-pos').value) || null,
@@ -3522,25 +4050,16 @@
                 fastestLap: parseFloat(document.getElementById('race-fastest-lap').value) || null,
                 weather: document.getElementById('race-weather').value || '',
                 notes: document.getElementById('race-notes').value || '',
-                incidents: incidents
+                incidents: incidents,
+                createdAt: new Date(),
+                createdBy: user.uid
               };
               
-              // Submit to Python API
-              const response = await fetch('/api/add-race-result', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(raceData)
-              });
+              // Save to Firestore
+              const { getFirestore, collection, addDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const db = getFirestore(app);
               
-              if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-              }
-              
-              const result = await response.json();
+              await addDoc(collection(db, 'race_results'), raceData);
               
               showToast(`Race result added successfully!`, 'success');
               
@@ -3550,7 +4069,7 @@
               toggleRaceFormBtn.innerHTML = '<i class="fas fa-chevron-down mr-2"></i>Show Form';
               
               // Refresh race list
-              await loadRaceResultsFromAPI();
+              await loadRaceResultsFromFirestore();
               
             } catch (error) {
               console.error('Error adding race:', error);
@@ -3562,46 +4081,113 @@
           });
         }
         
-        // Load race results from new API
-        async function loadRaceResultsFromAPI() {
+        // Load race results from Firestore
+        let isLoadingRaceResults = false;
+        async function loadRaceResultsFromFirestore() {
+          if (isLoadingRaceResults) {
+            console.log('[Admin] loadRaceResultsFromFirestore already in progress, skipping');
+            return;
+          }
+          
+          isLoadingRaceResults = true;
+          console.log('[Admin] loadRaceResultsFromFirestore called');
           const tbody = document.getElementById('races-table-body');
-          if (!tbody) return;
+          if (!tbody) {
+            console.error('[Admin] races-table-body element not found');
+            isLoadingRaceResults = false;
+            return;
+          }
+          
+          // Show loading state
+          tbody.innerHTML = '<tr class="table-row"><td colspan="8" class="p-4 text-center text-slate-400"><i class="fas fa-spinner fa-spin mr-2"></i>Loading races...</td></tr>';
           
           try {
-            const seasonFilter = document.getElementById('race-filter-season')?.value || '2025';
+            const { getFirestore, collection, query, where, orderBy, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            
+            const seasonFilterElement = document.getElementById('race-filter-season');
+            const seasonFilter = seasonFilterElement?.value || '2026';
             const driverFilter = document.getElementById('race-filter-driver')?.value || '';
             
-            let url = '/api/race-analytics';
-            const params = new URLSearchParams();
+            // Get all race results (no index needed)
+            const q = collection(db, 'race_results');
+            const snapshot = await getDocs(q);
+            console.log('[Admin] Fetched', snapshot.docs.length, 'race results from Firestore');
             
-            if (driverFilter) {
-              params.append('driverId', driverFilter);
-            } else {
-              // Load both drivers
-              params.append('driverId', 'jon_kirsch');
-            }
+            // Get all races for stats calculation
+            const allRaces = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            console.log('[Admin] All races:', allRaces);
             
-            if (seasonFilter) {
-              params.append('season', seasonFilter);
-            }
-            
-            const response = await fetch(`${url}?${params}`);
-            if (!response.ok) throw new Error('Failed to fetch race results');
-            
-            const data = await response.json();
-            tbody.innerHTML = '';
-            
-            if (!data.races || data.races.length === 0) {
-              tbody.innerHTML = '<tr class="table-row"><td colspan="8" class="p-4 text-center text-slate-400">No races found. Add one above!</td></tr>';
+            // If no race results exist at all
+            if (allRaces.length === 0) {
+              tbody.innerHTML = '<tr class="table-row"><td colspan="8" class="p-4 text-center text-slate-400"><i class="fas fa-info-circle mr-2"></i>No race results in database. Add your first race result using the form above!</td></tr>';
+              // Reset stats to 0
+              const statsTotal = document.getElementById('race-stats-total');
+              const statsSeason = document.getElementById('race-stats-season');
+              const statsJonWins = document.getElementById('race-stats-jon-wins');
+              const statsJonnyWins = document.getElementById('race-stats-jonny-wins');
+              if (statsTotal) statsTotal.textContent = '0';
+              if (statsSeason) statsSeason.textContent = '0';
+              if (statsJonWins) statsJonWins.textContent = '0';
+              if (statsJonnyWins) statsJonnyWins.textContent = '0';
+              isLoadingRaceResults = false;
               return;
             }
             
-            // Update stats
-            document.getElementById('race-stats-total').textContent = data.totalRaces || 0;
-            document.getElementById('race-stats-season').textContent = data.totalRaces || 0;
+            // Calculate overall stats
+            const totalRaces = allRaces.length;
+            const jonWins = allRaces.filter(r => r.driverId === 'jon_kirsch' && r.finishPosition === 1).length;
+            const jonnyWins = allRaces.filter(r => r.driverId === 'jonny_kirsch' && r.finishPosition === 1).length;
+            const seasonRaces = allRaces.filter(r => r.season === parseInt(seasonFilter || 2026)).length;
+            
+            // Update stats display (with null checks)
+            const statsTotal = document.getElementById('race-stats-total');
+            const statsSeason = document.getElementById('race-stats-season');
+            const statsJonWins = document.getElementById('race-stats-jon-wins');
+            const statsJonnyWins = document.getElementById('race-stats-jonny-wins');
+            
+            if (statsTotal) statsTotal.textContent = totalRaces;
+            if (statsSeason) statsSeason.textContent = seasonRaces;
+            if (statsJonWins) statsJonWins.textContent = jonWins;
+            if (statsJonnyWins) statsJonnyWins.textContent = jonnyWins;
+            
+            // Filter and sort for table display
+            let races = [...allRaces];
+            
+            // Apply filters
+            if (seasonFilter && seasonFilter !== '') {
+              races = races.filter(r => r.season === parseInt(seasonFilter));
+            }
+            
+            if (driverFilter) {
+              races = races.filter(r => r.driverId === driverFilter);
+            }
             
             // Sort by date descending
-            const races = data.races.sort((a, b) => new Date(b.raceDate) - new Date(a.raceDate));
+            races.sort((a, b) => {
+              const dateA = new Date(a.raceDate);
+              const dateB = new Date(b.raceDate);
+              return dateB - dateA;
+            });
+            
+            console.log('[Admin] After filtering and sorting, displaying', races.length, 'races');
+            
+            tbody.innerHTML = '';
+            
+            if (races.length === 0) {
+              console.warn('[Admin] No races to display after filters');
+              console.warn('[Admin] Season filter:', seasonFilter, 'Driver filter:', driverFilter);
+              console.warn('[Admin] Total races before filtering:', allRaces.length);
+              const filterMsg = seasonFilter && driverFilter ? 
+                `No races found for ${driverFilter} in ${seasonFilter} season.` :
+                seasonFilter ? `No races found for ${seasonFilter} season.` :
+                driverFilter ? `No races found for ${driverFilter}.` :
+                'No races found.';
+              tbody.innerHTML = `<tr class="table-row"><td colspan="8" class="p-4 text-center text-slate-400"><i class="fas fa-filter mr-2"></i>${filterMsg} Try changing the filters or add a race result above!</td></tr>`;
+              isLoadingRaceResults = false;
+              return;
+            }
             
             races.forEach(race => {
               const tr = document.createElement('tr');
@@ -3630,9 +4216,16 @@
               tbody.appendChild(tr);
             });
             
+            
+            console.log('[Admin] Successfully rendered', races.length, 'race rows');
           } catch (error) {
-            console.error('Error loading races:', error);
-            tbody.innerHTML = '<tr class="table-row"><td colspan="8" class="p-4 text-center text-red-400">Error loading races. Please try again.</td></tr>';
+            console.error('[Admin] Error loading races:', error);
+            console.error('[Admin] Error stack:', error.stack);
+            if (tbody) {
+              tbody.innerHTML = '<tr class="table-row"><td colspan="8" class="p-4 text-center text-red-400">Error loading races: ' + error.message + '</td></tr>';
+            }
+          } finally {
+            isLoadingRaceResults = false;
           }
         }
         
@@ -3644,29 +4237,29 @@
         // Refresh races button
         const refreshRacesBtn = document.getElementById('refresh-races-btn');
         if (refreshRacesBtn) {
-          refreshRacesBtn.addEventListener('click', loadRaceResultsFromAPI);
+          refreshRacesBtn.addEventListener('click', () => {
+            try { loadRaceTable(); } catch(e) { console.error('Failed to refresh races:', e); }
+          });
         }
         
-        // Filter change handlers
+        // Filter change handlers for race schedule
         const raceFilterSeason = document.getElementById('race-filter-season');
         const raceFilterDriver = document.getElementById('race-filter-driver');
         
         if (raceFilterSeason) {
-          raceFilterSeason.addEventListener('change', loadRaceResultsFromAPI);
+          raceFilterSeason.addEventListener('change', () => {
+            try { loadRaceTable(); } catch(e) { console.error('Failed to filter races:', e); }
+          });
         }
         
         if (raceFilterDriver) {
-          raceFilterDriver.addEventListener('change', loadRaceResultsFromAPI);
+          raceFilterDriver.addEventListener('change', () => {
+            try { loadRaceTable(); } catch(e) { console.error('Failed to filter races:', e); }
+          });
         }
         
-        // Load races when race section is shown
-        const originalShowRace = window.showRace;
-        window.showRace = function() {
-          if (originalShowRace) originalShowRace();
-          setTimeout(() => {
-            loadRaceResultsFromAPI();
-          }, 100);
-        };
+        // showRace is already modified earlier in the file to call loadRaceResultsFromFirestore
+        // No need to wrap it again here
         
         // Enhanced error handling
         window.addEventListener('error', (e) => {

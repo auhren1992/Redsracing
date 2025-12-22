@@ -3,131 +3,70 @@ package com.redsracing.app
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.LinearGradient
+import android.graphics.Shader
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import android.widget.TextView
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Message
 import android.provider.MediaStore
-import android.webkit.CookieManager
-import android.webkit.MimeTypeMap
-import android.webkit.ValueCallback
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.animation.AnimationUtils
+import android.webkit.*
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.activity.OnBackPressedCallback
-import androidx.drawerlayout.widget.DrawerLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.webkit.WebViewAssetLoader
-import com.google.android.material.navigation.NavigationView
-import com.redsracing.app.databinding.ActivityMainBinding
+import com.redsracing.app.databinding.ActivityMainBottomNavBinding
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityMainBottomNavBinding
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var cameraPhotoUri: Uri? = null
-
     private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Android 12+ splash screen API (with compat on older versions)
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityMainBottomNavBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Enable remote debugging for WebView (inspect via chrome://inspect)
         WebView.setWebContentsDebuggingEnabled(true)
-
-        // Drawer + toolbar setup
-        val toggle = ActionBarDrawerToggle(
-            this,
-            binding.drawerLayout,
-            binding.toolbar,
-            0, 0
-        )
-        binding.drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
-
-        binding.navView.setNavigationItemSelectedListener { item ->
-            // Use local assets for offline support and independence from website
-            val base = "https://appassets.androidplatform.net/assets/www/"
-            when (item.itemId) {
-                // Home
-                R.id.nav_home -> binding.webview.loadUrl(base + "index.html")
-                
-                // Drivers section
-                R.id.nav_driver_jon -> binding.webview.loadUrl(base + "driver.html")
-                R.id.nav_jon_gallery -> binding.webview.loadUrl(base + "gallery.html")
-                R.id.nav_driver_jonny -> binding.webview.loadUrl(base + "jonny.html")
-                R.id.nav_jonny_gallery -> binding.webview.loadUrl(base + "jonny-gallery.html")
-                R.id.nav_jonny_results -> binding.webview.loadUrl(base + "jonny-results.html")
-                R.id.nav_legends -> binding.webview.loadUrl(base + "legends.html")
-                
-                // Racing section
-                R.id.nav_schedule -> binding.webview.loadUrl(base + "schedule.html")
-                R.id.nav_leaderboard -> binding.webview.loadUrl(base + "leaderboard.html")
-                R.id.nav_gallery -> binding.webview.loadUrl(base + "gallery.html")
-                R.id.nav_videos -> binding.webview.loadUrl(base + "videos.html")
-                
-                // Community section
-                R.id.nav_qna -> binding.webview.loadUrl(base + "qna.html")
-                R.id.nav_feedback -> binding.webview.loadUrl(base + "feedback.html")
-                R.id.nav_sponsorship -> binding.webview.loadUrl(base + "sponsorship.html")
-                
-                // Admin section - all link to admin console with specific fragments
-                R.id.nav_admin_overview -> binding.webview.loadUrl(base + "admin-console.html#overview")
-                R.id.nav_admin_analytics -> binding.webview.loadUrl(base + "admin-console.html#analytics")
-                R.id.nav_admin_race -> binding.webview.loadUrl(base + "admin-console.html#race")
-                R.id.nav_admin_media -> binding.webview.loadUrl(base + "admin-console.html#media")
-                R.id.nav_admin_videos -> binding.webview.loadUrl(base + "admin-console.html#videos")
-                R.id.nav_admin_qna -> binding.webview.loadUrl(base + "admin-console.html#qna")
-                R.id.nav_admin_team -> binding.webview.loadUrl(base + "admin-console.html#advanced")
-                R.id.nav_admin_logs -> binding.webview.loadUrl(base + "admin-console.html#logs")
-                R.id.nav_admin_settings -> binding.webview.loadUrl(base + "settings.html")
-                
-                // Profile and Authentication
-                R.id.nav_profile -> binding.webview.loadUrl(base + "profile.html")
-                R.id.nav_login -> binding.webview.loadUrl(base + "login.html")
-                R.id.nav_signout -> {
-                    binding.webview.evaluateJavascript("try{localStorage.clear(); sessionStorage.clear(); if(window.AndroidAuth&&AndroidAuth.onLogout){AndroidAuth.onLogout();}}catch(e){}", null)
-                    binding.webview.loadUrl(base + "index.html")
-                }
-            }
-            binding.drawerLayout.closeDrawers()
-            true
-        }
+        
+        // Remove navigation icon from toolbar
+        binding.toolbar.navigationIcon = null
+        
+        // Set gradient text for toolbar title
+        setupToolbarGradient()
 
         createNotificationChannel()
 
-        // Register activity result launchers before any use
         permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
-        ) { result ->
-            // Permissions result handled as needed
-        }
+        ) { }
 
         fileChooserLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -135,7 +74,6 @@ class MainActivity : AppCompatActivity() {
             val resultData = activityResult.data
             val results = mutableListOf<Uri>()
 
-            // Camera capture result
             cameraPhotoUri?.let { uri ->
                 if (activityResult.resultCode == RESULT_OK) {
                     results.add(uri)
@@ -143,7 +81,6 @@ class MainActivity : AppCompatActivity() {
                 cameraPhotoUri = null
             }
 
-            // File(s) picked from gallery or documents
             if (resultData != null && activityResult.resultCode == RESULT_OK) {
                 val clipData = resultData.clipData
                 val dataUri = resultData.data
@@ -161,23 +98,177 @@ class MainActivity : AppCompatActivity() {
         }
 
         requestNotificationPermissionIfNeeded()
-
+        clearCacheIfVersionChanged()
         setupWebView(binding.webview)
+        setupBottomNavigation()
+        setupMenuOverlay()
 
-        // Handle system back using OnBackPressedDispatcher
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (binding.drawerLayout.isDrawerOpen(androidx.core.view.GravityCompat.START)) {
-                    binding.drawerLayout.closeDrawers(); return
+                if (binding.root.findViewById<View>(R.id.menu_overlay)?.visibility == View.VISIBLE) {
+                    hideMenuOverlay()
+                    return
                 }
                 if (binding.webview.canGoBack()) binding.webview.goBack() else finish()
             }
         })
+
+        // Load home page
+        binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
+    }
+
+    private fun setupToolbarGradient() {
+        // Find the TextView inside the toolbar
+        for (i in 0 until binding.toolbar.childCount) {
+            val child = binding.toolbar.getChildAt(i)
+            if (child is TextView) {
+                child.post {
+                    val paint = child.paint
+                    val width = paint.measureText(child.text.toString())
+                    val shader = LinearGradient(
+                        0f, 0f, width, 0f,
+                        intArrayOf(
+                            0xFF3b82f6.toInt(),  // Blue
+                            0xFFfbbf24.toInt()   // Yellow
+                        ),
+                        null,
+                        Shader.TileMode.CLAMP
+                    )
+                    child.paint.shader = shader
+                }
+                break
+            }
+        }
+    }
+
+    private fun setupBottomNavigation() {
+        binding.bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
+                    hideMenuOverlay()
+                    true
+                }
+                R.id.nav_drivers -> {
+                    showDriversMenu()
+                    true
+                }
+                R.id.nav_racing -> {
+                    showRacingMenu()
+                    true
+                }
+                R.id.nav_community -> {
+                    showCommunityMenu()
+                    true
+                }
+                R.id.nav_more -> {
+                    showMoreMenu()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun setupMenuOverlay() {
+        val overlay = layoutInflater.inflate(R.layout.menu_overlay, binding.root as ViewGroup, false)
+        (binding.root as ViewGroup).addView(overlay)
+        
+        overlay.setOnClickListener {
+            hideMenuOverlay()
+        }
+    }
+
+    private fun showDriversMenu() {
+        val items = listOf(
+            MenuItem("🏎️", "Jon Kirsch #8 - Profile", "driver.html"),
+            MenuItem("📸", "Jon Kirsch #8 - Gallery", "gallery.html"),
+            MenuItem("📊", "Jon Kirsch #8 - Race Results", "jons.html"),
+            MenuItem("🏎️", "Jonny Kirsch #88 - Profile", "jonny.html"),
+            MenuItem("📸", "Jonny Kirsch #88 - Gallery", "jonny-gallery.html"),
+            MenuItem("📊", "Jonny Kirsch #88 - Results", "jonny-results.html"),
+            MenuItem("🏆", "Team Legends", "legends.html")
+        )
+        showMenuOverlay("Drivers", items)
+    }
+
+    private fun showRacingMenu() {
+        val items = listOf(
+            MenuItem("📅", "Schedule", "schedule.html"),
+            MenuItem("🏆", "Leaderboard", "leaderboard.html"),
+            MenuItem("📸", "Gallery", "gallery.html"),
+            MenuItem("🎥", "Videos", "videos.html")
+        )
+        showMenuOverlay("Racing", items)
+    }
+
+    private fun showCommunityMenu() {
+        val items = listOf(
+            MenuItem("❓", "Q&A", "qna.html"),
+            MenuItem("💬", "Feedback", "feedback.html"),
+            MenuItem("💰", "Sponsorship", "sponsorship.html")
+        )
+        showMenuOverlay("Community", items)
+    }
+
+    private fun showMoreMenu() {
+        val items = listOf(
+            MenuItem("👤", "My Profile", "profile.html"),
+            MenuItem("🔐", "Sign In", "login.html"),
+            MenuItem("⚙️", "Settings", "settings.html"),
+            MenuItem("📊", "Admin Console", "admin-console.html")
+        )
+        showMenuOverlay("More", items)
+    }
+
+    private fun showMenuOverlay(title: String, items: List<MenuItem>) {
+        val overlay = binding.root.findViewById<View>(R.id.menu_overlay)
+        val menuTitle = overlay.findViewById<TextView>(R.id.menu_title)
+        val recyclerView = overlay.findViewById<RecyclerView>(R.id.menu_items)
+
+        menuTitle.text = title
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = MenuAdapter(items) { item ->
+            binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/${item.url}")
+            hideMenuOverlay()
+        }
+
+        overlay.visibility = View.VISIBLE
+        val fadeIn = AnimationUtils.loadAnimation(this, android.R.anim.fade_in)
+        overlay.startAnimation(fadeIn)
+    }
+
+    private fun hideMenuOverlay() {
+        val overlay = binding.root.findViewById<View>(R.id.menu_overlay)
+        val fadeOut = AnimationUtils.loadAnimation(this, android.R.anim.fade_out)
+        overlay.startAnimation(fadeOut)
+        overlay.visibility = View.GONE
+    }
+
+    private fun clearCacheIfVersionChanged() {
+        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val savedVersion = prefs.getInt("app_version_code", -1)
+        val currentVersion = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0)).longVersionCode.toInt()
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, 0).versionCode
+            }
+        } catch (e: Exception) {
+            -1
+        }
+
+        if (savedVersion != currentVersion && currentVersion > 0) {
+            binding.webview.clearCache(true)
+            binding.webview.clearHistory()
+            prefs.edit().putInt("app_version_code", currentVersion).apply()
+            Toast.makeText(this, "App updated - loading new content", Toast.LENGTH_SHORT).show()
+        }
     }
 
     @Suppress("SetJavaScriptEnabled")
     private fun setupWebView(webView: WebView) {
-        // Serve app assets over a safe, consistent origin to avoid CORS/cookie issues
         val assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
             .build()
@@ -185,6 +276,7 @@ class MainActivity : AppCompatActivity() {
         with(webView.settings) {
             javaScriptEnabled = true
             domStorageEnabled = true
+            @Suppress("DEPRECATION")
             databaseEnabled = true
             allowFileAccess = true
             allowContentAccess = true
@@ -205,7 +297,6 @@ class MainActivity : AppCompatActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest): WebResourceResponse? {
                 val url = request.url
-                // Intercept appassets host; map missing "/assets/" prefix to our assets/www folder
                 if (url.host == "appassets.androidplatform.net") {
                     val path = url.encodedPath ?: "/"
                     if (path == "/favicon.ico") {
@@ -222,10 +313,6 @@ class MainActivity : AppCompatActivity() {
                     }
                     return assetLoader.shouldInterceptRequest(url)
                 }
-                if (url.host == "www.redsracing.org" && url.encodedPath == "/favicon.ico") {
-                    val favicon = Uri.parse("https://appassets.androidplatform.net/assets/www/favicon.svg")
-                    return assetLoader.shouldInterceptRequest(favicon)
-                }
                 return super.shouldInterceptRequest(view, request)
             }
 
@@ -233,7 +320,6 @@ class MainActivity : AppCompatActivity() {
                 val url = request?.url ?: return false
                 val urlStr = url.toString()
 
-                // Open OAuth/external intents in browser to avoid WebView restrictions
                 if (url.host?.endsWith("google.com") == true || urlStr.startsWith("intent:") || urlStr.startsWith("market:")) {
                     return try {
                         startActivity(Intent(Intent.ACTION_VIEW, url))
@@ -243,9 +329,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                // Allow all pages to load from local assets for offline support
-
-                // Keep http/https/file in WebView
                 return when {
                     urlStr.startsWith("http://") || urlStr.startsWith("https://") || urlStr.startsWith("file://") -> false
                     urlStr.startsWith("tel:") || urlStr.startsWith("mailto:") -> {
@@ -256,132 +339,82 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                super.onPageStarted(view, url, favicon)
-            }
-
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                // If launched as guest, set a flag in localStorage for the web app
-                if (intent.getBooleanExtra("guest", false)) {
-                    view?.evaluateJavascript("try{localStorage.setItem('guest','1');}catch(e){}", null)
-                }
-                // If user session is present in localStorage, persist remember choice in app
-                val persistLoginJs = """
-                    (function(){
-                      try{
-                        var uid = localStorage.getItem('rr_auth_uid');
-                        if(uid && window.AndroidAuth && AndroidAuth.onLoginSuccess){ AndroidAuth.onLoginSuccess(); }
-                      }catch(e){}
-                    })();
-                """.trimIndent()
-                view?.evaluateJavascript(persistLoginJs, null)
-
-                // Ensure a visible Sign Out is available inside mobile menu/hamburger
-                val injectSignOutJs = """
-                    (function(){
-                      try{
-                        var panel = document.getElementById('mobile-menu-dropdown') || document.getElementById('mobile-menu');
-                        if(!panel) return;
-                        if(!document.getElementById('rr-signout-hamburger')){
-                          var btn = document.createElement('a');
-                          btn.id = 'rr-signout-hamburger';
-                          btn.href = '#';
-                          btn.textContent = 'Sign Out';
-                          btn.style.display = 'block';
-                          btn.style.padding = '10px 16px';
-                          btn.style.color = '#fca5a5';
-                          btn.style.fontWeight = '600';
-                          btn.style.borderTop = '1px solid rgba(100,116,139,0.5)';
-                          panel.appendChild(btn);
-                          btn.addEventListener('click', async function(e){
-                            try{ e.preventDefault(); }catch(_){}
-                            try{
-                              // Try Firebase signOut (CDN v9 compat)
-                              const { getAuth, signOut } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
-                              try { await signOut(getAuth()); } catch(_){ try{ await getAuth().signOut(); }catch(_){} }
-                            }catch(_){ }
-                            try{ localStorage.clear(); sessionStorage.clear(); }catch(_){}
-                            try{ if (window.AndroidAuth && AndroidAuth.onLogout) AndroidAuth.onLogout(); }catch(_){}
-                            try{ window.location.href = 'login.html'; }catch(_){}
-                          }, {passive:false});
-                        }
-                      }catch(_){ }
-                    })();
-                """.trimIndent()
-                view?.evaluateJavascript(injectSignOutJs, null)
-                // Inject generic hamburger/menu toggle fixer for pages that rely on JS/CSS toggles
-                val js = """
-                    (function(){
-                      function findMenu(){
-                        return document.getElementById('mobile-menu') ||
-                               document.querySelector('#mobile-menu-dropdown') ||
-                               document.querySelector('.mobile-menu') ||
-                               document.querySelector('nav .menu') ||
-                               document.querySelector('.nav-menu') ||
-                               document.getElementById('menu');
-                      }
-                      function toggle(btn){
-                        var m = findMenu(); if(!m) return;
-                        // Ensure panel is visible on top
-                        try{ m.style.zIndex = 10000; }catch(_){ }
-                        if (m.classList) m.classList.toggle('hidden');
-                        var st = window.getComputedStyle(m).display;
-                        if (st === 'none') { m.style.display='block'; } else if (!m.classList.contains('hidden')) { m.style.display='none'; }
-                        // Update aria
-                        try { if(btn) btn.setAttribute('aria-expanded', String(!(m.classList&&m.classList.contains('hidden')))); } catch(_){}
-                      }
-                      var selectors = ['#mobile-menu-button','#menu-toggle','#hamburger','.hamburger','.menu-toggle','.nav-toggle','.menu-btn','[aria-controls]'];
-                      selectors.forEach(function(s){
-                        Array.prototype.forEach.call(document.querySelectorAll(s), function(btn){
-                          // De-dupe: replace node to clear old handlers
-                          try { var clone = btn.cloneNode(true); btn.parentNode.replaceChild(clone, btn); btn = clone; } catch(_){ }
-                          btn.addEventListener('click', function(e){ try{ e.preventDefault(); e.stopPropagation(); }catch(_){} toggle(btn); }, {passive:false});
-                          btn.addEventListener('touchstart', function(e){ try{ e.preventDefault(); e.stopPropagation(); }catch(_){} toggle(btn); }, {passive:false});
-                        });
-                      });
-                    })();
-                """.trimIndent()
-                view?.evaluateJavascript(js, null)
                 
-                // Hide website navigation and let app use its own drawer navigation
-                val hideWebsiteNavJS = """
+                // Hide website navigation and add bottom padding for bottom nav
+                val hideNavJS = """
                     (function(){
-                        // Hide the website's navigation header completely
                         setTimeout(function() {
                             var header = document.querySelector('header');
                             if (header) {
                                 header.style.display = 'none';
+                                header.style.visibility = 'hidden';
+                                header.style.height = '0';
+                                header.style.overflow = 'hidden';
                             }
-                            
-                            // Hide any navigation elements
-                            var navElements = document.querySelectorAll('nav, .nav, .navbar, .navigation, .header-nav');
-                            navElements.forEach(function(nav) {
-                                nav.style.display = 'none';
+                            // Remove any stray text nodes at the top of body
+                            var walker = document.createTreeWalker(
+                                document.body,
+                                NodeFilter.SHOW_TEXT,
+                                null,
+                                false
+                            );
+                            var textNodesToRemove = [];
+                            var node;
+                            while (node = walker.nextNode()) {
+                                var parent = node.parentNode;
+                                if (parent && parent.tagName !== 'SCRIPT' && parent.tagName !== 'STYLE') {
+                                    var text = node.textContent.trim();
+                                    if (text && text.length < 5 && !parent.closest('main')) {
+                                        textNodesToRemove.push(node);
+                                    }
+                                }
+                            }
+                            textNodesToRemove.forEach(function(n) {
+                                n.textContent = '';
                             });
-                            
-                            // Adjust body padding/margin since header is hidden
                             document.body.style.paddingTop = '0';
                             document.body.style.marginTop = '0';
-                            
-                            // Adjust main content positioning
-                            var mainElements = document.querySelectorAll('main, .main-content, .content');
+                            document.body.style.paddingBottom = '120px';
+                            document.body.style.overflow = 'visible';
+                            var mainElements = document.querySelectorAll('main');
                             mainElements.forEach(function(main) {
                                 main.style.marginTop = '0';
                                 main.style.paddingTop = '0';
+                                main.style.paddingBottom = '120px';
                             });
-                            
-                            console.log('Website navigation hidden - using Android drawer navigation');
+                            var heroSection = document.querySelector('.modern-hero, section');
+                            if (heroSection) {
+                                heroSection.style.minHeight = 'auto';
+                                heroSection.style.paddingTop = '100px';
+                                heroSection.style.paddingBottom = '200px';
+                            }
+                            var ctaButtons = document.querySelector('.flex.flex-col.sm\\:flex-row');
+                            if (ctaButtons) {
+                                ctaButtons.style.flexDirection = 'column';
+                                ctaButtons.style.width = '100%';
+                                ctaButtons.style.marginBottom = '150px';
+                                ctaButtons.style.gap = '16px';
+                                var buttons = ctaButtons.querySelectorAll('a');
+                                buttons.forEach(function(btn) {
+                                    btn.style.width = '100%';
+                                    btn.style.maxWidth = '400px';
+                                    btn.style.display = 'block';
+                                    btn.style.textAlign = 'center';
+                                    btn.style.visibility = 'visible';
+                                    btn.style.opacity = '1';
+                                });
+                            }
                         }, 100);
                     })();
                 """.trimIndent()
-                view?.evaluateJavascript(hideWebsiteNavJS, null)
+                view?.evaluateJavascript(hideNavJS, null)
             }
         }
 
         webView.webChromeClient = object : WebChromeClient() {
             override fun onCreateWindow(view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message?): Boolean {
-                // Handle target="_blank" and window.open by loading URL in the same WebView
                 val context = view?.context ?: return false
                 val tempWebView = WebView(context)
                 tempWebView.settings.javaScriptEnabled = true
@@ -404,49 +437,34 @@ class MainActivity : AppCompatActivity() {
                 fileChooserParams: FileChooserParams?
             ): Boolean {
                 this@MainActivity.filePathCallback = filePathCallback
-
-                // Ensure permissions before opening chooser
                 ensureMediaAndCameraPermissions()
-
                 val captureIntent = createCameraIntent()
-
                 val contentIntent = Intent(Intent.ACTION_GET_CONTENT).apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
                     type = "image/*"
                     putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                 }
-
                 val intentArray = arrayOfNulls<Intent>(if (captureIntent != null) 1 else 0)
                 captureIntent?.let { intentArray[0] = it }
-
                 val chooser = Intent(Intent.ACTION_CHOOSER).apply {
                     putExtra(Intent.EXTRA_INTENT, contentIntent)
                     if (intentArray.isNotEmpty()) putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray)
                     putExtra(Intent.EXTRA_TITLE, "Select or capture image")
                 }
-
                 fileChooserLauncher.launch(chooser)
                 return true
             }
         }
 
-        // JS interface for simple local notifications and auth callbacks
         webView.addJavascriptInterface(NotificationsBridge(this), "AndroidNotifications")
         webView.addJavascriptInterface(AuthBridge(this), "AndroidAuth")
-
-        // Load from local assets for independence from website
-        var initialUrl = intent.getStringExtra("initialUrl") ?: "https://appassets.androidplatform.net/assets/www/index.html"
-        if (initialUrl.startsWith("file:///android_asset/")) {
-            initialUrl = initialUrl.replace("file:///android_asset/", "https://appassets.androidplatform.net/assets/")
-        }
-        binding.webview.loadUrl(initialUrl)
     }
 
     private fun ensureMediaAndCameraPermissions() {
         val needed = mutableListOf<String>()
-        val hasCamera = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-        if (!hasCamera) needed.add(Manifest.permission.CAMERA)
-
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            needed.add(Manifest.permission.CAMERA)
+        }
         if (Build.VERSION.SDK_INT >= 33) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
                 needed.add(Manifest.permission.READ_MEDIA_IMAGES)
@@ -456,7 +474,6 @@ class MainActivity : AppCompatActivity() {
                 needed.add(Manifest.permission.READ_EXTERNAL_STORAGE)
             }
         }
-
         if (needed.isNotEmpty()) {
             permissionLauncher.launch(needed.toTypedArray())
         }
@@ -465,19 +482,13 @@ class MainActivity : AppCompatActivity() {
     private fun createCameraIntent(): Intent? {
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         if (takePictureIntent.resolveActivity(packageManager) == null) return null
-
         val photoFile = try {
             createImageFile()
         } catch (ex: IOException) {
             null
         }
-
         return if (photoFile != null) {
-            val photoURI = FileProvider.getUriForFile(
-                this,
-                "com.example.redsracing.fileprovider",
-                photoFile
-            )
+            val photoURI = FileProvider.getUriForFile(this, "com.example.redsracing.fileprovider", photoFile)
             cameraPhotoUri = photoURI
             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
             takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -491,13 +502,8 @@ class MainActivity : AppCompatActivity() {
     private fun createImageFile(): File {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile(
-            "JPEG_${'$'}timeStamp_",
-            ".jpg",
-            storageDir
-        )
+        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
     }
-
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -520,23 +526,45 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+data class MenuItem(val icon: String, val title: String, val url: String)
+
+class MenuAdapter(
+    private val items: List<MenuItem>,
+    private val onClick: (MenuItem) -> Unit
+) : RecyclerView.Adapter<MenuAdapter.ViewHolder>() {
+
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val icon: TextView = view.findViewById(R.id.item_icon)
+        val title: TextView = view.findViewById(R.id.item_title)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.menu_item_card, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val item = items[position]
+        holder.icon.text = item.icon
+        holder.title.text = item.title
+        holder.itemView.setOnClickListener { onClick(item) }
+    }
+
+    override fun getItemCount() = items.size
+}
+
 class AuthBridge(private val context: Context) {
     private val prefs by lazy { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
 
     @android.webkit.JavascriptInterface
     fun onLoginSuccess() {
-        prefs.edit()
-            .putBoolean("remember_choice", true)
-            .putString("mode", "signin")
-            .apply()
+        prefs.edit().putBoolean("remember_choice", true).putString("mode", "signin").apply()
     }
 
     @android.webkit.JavascriptInterface
     fun onLogout() {
-        prefs.edit()
-            .remove("remember_choice")
-            .remove("mode")
-            .apply()
+        prefs.edit().remove("remember_choice").remove("mode").apply()
     }
 }
 

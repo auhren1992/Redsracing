@@ -16,7 +16,10 @@
                     android:id="@+id/nav_jon_gallery" 
                     android:title="• Jon Kirsch #8 - Gallery" />
                 <item 
-                    android:id="@+id/nav_driver_jonny" 
+                    android:id="@+id/nav_jon_results" 
+                    android:title="• Jon Kirsch #8 - Race Results" />
+                <item 
+                    android:id="@+id/nav_driver_jonny"
                     android:title="• Jonny Kirsch #88 - Profile" />
                 <item 
                     android:id="@+id/nav_jonny_gallery" 
