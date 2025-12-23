@@ -305,9 +305,15 @@ class MainActivity : AppCompatActivity() {
         if (savedVersion != currentVersion && currentVersion > 0) {
             binding.webview.clearCache(true)
             binding.webview.clearHistory()
+            CookieManager.getInstance().removeAllCookies(null)
+            CookieManager.getInstance().flush()
             prefs.edit().putInt("app_version_code", currentVersion).apply()
             Toast.makeText(this, "App updated - loading new content", Toast.LENGTH_SHORT).show()
         }
+        
+        // Always clear cache for now to ensure latest content
+        // TODO: Remove this after stable release
+        binding.webview.clearCache(true)
     }
 
     @Suppress("SetJavaScriptEnabled")
