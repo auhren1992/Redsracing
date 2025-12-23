@@ -20,6 +20,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
+    <!-- Analytics Tracker -->
+    <script type="module" src="assets/js/analytics-tracker.js"></script>
+    
     <style>
       * {
         margin: 0;
@@ -570,11 +573,12 @@
         let firstRaceDate = new Date('2026-05-25T00:00:00').getTime(); // Default fallback
         let raceInfo = 'FIRST RACE: SPRING CLASSIC - GRUNDY COUNTY SPEEDWAY'; // Default fallback
 
-        // Fetch first race from Firestore
+        // Fetch first race from Firestore (excluding special events)
         async function loadFirstRace() {
           try {
             const raceSnapshot = await db.collection('races')
               .where('season', '==', 2026)
+              .where('type', '==', 'superCup')
               .orderBy('date', 'asc')
               .limit(1)
               .get();
