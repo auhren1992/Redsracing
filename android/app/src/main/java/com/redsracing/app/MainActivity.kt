@@ -314,6 +314,25 @@ class MainActivity : AppCompatActivity() {
         // Always clear cache for now to ensure latest content
         // TODO: Remove this after stable release
         binding.webview.clearCache(true)
+        
+        // Also clear form data and all storage
+        binding.webview.clearFormData()
+        binding.webview.clearMatches()
+        binding.webview.clearSslPreferences()
+        
+        // Clear localStorage and sessionStorage via JavaScript
+        binding.webview.evaluateJavascript(
+            """(function() {
+                try {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    console.log('Storage cleared');
+                } catch(e) {
+                    console.error('Storage clear error:', e);
+                }
+            })();""",
+            null
+        )
     }
 
     @Suppress("SetJavaScriptEnabled")
