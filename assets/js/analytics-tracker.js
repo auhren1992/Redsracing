@@ -32,17 +32,25 @@ async function trackPageView() {
     
     const db = getFirestore();
     
+    // Helper function to generate cryptographically secure random ID
+    function generateSecureId(prefix) {
+      const array = new Uint32Array(2);
+      crypto.getRandomValues(array);
+      const randomStr = Array.from(array, num => num.toString(36)).join('');
+      return prefix + '_' + Date.now() + '_' + randomStr;
+    }
+    
     // Get or create visitor ID (stored in localStorage)
     let visitorId = localStorage.getItem('redsracing_visitor_id');
     if (!visitorId) {
-      visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      visitorId = generateSecureId('visitor');
       localStorage.setItem('redsracing_visitor_id', visitorId);
     }
     
     // Get session ID (stored in sessionStorage)
     let sessionId = sessionStorage.getItem('redsracing_session_id');
     if (!sessionId) {
-      sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      sessionId = generateSecureId('session');
       sessionStorage.setItem('redsracing_session_id', sessionId);
     }
     

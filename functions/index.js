@@ -559,7 +559,7 @@ exports.fetchK1AddisonJonnyJunior = onRequest({ secrets: ["SENTRY_DSN"] }, async
 });
 
 // Scheduled refresh for Jonny Kirsch K1 Addison Junior League standings (every 12 hours)
-exports.k1AutoRefreshAddisonJonny = onSchedule({ schedule: 'every 12 hours', timeZone: 'America/Chicago', secrets: ["SENTRY_DSN"] }, async (event) => {
+exports.k1AutoRefreshAddisonJonny = onSchedule({ schedule: 'every 12 hours', timeZone: 'America/Chicago', secrets: ["SENTRY_DSN"] }, async () => {
   try {
     const url = 'https://www.k1speed.com/addison-junior-league-results.html';
     const r = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });
@@ -629,7 +629,7 @@ exports.k1AutoRefreshAddisonJonny = onSchedule({ schedule: 'every 12 hours', tim
 });
 
 // Scheduled refresh for Jonathan Kirsch K1 Addison standings (every 12 hours)
-exports.k1AutoRefreshAddisonJon = onSchedule({ schedule: 'every 12 hours', timeZone: 'America/Chicago', secrets: ["SENTRY_DSN"] }, async (event) => {
+exports.k1AutoRefreshAddisonJon = onSchedule({ schedule: 'every 12 hours', timeZone: 'America/Chicago', secrets: ["SENTRY_DSN"] }, async () => {
   try {
     const url = 'https://www.k1speed.com/challenge-gp-addison.html';
     const r = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });

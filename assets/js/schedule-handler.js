@@ -73,28 +73,61 @@
 
       const dayOfWeek = raceDate.toLocaleString('en-US', { weekday: 'short' });
 
-      const cardHTML = `
-        <div class="schedule-card p-4 rounded-lg ${cardClass}">
-          <div class="flex justify-between items-center">
-            <div class="flex-1">
-              <p class="font-bold text-lg text-white">${escapeHTML(race.eventName)}</p>
-              <p class="text-sm text-slate-400">
-                ${escapeHTML(race.track)} • ${escapeHTML(race.city)}, ${escapeHTML(race.state)}
-              </p>
-              ${race.startTime !== 'TBD' ? `<p class="text-xs text-slate-500 mt-1">Start: ${escapeHTML(race.startTime)}</p>` : ''}
-            </div>
-            <div class="text-right">
-              <div class="font-semibold text-slate-300">${dayOfWeek}</div>
-              <div class="text-lg font-bold ${isPast ? 'text-slate-500' : 'text-yellow-400'}">${formattedDate}</div>
-              ${isPast ? '<span class="text-xs text-slate-600 uppercase">Completed</span>' : '<span class="text-xs text-green-400 uppercase">Upcoming</span>'}
-            </div>
-          </div>
-        </div>
-      `;
-
+      // Create card using DOM methods to prevent XSS
+      const card = document.createElement('div');
+      card.className = `schedule-card p-4 rounded-lg ${cardClass}`;
+      
+      const flexContainer = document.createElement('div');
+      flexContainer.className = 'flex justify-between items-center';
+      
+      // Left side content
+      const leftDiv = document.createElement('div');
+      leftDiv.className = 'flex-1';
+      
+      const eventName = document.createElement('p');
+      eventName.className = 'font-bold text-lg text-white';
+      eventName.textContent = race.eventName;
+      leftDiv.appendChild(eventName);
+      
+      const trackInfo = document.createElement('p');
+      trackInfo.className = 'text-sm text-slate-400';
+      trackInfo.textContent = `${race.track} • ${race.city}, ${race.state}`;
+      leftDiv.appendChild(trackInfo);
+      
+      if (race.startTime !== 'TBD') {
+        const startTime = document.createElement('p');
+        startTime.className = 'text-xs text-slate-500 mt-1';
+        startTime.textContent = `Start: ${race.startTime}`;
+        leftDiv.appendChild(startTime);
+      }
+      
+      // Right side content
+      const rightDiv = document.createElement('div');
+      rightDiv.className = 'text-right';
+      
+      const dayDiv = document.createElement('div');
+      dayDiv.className = 'font-semibold text-slate-300';
+      dayDiv.textContent = dayOfWeek;
+      rightDiv.appendChild(dayDiv);
+      
+      const dateDiv = document.createElement('div');
+      dateDiv.className = `text-lg font-bold ${isPast ? 'text-slate-500' : 'text-yellow-400'}`;
+      dateDiv.textContent = formattedDate;
+      rightDiv.appendChild(dateDiv);
+      
+      const statusSpan = document.createElement('span');
+      statusSpan.className = `text-xs ${isPast ? 'text-slate-600' : 'text-green-400'} uppercase`;
+      statusSpan.textContent = isPast ? 'Completed' : 'Upcoming';
+      rightDiv.appendChild(statusSpan);
+      
+      // Assemble the card
+      flexContainer.appendChild(leftDiv);
+      flexContainer.appendChild(rightDiv);
+      card.appendChild(flexContainer);
+      
       const container = race.type === 'specialEvent' ? specialEventsContainer : superCupsContainer;
       if (container) {
-        container.innerHTML += cardHTML;
+        container.appendChild(card);
       }
     });
 
