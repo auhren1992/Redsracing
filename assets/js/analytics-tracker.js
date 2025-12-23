@@ -3,6 +3,14 @@
  * Tracks page views and saves them to Firestore
  */
 
+// Helper function to generate cryptographically secure random ID
+function generateSecureId(prefix) {
+  const array = new Uint32Array(2);
+  crypto.getRandomValues(array);
+  const randomStr = Array.from(array, num => num.toString(36)).join('');
+  return prefix + '_' + Date.now() + '_' + randomStr;
+}
+
 // Track page view
 async function trackPageView() {
   try {
@@ -31,14 +39,6 @@ async function trackPageView() {
     }
     
     const db = getFirestore();
-    
-    // Helper function to generate cryptographically secure random ID
-    function generateSecureId(prefix) {
-      const array = new Uint32Array(2);
-      crypto.getRandomValues(array);
-      const randomStr = Array.from(array, num => num.toString(36)).join('');
-      return prefix + '_' + Date.now() + '_' + randomStr;
-    }
     
     // Get or create visitor ID (stored in localStorage)
     let visitorId = localStorage.getItem('redsracing_visitor_id');
