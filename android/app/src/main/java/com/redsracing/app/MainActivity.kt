@@ -212,13 +212,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showMoreMenu() {
-        val items = listOf(
-            MenuItem("👤", "My Profile", "profile.html"),
-            MenuItem("🔐", "Sign In", "login.html"),
-            MenuItem("⚙️", "Settings", "settings.html"),
-            MenuItem("📊", "Admin Console", "admin-console.html")
-        )
-        showMenuOverlay("More", items)
+        // Check if user is logged in via JavaScript
+        binding.webview.evaluateJavascript(
+            "(function(){ try { return localStorage.getItem('redsracing_user') !== null; } catch(e) { return false; } })();"
+        ) { result ->
+            val isLoggedIn = result == "true"
+            
+            val items = if (isLoggedIn) {
+                listOf(
+                    MenuItem("👤", "My Profile", "profile.html"),
+                    MenuItem("📊", "Admin Console", "admin-console.html"),
+                    MenuItem("⚙️", "Settings", "settings.html"),
+                    MenuItem("🚪", "Sign Out", "javascript:logout")
+                )
+            } else {
+                listOf(
+                    MenuItem("👤", "My Profile", "profile.html"),
+                    MenuItem("🔐", "Sign In", "login.html"),
+                    MenuItem("⚙️", "Settings", "settings.html"),
+                    MenuItem("📊", "Admin Console", "admin-console.html")
+                )
+            }
+            
+            runOnUiThread {
+                showMenuOverlay("More", items)
+            }
+        }
     }
 
     private fun showMenuOverlay(title: String, items: List<MenuItem>) {
@@ -229,8 +248,32 @@ class MainActivity : AppCompatActivity() {
         menuTitle.text = title
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = MenuAdapter(items) { item ->
-            binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/${item.url}")
-            hideMenuOverlay()
+            if (item.url == "javascript:logout") {
+                // Handle logout
+                binding.webview.evaluateJavascript(
+                    """
+                    (async function() {
+                        try {
+                            const { getAuth, signOut } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+                            const auth = getAuth();
+                            await signOut(auth);
+                            localStorage.removeItem('redsracing_user');
+                            if (window.AndroidAuth) {
+                                window.AndroidAuth.onLogout();
+                            }
+                            window.location.href = 'index.html';
+                        } catch(e) {
+                            console.error('Logout error:', e);
+                        }
+                    })();
+                    """.trimIndent(),
+                    null
+                )
+                hideMenuOverlay()
+            } else {
+                binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/${item.url}")
+                hideMenuOverlay()
+            }
         }
 
         overlay.visibility = View.VISIBLE
