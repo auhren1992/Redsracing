@@ -137,7 +137,7 @@ exports.sendUpcomingRaceReminders = onSchedule({
   schedule: 'every 24 hours',
   timeZone: 'America/Chicago',
   secrets: ['SENDGRID_API_KEY']
-}, async (event) => {
+}, async () => {
   try {
     initSendGrid();
     const db = getFirestore();
