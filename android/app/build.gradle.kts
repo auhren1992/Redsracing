@@ -13,8 +13,8 @@ android {
         applicationId = "com.redsracing.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 53
-        versionName = "6.2"
+        versionCode = 54
+        versionName = "6.3"
 
         resourceConfigurations += listOf("en")
     }

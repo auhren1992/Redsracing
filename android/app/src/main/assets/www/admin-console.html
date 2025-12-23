@@ -1565,7 +1565,13 @@
               
               // Handle section switching
               try {
-                if (href === '#gallery-approvals') {
+                if (href === '#overview') {
+                  console.log('[NAV] Showing overview...');
+                  showOverview();
+                } else if (href === '#analytics') {
+                  console.log('[NAV] Showing analytics...');
+                  showAnalytics();
+                } else if (href === '#gallery-approvals') {
                   console.log('[NAV] Showing gallery approvals...');
                   showGalleryApprovals();
                 } else if (href === '#advanced') {
@@ -1577,6 +1583,9 @@
                 } else if (href === '#media') {
                   console.log('[NAV] Showing media...');
                   showMedia();
+                } else if (href === '#videos') {
+                  console.log('[NAV] Showing videos...');
+                  showVideos();
                 } else if (href === '#qna') {
                   console.log('[NAV] Showing Q&A...');
                   showQnA();
@@ -1677,7 +1686,7 @@
         }
         
         function hideAllSections() {
-          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'admin-pages', 'qna-section', 'videos-section'];
+          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'admin-pages', 'qna-section', 'videos-section', 'analytics-section'];
           sections.forEach(id => {
             const section = document.getElementById(id);
             if (section) {
@@ -1826,12 +1835,18 @@
         }
         
         function showAnalytics() {
+          console.log('🔍 [ANALYTICS] showAnalytics() called');
           hideAllSections();
           const sec = document.getElementById('analytics-section');
+          console.log('🔍 [ANALYTICS] analytics-section element:', sec);
+          console.log('🔍 [ANALYTICS] dashboard-content element:', document.getElementById('dashboard-content'));
           if (sec) {
             sec.classList.remove('hidden');
             sec.style.display = 'block';
+            console.log('🔍 [ANALYTICS] Analytics section shown, display:', sec.style.display, 'hidden class:', sec.classList.contains('hidden'));
             try { loadAnalyticsData(); } catch(e) { console.error('Failed to load analytics:', e); }
+          } else {
+            console.error('🔍 [ANALYTICS] analytics-section element not found!');
           }
         }
 
@@ -2561,28 +2576,39 @@
           }
         }
 
-        // Enhanced mobile sidebar toggle
+        // Enhanced mobile sidebar toggle - use mobile menu on small screens
         const sidebarToggle = document.getElementById('sidebar-toggle');
         if (sidebarToggle) {
           sidebarToggle.addEventListener('click', () => {
-          const sidebar = document.querySelector('aside');
-          const overlay = createMobileSidebarOverlay();
+            // On mobile (< 1024px), use the mobile menu instead of sidebar
+            const isMobile = window.innerWidth < 1024;
             
-            if (sidebar) {
-              const isHidden = sidebar.classList.contains('hidden');
+            if (isMobile) {
+              const mobileMenu = document.getElementById('mobile-menu');
+              if (mobileMenu) {
+                mobileMenu.classList.toggle('hidden');
+              }
+            } else {
+              // Desktop: show/hide sidebar with overlay
+              const sidebar = document.querySelector('aside');
+              const overlay = createMobileSidebarOverlay();
               
-              if (isHidden) {
-                // Show sidebar
-                sidebar.classList.remove('hidden');
-                sidebar.classList.add('fixed', 'top-0', 'left-0', 'z-50', 'h-full');
-                overlay.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-              } else {
-                // Hide sidebar
-                sidebar.classList.add('hidden');
-                sidebar.classList.remove('fixed', 'top-0', 'left-0', 'z-50', 'h-full');
-                overlay.classList.add('hidden');
-                document.body.style.overflow = '';
+              if (sidebar) {
+                const isHidden = sidebar.classList.contains('hidden');
+                
+                if (isHidden) {
+                  // Show sidebar
+                  sidebar.classList.remove('hidden');
+                  sidebar.classList.add('fixed', 'top-0', 'left-0', 'z-50', 'h-full');
+                  overlay.classList.remove('hidden');
+                  document.body.style.overflow = 'hidden';
+                } else {
+                  // Hide sidebar
+                  sidebar.classList.add('hidden');
+                  sidebar.classList.remove('fixed', 'top-0', 'left-0', 'z-50', 'h-full');
+                  overlay.classList.add('hidden');
+                  document.body.style.overflow = '';
+                }
               }
             }
           });
@@ -2605,6 +2631,38 @@
             document.body.appendChild(overlay);
           }
           return overlay;
+        }
+        
+        // Mobile menu navigation - close menu when clicking nav items
+        document.querySelectorAll('#mobile-menu .mobile-nav-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu && !item.getAttribute('href').startsWith('http')) {
+              setTimeout(() => mobileMenu.classList.add('hidden'), 100);
+            }
+          });
+        });
+        
+        // Mobile menu button toggle (hamburger)
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        if (mobileMenuButton) {
+          mobileMenuButton.addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu) {
+              mobileMenu.classList.toggle('hidden');
+            }
+          });
+        }
+        
+        // Mobile logout button
+        const mobileLogoutButton = document.getElementById('mobile-logout-button');
+        if (mobileLogoutButton) {
+          mobileLogoutButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('Are you sure you want to sign out?')) {
+              handleLogout();
+            }
+          });
         }
         
         // Gallery approval functionality
