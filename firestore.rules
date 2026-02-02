@@ -174,6 +174,13 @@ service cloud.firestore {
       allow delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('admin');
     }
     
+    // Analytics page views (public write for tracking)
+    match /page_views/{viewId} {
+      allow create: if true; // Anyone can track page views
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+    
     // Default deny - catches everything not explicitly allowed above
     match /{document=**} {
       allow read, write: if false;

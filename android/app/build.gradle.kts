@@ -13,10 +13,12 @@ android {
         applicationId = "com.redsracing.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 58
-        versionName = "6.7"
+        versionCode = 61
+        versionName = "6.8"
 
-        resourceConfigurations += listOf("en")
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        }
     }
 
     signingConfigs {

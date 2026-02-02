@@ -27,8 +27,25 @@
     link.id = 'mobile-app-styles';
     document.head.appendChild(link);
     
-    // Add app class to body
-    document.body.classList.add('mobile-app');
+    // Wait for body to exist before adding class
+    function addBodyClass() {
+      if (document.body) {
+        try {
+          document.body.classList.add('mobile-app');
+        } catch (e) {
+          console.warn('Failed to add mobile-app class:', e);
+        }
+      } else {
+        setTimeout(addBodyClass, 10);
+      }
+    }
+    
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', addBodyClass);
+    } else {
+      addBodyClass();
+    }
     
     // Add meta tag for proper viewport scaling
     if (!document.querySelector('meta[name="viewport"]')) {
