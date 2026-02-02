@@ -7,13 +7,13 @@ plugins {
 
 android {
     namespace = "com.redsracing.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.redsracing.app"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 61
+        targetSdk = 36
+        versionCode = 65
         versionName = "6.8"
 
         ndk {
