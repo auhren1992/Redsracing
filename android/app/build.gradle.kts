@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.github.triplet.play")
 }
 
 android {
@@ -65,6 +66,13 @@ kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
     }
+}
+
+play {
+    // Use Internal testing track by default
+    track.set("internal")
+    defaultToAppBundles.set(true)
+    // Credentials are provided at execution time via -Pplay.serviceAccountCredentials or env var
 }
 
 dependencies {
