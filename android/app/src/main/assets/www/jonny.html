@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jonny Kirsch - #88</title>
+    <title>Jonny Kirsch - RedsRacing #88</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -15,377 +15,348 @@
       href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://redsracing-a7f8b.firebasestorage.app" crossorigin />
     <link rel="dns-prefetch" href="//redsracing-a7f8b.firebasestorage.app" />
     <script defer src="https://unpkg.com/scrollreveal"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/input-fix.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
+    <link rel="stylesheet" href="styles/hotspot-3d.css" />
     <style>
-      .neon-red {
-        color: #ff3333;
+      /* Admin delete button styles */
+      .admin-delete-btn {
+        background: rgba(220, 38, 38, 0.9);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        transition: all 0.2s ease;
       }
-      .bg-neon-red {
-        background-color: #ff3333;
+      
+      .admin-delete-btn:hover {
+        background: rgba(185, 28, 28, 0.95);
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
       }
-      .focus\:ring-neon-red:focus {
-        --tw-ring-color: #ff3333;
+      
+      .admin-delete-btn:active {
+        transform: scale(0.95);
       }
-      body.jonny-page {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 100 100'%3E%3Cstyle%3E.logo { font-family: 'Racing Sans One', sans-serif; font-size: 40px; opacity: 0.02; } %3C/style%3E%3Ctext x='50' y='65' fill='%23ff3333' class='logo' text-anchor='end' transform='rotate(-20 50 50)'%3E8%3C/text%3E%3Ctext x='52' y='65' fill='%23ffffff' class='logo' text-anchor='start' transform='rotate(-20 50 50)'%3E8%3C/text%3E%3C/svg%3E");
+      
+      /* Gallery item hover effects for admin */
+      .gallery-item:hover .admin-delete-btn {
+        opacity: 1;
       }
-      .text-gradient-red {
-        background-image: linear-gradient(to right, #ff3333, #f0f0f0);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
+      
+      /* Admin indicator */
+      .admin-mode-indicator {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: rgba(220, 38, 38, 0.9);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        z-index: 1000;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
       }
-      /* Kids Edition: hide legacy sections */
-      #team-hero, #jonny-bio, #jonny-timeline, #the-rookie-car, #jonny-videos, #support-jonny { display: none !important; }
-      /* Kids Hero */
-      .kids-hero { position: relative; overflow: hidden; background: radial-gradient(120% 100% at 50% 0%, rgba(255,51,51,0.15), rgba(0,0,0,0.6)), #0b0f17; }
-      .kids-hero::after { content:''; position:absolute; inset:0; background-image:url('assets/images/jonny-hero3.jpg'); background-size: cover; background-position: center; opacity: .15; filter: saturate(1.1) contrast(1.05); z-index:-1; }
-      .kids-hero .checker { position:absolute; inset:0; background-image: linear-gradient(45deg, rgba(255,255,255,0.06) 25%, rgba(0,0,0,0) 25%), linear-gradient(-45deg, rgba(255,255,255,0.06) 25%, rgba(0,0,0,0) 25%), linear-gradient(45deg, rgba(0,0,0,0) 75%, rgba(255,255,255,0.06) 75%), linear-gradient(-45deg, rgba(0,0,0,0) 75%, rgba(255,255,255,0.06) 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; opacity:.4; animation: moveChecker 12s linear infinite; }
-      @keyframes moveChecker { from { transform: translateX(0); } to { transform: translateX(-80px); } }
-      .kids-hero .glow { position:absolute; top:-120px; left:-120px; width:360px; height:360px; background: radial-gradient(circle, rgba(255,51,51,0.3), transparent 60%); filter: blur(20px); }
-      .kids-title { font-size: clamp(40px, 10vw, 96px); line-height: 1; text-shadow: 0 6px 30px rgba(255,51,51,.25); }
-      .kids-sub { letter-spacing: .12em; text-transform: uppercase; color:#ffd1d1; font-weight:800; }
-      /* Speed Lab */
-      .speed-lab { background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,51,51,0.04)); }
-      .gauge { position: relative; width: 240px; height: 120px; border-radius: 240px 240px 0 0; background: radial-gradient(circle at 50% 100%, rgba(255,51,51,0.15), rgba(0,0,0,0) 60%); border: 2px solid rgba(255,51,51,0.35); }
-      .gauge .tick { position: absolute; width: 2px; height: 10px; background: rgba(255,255,255,0.5); left: 50%; transform-origin: bottom center; bottom: 0; }
-      .needle { position:absolute; left:50%; bottom:0; width:2px; height:110px; background:#fff; transform-origin: bottom center; transform: rotate(-90deg) translateX(-50%); box-shadow: 0 0 10px rgba(255,255,255,.6); }
-      .speed-readout { font-size: 32px; font-weight: 900; }
-      .controls-grid button { border:1px solid rgba(255,51,51,0.4); background: rgba(255,51,51,0.12); color:#fff; font-weight:900; }
-      .controls-grid button:focus { outline:3px solid rgba(255,51,51,0.6); outline-offset:2px; }
-      .nitro-flash { animation: nitroFlash .6s ease; }
-      @keyframes nitroFlash { 0% { background-color: rgba(255,255,255,0.0);} 30% { background-color: rgba(255,255,255,0.25);} 100% { background-color: rgba(255,255,255,0.0);} }
-      .speed-trail::after { content:''; position:absolute; inset:auto 0 0 0; height:6px; background: linear-gradient(90deg, rgba(255,51,51,.8), rgba(255,51,51,0)); filter: blur(6px); }
-      /* Sticker Garage */
-      .sticker-canvas { position: relative; width: 100%; max-width: 900px; margin: 0 auto; border:1px dashed rgba(255,51,51,0.35); border-radius:16px; overflow:hidden; background: rgba(255,255,255,0.02); }
-      .sticker { width:72px; height:72px; user-select:none; touch-action:none; cursor:grab; }
-      .sticker:active { cursor:grabbing; }
-      /* Rookie Quiz */
-      .quiz-card { position:relative; overflow:hidden; background: rgba(255,255,255,0.04); border:1px solid rgba(255,51,51,0.35); border-radius:16px; padding:16px; }
-      .quiz-card::after { content:''; position:absolute; left:-40%; top:0; width:30%; height:100%; background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0)); transform: skewX(-20deg); transition: transform .6s ease, left .6s ease; pointer-events:none; }
-      .quiz-card:hover::after { left:130%; }
-      .quiz-option { display:block; width:100%; text-align:left; border:1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); padding:10px 12px; margin-top:8px; border-radius:10px; font-weight:700; }
-      .quiz-option.correct { border-color: #22c55e; background: rgba(34,197,94,0.1); }
-      .quiz-option.incorrect { border-color: #f59e0b; background: rgba(245,158,11,0.08); }
-      .badge-earned { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:9999px; border:1px solid rgba(34,197,94,.6); background: rgba(34,197,94,.12); color:#bbf7d0; font-weight:900; text-transform:uppercase; letter-spacing:.08em; }
-      .timeline-item {
-        position: relative;
-        padding-left: 3rem;
-        padding-bottom: 2rem;
-        border-left: 4px solid #334155; /* slate-700 */
-      }
-      .timeline-item::before {
-        content: '';
-        position: absolute;
-        left: -2px;
-        top: 0;
-        width: 4px;
-        height: 100%;
-        background: linear-gradient(180deg, rgba(239,68,68,0), rgba(239,68,68,0.45), rgba(239,68,68,0));
-        opacity: .6;
-        animation: timelineGlow 3s ease-in-out infinite;
-      }
-      @keyframes timelineGlow { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
-      .timeline-item:last-child {
-        border-left: 4px solid transparent;
-        padding-bottom: 0;
-      }
-      .timeline-marker {
-        position: absolute;
-        left: -11px; /* (20px - 4px)/2 */
-        top: 0;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: #334155; /* slate-700 */
-        border: 4px solid #05080f; /* body bg */
-      }
-      .timeline-marker::after {
-        content: '';
-        position: absolute;
-        inset: -8px;
-        border-radius: 50%;
-        border: 2px solid rgba(239,68,68,0.6);
-        animation: markerPulse 2s ease-out infinite;
-      }
-      @keyframes markerPulse {
-        0% { transform: scale(0.85); opacity: 0.8; }
-        70% { transform: scale(1.25); opacity: 0; }
-        100% { opacity: 0; }
-      }
-      .timeline-item.active .timeline-marker {
-        background-color: #ff3333; /* neon-red */
-      }
-
-      /* Jonny: subtle motion and red accents for timeline cards */
-      .timeline-item-3d-red {
-        background: rgba(30, 41, 59, 0.9);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(239, 68, 68, 0.35); /* more visible red */
-        border-radius: 16px;
-        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.12), 0 0 0 1px rgba(239,68,68,0.1);
+      
+      /* Modern Driver Page 3D Effects */
+      .driver-hero-3d {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 30%, #0f172a 100%);
         position: relative;
         overflow: hidden;
+        transform-style: preserve-3d;
       }
-      .timeline-item-3d-red::after {
+      
+      .driver-hero-3d::before {
         content: '';
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, rgba(239,68,68,0.8), rgba(239,68,68,0.2));
+        bottom: 0;
+        background: 
+          radial-gradient(ellipse at 20% 20%, rgba(239, 68, 68, 0.15) 0%, transparent 50%),
+          radial-gradient(ellipse at 80% 80%, rgba(239, 68, 68, 0.15) 0%, transparent 50%);
+        animation: heroGlow 8s ease-in-out infinite alternate;
       }
-      .timeline-item-3d-red:hover {
-        transform: translateX(12px) rotateY(-4deg);
+      
+      @keyframes heroGlow {
+        0% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+        100% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+      }
+      
+      .hero-title-3d {
+        background: linear-gradient(45deg, #ffffff, #ef4444, #ef4444, #ffffff);
+        background-size: 300% 300%;
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        animation: titleGradient 4s ease-in-out infinite alternate;
+        text-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+        transform: perspective(1000px) rotateX(5deg);
+      }
+      
+      @keyframes titleGradient {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 100% 50%; }
+      }
+      
+      .stat-card-3d {
+        background: rgba(30, 41, 59, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 16px;
+        padding: 24px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-style: preserve-3d;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .stat-card-3d::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.1), transparent);
+        transition: left 0.8s ease;
+      }
+      
+      .stat-card-3d:hover {
+        transform: translateY(-12px) rotateX(10deg) rotateY(5deg);
         border-color: rgba(239, 68, 68, 0.6);
-        box-shadow: -10px 20px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(239,68,68,0.25), 0 10px 25px rgba(239,68,68,0.15);
+        box-shadow: 
+          0 20px 40px rgba(0, 0, 0, 0.3),
+          0 0 0 1px rgba(239, 68, 68, 0.2),
+          0 0 30px rgba(239, 68, 68, 0.3);
       }
-
-      /* Jonny: 3D gallery (red theme) */
-      .gallery-3d { perspective: 1000px; }
+      
+      .stat-card-3d:hover::before {
+        left: 100%;
+      }
+      
+      .stat-number-3d {
+        background: linear-gradient(45deg, #ef4444, #dc2626, #ef4444);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        font-size: 3rem;
+        font-weight: 900;
+        text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+        animation: statPulse 2s ease-in-out infinite alternate;
+      }
+      
+      @keyframes statPulse {
+        0% { transform: scale(1); }
+        100% { transform: scale(1.05); }
+      }
+      
+      .bio-image-3d {
+        position: relative;
+        transform-style: preserve-3d;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .bio-image-3d::before {
+        content: '';
+        position: absolute;
+        inset: -20px;
+        background: linear-gradient(45deg, #ef4444, #ef4444, #000000, #ef4444);
+        background-size: 400% 400%;
+        border-radius: 20px;
+        opacity: 0;
+        filter: blur(20px);
+        animation: imageBorderFlow 4s ease-in-out infinite;
+        transition: opacity 0.3s ease;
+        z-index: -1;
+      }
+      
+      .bio-image-3d:hover::before {
+        opacity: 0.7;
+      }
+      
+      .bio-image-3d:hover {
+        transform: translateY(-10px) rotateY(-5deg) rotateX(5deg);
+      }
+      
+      @keyframes imageBorderFlow {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+      }
+      
+      .car-section-3d {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.9));
+        position: relative;
+        transform-style: preserve-3d;
+      }
+      
+      .car-image-3d {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.5));
+      }
+      
+      .car-image-3d:hover {
+        transform: translateY(-20px) rotateX(10deg) scale(1.02);
+        filter: drop-shadow(0 30px 50px rgba(0, 0, 0, 0.7));
+      }
+      
+      .hotspot-3d {
+        background: rgba(239, 68, 68, 0.2);
+        border: 2px solid rgba(239, 68, 68, 0.8);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: hotspotPulse 2s ease-in-out infinite;
+        position: absolute;
+        z-index: 10;
+      }
+      
+      .hotspot-3d:hover {
+        transform: scale(1.3) translateZ(20px);
+        background: rgba(239, 68, 68, 0.4);
+        box-shadow: 
+          0 10px 30px rgba(239, 68, 68, 0.4),
+          0 0 0 4px rgba(239, 68, 68, 0.2);
+      }
+      
+      @keyframes hotspotPulse {
+        0%, 100% { box-shadow: 0 0 0 0px rgba(239, 68, 68, 0.7); }
+        50% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+      }
+      
+      .hotspot-info-3d {
+        position: absolute;
+        top: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(12px);
+        padding: 16px 20px;
+        border-radius: 12px;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: white;
+        min-width: 250px;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 100;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+      
+      .hotspot-3d:hover .hotspot-info-3d {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(-10px);
+      }
+      
+      .gallery-3d {
+        perspective: 1000px;
+      }
+      
       .gallery-item-3d {
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         transform-style: preserve-3d;
         border-radius: 16px;
         overflow: hidden;
         position: relative;
-        border: 1px solid rgba(239,68,68,0.2);
       }
+      
       .gallery-item-3d::before {
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(45deg, transparent, rgba(239, 68, 68, 0.12), transparent);
+        background: linear-gradient(45deg, transparent, rgba(239, 68, 68, 0.1), transparent);
         opacity: 0;
         transition: opacity 0.3s ease;
         z-index: 2;
       }
+      
       .gallery-item-3d:hover {
         transform: rotateY(10deg) rotateX(5deg) translateY(-10px) scale(1.02);
-        box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(239,68,68,0.25);
+        box-shadow: 
+          0 25px 50px rgba(0, 0, 0, 0.5),
+          0 0 0 1px rgba(239, 68, 68, 0.2);
       }
-      .gallery-item-3d:hover::before { opacity: 1; }
-
-      /* Fallback: apply red 3D hover to any gallery-item on Jonny page (covers cached JS) */
-      #jonny-gallery .gallery-item {
+      
+      .gallery-item-3d:hover::before {
+        opacity: 1;
+      }
+      
+      .timeline-3d {
         position: relative;
-        border: 1px solid rgba(239,68,68,0.2);
+        padding: 40px 0;
+      }
+      
+      .timeline-item-3d {
+        position: relative;
+        padding: 24px;
+        margin: 24px 0;
+        background: rgba(30, 41, 59, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(148, 163, 184, 0.1);
         border-radius: 16px;
-        overflow: hidden;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-style: preserve-3d;
       }
-      #jonny-gallery .gallery-item::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(45deg, transparent, rgba(239, 68, 68, 0.12), transparent);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        z-index: 2;
-      }
-      #jonny-gallery .gallery-item:hover {
-        transform: rotateY(10deg) rotateX(5deg) translateY(-10px) scale(1.02) !important;
-        box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(239,68,68,0.25);
-        border-color: rgba(239,68,68,0.4);
-      }
-      #jonny-gallery .gallery-item:hover::before { opacity: 1; }
-
-      /* Jonny: Rookie badges */
-      .rookie-badges { display: inline-flex; gap: 8px; margin-top: 10px; }
-      .rookie-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 10px;
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: #fecaca; /* red-200 */
-        background: rgba(239,68,68,0.12);
-        border: 1px solid rgba(239,68,68,0.35);
-        border-radius: 9999px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.25);
-        animation: badgePop 1.2s ease forwards;
-      }
-      .rookie-badge .dot { width: 6px; height: 6px; border-radius: 9999px; background: #ef4444; box-shadow: 0 0 10px rgba(239,68,68,0.8); }
-      .rookie-badge:nth-child(2) { animation-delay: .12s; }
-      .rookie-badge:nth-child(3) { animation-delay: .24s; }
-      @keyframes badgePop { 0% { transform: translateY(6px) scale(.96); opacity: 0; } 60% { transform: translateY(0) scale(1.03); opacity: 1; } 100% { transform: translateY(0) scale(1); } }
-
-      /* Scope default stat-card hover on Jonny to red tint */
-      .jonny-page .stat-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 0 30px rgba(239, 68, 68, 0.2), 0 0 12px rgba(239, 68, 68, 0.15);
+      
+      .timeline-item-3d:hover {
+        transform: translateX(20px) rotateY(-5deg);
         border-color: rgba(239, 68, 68, 0.4);
+        box-shadow: -10px 20px 40px rgba(0, 0, 0, 0.3);
       }
-
-      /* Rookie Sensation banner underline */
-      #jonny-bio h2 {
-        position: relative;
-        display: inline-block;
-        padding-bottom: 10px;
-      }
-      #jonny-bio h2::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        height: 6px;
-        background: linear-gradient(90deg, rgba(239,68,68,1), rgba(239,68,68,0.15));
-        filter: drop-shadow(0 0 8px rgba(239,68,68,0.6));
-        border-radius: 9999px;
-      }
-
-      /* Featured timeline card tweaks */
-      .timeline-feature {
-        position: relative;
-      }
-      .album-cta {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 10px;
-        font-size: 12px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .08em;
-        color: #fecaca;
-        background: rgba(239,68,68,0.12);
-        border: 1px solid rgba(239,68,68,0.35);
-        border-radius: 9999px;
-        transition: all .2s ease;
-      }
-      .album-cta:hover { color: #fff; border-color: rgba(239,68,68,0.6); box-shadow: 0 4px 16px rgba(239,68,68,0.25); }
-      .badge-chip { font-size: 10px; color: #fecaca; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35); padding: 4px 8px; border-radius: 9999px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-      /* Rookie hero typography */
-      .rookie-hero-name { font-size: clamp(42px, 7vw, 88px); line-height: 1.05; }
-      .stat-chip { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:#cbd5e1; background:rgba(148,163,184,0.12); border:1px solid rgba(148,163,184,0.35); border-radius:9999px; }
-
-      /* Animated hero stripes overlay */
-      .rookie-stripes { position:absolute; inset:0; background: repeating-linear-gradient(135deg, rgba(239,68,68,0.06) 0 12px, transparent 12px 24px); mix-blend-mode: overlay; animation: stripesMove 8s linear infinite; z-index: -4; }
-      @keyframes stripesMove { from { background-position: 0 0; } to { background-position: 200px 0; } }
-
-      /* Rookie panel */
-      .rookie-panel { position: relative; background: rgba(15,23,42,0.6); border: 1px solid rgba(239,68,68,0.35); backdrop-filter: blur(10px); overflow: hidden; }
-      .rookie-panel::before { content:''; position:absolute; inset:-2px; background: conic-gradient(from 180deg, rgba(239,68,68,.35), transparent, rgba(239,68,68,.35)); filter: blur(12px); opacity:.25; z-index:-1; }
-      .rookie-panel::after { content:'SENSATION'; position:absolute; bottom: -10px; right: 12px; font-family: 'Racing Sans One', sans-serif; font-weight:900; letter-spacing:.12em; font-size: clamp(28px, 8vw, 64px); color: transparent; -webkit-text-stroke: 2px rgba(239,68,68,0.15); opacity:.4; pointer-events:none; }
-
-      .rookie-ribbon { color: #fecaca; font-weight:800; text-transform:uppercase; letter-spacing:.08em; font-size:12px; }
-      .rookie-ribbon .dot { width:8px; height:8px; border-radius:9999px; background:#ef4444; box-shadow:0 0 12px rgba(239,68,68,.7); display:inline-block; }
-
-      .number-tile { font-weight:900; font-size:24px; padding:6px 12px; border-radius:12px; color:#fff; background: linear-gradient(135deg, #ef4444, #f97316); box-shadow:0 10px 30px rgba(239,68,68,0.25); border:1px solid rgba(239,68,68,.45); }
-
-      .rookie-stat { text-align:center; padding:10px; border-radius:12px; background: rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.25); }
-      .rookie-stat .label { font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:#fecaca; }
-      .rookie-stat .value { color:#fff; font-weight:900; font-size:16px; }
-
-      .rookie-marquee { position:relative; overflow:hidden; border-top:1px solid rgba(239,68,68,0.2); border-bottom:1px solid rgba(239,68,68,0.2); }
-      .rookie-marquee .track { display:inline-block; white-space:nowrap; animation: marqueeLeft 12s linear infinite; color:#fecaca; font-size:12px; letter-spacing:.12em; padding:6px 0; }
-      @keyframes marqueeLeft { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
-      /* Rookie 88 watermark */
-      .rookie-88-bg {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: 'Racing Sans One', sans-serif;
-        font-weight: 900;
-        font-size: clamp(160px, 45vw, 520px);
-        color: transparent;
-        -webkit-text-stroke: 6px rgba(239,68,68,0.12);
-        text-shadow: 0 0 40px rgba(239,68,68,0.12);
-        z-index: -5;
-        pointer-events: none;
-        user-select: none;
-      }
-
-      /* Jonny schedule styling upgrades */
-      .schedule-card-jonny {
-        border: 1px solid rgba(239,68,68,0.35) !important;
-        background: radial-gradient(80% 120% at 100% 0%, rgba(239,68,68,0.08), transparent), rgba(30,41,59,0.6);
-        box-shadow: 0 10px 30px rgba(239, 68, 68, 0.12), 0 0 0 1px rgba(239,68,68,0.15);
-        transform: translateZ(0);
-        transition: transform .35s cubic-bezier(0.4,0,0.2,1), box-shadow .35s;
-        position: relative;
+      
+      .progress-bar-3d {
+        background: rgba(30, 41, 59, 0.8);
+        height: 12px;
+        border-radius: 6px;
         overflow: hidden;
+        position: relative;
       }
-      .schedule-card-jonny::before,
-      #racer-schedule .schedule-card::before {
+      
+      .progress-fill-3d {
+        height: 100%;
+        background: linear-gradient(90deg, #ef4444, #dc2626, #ef4444);
+        border-radius: 6px;
+        position: relative;
+        transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .progress-fill-3d::after {
         content: '';
         position: absolute;
-        top: 0; left: 0; right: 0; height: 3px;
-        background: linear-gradient(90deg, rgba(239,68,68,.9), rgba(239,68,68,.2));
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        animation: progressShine 2s ease-in-out infinite;
       }
-      .schedule-card-jonny:hover,
-      #racer-schedule .schedule-card:hover {
-        transform: translateY(-6px) rotateX(2deg) rotateY(-2deg);
-        box-shadow: 0 20px 50px rgba(0,0,0,.35), 0 0 0 1px rgba(239,68,68,0.25);
+      
+      @keyframes progressShine {
+        0% { left: -100%; }
+        100% { left: 100%; }
       }
-      .race-status { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-      .badge-upcoming { color: #fecaca; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.35); }
-      .badge-complete { color: #94a3b8; background: rgba(148,163,184,.12); border: 1px solid rgba(148,163,184,.35); }
-
-      /* Next race countdown widget */
-      .next-race-widget-jonny .countdown-pill { 
-        background: rgba(239,68,68,0.12);
-        border: 1px solid rgba(239,68,68,0.35);
-        border-radius: 12px;
-        padding: 8px 10px;
-        min-width: 60px;
-      }
-      .next-race-widget-jonny .countdown-pill .num { color: #fff; font-weight: 900; font-size: 20px; line-height: 1; }
-      .next-race-widget-jonny .countdown-pill .lbl { color: #fecaca; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
-
-      /* Interactive Gas Pedal */
-      .gas-pedal {
-        display: inline-flex; align-items: center; justify-content: center;
-        padding: 10px 16px; border-radius: 12px;
-        background: linear-gradient(180deg, #7f1d1d, #b91c1c);
-        color: #fff; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;
-        border: 1px solid rgba(239,68,68,.6);
-        box-shadow: 0 12px 30px rgba(239,68,68,.25), inset 0 1px 0 rgba(255,255,255,.06);
-        transform: skewX(-8deg);
-        transition: transform .1s ease, box-shadow .1s ease, filter .1s ease;
-        user-select: none;
-      }
-      .gas-pedal:active, .gas-pedal[aria-pressed="true"] {
-        transform: skewX(-8deg) translateY(1px) scale(.98);
-        box-shadow: 0 6px 18px rgba(239,68,68,.25), inset 0 1px 0 rgba(255,255,255,.06);
-        filter: brightness(1.05);
-      }
-
-      /* Speed lights */
-      .speed-lights { display:inline-flex; gap:4px; margin-left:8px; }
-      .speed-light { width:8px; height:8px; border-radius:9999px; background:rgba(239,68,68,.2); box-shadow: 0 0 0 rgba(239,68,68,0); transition: background .2s ease, box-shadow .2s ease; }
-      .speed-light.on { background:#ef4444; box-shadow: 0 0 10px rgba(239,68,68,.8); }
-
-      /* Esports + Retro full-bleed hero */
-      /* Performance tweaks to reduce scroll jitter on hero */
-      #team-hero { contain: paint; will-change: transform; }
-      .hero-bg-img { will-change: transform, opacity; transform: translateZ(0); backface-visibility: hidden; }
-      /* Pause moving stripe overlay to prevent jank on some GPUs */
-      .rookie-stripes { animation: none; opacity: .06; }
-      @media (prefers-reduced-motion: reduce) { .rookie-stripes { display:none; } }
     </style>
-  </head>
-  <body class="jonny-page" data-cms-page="jonny">
-    <!-- BUILD BADGE: helps confirm latest deploy on custom domain -->
-<div style="position:fixed;top:10px;right:10px;z-index:1000;background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:#fecaca;padding:6px 10px;border-radius:9999px;font-weight:800;letter-spacing:.06em;font-size:12px;backdrop-filter:blur(6px)">BUILD hero5</div>
+      <!-- Analytics Tracker -->
+    <script type="module" src="assets/js/analytics-tracker.js"></script>
+</head>
+  <body>
     <!-- Clean Modern Header -->
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
       <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
@@ -401,10 +372,10 @@
               🏎️ Drivers <i class="fas fa-chevron-down"></i>
             </button>
             <div class="dropdown-menu modern-dropdown">
-              <!-- Jon Kirsch Nested Dropdown -->
+              <!-- Jonny Kirsch Nested Dropdown -->
               <div class="relative dropdown-nested">
                 <button class="dropdown-item dropdown-nested-toggle flex items-center justify-between w-full">
-                  <span>Jon Kirsch #8</span>
+                  <span>Jonny Kirsch #8</span>
                   <i class="fas fa-chevron-right ml-2 text-xs"></i>
                 </button>
                 <div class="dropdown-menu-nested modern-dropdown">
@@ -520,9 +491,9 @@
           <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
         </button>
         <div class="mobile-accordion-content">
-          <!-- Jon Kirsch Nested -->
+          <!-- Jonny Kirsch Nested -->
           <button class="mobile-accordion mobile-accordion-nested">
-            <span>Jon Kirsch #8</span><i class="fas fa-chevron-down accordion-icon"></i>
+            <span>Jonny Kirsch #8</span><i class="fas fa-chevron-down accordion-icon"></i>
           </button>
           <div class="mobile-accordion-content mobile-accordion-content-nested">
             <a href="driver.html" class="mobile-nav-subitem mobile-nav-subitem-nested">👤 Profile</a>
@@ -604,430 +575,185 @@
     </header>
 
     <main class="pt-20">
-      <!-- Kids Edition Hero -->
-      <section id="jonny-kids-hero" class="kids-hero py-14 md:py-24 relative">
-        <div class="checker"></div>
-        <div class="glow"></div>
-        <div class="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          <div class="text-center lg:text-left">
-            <div class="kids-sub mb-2">Rookie Sensation • American Super Cups</div>
-            <h1 class="kids-title font-racing uppercase text-white">Jonny <span class="neon-red">Kirsch</span></h1>
-            <p class="mt-3 text-slate-300 text-lg max-w-xl font-bold tracking-widest">The Next Generation of Speed</p>
-            <div class="mt-3 text-slate-300 max-w-xl">
-              <p>For nine-year-old Jonny, speed has always been a way of life. His journey began not on asphalt, but on dirt trails, mastering 4-wheelers and developing a natural feel for handling a machine at speed.</p>
-              <p class="mt-2">This raw passion was later refined over 1.5 years of disciplined competition in indoor karting, where he learned sophisticated racecraft, precise control, and the art of the overtake. The first time he went to a race track was at 3 years old at Sycamore Speedway in 2018.</p>
-              <p class="mt-2">Now, Jonny is ready to trade his kart for a stock car and step onto the big stage of the American Super Cups. When Jonny climbs behind the wheel of the iconic #88, he’s not just a driver; he’s the future of a family legacy.</p>
-            </div>
-            <div class="mt-6 flex flex-wrap gap-3 justify-center lg:justify-start">
-              <a href="#speed-lab" class="bg-neon-yellow text-slate-900 font-extrabold px-5 py-3 rounded-md">Start Driving</a>
-              <a href="#track-tips" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Track Tips</a>
-              <a href="#jonny-gallery" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Gallery</a>
-              <a href="#rookie-quiz" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Rookie Quiz</a>
-              <a href="jonny-results.html" class="bg-slate-800/60 border border-slate-600/60 text-white font-bold px-5 py-3 rounded-md">Race Results</a>
-              <span class="bg-red-600/20 border border-red-400/30 text-red-200 font-extrabold px-4 py-3 rounded-md" title="Feature Wins"><i class="fas fa-trophy mr-2"></i><span id="jonny-feature-wins">0</span> Wins</span>
-            </div>
-          </div>
-          <div class="relative">
-            <img src="assets/images/jonny-hero3.jpg" alt="Jonny driving" class="rounded-2xl shadow-2xl w-full object-cover" />
-            <div class="absolute bottom-2 right-2 text-xs text-slate-400">Photo: #88</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Speed Lab -->
-      <section id="speed-lab" class="speed-lab py-14 md:py-20">
+      <!-- Modern 3D Hero Section -->
+      <section class="driver-hero-3d py-20 md:py-32 text-center relative overflow-hidden">
         <div class="container mx-auto px-6">
-          <h2 class="font-racing text-5xl uppercase text-center text-white mb-8">Speed <span class="neon-red">Lab</span></h2>
-          <div id="speed-lab-container" class="relative max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <!-- Gauge -->
-            <div class="flex flex-col items-center">
-              <div class="gauge rounded-t-full">
-                <div id="kids-needle" class="needle" aria-hidden="true"></div>
-                <!-- ticks -->
-                <div class="tick" style="transform: translateX(-50%) rotate(-90deg);"></div>
-                <div class="tick" style="transform: translateX(-50%) rotate(-60deg);"></div>
-                <div class="tick" style="transform: translateX(-50%) rotate(-30deg);"></div>
-                <div class="tick" style="transform: translateX(-50%) rotate(0deg);"></div>
-                <div class="tick" style="transform: translateX(-50%) rotate(30deg);"></div>
-                <div class="tick" style="transform: translateX(-50%) rotate(60deg);"></div>
-                <div class="tick" style="transform: translateX(-50%) rotate(90deg);"></div>
-              </div>
-              <div class="mt-4 speed-readout text-white" aria-live="polite">
-                <span id="speed-val">0</span>% speed
-              </div>
-              <div class="mt-1 text-xs text-slate-400">Space = Gas • S = Brake • M = Mute</div>
+          <div class="relative z-10">
+            <!-- Driver Status Badge -->
+            <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-8">
+              <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
+              <span class="text-sm font-semibold text-white">
+                <i class="fas fa-flag-checkered mr-1"></i>
+                Active Racing Season 2025
+              </span>
             </div>
-            <!-- Controls -->
-            <div class="controls-grid grid grid-cols-2 gap-4">
-              <button id="gas" class="rounded-xl px-5 py-6 text-xl" aria-label="Hold to accelerate">
-                <i class="fas fa-gas-pump mr-2"></i>Gas
-              </button>
-              <button id="brake" class="rounded-xl px-5 py-6 text-xl" aria-label="Hold to brake">
-                <i class="fas fa-hand-paper mr-2"></i>Brake
-              </button>
-              <button id="mute" class="col-span-2 rounded-xl px-5 py-3 text-base" aria-pressed="false" aria-label="Toggle sound">
-                <i class="fas fa-volume-up mr-2"></i>Sound: On
-              </button>
+            
+            <h1 class="hero-title-3d text-6xl md:text-8xl font-racing uppercase tracking-wider mb-6">
+              Jonny Kirsch
+            </h1>
+            
+            <!-- Animated Divider -->
+            <div class="flex items-center justify-center space-x-6 mb-8">
+              <div class="h-px w-20 bg-gradient-to-r from-transparent via-yellow-400 to-transparent animate-pulse"></div>
+              <div class="text-6xl transform rotate-12 hover:rotate-0 transition-transform duration-500">
+                <i class="fas fa-trophy text-yellow-400"></i>
+              </div>
+              <div class="h-px w-20 bg-gradient-to-l from-transparent via-yellow-400 to-transparent animate-pulse"></div>
+            </div>
+            
+            <p class="text-xl md:text-2xl font-bold text-slate-200 tracking-widest mb-12 max-w-3xl mx-auto">
+              Rookie Sensation • Next Generation • Racing Legacy
+            </p>
+            
+            <!-- Enhanced Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              <div class="stat-card-3d text-center group">
+                <div class="stat-number-3d mb-2">#88</div>
+                <div class="text-slate-300 font-semibold mb-1">Racing Number</div>
+                <div class="text-slate-500 text-sm">Up and Coming Driver</div>
+                <div class="progress-bar-3d mt-4">
+                  <div class="progress-fill-3d" style="width: 100%"></div>
+                </div>
+              </div>
+              
+              <div class="stat-card-3d text-center group">
+                <div class="stat-number-3d mb-2">2026</div>
+                <div class="text-slate-300 font-semibold mb-1">Rookie Year</div>
+                <div class="text-slate-500 text-sm">American Super Cups</div>
+                <div class="progress-bar-3d mt-4">
+                  <div class="progress-fill-3d" style="width: 50%"></div>
+                </div>
+              </div>
+              
+              <div class="stat-card-3d text-center group">
+                <div class="stat-number-3d mb-2">9</div>
+                <div class="text-slate-300 font-semibold mb-1">Years Old</div>
+                <div class="text-slate-500 text-sm">Young Talent</div>
+                <div class="progress-bar-3d mt-4">
+                  <div class="progress-fill-3d" style="width: 80%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- CTA Section -->
+            <div class="mt-12 flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <a href="#jon-gallery" class="px-8 py-4 bg-gradient-to-r from-yellow-400 to-yellow-600 text-slate-900 font-bold rounded-xl hover:from-yellow-300 hover:to-yellow-500 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                <i class="fas fa-images mr-2"></i>
+                View Gallery
+              </a>
+              <a href="#the-car" class="px-8 py-4 border-2 border-white/30 text-white font-bold rounded-xl hover:bg-white/10 hover:border-yellow-400 transition-all duration-300">
+                <i class="fas fa-car mr-2"></i>
+                Meet The Beast
+              </a>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Track Tips -->
-      <section id="track-tips" class="py-14 md:py-20">
-        <div class="container mx-auto px-6 max-w-6xl">
-          <h2 class="font-racing text-5xl uppercase text-center text-white mb-8">Track <span class="neon-red">Tips</span></h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-eye text-red-400 mr-2"></i>Look Ahead</div><p class="text-slate-300 text-sm">Eyes up! Look through the corner to the apex and exit. The car goes where you look.</p></div>
-            <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-car-crash text-red-400 mr-2"></i>Brake Straight</div><p class="text-slate-300 text-sm">Do most of your braking in a straight line before turn-in. Come off the brakes smoothly.</p></div>
-            <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-hands text-red-400 mr-2"></i>Smooth Hands & Feet</div><p class="text-slate-300 text-sm">Gentle steering, throttle, and brake keep the car balanced and fast.</p></div>
-            <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-bullseye text-red-400 mr-2"></i>Hit Your Apex</div><p class="text-slate-300 text-sm">Turn in, clip the apex, and unwind the wheel as you accelerate out.</p></div>
-            <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-flag text-red-400 mr-2"></i>Respect Flags</div><p class="text-slate-300 text-sm">Yellow = slow, no passing. Red = stop safely. Checkered = race finish.</p></div>
-            <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-hourglass-half text-red-400 mr-2"></i>Build Pace</div><p class="text-slate-300 text-sm">First laps: learn grip, warm tires, and leave space. Speed comes with consistency.</p></div>
-            <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-tint text-red-400 mr-2"></i>Stay Hydrated</div><p class="text-slate-300 text-sm">Water and rest make better focus and reaction time.</p></div>
-            <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-people-arrows text-red-400 mr-2"></i>Grid & Caution Etiquette</div><p class="text-slate-300 text-sm">Line up cleanly, respect the yellow (no passing), and be predictable on restarts.</p></div>
-            <div class="quiz-card"><div class="text-white font-extrabold mb-1"><i class="fas fa-arrows-alt-h text-red-400 mr-2"></i>Leave Room</div><p class="text-slate-300 text-sm">Give space when side-by-side. Finishing the lap is the win!</p></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Rookie Journey (new timeline) -->
-      <section id="rookie-journey" class="py-14 md:py-20">
+      <!-- Modern Bio Section -->
+      <section class="py-20 md:py-32 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
         <div class="container mx-auto px-6">
-          <h2 class="font-racing text-5xl uppercase text-center text-white mb-8">Rookie <span class="neon-red">Journey</span></h2>
-          <!-- Mobile: Vertical Stack, Desktop: Horizontal Scroll -->
-          <div class="flex flex-col md:flex-row md:overflow-x-auto md:snap-x md:snap-mandatory gap-6 pb-4 max-w-6xl mx-auto" aria-label="Rookie timeline">
-            <!-- Card 1 -->
-            <article class="w-full md:min-w-[280px] md:max-w-xs md:snap-start quiz-card">
-              <div class="text-xs uppercase text-red-200 font-extrabold tracking-widest mb-1">2018</div>
-              <h3 class="text-xl text-white font-extrabold mb-2"><i class="fas fa-flag-checkered text-red-400 mr-2"></i>First Racetrack Visit</h3>
-              <div class="rounded-lg overflow-hidden border border-red-400/20 mb-2">
-                <blockquote class="imgur-embed-pub" lang="en" data-id="a/2AKSeCa" data-context="false"><a href="//imgur.com/a/2AKSeCa"></a></blockquote>
-              </div>
-              <p class="text-slate-300 text-sm">The first time he went to a race track was at 3 years old at Sycamore Speedway in 2018.</p>
-            </article>
-            <!-- Card 2 -->
-            <article class="w-full md:min-w-[280px] md:max-w-xs md:snap-start quiz-card">
-              <div class="text-xs uppercase text-red-200 font-extrabold tracking-widest mb-1">2021–2023</div>
-              <h3 class="text-xl text-white font-extrabold mb-2"><i class="fas fa-fire text-orange-400 mr-2"></i>The First Spark</h3>
-              <img src="assets/images/jonny-hero3.jpg" alt="Jonny riding" class="rounded-lg w-full h-40 object-cover mb-2" />
-              <p class="text-slate-300 text-sm">Exploring trails and learning fundamentals on a 4-wheeler, building the foundation for motorsports.</p>
-            </article>
-            <!-- Card 3 -->
-            <article class="w-full md:min-w-[280px] md:max-w-xs md:snap-start quiz-card">
-              <div class="text-xs uppercase text-red-200 font-extrabold tracking-widest mb-1">Early 2024</div>
-              <h3 class="text-xl text-white font-extrabold mb-2"><i class="fas fa-tachometer-alt text-yellow-400 mr-2"></i>Getting Serious</h3>
-              <img src="assets/images/jonny-hero3.jpg" alt="Indoor karting" class="rounded-lg w-full h-40 object-cover mb-2" />
-              <p class="text-slate-300 text-sm">Competitive indoor karting: wheel-to-wheel racecraft, braking, cornering, and strategy.</p>
-            </article>
-            <!-- Card 4 -->
-            <article class="w-full md:min-w-[280px] md:max-w-xs md:snap-start quiz-card">
-              <div class="text-xs uppercase text-red-200 font-extrabold tracking-widest mb-1">2025</div>
-              <h3 class="text-xl text-white font-extrabold mb-2"><i class="fas fa-bolt text-red-400 mr-2"></i>The Dream Begins</h3>
-              <img src="assets/images/jonny-hero3.jpg" alt="#88 Rookie car" class="rounded-lg w-full h-40 object-cover mb-2" />
-              <p class="text-slate-300 text-sm">The father-son team acquires the #88 and begins intense prep for a 2026 rookie season.</p>
-            </article>
-            <!-- Card 5 -->
-            <article class="w-full md:min-w-[280px] md:max-w-xs md:snap-start quiz-card">
-              <div class="text-xs uppercase text-red-200 font-extrabold tracking-widest mb-1">2026</div>
-              <h3 class="text-xl text-white font-extrabold mb-2"><i class="fas fa-flag text-green-400 mr-2"></i>First Green Flag</h3>
-              <img src="assets/images/jonny-hero3.jpg" alt="First green flag" class="rounded-lg w-full h-40 object-cover mb-2" />
-              <p class="text-slate-300 text-sm">Jonny is slated to take his first green flag in the American Super Cups, launching his stock car career.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- Rookie Quiz -->
-      <section id="rookie-quiz" class="py-14 md:py-20">
-        <div class="container mx-auto px-6 max-w-5xl">
-          <h2 class="font-racing text-5xl uppercase text-center text-white mb-8">Rookie <span class="neon-red">Quiz</span></h2>
-          <div class="flex items-center justify-center gap-3 mb-6">
-            <label for="track-filter" class="text-slate-300 text-sm">Practice for:</label>
-            <select id="track-filter" class="bg-slate-800 border border-slate-600 text-white px-3 py-2 rounded-md">
-              <option value="all">All Tracks</option>
-            </select>
-          </div>
-          <div id="track-tips-panel" class="max-w-3xl mx-auto mb-6 hidden"></div>
-          <div id="quiz-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
-          <div id="quiz-badge" class="hidden mt-8 text-center">
-            <span class="badge-earned"><i class="fas fa-medal"></i> Rookie Badge Earned!</span>
-          </div>
-        </div>
-      </section>
-<section id="team-hero" class="py-20 md:py-32 relative overflow-hidden">
-        <!-- Premium Track Photo Background -->
-<div class="absolute inset-0 overflow-hidden" style="pointer-events:none;">
-<img src="assets/images/jonny-hero3.jpg?v=hero5" alt="Stock car racing" class="hero-bg-img w-full h-full object-cover" loading="eager" fetchpriority="high" />
-<div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(5,8,15,0.35), rgba(5,8,15,0.15) 40%, rgba(5,8,15,0.40));"></div>
-</div>
-        <div class="rookie-88-bg">88</div>
-        <div class="rookie-stripes"></div>
-        <div class="container mx-auto px-6">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-            <!-- Rookie Card -->
-            <div class="order-2 lg:order-1">
-              <div class="bg-black/40 border border-red-400/30 rounded-2xl p-6 backdrop-blur-md shadow-2xl">
-                <div class="flex items-center gap-4">
-                  <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-3xl font-black text-white">88</div>
-                  <div>
-                    <div class="font-racing text-3xl text-white">Jonny Kirsch</div>
-                    <div class="text-slate-300 uppercase tracking-wider text-xs">Rookie • American Super Cups</div>
+          <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-16">
+            <!-- 3D Photo Section -->
+            <div class="lg:order-1 relative">
+              <div class="bio-image-3d">
+                <div class="relative overflow-hidden rounded-2xl">
+                  <img 
+                    src="assets/jonny-profile.jpg" 
+                    alt="Jonny Kirsch - Professional Racing Driver" 
+                    class="w-full h-auto object-cover" 
+                  />
+                  
+                  <!-- Overlay Elements -->
+                  <div class="absolute top-6 right-6 bg-red-600/90 backdrop-blur-sm px-4 py-2 rounded-full border border-red-400/30">
+                    <span class="text-white font-bold text-lg">#88</span>
                   </div>
-                </div>
-                <div class="mt-4 grid grid-cols-3 gap-3 text-center">
-                  <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
-                    <div class="text-2xl font-bold text-white">#88</div>
-                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Number</div>
+                  
+                  <div class="absolute bottom-6 left-6 bg-black/80 backdrop-blur-sm px-6 py-3 rounded-xl border border-red-400/20">
+                    <p class="text-red-400 font-racing text-xl mb-1">THE ROOKIE</p>
+                    <p class="text-slate-300 text-sm">Rookie Sensation</p>
+                    <div class="flex items-center mt-2">
+                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
+                      <span class="text-xs text-green-400 font-semibold">Active</span>
+                    </div>
                   </div>
-                  <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
-                    <div class="text-2xl font-bold text-white">2026</div>
-                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Rookie Year</div>
-                  </div>
-                  <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
-                    <div class="text-2xl font-bold text-white">ASC</div>
-                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Series</div>
+                  
+                  <!-- Racing Achievements Overlay -->
+                  <div class="absolute top-6 left-6 space-y-2">
+                    <div class="bg-red-400/20 backdrop-blur-sm px-3 py-1 rounded-full border border-red-400/40">
+                      <span class="text-red-400 text-xs font-bold">🏁 ROOKIE 2026</span>
+                    </div>
+                    <div class="bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full border border-red-400/40">
+                      <span class="text-red-400 text-xs font-bold">⚡ 9 YEARS OLD</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- Rookie Sensation Panel (revamped) -->
-            <div class="order-1 lg:order-2">
-              <div class="rookie-panel p-6 md:p-8 rounded-2xl">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="rookie-ribbon inline-flex items-center gap-2">
-                    <span class="dot"></span>
-                    <span>Rookie Sensation</span>
-                  </div>
-                  <div class="number-tile">88</div>
-                </div>
-
-                <h1 class="rookie-hero-name font-racing uppercase tracking-wider text-white mb-2">
-                  Jonny <span class="neon-red">Kirsch</span>
-                </h1>
-                <p class="text-slate-300 font-bold tracking-widest">The Next Generation of Speed</p>
-                <div class="mt-3 flex flex-wrap items-center gap-2 text-slate-300 text-xs uppercase tracking-wider">
-                  <span class="stat-chip"><i class="fas fa-flag-checkered"></i> American Super Cups</span>
-                  <span class="stat-chip">Rookie 2026</span>
-                </div>
-
-                <!-- Rookie quick stats -->
-                <div class="grid grid-cols-3 gap-3 mt-5">
-                  <div class="rookie-stat">
-                    <div class="label">Number</div>
-                    <div class="value">#88</div>
-                  </div>
-                  <div class="rookie-stat">
-                    <div class="label">Rookie Year</div>
-                    <div class="value">2026</div>
-                  </div>
-                  <div class="rookie-stat">
-                    <div class="label">Series</div>
-                    <div class="value">Super Cups</div>
-                  </div>
-                </div>
-
-                <!-- CTAs -->
-                <div class="mt-6 flex gap-3 flex-wrap">
-                  <a href="schedule.html" class="btn btn-primary px-5 py-3"><i class="fas fa-calendar-alt mr-2"></i>View Schedule</a>
-                  <a href="#jonny-gallery" class="btn btn-ghost px-5 py-3"><i class="fas fa-camera mr-2"></i>Gallery</a>
-                  <a href="sponsorship.html" class="btn btn-secondary px-5 py-3"><i class="fas fa-handshake-angle mr-2"></i>Sponsor Jonny</a>
-                </div>
-
-                <!-- Scrolling ticker -->
-                <div class="rookie-marquee mt-6">
-                  <div class="track">
-                    <span>Reaction • Precision • Grit • Karting Foundations • Family Legacy • </span>
-                    <span>Reaction • Precision • Grit • Karting Foundations • Family Legacy • </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Speed Dial -->
-            <div class="order-3 flex justify-center lg:justify-end">
-              <div class="relative w-48 h-48 rounded-full bg-slate-900/60 border-2 border-red-400/30 shadow-2xl flex items-center justify-center">
-                <svg viewBox="0 0 100 100" class="w-40 h-40">
-                  <defs>
-                    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stop-color="#ef4444"/>
-                      <stop offset="100%" stop-color="#fca5a5"/>
-                    </linearGradient>
-                  </defs>
-                  <path d="M10,70 A40,40 0 1,1 90,70" fill="none" stroke="url(#g)" stroke-width="6" stroke-linecap="round"/>
-                  <circle cx="50" cy="70" r="3" fill="#fff"/>
-                  <line id="jr-needle" x1="50" y1="70" x2="86" y2="70" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <div class="absolute -bottom-3 text-center w-full">
-                  <div class="text-xs text-slate-400 uppercase tracking-wider">Speed Focus</div>
-                </div>
-                <!-- Kid-friendly controls -->
-                <div class="w-full mt-4 flex flex-col items-center gap-2">
-                  <button id="jr-gas-pedal" class="gas-pedal" aria-pressed="false" aria-label="Press and hold to accelerate">Hold Pedal</button>
-                  <div class="text-xs text-slate-300">Speed: <span id="jr-speed-readout">0</span>% <span class="speed-lights" aria-hidden="true"><span class="speed-light" id="jr-l1"></span><span class="speed-light" id="jr-l2"></span><span class="speed-light" id="jr-l3"></span><span class="speed-light" id="jr-l4"></span><span class="speed-light" id="jr-l5"></span></span></div>
-                </div>
-                <script>
-                  (function(){
-                    try{
-                      var needle = document.getElementById('jr-needle') || (document.currentScript && document.currentScript.parentElement.querySelector('#jr-needle'));
-                      var pedal = document.getElementById('jr-gas-pedal');
-                      var readout = document.getElementById('jr-speed-readout');
-                      var lights = [document.getElementById('jr-l1'), document.getElementById('jr-l2'), document.getElementById('jr-l3'), document.getElementById('jr-l4'), document.getElementById('jr-l5')];
-
-                      var angle = 0; // 0..180
-                      var vel = 0;   // degrees/sec
-                      var accelerating = false;
-                      var last = performance.now();
-
-                      function setNeedle(ang){
-                        if (!needle) return;
-                        var rad = (ang - 90) * Math.PI / 180;
-                        var x = 50 + 36 * Math.cos(rad);
-                        var y = 70 + 36 * Math.sin(rad);
-                        needle.setAttribute('x2', x.toFixed(2));
-                        needle.setAttribute('y2', y.toFixed(2));
-                      }
-
-                      function updateLights(pct){
-                        var thresholds = [20, 40, 60, 80, 95];
-                        for (var i=0;i<lights.length;i++){
-                          if (!lights[i]) continue;
-                          if (pct >= thresholds[i]) { lights[i].classList.add('on'); }
-                          else { lights[i].classList.remove('on'); }
-                        }
-                      }
-
-                      function loop(now){
-                        var dt = Math.min(0.05, (now - last)/1000); // cap dt
-                        last = now;
-                        var accel = 180;   // deg/sec^2
-                        var decel = 140;   // deg/sec^2
-                        var vmax = 220;    // max deg/sec
-
-                        if (accelerating) { vel = Math.min(vmax, vel + accel * dt); }
-                        else { vel = Math.max(0, vel - decel * dt); }
-
-                        angle = Math.max(0, Math.min(180, angle + vel * dt));
-                        setNeedle(angle);
-                        var pct = Math.round((angle / 180) * 100);
-                        if (readout) readout.textContent = pct;
-                        updateLights(pct);
-                        requestAnimationFrame(loop);
-                      }
-
-                      function press(){ accelerating = true; if (pedal) pedal.setAttribute('aria-pressed','true'); }
-                      function release(){ accelerating = false; if (pedal) pedal.setAttribute('aria-pressed','false'); }
-
-                      if (pedal){
-                        pedal.addEventListener('pointerdown', function(e){ pedal.setPointerCapture && pedal.setPointerCapture(e.pointerId); press(); });
-                        pedal.addEventListener('pointerup', release);
-                        pedal.addEventListener('pointercancel', release);
-                        pedal.addEventListener('pointerleave', release);
-                        pedal.addEventListener('keydown', function(e){ if (e.code === 'Space' || e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); press(); } });
-                        pedal.addEventListener('keyup', function(e){ if (e.code === 'Space' || e.key === ' ' || e.key === 'Enter'){ release(); } });
-                      }
-
-                      // Initialize
-                      setNeedle(angle);
-                      requestAnimationFrame(loop);
-                    }catch(e){}
-                  })();
-                </script>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Featured Highlight Band -->
-      <section id="featured-highlight" class="py-6 bg-black/10">
-        <div class="container mx-auto px-6">
-          <div class="section-premium p-4 md:p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-              <span class="chip"><i class="fas fa-bolt"></i> Featured Highlight</span>
-              <h3 class="heading-premium text-2xl md:text-3xl ml-1">#88 Rookie 2026 — American Super Cups Debut</h3>
-            </div>
-            <div class="flex gap-3">
-              <a href="schedule.html" class="btn btn-primary px-5 py-3"><i class="fas fa-calendar-alt mr-2"></i>Next Race</a>
-              <a href="sponsorship.html" class="btn btn-secondary px-5 py-3"><i class="fas fa-handshake-angle mr-2"></i>Sponsor Jonny</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="jonny-bio" class="py-16 md:py-24 bg-black/20">
-        <div class="container mx-auto px-6">
-          <div class="max-w-6xl mx-auto section-premium relative overflow-hidden rounded-2xl p-6 md:p-10">
-            <!-- Ambient gradients -->
-            <div class="pointer-events-none absolute -top-32 -right-32 w-96 h-96 rounded-full bg-red-500/10 blur-3xl"></div>
-            <div class="pointer-events-none absolute -bottom-40 -left-20 w-[28rem] h-[28rem] rounded-full bg-red-400/10 blur-3xl"></div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 items-center gap-10 lg:gap-14">
-              <!-- Left: Portrait -->
-              <div class="lg:col-span-1 reveal-left">
-                <div class="relative">
-                  <img src="https://placehold.co/600x800/1e293b/ff3333?text=Jonny+Kirsch" alt="Jonny Kirsch" class="rounded-xl w-full shadow-2xl ring-1 ring-red-400/30" />
-                  <div class="absolute -top-3 -left-3 px-3 py-1 rounded-md bg-red-500/20 border border-red-400/40 text-red-200 text-xs font-bold tracking-wider">#88</div>
-                </div>
-              </div>
-
-              <!-- Right: Content -->
-              <div class="lg:col-span-2 space-y-6 reveal-right">
-                <div>
-                  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-400/30 text-red-200 text-xs uppercase tracking-wider">
-                    <span class="w-1.5 h-1.5 rounded-full bg-red-400 shadow-[0_0_10px_rgba(239,68,68,0.8)]"></span>
-                    Rookie Sensation
-                  </div>
-                  <h2 class="font-racing text-5xl md:text-6xl uppercase mt-3 leading-tight">
-                    The <span class="neon-red text-shadow-strong">Rookie</span> Sensation
-                  </h2>
-                  <p class="text-slate-300 mt-4">
-                    For nine-year-old Jonny, speed has always been a way of life.
-                    His journey began not on asphalt, but on dirt trails, mastering
-                    4-wheelers and developing a natural feel for handling a machine at speed.
-                    This raw passion was later refined over 1.5 years of disciplined competition in indoor karting,
-                    where he learned sophisticated racecraft, precise control, and the art of the overtake.
-                    The first time he went to a race track was at 3 years old at Sycamore Speedway in 2018.
+            
+            <!-- Enhanced Content Section -->
+            <div class="lg:order-2 space-y-8">
+              <div class="space-y-6">
+                <h2 class="font-racing text-4xl md:text-6xl uppercase leading-tight">
+                  The <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-white">Rookie</span> 
+                  <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-red-500 to-black">
+                    Sensation
+                  </span>
+                </h2>
+                
+                <div class="space-y-4 text-lg leading-relaxed">
+                  <p class="text-slate-300">
+                    For nine-year-old Jonny, speed has always been a way of life. His journey began not on asphalt, but on dirt trails, mastering 4-wheelers and developing a natural feel for handling a machine at speed. This raw passion was later refined over 1.5 years of disciplined competition in indoor karting, where he learned sophisticated racecraft, precise control, and the art of the overtake. The first time he went to a race track was at 3 years old at Sycamore Speedway in 2018.
                   </p>
-                  <p class="text-slate-400 mt-3">
-                    Now, Jonny is ready to trade his kart for a stock car and step onto the big stage of the
-                    American Super Cups. He won't be doing it alone. This next chapter is a shared dream with his father,
-                    built on countless hours in the garage and a mutual love for the sport. When Jonny climbs behind the wheel
-                    of the iconic #88, he’s not just a driver; he’s the future of a family legacy.
+                  <p class="text-slate-400">
+                    Now, Jonny is ready to trade his kart for a stock car and step onto the big stage of the American Super Cups. He won't be doing it alone. This next chapter is a shared dream with his father, built on countless hours in the garage and a mutual love for the sport. When Jonny climbs behind the wheel of the iconic #88, he's not just a driver; he's the future of a family legacy.
                   </p>
-                  <p class="text-slate-400 mt-3">
-                    Off the track, Jonny's competitive spirit shines on the baseball diamond. The intense focus of the batter's box
-                    and the quick reflexes of an infielder translate directly to the split-second decisions required on the track.
-                    He is a true athlete, dedicated to excelling in everything he does. The engine is warm, the green flag is about to drop,
-                    and a new rookie sensation is ready to make his mark.
+                  <p class="text-slate-400">
+                    Off the track, Jonny's competitive spirit shines on the baseball diamond. The intense focus of the batter's box and the quick reflexes of an infielder translate directly to the split-second decisions required on the track.
                   </p>
                 </div>
-
-                <!-- Stats -->
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="p-4 rounded-xl bg-slate-800/50 border border-red-400/30 shadow-lg hover:shadow-red-500/10 transition">
-                    <div class="text-4xl font-extrabold text-white">9</div>
-                    <div class="text-xs font-racing uppercase text-slate-300 tracking-wider">Years Old</div>
+              </div>
+              
+              <!-- Racing Timeline -->
+              <div class="timeline-3d">
+                <h3 class="font-racing text-2xl uppercase mb-6 text-white">
+                  <i class="fas fa-road text-yellow-400 mr-2"></i>
+                  Racing Journey
+                </h3>
+                
+                <div class="space-y-4">
+                  <div class="timeline-item-3d">
+                    <div class="flex items-center justify-between mb-2">
+                      <h4 class="font-bold text-white">First Track Visit</h4>
+                      <span class="text-red-400 text-sm font-semibold">2018</span>
+                    </div>
+                    <p class="text-slate-400 text-sm">3 years old at Sycamore Speedway - where the passion began</p>
+                    <div class="progress-bar-3d mt-3">
+                      <div class="progress-fill-3d" style="width: 50%"></div>
+                    </div>
                   </div>
-                  <div class="p-4 rounded-xl bg-slate-800/50 border border-red-400/30 shadow-lg hover:shadow-red-500/10 transition">
-                    <div class="text-4xl font-extrabold text-white">#88</div>
-                    <div class="text-xs font-racing uppercase text-slate-300 tracking-wider">Car Number</div>
+                  
+                  <div class="timeline-item-3d">
+                    <div class="flex items-center justify-between mb-2">
+                      <h4 class="font-bold text-white">Indoor Karting</h4>
+                      <span class="text-red-400 text-sm font-semibold">2024-2025</span>
+                    </div>
+                    <p class="text-slate-400 text-sm">1.5 years mastering racecraft and precision control</p>
+                    <div class="progress-bar-3d mt-3">
+                      <div class="progress-fill-3d" style="width: 75%"></div>
+                    </div>
                   </div>
-                  <div class="p-4 rounded-xl bg-slate-800/50 border border-red-400/30 shadow-lg hover:shadow-red-500/10 transition">
-                    <div class="text-4xl font-extrabold text-white">4th</div>
-                    <div class="text-xs font-racing uppercase text-slate-300 tracking-wider">Grade</div>
+                  
+                  <div class="timeline-item-3d">
+                    <div class="flex items-center justify-between mb-2">
+                      <h4 class="font-bold text-white">Rookie Season</h4>
+                      <span class="text-red-400 text-sm font-semibold">2026</span>
+                    </div>
+                    <p class="text-slate-400 text-sm">American Super Cups debut in #88 - the family legacy continues</p>
+                    <div class="progress-bar-3d mt-3">
+                      <div class="progress-fill-3d" style="width: 100%"></div>
+                    </div>
                   </div>
-                  <div class="p-4 rounded-xl bg-slate-800/50 border border-red-400/30 shadow-lg hover:shadow-red-500/10 transition">
-                    <div class="text-4xl font-extrabold text-white">2026</div>
-                    <div class="text-xs font-racing uppercase text-slate-300 tracking-wider">Rookie Year</div>
-                  </div>
-                </div>
-
-                <!-- CTAs -->
-                <div class="flex flex-wrap items-center gap-3 pt-2">
-                  <a href="#jonny-gallery" class="btn btn-primary py-3 px-5 text-sm">Watch Highlights</a>
-                  <a href="#racer-schedule" class="btn btn-ghost py-3 px-5 text-sm">Follow Journey</a>
                 </div>
               </div>
             </div>
@@ -1035,493 +761,461 @@
         </div>
       </section>
 
-      <section id="jonny-timeline" class="py-16 md:py-24">
-        <div class="container mx-auto px-6">
-          <h2 class="heading-premium text-5xl md:text-6xl mb-12 text-center reveal-fade">
-            Road to <span class="accent">Racing</span>
-          </h2>
-          <div class="max-w-2xl mx-auto section-premium p-4 md:p-6 rounded-2xl">
-            <div class="timeline-item">
-              <div class="timeline-marker"></div>
-              <div class="timeline-content p-5 rounded-xl stat-card timeline-item-3d-red timeline-feature">
-                <div class="flex items-center justify-between mb-2">
-                  <div class="inline-flex items-center gap-2 text-red-300 text-xs uppercase tracking-wider">
-                    <i class="fas fa-flag-checkered"></i>
-                    <span>Milestone</span>
-                  </div>
-                  <a href="https://imgur.com/a/2AKSeCa" target="_blank" class="album-cta">Open Album</a>
-                </div>
-                <h3 class="font-racing text-2xl text-white">
-                  <i class="fas fa-flag-checkered text-red-400 mr-2"></i>First Racetrack Visit
-                </h3>
-                <div class="time-badge">2018</div>
-                <p class="text-slate-300">
-                  The first time he went to a race track was at 3 years old at
-                  Sycamore Speedway in 2018.
-                </p>
-                <div class="mt-4 rounded-lg overflow-hidden border border-red-400/20">
-                  <blockquote
-                    class="imgur-embed-pub"
-                    lang="en"
-                    data-id="a/2AKSeCa"
-                    data-context="false"
-                  >
-                    <a href="//imgur.com/a/2AKSeCa"></a>
-                  </blockquote>
-                </div>
-                <div class="mt-3 flex flex-wrap gap-2">
-                  <span class="badge-chip">Family Track Day</span>
-                  <span class="badge-chip">Sycamore Speedway</span>
-                  <span class="badge-chip">Age 3</span>
-                </div>
-              </div>
-            </div>
-            <div class="timeline-item">
-              <div class="timeline-marker"></div>
-              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
-                <h3 class="font-racing text-2xl text-white"><i class="fas fa-fire text-orange-400 mr-2"></i>The First Spark</h3>
-                <div class="time-badge">2021–2023</div>
-                <p>
-                  Long before any official race, Jonny discovered his love for
-                  engines and dirt. These years were spent exploring trails and
-                  learning the fundamentals of control and balance on his
-                  4-wheeler, building the foundation for a future in
-                  motorsports.
-                </p>
-              </div>
-            </div>
-            <div class="timeline-item">
-              <div class="timeline-marker"></div>
-              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
-                <h3 class="font-racing text-2xl text-white"><i class="fas fa-tachometer-alt text-yellow-400 mr-2"></i>Getting Serious</h3>
-                <div class="time-badge">Early 2024</div>
-                <p>
-                  The passion for fun transforms into a focused pursuit. Jonny
-                  enters the world of competitive indoor karting, quickly adapting to
-                  the demands of wheel-to-wheel competition and learning the
-                  core skills of braking, cornering, and race strategy.
-                </p>
-              </div>
-            </div>
-            <div class="timeline-item active">
-              <div class="timeline-marker"></div>
-              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
-                <h3 class="font-racing text-2xl text-white">
-                  <i class="fas fa-bolt text-red-400 mr-2"></i>The Dream Begins
-                </h3>
-                <div class="time-badge">2025</div>
-                <p>
-                  The big decision is made. After a successful and educational
-                  season and a half in karts, Jonny and his dad commit to the
-                  next challenge. The #88 number is chosen, the car is acquired,
-                  and the father-son team begins intensive preparations for
-                  their rookie season. The rest of this year is dedicated to
-                  practice, gaining valuable seat time, and perfecting the car's
-                  setup.
-                </p>
-              </div>
-            </div>
-            <div class="timeline-item">
-              <div class="timeline-marker"></div>
-              <div class="timeline-content p-4 rounded-lg stat-card timeline-item-3d-red">
-                <h3 class="font-racing text-2xl text-white">
-                  <i class="fas fa-flag text-green-400 mr-2"></i>First Green Flag
-                </h3>
-                <div class="time-badge">2026</div>
-                <p>
-                  The culmination of years of hard work and preparation. Jonny
-                  is scheduled to take his first green flag in the American
-                  Super Cups, officially launching his stock car racing career.
-                  The #88 will hit the track, ready to turn dreams into reality.
-                </p>
-              </div>
+      <!-- Modern Car Section with 3D Hotspots -->
+      <!-- Modern Car Section with 3D Hotspots -->
+      <section id="the-car" class="car-section-3d py-24 md:py-32">
+        <div class="container mx-auto px-6 text-center">
+          <div class="mb-16">
+            <h2 class="font-racing text-4xl md:text-6xl uppercase mb-4">
+              <i class="fas fa-car-side text-red-400 mr-3"></i>
+              Meet The 
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500">Beast</span>
+            </h2>
+            <p class="max-w-3xl mx-auto mb-8 text-slate-300 text-lg">
+              The American Super Cup Series cars are ½ scale stock cars built similarly to SPRINT Cup cars. 
+              These precision-engineered machines provide a competitive and affordable racing experience for both new and experienced drivers.
+            </p>
+            <div class="inline-flex items-center px-4 py-2 bg-blue-500/20 backdrop-blur-sm rounded-full border border-blue-400/30">
+              <i class="fas fa-info-circle text-blue-400 mr-2"></i>
+              <span class="text-blue-400 text-sm font-semibold">Interactive Vehicle Showcase</span>
             </div>
           </div>
-        </div>
-      </section>
-
-      <!-- K1 Speed Addison Stats (Jonny) -->
-      <section class="py-16 md:py-24 bg-black/10">
-        <div class="container mx-auto px-6">
-          <h2 class="heading-premium text-5xl uppercase mb-6 text-center">Karting <span class="accent">Stats</span> (Addison)</h2>
-          <div id="k1-addison-stats-jonny" class="card rounded-lg p-6">
-            <div class="skeleton h-6 w-56 rounded mb-3"></div>
-            <div class="skeleton h-4 w-full rounded"></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="jonny-gallery" class="py-16 md:py-24 bg-black/20">
-        <div class="container mx-auto px-6">
-          <h2 class="heading-premium text-5xl uppercase mb-12 text-center reveal-fade">
-            Jonny's <span class="accent">Gallery</span>
-          </h2>
-
-          <!-- Upload Form -->
-          <div
-            id="upload-container"
-            class="max-w-xl mx-auto section-premium p-6 rounded-lg mb-12"
-            style="display: none"
-          >
-            <h3 class="font-racing text-2xl text-white uppercase mb-4">
-              Share Your <span class="neon-red">Photos of Jonny</span>
-            </h3>
-            <div class="flex items-center space-x-4">
-              <input
-                type="file"
-                id="photo-upload-input"
-                accept="image/jpeg, image/png"
-                class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-neon-red file:text-slate-900 hover:file:bg-red-400"
+          
+          <!-- 3D Car Showcase -->
+          <div class="relative max-w-6xl mx-auto perspective-1000">
+            <div class="car-image-3d relative">
+              <img 
+                src="https://i.imgur.com/EumUdup.jpg" 
+                alt="Jonny Kirsch's #88 Race Car - Technical Showcase"
+                class="w-full h-auto rounded-2xl" 
+                loading="lazy" 
+                width="1200" 
+                height="675" 
+                onerror="this.onerror=null;this.src='https://placehold.co/1200x675/1e293b/fbbf24?text=Race+Car+%238';" 
               />
-              <button
-                id="upload-btn"
-                class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition disabled:opacity-50"
-                disabled
-              >
-                Upload
-              </button>
+              
+              <!-- Enhanced 3D Hotspots -->
+              <div class="hotspot-3d" style="top: 45%; left: 30%;">
+                <i class="fas fa-cogs"></i>
+                <div class="hotspot-info-3d">
+                  <div class="flex items-center mb-2">
+                    <i class="fas fa-engine text-yellow-400 mr-2"></i>
+                    <strong class="text-yellow-400">Engine & Powertrain</strong>
+                  </div>
+                  <p class="text-slate-300 text-sm mb-3">
+                    ½ scale stock car design with tube chassis construction, built for durability and performance on the track.
+                  </p>
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-green-400">Stock Car Design</span>
+                    <span class="text-blue-400">Tube Chassis</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="hotspot-3d" style="top: 35%; left: 75%;">
+                <i class="fas fa-wind"></i>
+                <div class="hotspot-info-3d">
+                  <div class="flex items-center mb-2">
+                    <i class="fas fa-paper-plane text-blue-400 mr-2"></i>
+                    <strong class="text-blue-400">Aerodynamics Package</strong>
+                  </div>
+                  <p class="text-slate-300 text-sm mb-3">
+                    Adjustable suspension system designed for optimal handling on both 3 and 4 wide track configurations.
+                  </p>
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-purple-400">Adjustable Setup</span>
+                    <span class="text-green-400">Multi-Width Tracks</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="hotspot-3d" style="top: 70%; left: 65%;">
+                <i class="fas fa-circle"></i>
+                <div class="hotspot-info-3d">
+                  <div class="flex items-center mb-2">
+                    <i class="fas fa-grip-horizontal text-red-400 mr-2"></i>
+                    <strong class="text-red-400">Tires & Grip System</strong>
+                  </div>
+                  <p class="text-slate-300 text-sm mb-3">
+                    Hoosier Racing Slicks with soft compound that increases grip as temperature rises during competition.
+                  </p>
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-orange-400">Heat Activated</span>
+                    <span class="text-yellow-400">Maximum Grip</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="hotspot-3d" style="top: 50%; left: 50%;">
+                <i class="fas fa-dashboard"></i>
+                <div class="hotspot-info-3d">
+                  <div class="flex items-center mb-2">
+                    <i class="fas fa-tachometer-alt text-green-400 mr-2"></i>
+                    <strong class="text-green-400">Digital Command Center</strong>
+                  </div>
+                  <p class="text-slate-300 text-sm mb-3">
+                    Advanced telemetry system providing real-time performance data and race analytics.
+                  </p>
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-cyan-400">Real-time Data</span>
+                    <span class="text-pink-400">AI Analytics</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="hotspot-3d" style="top: 25%; left: 45%;">
+                <i class="fas fa-shield-alt"></i>
+                <div class="hotspot-info-3d">
+                  <div class="flex items-center mb-2">
+                    <i class="fas fa-hard-hat text-orange-400 mr-2"></i>
+                    <strong class="text-orange-400">Safety Systems</strong>
+                  </div>
+                  <p class="text-slate-300 text-sm mb-3">
+                    Professional-grade roll cage, fire suppression, and impact-absorbing technologies.
+                  </p>
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-green-400">FIA Certified</span>
+                    <span class="text-blue-400">Driver Protection</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Technical Specifications -->
+            <div class="mt-16">
+              <h3 class="text-3xl font-racing text-center mb-8 text-white uppercase">
+                <i class="fas fa-cogs text-yellow-400 mr-3"></i>
+                Complete Technical Specifications
+              </h3>
+              
+              <!-- Performance Stats -->
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
+                <div class="stat-card-3d text-center">
+                  <div class="text-2xl text-red-400 mb-2">
+                    <i class="fas fa-tachometer-alt"></i>
+                  </div>
+                  <div class="stat-number-3d text-2xl mb-1">180+</div>
+                  <div class="text-slate-300 font-semibold text-sm">MPH Top Speed</div>
+                </div>
+                
+                <div class="stat-card-3d text-center">
+                  <div class="text-2xl text-yellow-400 mb-2">
+                    <i class="fas fa-weight"></i>
+                  </div>
+                  <div class="stat-number-3d text-2xl mb-1">410</div>
+                  <div class="text-slate-300 font-semibold text-sm">lbs Dry Weight</div>
+                </div>
+                
+                <div class="stat-card-3d text-center">
+                  <div class="text-2xl text-blue-400 mb-2">
+                    <i class="fas fa-ruler"></i>
+                  </div>
+                  <div class="stat-number-3d text-2xl mb-1">110</div>
+                  <div class="text-slate-300 font-semibold text-sm">Inches Length</div>
+                </div>
+                
+                <div class="stat-card-3d text-center">
+                  <div class="text-2xl text-green-400 mb-2">
+                    <i class="fas fa-arrows-alt-h"></i>
+                  </div>
+                  <div class="stat-number-3d text-2xl mb-1">60</div>
+                  <div class="text-slate-300 font-semibold text-sm">Inch Wheelbase</div>
+                </div>
+              </div>
+              
+              <!-- Detailed Specifications Grid -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Engine & Powertrain -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 p-6">
+                  <h4 class="text-xl font-racing text-white uppercase mb-4 flex items-center">
+                    <i class="fas fa-engine text-red-400 mr-3"></i>
+                    Engine & Powertrain
+                  </h4>
+                  <div class="space-y-3 text-slate-300">
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Engine</span>
+                      <span class="text-white font-semibold">Honda GX390</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Configuration</span>
+                      <span class="text-white font-semibold">4 Stroke, OHV Single Cylinder</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Displacement</span>
+                      <span class="text-white font-semibold">390cc Sealed Motor</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Cooling</span>
+                      <span class="text-white font-semibold">Air Cooled</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Starting</span>
+                      <span class="text-white font-semibold">Electric Start</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Clutch</span>
+                      <span class="text-white font-semibold">Dry Centrifugal</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                      <span class="text-sm">Transmission</span>
+                      <span class="text-white font-semibold">Split Gears</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Chassis & Construction -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 p-6">
+                  <h4 class="text-xl font-racing text-white uppercase mb-4 flex items-center">
+                    <i class="fas fa-wrench text-blue-400 mr-3"></i>
+                    Chassis & Construction
+                  </h4>
+                  <div class="space-y-3 text-slate-300">
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Body</span>
+                      <span class="text-white font-semibold">Hand Laid Fiberglass</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Windshield</span>
+                      <span class="text-white font-semibold">Lexan</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Chassis</span>
+                      <span class="text-white font-semibold">1.125 X .065 Mild Steel</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Welding</span>
+                      <span class="text-white font-semibold">MIG Welded</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Control Arms</span>
+                      <span class="text-white font-semibold">Upper & Lower</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Pedals</span>
+                      <span class="text-white font-semibold">Movable</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                      <span class="text-sm">Body Types</span>
+                      <span class="text-white font-semibold">Impala, Camry, Fusion, Charger</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Suspension & Steering -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 p-6">
+                  <h4 class="text-xl font-racing text-white uppercase mb-4 flex items-center">
+                    <i class="fas fa-cog text-green-400 mr-3"></i>
+                    Suspension & Steering
+                  </h4>
+                  <div class="space-y-3 text-slate-300">
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Steering</span>
+                      <span class="text-white font-semibold">Rack & Pinion</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Front Shocks</span>
+                      <span class="text-white font-semibold">Adjustable Coil Over</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Rear Suspension</span>
+                      <span class="text-white font-semibold">Adjustable</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Alignment</span>
+                      <span class="text-white font-semibold">Camber, Caster, Toe Adj.</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Wheels</span>
+                      <span class="text-white font-semibold">8 x 6.5 Polished Aluminum</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                      <span class="text-sm">Tires</span>
+                      <span class="text-white font-semibold">15 x 7 x 8 Racing Slicks</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Safety & Interior -->
+                <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 p-6">
+                  <h4 class="text-xl font-racing text-white uppercase mb-4 flex items-center">
+                    <i class="fas fa-shield-alt text-orange-400 mr-3"></i>
+                    Safety & Interior
+                  </h4>
+                  <div class="space-y-3 text-slate-300">
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Harness</span>
+                      <span class="text-white font-semibold">Five Point Racing</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Brakes</span>
+                      <span class="text-white font-semibold">Dual Caliper Disc</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
+                      <span class="text-sm">Steering Wheel</span>
+                      <span class="text-white font-semibold">Quick Release</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                      <span class="text-sm">Seat</span>
+                      <span class="text-white font-semibold">Aluminum Racing</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Dimensions Summary -->
+              <div class="bg-gradient-to-r from-slate-800/80 to-slate-700/80 rounded-xl p-6 mt-8">
+                <h4 class="text-xl font-racing text-white uppercase mb-4 text-center">
+                  <i class="fas fa-ruler-combined text-purple-400 mr-3"></i>
+                  Vehicle Dimensions
+                </h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div>
+                    <div class="text-2xl font-bold text-purple-400 mb-1">110"</div>
+                    <div class="text-slate-300 text-sm">Overall Length</div>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-bold text-blue-400 mb-1">45"</div>
+                    <div class="text-slate-300 text-sm">Width</div>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-bold text-green-400 mb-1">32"</div>
+                    <div class="text-slate-300 text-sm">Overall Height</div>
+                  </div>
+                  <div>
+                    <div class="text-2xl font-bold text-yellow-400 mb-1">60"</div>
+                    <div class="text-slate-300 text-sm">Wheelbase</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="jon-gallery" class="py-16 md:py-24 bg-black/20">
+        <div class="container mx-auto px-6">
+          <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Jon's <span class="neon-yellow">Gallery</span></h2>
+
+          <div id="upload-container" class="max-w-xl mx-auto bg-slate-800/50 p-6 rounded-lg mb-12" style="display: none">
+            <h3 class="font-racing text-2xl text-white uppercase mb-4">Share Your <span class="neon-yellow">Photos of Jon</span></h3>
+            <div class="flex items-center space-x-4">
+              <input type="file" id="photo-upload-input" accept="image/jpeg, image/png" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-neon-yellow file:text-slate-900 hover:file:bg-yellow-300" />
+              <button id="upload-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition disabled:opacity-50" disabled>Upload</button>
             </div>
             <div class="mt-4">
               <div class="w-full bg-slate-700 rounded-full h-2.5">
-                <div
-                  id="upload-progress-bar"
-                  class="bg-neon-red h-2.5 rounded-full"
-                  style="width: 0%"
-                ></div>
+                <div id="upload-progress-bar" class="bg-neon-yellow h-2.5 rounded-full" style="width: 0%"></div>
               </div>
               <p id="upload-status" class="text-sm text-slate-400 mt-2 h-4"></p>
             </div>
           </div>
 
-          <div
-            id="dynamic-gallery-container"
-            class="gallery-3d grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-          >
+          <div id="dynamic-gallery-container" class="gallery-3d grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <!-- Photos will be dynamically inserted here -->
           </div>
-          <p class="text-center mt-8 text-slate-400">
-            This gallery will feature photos from Jonny's races and events.
-          </p>
+          <p class="text-center mt-8 text-slate-400">This gallery will feature photos from Jon's races and events.</p>
         </div>
       </section>
 
-      <section id="jonny-videos" class="py-16 md:py-24">
+      <section id="jon-videos" class="py-16 md:py-24">
         <div class="container mx-auto px-6">
-          <h2
-            class="font-racing text-5xl uppercase mb-12 text-center reveal-fade"
-          >
-            Jonny's <span class="neon-red">Videos</span>
-          </h2>
-          <div
-            id="dynamic-video-container"
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
+          <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Jon's <span class="neon-yellow">Videos</span></h2>
+          <div id="dynamic-video-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <!-- Videos will be dynamically inserted here -->
+            <p class="text-center text-slate-400 col-span-full">Videos coming soon.</p>
           </div>
         </div>
       </section>
     </main>
 
-        <!-- Modern Newsletter Footer -->
-    <footer class="newsletter-footer">
-        <div class="newsletter-container">
-            <div class="newsletter-content">
-                <h2 class="newsletter-title">Get In Touch</h2>
-                <p class="newsletter-subtitle">Subscribe for race updates and follow the journey on social media.</p>
-                
-                <form id="newsletter-form" class="newsletter-form">
-                    <div class="newsletter-input-group">
-                        <input type="email" id="newsletter-email" placeholder="Enter your email" required class="newsletter-input" style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;" />
-                        <button type="submit" class="newsletter-button">
-                            <span class="button-text">Subscribe</span>
-                            <span class="button-loader hidden">●●●</span>
-                        </button>
-                    </div>
-                    <p id="newsletter-message" class="newsletter-message"></p>
-                </form>
-                
-                <div class="social-links">
-                    <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="social-link" aria-label="Facebook">
-                        <i class="fab fa-facebook"></i>
-                    </a>
-                    <a href="https://www.tiktok.com/@redsracing" target="_blank" class="social-link" aria-label="TikTok">
-                        <i class="fab fa-tiktok"></i>
-                    </a>
-                    <a href="https://www.instagram.com/redsracing8/" target="_blank" class="social-link" aria-label="Instagram">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                </div>
-            </div>
+    <footer class="bg-gradient-to-b from-slate-900 via-slate-900 to-black border-t border-slate-800 py-20 relative overflow-hidden">
+      <!-- Background Effects -->
+      <div class="absolute inset-0 opacity-20">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl"></div>
+      </div>
+      
+      <div class="container mx-auto px-6 relative z-10">
+        <!-- Newsletter Section -->
+        <div class="max-w-3xl mx-auto text-center mb-16">
+          <div class="mb-8">
+            <h3 class="font-racing text-5xl md:text-6xl uppercase mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-yellow-400 to-blue-400 animate-gradient">
+              Stay In The Loop
+            </h3>
+            <p class="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto">
+              Get exclusive race updates, behind-the-scenes content, and be part of the racing family.
+            </p>
+          </div>
+          
+          <div class="max-w-2xl mx-auto">
+            <form id="subscribe-form" class="flex flex-col sm:flex-row gap-3 mb-4">
+              <div class="flex-1 relative group">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-yellow-500 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+                <input
+                  type="email"
+                  id="subscribe-email"
+                  placeholder="your@email.com"
+                  required
+                  class="relative w-full bg-slate-800/80 backdrop-blur-sm text-white px-6 py-4 rounded-xl border-2 border-slate-700 focus:outline-none focus:border-yellow-400 transition-all duration-300 text-lg"
+                  style="color: #ffffff !important;"
+                />
+              </div>
+              <button
+                type="submit"
+                class="bg-gradient-to-r from-yellow-400 to-yellow-500 text-slate-900 font-bold py-4 px-8 rounded-xl hover:from-yellow-300 hover:to-yellow-400 transition-all duration-300 shadow-lg hover:shadow-yellow-400/50 transform hover:-translate-y-1 text-lg whitespace-nowrap"
+              >
+                <i class="fas fa-paper-plane mr-2"></i>Subscribe
+              </button>
+            </form>
+            <p id="subscribe-message" class="text-sm mt-3 min-h-6 text-slate-400"></p>
+          </div>
         </div>
-        
-        <div class="footer-bottom">
-            <p>&copy; 2025 RedsRacing. All Rights Reserved.</p>
+        <!-- Social Media -->
+        <div class="border-t border-slate-800 pt-12">
+          <p class="text-slate-400 text-center mb-6 text-lg">Follow the journey</p>
+          <div class="flex justify-center space-x-4 mb-12">
+            <a
+              href="https://www.facebook.com/share/1F1RTxz9xa/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group relative w-14 h-14 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 flex items-center justify-center hover:border-blue-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/30"
+            >
+              <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-500 transition-colors duration-300" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  fill-rule="evenodd"
+                  d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <span class="absolute -bottom-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs text-slate-400">Facebook</span>
+            </a>
+            <a
+              href="https://www.tiktok.com/@redsracing"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group relative w-14 h-14 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 flex items-center justify-center hover:border-pink-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-pink-500/30"
+            >
+              <svg class="w-6 h-6 text-slate-400 group-hover:text-pink-500 transition-colors duration-300" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.75-1.76-2.59-4.18-2.6-6.69-.02-2.73.9-5.14 2.51-7.02 1.39-1.62 3.32-2.67 5.3-2.87.09-.01 2.89-.02 2.89-.02s.01 1.3.01 2.61c-1.23.08-2.42.37-3.53.93-1.22.63-2.09 1.68-2.4 2.95-.15.65-.22 1.32-.21 2.02.02 1.51.56 2.94 1.48 4.03.93 1.1 2.24 1.75 3.64 1.79.02 0 .02 0 .02 0 .02 0 .02 0 .02 0 1.43-.04 2.83-.63 3.86-1.69.91-.94 1.4-2.24 1.42-3.55.02-3.44-.01-6.88.01-10.32.01-.11.01-.22.02-.33z"
+                />
+              </svg>
+              <span class="absolute -bottom-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs text-slate-400">TikTok</span>
+            </a>
+          </div>
         </div>
+        <p class="mt-8 text-slate-500 text-sm text-center">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
+      </div>
     </footer>
-
-    <style>
-    .newsletter-footer {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        padding: 60px 20px 30px;
-        color: white;
-    }
-
-    .newsletter-container {
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    .newsletter-content {
-        text-align: center;
-    }
-
-    .newsletter-title {
-        font-size: 2.5rem;
-        font-weight: 900;
-        background: linear-gradient(45deg, #fbbf24, #f59e0b);
-        background-clip: text;
-        -webkit-background-clip: text;
-        color: transparent;
-        margin-bottom: 10px;
-    }
-
-    .newsletter-subtitle {
-        color: #94a3b8;
-        font-size: 1.1rem;
-        margin-bottom: 30px;
-    }
-
-    .newsletter-form {
-        margin-bottom: 40px;
-    }
-
-    .newsletter-input-group {
-        display: flex;
-        gap: 10px;
-        max-width: 500px;
-        margin: 0 auto 15px;
-    }
-
-    .newsletter-input {
-        flex: 1;
-        padding: 15px 20px;
-        border: 2px solid rgba(251, 191, 36, 0.3);
-        border-radius: 12px;
-        background: rgba(30, 41, 59, 0.9);
-        color: #ffffff !important;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-    }
-
-    .newsletter-input:focus {
-        outline: none;
-        border-color: #fbbf24;
-        background: rgba(30, 41, 59, 0.8);
-    }
-
-    .newsletter-input::placeholder {
-        color: #64748b;
-    }
-
-    .newsletter-button {
-        padding: 15px 35px;
-        background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        color: #0f172a;
-        border: none;
-        border-radius: 12px;
-        font-size: 1rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .newsletter-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
-    }
-
-    .newsletter-button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    .button-loader {
-        animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-    }
-
-    .hidden {
-        display: none;
-    }
-
-    .newsletter-message {
-        min-height: 24px;
-        font-size: 0.9rem;
-        margin-top: 10px;
-    }
-
-    .newsletter-message.success {
-        color: #4ade80;
-    }
-
-    .newsletter-message.error {
-        color: #ef4444;
-    }
-
-    .social-links {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        margin-top: 30px;
-    }
-
-    .social-link {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: rgba(251, 191, 36, 0.1);
-        border: 2px solid rgba(251, 191, 36, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fbbf24;
-        font-size: 1.5rem;
-        transition: all 0.3s ease;
-        text-decoration: none;
-    }
-
-    .social-link:hover {
-        background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        color: #0f172a;
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(251, 191, 36, 0.3);
-    }
-
-    .footer-bottom {
-        text-align: center;
-        padding-top: 30px;
-        margin-top: 40px;
-        border-top: 1px solid rgba(148, 163, 184, 0.2);
-        color: #64748b;
-        font-size: 0.9rem;
-    }
-
-    @media (max-width: 768px) {
-        .newsletter-title {
-            font-size: 2rem;
-        }
-        
-        .newsletter-input-group {
-            flex-direction: column;
-        }
-        
-        .newsletter-button {
-            width: 100%;
-        }
-    }
-    </style>
-
-    <script type="module">
-    import { getApp, initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-    import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-
-    // Initialize dedicated Firebase app for newsletter
-    const firebaseConfig = {
-        apiKey: "AIzaSyDu91Bi9SiF4K6P_sBjHBUNbjXjEB02X74",
-        authDomain: "redsracing-a7f8b.firebaseapp.com",
-        projectId: "redsracing-a7f8b",
-        storageBucket: "redsracing-a7f8b.firebasestorage.app",
-        messagingSenderId: "517034606151",
-        appId: "1:517034606151:web:ea84d9fb6b21f5ba99c8a9"
-    };
-    const newsletterApp = initializeApp(firebaseConfig, "newsletter-app");
-
-    const db = getFirestore(newsletterApp);
-
-    // Newsletter form handler
-    const form = document.getElementById('newsletter-form');
-    const emailInput = document.getElementById('newsletter-email');
-    const submitButton = form.querySelector('button[type="submit"]');
-    const buttonText = submitButton.querySelector('.button-text');
-    const buttonLoader = submitButton.querySelector('.button-loader');
-    const message = document.getElementById('newsletter-message');
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const email = emailInput.value.trim();
-        if (!email) return;
-        
-        // Validate email
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            showMessage('Please enter a valid email address', 'error');
-            return;
-        }
-        
-        // Show loading state
-        submitButton.disabled = true;
-        buttonText.classList.add('hidden');
-        buttonLoader.classList.remove('hidden');
-        message.textContent = '';
-        
-        try {
-            // Check if email already exists
-            const subscribersRef = collection(db, 'subscribers');
-            const q = query(subscribersRef, where('email', '==', email));
-            const querySnapshot = await getDocs(q);
-            
-            if (!querySnapshot.empty) {
-                showMessage('You\'re already subscribed! 🎉', 'success');
-                emailInput.value = '';
-                return;
-            }
-            
-            // Add new subscriber
-            await addDoc(subscribersRef, {
-                email: email,
-                subscribed: true,
-                createdAt: serverTimestamp(),
-                source: 'website_footer'
-            });
-            
-            showMessage('Welcome to the team! Check your email 📧', 'success');
-            emailInput.value = '';
-            
-            // Track event
-            if (window.gtag) {
-                gtag('event', 'newsletter_signup', {
-                    method: 'footer_form'
-                });
-            }
-            
-        } catch (error) {
-            console.error('Newsletter signup error:', error);
-            showMessage('Something went wrong. Please try again.', 'error');
-        } finally {
-            submitButton.disabled = false;
-            buttonText.classList.remove('hidden');
-            buttonLoader.classList.add('hidden');
-        }
-    });
-
-    function showMessage(text, type) {
-        message.textContent = text;
-        message.className = 
-ewsletter-message ${type}`;
-    }
-    </script>
 
     <script type="module" src="navigation.js"></script>
     <script type="module" src="main.js"></script>
     <script type="module" src="assets/js/racer-schedule.js"></script>
-    <script type="module" src="assets/js/jonny-kids.js?v=20251001-1"></script>
-    <script type="module" src="assets/js/k1-stats-jonny.js"></script>
-    <script type="module" src="assets/js/cms-render.js?v=20251002-1"></script>
-    <script type="module" src="modern-effects.js"></script>
-    <script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+    <script type="module" src="assets/js/driver.js"></script>
+    <script type="module" src="assets/js/k1-stats.js"></script>
+    <script src="assets/js/speedhive-results.js?v=20251008"></script>
+    <script src="assets/js/hotspot-mobile.js"></script>
   </body>
 </html>
+
+
