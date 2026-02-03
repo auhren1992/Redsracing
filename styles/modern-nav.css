@@ -147,18 +147,19 @@ header {
   transition: all 0.3s ease;
 }
 
-/* Force-hide any legacy login entry points across the site */
-#login-btn,
-#mobile-login-btn,
-.mobile-login-btn,
-nav a[href="login.html"] {
-  display: none !important;
-}
-
 /* User profile dropdown should be visible when not hidden */
 #user-profile:not(.hidden),
 #mobile-user-profile:not(.hidden) {
-  display: block !important;
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure the profile dropdown is visible in auth section */
+#auth-section #user-profile,
+#mobile-auth-section #mobile-user-profile {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Ensure dropdown menus are clickable */

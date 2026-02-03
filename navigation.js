@@ -79,16 +79,26 @@
           if (user) {
             document.body.setAttribute('data-auth', 'signed-in');
             localStorage.setItem('rr_auth_uid', user.uid);
-            if (loginBtn) loginBtn.classList.add('hidden');
+            if (loginBtn) {
+              loginBtn.classList.add('hidden');
+              loginBtn.style.display = 'none';
+            }
             unmountLoggedOutButton();
             if (userProfile) {
               userProfile.classList.remove('hidden');
-              userProfile.style.display = '';
+              userProfile.style.display = 'flex';
+              userProfile.style.opacity = '1';
+              userProfile.style.visibility = 'visible';
             }
-            if (mobileLoginBtn) mobileLoginBtn.classList.add('hidden');
+            if (mobileLoginBtn) {
+              mobileLoginBtn.classList.add('hidden');
+              mobileLoginBtn.style.display = 'none';
+            }
             if (mobileUserProfile) {
               mobileUserProfile.classList.remove('hidden');
-              mobileUserProfile.style.display = '';
+              mobileUserProfile.style.display = 'block';
+              mobileUserProfile.style.opacity = '1';
+              mobileUserProfile.style.visibility = 'visible';
             }
             hideLegacyLoginLinks(true);
             const name = user.displayName || user.email || 'Driver';
@@ -118,11 +128,23 @@ const core = await import('./assets/js/firebase-core.js');
           } else {
             document.body.setAttribute('data-auth', 'signed-out');
             localStorage.removeItem('rr_auth_uid');
-            if (userProfile) userProfile.classList.add('hidden');
-            if (loginBtn) loginBtn.classList.add('hidden');
+            if (userProfile) {
+              userProfile.classList.add('hidden');
+              userProfile.style.display = 'none';
+            }
+            if (loginBtn) {
+              loginBtn.classList.add('hidden');
+              loginBtn.style.display = 'none';
+            }
             mountLoggedOutButton();
-            if (mobileUserProfile) mobileUserProfile.classList.add('hidden');
-            if (mobileLoginBtn) mobileLoginBtn.classList.add('hidden');
+            if (mobileUserProfile) {
+              mobileUserProfile.classList.add('hidden');
+              mobileUserProfile.style.display = 'none';
+            }
+            if (mobileLoginBtn) {
+              mobileLoginBtn.classList.add('hidden');
+              mobileLoginBtn.style.display = 'none';
+            }
             hideLegacyLoginLinks(true);
           }
         } catch (_) {}
