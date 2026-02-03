@@ -637,8 +637,7 @@
 
     function showMessage(text, type) {
         message.textContent = text;
-        message.className = 
-ewsletter-message ${type}`;
+        message.className = `newsletter-message ${type}`;
     }
     </script>
 
@@ -646,6 +645,9 @@ ewsletter-message ${type}`;
     <script type="module" src="main.js"></script>
     <script type="module" src="assets/js/jonny-gallery.js"></script>
     <script type="module" src="modern-effects.js"></script>
-    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+    <script>
+        const yearEl = document.getElementById('year');
+        if (yearEl) yearEl.textContent = new Date().getFullYear();
+    </script>
   </body>
 </html>

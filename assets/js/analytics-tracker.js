@@ -21,10 +21,10 @@ async function trackPageView() {
     }
 
     // Import Firebase
-    const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+    const { initializeApp, getApps, getApp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
     const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
     
-    // Initialize Firebase if not already initialized
+    // Initialize Firebase with a named app to avoid conflicts
     const firebaseConfig = {
       apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
       authDomain: "redsracing-a7f8b.firebaseapp.com",
@@ -34,11 +34,18 @@ async function trackPageView() {
       appId: "1:517034606151:web:24cae262e1d98832757b62"
     };
     
-    if (getApps().length === 0) {
-      initializeApp(firebaseConfig);
+    // Check if analytics app already exists
+    let app;
+    const existingApps = getApps();
+    const analyticsApp = existingApps.find(a => a.name === 'analytics-app');
+    
+    if (analyticsApp) {
+      app = analyticsApp;
+    } else {
+      app = initializeApp(firebaseConfig, 'analytics-app');
     }
     
-    const db = getFirestore();
+    const db = getFirestore(app);
     
     // Get or create visitor ID (stored in localStorage)
     let visitorId = localStorage.getItem('redsracing_visitor_id');

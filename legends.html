@@ -813,8 +813,7 @@
 
     function showMessage(text, type) {
         message.textContent = text;
-        message.className = 
-ewsletter-message ${type}`;
+        message.className = `newsletter-message ${type}`;
     }
     </script>
 
@@ -836,7 +835,8 @@ ewsletter-message ${type}`;
         
         
         // Set current year
-        document.getElementById('year').textContent = new Date().getFullYear();
+        const yearEl = document.getElementById('year');
+        if (yearEl) yearEl.textContent = new Date().getFullYear();
 
         // Legend data
         const legends = {
