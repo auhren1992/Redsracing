@@ -81,9 +81,15 @@
             localStorage.setItem('rr_auth_uid', user.uid);
             if (loginBtn) loginBtn.classList.add('hidden');
             unmountLoggedOutButton();
-            if (userProfile) userProfile.classList.remove('hidden');
+            if (userProfile) {
+              userProfile.classList.remove('hidden');
+              userProfile.style.display = '';
+            }
             if (mobileLoginBtn) mobileLoginBtn.classList.add('hidden');
-            if (mobileUserProfile) mobileUserProfile.classList.remove('hidden');
+            if (mobileUserProfile) {
+              mobileUserProfile.classList.remove('hidden');
+              mobileUserProfile.style.display = '';
+            }
             hideLegacyLoginLinks(true);
             const name = user.displayName || user.email || 'Driver';
             if (userNameEl) userNameEl.textContent = name;
