@@ -19,6 +19,8 @@
       const auth = getAuth();
       try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}
       onAuthStateChanged(auth, (user) => {
+        // Wait for DOM to be ready before manipulating elements
+        const handleAuth = () => {
         try {
           const loginBtn = document.getElementById('login-btn');
           const userProfile = document.getElementById('user-profile');
@@ -81,6 +83,17 @@
             document.body.setAttribute('data-auth', 'signed-in');
             localStorage.setItem('rr_auth_uid', user.uid);
             
+            // Add visible debug indicator
+            let debugDiv = document.getElementById('auth-debug-status');
+            if (!debugDiv) {
+              debugDiv = document.createElement('div');
+              debugDiv.id = 'auth-debug-status';
+              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#22c55e;color:#000;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+              debugDiv.textContent = '✓ Logged in as ' + (user.email || 'User');
+              document.body.appendChild(debugDiv);
+              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+            }
+            
             // CSS will handle visibility via body[data-auth="signed-in"] rules
             // Just set attributes and let CSS take over
             unmountLoggedOutButton();
@@ -88,6 +101,11 @@
             if (userProfile) {
               userProfile.classList.remove('hidden');
               userProfile.setAttribute('data-auth-visible', 'true');
+              // Force display with inline styles as absolute fallback
+              userProfile.style.display = 'flex';
+              userProfile.style.visibility = 'visible';
+              userProfile.style.opacity = '1';
+              userProfile.style.pointerEvents = 'auto';
               console.log('[RedsRacing Auth] Profile dropdown enabled');
             } else {
               console.warn('[RedsRacing Auth] #user-profile element not found');
@@ -96,15 +114,48 @@
             if (mobileUserProfile) {
               mobileUserProfile.classList.remove('hidden');
               mobileUserProfile.setAttribute('data-auth-visible', 'true');
+              // Force display with inline styles as absolute fallback
+              mobileUserProfile.style.display = 'block';
+              mobileUserProfile.style.visibility = 'visible';
+              mobileUserProfile.style.opacity = '1';
+              mobileUserProfile.style.pointerEvents = 'auto';
             }
             
             if (loginBtn) {
               loginBtn.classList.add('hidden');
+              loginBtn.style.display = 'none';
             }
             
             if (mobileLoginBtn) {
               mobileLoginBtn.classList.add('hidden');
+              mobileLoginBtn.style.display = 'none';
             }
+            
+            // Ultra-aggressive retry to ensure visibility
+            setTimeout(() => {
+              if (userProfile) {
+                userProfile.style.display = 'flex';
+                userProfile.style.visibility = 'visible';
+                userProfile.style.opacity = '1';
+              }
+              if (mobileUserProfile) {
+                mobileUserProfile.style.display = 'block';
+                mobileUserProfile.style.visibility = 'visible';
+                mobileUserProfile.style.opacity = '1';
+              }
+            }, 100);
+            setTimeout(() => {
+              if (userProfile) {
+                userProfile.style.display = 'flex';
+                userProfile.style.visibility = 'visible';
+                userProfile.style.opacity = '1';
+              }
+              if (mobileUserProfile) {
+                mobileUserProfile.style.display = 'block';
+                mobileUserProfile.style.visibility = 'visible';
+                mobileUserProfile.style.opacity = '1';
+              }
+            }, 500);
             const name = user.displayName || user.email || 'Driver';
             if (userNameEl) userNameEl.textContent = name;
             if (mobileUserNameEl) mobileUserNameEl.textContent = name;
@@ -134,6 +185,17 @@ const core = await import('./assets/js/firebase-core.js');
             document.body.setAttribute('data-auth', 'signed-out');
             localStorage.removeItem('rr_auth_uid');
             
+            // Add visible debug indicator
+            let debugDiv = document.getElementById('auth-debug-status');
+            if (!debugDiv) {
+              debugDiv = document.createElement('div');
+              debugDiv.id = 'auth-debug-status';
+              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#ef4444;color:#fff;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+              debugDiv.textContent = '✗ Not logged in';
+              document.body.appendChild(debugDiv);
+              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+            }
+            
             // CSS will handle visibility via body[data-auth="signed-out"] rules
             if (userProfile) {
               userProfile.classList.add('hidden');
@@ -149,7 +211,17 @@ const core = await import('./assets/js/firebase-core.js');
             }
             unmountLoggedOutButton();
           }
-        } catch (_) {}
+        } catch (err) {
+          console.error('[RedsRacing Auth] Error:', err);
+        }
+        };
+        
+        // Run immediately if DOM is ready, otherwise wait
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', handleAuth);
+        } else {
+          handleAuth();
+        }
       });
     } catch (_) {
       // Non-fatal; pages without auth still work

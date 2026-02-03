@@ -181,6 +181,8 @@ body[data-auth="signed-in"] #user-profile {
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
+  position: relative !important;
+  z-index: 1000 !important;
 }
 
 body[data-auth="signed-in"] #mobile-user-profile {
@@ -191,7 +193,8 @@ body[data-auth="signed-in"] #mobile-user-profile {
 }
 
 body[data-auth="signed-in"] #login-btn,
-body[data-auth="signed-in"] #mobile-login-btn {
+body[data-auth="signed-in"] #mobile-login-btn,
+body[data-auth="signed-in"] #account-toggle-loggedout {
   display: none !important;
 }
 
@@ -206,6 +209,22 @@ body[data-auth="signed-out"] #login-btn {
 
 body[data-auth="signed-out"] #mobile-login-btn {
   display: block !important;
+}
+
+/* Force override ANY hidden class on profile when signed in */
+body[data-auth="signed-in"] #user-profile.hidden,
+body[data-auth="signed-in"] #mobile-user-profile.hidden {
+  display: flex !important;
+}
+
+body[data-auth="signed-in"] #mobile-user-profile.hidden {
+  display: block !important;
+}
+
+/* Ensure auth section doesn't hide children */
+#auth-section {
+  display: flex !important;
+  align-items: center !important;
 }
 
 /* Ensure dropdown menus are clickable */
