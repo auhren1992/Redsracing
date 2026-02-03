@@ -79,27 +79,47 @@
           if (user) {
             document.body.setAttribute('data-auth', 'signed-in');
             localStorage.setItem('rr_auth_uid', user.uid);
-            if (loginBtn) {
-              loginBtn.classList.add('hidden');
-              loginBtn.style.display = 'none';
-            }
-            unmountLoggedOutButton();
-            if (userProfile) {
-              userProfile.classList.remove('hidden');
-              userProfile.style.display = 'flex';
-              userProfile.style.opacity = '1';
-              userProfile.style.visibility = 'visible';
-            }
-            if (mobileLoginBtn) {
-              mobileLoginBtn.classList.add('hidden');
-              mobileLoginBtn.style.display = 'none';
-            }
-            if (mobileUserProfile) {
-              mobileUserProfile.classList.remove('hidden');
-              mobileUserProfile.style.display = 'block';
-              mobileUserProfile.style.opacity = '1';
-              mobileUserProfile.style.visibility = 'visible';
-            }
+            
+            // Force show profile dropdown with multiple attempts
+            const showProfile = () => {
+              if (loginBtn) {
+                loginBtn.classList.add('hidden');
+                loginBtn.style.display = 'none';
+              }
+              unmountLoggedOutButton();
+              
+              if (userProfile) {
+                userProfile.classList.remove('hidden');
+                userProfile.style.display = 'flex';
+                userProfile.style.opacity = '1';
+                userProfile.style.visibility = 'visible';
+                userProfile.style.pointerEvents = 'auto';
+                // Force override any conflicting styles
+                userProfile.setAttribute('data-auth-visible', 'true');
+              }
+              
+              if (mobileLoginBtn) {
+                mobileLoginBtn.classList.add('hidden');
+                mobileLoginBtn.style.display = 'none';
+              }
+              
+              if (mobileUserProfile) {
+                mobileUserProfile.classList.remove('hidden');
+                mobileUserProfile.style.display = 'block';
+                mobileUserProfile.style.opacity = '1';
+                mobileUserProfile.style.visibility = 'visible';
+                mobileUserProfile.style.pointerEvents = 'auto';
+                mobileUserProfile.setAttribute('data-auth-visible', 'true');
+              }
+            };
+            
+            // Show immediately
+            showProfile();
+            // Retry after short delay to overcome any CSS loading issues
+            setTimeout(showProfile, 50);
+            setTimeout(showProfile, 200);
+            setTimeout(showProfile, 500);
+            
             hideLegacyLoginLinks(true);
             const name = user.displayName || user.email || 'Driver';
             if (userNameEl) userNameEl.textContent = name;

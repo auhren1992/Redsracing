@@ -162,6 +162,19 @@ header {
   visibility: visible;
 }
 
+/* Force visibility when auth is confirmed */
+#user-profile[data-auth-visible="true"],
+#mobile-user-profile[data-auth-visible="true"] {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+#mobile-user-profile[data-auth-visible="true"] {
+  display: block !important;
+}
+
 /* Ensure dropdown menus are clickable */
 .dropdown-menu {
   pointer-events: auto;
