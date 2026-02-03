@@ -397,6 +397,15 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
+                // Handle relative URLs (internal navigation)
+                if (!urlStr.startsWith("http") && !urlStr.startsWith("file") && 
+                    (urlStr.endsWith(".html") || urlStr.contains(".html"))) {
+                    // Extract just the filename from the URL
+                    val fileName = url.path?.split("/")?.lastOrNull() ?: urlStr
+                    view?.loadUrl("https://appassets.androidplatform.net/assets/www/$fileName")
+                    return true
+                }
+
                 return when {
                     urlStr.startsWith("http://") || urlStr.startsWith("https://") || urlStr.startsWith("file://") -> false
                     urlStr.startsWith("tel:") || urlStr.startsWith("mailto:") -> {
