@@ -403,6 +403,11 @@ const core = await import('./assets/js/firebase-core.js');
         const label = (btn.textContent || '').toLowerCase();
         const menu = btn.nextElementSibling;
         if (!menu) return;
+        
+        // Skip user profile dropdown - don't upgrade it
+        const isProfileDropdown = btn.closest('#user-profile') || btn.closest('#auth-section') || btn.id === 'account-toggle-loggedout';
+        if (isProfileDropdown) return;
+        
         // Normalize menus to be visible only on toggle
         menu.classList.add('dropdown-menu');
         menu.classList.add('modern-dropdown');
