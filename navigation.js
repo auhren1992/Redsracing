@@ -77,50 +77,34 @@
           }
 
           if (user) {
+            console.log('[RedsRacing Auth] User signed in:', user.email);
             document.body.setAttribute('data-auth', 'signed-in');
             localStorage.setItem('rr_auth_uid', user.uid);
             
-            // Force show profile dropdown with multiple attempts
-            const showProfile = () => {
-              if (loginBtn) {
-                loginBtn.classList.add('hidden');
-                loginBtn.style.display = 'none';
-              }
-              unmountLoggedOutButton();
-              
-              if (userProfile) {
-                userProfile.classList.remove('hidden');
-                userProfile.style.display = 'flex';
-                userProfile.style.opacity = '1';
-                userProfile.style.visibility = 'visible';
-                userProfile.style.pointerEvents = 'auto';
-                // Force override any conflicting styles
-                userProfile.setAttribute('data-auth-visible', 'true');
-              }
-              
-              if (mobileLoginBtn) {
-                mobileLoginBtn.classList.add('hidden');
-                mobileLoginBtn.style.display = 'none';
-              }
-              
-              if (mobileUserProfile) {
-                mobileUserProfile.classList.remove('hidden');
-                mobileUserProfile.style.display = 'block';
-                mobileUserProfile.style.opacity = '1';
-                mobileUserProfile.style.visibility = 'visible';
-                mobileUserProfile.style.pointerEvents = 'auto';
-                mobileUserProfile.setAttribute('data-auth-visible', 'true');
-              }
-            };
+            // CSS will handle visibility via body[data-auth="signed-in"] rules
+            // Just set attributes and let CSS take over
+            unmountLoggedOutButton();
             
-            // Show immediately
-            showProfile();
-            // Retry after short delay to overcome any CSS loading issues
-            setTimeout(showProfile, 50);
-            setTimeout(showProfile, 200);
-            setTimeout(showProfile, 500);
+            if (userProfile) {
+              userProfile.classList.remove('hidden');
+              userProfile.setAttribute('data-auth-visible', 'true');
+              console.log('[RedsRacing Auth] Profile dropdown enabled');
+            } else {
+              console.warn('[RedsRacing Auth] #user-profile element not found');
+            }
             
-            hideLegacyLoginLinks(true);
+            if (mobileUserProfile) {
+              mobileUserProfile.classList.remove('hidden');
+              mobileUserProfile.setAttribute('data-auth-visible', 'true');
+            }
+            
+            if (loginBtn) {
+              loginBtn.classList.add('hidden');
+            }
+            
+            if (mobileLoginBtn) {
+              mobileLoginBtn.classList.add('hidden');
+            }
             const name = user.displayName || user.email || 'Driver';
             if (userNameEl) userNameEl.textContent = name;
             if (mobileUserNameEl) mobileUserNameEl.textContent = name;
@@ -146,25 +130,24 @@ const core = await import('./assets/js/firebase-core.js');
               });
             }
           } else {
+            console.log('[RedsRacing Auth] User signed out');
             document.body.setAttribute('data-auth', 'signed-out');
             localStorage.removeItem('rr_auth_uid');
+            
+            // CSS will handle visibility via body[data-auth="signed-out"] rules
             if (userProfile) {
               userProfile.classList.add('hidden');
-              userProfile.style.display = 'none';
+            }
+            if (mobileUserProfile) {
+              mobileUserProfile.classList.add('hidden');
             }
             if (loginBtn) {
               loginBtn.classList.remove('hidden');
-              loginBtn.style.display = 'flex';
-            }
-            unmountLoggedOutButton();
-            if (mobileUserProfile) {
-              mobileUserProfile.classList.add('hidden');
-              mobileUserProfile.style.display = 'none';
             }
             if (mobileLoginBtn) {
               mobileLoginBtn.classList.remove('hidden');
-              mobileLoginBtn.style.display = 'block';
             }
+            unmountLoggedOutButton();
           }
         } catch (_) {}
       });
