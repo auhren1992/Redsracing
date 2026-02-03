@@ -58,7 +58,6 @@ async function main() {
   // Ensure upload UI is visible with proper state based on auth
   function updateUploadVisibility(user) {
     if (!uploadContainer) return;
-    uploadContainer.style.display = "block";
     const isAuthed = !!user;
 
     if (uploadInput) uploadInput.disabled = !isAuthed;
@@ -81,9 +80,6 @@ async function main() {
       updateUploadVisibility(user);
     },
     (error) => {
-      if (uploadContainer) {
-        uploadContainer.style.display = "block";
-      }
       updateUploadVisibility(null);
     },
   );

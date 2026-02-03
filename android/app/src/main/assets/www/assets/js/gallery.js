@@ -116,8 +116,6 @@ async function main() {
   // Ensure upload UI is visible with proper state based on auth
   function updateUploadVisibility(user) {
     if (!uploadContainer) return;
-    // Always show the container so it doesn't look missing
-    uploadContainer.style.display = "block";
     const isAuthed = !!user;
 
     // Disable/enable controls accordingly

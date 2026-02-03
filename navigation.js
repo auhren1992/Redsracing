@@ -153,19 +153,18 @@ const core = await import('./assets/js/firebase-core.js');
               userProfile.style.display = 'none';
             }
             if (loginBtn) {
-              loginBtn.classList.add('hidden');
-              loginBtn.style.display = 'none';
+              loginBtn.classList.remove('hidden');
+              loginBtn.style.display = 'flex';
             }
-            mountLoggedOutButton();
+            unmountLoggedOutButton();
             if (mobileUserProfile) {
               mobileUserProfile.classList.add('hidden');
               mobileUserProfile.style.display = 'none';
             }
             if (mobileLoginBtn) {
-              mobileLoginBtn.classList.add('hidden');
-              mobileLoginBtn.style.display = 'none';
+              mobileLoginBtn.classList.remove('hidden');
+              mobileLoginBtn.style.display = 'block';
             }
-            hideLegacyLoginLinks(true);
           }
         } catch (_) {}
       });
