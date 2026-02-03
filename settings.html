@@ -768,8 +768,10 @@
       let currentUser = null;
       let userRole = 'fan';
       
-      // Check authentication
-      onAuthStateChanged(auth, async (user) => {
+      // Function to handle auth state
+      async function handleAuthState(user) {
+        console.log('[Settings] Auth state changed, user:', user ? user.email : 'none');
+        
         const loadingState = document.getElementById('loading-state');
         const guestState = document.getElementById('guest-state');
         const userSettings = document.getElementById('user-settings');
@@ -777,16 +779,19 @@
         
         if (!user) {
           // Not signed in
+          console.log('[Settings] No user, showing guest prompt');
           loadingState.classList.add('hidden');
           guestState.classList.remove('hidden');
           userBadge.innerHTML = '<i class="fas fa-user"></i><span>Guest</span>';
         } else {
+          console.log('[Settings] User found:', user.email);
           currentUser = user;
           
           try {
-            // Get user role
+            // Get user role from token claims
             const token = await user.getIdTokenResult();
             userRole = token.claims.role || 'fan';
+            console.log('[Settings] User role from token:', userRole);
             
             // Get user data
             let userData = {};
@@ -810,9 +815,11 @@
             };
             
             userBadge.innerHTML = `<i class="fas ${roleIcons[userRole] || 'fa-user'}"></i><span>${roleLabels[userRole] || 'Fan'}</span>`;
+            console.log('[Settings] Updated badge for role:', userRole);
             
             // Show team features for team members and admins
             if (userRole === 'admin' || userRole === 'team-member') {
+              console.log('[Settings] Showing admin features');
               document.getElementById('admin-notif-row').style.display = 'flex';
               document.getElementById('quick-links-card').style.display = 'block';
             }
@@ -820,16 +827,29 @@
             // Load settings
             loadSettings(userData);
             
+            console.log('[Settings] Showing user settings');
             loadingState.classList.add('hidden');
             userSettings.classList.remove('hidden');
           } catch (error) {
-            console.error('Error loading user data:', error);
+            console.error('[Settings] Error loading user data:', error);
             loadingState.classList.add('hidden');
             userSettings.classList.remove('hidden');
             loadSettings({});
           }
         }
-      });
+      }
+      
+      // Check current user immediately
+      const currentAuthUser = auth.currentUser;
+      console.log('[Settings] Current user on load:', currentAuthUser ? currentAuthUser.email : 'none');
+      
+      if (currentAuthUser) {
+        // User already signed in, handle immediately
+        handleAuthState(currentAuthUser);
+      }
+      
+      // Also listen for auth state changes
+      onAuthStateChanged(auth, handleAuthState);
       
       // Load settings from Firestore and localStorage
       function loadSettings(userData) {
