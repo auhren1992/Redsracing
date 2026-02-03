@@ -199,6 +199,28 @@ body {
   filter: grayscale(100%) brightness(0.8);
   transition: filter 0.3s ease;
 }
+
+/* CTA Buttons */
+.cta-button {
+  background: linear-gradient(45deg, #00c6ff, #0288d1);
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(0, 198, 255, 0.3);
+  cursor: pointer;
+}
+
+.cta-button:hover {
+  background: linear-gradient(45deg, #0288d1, #00c6ff);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 198, 255, 0.4);
+  color: white;
+}
+}
 .sponsor-logo:hover img {
   filter: grayscale(0%) brightness(1);
 }

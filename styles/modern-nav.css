@@ -151,9 +151,24 @@ header {
 #login-btn,
 #mobile-login-btn,
 .mobile-login-btn,
-#account-toggle-loggedout,
 nav a[href="login.html"] {
   display: none !important;
+}
+
+/* User profile dropdown should be visible when not hidden */
+#user-profile:not(.hidden),
+#mobile-user-profile:not(.hidden) {
+  display: block !important;
+}
+
+/* Ensure dropdown menus are clickable */
+.dropdown-menu {
+  pointer-events: auto;
+  z-index: 9999;
+}
+
+.dropdown-menu.hidden {
+  pointer-events: none;
 }
 
 header.scrolled {
