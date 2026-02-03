@@ -2,6 +2,7 @@ from firebase_admin import firestore, initialize_app, auth, storage
 from firebase_functions import https_fn, options
 import sendgrid
 from sendgrid.helpers.mail import Mail
+from mailersend import MailerSendClient, EmailBuilder, EmailContact
 import os
 import json
 import random
@@ -31,7 +32,7 @@ except Exception as e:
 
 # Configure secrets for email functionality
 # Keep SENTRY_DSN optional to avoid deployment failure when the secret is not present
-options.set_global_options(secrets=["SENDGRID_API_KEY", "RECAPTCHA_SITE_KEY", "SENTRY_DSN"])
+options.set_global_options(secrets=["SENDGRID_API_KEY", "MAILERSEND_API_KEY", "RECAPTCHA_SITE_KEY", "SENTRY_DSN"])
 
 # Initialize Sentry (non-blocking if DSN not provided)
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
@@ -68,6 +69,30 @@ def get_sendgrid_client():
             )
         sg = sendgrid.SendGridAPIClient(api_key=api_key)
     return sg
+
+
+def send_email_via_mailersend(to_email, subject, text_body, html_body, from_email, from_name="Redsracing"):
+    """Send email using MailerSend API."""
+    api_key = os.environ.get("MAILERSEND_API_KEY")
+    if not api_key or api_key.strip() == "":
+        raise ValueError("MAILERSEND_API_KEY is not configured")
+    
+    client = MailerSendClient(api_key=api_key)
+    
+    mail_from = EmailContact(email=from_email, name=from_name)
+    recipients = [EmailContact(email=to_email)]
+    
+    email = (
+        EmailBuilder()
+        .mail_from(mail_from)
+        .recipients(recipients)
+        .subject(subject)
+        .html(html_body)
+        .text(text_body)
+        .build()
+    )
+    
+    return client.send(email)
 
 
 def get_client_ip(req):
@@ -195,9 +220,9 @@ def handleTest(req: https_fn.Request) -> https_fn.Response:
     )
 
 
-@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY", "SENTRY_DSN"])
+@https_fn.on_request(cors=CORS_OPTIONS, secrets=["MAILERSEND_API_KEY", "SENTRY_DSN"])
 def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
-    """Sends feedback from a user as an email via SendGrid."""
+    """Sends feedback from a user as an email via MailerSend."""
     if req.method == "OPTIONS":
         return https_fn.Response("", status=204)
     if req.method != "POST":
@@ -218,19 +243,19 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
 
     try:
         email_subject = f"New Feedback from {name}"
-        email_body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message_content}"
+        text_body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message_content}"
+        html_body = f"<h2>New Feedback</h2><p><strong>Name:</strong> {name}</p><p><strong>Email:</strong> {email}</p><p><strong>Message:</strong></p><p>{message_content}</p>"
 
-        message = Mail(
-            from_email="feedback@redsracing.org",  # Must be a verified sender in SendGrid
-            to_emails="aaron@redsracing.org",
+        response = send_email_via_mailersend(
+            to_email="aaron@redsracing.org",
             subject=email_subject,
-            plain_text_content=email_body,
+            text_body=text_body,
+            html_body=html_body,
+            from_email="feedback@redsracing.org",
+            from_name="Redsracing Feedback"
         )
 
-        sg_client = get_sendgrid_client()
-        response = sg_client.send(message)
-
-        if response.status_code >= 200 and response.status_code < 300:
+        if response:
             return https_fn.Response(
                 json.dumps({"message": "Feedback sent successfully!"}),
                 status=200,
@@ -312,9 +337,9 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
         )
 
 
-@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY", "SENTRY_DSN"])
+@https_fn.on_request(cors=CORS_OPTIONS, secrets=["MAILERSEND_API_KEY", "SENTRY_DSN"])
 def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
-    """Sends a sponsorship inquiry as an email via SendGrid."""
+    """Sends a sponsorship inquiry as an email via MailerSend."""
     if req.method == "OPTIONS":
         return https_fn.Response("", status=204)
     if req.method != "POST":
@@ -337,25 +362,33 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
 
     try:
         email_subject = f"New Sponsorship Inquiry from {name}"
-        email_body = (
+        text_body = (
             f"Company: {company}\n"
             f"Contact Name: {name}\n"
             f"Email: {email}\n"
             f"Phone: {phone}\n\n"
             f"Message:\n{message_content}"
         )
-
-        message = Mail(
-            from_email="sponsorship@redsracing.org",  # Must be a verified sender in SendGrid
-            to_emails="aaron@redsracing.org",
-            subject=email_subject,
-            plain_text_content=email_body,
+        html_body = (
+            f"<h2>New Sponsorship Inquiry</h2>"
+            f"<p><strong>Company:</strong> {company}</p>"
+            f"<p><strong>Contact Name:</strong> {name}</p>"
+            f"<p><strong>Email:</strong> {email}</p>"
+            f"<p><strong>Phone:</strong> {phone}</p>"
+            f"<p><strong>Message:</strong></p>"
+            f"<p>{message_content}</p>"
         )
 
-        sg_client = get_sendgrid_client()
-        response = sg_client.send(message)
+        response = send_email_via_mailersend(
+            to_email="aaron@redsracing.org",
+            subject=email_subject,
+            text_body=text_body,
+            html_body=html_body,
+            from_email="sponsorship@redsracing.org",
+            from_name="Redsracing Sponsorship"
+        )
 
-        if response.status_code >= 200 and response.status_code < 300:
+        if response:
             return https_fn.Response(
                 json.dumps({"message": "Sponsorship inquiry sent successfully!"}),
                 status=200,
@@ -450,7 +483,7 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
         )
 
 
-@https_fn.on_request(cors=CORS_OPTIONS, secrets=["SENDGRID_API_KEY", "SENTRY_DSN"])
+@https_fn.on_request(cors=CORS_OPTIONS, secrets=["MAILERSEND_API_KEY", "SENTRY_DSN"])
 def handleProcessQueues(req: https_fn.Request) -> https_fn.Response:
     """HTTP endpoint to process queued feedback and sponsorship items.
     Intended to be invoked by Cloud Scheduler (OIDC) or Admins.
@@ -499,19 +532,20 @@ def handleProcessQueues(req: https_fn.Request) -> https_fn.Response:
         actual = delay - jitter + (random.random() * 2 * jitter)
         return datetime.utcnow() + timedelta(seconds=actual)
 
-    def _send_email(subject: str, body: str, from_email: str) -> tuple[bool, str]:
+    def _send_email(subject: str, body: str, from_email: str, from_name: str) -> tuple[bool, str]:
         try:
-            message = Mail(
-                from_email=from_email,
-                to_emails="aaron@redsracing.org",
+            html_body = f"<p>{body.replace(chr(10), '<br>')}</p>"
+            resp = send_email_via_mailersend(
+                to_email="aaron@redsracing.org",
                 subject=subject,
-                plain_text_content=body,
+                text_body=body,
+                html_body=html_body,
+                from_email=from_email,
+                from_name=from_name
             )
-            sg_client = get_sendgrid_client()
-            resp = sg_client.send(message)
-            if 200 <= resp.status_code < 300:
+            if resp:
                 return True, "sent"
-            return False, f"sendgrid_non_2xx:{resp.status_code}:{resp.body}"
+            return False, "mailersend_failed"
         except Exception as ex:
             try:
                 sentry_sdk.capture_exception(ex)
@@ -548,6 +582,7 @@ def handleProcessQueues(req: https_fn.Request) -> https_fn.Response:
                         f"Message:\n{d.get('message','')}"
                     )
                     from_email = "feedback@redsracing.org"
+                    from_name = "Redsracing Feedback"
                 else:
                     subject = f"Queued Sponsorship from {d.get('name','Unknown')}"
                     body = (
@@ -558,8 +593,9 @@ def handleProcessQueues(req: https_fn.Request) -> https_fn.Response:
                         f"Message:\n{d.get('message','')}"
                     )
                     from_email = "sponsorship@redsracing.org"
+                    from_name = "Redsracing Sponsorship"
 
-                ok, info = _send_email(subject, body, from_email)
+                ok, info = _send_email(subject, body, from_email, from_name)
                 if ok:
                     doc.reference.update({
                         "status": "sent",
