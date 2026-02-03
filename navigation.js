@@ -108,7 +108,15 @@
               userProfile.style.pointerEvents = 'auto';
               console.log('[RedsRacing Auth] Profile dropdown enabled');
             } else {
-              console.warn('[RedsRacing Auth] #user-profile element not found');
+              // Only log warning if not on admin/dashboard pages (which have their own nav)
+              const isAdminPage = window.location.pathname.includes('admin') || 
+                                 window.location.pathname.includes('dashboard') ||
+                                 window.location.pathname.includes('login') ||
+                                 window.location.pathname.includes('signup');
+              if (!isAdminPage) {
+                console.warn('[RedsRacing Auth] #user-profile element not found on:', window.location.pathname);
+                console.warn('[RedsRacing Auth] This page may be missing the profile dropdown HTML');
+              }
             }
             
             if (mobileUserProfile) {
