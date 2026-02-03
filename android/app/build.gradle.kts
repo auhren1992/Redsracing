@@ -14,8 +14,8 @@ android {
         applicationId = "com.redsracing.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 66
-        versionName = "6.8"
+        versionCode = 67
+        versionName = "6.9"
 
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
