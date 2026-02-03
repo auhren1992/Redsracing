@@ -20,11 +20,11 @@ async function trackPageView() {
       return;
     }
 
-    // Import Firebase
-    const { initializeApp, getApps, getApp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+    // Import Firebase modules
+    const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
     const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
     
-    // Initialize Firebase with a named app to avoid conflicts
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
       authDomain: "redsracing-a7f8b.firebaseapp.com",
@@ -34,14 +34,16 @@ async function trackPageView() {
       appId: "1:517034606151:web:24cae262e1d98832757b62"
     };
     
-    // Check if analytics app already exists
+    // Initialize or reuse existing analytics app
     let app;
-    const existingApps = getApps();
-    const analyticsApp = existingApps.find(a => a.name === 'analytics-app');
-    
-    if (analyticsApp) {
-      app = analyticsApp;
-    } else {
+    try {
+      const existingApps = getApps();
+      app = existingApps.find(a => a.name === 'analytics-app');
+      if (!app) {
+        app = initializeApp(firebaseConfig, 'analytics-app');
+      }
+    } catch (e) {
+      // If initialization fails, try to create anyway
       app = initializeApp(firebaseConfig, 'analytics-app');
     }
     
