@@ -7,7 +7,8 @@
       'follower-login.html': true,
       'debug-auth.html': true,
       'modern-auth-test.html': true,
-      'test.html': true
+      'test.html': true,
+      'feedback.html': true
     };
     if (exempt[path]) return;
 

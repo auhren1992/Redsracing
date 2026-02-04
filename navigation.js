@@ -101,13 +101,14 @@
             if (userProfile) {
               userProfile.classList.remove('hidden');
               userProfile.setAttribute('data-auth-visible', 'true');
-              // Force display with inline styles as absolute fallback
-              userProfile.style.display = 'flex';
-              userProfile.style.visibility = 'visible';
-              userProfile.style.opacity = '1';
-              userProfile.style.pointerEvents = 'auto';
-              console.log('[RedsRacing Auth] Profile dropdown enabled');
-            } else {
+              // Force display with inline styles using setProperty with !important
+              userProfile.style.setProperty('display', 'flex', 'important');
+              userProfile.style.setProperty('visibility', 'visible', 'important');
+              userProfile.style.setProperty('opacity', '1', 'important');
+              userProfile.style.setProperty('pointer-events', 'auto', 'important');
+              userProfile.style.setProperty('position', 'relative', 'important');
+              console.log('[RedsRacing Auth] Profile dropdown enabled with !important styles');
+            }
               // Only log warning if not on admin/dashboard pages (which have their own nav)
               const isAdminPage = window.location.pathname.includes('admin') || 
                                  window.location.pathname.includes('dashboard') ||
@@ -122,11 +123,11 @@
             if (mobileUserProfile) {
               mobileUserProfile.classList.remove('hidden');
               mobileUserProfile.setAttribute('data-auth-visible', 'true');
-              // Force display with inline styles as absolute fallback
-              mobileUserProfile.style.display = 'block';
-              mobileUserProfile.style.visibility = 'visible';
-              mobileUserProfile.style.opacity = '1';
-              mobileUserProfile.style.pointerEvents = 'auto';
+              // Force display with inline styles using setProperty with !important
+              mobileUserProfile.style.setProperty('display', 'block', 'important');
+              mobileUserProfile.style.setProperty('visibility', 'visible', 'important');
+              mobileUserProfile.style.setProperty('opacity', '1', 'important');
+              mobileUserProfile.style.setProperty('pointer-events', 'auto', 'important');
             }
             
             if (loginBtn) {
@@ -142,26 +143,28 @@
             // Ultra-aggressive retry to ensure visibility
             setTimeout(() => {
               if (userProfile) {
-                userProfile.style.display = 'flex';
-                userProfile.style.visibility = 'visible';
-                userProfile.style.opacity = '1';
+                userProfile.style.setProperty('display', 'flex', 'important');
+                userProfile.style.setProperty('visibility', 'visible', 'important');
+                userProfile.style.setProperty('opacity', '1', 'important');
+                console.log('[RedsRacing Auth] Retry 1: Profile forced visible');
               }
               if (mobileUserProfile) {
-                mobileUserProfile.style.display = 'block';
-                mobileUserProfile.style.visibility = 'visible';
-                mobileUserProfile.style.opacity = '1';
+                mobileUserProfile.style.setProperty('display', 'block', 'important');
+                mobileUserProfile.style.setProperty('visibility', 'visible', 'important');
+                mobileUserProfile.style.setProperty('opacity', '1', 'important');
               }
             }, 100);
             setTimeout(() => {
               if (userProfile) {
-                userProfile.style.display = 'flex';
-                userProfile.style.visibility = 'visible';
-                userProfile.style.opacity = '1';
+                userProfile.style.setProperty('display', 'flex', 'important');
+                userProfile.style.setProperty('visibility', 'visible', 'important');
+                userProfile.style.setProperty('opacity', '1', 'important');
+                console.log('[RedsRacing Auth] Retry 2: Profile forced visible');
               }
               if (mobileUserProfile) {
-                mobileUserProfile.style.display = 'block';
-                mobileUserProfile.style.visibility = 'visible';
-                mobileUserProfile.style.opacity = '1';
+                mobileUserProfile.style.setProperty('display', 'block', 'important');
+                mobileUserProfile.style.setProperty('visibility', 'visible', 'important');
+                mobileUserProfile.style.setProperty('opacity', '1', 'important');
               }
             }, 500);
             const name = user.displayName || user.email || 'Driver';
