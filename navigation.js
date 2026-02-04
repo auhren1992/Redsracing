@@ -108,7 +108,7 @@
               userProfile.style.setProperty('pointer-events', 'auto', 'important');
               userProfile.style.setProperty('position', 'relative', 'important');
               console.log('[RedsRacing Auth] Profile dropdown enabled with !important styles');
-            }
+            } else {
               // Only log warning if not on admin/dashboard pages (which have their own nav)
               const isAdminPage = window.location.pathname.includes('admin') || 
                                  window.location.pathname.includes('dashboard') ||
