@@ -105,11 +105,13 @@ async function main() {
   let selectedFile = null;
 
   onAuthStateChanged(auth, async (user) => {
+    console.log('[Gallery Auth] Auth state changed:', user ? `Logged in as ${user.email}` : 'Logged out');
     updateUploadVisibility(user);
     await checkModerator();
   });
 
   // Apply initial state in case the listener fires later
+  console.log('[Gallery Auth] Initial auth.currentUser:', auth.currentUser ? auth.currentUser.email : 'null');
   updateUploadVisibility(auth.currentUser);
   await checkModerator();
 
@@ -117,19 +119,28 @@ async function main() {
   function updateUploadVisibility(user) {
     if (!uploadContainer) return;
     const isAuthed = !!user;
+    console.log('[Gallery Auth] updateUploadVisibility called. User:', user ? user.email : 'null', 'isAuthed:', isAuthed);
 
     // Disable/enable controls accordingly
-    if (uploadInput) uploadInput.disabled = !isAuthed;
-    if (uploadBtn) uploadBtn.disabled = !isAuthed || !selectedFile;
+    if (uploadInput) {
+      uploadInput.disabled = !isAuthed;
+      console.log('[Gallery Auth] Upload input disabled:', uploadInput.disabled);
+    }
+    if (uploadBtn) {
+      uploadBtn.disabled = !isAuthed || !selectedFile;
+      console.log('[Gallery Auth] Upload button disabled:', uploadBtn.disabled, '(needs auth AND file)');
+    }
 
     // Friendly status prompt
     if (uploadStatus) {
       if (!isAuthed) {
         uploadStatus.textContent = "Please log in to upload photos.";
         uploadStatus.style.color = "#94a3b8"; // slate-400
+        console.log('[Gallery Auth] Status: Please log in');
       } else if (!selectedFile) {
         uploadStatus.textContent = "";
         uploadStatus.style.color = "";
+        console.log('[Gallery Auth] Status: Ready for file selection');
       }
     }
   }
