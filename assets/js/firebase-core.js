@@ -15,7 +15,10 @@ function initializeFirebaseIfNeeded() {
   if (!app) {
     const config = getFirebaseConfig();
     const existingApps = getApps();
-    app = existingApps.length > 0 ? existingApps[0] : initializeApp(config);
+    // CRITICAL: Get the DEFAULT app specifically, not just any app (e.g. newsletter-app)
+    // Named apps like "newsletter-app" should not be used for auth
+    const defaultApp = existingApps.find(a => a.name === '[DEFAULT]');
+    app = defaultApp || initializeApp(config);
     auth = getAuth(app);
     try {
       setPersistence(auth, browserLocalPersistence).catch(() => {});

@@ -4,6 +4,7 @@
 
   // Ensure a single Firebase app is initialized on every page and use LOCAL persistence
   (async function initAuthPersistence() {
+    console.log('[RedsRacing Auth] ===== INIT STARTING =====');
     try {
       const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
       const { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
@@ -15,9 +16,27 @@
         messagingSenderId: '517034606151',
         appId: '1:517034606151:web:24cae262e1d98832757b62'
       };
-      if (getApps().length === 0) initializeApp(cfg);
-      const auth = getAuth();
+      let app;
+      if (getApps().length === 0) {
+        app = initializeApp(cfg);
+      } else {
+        app = getApps()[0];
+      }
+      const auth = getAuth(app);
       try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}
+      
+      // CRITICAL FIX: Wait for auth to initialize before doing anything else
+      // Firebase needs time to validate stored tokens with the server
+      console.log('[RedsRacing Auth] Waiting for auth to initialize...');
+      await new Promise((resolve) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          console.log('[RedsRacing Auth] Initial auth state resolved:', user ? user.email : 'null');
+          unsubscribe();
+          resolve();
+        });
+      });
+      console.log('[RedsRacing Auth] Auth initialized, setting up listeners');
+      
       onAuthStateChanged(auth, (user) => {
         // Wait for DOM to be ready before manipulating elements
         const handleAuth = () => {
@@ -223,9 +242,9 @@ const core = await import('./assets/js/firebase-core.js');
             unmountLoggedOutButton();
           }
         } catch (err) {
-          console.error('[RedsRacing Auth] Error:', err);
+          console.error('[RedsRacing Auth] handleAuth error:', err);
         }
-        };
+      };
         
         // Run immediately if DOM is ready, otherwise wait
         if (document.readyState === 'loading') {
@@ -234,9 +253,11 @@ const core = await import('./assets/js/firebase-core.js');
           handleAuth();
         }
       });
-    } catch (_) {
-      // Non-fatal; pages without auth still work
+    } catch (err) {
+      console.error('[RedsRacing Auth] ===== INIT FAILED =====', err);
+      console.error('[RedsRacing Auth] Error stack:', err.stack);
     }
+    console.log('[RedsRacing Auth] ===== INIT COMPLETE =====');
   })();
 
   function hideAllDropdowns() {

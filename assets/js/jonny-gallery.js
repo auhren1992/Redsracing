@@ -58,10 +58,7 @@ async function main() {
   // Ensure upload UI is visible with proper state based on auth
   function updateUploadVisibility(user) {
     if (!uploadContainer) return;
-    // Check BOTH Firebase auth AND body data-auth attribute (set by navigation.js)
-    const bodyDataAuth = document.body.getAttribute('data-auth');
-    const isAuthed = !!user || bodyDataAuth === 'signed-in';
-    console.log('[Jonny Gallery Auth] User:', user ? user.email : 'null', 'bodyDataAuth:', bodyDataAuth, 'isAuthed:', isAuthed);
+    const isAuthed = !!user;
 
     if (uploadInput) uploadInput.disabled = !isAuthed;
     if (uploadBtn) uploadBtn.disabled = !isAuthed || !selectedFile;
@@ -77,7 +74,38 @@ async function main() {
     }
   }
 
-  // Auth State Change
+  // Wait for auth to initialize by observing body[data-auth] set by navigation.js
+  const waitForAuth = () => {
+    return new Promise((resolve) => {
+      // Check if already signed in
+      if (document.body.getAttribute('data-auth') === 'signed-in' && auth.currentUser) {
+        resolve(auth.currentUser);
+        return;
+      }
+      
+      // Otherwise wait for navigation.js to set it
+      const observer = new MutationObserver(() => {
+        if (document.body.getAttribute('data-auth') === 'signed-in' && auth.currentUser) {
+          observer.disconnect();
+          resolve(auth.currentUser);
+        }
+      });
+      
+      observer.observe(document.body, { attributes: true, attributeFilter: ['data-auth'] });
+      
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        observer.disconnect();
+        resolve(null);
+      }, 10000);
+    });
+  };
+
+  // Wait for auth then update UI
+  const initialUser = await waitForAuth();
+  updateUploadVisibility(initialUser);
+  
+  // Continue listening for auth changes
   monitorAuthState(
     (user) => {
       updateUploadVisibility(user);
@@ -86,8 +114,6 @@ async function main() {
       updateUploadVisibility(null);
     },
   );
-
-  updateUploadVisibility(auth.currentUser);
 
   // Photo Upload Logic
   if (uploadInput) {

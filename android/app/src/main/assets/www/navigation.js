@@ -77,13 +77,77 @@
           }
 
           if (user) {
+            console.log('[RedsRacing Auth] User signed in:', user.email);
             document.body.setAttribute('data-auth', 'signed-in');
             localStorage.setItem('rr_auth_uid', user.uid);
-            if (loginBtn) loginBtn.classList.add('hidden');
+            
+            // Add visible debug indicator
+            let debugDiv = document.getElementById('auth-debug-status');
+            if (!debugDiv) {
+              debugDiv = document.createElement('div');
+              debugDiv.id = 'auth-debug-status';
+              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#22c55e;color:#000;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+              debugDiv.textContent = '✓ Logged in as ' + (user.email || 'User');
+              document.body.appendChild(debugDiv);
+              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+            }
+            
             unmountLoggedOutButton();
-            if (userProfile) userProfile.classList.remove('hidden');
-            if (mobileLoginBtn) mobileLoginBtn.classList.add('hidden');
-            if (mobileUserProfile) mobileUserProfile.classList.remove('hidden');
+            
+            if (userProfile) {
+              userProfile.classList.remove('hidden');
+              userProfile.setAttribute('data-auth-visible', 'true');
+              // Force display with inline styles using cssText for true !important priority
+              userProfile.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; position: relative !important;';
+              console.log('[RedsRacing Auth] Profile dropdown enabled with !important styles');
+            } else {
+              // Only log warning if not on admin/dashboard pages
+              const isAdminPage = window.location.pathname.includes('admin') || 
+                                 window.location.pathname.includes('dashboard') ||
+                                 window.location.pathname.includes('login') ||
+                                 window.location.pathname.includes('signup');
+              if (!isAdminPage) {
+                console.warn('[RedsRacing Auth] #user-profile element not found on:', window.location.pathname);
+              }
+            }
+            
+            if (mobileUserProfile) {
+              mobileUserProfile.classList.remove('hidden');
+              mobileUserProfile.setAttribute('data-auth-visible', 'true');
+              // Force display with inline styles using cssText for true !important priority
+              mobileUserProfile.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important;';
+            }
+            
+            if (loginBtn) {
+              loginBtn.classList.add('hidden');
+              loginBtn.style.display = 'none';
+            }
+            
+            if (mobileLoginBtn) {
+              mobileLoginBtn.classList.add('hidden');
+              mobileLoginBtn.style.display = 'none';
+            }
+            
+            // Ultra-aggressive retry to ensure visibility
+            setTimeout(() => {
+              if (userProfile) {
+                userProfile.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; position: relative !important;';
+                console.log('[RedsRacing Auth] Retry 1: Profile forced visible');
+              }
+              if (mobileUserProfile) {
+                mobileUserProfile.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important;';
+              }
+            }, 100);
+            setTimeout(() => {
+              if (userProfile) {
+                userProfile.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; position: relative !important;';
+                console.log('[RedsRacing Auth] Retry 2: Profile forced visible');
+              }
+              if (mobileUserProfile) {
+                mobileUserProfile.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important;';
+              }
+            }, 500);
+            
             hideLegacyLoginLinks(true);
             const name = user.displayName || user.email || 'Driver';
             if (userNameEl) userNameEl.textContent = name;
@@ -110,14 +174,34 @@ const core = await import('./assets/js/firebase-core.js');
               });
             }
           } else {
+            console.log('[RedsRacing Auth] User signed out');
             document.body.setAttribute('data-auth', 'signed-out');
             localStorage.removeItem('rr_auth_uid');
-            if (userProfile) userProfile.classList.add('hidden');
-            if (loginBtn) loginBtn.classList.add('hidden');
-            mountLoggedOutButton();
-            if (mobileUserProfile) mobileUserProfile.classList.add('hidden');
-            if (mobileLoginBtn) mobileLoginBtn.classList.add('hidden');
-            hideLegacyLoginLinks(true);
+            
+            // Add visible debug indicator
+            let debugDiv = document.getElementById('auth-debug-status');
+            if (!debugDiv) {
+              debugDiv = document.createElement('div');
+              debugDiv.id = 'auth-debug-status';
+              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#ef4444;color:#fff;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+              debugDiv.textContent = '✗ Not logged in';
+              document.body.appendChild(debugDiv);
+              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+            }
+            
+            if (userProfile) {
+              userProfile.classList.add('hidden');
+            }
+            if (mobileUserProfile) {
+              mobileUserProfile.classList.add('hidden');
+            }
+            if (loginBtn) {
+              loginBtn.classList.remove('hidden');
+            }
+            if (mobileLoginBtn) {
+              mobileLoginBtn.classList.remove('hidden');
+            }
+            unmountLoggedOutButton();
           }
         } catch (_) {}
       });

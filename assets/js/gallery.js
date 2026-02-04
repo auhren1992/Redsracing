@@ -104,45 +104,70 @@ async function main() {
   const uploadStatus = document.getElementById("upload-status");
   let selectedFile = null;
 
+  // Wait for auth to initialize by observing body[data-auth] set by navigation.js
+  const waitForAuth = () => {
+    return new Promise((resolve) => {
+      // Check if already signed in
+      if (document.body.getAttribute('data-auth') === 'signed-in' && auth.currentUser) {
+        resolve(auth.currentUser);
+        return;
+      }
+      
+      // Otherwise wait for navigation.js to set it
+      const observer = new MutationObserver(() => {
+        if (document.body.getAttribute('data-auth') === 'signed-in' && auth.currentUser) {
+          observer.disconnect();
+          resolve(auth.currentUser);
+        }
+      });
+      
+      observer.observe(document.body, { attributes: true, attributeFilter: ['data-auth'] });
+      
+      // Also listen to auth state changes as fallback
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          observer.disconnect();
+          unsubscribe();
+          resolve(user);
+        }
+      });
+      
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        observer.disconnect();
+        resolve(null);
+      }, 10000);
+    });
+  };
+
+  // Wait for auth then update UI
+  const initialUser = await waitForAuth();
+  updateUploadVisibility(initialUser);
+  await checkModerator();
+  
+  // Continue listening for auth changes
   onAuthStateChanged(auth, async (user) => {
-    console.log('[Gallery Auth] Auth state changed:', user ? `Logged in as ${user.email}` : 'Logged out');
     updateUploadVisibility(user);
     await checkModerator();
   });
 
-  // Apply initial state in case the listener fires later
-  console.log('[Gallery Auth] Initial auth.currentUser:', auth.currentUser ? auth.currentUser.email : 'null');
-  updateUploadVisibility(auth.currentUser);
-  await checkModerator();
-
   // Ensure upload UI is visible with proper state based on auth
   function updateUploadVisibility(user) {
     if (!uploadContainer) return;
-    // Check BOTH Firebase auth AND body data-auth attribute (set by navigation.js)
-    const bodyDataAuth = document.body.getAttribute('data-auth');
-    const isAuthed = !!user || bodyDataAuth === 'signed-in';
-    console.log('[Gallery Auth] updateUploadVisibility called. User:', user ? user.email : 'null', 'bodyDataAuth:', bodyDataAuth, 'isAuthed:', isAuthed);
+    const isAuthed = !!user;
 
     // Disable/enable controls accordingly
-    if (uploadInput) {
-      uploadInput.disabled = !isAuthed;
-      console.log('[Gallery Auth] Upload input disabled:', uploadInput.disabled);
-    }
-    if (uploadBtn) {
-      uploadBtn.disabled = !isAuthed || !selectedFile;
-      console.log('[Gallery Auth] Upload button disabled:', uploadBtn.disabled, '(needs auth AND file)');
-    }
+    if (uploadInput) uploadInput.disabled = !isAuthed;
+    if (uploadBtn) uploadBtn.disabled = !isAuthed || !selectedFile;
 
     // Friendly status prompt
     if (uploadStatus) {
       if (!isAuthed) {
         uploadStatus.textContent = "Please log in to upload photos.";
         uploadStatus.style.color = "#94a3b8"; // slate-400
-        console.log('[Gallery Auth] Status: Please log in');
       } else if (!selectedFile) {
         uploadStatus.textContent = "";
         uploadStatus.style.color = "";
-        console.log('[Gallery Auth] Status: Ready for file selection');
       }
     }
   }
