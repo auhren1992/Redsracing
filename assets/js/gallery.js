@@ -118,8 +118,10 @@ async function main() {
   // Ensure upload UI is visible with proper state based on auth
   function updateUploadVisibility(user) {
     if (!uploadContainer) return;
-    const isAuthed = !!user;
-    console.log('[Gallery Auth] updateUploadVisibility called. User:', user ? user.email : 'null', 'isAuthed:', isAuthed);
+    // Check BOTH Firebase auth AND body data-auth attribute (set by navigation.js)
+    const bodyDataAuth = document.body.getAttribute('data-auth');
+    const isAuthed = !!user || bodyDataAuth === 'signed-in';
+    console.log('[Gallery Auth] updateUploadVisibility called. User:', user ? user.email : 'null', 'bodyDataAuth:', bodyDataAuth, 'isAuthed:', isAuthed);
 
     // Disable/enable controls accordingly
     if (uploadInput) {
