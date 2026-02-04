@@ -226,18 +226,35 @@ const core = await import('./assets/js/firebase-core.js');
               setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
             }
             
-            // CSS will handle visibility via body[data-auth="signed-out"] rules
+            // CRITICAL: Clear inline !important styles set during sign-in
+            // Otherwise they override .hidden class and dropdown stays visible
             if (userProfile) {
               userProfile.classList.add('hidden');
+              userProfile.removeAttribute('data-auth-visible');
+              // Remove all inline !important styles
+              userProfile.style.cssText = '';
+              // Force hide with new inline styles
+              userProfile.style.display = 'none';
+              userProfile.style.visibility = 'hidden';
+              userProfile.style.opacity = '0';
+              console.log('[RedsRacing Auth] Profile dropdown hidden on sign-out');
             }
             if (mobileUserProfile) {
               mobileUserProfile.classList.add('hidden');
+              mobileUserProfile.removeAttribute('data-auth-visible');
+              // Remove all inline !important styles
+              mobileUserProfile.style.cssText = '';
+              mobileUserProfile.style.display = 'none';
+              mobileUserProfile.style.visibility = 'hidden';
+              mobileUserProfile.style.opacity = '0';
             }
             if (loginBtn) {
               loginBtn.classList.remove('hidden');
+              loginBtn.style.display = '';
             }
             if (mobileLoginBtn) {
               mobileLoginBtn.classList.remove('hidden');
+              mobileLoginBtn.style.display = '';
             }
             unmountLoggedOutButton();
           }
