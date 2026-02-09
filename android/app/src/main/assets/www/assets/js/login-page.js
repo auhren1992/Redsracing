@@ -31,6 +31,17 @@ class LoginPageController {
   }
 
   /**
+   * Persist auth marker for guest gate checks
+   */
+  setAuthMarker(user) {
+    try {
+      if (user?.uid) {
+        localStorage.setItem("rr_auth_uid", user.uid);
+      }
+    } catch (_) {}
+  }
+
+  /**
    * Initialize the login controller
    */
   async initialize() {
@@ -315,6 +326,7 @@ class LoginPageController {
       console.info("[Login] Email sign-in success");
       // Force refresh to get latest custom claims
       const user = this.auth.currentUser;
+      this.setAuthMarker(user);
       let role = null;
       try {
         const tokenResult = await user.getIdTokenResult(true);
@@ -371,6 +383,7 @@ class LoginPageController {
     try {
       await signInWithPopup(this.auth, this.googleProvider);
       this.showMessage("Google sign-in successful! Redirecting...", false);
+      this.setAuthMarker(this.auth.currentUser);
       const returnTo = this.getReturnTo();
       if (returnTo) {
         navigateToInternal(returnTo);
@@ -449,6 +462,7 @@ class LoginPageController {
       const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
       const user = userCredential.user;
       console.info("[Login] Sign-up success:", user.uid);
+      this.setAuthMarker(user);
 
       // Set follower role by default (fans)
       try {
