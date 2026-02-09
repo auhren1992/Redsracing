@@ -7,7 +7,7 @@ import "./app.js";
 
 import { getFriendlyAuthError } from "./auth-errors.js";
 import { setPendingInvitationCode } from "./invitation-codes.js";
-import { navigateToInternal } from "./navigation-helpers.js";
+import { navigateToInternal, validateRedirectUrl } from "./navigation-helpers.js";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
@@ -28,6 +28,17 @@ class LoginPageController {
       buttonsEnabled: false,
       loadingButton: null,
     };
+  }
+
+  /**
+   * Persist auth marker for guest gate checks
+   */
+  setAuthMarker(user) {
+    try {
+      if (user?.uid) {
+        localStorage.setItem("rr_auth_uid", user.uid);
+      }
+    } catch (_) {}
   }
 
   /**
@@ -315,6 +326,7 @@ class LoginPageController {
       console.info("[Login] Email sign-in success");
       // Force refresh to get latest custom claims
       const user = this.auth.currentUser;
+      this.setAuthMarker(user);
       let role = null;
       try {
         const tokenResult = await user.getIdTokenResult(true);
@@ -371,6 +383,7 @@ class LoginPageController {
     try {
       await signInWithPopup(this.auth, this.googleProvider);
       this.showMessage("Google sign-in successful! Redirecting...", false);
+      this.setAuthMarker(this.auth.currentUser);
       const returnTo = this.getReturnTo();
       if (returnTo) {
         navigateToInternal(returnTo);
@@ -449,6 +462,7 @@ class LoginPageController {
       const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
       const user = userCredential.user;
       console.info("[Login] Sign-up success:", user.uid);
+      this.setAuthMarker(user);
 
       // Set follower role by default (fans)
       try {
@@ -502,9 +516,9 @@ class LoginPageController {
       const params = new URLSearchParams(window.location.search);
       const rt = params.get('returnTo');
       if (!rt) return null;
-      // Ensure same-origin relative path
-      if (rt.startsWith('/') && !rt.startsWith('//')) {
-        return rt;
+      const safeReturnTo = validateRedirectUrl(rt, null);
+      if (safeReturnTo) {
+        return safeReturnTo;
       }
     } catch (_) {}
     return null;
@@ -542,9 +556,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const params = new URLSearchParams(window.location.search);
     const rt = params.get('returnTo');
-    if (localStorage.getItem('rr_guest_ok') === '1' && rt) {
+    const safeReturnTo = rt ? validateRedirectUrl(rt, null) : null;
+    if (localStorage.getItem('rr_guest_ok') === '1' && safeReturnTo) {
       // If guest flag is set, immediately route to returnTo
-      navigateToInternal(rt);
+      navigateToInternal(safeReturnTo);
       return;
     }
   } catch(_) {}
