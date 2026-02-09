@@ -14,7 +14,7 @@ const currentPage = window.location.pathname.split("/").pop();
 
 
 // Add a short grace period to allow Firebase Auth to hydrate before redirecting
-const REDIRECT_GRACE_MS = 1500;
+const REDIRECT_GRACE_MS = 3000;
 
 if (protectedPages.includes(currentPage)) {
   let redirected = false;
@@ -46,7 +46,7 @@ if (protectedPages.includes(currentPage)) {
 
       try {
         const resolveRole = async (forceRefresh = false) => {
-          let claimsResult = await validateUserClaims();
+          let claimsResult = await validateUserClaims([], user);
           let nextRole = claimsResult.success ? (claimsResult.claims.role || null) : null;
 
           if (user && (!nextRole || forceRefresh)) {

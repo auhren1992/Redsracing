@@ -274,7 +274,7 @@ const core = await import('./assets/js/firebase-core.js');
                     applySignedOutState();
                   }
                   pendingSignOutTimer = null;
-                }, 1200);
+                }, 3000);
               }
               return;
             }
