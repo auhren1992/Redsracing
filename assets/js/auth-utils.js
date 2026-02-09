@@ -32,17 +32,17 @@ export async function safeSignOut() {
 /**
  * Validate user claims without complex caching
  */
-export async function validateUserClaims(requiredRoles = []) {
+export async function validateUserClaims(requiredRoles = [], user = null) {
   try {
-    const user = getCurrentUser();
-    if (!user) {
+    const currentUser = user || getCurrentUser();
+    if (!currentUser) {
       return {
         success: false,
         error: { message: "No authenticated user" },
       };
     }
 
-    const tokenResult = await user.getIdTokenResult(false); // Use cached token
+    const tokenResult = await currentUser.getIdTokenResult(false); // Use cached token
     const claims = tokenResult.claims;
 
     if (requiredRoles.length > 0) {
