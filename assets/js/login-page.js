@@ -118,6 +118,12 @@ class LoginPageController {
    * Bind event listeners to UI elements
    */
   bindEvents() {
+    // Form submit (Enter key)
+    this.elements.loginForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.handleEmailSignIn();
+    });
+
     // Email/password sign in
     this.elements.signinButton?.addEventListener("click", () => {
       console.info("[Login] Sign-in button clicked");
@@ -227,7 +233,12 @@ class LoginPageController {
   showMessage(message, isError = true) {
     if (!this.elements.errorText || !this.elements.errorBox) return;
 
-    this.elements.errorText.textContent = message;
+    const resolvedMessage =
+      typeof message === "string"
+        ? message
+        : message?.userMessage || message?.message || "An error occurred.";
+
+    this.elements.errorText.textContent = resolvedMessage;
     this.elements.errorBox.className = isError
       ? "error-message p-4 rounded-md mb-4"
       : "bg-green-800 text-green-300 border-l-4 border-green-500 p-4 rounded-md mb-4";
