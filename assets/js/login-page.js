@@ -221,61 +221,57 @@ class LoginPageController {
       button.disabled = false;
       button.textContent = originalText;
       button.classList.remove("opacity-50", "cursor-not-allowed");
-      if (this.uiState.loadingButton === button) {
-        this.uiState.loadingButton = null;
-      }
+      this.uiState.loadingButton = null;
     }
   }
 
   /**
-   * Show message to user
+   * Show message in error box
    */
   showMessage(message, isError = true) {
-    if (!this.elements.errorText || !this.elements.errorBox) return;
+    if (!this.elements.errorBox || !this.elements.errorText) return;
 
-    const resolvedMessage =
-      typeof message === "string"
-        ? message
-        : message?.userMessage || message?.message || "An error occurred.";
-
-    this.elements.errorText.textContent = resolvedMessage;
-    this.elements.errorBox.className = isError
-      ? "error-message p-4 rounded-md mb-4"
-      : "bg-green-800 text-green-300 border-l-4 border-green-500 p-4 rounded-md mb-4";
+    this.elements.errorText.textContent = message;
     this.elements.errorBox.classList.remove("hidden");
-  }
 
-  /**
-   * Hide message display
-   */
-  hideMessage() {
-    if (this.elements.errorBox) {
-      this.elements.errorBox.classList.add("hidden");
+    if (isError) {
+      this.elements.errorBox.classList.remove("bg-green-500/20", "border-green-500/30");
+      this.elements.errorBox.classList.add("bg-red-500/20", "border-red-500/30");
+    } else {
+      this.elements.errorBox.classList.remove("bg-red-500/20", "border-red-500/30");
+      this.elements.errorBox.classList.add("bg-green-500/20", "border-green-500/30");
     }
   }
 
   /**
-   * Validate email field in real-time
+   * Hide message box
+   */
+  hideMessage() {
+    if (!this.elements.errorBox) return;
+    this.elements.errorBox.classList.add("hidden");
+  }
+
+  /**
+   * Validate email input
    */
   validateEmailField() {
     const email = this.elements.emailInput?.value.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) return;
 
-    if (email && !emailRegex.test(email)) {
-      this.elements.emailInput.classList.add("border-red-500");
-      this.elements.emailInput.classList.remove("border-gray-300");
-    } else {
-      this.elements.emailInput.classList.remove("border-red-500");
-      this.elements.emailInput.classList.add("border-gray-300");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      this.showMessage("Please enter a valid email address.");
+      return false;
     }
+    return true;
   }
 
   /**
-   * Validate login form inputs
+   * Validate login form
    */
   validateLoginForm(email, password) {
     if (!email || !password) {
-      this.showMessage("Please fill in all required fields.");
+      this.showMessage("Please enter both email and password.");
       return false;
     }
 
@@ -286,7 +282,7 @@ class LoginPageController {
     }
 
     if (password.length < 6) {
-      this.showMessage("Password must be at least 6 characters long.");
+      this.showMessage("Password must be at least 6 characters.");
       return false;
     }
 
@@ -294,7 +290,7 @@ class LoginPageController {
   }
 
   /**
-   * Handle email/password sign in
+   * Handle email sign in
    */
   async handleEmailSignIn() {
     if (!this.isInitialized) {
@@ -602,19 +598,8 @@ class LoginPageController {
   }
 }
 
-// Initialize login controller when DOM is ready
-document.addEventListener("DOMContentLoaded", async () => {
-  console.info("[Login] DOMContentLoaded");
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const rt = params.get('returnTo');
-    const safeReturnTo = rt ? validateRedirectUrl(rt, null) : null;
-    if (localStorage.getItem('rr_guest_ok') === '1' && safeReturnTo) {
-      // If guest flag is set, immediately route to returnTo
-      navigateToInternal(safeReturnTo);
-      return;
-    }
-  } catch(_) {}
-  const loginController = new LoginPageController();
-  await loginController.initialize();
+// Initialize on DOM ready
+document.addEventListener("DOMContentLoaded", () => {
+  const controller = new LoginPageController();
+  controller.initialize();
 });
