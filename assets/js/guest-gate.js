@@ -1,16 +1,18 @@
 (function () {
   try {
     var path = (window.location.pathname || '').split('/').pop().toLowerCase();
-    var exempt = {
-      'login.html': true,
-      'signup.html': true,
-      'follower-login.html': true,
-      'debug-auth.html': true,
-      'modern-auth-test.html': true,
-      'test.html': true,
-      'feedback.html': true
+    var protectedPages = {
+      'admin-console.html': true,
+      'admin.html': true,
+      'dashboard.html': true,
+      'follower-dashboard.html': true,
+      'profile.html': true,
+      'redsracing-dashboard.html': true,
+      'settings.html': true,
+      'team-settings.html': true
     };
-    if (exempt[path]) return;
+
+    if (!protectedPages[path]) return;
 
     var hasGuest = localStorage.getItem('rr_guest_ok') === '1';
     var hasUid = !!localStorage.getItem('rr_auth_uid');
