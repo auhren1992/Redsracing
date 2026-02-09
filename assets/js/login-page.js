@@ -500,7 +500,8 @@ class LoginPageController {
           joinDate: new Date().toISOString(),
           totalPoints: 0,
           achievementCount: 0,
-        });
+          role: "public-fan",
+        }, { merge: true });
       } catch (e) {
         console.warn('[Login] Failed to create profile:', e);
       }

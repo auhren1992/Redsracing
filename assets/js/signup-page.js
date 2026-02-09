@@ -25,8 +25,9 @@ async function createDefaultProfile(user) {
       joinDate: new Date().toISOString(),
       totalPoints: 0,
       achievementCount: 0,
+      role: "public-fan",
     };
-    await setDoc(profileRef, defaultProfile);
+    await setDoc(profileRef, defaultProfile, { merge: true });
   } catch (error) {
     // This error should be logged, but we don't want to fail the whole signup process
   }
@@ -62,6 +63,9 @@ export async function handleSignup(email, password, inviteCode) {
         console.warn('setFollowerRole failed (continuing without blocking):', e?.message || e);
       }
     }
+
+    // Ensure auth token is ready before writing to Firestore
+    try { await user.getIdToken(true); } catch (_) {}
 
     // Create a default profile document in Firestore
     await createDefaultProfile(user);
