@@ -91,8 +91,10 @@ if (protectedPages.includes(currentPage)) {
             joinDate: new Date().toISOString(),
             totalPoints: 0,
             achievementCount: 0,
-            role: resolvedRole || 'public-fan',
           };
+          if (resolvedRole) {
+            profile.role = resolvedRole;
+          }
           await setDoc(profileRef, profile, { merge: true });
         };
 

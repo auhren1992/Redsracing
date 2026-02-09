@@ -12,7 +12,7 @@ import {
   captureInvitationCodeFromURL,
 } from "./invitation-codes.js";
 
-async function createDefaultProfile(user) {
+async function createDefaultProfile(user, role) {
   try {
     const db = getFirebaseDb();
     const profileRef = doc(db, "users", user.uid);
@@ -25,8 +25,10 @@ async function createDefaultProfile(user) {
       joinDate: new Date().toISOString(),
       totalPoints: 0,
       achievementCount: 0,
-      role: "public-fan",
     };
+    if (role) {
+      defaultProfile.role = role;
+    }
     await setDoc(profileRef, defaultProfile, { merge: true });
   } catch (error) {
     // This error should be logged, but we don't want to fail the whole signup process
@@ -43,13 +45,28 @@ export async function handleSignup(email, password, inviteCode) {
     );
     const user = userCredential.user;
 
+    let defaultRole = "public-fan";
     // If invite code provided, process it (admin/team code paths)
     if (inviteCode && inviteCode.trim()) {
       try {
-        await processInvitationCode(inviteCode.trim(), user.uid);
+        const result = await processInvitationCode(inviteCode.trim(), user.uid);
+        if (result?.status === "success") {
+          defaultRole = null;
+          try { await user.getIdToken(true); } catch(_) {}
+        } else {
+          defaultRole = "public-fan";
+        }
       } catch (e) {
         // If invite invalid, continue as follower without blocking signup
         console.warn('Invite code processing failed, continuing as follower:', e?.message || e);
+        defaultRole = "public-fan";
+        try {
+          const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
+          const f = getFunctions();
+          const setFollowerRole = httpsCallable(f, 'setFollowerRole');
+          await setFollowerRole();
+          try { await user.getIdToken(true); } catch(_) {}
+        } catch (_) {}
       }
     } else {
       // No invite provided: default to follower role via callable
@@ -68,7 +85,7 @@ export async function handleSignup(email, password, inviteCode) {
     try { await user.getIdToken(true); } catch (_) {}
 
     // Create a default profile document in Firestore
-    await createDefaultProfile(user);
+    await createDefaultProfile(user, defaultRole);
 
     // Send email verification (best-effort)
     try { await sendEmailVerification(user); } catch(_) {}

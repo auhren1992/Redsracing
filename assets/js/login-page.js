@@ -6,7 +6,7 @@ import "./app.js";
  */
 
 import { getFriendlyAuthError } from "./auth-errors.js";
-import { setPendingInvitationCode } from "./invitation-codes.js";
+import { setPendingInvitationCode, processInvitationCode } from "./invitation-codes.js";
 import { navigateToInternal, validateRedirectUrl } from "./navigation-helpers.js";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
@@ -221,61 +221,57 @@ class LoginPageController {
       button.disabled = false;
       button.textContent = originalText;
       button.classList.remove("opacity-50", "cursor-not-allowed");
-      if (this.uiState.loadingButton === button) {
-        this.uiState.loadingButton = null;
-      }
+      this.uiState.loadingButton = null;
     }
   }
 
   /**
-   * Show message to user
+   * Show message in error box
    */
   showMessage(message, isError = true) {
-    if (!this.elements.errorText || !this.elements.errorBox) return;
+    if (!this.elements.errorBox || !this.elements.errorText) return;
 
-    const resolvedMessage =
-      typeof message === "string"
-        ? message
-        : message?.userMessage || message?.message || "An error occurred.";
-
-    this.elements.errorText.textContent = resolvedMessage;
-    this.elements.errorBox.className = isError
-      ? "error-message p-4 rounded-md mb-4"
-      : "bg-green-800 text-green-300 border-l-4 border-green-500 p-4 rounded-md mb-4";
+    this.elements.errorText.textContent = message;
     this.elements.errorBox.classList.remove("hidden");
-  }
 
-  /**
-   * Hide message display
-   */
-  hideMessage() {
-    if (this.elements.errorBox) {
-      this.elements.errorBox.classList.add("hidden");
+    if (isError) {
+      this.elements.errorBox.classList.remove("bg-green-500/20", "border-green-500/30");
+      this.elements.errorBox.classList.add("bg-red-500/20", "border-red-500/30");
+    } else {
+      this.elements.errorBox.classList.remove("bg-red-500/20", "border-red-500/30");
+      this.elements.errorBox.classList.add("bg-green-500/20", "border-green-500/30");
     }
   }
 
   /**
-   * Validate email field in real-time
+   * Hide message box
+   */
+  hideMessage() {
+    if (!this.elements.errorBox) return;
+    this.elements.errorBox.classList.add("hidden");
+  }
+
+  /**
+   * Validate email input
    */
   validateEmailField() {
     const email = this.elements.emailInput?.value.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) return;
 
-    if (email && !emailRegex.test(email)) {
-      this.elements.emailInput.classList.add("border-red-500");
-      this.elements.emailInput.classList.remove("border-gray-300");
-    } else {
-      this.elements.emailInput.classList.remove("border-red-500");
-      this.elements.emailInput.classList.add("border-gray-300");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      this.showMessage("Please enter a valid email address.");
+      return false;
     }
+    return true;
   }
 
   /**
-   * Validate login form inputs
+   * Validate login form
    */
   validateLoginForm(email, password) {
     if (!email || !password) {
-      this.showMessage("Please fill in all required fields.");
+      this.showMessage("Please enter both email and password.");
       return false;
     }
 
@@ -286,7 +282,7 @@ class LoginPageController {
     }
 
     if (password.length < 6) {
-      this.showMessage("Password must be at least 6 characters long.");
+      this.showMessage("Password must be at least 6 characters.");
       return false;
     }
 
@@ -294,7 +290,7 @@ class LoginPageController {
   }
 
   /**
-   * Handle email/password sign in
+   * Handle email sign in
    */
   async handleEmailSignIn() {
     if (!this.isInitialized) {
@@ -347,6 +343,21 @@ class LoginPageController {
         console.warn("[Login] Failed to refresh token for claims:", e);
       }
 
+      const invitationCode = this.elements.invitationCodeInput?.value?.trim();
+      if (invitationCode) {
+        try {
+          const result = await processInvitationCode(invitationCode, user.uid);
+          if (result?.status === "success") {
+            const refreshed = await user.getIdTokenResult(true);
+            role = refreshed?.claims?.role || role;
+          } else {
+            console.warn("[Login] Invitation code not applied:", result?.message);
+          }
+        } catch (error) {
+          console.warn("[Login] Invitation code processing failed:", error);
+        }
+      }
+
       this.showMessage("Login successful! Redirecting...", false);
 
       const returnTo = this.getReturnTo();
@@ -354,14 +365,19 @@ class LoginPageController {
         navigateToInternal(returnTo);
         return;
       }
+      const normalizeRole = (value) => {
+        if (typeof value !== "string") return null;
+        return value.trim().toLowerCase().replace(/[\s_]+/g, "-");
+      };
+      const normalizedRole = normalizeRole(role);
       // Route based on role
-      if (role === 'admin') {
+      if (normalizedRole === 'admin') {
         navigateToInternal('/admin-console.html');
         return;
-      } else if (role === 'team-member') {
+      } else if (normalizedRole === 'team-member') {
         navigateToInternal('/dashboard.html'); // Racer/Crew dashboard
         return;
-      } else if (role === 'TeamRedFollower') {
+      } else if (['teamredfollower', 'public-fan', 'follower'].includes(normalizedRole)) {
         navigateToInternal('/follower-dashboard.html'); // Fan dashboard
         return;
       }
@@ -475,15 +491,32 @@ class LoginPageController {
       console.info("[Login] Sign-up success:", user.uid);
       this.setAuthMarker(user);
 
-      // Set follower role by default (fans)
-      try {
-        const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
-        const functions = getFunctions();
-        const setFollowerRole = httpsCallable(functions, 'setFollowerRole');
-        await setFollowerRole();
-        await user.getIdToken(true); // Refresh token
-      } catch (e) {
-        console.warn('[Login] Failed to set follower role:', e);
+      const invitationCode = this.elements.invitationCodeInput?.value?.trim();
+      let defaultRole = "public-fan";
+      if (invitationCode) {
+        try {
+          const result = await processInvitationCode(invitationCode, user.uid);
+          if (result?.status === "success") {
+            defaultRole = null;
+            await user.getIdToken(true);
+          } else {
+            console.warn('[Login] Invitation code invalid:', result?.message);
+          }
+        } catch (e) {
+          console.warn('[Login] Failed to process invitation code:', e);
+        }
+      }
+      if (defaultRole) {
+        // Set follower role by default (fans)
+        try {
+          const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
+          const functions = getFunctions();
+          const setFollowerRole = httpsCallable(functions, 'setFollowerRole');
+          await setFollowerRole();
+          await user.getIdToken(true); // Refresh token
+        } catch (e) {
+          console.warn('[Login] Failed to set follower role:', e);
+        }
       }
 
       // Create default profile
@@ -491,7 +524,7 @@ class LoginPageController {
         const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
         const db = getFirestore();
         const profileRef = doc(db, "users", user.uid);
-        await setDoc(profileRef, {
+        const profile = {
           username: email.split("@")[0],
           displayName: email.split("@")[0],
           bio: "New member of the RedsRacing community!",
@@ -500,8 +533,11 @@ class LoginPageController {
           joinDate: new Date().toISOString(),
           totalPoints: 0,
           achievementCount: 0,
-          role: "public-fan",
-        }, { merge: true });
+        };
+        if (defaultRole) {
+          profile.role = defaultRole;
+        }
+        await setDoc(profileRef, profile, { merge: true });
       } catch (e) {
         console.warn('[Login] Failed to create profile:', e);
       }
@@ -562,19 +598,8 @@ class LoginPageController {
   }
 }
 
-// Initialize login controller when DOM is ready
-document.addEventListener("DOMContentLoaded", async () => {
-  console.info("[Login] DOMContentLoaded");
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const rt = params.get('returnTo');
-    const safeReturnTo = rt ? validateRedirectUrl(rt, null) : null;
-    if (localStorage.getItem('rr_guest_ok') === '1' && safeReturnTo) {
-      // If guest flag is set, immediately route to returnTo
-      navigateToInternal(safeReturnTo);
-      return;
-    }
-  } catch(_) {}
-  const loginController = new LoginPageController();
-  await loginController.initialize();
+// Initialize on DOM ready
+document.addEventListener("DOMContentLoaded", () => {
+  const controller = new LoginPageController();
+  controller.initialize();
 });
