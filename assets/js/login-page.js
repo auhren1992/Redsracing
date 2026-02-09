@@ -6,7 +6,7 @@ import "./app.js";
  */
 
 import { getFriendlyAuthError } from "./auth-errors.js";
-import { setPendingInvitationCode } from "./invitation-codes.js";
+import { setPendingInvitationCode, processInvitationCode } from "./invitation-codes.js";
 import { navigateToInternal, validateRedirectUrl } from "./navigation-helpers.js";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
@@ -347,6 +347,21 @@ class LoginPageController {
         console.warn("[Login] Failed to refresh token for claims:", e);
       }
 
+      const invitationCode = this.elements.invitationCodeInput?.value?.trim();
+      if (invitationCode) {
+        try {
+          const result = await processInvitationCode(invitationCode, user.uid);
+          if (result?.status === "success") {
+            const refreshed = await user.getIdTokenResult(true);
+            role = refreshed?.claims?.role || role;
+          } else {
+            console.warn("[Login] Invitation code not applied:", result?.message);
+          }
+        } catch (error) {
+          console.warn("[Login] Invitation code processing failed:", error);
+        }
+      }
+
       this.showMessage("Login successful! Redirecting...", false);
 
       const returnTo = this.getReturnTo();
@@ -354,14 +369,19 @@ class LoginPageController {
         navigateToInternal(returnTo);
         return;
       }
+      const normalizeRole = (value) => {
+        if (typeof value !== "string") return null;
+        return value.trim().toLowerCase().replace(/[\s_]+/g, "-");
+      };
+      const normalizedRole = normalizeRole(role);
       // Route based on role
-      if (role === 'admin') {
+      if (normalizedRole === 'admin') {
         navigateToInternal('/admin-console.html');
         return;
-      } else if (role === 'team-member') {
+      } else if (normalizedRole === 'team-member') {
         navigateToInternal('/dashboard.html'); // Racer/Crew dashboard
         return;
-      } else if (role === 'TeamRedFollower') {
+      } else if (['teamredfollower', 'public-fan', 'follower'].includes(normalizedRole)) {
         navigateToInternal('/follower-dashboard.html'); // Fan dashboard
         return;
       }
@@ -475,15 +495,32 @@ class LoginPageController {
       console.info("[Login] Sign-up success:", user.uid);
       this.setAuthMarker(user);
 
-      // Set follower role by default (fans)
-      try {
-        const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
-        const functions = getFunctions();
-        const setFollowerRole = httpsCallable(functions, 'setFollowerRole');
-        await setFollowerRole();
-        await user.getIdToken(true); // Refresh token
-      } catch (e) {
-        console.warn('[Login] Failed to set follower role:', e);
+      const invitationCode = this.elements.invitationCodeInput?.value?.trim();
+      let defaultRole = "public-fan";
+      if (invitationCode) {
+        try {
+          const result = await processInvitationCode(invitationCode, user.uid);
+          if (result?.status === "success") {
+            defaultRole = null;
+            await user.getIdToken(true);
+          } else {
+            console.warn('[Login] Invitation code invalid:', result?.message);
+          }
+        } catch (e) {
+          console.warn('[Login] Failed to process invitation code:', e);
+        }
+      }
+      if (defaultRole) {
+        // Set follower role by default (fans)
+        try {
+          const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
+          const functions = getFunctions();
+          const setFollowerRole = httpsCallable(functions, 'setFollowerRole');
+          await setFollowerRole();
+          await user.getIdToken(true); // Refresh token
+        } catch (e) {
+          console.warn('[Login] Failed to set follower role:', e);
+        }
       }
 
       // Create default profile
@@ -491,7 +528,7 @@ class LoginPageController {
         const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
         const db = getFirestore();
         const profileRef = doc(db, "users", user.uid);
-        await setDoc(profileRef, {
+        const profile = {
           username: email.split("@")[0],
           displayName: email.split("@")[0],
           bio: "New member of the RedsRacing community!",
@@ -500,7 +537,11 @@ class LoginPageController {
           joinDate: new Date().toISOString(),
           totalPoints: 0,
           achievementCount: 0,
-        });
+        };
+        if (defaultRole) {
+          profile.role = defaultRole;
+        }
+        await setDoc(profileRef, profile, { merge: true });
       } catch (e) {
         console.warn('[Login] Failed to create profile:', e);
       }

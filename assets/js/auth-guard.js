@@ -76,7 +76,34 @@ if (protectedPages.includes(currentPage)) {
           return normalizeRole(nextRole);
         };
 
+        const ensureUserProfile = async (resolvedRole) => {
+          const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+          const db = getFirestore();
+          const profileRef = doc(db, 'users', user.uid);
+          const snap = await getDoc(profileRef);
+          if (snap.exists()) return;
+          const profile = {
+            username: user.email ? user.email.split('@')[0] : 'user',
+            displayName: user.displayName || (user.email ? user.email.split('@')[0] : 'New Member'),
+            bio: 'New member of the RedsRacing community!',
+            avatarUrl: user.photoURL || '',
+            favoriteCars: [],
+            joinDate: new Date().toISOString(),
+            totalPoints: 0,
+            achievementCount: 0,
+          };
+          if (resolvedRole) {
+            profile.role = resolvedRole;
+          }
+          await setDoc(profileRef, profile, { merge: true });
+        };
+
         let normalizedRole = await resolveRole(false);
+        try {
+          await ensureUserProfile(normalizedRole);
+        } catch (error) {
+          console.warn('[AuthGuard] Failed to ensure user profile:', error);
+        }
         const isTeamMember = ['team-member', 'admin'].includes(normalizedRole);
         const isFollower = ['teamredfollower', 'public-fan', 'follower'].includes(normalizedRole);
 
