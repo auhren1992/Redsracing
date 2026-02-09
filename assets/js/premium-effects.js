@@ -214,13 +214,34 @@ const initCardTilt = () => {
 // PERFORMANCE MONITORING
 // ============================================
 const logPerformance = () => {
-  if (window.performance && window.performance.timing) {
-    window.addEventListener('load', () => {
-      const perfData = window.performance.timing;
-      const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
-      console.log(`🏁 Page loaded in ${pageLoadTime}ms`);
-    });
+  if (!window.performance) {
+    return;
   }
+
+  window.addEventListener("load", () => {
+    let pageLoadTime = 0;
+    try {
+      const navEntry = performance.getEntriesByType?.("navigation")?.[0];
+      if (navEntry && typeof navEntry.duration === "number") {
+        pageLoadTime = navEntry.duration;
+      } else if (performance.timing) {
+        const perfData = performance.timing;
+        pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
+      } else if (typeof performance.now === "function") {
+        pageLoadTime = performance.now();
+      }
+    } catch (_) {
+      if (typeof performance.now === "function") {
+        pageLoadTime = performance.now();
+      }
+    }
+
+    if (!Number.isFinite(pageLoadTime) || pageLoadTime < 0) {
+      pageLoadTime = 0;
+    }
+
+    console.log(`🏁 Page loaded in ${Math.round(pageLoadTime)}ms`);
+  });
 };
 
 // ============================================
