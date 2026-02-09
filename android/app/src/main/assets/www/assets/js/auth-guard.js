@@ -29,6 +29,9 @@ if (protectedPages.includes(currentPage)) {
     safeRedirectToLogin();
   }, REDIRECT_GRACE_MS);
 
+  const normalizeRole = (role) =>
+    typeof role === "string" ? role.trim().toLowerCase() : null;
+
   monitorAuthState(
     async (user) => {
       if (!user) {
@@ -40,8 +43,16 @@ if (protectedPages.includes(currentPage)) {
       clearTimeout(graceTimer);
 
       try {
-        const claimsResult = await validateUserClaims();
+        let claimsResult = await validateUserClaims();
         let role = claimsResult.success ? (claimsResult.claims.role || null) : null;
+
+        if (!role && user) {
+          try {
+            const tokenResult = await user.getIdTokenResult(true);
+            role = tokenResult?.claims?.role || null;
+          } catch (_) {}
+        }
+
         if (!role && user) {
           // Fallback to users doc role
           try {
@@ -55,11 +66,15 @@ if (protectedPages.includes(currentPage)) {
           } catch (_) {}
         }
 
-        if (teamMemberPages.includes(currentPage) && !['team-member', 'admin'].includes(role)) {
+        const normalizedRole = normalizeRole(role);
+        const isTeamMember = ['team-member', 'admin'].includes(normalizedRole);
+        const isFollower = normalizedRole === 'teamredfollower';
+
+        if (teamMemberPages.includes(currentPage) && !isTeamMember) {
           navigateToInternal('/follower-dashboard.html');
         } else if (
           followerPages.includes(currentPage) &&
-          role !== 'TeamRedFollower'
+          !isFollower
         ) {
           navigateToInternal('/redsracing-dashboard.html');
         }
@@ -75,4 +90,3 @@ if (protectedPages.includes(currentPage)) {
     },
   );
 }
-
