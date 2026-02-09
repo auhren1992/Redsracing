@@ -124,8 +124,18 @@ function normalizeAndValidatePath(path) {
  * @returns {string} Path without hash fragment
  */
 function extractBasePath(path) {
-  const hashIndex = path.indexOf('#');
-  return hashIndex !== -1 ? path.substring(0, hashIndex) : path;
+  const hashIndex = path.indexOf("#");
+  const queryIndex = path.indexOf("?");
+  let endIndex = path.length;
+
+  if (hashIndex !== -1) {
+    endIndex = Math.min(endIndex, hashIndex);
+  }
+  if (queryIndex !== -1) {
+    endIndex = Math.min(endIndex, queryIndex);
+  }
+
+  return path.substring(0, endIndex);
 }
 
 /**

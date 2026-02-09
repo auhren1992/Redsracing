@@ -29,6 +29,11 @@ if (protectedPages.includes(currentPage)) {
     safeRedirectToLogin();
   }, REDIRECT_GRACE_MS);
 
+  const normalizeRole = (role) => {
+    if (typeof role !== "string") return null;
+    return role.trim().toLowerCase().replace(/[\s_]+/g, "-");
+  };
+
   monitorAuthState(
     async (user) => {
       if (!user) {
@@ -40,26 +45,48 @@ if (protectedPages.includes(currentPage)) {
       clearTimeout(graceTimer);
 
       try {
-        const claimsResult = await validateUserClaims();
-        let role = claimsResult.success ? (claimsResult.claims.role || null) : null;
-        if (!role && user) {
-          // Fallback to users doc role
-          try {
-            const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-            const db = getFirestore();
-            const snap = await getDoc(doc(db, 'users', user.uid));
-            if (snap.exists()) {
-              const data = snap.data() || {};
-              if (typeof data.role === 'string' && data.role) role = data.role;
-            }
-          } catch (_) {}
-        }
+        const resolveRole = async (forceRefresh = false) => {
+          let claimsResult = await validateUserClaims();
+          let nextRole = claimsResult.success ? (claimsResult.claims.role || null) : null;
 
-        if (teamMemberPages.includes(currentPage) && !['team-member', 'admin'].includes(role)) {
+          if (user && (!nextRole || forceRefresh)) {
+            try {
+              const tokenResult = await user.getIdTokenResult(true);
+              nextRole = tokenResult?.claims?.role || nextRole;
+            } catch (_) {}
+          }
+
+          if (!nextRole && user) {
+            // Fallback to users doc role
+            try {
+              const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const db = getFirestore();
+              const snap = await getDoc(doc(db, 'users', user.uid));
+              if (snap.exists()) {
+                const data = snap.data() || {};
+                if (typeof data.role === 'string' && data.role) nextRole = data.role;
+              }
+            } catch (_) {}
+          }
+
+          return normalizeRole(nextRole);
+        };
+
+        let normalizedRole = await resolveRole(false);
+        const isTeamMember = ['team-member', 'admin'].includes(normalizedRole);
+        const isFollower = ['teamredfollower', 'public-fan', 'follower'].includes(normalizedRole);
+
+        if (teamMemberPages.includes(currentPage) && !isTeamMember) {
+          normalizedRole = await resolveRole(true);
+        }
+        const finalIsTeamMember = ['team-member', 'admin'].includes(normalizedRole);
+        const finalIsFollower = ['teamredfollower', 'public-fan', 'follower'].includes(normalizedRole);
+
+        if (teamMemberPages.includes(currentPage) && !finalIsTeamMember) {
           navigateToInternal('/follower-dashboard.html');
         } else if (
           followerPages.includes(currentPage) &&
-          role !== 'TeamRedFollower'
+          !finalIsFollower
         ) {
           navigateToInternal('/redsracing-dashboard.html');
         }
@@ -75,4 +102,3 @@ if (protectedPages.includes(currentPage)) {
     },
   );
 }
-
