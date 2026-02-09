@@ -37,6 +37,7 @@
       });
       console.log('[RedsRacing Auth] Auth initialized, setting up listeners');
       
+      let pendingSignOutTimer = null;
       onAuthStateChanged(auth, (user) => {
         // Wait for DOM to be ready before manipulating elements
         const handleAuth = () => {
@@ -97,7 +98,60 @@
             } catch(_) {}
           }
 
+          const applySignedOutState = () => {
+            console.log('[RedsRacing Auth] User signed out');
+            document.body.setAttribute('data-auth', 'signed-out');
+            localStorage.removeItem('rr_auth_uid');
+            
+            // Add visible debug indicator
+            let debugDiv = document.getElementById('auth-debug-status');
+            if (!debugDiv) {
+              debugDiv = document.createElement('div');
+              debugDiv.id = 'auth-debug-status';
+              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#ef4444;color:#fff;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+              debugDiv.textContent = '✗ Not logged in';
+              document.body.appendChild(debugDiv);
+              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+            }
+            
+            // CRITICAL: Clear inline !important styles set during sign-in
+            // Otherwise they override .hidden class and dropdown stays visible
+            if (userProfile) {
+              userProfile.classList.add('hidden');
+              userProfile.removeAttribute('data-auth-visible');
+              // Remove all inline !important styles
+              userProfile.style.cssText = '';
+              // Force hide with new inline styles
+              userProfile.style.display = 'none';
+              userProfile.style.visibility = 'hidden';
+              userProfile.style.opacity = '0';
+              console.log('[RedsRacing Auth] Profile dropdown hidden on sign-out');
+            }
+            if (mobileUserProfile) {
+              mobileUserProfile.classList.add('hidden');
+              mobileUserProfile.removeAttribute('data-auth-visible');
+              // Remove all inline !important styles
+              mobileUserProfile.style.cssText = '';
+              mobileUserProfile.style.display = 'none';
+              mobileUserProfile.style.visibility = 'hidden';
+              mobileUserProfile.style.opacity = '0';
+            }
+            if (loginBtn) {
+              loginBtn.classList.remove('hidden');
+              loginBtn.style.display = '';
+            }
+            if (mobileLoginBtn) {
+              mobileLoginBtn.classList.remove('hidden');
+              mobileLoginBtn.style.display = '';
+            }
+            unmountLoggedOutButton();
+          };
+
           if (user) {
+            if (pendingSignOutTimer) {
+              clearTimeout(pendingSignOutTimer);
+              pendingSignOutTimer = null;
+            }
             console.log('[RedsRacing Auth] User signed in:', user.email);
             document.body.setAttribute('data-auth', 'signed-in');
             localStorage.setItem('rr_auth_uid', user.uid);
@@ -211,52 +265,21 @@ const core = await import('./assets/js/firebase-core.js');
               });
             }
           } else {
-            console.log('[RedsRacing Auth] User signed out');
-            document.body.setAttribute('data-auth', 'signed-out');
-            localStorage.removeItem('rr_auth_uid');
-            
-            // Add visible debug indicator
-            let debugDiv = document.getElementById('auth-debug-status');
-            if (!debugDiv) {
-              debugDiv = document.createElement('div');
-              debugDiv.id = 'auth-debug-status';
-              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#ef4444;color:#fff;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
-              debugDiv.textContent = '✗ Not logged in';
-              document.body.appendChild(debugDiv);
-              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+            const hasAuthMarker = !!localStorage.getItem('rr_auth_uid');
+            if (hasAuthMarker) {
+              if (!pendingSignOutTimer) {
+                console.log('[RedsRacing Auth] Auth marker present, delaying sign-out UI.');
+                pendingSignOutTimer = setTimeout(() => {
+                  if (!auth.currentUser) {
+                    applySignedOutState();
+                  }
+                  pendingSignOutTimer = null;
+                }, 1200);
+              }
+              return;
             }
-            
-            // CRITICAL: Clear inline !important styles set during sign-in
-            // Otherwise they override .hidden class and dropdown stays visible
-            if (userProfile) {
-              userProfile.classList.add('hidden');
-              userProfile.removeAttribute('data-auth-visible');
-              // Remove all inline !important styles
-              userProfile.style.cssText = '';
-              // Force hide with new inline styles
-              userProfile.style.display = 'none';
-              userProfile.style.visibility = 'hidden';
-              userProfile.style.opacity = '0';
-              console.log('[RedsRacing Auth] Profile dropdown hidden on sign-out');
-            }
-            if (mobileUserProfile) {
-              mobileUserProfile.classList.add('hidden');
-              mobileUserProfile.removeAttribute('data-auth-visible');
-              // Remove all inline !important styles
-              mobileUserProfile.style.cssText = '';
-              mobileUserProfile.style.display = 'none';
-              mobileUserProfile.style.visibility = 'hidden';
-              mobileUserProfile.style.opacity = '0';
-            }
-            if (loginBtn) {
-              loginBtn.classList.remove('hidden');
-              loginBtn.style.display = '';
-            }
-            if (mobileLoginBtn) {
-              mobileLoginBtn.classList.remove('hidden');
-              mobileLoginBtn.style.display = '';
-            }
-            unmountLoggedOutButton();
+
+            applySignedOutState();
           }
         } catch (err) {
           console.error('[RedsRacing Auth] handleAuth error:', err);

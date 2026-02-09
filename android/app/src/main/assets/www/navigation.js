@@ -18,6 +18,7 @@
       if (getApps().length === 0) initializeApp(cfg);
       const auth = getAuth();
       try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}
+      let pendingSignOutTimer = null;
       onAuthStateChanged(auth, (user) => {
         try {
           const loginBtn = document.getElementById('login-btn');
@@ -76,7 +77,42 @@
             } catch(_) {}
           }
 
+          const applySignedOutState = () => {
+            console.log('[RedsRacing Auth] User signed out');
+            document.body.setAttribute('data-auth', 'signed-out');
+            localStorage.removeItem('rr_auth_uid');
+            
+            // Add visible debug indicator
+            let debugDiv = document.getElementById('auth-debug-status');
+            if (!debugDiv) {
+              debugDiv = document.createElement('div');
+              debugDiv.id = 'auth-debug-status';
+              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#ef4444;color:#fff;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+              debugDiv.textContent = '✗ Not logged in';
+              document.body.appendChild(debugDiv);
+              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+            }
+            
+            if (userProfile) {
+              userProfile.classList.add('hidden');
+            }
+            if (mobileUserProfile) {
+              mobileUserProfile.classList.add('hidden');
+            }
+            if (loginBtn) {
+              loginBtn.classList.remove('hidden');
+            }
+            if (mobileLoginBtn) {
+              mobileLoginBtn.classList.remove('hidden');
+            }
+            unmountLoggedOutButton();
+          };
+
           if (user) {
+            if (pendingSignOutTimer) {
+              clearTimeout(pendingSignOutTimer);
+              pendingSignOutTimer = null;
+            }
             console.log('[RedsRacing Auth] User signed in:', user.email);
             document.body.setAttribute('data-auth', 'signed-in');
             localStorage.setItem('rr_auth_uid', user.uid);
@@ -174,34 +210,21 @@ const core = await import('./assets/js/firebase-core.js');
               });
             }
           } else {
-            console.log('[RedsRacing Auth] User signed out');
-            document.body.setAttribute('data-auth', 'signed-out');
-            localStorage.removeItem('rr_auth_uid');
-            
-            // Add visible debug indicator
-            let debugDiv = document.getElementById('auth-debug-status');
-            if (!debugDiv) {
-              debugDiv = document.createElement('div');
-              debugDiv.id = 'auth-debug-status';
-              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#ef4444;color:#fff;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
-              debugDiv.textContent = '✗ Not logged in';
-              document.body.appendChild(debugDiv);
-              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+            const hasAuthMarker = !!localStorage.getItem('rr_auth_uid');
+            if (hasAuthMarker) {
+              if (!pendingSignOutTimer) {
+                console.log('[RedsRacing Auth] Auth marker present, delaying sign-out UI.');
+                pendingSignOutTimer = setTimeout(() => {
+                  if (!auth.currentUser) {
+                    applySignedOutState();
+                  }
+                  pendingSignOutTimer = null;
+                }, 1200);
+              }
+              return;
             }
-            
-            if (userProfile) {
-              userProfile.classList.add('hidden');
-            }
-            if (mobileUserProfile) {
-              mobileUserProfile.classList.add('hidden');
-            }
-            if (loginBtn) {
-              loginBtn.classList.remove('hidden');
-            }
-            if (mobileLoginBtn) {
-              mobileLoginBtn.classList.remove('hidden');
-            }
-            unmountLoggedOutButton();
+
+            applySignedOutState();
           }
         } catch (_) {}
       });
