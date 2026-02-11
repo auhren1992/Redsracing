@@ -24,9 +24,6 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      - name: Install iOS Simulator Runtime
-        run: xcodebuild -downloadPlatform iOS
-
       - name: Install Apple Certificate
         env:
           APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
@@ -76,7 +73,8 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="iPhone Distribution" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            PROVISIONING_PROFILE="$PROFILE_UUID"
+            PROVISIONING_PROFILE="$PROFILE_UUID" \
+            ENABLE_ON_DEMAND_RESOURCES=NO
 
       - name: Export IPA
         env:
