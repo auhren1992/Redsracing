@@ -31,6 +31,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Certificates and private keys
+certificates/
+*.pem
+*.p12
+*.key
+*.certSigningRequest
+
 # Android
 *.keystore
 *.jks
