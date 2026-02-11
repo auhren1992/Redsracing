@@ -137,14 +137,17 @@ service cloud.firestore {
       // Public can read approved images; team members/admins can read all
       allow read: if (resource.data.approved == true)
                   || hasRole('team-member')
+                  || hasRole('admin')
                   || hasProfileRole('team-member')
                   || hasProfileRole('admin');
-      // Uploader can create; team members can update/approve or delete
+      // Uploader can create; team members/admins can update/approve or delete
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.uploaderUid;
       allow update: if hasRole('team-member')
+                    || hasRole('admin')
                     || hasProfileRole('team-member')
+                    || hasProfileRole('admin')
                     || (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
-      allow delete: if hasRole('team-member') || hasProfileRole('team-member');
+      allow delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
     }
 
     // Jonny-specific videos

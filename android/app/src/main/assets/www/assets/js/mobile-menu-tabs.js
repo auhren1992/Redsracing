@@ -78,29 +78,24 @@
           <!-- Jon Kirsch Card -->
           <div class="mobile-nav-card">
             <div class="mobile-nav-card-header">
+              <div class="mobile-nav-card-number">#8</div>
               <div class="mobile-nav-card-title">
-                <div class="mobile-nav-card-icon red">🏎️</div>
-                <div>
-                  <div>Jon Kirsch</div>
-                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">#8 • Father & Mentor</div>
-                </div>
+                <div class="mobile-nav-card-name">Jon Kirsch</div>
+                <div class="mobile-nav-card-role">Father & Team Leader</div>
               </div>
             </div>
-            <div class="mobile-nav-card-desc">
-              Championship driver and team leader building a racing dynasty
-            </div>
-            <div class="driver-submenu-grid">
-              <a href="driver.html" class="driver-submenu-item">
-                <div class="driver-submenu-item-icon">👤</div>
-                <div class="driver-submenu-item-label">Profile</div>
+            <div class="driver-links">
+              <a href="driver.html" class="driver-link">
+                <span class="driver-link-icon">👤</span>
+                <span class="driver-link-text">Profile</span>
               </a>
-              <a href="gallery.html" class="driver-submenu-item">
-                <div class="driver-submenu-item-icon">📸</div>
-                <div class="driver-submenu-item-label">Gallery</div>
+              <a href="gallery.html" class="driver-link">
+                <span class="driver-link-icon">📸</span>
+                <span class="driver-link-text">Gallery</span>
               </a>
-              <a href="jons.html" class="driver-submenu-item">
-                <div class="driver-submenu-item-icon">📊</div>
-                <div class="driver-submenu-item-label">Racing Stats</div>
+              <a href="jons.html" class="driver-link">
+                <span class="driver-link-icon">📊</span>
+                <span class="driver-link-text">Stats</span>
               </a>
             </div>
           </div>

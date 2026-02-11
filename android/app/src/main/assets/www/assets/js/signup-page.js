@@ -25,8 +25,9 @@ async function createDefaultProfile(user) {
       joinDate: new Date().toISOString(),
       totalPoints: 0,
       achievementCount: 0,
+      role: "public-fan",
     };
-    await setDoc(profileRef, defaultProfile);
+    await setDoc(profileRef, defaultProfile, { merge: true });
   } catch (error) {
     // This error should be logged, but we don't want to fail the whole signup process
   }
@@ -63,6 +64,9 @@ export async function handleSignup(email, password, inviteCode) {
       }
     }
 
+    // Ensure auth token is ready before writing to Firestore
+    try { await user.getIdToken(true); } catch (_) {}
+
     // Create a default profile document in Firestore
     await createDefaultProfile(user);
 
@@ -78,6 +82,31 @@ export async function handleSignup(email, password, inviteCode) {
 document.addEventListener("DOMContentLoaded", () => {
   const signupForm = document.getElementById("signup-form");
   const signupError = document.getElementById("signup-error");
+  const inviteCodeInput = document.getElementById("invite-code");
+  const inviteCodeHelp = document.getElementById("invite-code-help");
+  const teamRoleInputs = document.querySelectorAll('input[name="team-role"]');
+  
+  // Show/hide invite code requirement based on role selection
+  teamRoleInputs.forEach(input => {
+    input.addEventListener('change', (e) => {
+      const role = e.target.value;
+      if (role === 'racer' || role === 'crew') {
+        // Team roles require invite code
+        if (inviteCodeHelp) inviteCodeHelp.classList.remove('hidden');
+        if (inviteCodeInput) {
+          inviteCodeInput.placeholder = 'Invite Code (required)';
+          inviteCodeInput.classList.add('border-yellow-400');
+        }
+      } else {
+        // Fan role - invite code optional
+        if (inviteCodeHelp) inviteCodeHelp.classList.add('hidden');
+        if (inviteCodeInput) {
+          inviteCodeInput.placeholder = 'Invite Code (optional)';
+          inviteCodeInput.classList.remove('border-yellow-400');
+        }
+      }
+    });
+  });
 
   if (signupForm) {
     signupForm.addEventListener("submit", async (e) => {
@@ -87,13 +116,23 @@ document.addEventListener("DOMContentLoaded", () => {
       const email = signupForm.email.value;
       const password = signupForm.password.value;
       const inviteCode = signupForm["invite-code"].value;
+      const teamRole = signupForm["team-role"].value;
+
+      // Validate invite code requirement for team roles
+      if ((teamRole === 'racer' || teamRole === 'crew') && (!inviteCode || !inviteCode.trim())) {
+        signupError.textContent = 'Invite code is required for Racer and Crew Member roles. Choose "Racing Fan" to sign up without a code.';
+        return;
+      }
 
       try {
         const user = await handleSignup(email, password, inviteCode);
-        // Redirect to follower dashboard if no invite (follower) else to login
-        if (!inviteCode || !inviteCode.trim()) {
+        
+        // Redirect based on role
+        if (teamRole === 'fan' || !inviteCode || !inviteCode.trim()) {
+          // Fan/follower - go to follower dashboard
           window.location.href = "/follower-dashboard.html";
         } else {
+          // Team member with invite code - go to login to refresh token
           window.location.href = "/login.html";
         }
       } catch (error) {
@@ -104,10 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Capture invite code from URL
   const capturedCode = captureInvitationCodeFromURL();
-  if (capturedCode) {
-    const inviteCodeInput = document.getElementById("invite-code");
-    if (inviteCodeInput) {
-      inviteCodeInput.value = capturedCode;
-    }
+  if (capturedCode && inviteCodeInput) {
+    inviteCodeInput.value = capturedCode;
   }
 });

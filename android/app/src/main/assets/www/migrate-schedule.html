@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Migrate Schedule to Firestore</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1f2e;
+            color: white;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        button:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #334155;
+            border-radius: 8px;
+            min-height: 100px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .info { color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <h1>🏁 Migrate 2026 Schedule to Firestore</h1>
+    
+    <div id="loginSection">
+        <p>⚠️ You must be logged in as a team member to import races.</p>
+        <button onclick="window.location.href='admin-console.html'">Go to Admin Console to Login</button>
+    </div>
+    
+    <div id="migrateSection" style="display:none;">
+        <p>This will import all 2026 races from schedule.json into Firestore's <code>races</code> collection.</p>
+        
+        <button id="migrateBtn" onclick="migrateSchedule()">Import 2026 Schedule</button>
+        <button onclick="clearRaces()">Clear All Races (Danger)</button>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+            authDomain: "redsracing-a7f8b.firebaseapp.com",
+            projectId: "redsracing-a7f8b",
+            storageBucket: "redsracing-a7f8b.firebasestorage.app",
+            messagingSenderId: "517034606151",
+            appId: "1:517034606151:web:24cae262e1d98832757b62"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        // Check authentication on load
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // Check if user is team member
+                const token = await user.getIdTokenResult();
+                if (token.claims.role === 'team-member' || token.claims.role === 'admin') {
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('migrateSection').style.display = 'block';
+                    log('✅ Logged in as: ' + user.email, 'success');
+                } else {
+                    log('❌ Insufficient permissions. You must be a team member.', 'error');
+                }
+            } else {
+                document.getElementById('loginSection').style.display = 'block';
+                document.getElementById('migrateSection').style.display = 'none';
+            }
+        });
+
+        function log(message, type = 'info') {
+            const status = document.getElementById('status');
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            status.innerHTML += `<div class="${className}">${message}</div>`;
+            status.scrollTop = status.scrollHeight;
+        }
+
+        async function migrateSchedule() {
+            const btn = document.getElementById('migrateBtn');
+            btn.disabled = true;
+            document.getElementById('status').innerHTML = '';
+            
+            log('📥 Loading schedule.json...', 'info');
+            
+            try {
+                // Load schedule.json
+                const response = await fetch('data/schedule.json');
+                const scheduleData = await response.json();
+                
+                // Find 2026 season
+                const season2026 = scheduleData.seasons.find(s => s.year === 2026);
+                
+                if (!season2026 || !season2026.races) {
+                    log('❌ No 2026 season found in schedule.json', 'error');
+                    btn.disabled = false;
+                    return;
+                }
+                
+                log(`✅ Found ${season2026.races.length} races in 2026 schedule`, 'success');
+                log('📤 Importing to Firestore...', 'info');
+                
+                let imported = 0;
+                let skipped = 0;
+                
+                for (const race of season2026.races) {
+                    try {
+                        // Parse date first
+                        const dateStr = race.date;
+                        const dateParts = dateStr.split('-');
+                        const raceDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+                        const raceTimestamp = firebase.firestore.Timestamp.fromDate(raceDate);
+                        
+                        // Check if race already exists
+                        const existingQuery = await db.collection('races')
+                            .where('date', '==', raceTimestamp)
+                            .where('track', '==', race.track)
+                            .where('season', '==', 2026)
+                            .get();
+                        
+                        if (!existingQuery.empty) {
+                            log(`⏭️  Skipped: ${race.eventName} (already exists)`, 'info');
+                            skipped++;
+                            continue;
+                        }
+                        
+                        // Add race to Firestore (use already parsed date)
+                        const raceData = {
+                            date: raceTimestamp,
+                            track: race.track,
+                            city: race.city,
+                            state: race.state,
+                            eventName: race.eventName,
+                            name: race.eventName, // Add name field for compatibility
+                            startTime: race.startTime,
+                            type: race.type,
+                            season: 2026,
+                            status: 'upcoming',
+                            createdAt: firebase.firestore.Timestamp.now()
+                        };
+                        
+                        await db.collection('races').add(raceData);
+                        log(`✅ Imported: ${race.eventName} @ ${race.track}`, 'success');
+                        imported++;
+                        
+                    } catch (error) {
+                        log(`❌ Error importing ${race.eventName}: ${error.message}`, 'error');
+                    }
+                }
+                
+                log(`\n🎉 Migration Complete!`, 'success');
+                log(`   - Imported: ${imported} races`, 'success');
+                log(`   - Skipped: ${skipped} races (already existed)`, 'info');
+                log(`\n✅ You can now see races in Race Management section!`, 'success');
+                
+            } catch (error) {
+                log(`❌ Migration failed: ${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function clearRaces() {
+            if (!confirm('⚠️ This will DELETE ALL races from Firestore. Are you sure?')) {
+                return;
+            }
+            
+            log('🗑️  Deleting all races...', 'info');
+            
+            try {
+                const snapshot = await db.collection('races').get();
+                const batch = db.batch();
+                
+                snapshot.docs.forEach((doc) => {
+                    batch.delete(doc.ref);
+                });
+                
+                await batch.commit();
+                log(`✅ Deleted ${snapshot.size} races`, 'success');
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

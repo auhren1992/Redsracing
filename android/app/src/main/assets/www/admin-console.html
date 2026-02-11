@@ -1440,6 +1440,87 @@
           const btn3 = document.getElementById('save-content-btn');
           if (btn3) btn3.addEventListener('click', saveContentSettings);
         } catch {}
+        
+        // Explicit dropdown handling for Android WebView
+        try {
+          // Mobile menu toggle (header hamburger)
+          const mobileMenuBtn = document.getElementById('mobile-menu-button');
+          const mobileMenu = document.getElementById('mobile-menu');
+          if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              const isHidden = mobileMenu.classList.contains('hidden');
+              if (isHidden) {
+                mobileMenu.classList.remove('hidden');
+                mobileMenu.style.cssText = 'display:block !important;visibility:visible !important;opacity:1 !important;transform:translateY(0) !important;pointer-events:auto !important;';
+              } else {
+                mobileMenu.classList.add('hidden');
+                mobileMenu.style.cssText = '';
+              }
+            });
+          }
+          
+          // Admin Menu sidebar toggle (the yellow button in main content area)
+          const sidebarToggle = document.getElementById('sidebar-toggle');
+          if (sidebarToggle && mobileMenu) {
+            sidebarToggle.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              const isHidden = mobileMenu.classList.contains('hidden');
+              if (isHidden) {
+                mobileMenu.classList.remove('hidden');
+                mobileMenu.style.cssText = 'display:block !important;visibility:visible !important;opacity:1 !important;transform:translateY(0) !important;pointer-events:auto !important;position:absolute !important;top:0 !important;left:0 !important;right:0 !important;z-index:9999 !important;background:rgba(15,23,42,0.98) !important;';
+              } else {
+                mobileMenu.classList.add('hidden');
+                mobileMenu.style.cssText = '';
+              }
+            });
+          }
+          
+          // Header dropdown toggles
+          document.querySelectorAll('header .dropdown-toggle').forEach(function(toggle) {
+            toggle.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              const menu = this.nextElementSibling;
+              if (menu && menu.classList.contains('dropdown-menu')) {
+                // Close all other dropdowns first
+                document.querySelectorAll('header .dropdown-menu').forEach(function(m) {
+                  if (m !== menu) {
+                    m.classList.add('hidden');
+                    m.style.cssText = '';
+                  }
+                });
+                const isHidden = menu.classList.contains('hidden');
+                if (isHidden) {
+                  menu.classList.remove('hidden');
+                  // Force display for Android WebView with inline !important
+                  menu.style.cssText = 'display:block !important;visibility:visible !important;opacity:1 !important;transform:translateY(0) scale(1) !important;pointer-events:auto !important;position:absolute !important;z-index:9999 !important;';
+                } else {
+                  menu.classList.add('hidden');
+                  menu.style.cssText = '';
+                }
+              }
+            });
+          });
+          
+          // Close dropdowns when clicking outside
+          document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown')) {
+              document.querySelectorAll('header .dropdown-menu').forEach(function(m) {
+                m.classList.add('hidden');
+                m.style.cssText = '';
+              });
+            }
+            if (!e.target.closest('#mobile-menu') && !e.target.closest('#mobile-menu-button')) {
+              if (mobileMenu) {
+                mobileMenu.classList.add('hidden');
+                mobileMenu.style.cssText = '';
+              }
+            }
+          });
+        } catch(err) { console.error('Dropdown init error:', err); }
       });
     </script>
     <script src="vendors.js"></script>
@@ -3056,6 +3137,13 @@
           }
           
           try {
+            // Clear all auth-related localStorage items first
+            try {
+              localStorage.removeItem('rr_auth_uid');
+              localStorage.removeItem('rr_user_name');
+              localStorage.removeItem('rr_guest_ok');
+            } catch (_) {}
+            
             // Import Firebase auth functions
             const { getAuth, signOut } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
             const auth = getAuth();
@@ -3065,7 +3153,12 @@
             window.location.href = 'login.html';
           } catch (error) {
             console.error('Logout failed:', error);
-            // Even if logout fails, redirect to login
+            // Even if logout fails, ensure localStorage is cleared and redirect
+            try {
+              localStorage.removeItem('rr_auth_uid');
+              localStorage.removeItem('rr_user_name');
+              localStorage.removeItem('rr_guest_ok');
+            } catch (_) {}
             window.location.href = 'login.html';
           }
         }
@@ -3082,6 +3175,12 @@
               if (logoutTop) {
                 logoutTop.addEventListener('click', async (e) => {
                   e.preventDefault();
+                  // Clear auth markers
+                  try {
+                    localStorage.removeItem('rr_auth_uid');
+                    localStorage.removeItem('rr_user_name');
+                    localStorage.removeItem('rr_guest_ok');
+                  } catch (_) {}
                   try { await signOut(auth); } finally { window.location.href = 'login.html'; }
                 });
               }

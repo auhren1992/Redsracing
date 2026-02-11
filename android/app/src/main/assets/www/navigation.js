@@ -4,6 +4,7 @@
 
   // Ensure a single Firebase app is initialized on every page and use LOCAL persistence
   (async function initAuthPersistence() {
+    console.log('[RedsRacing Auth] ===== INIT STARTING =====');
     try {
       const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
       const { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
@@ -15,11 +16,37 @@
         messagingSenderId: '517034606151',
         appId: '1:517034606151:web:24cae262e1d98832757b62'
       };
-      if (getApps().length === 0) initializeApp(cfg);
-      const auth = getAuth();
+      // Use the DEFAULT app (name '[DEFAULT]') to share auth state with firebase-core.js
+      // Named apps like 'newsletter-app' have separate auth state and should be ignored
+      const existingApps = getApps();
+      const defaultApp = existingApps.find(a => a.name === '[DEFAULT]');
+      let app;
+      if (defaultApp) {
+        app = defaultApp;
+        console.log('[RedsRacing Auth] Using existing DEFAULT app');
+      } else {
+        app = initializeApp(cfg);
+        console.log('[RedsRacing Auth] Created new DEFAULT app');
+      }
+      const auth = getAuth(app);
       try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}
+      
+      // CRITICAL FIX: Wait for auth to initialize before doing anything else
+      // Firebase needs time to validate stored tokens with the server
+      console.log('[RedsRacing Auth] Waiting for auth to initialize...');
+      await new Promise((resolve) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          console.log('[RedsRacing Auth] Initial auth state resolved:', user ? user.email : 'null');
+          unsubscribe();
+          resolve();
+        });
+      });
+      console.log('[RedsRacing Auth] Auth initialized, setting up listeners');
+      
       let pendingSignOutTimer = null;
       onAuthStateChanged(auth, (user) => {
+        // Wait for DOM to be ready before manipulating elements
+        const handleAuth = () => {
         try {
           const loginBtn = document.getElementById('login-btn');
           const userProfile = document.getElementById('user-profile');
@@ -93,17 +120,35 @@
               setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
             }
             
+            // CRITICAL: Clear inline !important styles set during sign-in
+            // Otherwise they override .hidden class and dropdown stays visible
             if (userProfile) {
               userProfile.classList.add('hidden');
+              userProfile.removeAttribute('data-auth-visible');
+              // Remove all inline !important styles
+              userProfile.style.cssText = '';
+              // Force hide with new inline styles
+              userProfile.style.display = 'none';
+              userProfile.style.visibility = 'hidden';
+              userProfile.style.opacity = '0';
+              console.log('[RedsRacing Auth] Profile dropdown hidden on sign-out');
             }
             if (mobileUserProfile) {
               mobileUserProfile.classList.add('hidden');
+              mobileUserProfile.removeAttribute('data-auth-visible');
+              // Remove all inline !important styles
+              mobileUserProfile.style.cssText = '';
+              mobileUserProfile.style.display = 'none';
+              mobileUserProfile.style.visibility = 'hidden';
+              mobileUserProfile.style.opacity = '0';
             }
             if (loginBtn) {
               loginBtn.classList.remove('hidden');
+              loginBtn.style.display = '';
             }
             if (mobileLoginBtn) {
               mobileLoginBtn.classList.remove('hidden');
+              mobileLoginBtn.style.display = '';
             }
             unmountLoggedOutButton();
           };
@@ -128,30 +173,40 @@
               setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
             }
             
+            // CSS will handle visibility via body[data-auth="signed-in"] rules
+            // Just set attributes and let CSS take over
             unmountLoggedOutButton();
             
             if (userProfile) {
               userProfile.classList.remove('hidden');
               userProfile.setAttribute('data-auth-visible', 'true');
-              // Force display with inline styles using cssText for true !important priority
-              userProfile.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; position: relative !important;';
+              // Force display with inline styles using setProperty with !important
+              userProfile.style.setProperty('display', 'flex', 'important');
+              userProfile.style.setProperty('visibility', 'visible', 'important');
+              userProfile.style.setProperty('opacity', '1', 'important');
+              userProfile.style.setProperty('pointer-events', 'auto', 'important');
+              userProfile.style.setProperty('position', 'relative', 'important');
               console.log('[RedsRacing Auth] Profile dropdown enabled with !important styles');
             } else {
-              // Only log warning if not on admin/dashboard pages
+              // Only log warning if not on admin/dashboard pages (which have their own nav)
               const isAdminPage = window.location.pathname.includes('admin') || 
                                  window.location.pathname.includes('dashboard') ||
                                  window.location.pathname.includes('login') ||
                                  window.location.pathname.includes('signup');
               if (!isAdminPage) {
                 console.warn('[RedsRacing Auth] #user-profile element not found on:', window.location.pathname);
+                console.warn('[RedsRacing Auth] This page may be missing the profile dropdown HTML');
               }
             }
             
             if (mobileUserProfile) {
               mobileUserProfile.classList.remove('hidden');
               mobileUserProfile.setAttribute('data-auth-visible', 'true');
-              // Force display with inline styles using cssText for true !important priority
-              mobileUserProfile.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important;';
+              // Force display with inline styles using setProperty with !important
+              mobileUserProfile.style.setProperty('display', 'block', 'important');
+              mobileUserProfile.style.setProperty('visibility', 'visible', 'important');
+              mobileUserProfile.style.setProperty('opacity', '1', 'important');
+              mobileUserProfile.style.setProperty('pointer-events', 'auto', 'important');
             }
             
             if (loginBtn) {
@@ -167,24 +222,30 @@
             // Ultra-aggressive retry to ensure visibility
             setTimeout(() => {
               if (userProfile) {
-                userProfile.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; position: relative !important;';
+                userProfile.style.setProperty('display', 'flex', 'important');
+                userProfile.style.setProperty('visibility', 'visible', 'important');
+                userProfile.style.setProperty('opacity', '1', 'important');
                 console.log('[RedsRacing Auth] Retry 1: Profile forced visible');
               }
               if (mobileUserProfile) {
-                mobileUserProfile.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important;';
+                mobileUserProfile.style.setProperty('display', 'block', 'important');
+                mobileUserProfile.style.setProperty('visibility', 'visible', 'important');
+                mobileUserProfile.style.setProperty('opacity', '1', 'important');
               }
             }, 100);
             setTimeout(() => {
               if (userProfile) {
-                userProfile.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; position: relative !important;';
+                userProfile.style.setProperty('display', 'flex', 'important');
+                userProfile.style.setProperty('visibility', 'visible', 'important');
+                userProfile.style.setProperty('opacity', '1', 'important');
                 console.log('[RedsRacing Auth] Retry 2: Profile forced visible');
               }
               if (mobileUserProfile) {
-                mobileUserProfile.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important;';
+                mobileUserProfile.style.setProperty('display', 'block', 'important');
+                mobileUserProfile.style.setProperty('visibility', 'visible', 'important');
+                mobileUserProfile.style.setProperty('opacity', '1', 'important');
               }
             }, 500);
-            
-            hideLegacyLoginLinks(true);
             const name = user.displayName || user.email || 'Driver';
             if (userNameEl) userNameEl.textContent = name;
             if (mobileUserNameEl) mobileUserNameEl.textContent = name;
@@ -219,18 +280,30 @@ const core = await import('./assets/js/firebase-core.js');
                     applySignedOutState();
                   }
                   pendingSignOutTimer = null;
-                }, 1200);
+                }, 3000);
               }
               return;
             }
 
             applySignedOutState();
           }
-        } catch (_) {}
+        } catch (err) {
+          console.error('[RedsRacing Auth] handleAuth error:', err);
+        }
+      };
+        
+        // Run immediately if DOM is ready, otherwise wait
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', handleAuth);
+        } else {
+          handleAuth();
+        }
       });
-    } catch (_) {
-      // Non-fatal; pages without auth still work
+    } catch (err) {
+      console.error('[RedsRacing Auth] ===== INIT FAILED =====', err);
+      console.error('[RedsRacing Auth] Error stack:', err.stack);
     }
+    console.log('[RedsRacing Auth] ===== INIT COMPLETE =====');
   })();
 
   function hideAllDropdowns() {

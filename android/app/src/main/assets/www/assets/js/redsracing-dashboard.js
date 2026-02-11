@@ -258,6 +258,7 @@ import { LoadingService } from "./loading.js";
     }
 
     const raceName = nextRace.eventName || nextRace.name || 'Next Race';
+    console.log('[Dashboard Overview] Next race for countdown:', raceName, nextRace);
     if (nextRaceNameEl) safeSetHTML(nextRaceNameEl, html`${raceName}`);
     const nextRaceDate = new Date(nextRace.date + "T19:00:00").getTime();
 
@@ -384,16 +385,17 @@ import { LoadingService } from "./loading.js";
             const raceSnapshot = await getDocs(racesCol);
             let raceList = raceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
-            // Filter for 2026 only
+            // Filter for 2026 only (match homepage logic)
             raceList = raceList.filter(race => race.season === 2026);
             
-            // Sort by date ascending
+            // Sort by date ascending (match homepage logic)
             raceList.sort((a, b) => {
                 const dateA = new Date(a.date);
                 const dateB = new Date(b.date);
                 return dateA - dateB;
             });
             
+            console.log('[Dashboard Overview] Loaded races for countdown:', raceList.length, raceList[0]);
 
             if (raceManagementCard) raceManagementCard.style.display = 'block';
             renderRacesTable(raceList);
@@ -916,12 +918,23 @@ import { LoadingService } from "./loading.js";
 
     try {
       const racesCol = collection(db, "races");
-      const q = query(racesCol, orderBy("date", "asc"));
-      const raceSnapshot = await getDocs(q);
-      const raceList = raceSnapshot.docs.map((doc) => ({
+      const raceSnapshot = await getDocs(racesCol);
+      let raceList = raceSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
+      
+      // Filter for 2026 only (match homepage logic)
+      raceList = raceList.filter(race => race.season === 2026);
+      
+      // Sort by date ascending
+      raceList.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA - dateB;
+      });
+      
+      console.log('[Dashboard Overview - getRaceData] Loaded races for countdown:', raceList.length, raceList[0]);
 
       if (raceManagementCard) raceManagementCard.style.display = "block";
       renderRacesTable(raceList);

@@ -16,11 +16,17 @@
         messagingSenderId: '517034606151',
         appId: '1:517034606151:web:24cae262e1d98832757b62'
       };
+      // Use the DEFAULT app (name '[DEFAULT]') to share auth state with firebase-core.js
+      // Named apps like 'newsletter-app' have separate auth state and should be ignored
+      const existingApps = getApps();
+      const defaultApp = existingApps.find(a => a.name === '[DEFAULT]');
       let app;
-      if (getApps().length === 0) {
-        app = initializeApp(cfg);
+      if (defaultApp) {
+        app = defaultApp;
+        console.log('[RedsRacing Auth] Using existing DEFAULT app');
       } else {
-        app = getApps()[0];
+        app = initializeApp(cfg);
+        console.log('[RedsRacing Auth] Created new DEFAULT app');
       }
       const auth = getAuth(app);
       try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}

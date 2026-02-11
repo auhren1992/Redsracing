@@ -147,13 +147,94 @@ header {
   transition: all 0.3s ease;
 }
 
-/* Force-hide any legacy login entry points across the site */
-#login-btn,
-#mobile-login-btn,
-.mobile-login-btn,
-#account-toggle-loggedout,
-nav a[href="login.html"] {
+/* User profile dropdown should be visible when not hidden */
+#user-profile:not(.hidden),
+#mobile-user-profile:not(.hidden) {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure the profile dropdown is visible in auth section */
+#auth-section #user-profile,
+#mobile-auth-section #mobile-user-profile {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Force visibility when auth is confirmed */
+#user-profile[data-auth-visible="true"],
+#mobile-user-profile[data-auth-visible="true"] {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+#mobile-user-profile[data-auth-visible="true"] {
+  display: block !important;
+}
+
+/* Super aggressive profile visibility - override everything */
+body[data-auth="signed-in"] #user-profile {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 1000 !important;
+}
+
+body[data-auth="signed-in"] #mobile-user-profile {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+body[data-auth="signed-in"] #login-btn,
+body[data-auth="signed-in"] #mobile-login-btn,
+body[data-auth="signed-in"] #account-toggle-loggedout {
   display: none !important;
+}
+
+body[data-auth="signed-out"] #user-profile,
+body[data-auth="signed-out"] #mobile-user-profile {
+  display: none !important;
+}
+
+body[data-auth="signed-out"] #login-btn {
+  display: flex !important;
+}
+
+body[data-auth="signed-out"] #mobile-login-btn {
+  display: block !important;
+}
+
+/* Force override ANY hidden class on profile when signed in */
+body[data-auth="signed-in"] #user-profile.hidden,
+body[data-auth="signed-in"] #mobile-user-profile.hidden {
+  display: flex !important;
+}
+
+body[data-auth="signed-in"] #mobile-user-profile.hidden {
+  display: block !important;
+}
+
+/* Ensure auth section doesn't hide children */
+#auth-section {
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Ensure dropdown menus are clickable */
+.dropdown-menu {
+  pointer-events: auto;
+  z-index: 9999;
+}
+
+.dropdown-menu.hidden {
+  pointer-events: none;
 }
 
 header.scrolled {

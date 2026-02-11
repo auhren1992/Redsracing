@@ -18,13 +18,26 @@ export function getCurrentUser() {
 }
 
 /**
- * Safe sign out
+ * Safe sign out - clears all auth state including localStorage markers
  */
 export async function safeSignOut() {
   try {
+    // Clear all auth-related localStorage items first
+    try {
+      localStorage.removeItem('rr_auth_uid');
+      localStorage.removeItem('rr_user_name');
+      localStorage.removeItem('rr_guest_ok');
+    } catch (_) {}
+    
     await auth.signOut();
     return true;
   } catch (error) {
+    // Even if signOut fails, ensure localStorage is cleared
+    try {
+      localStorage.removeItem('rr_auth_uid');
+      localStorage.removeItem('rr_user_name');
+      localStorage.removeItem('rr_guest_ok');
+    } catch (_) {}
     return false;
   }
 }

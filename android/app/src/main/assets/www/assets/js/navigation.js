@@ -154,7 +154,7 @@ import "./app.js";
         let role = null;
         try {
           // Call backend to enforce role
-          const { getFunctions, httpsCallable } = await import("firebase/functions");
+          const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js");
           try { await httpsCallable(getFunctions(), "ensureDefaultRole")({}); } catch (_) {}
           // Force token refresh to pick up new claims
           try { await user.getIdToken(true); } catch (_) {}
@@ -174,7 +174,7 @@ import "./app.js";
           const normRole = normalized === 'follower' ? 'public-fan' : normalized;
           const [{ getFirebaseDb }, { doc, setDoc }] = await Promise.all([
             import("./firebase-core.js"),
-            import("firebase/firestore"),
+            import("https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"),
           ]);
           const db = getFirebaseDb();
           await setDoc(doc(db, 'users', user.uid), { role: normRole }, { merge: true });

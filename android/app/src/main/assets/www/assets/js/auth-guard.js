@@ -12,9 +12,12 @@ const followerPages = ["follower-dashboard.html"];
 
 const currentPage = window.location.pathname.split("/").pop();
 
+// Check for persistent session marker
+const hasAuthMarker = !!localStorage.getItem('rr_auth_uid');
 
-// Add a short grace period to allow Firebase Auth to hydrate before redirecting
-const REDIRECT_GRACE_MS = 1500;
+// Add a grace period to allow Firebase Auth to hydrate before redirecting
+// If we have an auth marker, wait longer to avoid premature redirect
+const REDIRECT_GRACE_MS = hasAuthMarker ? 4000 : 3000;
 
 if (protectedPages.includes(currentPage)) {
   let redirected = false;
@@ -46,7 +49,8 @@ if (protectedPages.includes(currentPage)) {
 
       try {
         const resolveRole = async (forceRefresh = false) => {
-          let claimsResult = await validateUserClaims();
+          // Pass user object to ensure we validate the correct user even if auth global isn't ready
+          let claimsResult = await validateUserClaims([], user);
           let nextRole = claimsResult.success ? (claimsResult.claims.role || null) : null;
 
           if (user && (!nextRole || forceRefresh)) {
@@ -72,7 +76,32 @@ if (protectedPages.includes(currentPage)) {
           return normalizeRole(nextRole);
         };
 
+        const ensureUserProfile = async (resolvedRole) => {
+          const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+          const db = getFirestore();
+          const profileRef = doc(db, 'users', user.uid);
+          const snap = await getDoc(profileRef);
+          if (snap.exists()) return;
+          const profile = {
+            username: user.email ? user.email.split('@')[0] : 'user',
+            displayName: user.displayName || (user.email ? user.email.split('@')[0] : 'New Member'),
+            bio: 'New member of the RedsRacing community!',
+            avatarUrl: user.photoURL || '',
+            favoriteCars: [],
+            joinDate: new Date().toISOString(),
+            totalPoints: 0,
+            achievementCount: 0,
+            role: resolvedRole || 'public-fan',
+          };
+          await setDoc(profileRef, profile, { merge: true });
+        };
+
         let normalizedRole = await resolveRole(false);
+        try {
+          await ensureUserProfile(normalizedRole);
+        } catch (error) {
+          console.warn('[AuthGuard] Failed to ensure user profile:', error);
+        }
         const isTeamMember = ['team-member', 'admin'].includes(normalizedRole);
         const isFollower = ['teamredfollower', 'public-fan', 'follower'].includes(normalizedRole);
 
@@ -83,22 +112,25 @@ if (protectedPages.includes(currentPage)) {
         const finalIsFollower = ['teamredfollower', 'public-fan', 'follower'].includes(normalizedRole);
 
         if (teamMemberPages.includes(currentPage) && !finalIsTeamMember) {
+          console.warn('[AuthGuard] User does not have team-member role, redirecting to follower dashboard. Role:', normalizedRole);
           navigateToInternal('/follower-dashboard.html');
         } else if (
           followerPages.includes(currentPage) &&
           !finalIsFollower
         ) {
+          console.warn('[AuthGuard] User does not have follower role, redirecting to main dashboard. Role:', normalizedRole);
           navigateToInternal('/redsracing-dashboard.html');
         }
       } catch (error) {
+        console.error('[AuthGuard] Error resolving role:', error);
         // On error, only redirect after grace period (which we've already cleared due to user)
-        safeRedirectToLogin();
+        // safeRedirectToLogin();
       }
     },
     (error) => {
       // On auth errors, only redirect after the grace period
-      clearTimeout(graceTimer);
-      safeRedirectToLogin();
+      // clearTimeout(graceTimer);
+      // safeRedirectToLogin();
     },
   );
 }

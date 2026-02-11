@@ -2,61 +2,93 @@
 <html>
 <head>
     <title>Auth Debug</title>
-    <link rel="stylesheet" href="styles/tailwind.css" />
 </head>
-<body class="p-6 bg-slate-900 text-white">
-    <h1 class="text-3xl mb-4">Authentication Debug</h1>
-    <div id="status" class="mb-4">Checking Firebase...</div>
-    <div id="user-info" class="mb-4"></div>
-    <div id="claims-info" class="mb-4"></div>
-    <div id="error-info" class="mb-4 text-red-400"></div>
+<body>
+    <h1>Firebase Auth Storage Debug</h1>
+    <pre id="output"></pre>
     
-    <script src="vendors.js"></script>
-    <script src="assets/js/auth-guard.js"></script>
-    <script>
-        // Simple debug without modules
-        const statusEl = document.getElementById('status');
-        const userInfoEl = document.getElementById('user-info');
-        const claimsInfoEl = document.getElementById('claims-info');
-        const errorInfoEl = document.getElementById('error-info');
+    <script type="module">
+        const output = document.getElementById('output');
         
-        // Check if Firebase is loaded
-        if (typeof firebase === 'undefined') {
-            statusEl.innerHTML = '<span class="text-red-400">❌ Firebase not loaded</span>';
-            errorInfoEl.innerHTML = 'Firebase SDK not found. Check vendors.js loading.';
-        } else {
-            statusEl.innerHTML = '<span class="text-green-400">✅ Firebase loaded</span>';
-            
-            // Check auth
-            if (firebase.auth) {
-                firebase.auth().onAuthStateChanged(async (user) => {
-                    if (user) {
-                        userInfoEl.innerHTML = `
-                            <h2 class="text-xl text-green-400">✅ User Signed In:</h2>
-                            <p><strong>Email:</strong> ${user.email}</p>
-                            <p><strong>UID:</strong> ${user.uid}</p>
-                            <p><strong>Email Verified:</strong> ${user.emailVerified}</p>
-                        `;
-                        
-                        // Get user claims
-                        try {
-                            const idTokenResult = await user.getIdTokenResult();
-                            claimsInfoEl.innerHTML = `
-                                <h2 class="text-xl text-blue-400">User Claims:</h2>
-                                <pre class="bg-slate-800 p-4 rounded text-sm overflow-auto">${JSON.stringify(idTokenResult.claims, null, 2)}</pre>
-                            `;
-                        } catch (error) {
-                            claimsInfoEl.innerHTML = `<p class="text-red-400">Error getting claims: ${error.message}</p>`;
-                        }
-                        
-                    } else {
-                        userInfoEl.innerHTML = '<p class="text-yellow-400">⚠️ No user signed in - <a href="login.html" class="underline">Go to Login</a></p>';
-                    }
-                });
-            } else {
-                errorInfoEl.innerHTML = 'Firebase Auth not initialized.';
+        // Check localStorage for Firebase auth data
+        let log = 'localStorage Firebase Keys:\n';
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.includes('firebase') || key.includes('rr_auth')) {
+                const value = localStorage.getItem(key);
+                log += `\n${key}: ${value.substring(0, 100)}...\n`;
             }
         }
+        
+        // Check sessionStorage
+        log += '\n\nsessionStorage Firebase Keys:\n';
+        for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (key.includes('firebase')) {
+                const value = sessionStorage.getItem(key);
+                log += `\n${key}: ${value.substring(0, 100)}...\n`;
+            }
+        }
+        
+        // Initialize Firebase and check auth
+        log += '\n\nInitializing Firebase Auth...\n';
+        
+        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+        const { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+        
+        const cfg = {
+            apiKey: 'AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg',
+            authDomain: 'redsracing-a7f8b.firebaseapp.com',
+            projectId: 'redsracing-a7f8b',
+            storageBucket: 'redsracing-a7f8b.firebasestorage.app',
+            messagingSenderId: '517034606151',
+            appId: '1:517034606151:web:24cae262e1d98832757b62'
+        };
+        
+        const app = initializeApp(cfg);
+        const auth = getAuth(app);
+        
+        log += `currentUser immediately after getAuth: ${auth.currentUser ? auth.currentUser.email : 'null'}\n`;
+        
+        try {
+            await setPersistence(auth, browserLocalPersistence);
+            log += 'Persistence set successfully\n';
+        } catch (err) {
+            log += `Persistence error: ${err.message}\n`;
+        }
+        
+        log += '\nWaiting for onAuthStateChanged...\n';
+        output.textContent = log;
+        
+        onAuthStateChanged(auth, (user) => {
+            log += `\nonAuthStateChanged fired: ${user ? user.email : 'null'}\n`;
+            if (user) {
+                log += `  UID: ${user.uid}\n`;
+                log += `  Email verified: ${user.emailVerified}\n`;
+                user.getIdToken().then(token => {
+                    log += `  Token (first 50 chars): ${token.substring(0, 50)}...\n`;
+                    output.textContent = log;
+                }).catch(err => {
+                    log += `  Token error: ${err.message}\n`;
+                    output.textContent = log;
+                });
+            }
+            output.textContent = log;
+        }, (error) => {
+            log += `\nAuth error: ${error.code} - ${error.message}\n`;
+            output.textContent = log;
+        });
+        
+        // Wait and check again
+        setTimeout(() => {
+            log += `\ncurrentUser after 2 seconds: ${auth.currentUser ? auth.currentUser.email : 'null'}\n`;
+            output.textContent = log;
+        }, 2000);
+        
+        setTimeout(() => {
+            log += `\ncurrentUser after 5 seconds: ${auth.currentUser ? auth.currentUser.email : 'null'}\n`;
+            output.textContent = log;
+        }, 5000);
     </script>
 </body>
 </html>

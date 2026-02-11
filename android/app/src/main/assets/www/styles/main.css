@@ -824,3 +824,23 @@ nav a[href="login.html"] {
 .hover\\:text-neon-yellow:hover {
   color: #f7ff00;
 }
+
+/* Force file inputs to be clickable */
+input[type="file"] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+}
+
+input[type="file"]:disabled {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Ensure file input button is always clickable when not disabled */
+input[type="file"]:not(:disabled)::file-selector-button,
+input[type="file"]:not(:disabled)::-webkit-file-upload-button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}

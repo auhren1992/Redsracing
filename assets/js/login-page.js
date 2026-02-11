@@ -6,7 +6,6 @@ import "./app.js";
  */
 
 import { getFriendlyAuthError } from "./auth-errors.js";
-import { setPendingInvitationCode } from "./invitation-codes.js";
 import { navigateToInternal, validateRedirectUrl } from "./navigation-helpers.js";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
@@ -92,11 +91,9 @@ class LoginPageController {
       // Form inputs
       emailInput: document.getElementById("email"),
       passwordInput: document.getElementById("password"),
-      invitationCodeInput: document.getElementById("invitation-code"),
 
       // Buttons
       signinButton: document.getElementById("signin-button"),
-      signupButton: document.getElementById("signup-button"),
       googleSigninButton: document.getElementById("google-signin-button"),
       forgotPasswordLink: document.getElementById("forgot-password-link"),
       continueGuestButton: document.getElementById("continue-guest-button"),
@@ -107,9 +104,10 @@ class LoginPageController {
       loginForm: document.getElementById("login-form"),
     };
 
-    // Validate all elements exist
+    // Validate required elements exist
     for (const [name, element] of Object.entries(this.elements)) {
       if (!element) {
+        console.debug(`[Login] Element not found: ${name}`);
       }
     }
   }
@@ -128,12 +126,6 @@ class LoginPageController {
     this.elements.signinButton?.addEventListener("click", () => {
       console.info("[Login] Sign-in button clicked");
       this.handleEmailSignIn();
-    });
-
-    // Sign up redirect
-    this.elements.signupButton?.addEventListener("click", () => {
-      console.info("[Login] Sign-up button clicked");
-      this.handleSignUp();
     });
 
     // Google sign in
@@ -172,7 +164,6 @@ class LoginPageController {
   enableUI() {
     const buttons = [
       this.elements.signinButton,
-      this.elements.signupButton,
       this.elements.googleSigninButton,
     ];
 
@@ -192,7 +183,6 @@ class LoginPageController {
   disableUI() {
     const buttons = [
       this.elements.signinButton,
-      this.elements.signupButton,
       this.elements.googleSigninButton,
     ];
 
@@ -449,78 +439,6 @@ class LoginPageController {
   }
 
   /**
-   * Handle sign up (create new account)
-   */
-  async handleSignUp() {
-    if (!this.isInitialized) {
-      this.showMessage("Please wait for the page to load completely.");
-      return;
-    }
-
-    const email = this.elements.emailInput?.value.trim();
-    const password = this.elements.passwordInput?.value;
-
-    this.hideMessage();
-
-    if (!this.validateLoginForm(email, password)) {
-      return;
-    }
-
-    this.setLoadingState(this.elements.signupButton, true, "Sign Up");
-
-    try {
-      const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
-      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
-      const user = userCredential.user;
-      console.info("[Login] Sign-up success:", user.uid);
-      this.setAuthMarker(user);
-
-      // Set follower role by default (fans)
-      try {
-        const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
-        const functions = getFunctions();
-        const setFollowerRole = httpsCallable(functions, 'setFollowerRole');
-        await setFollowerRole();
-        await user.getIdToken(true); // Refresh token
-      } catch (e) {
-        console.warn('[Login] Failed to set follower role:', e);
-      }
-
-      // Create default profile
-      try {
-        const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-        const db = getFirestore();
-        const profileRef = doc(db, "users", user.uid);
-        await setDoc(profileRef, {
-          username: email.split("@")[0],
-          displayName: email.split("@")[0],
-          bio: "New member of the RedsRacing community!",
-          avatarUrl: "",
-          favoriteCars: [],
-          joinDate: new Date().toISOString(),
-          totalPoints: 0,
-          achievementCount: 0,
-          role: "public-fan",
-        }, { merge: true });
-      } catch (e) {
-        console.warn('[Login] Failed to create profile:', e);
-      }
-
-      this.showMessage("Account created! Redirecting to fan dashboard...", false);
-      
-      // Redirect to follower dashboard for new accounts
-      setTimeout(() => {
-        navigateToInternal("/follower-dashboard.html");
-      }, 1000);
-    } catch (error) {
-      console.error("[Login] Sign-up failed:", error);
-      this.showMessage(getFriendlyAuthError(error));
-    } finally {
-      this.setLoadingState(this.elements.signupButton, false, "Sign Up");
-    }
-  }
-
-  /**
    * Get a safe returnTo target from query params (same-origin only)
    */
   getReturnTo() {
@@ -540,15 +458,9 @@ class LoginPageController {
    * Handle successful authentication
    */
   handleSuccess() {
-    // Capture invitation code from form if entered
-    const invitationCode = this.elements.invitationCodeInput?.value?.trim();
-    if (invitationCode) {
-      setPendingInvitationCode(invitationCode);
-    }
-
     const returnTo = this.getReturnTo();
     setTimeout(() => {
-      navigateToInternal(returnTo || "/dashboard.html");
+      navigateToInternal(returnTo || "/follower-dashboard.html");
     }, 800);
   }
 
