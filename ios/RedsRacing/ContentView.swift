@@ -1,5 +1,8 @@
 import SwiftUI
 import WebKit
+import UIKit
+import UniformTypeIdentifiers
+import ObjectiveC
 
 struct ContentView: View {
     @State private var isLoading = true
