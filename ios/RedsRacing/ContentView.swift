@@ -1,6 +1,8 @@
 import SwiftUI
 import WebKit
 import UIKit
+import UniformTypeIdentifiers
+import ObjectiveC
 
 struct ContentView: View {
     @State private var isLoading = true
@@ -403,6 +405,38 @@ struct WebView: UIViewRepresentable {
             }
             decisionHandler(.allow)
         }
+        
+        // Support file inputs (camera/photos) - iOS 18.4+
+        func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
+            let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.image, .movie, .pdf, .data], asCopy: true)
+            picker.allowsMultipleSelection = parameters.allowsMultipleSelection
+            picker.modalPresentationStyle = .formSheet
+            picker.delegate = self
+            objc_setAssociatedObject(picker, &AssociatedKeys.completion, completionHandler, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            if let scene = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first(where: { $0.activationState == .foregroundActive }),
+               let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController {
+                root.present(picker, animated: true, completion: nil)
+            }
+        }
+    }
+}
+
+private enum AssociatedKeys { static var completion: UInt8 = 0 }
+
+extension WebView.Coordinator: UIDocumentPickerDelegate {
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        if let completion = objc_getAssociatedObject(controller, &AssociatedKeys.completion) as? ([URL]?) -> Void {
+            completion(nil)
+        }
+        objc_setAssociatedObject(controller, &AssociatedKeys.completion, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        if let completion = objc_getAssociatedObject(controller, &AssociatedKeys.completion) as? ([URL]?) -> Void {
+            completion(urls)
+        }
+        objc_setAssociatedObject(controller, &AssociatedKeys.completion, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
 }
 
