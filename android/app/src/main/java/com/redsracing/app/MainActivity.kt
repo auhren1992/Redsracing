@@ -7,10 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.LinearGradient
-import android.graphics.Shader
-import android.text.SpannableString
-import android.text.style.ForegroundColorSpan
 import android.widget.TextView
 import android.net.Uri
 import android.os.Build
@@ -56,11 +52,7 @@ class MainActivity : AppCompatActivity() {
 
         WebView.setWebContentsDebuggingEnabled(true)
         
-        // Remove navigation icon from toolbar
-        binding.toolbar.navigationIcon = null
-        
-        // Set gradient text for toolbar title
-        setupToolbarGradient()
+        // Toolbar branding is now handled directly in layout XML
 
         createNotificationChannel()
 
@@ -115,30 +107,6 @@ class MainActivity : AppCompatActivity() {
 
         // Load home page
         binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
-    }
-
-    private fun setupToolbarGradient() {
-        // Find the TextView inside the toolbar
-        for (i in 0 until binding.toolbar.childCount) {
-            val child = binding.toolbar.getChildAt(i)
-            if (child is TextView) {
-                child.post {
-                    val paint = child.paint
-                    val width = paint.measureText(child.text.toString())
-                    val shader = LinearGradient(
-                        0f, 0f, width, 0f,
-                        intArrayOf(
-                            0xFF3b82f6.toInt(),  // Blue
-                            0xFFfbbf24.toInt()   // Yellow
-                        ),
-                        null,
-                        Shader.TileMode.CLAMP
-                    )
-                    child.paint.shader = shader
-                }
-                break
-            }
-        }
     }
 
     private fun setupBottomNavigation() {
