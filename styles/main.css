@@ -220,7 +220,7 @@ body {
   box-shadow: 0 8px 24px rgba(0, 198, 255, 0.4);
   color: white;
 }
-}
+
 .sponsor-logo:hover img {
   filter: grayscale(0%) brightness(1);
 }
