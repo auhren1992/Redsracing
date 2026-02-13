@@ -70,5 +70,9 @@
             </dict>
         </dict>
     </dict>
+    <key>NSCameraUsageDescription</key>
+    <string>Allow RedsRacing to use the camera to capture photos and videos for upload.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Allow RedsRacing to access your photo library to select images for upload.</string>
 </dict>
 </plist>
