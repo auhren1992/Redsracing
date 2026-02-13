@@ -412,12 +412,18 @@ struct WebView: UIViewRepresentable {
             picker.modalPresentationStyle = .formSheet
             picker.delegate = self
             objc_setAssociatedObject(picker, &AssociatedKeys.completion, completionHandler, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-            UIApplication.shared.windows.first?.rootViewController?.present(picker, animated: true, completion: nil)
+            // Present using the key window of the active scene (iOS 15+ safe)
+            if let scene = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first(where: { $0.activationState == .foregroundActive }),
+               let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController {
+                root.present(picker, animated: true, completion: nil)
+            }
         }
     }
 }
 
-private enum AssociatedKeys { static var completion = 0 }
+private enum AssociatedKeys { static var completion: UInt8 = 0 }
 
 extension WebView.Coordinator: UIDocumentPickerDelegate {
     func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
