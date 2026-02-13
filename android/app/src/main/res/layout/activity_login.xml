@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data />
     <LinearLayout
         android:layout_width="match_parent"
@@ -8,108 +7,59 @@
         android:gravity="center"
         android:orientation="vertical"
         android:padding="24dp"
-        android:background="@drawable/splash_gradient">
+        android:background="@color/website_background">
 
-        <!-- Logo matching iOS style -->
-        <LinearLayout
-            android:id="@+id/logoContainer"
-            android:layout_width="wrap_content"
+        <ImageView
+            android:layout_width="220dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
+            android:src="@drawable/redsracing_logo"
+            android:contentDescription="Redsracing logo"
+            android:adjustViewBounds="true" />
 
-            <TextView
-                android:id="@+id/logoReds"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="REDS"
-                android:textColor="@color/accent_blue"
-                android:textSize="42sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-black" />
-
-            <TextView
-                android:id="@+id/logoRacing"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="RACING"
-                android:textColor="@color/accent_yellow"
-                android:textSize="42sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-black" />
-        </LinearLayout>
-
-        <!-- Subtitle matching iOS -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="#8"
-            android:textColor="#B3FFFFFF"
-            android:textSize="22sp"
-            android:textStyle="bold"
+            android:text="Welcome to Redsracing"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:layout_marginTop="24dp" />
+
+        <Button
+            android:id="@+id/signInButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Sign in"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/accent_blue"
+            android:layout_marginTop="32dp" />
+
+        <Button
+            android:id="@+id/guestButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Continue as Guest"
+            android:textAllCaps="false"
+            android:textColor="@color/black"
+            android:backgroundTint="@color/accent_yellow"
             android:layout_marginTop="12dp" />
 
-        <!-- Loading indicator matching iOS style -->
-        <ProgressBar
-            android:id="@+id/loadingIndicator"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginTop="40dp"
-            android:indeterminateTint="@color/accent_yellow"
-            android:visibility="gone" />
-
-        <!-- Action buttons -->
-        <LinearLayout
-            android:id="@+id/buttonsContainer"
-            android:layout_width="match_parent"
+        <CheckBox
+            android:id="@+id/rememberCheck"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="48dp"
-            android:gravity="center">
+            android:text="Remember my choice"
+            android:textColor="@color/white"
+            android:layout_marginTop="16dp" />
 
-            <Button
-                android:id="@+id/signInButton"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="Sign In"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:backgroundTint="@color/accent_blue"
-                app:cornerRadius="8dp" />
-
-            <Button
-                android:id="@+id/guestButton"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="Continue as Guest"
-                android:textAllCaps="false"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:backgroundTint="@color/accent_yellow"
-                android:layout_marginTop="12dp"
-                app:cornerRadius="8dp" />
-
-            <CheckBox
-                android:id="@+id/rememberCheck"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Remember my choice"
-                android:textColor="#B3FFFFFF"
-                android:buttonTint="@color/accent_yellow"
-                android:layout_marginTop="20dp" />
-
-            <TextView
-                android:id="@+id/createAccountLink"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Create Account"
-                android:textColor="@color/accent_yellow"
-                android:textStyle="bold"
-                android:textSize="15sp"
-                android:layout_marginTop="24dp"
-                android:padding="8dp" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/createAccountLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create account"
+            android:textColor="@color/accent_yellow"
+            android:textStyle="bold"
+            android:layout_marginTop="20dp" />
 
     </LinearLayout>
 </layout>
