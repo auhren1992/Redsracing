@@ -375,6 +375,28 @@ struct WebView: UIViewRepresentable {
                     document.body.style.paddingBottom = '120px';
                     var mains = document.querySelectorAll('main');
                     mains.forEach(function(m){ m.style.marginTop='0'; m.style.paddingTop='0'; m.style.paddingBottom='120px'; });
+                    // Ensure countdown labels are visible
+                    var countdownLabels = document.querySelectorAll('.countdown-label');
+                    countdownLabels.forEach(function(label) {
+                        label.style.display = 'block';
+                        label.style.visibility = 'visible';
+                        label.style.opacity = '1';
+                        label.style.color = '#ffffff';
+                    });
+                    // Show admin sidebar on mobile for admin-console page
+                    if (window.location.href.indexOf('admin-console') !== -1) {
+                        var sidebar = document.querySelector('.sidebar-nav');
+                        if (sidebar) {
+                            sidebar.classList.remove('hidden', 'lg:block');
+                            sidebar.style.display = 'block';
+                            sidebar.style.position = 'relative';
+                            sidebar.style.width = '100%';
+                        }
+                        var flexContainer = document.querySelector('.flex.min-h-screen');
+                        if (flexContainer) {
+                            flexContainer.style.flexDirection = 'column';
+                        }
+                    }
                   }, 100);
                 })();
             """
