@@ -430,27 +430,6 @@ class MainActivity : AppCompatActivity() {
                                 header.style.height = '0';
                                 header.style.overflow = 'hidden';
                             }
-                            // Remove any stray text nodes at the top of body
-                            var walker = document.createTreeWalker(
-                                document.body,
-                                NodeFilter.SHOW_TEXT,
-                                null,
-                                false
-                            );
-                            var textNodesToRemove = [];
-                            var node;
-                            while (node = walker.nextNode()) {
-                                var parent = node.parentNode;
-                                if (parent && parent.tagName !== 'SCRIPT' && parent.tagName !== 'STYLE') {
-                                    var text = node.textContent.trim();
-                                    if (text && text.length < 5 && !parent.closest('main')) {
-                                        textNodesToRemove.push(node);
-                                    }
-                                }
-                            }
-                            textNodesToRemove.forEach(function(n) {
-                                n.textContent = '';
-                            });
                             document.body.style.paddingTop = '0';
                             document.body.style.marginTop = '0';
                             document.body.style.paddingBottom = '120px';
@@ -461,27 +440,28 @@ class MainActivity : AppCompatActivity() {
                                 main.style.paddingTop = '0';
                                 main.style.paddingBottom = '120px';
                             });
-                            var heroSection = document.querySelector('.modern-hero, section');
-                            if (heroSection) {
-                                heroSection.style.minHeight = 'auto';
-                                heroSection.style.paddingTop = '100px';
-                                heroSection.style.paddingBottom = '200px';
-                            }
-                            var ctaButtons = document.querySelector('.flex.flex-col.sm\\:flex-row');
-                            if (ctaButtons) {
-                                ctaButtons.style.flexDirection = 'column';
-                                ctaButtons.style.width = '100%';
-                                ctaButtons.style.marginBottom = '150px';
-                                ctaButtons.style.gap = '16px';
-                                var buttons = ctaButtons.querySelectorAll('a');
-                                buttons.forEach(function(btn) {
-                                    btn.style.width = '100%';
-                                    btn.style.maxWidth = '400px';
-                                    btn.style.display = 'block';
-                                    btn.style.textAlign = 'center';
-                                    btn.style.visibility = 'visible';
-                                    btn.style.opacity = '1';
-                                });
+                            // Ensure countdown labels are visible
+                            var countdownLabels = document.querySelectorAll('.countdown-label');
+                            countdownLabels.forEach(function(label) {
+                                label.style.display = 'block';
+                                label.style.visibility = 'visible';
+                                label.style.opacity = '1';
+                                label.style.color = '#ffffff';
+                            });
+                            // Show admin sidebar on mobile for admin-console page
+                            if (window.location.href.indexOf('admin-console') !== -1) {
+                                var sidebar = document.querySelector('.sidebar-nav');
+                                if (sidebar) {
+                                    sidebar.classList.remove('hidden', 'lg:block');
+                                    sidebar.style.display = 'block';
+                                    sidebar.style.position = 'relative';
+                                    sidebar.style.width = '100%';
+                                }
+                                // Make the layout stack vertically on mobile
+                                var flexContainer = document.querySelector('.flex.min-h-screen');
+                                if (flexContainer) {
+                                    flexContainer.style.flexDirection = 'column';
+                                }
                             }
                         }, 100);
                     })();
