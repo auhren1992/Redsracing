@@ -34,6 +34,8 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.webkit.WebViewAssetLoader
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.MobileAds
 import com.redsracing.app.databinding.ActivityMainBottomNavBinding
 import java.io.File
 import java.io.IOException
@@ -102,6 +104,11 @@ class MainActivity : AppCompatActivity() {
         setupWebView(binding.webview)
         setupBottomNavigation()
         setupMenuOverlay()
+        
+        // Initialize Mobile Ads SDK and load banner ad
+        MobileAds.initialize(this) {}
+        val adRequest = AdRequest.Builder().build()
+        binding.adView.loadAd(adRequest)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {

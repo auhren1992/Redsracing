@@ -85,4 +85,6 @@ dependencies {
     implementation("androidx.webkit:webkit:1.11.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("com.google.android.play:integrity:1.5.0")
+    // Google Mobile Ads SDK
+    implementation("com.google.android.gms:play-services-ads:23.6.0")
 }

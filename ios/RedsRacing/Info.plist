@@ -74,5 +74,14 @@
     <string>Allow RedsRacing to use the camera to capture photos and videos for upload.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Allow RedsRacing to access your photo library to select images for upload.</string>
+    <key>GADApplicationIdentifier</key>
+    <string>ca-app-pub-8879853783053353~9034687499</string>
+    <key>SKAdNetworkItems</key>
+    <array>
+        <dict>
+            <key>SKAdNetworkIdentifier</key>
+            <string>cstr6suwn9.skadnetwork</string>
+        </dict>
+    </array>
 </dict>
 </plist>
