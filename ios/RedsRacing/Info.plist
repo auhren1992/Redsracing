@@ -75,7 +75,7 @@
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Allow RedsRacing to access your photo library to select images for upload.</string>
     <key>GADApplicationIdentifier</key>
-    <string>ca-app-pub-8879853783053353~9034687499</string>
+    <string>ca-app-pub-8879853783053353/6408524158</string>
     <key>SKAdNetworkItems</key>
     <array>
         <dict>
