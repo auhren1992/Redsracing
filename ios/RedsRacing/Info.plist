@@ -17,9 +17,9 @@
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>8.4</string>
+    <string>8.5</string>
     <key>CFBundleVersion</key>
-    <string>85</string>
+    <string>86</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>UIApplicationSceneManifest</key>
@@ -74,6 +74,8 @@
     <string>Allow RedsRacing to use the camera to capture photos and videos for upload.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Allow RedsRacing to access your photo library to select images for upload.</string>
+    <key>NSUserTrackingUsageDescription</key>
+    <string>This identifier will be used to deliver personalized ads to you.</string>
     <key>GADApplicationIdentifier</key>
     <string>ca-app-pub-8879853783053353/6408524158</string>
     <key>SKAdNetworkItems</key>
