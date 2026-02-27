@@ -106,9 +106,13 @@ class MainActivity : AppCompatActivity() {
         setupMenuOverlay()
         
         // Initialize Mobile Ads SDK and load banner ad
-        MobileAds.initialize(this) {}
-        val adRequest = AdRequest.Builder().build()
-        binding.adView.loadAd(adRequest)
+        try {
+            MobileAds.initialize(this) {}
+            val adRequest = AdRequest.Builder().build()
+            binding.adView.loadAd(adRequest)
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Failed to initialize ads", e)
+        }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {

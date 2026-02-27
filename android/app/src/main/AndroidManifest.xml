@@ -25,7 +25,7 @@
         <!-- Google AdMob App ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-8879853783053353/6408524158" />
+            android:value="ca-app-pub-8879853783053353~9034687499" />
 
         <!-- FileProvider for camera capture -->
         <provider
