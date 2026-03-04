@@ -23,66 +23,91 @@
     <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
     <style>
       /* Profile Page Styles */
+      :root {
+        --panel-bg: linear-gradient(150deg, rgba(15, 23, 42, 0.92) 0%, rgba(2, 6, 23, 0.92) 100%);
+        --panel-border: rgba(148, 163, 184, 0.2);
+        --text-soft: #94a3b8;
+        --text-bright: #f8fafc;
+        --accent: #f7ff00;
+      }
+      body {
+        background:
+          radial-gradient(circle at 20% -20%, rgba(56, 189, 248, 0.12), transparent 35%),
+          radial-gradient(circle at 90% 0%, rgba(168, 85, 247, 0.12), transparent 30%),
+          radial-gradient(circle at 80% 80%, rgba(251, 191, 36, 0.08), transparent 35%),
+          #020617;
+      }
       .profile-hero {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.2) 50%, rgba(251, 191, 36, 0.15) 100%);
         position: relative;
         overflow: hidden;
+        padding: 2.5rem 0 0.75rem;
       }
       .profile-hero::before {
         content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='m36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30v4h-2v-4h-4v-2h4v-4h2v4h4v2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        opacity: 0.5;
+        inset: 0;
+        background:
+          linear-gradient(120deg, rgba(56, 189, 248, 0.14), transparent 45%),
+          linear-gradient(300deg, rgba(168, 85, 247, 0.14), transparent 50%);
+        pointer-events: none;
+      }
+      .profile-main-card,
+      .profile-panel,
+      .persona-card,
+      #profile-edit-form .bg-slate-900,
+      #error-state .max-w-md {
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        box-shadow: 0 20px 50px rgba(2, 6, 23, 0.45);
+      }
+      .profile-main-card {
+        position: relative;
+        overflow: hidden;
+      }
+      .profile-main-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, rgba(247, 255, 0, 0.05), transparent 40%);
+        pointer-events: none;
       }
       .profile-avatar-ring {
-        background: conic-gradient(from 0deg, #f7ff00, #00c6ff, #a855f7, #f7ff00);
-        padding: 4px;
-        border-radius: 50%;
-        animation: avatarRingSpin 8s linear infinite;
-      }
-      @keyframes avatarRingSpin {
-        from { filter: hue-rotate(0deg); }
-        to { filter: hue-rotate(360deg); }
+        background: linear-gradient(135deg, #0ea5e9 0%, #7c3aed 50%, #facc15 100%);
+        padding: 3px;
+        border-radius: 9999px;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 35px rgba(14, 165, 233, 0.25);
       }
       .profile-stat-card {
-        background: rgba(30, 41, 59, 0.7);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(148, 163, 184, 0.15);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
       }
       .profile-stat-card:hover {
         transform: translateY(-4px);
-        border-color: rgba(251, 191, 36, 0.4);
-        box-shadow: 0 12px 40px rgba(251, 191, 36, 0.15);
+        border-color: rgba(56, 189, 248, 0.5);
+        box-shadow: 0 14px 35px rgba(15, 23, 42, 0.55);
       }
       .stat-icon {
-        width: 48px;
-        height: 48px;
-        display: flex;
+        width: 3rem;
+        height: 3rem;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 12px;
-        font-size: 1.5rem;
+        border-radius: 0.8rem;
+        font-size: 1.2rem;
+        border: 1px solid rgba(148, 163, 184, 0.2);
       }
       .persona-card {
-        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
-        border: 1px solid rgba(148, 163, 184, 0.1);
         position: relative;
         overflow: hidden;
       }
       .persona-card::before {
         content: '';
         position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: conic-gradient(from 0deg, transparent, rgba(251, 191, 36, 0.1), transparent 30%);
-        animation: personaGlow 6s linear infinite;
+        inset: -40% -40%;
+        background: conic-gradient(from 180deg, transparent, rgba(56, 189, 248, 0.15), transparent, rgba(250, 204, 21, 0.15), transparent);
+        animation: personaGlow 9s linear infinite;
+        opacity: 0.8;
       }
       @keyframes personaGlow {
         from { transform: rotate(0deg); }
@@ -91,100 +116,117 @@
       .persona-card-inner {
         position: relative;
         z-index: 1;
-        background: inherit;
-        border-radius: inherit;
-      }
-      .badge-card {
-        background: rgba(30, 41, 59, 0.6);
-        border: 1px solid rgba(148, 163, 184, 0.1);
-        transition: all 0.3s ease;
-      }
-      .badge-card:hover {
-        transform: scale(1.05);
-        border-color: rgba(251, 191, 36, 0.3);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-      }
-      .badge-card.unlocked {
-        background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(30, 41, 59, 0.6) 100%);
-        border-color: rgba(251, 191, 36, 0.3);
-      }
-      .badge-card.locked {
-        opacity: 0.5;
-        filter: grayscale(0.5);
+        background: rgba(2, 6, 23, 0.78);
       }
       .persona-option {
-        background: rgba(30, 41, 59, 0.5);
-        border: 2px solid rgba(148, 163, 184, 0.15);
-        transition: all 0.3s ease;
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 0.9rem;
+        transition: all 0.2s ease;
         cursor: pointer;
       }
       .persona-option:hover {
-        border-color: rgba(251, 191, 36, 0.4);
-        background: rgba(30, 41, 59, 0.7);
+        border-color: rgba(56, 189, 248, 0.45);
+        transform: translateY(-2px);
       }
       .persona-option.selected {
-        border-color: #f7ff00;
-        background: rgba(247, 255, 0, 0.1);
-        box-shadow: 0 0 20px rgba(247, 255, 0, 0.2);
+        border-color: rgba(247, 255, 0, 0.8);
+        box-shadow: 0 0 0 1px rgba(247, 255, 0, 0.35), 0 10px 30px rgba(247, 255, 0, 0.1);
       }
-      .status-emoji { font-size: 1.5rem; }
-      .color-dot { 
-        width: 14px; 
-        height: 14px; 
-        border-radius: 50%; 
-        display: inline-block; 
-        border: 2px solid rgba(255,255,255,0.3);
-        box-shadow: 0 0 8px currentColor;
+      .badge-card {
+        background: rgba(15, 23, 42, 0.75);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        transition: all 0.2s ease;
       }
-      .toast { 
-        position: fixed; 
-        top: 20px; 
-        right: 20px; 
-        background: rgba(30, 41, 59, 0.95); 
-        border: 1px solid rgba(251, 191, 36, 0.3); 
-        color: #fff; 
-        padding: 16px 24px; 
-        border-radius: 12px; 
-        z-index: 9999; 
-        box-shadow: 0 20px 40px rgba(0,0,0,0.4); 
+      .badge-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(250, 204, 21, 0.35);
+      }
+      .badge-card.unlocked {
+        background: linear-gradient(145deg, rgba(234, 179, 8, 0.15), rgba(15, 23, 42, 0.8));
+      }
+      .status-emoji { font-size: 1.4rem; }
+      .color-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 9999px;
+        display: inline-block;
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
+      }
+      .profile-meta-pill {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 9999px;
+        padding: 0.6rem 1rem;
+      }
+      .quick-action-btn {
+        background: rgba(15, 23, 42, 0.75);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 0.75rem;
+        color: var(--text-bright);
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.6rem 0.9rem;
+        transition: all 0.2s ease;
+      }
+      .quick-action-btn:hover {
+        border-color: rgba(56, 189, 248, 0.55);
+        background: rgba(30, 41, 59, 0.75);
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(2, 6, 23, 0.95);
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        color: #fff;
+        padding: 0.9rem 1.2rem;
+        border-radius: 0.75rem;
+        z-index: 9999;
+        box-shadow: 0 18px 45px rgba(2, 6, 23, 0.55);
         display: none;
-        backdrop-filter: blur(12px);
+        backdrop-filter: blur(10px);
       }
       .edit-input {
-        background: rgba(15, 23, 42, 0.8);
-        border: 2px solid rgba(148, 163, 184, 0.2);
+        background: rgba(2, 6, 23, 0.65);
+        border: 1px solid rgba(148, 163, 184, 0.25);
         color: #fff;
-        padding: 12px 16px;
-        border-radius: 10px;
-        transition: all 0.3s ease;
+        padding: 0.7rem 0.95rem;
+        border-radius: 0.7rem;
+        transition: all 0.2s ease;
       }
       .edit-input:focus {
         outline: none;
-        border-color: #f7ff00;
-        box-shadow: 0 0 0 3px rgba(247, 255, 0, 0.15);
+        border-color: rgba(56, 189, 248, 0.8);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
       }
       .action-btn {
-        padding: 12px 24px;
-        border-radius: 10px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        border-radius: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        padding: 0.7rem 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
       }
       .action-btn:hover {
         transform: translateY(-2px);
       }
       .level-bar {
         height: 8px;
-        background: rgba(148, 163, 184, 0.2);
-        border-radius: 4px;
+        background: rgba(51, 65, 85, 0.75);
+        border-radius: 9999px;
         overflow: hidden;
       }
       .level-bar-fill {
         height: 100%;
-        background: linear-gradient(90deg, #00c6ff, #f7ff00);
-        border-radius: 4px;
-        transition: width 1s ease-out;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #0ea5e9 0%, #a3e635 100%);
+        transition: width 0.7s ease;
+      }
+      @media (max-width: 768px) {
+        .profile-hero {
+          padding-top: 1.4rem;
+        }
       }
     </style>
     <script src="assets/js/guest-gate.js"></script>
@@ -422,293 +464,257 @@
 
       <!-- Profile Content -->
       <div id="profile-content" class="hidden">
-        
-        <!-- Hero Section with Profile Header -->
-        <div class="profile-hero py-12 md:py-16">
+        <div class="profile-hero">
           <div class="container mx-auto px-6">
-            <div class="max-w-5xl mx-auto">
-              
-              <!-- Profile Header Card -->
-              <div class="relative bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-700/50 overflow-hidden">
-                <!-- Decorative top gradient bar -->
-                <div class="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-yellow-400"></div>
-                
+            <div class="max-w-6xl mx-auto">
+              <div class="profile-main-card rounded-2xl">
+                <div class="h-1.5 bg-gradient-to-r from-cyan-400 via-purple-500 to-yellow-400"></div>
                 <div class="p-6 md:p-8">
-                  <div class="flex flex-col md:flex-row md:items-start gap-6">
-                    
-                    <!-- Avatar Section -->
-                    <div class="flex-shrink-0">
-                      <div class="profile-avatar-ring w-28 h-28 md:w-36 md:h-36 mx-auto md:mx-0">
-                        <div class="w-full h-full rounded-full bg-slate-800 overflow-hidden flex items-center justify-center">
-                          <img id="profile-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden" />
-                          <span id="profile-avatar-placeholder" class="text-4xl md:text-5xl font-bold text-slate-500">?</span>
+                  <div class="flex flex-col xl:flex-row gap-8">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-5">
+                        <div class="profile-avatar-ring w-24 h-24 md:w-28 md:h-28 flex-shrink-0">
+                          <div class="w-full h-full rounded-full bg-slate-900 overflow-hidden flex items-center justify-center">
+                            <img id="profile-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden" />
+                            <span id="profile-avatar-placeholder" class="text-4xl font-bold text-slate-500">?</span>
+                          </div>
+                        </div>
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-2 mb-1">
+                            <h1 id="profile-display-name" class="text-3xl md:text-4xl font-racing text-white truncate">Loading...</h1>
+                            <span id="profile-status-emoji" class="status-emoji" aria-hidden="true"></span>
+                            <span id="profile-theme-dot" class="color-dot" title="Theme color"></span>
+                          </div>
+                          <p id="profile-username" class="text-cyan-300 font-semibold text-lg">@loading</p>
+                        </div>
+                      </div>
+                      <p id="profile-bio" class="text-slate-300 leading-relaxed max-w-3xl">
+                        No bio provided.
+                      </p>
+                      <div class="mt-5 flex flex-wrap gap-3">
+                        <div id="profile-team-role" class="profile-meta-pill inline-flex items-center gap-2">
+                          <span id="role-emoji">🏎️</span>
+                          <span id="role-text" class="text-sm font-semibold text-slate-200">Loading...</span>
+                        </div>
+                        <div class="profile-meta-pill inline-flex items-center gap-2">
+                          <span class="text-slate-300">Member Since</span>
+                          <span id="profile-join-date" class="text-sm font-semibold text-slate-100">Loading...</span>
                         </div>
                       </div>
                     </div>
-                    
-                    <!-- Profile Info -->
-                    <div class="flex-grow text-center md:text-left">
-                      <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-2">
-                        <h1 id="profile-display-name" class="text-3xl md:text-4xl font-racing text-white">Loading...</h1>
-                        <div class="flex items-center justify-center md:justify-start gap-2">
-                          <span id="profile-status-emoji" class="status-emoji" aria-hidden="true"></span>
-                          <span id="profile-theme-dot" class="color-dot" title="Theme color"></span>
+                    <aside class="xl:w-80 flex-shrink-0 space-y-4">
+                      <div class="profile-panel rounded-xl p-4">
+                        <div class="text-xs uppercase tracking-[0.18em] text-slate-400 mb-2">Profile Strength</div>
+                        <div class="flex items-end justify-between gap-2 mb-2">
+                          <div class="text-3xl font-black text-white">84%</div>
+                          <div class="text-xs text-slate-400">Complete</div>
                         </div>
-                      </div>
-                      <p id="profile-username" class="text-lg text-blue-400 mb-4">@loading</p>
-                      
-                      <!-- Bio Section -->
-                      <p id="profile-bio" class="text-slate-300 mb-4 max-w-xl">No bio provided.</p>
-                      
-                      <!-- Quick Info Tags -->
-                      <div class="flex flex-wrap justify-center md:justify-start gap-3">
-                        <div id="profile-team-role" class="inline-flex items-center gap-2 bg-slate-800/80 px-4 py-2 rounded-full border border-slate-600/50">
-                          <span id="role-emoji" class="text-lg">🏎️</span>
-                          <span id="role-text" class="text-sm font-medium text-slate-300">Loading...</span>
+                        <div class="level-bar mb-4">
+                          <div class="level-bar-fill" style="width:84%"></div>
                         </div>
-                        <div class="inline-flex items-center gap-2 bg-slate-800/80 px-4 py-2 rounded-full border border-slate-600/50">
-                          <span class="text-lg">📅</span>
-                          <span id="profile-join-date" class="text-sm font-medium text-slate-300">Loading...</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <!-- Edit Button -->
-                    <div class="flex-shrink-0 text-center md:text-right">
-                      <button id="edit-profile-btn" class="action-btn bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40">
-                        <span class="flex items-center gap-2">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        <button id="edit-profile-btn" class="action-btn w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white">
                           Edit Profile
-                        </span>
-                      </button>
-                    </div>
+                        </button>
+                      </div>
+                      <div class="profile-panel rounded-xl p-4">
+                        <div class="text-xs uppercase tracking-[0.18em] text-slate-400 mb-3">Quick Actions</div>
+                        <div class="grid grid-cols-2 gap-2.5">
+                          <a href="leaderboard.html" class="quick-action-btn text-center">Leaderboard</a>
+                          <a href="schedule.html" class="quick-action-btn text-center">Schedule</a>
+                          <a href="videos.html" class="quick-action-btn text-center">Highlights</a>
+                          <a href="admin-console.html" class="quick-action-btn text-center">Dashboard</a>
+                        </div>
+                      </div>
+                    </aside>
                   </div>
                 </div>
               </div>
-              
             </div>
           </div>
         </div>
-        
-        <!-- Main Profile Content -->
-        <div class="container mx-auto px-6 py-8">
-          <div class="max-w-5xl mx-auto space-y-8">
-            
-            <!-- Stats Row -->
-            <div id="profile-display" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div class="profile-stat-card rounded-xl p-5 text-center">
-                <div class="stat-icon bg-gradient-to-br from-yellow-500/20 to-orange-500/20 mx-auto mb-3">
-                  🚗
+        <div class="container mx-auto px-6 py-6 md:py-8">
+          <div class="max-w-6xl mx-auto space-y-6">
+            <section id="profile-display" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <article class="profile-stat-card rounded-xl p-5">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-xs tracking-widest uppercase text-slate-400 mb-1">Cars</p>
+                    <p class="text-3xl font-black text-white" id="stat-cars-count">0</p>
+                  </div>
+                  <div class="stat-icon bg-cyan-500/15 text-cyan-300">🚗</div>
                 </div>
-                <div class="text-2xl font-bold text-white mb-1" id="stat-cars-count">0</div>
-                <div class="text-sm text-slate-400">Favorite Cars</div>
-              </div>
-              <div class="profile-stat-card rounded-xl p-5 text-center">
-                <div class="stat-icon bg-gradient-to-br from-blue-500/20 to-cyan-500/20 mx-auto mb-3">
-                  🏁
+              </article>
+              <article class="profile-stat-card rounded-xl p-5">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-xs tracking-widest uppercase text-slate-400 mb-1">Track</p>
+                    <p class="text-lg font-bold text-white" id="stat-track">—</p>
+                  </div>
+                  <div class="stat-icon bg-blue-500/15 text-blue-300">🏁</div>
                 </div>
-                <div class="text-2xl font-bold text-white mb-1" id="stat-track">—</div>
-                <div class="text-sm text-slate-400">Favorite Track</div>
-              </div>
-              <div class="profile-stat-card rounded-xl p-5 text-center">
-                <div class="stat-icon bg-gradient-to-br from-purple-500/20 to-pink-500/20 mx-auto mb-3">
-                  🏆
+              </article>
+              <article class="profile-stat-card rounded-xl p-5">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-xs tracking-widest uppercase text-slate-400 mb-1">Badges</p>
+                    <p class="text-3xl font-black text-white">6</p>
+                  </div>
+                  <div class="stat-icon bg-purple-500/15 text-purple-300">🏆</div>
                 </div>
-                <div class="text-2xl font-bold text-white mb-1">6</div>
-                <div class="text-sm text-slate-400">Badges Earned</div>
-              </div>
-              <div class="profile-stat-card rounded-xl p-5 text-center">
-                <div class="stat-icon bg-gradient-to-br from-green-500/20 to-emerald-500/20 mx-auto mb-3">
-                  ⚡
+              </article>
+              <article class="profile-stat-card rounded-xl p-5">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-xs tracking-widest uppercase text-slate-400 mb-1">Status</p>
+                    <p class="text-lg font-bold text-emerald-300">Active</p>
+                  </div>
+                  <div class="stat-icon bg-emerald-500/15 text-emerald-300">●</div>
                 </div>
-                <div class="text-2xl font-bold text-white mb-1">Active</div>
-                <div class="text-sm text-slate-400">Status</div>
+              </article>
+            </section>
+            <section class="profile-panel rounded-2xl p-6">
+              <div class="flex items-center justify-between gap-4 mb-4">
+                <h2 class="text-xl md:text-2xl font-racing text-white uppercase tracking-wide">Garage Preferences</h2>
               </div>
-            </div>
-            
-            <!-- Favorite Cars Section -->
-            <div class="bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-6">
-              <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span class="text-2xl">🚗</span> Favorite Cars
-              </h3>
-              <div id="profile-favorite-cars" class="flex flex-wrap gap-3">
-                <span class="text-slate-500 italic">No favorite cars added yet. Click Edit Profile to add some!</span>
+              <div id="profile-favorite-cars" class="flex flex-wrap gap-2.5">
+                <span class="text-slate-500 italic">No favorite cars added yet. Click Edit Profile to add some.</span>
               </div>
               <p id="profile-favorite-track" class="hidden"></p>
-            </div>
-            
-            <!-- Racing Persona Section -->
-            <div class="persona-card rounded-2xl">
+            </section>
+            <section class="persona-card rounded-2xl">
               <div class="persona-card-inner p-6 md:p-8 rounded-2xl">
-                <div class="flex items-center justify-between mb-6">
-                  <h2 class="text-2xl md:text-3xl font-racing text-white uppercase flex items-center gap-3">
-                    <span class="text-3xl">🎮</span>
-                    Racing <span class="neon-yellow">Persona</span>
-                  </h2>
+                <div class="flex items-center justify-between gap-4 mb-6">
+                  <h2 class="text-2xl md:text-3xl font-racing text-white uppercase">Racing Persona</h2>
+                  <button id="save-persona-btn" class="action-btn bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-900">Save Persona</button>
                 </div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <!-- Persona Selector -->
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
                   <div>
-                    <h3 class="text-lg font-semibold text-slate-300 mb-4">Choose Your Racing Style</h3>
+                    <p class="text-slate-400 text-sm uppercase tracking-widest mb-3">Choose driving identity</p>
                     <div class="space-y-3">
-                      <label class="persona-option flex items-center p-4 rounded-xl">
+                      <label class="persona-option flex items-center p-4">
                         <input type="radio" name="racing-persona" value="veteran" class="sr-only" />
                         <div class="flex items-center gap-4 w-full">
-                          <div class="w-12 h-12 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl flex items-center justify-center text-2xl">🏁</div>
+                          <div class="w-11 h-11 rounded-lg bg-amber-500/20 flex items-center justify-center text-xl">🏁</div>
                           <div class="flex-grow">
                             <div class="font-bold text-white">The Veteran</div>
-                            <div class="text-sm text-slate-400">Strategic, consistent, experienced</div>
+                            <div class="text-sm text-slate-400">Strategic, measured, composed</div>
                           </div>
-                          <div class="w-5 h-5 rounded-full border-2 border-slate-500 flex items-center justify-center persona-check">
-                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-400 hidden"></div>
+                          <div class="w-5 h-5 rounded-full border border-slate-500 flex items-center justify-center persona-check">
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-300 hidden"></div>
                           </div>
                         </div>
                       </label>
-                      
-                      <label class="persona-option flex items-center p-4 rounded-xl">
+                      <label class="persona-option flex items-center p-4">
                         <input type="radio" name="racing-persona" value="speedster" class="sr-only" />
                         <div class="flex items-center gap-4 w-full">
-                          <div class="w-12 h-12 bg-gradient-to-br from-yellow-500/20 to-red-500/20 rounded-xl flex items-center justify-center text-2xl">⚡</div>
+                          <div class="w-11 h-11 rounded-lg bg-yellow-500/20 flex items-center justify-center text-xl">⚡</div>
                           <div class="flex-grow">
                             <div class="font-bold text-white">Speed Demon</div>
-                            <div class="text-sm text-slate-400">Aggressive, fast, fearless</div>
+                            <div class="text-sm text-slate-400">Fast, bold, high pressure</div>
                           </div>
-                          <div class="w-5 h-5 rounded-full border-2 border-slate-500 flex items-center justify-center persona-check">
-                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-400 hidden"></div>
+                          <div class="w-5 h-5 rounded-full border border-slate-500 flex items-center justify-center persona-check">
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-300 hidden"></div>
                           </div>
                         </div>
                       </label>
-                      
-                      <label class="persona-option flex items-center p-4 rounded-xl">
+                      <label class="persona-option flex items-center p-4">
                         <input type="radio" name="racing-persona" value="precision" class="sr-only" />
                         <div class="flex items-center gap-4 w-full">
-                          <div class="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center text-2xl">🎯</div>
+                          <div class="w-11 h-11 rounded-lg bg-cyan-500/20 flex items-center justify-center text-xl">🎯</div>
                           <div class="flex-grow">
                             <div class="font-bold text-white">Precision Pilot</div>
-                            <div class="text-sm text-slate-400">Technical, calculated, perfectionist</div>
+                            <div class="text-sm text-slate-400">Technical, smooth, disciplined</div>
                           </div>
-                          <div class="w-5 h-5 rounded-full border-2 border-slate-500 flex items-center justify-center persona-check">
-                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-400 hidden"></div>
+                          <div class="w-5 h-5 rounded-full border border-slate-500 flex items-center justify-center persona-check">
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-300 hidden"></div>
                           </div>
                         </div>
                       </label>
-                      
-                      <label class="persona-option flex items-center p-4 rounded-xl">
+                      <label class="persona-option flex items-center p-4">
                         <input type="radio" name="racing-persona" value="wildcard" class="sr-only" />
                         <div class="flex items-center gap-4 w-full">
-                          <div class="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center text-2xl">🃏</div>
+                          <div class="w-11 h-11 rounded-lg bg-fuchsia-500/20 flex items-center justify-center text-xl">🃏</div>
                           <div class="flex-grow">
                             <div class="font-bold text-white">Wild Card</div>
-                            <div class="text-sm text-slate-400">Unpredictable, creative, adaptable</div>
+                            <div class="text-sm text-slate-400">Adaptive, disruptive, creative</div>
                           </div>
-                          <div class="w-5 h-5 rounded-full border-2 border-slate-500 flex items-center justify-center persona-check">
-                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-400 hidden"></div>
+                          <div class="w-5 h-5 rounded-full border border-slate-500 flex items-center justify-center persona-check">
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-300 hidden"></div>
                           </div>
                         </div>
                       </label>
                     </div>
                   </div>
-                  
-                  <!-- Current Persona Display -->
-                  <div>
-                    <h3 class="text-lg font-semibold text-slate-300 mb-4">Your Racing DNA</h3>
-                    <div id="persona-display" class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl p-6 border border-slate-700/50">
-                      <div class="text-center">
-                        <div id="persona-icon" class="text-7xl mb-4 drop-shadow-lg">🏁</div>
-                        <h4 id="persona-title" class="text-2xl font-racing text-gradient mb-3">The Veteran</h4>
-                        <p id="persona-description" class="text-slate-300 mb-6 leading-relaxed">
-                          You bring wisdom and strategic thinking to every race. Your experience shows in your calculated moves and consistent performance.
-                        </p>
-                        <div class="flex flex-wrap justify-center gap-2">
-                          <span class="bg-slate-700/80 backdrop-blur px-4 py-2 rounded-full text-sm font-medium border border-slate-600/50">🧠 Strategic</span>
-                          <span class="bg-slate-700/80 backdrop-blur px-4 py-2 rounded-full text-sm font-medium border border-slate-600/50">⚖️ Balanced</span>
-                          <span class="bg-slate-700/80 backdrop-blur px-4 py-2 rounded-full text-sm font-medium border border-slate-600/50">🎯 Consistent</span>
-                        </div>
+                  <div id="persona-display" class="profile-panel rounded-xl p-6">
+                    <div class="text-center">
+                      <div id="persona-icon" class="text-6xl md:text-7xl mb-4">🏁</div>
+                      <h4 id="persona-title" class="text-2xl font-racing text-white mb-3">The Veteran</h4>
+                      <p id="persona-description" class="text-slate-300 leading-relaxed mb-5">
+                        You bring wisdom and strategic thinking to every race. Your experience shows in your calculated moves and consistent performance.
+                      </p>
+                      <div class="flex flex-wrap justify-center gap-2">
+                        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-sm text-slate-200">🧠 Strategic</span>
+                        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-sm text-slate-200">⚖️ Balanced</span>
+                        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-sm text-slate-200">🎯 Consistent</span>
                       </div>
                     </div>
                   </div>
                 </div>
-                
-                <div class="mt-8 text-center">
-                  <button id="save-persona-btn" class="action-btn bg-gradient-to-r from-yellow-500 to-amber-500 text-black shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40">
-                    <span class="flex items-center gap-2">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                      Save Racing Persona
-                    </span>
-                  </button>
-                </div>
               </div>
-            </div>
-            
-            <!-- Achievements Section -->
-            <div class="bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-6 md:p-8">
-              <h2 class="text-2xl font-racing text-white uppercase mb-6 flex items-center gap-3">
-                <span class="text-3xl">🏆</span>
-                Racing <span class="neon-yellow">Badges</span>
-              </h2>
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+            </section>
+            <section class="profile-panel rounded-2xl p-6 md:p-7">
+              <h2 class="text-2xl font-racing text-white uppercase mb-5">Achievements</h2>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
                 <div class="badge-card unlocked rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-2">🏁</div>
+                  <div class="text-3xl mb-1">🏁</div>
                   <div class="text-sm font-semibold text-white">First Race</div>
-                  <div class="text-xs text-slate-400 mt-1">Welcome aboard!</div>
+                  <div class="text-xs text-slate-400 mt-1">Joined the grid</div>
                 </div>
                 <div class="badge-card unlocked rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-2">👥</div>
+                  <div class="text-3xl mb-1">👥</div>
                   <div class="text-sm font-semibold text-white">Team Player</div>
-                  <div class="text-xs text-slate-400 mt-1">Joined the team</div>
+                  <div class="text-xs text-slate-400 mt-1">Crew approved</div>
                 </div>
                 <div class="badge-card unlocked rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-2">🎮</div>
+                  <div class="text-3xl mb-1">🎮</div>
                   <div class="text-sm font-semibold text-white">Sim Racer</div>
-                  <div class="text-xs text-slate-400 mt-1">Virtual speed</div>
+                  <div class="text-xs text-slate-400 mt-1">Virtual laps</div>
                 </div>
                 <div class="badge-card unlocked rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-2">⏱️</div>
+                  <div class="text-3xl mb-1">⏱️</div>
                   <div class="text-sm font-semibold text-white">Time Trial</div>
-                  <div class="text-xs text-slate-400 mt-1">Beat the clock</div>
+                  <div class="text-xs text-slate-400 mt-1">Fastest segment</div>
                 </div>
                 <div class="badge-card unlocked rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-2">🏆</div>
+                  <div class="text-3xl mb-1">🏆</div>
                   <div class="text-sm font-semibold text-white">Podium</div>
-                  <div class="text-xs text-slate-400 mt-1">Top 3 finish</div>
+                  <div class="text-xs text-slate-400 mt-1">Top finish</div>
                 </div>
                 <div class="badge-card unlocked rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-2">🌟</div>
+                  <div class="text-3xl mb-1">🌟</div>
                   <div class="text-sm font-semibold text-white">Legend</div>
-                  <div class="text-xs text-slate-400 mt-1">True champion</div>
+                  <div class="text-xs text-slate-400 mt-1">Elite profile</div>
                 </div>
               </div>
-            </div>
-            
+            </section>
           </div>
         </div>
-        
-        <!-- Profile Edit Form (Modal Style) -->
         <div id="profile-edit-form" class="hidden fixed inset-0 z-50 overflow-y-auto">
           <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" id="edit-form-backdrop"></div>
           <div class="relative min-h-screen flex items-center justify-center p-4">
             <div class="relative bg-slate-900 rounded-2xl border border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <!-- Modal Header -->
               <div class="sticky top-0 bg-slate-900/95 backdrop-blur border-b border-slate-700 p-6 rounded-t-2xl">
-                <h2 class="text-2xl font-racing text-white uppercase flex items-center gap-3">
-                  <span class="text-2xl">✏️</span>
-                  Edit <span class="neon-yellow">Profile</span>
-                </h2>
+                <h2 class="text-2xl font-racing text-white uppercase">Edit Profile</h2>
               </div>
-              
-              <!-- Modal Body -->
-              <div class="p-6 space-y-6">
-                <!-- Avatar Preview -->
+              <div class="p-6 space-y-5">
                 <div class="text-center">
-                  <div class="profile-avatar-ring w-24 h-24 mx-auto mb-4">
+                  <div class="profile-avatar-ring w-24 h-24 mx-auto mb-3">
                     <div class="w-full h-full rounded-full bg-slate-800 overflow-hidden flex items-center justify-center">
                       <img id="edit-avatar-preview" src="" alt="Avatar Preview" class="w-full h-full object-cover hidden" />
                       <span class="text-3xl font-bold text-slate-500">?</span>
                     </div>
                   </div>
                 </div>
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label for="edit-username" class="block text-sm font-semibold text-slate-300 mb-2">Username</label>
@@ -719,50 +725,43 @@
                     <input type="text" id="edit-display-name" class="w-full edit-input" placeholder="Your Name" />
                   </div>
                 </div>
-                
                 <div>
                   <label for="edit-bio" class="block text-sm font-semibold text-slate-300 mb-2">Bio</label>
-                  <textarea id="edit-bio" rows="3" class="w-full edit-input resize-none" placeholder="Tell us about yourself..."></textarea>
+                  <textarea id="edit-bio" rows="3" class="w-full edit-input resize-none" placeholder="Tell people what your racing story is..."></textarea>
                 </div>
-                
                 <div>
                   <label for="edit-avatar-url" class="block text-sm font-semibold text-slate-300 mb-2">Avatar URL</label>
                   <input type="url" id="edit-avatar-url" class="w-full edit-input" placeholder="https://example.com/avatar.jpg" />
                 </div>
-                
                 <div>
                   <label for="edit-favorite-cars" class="block text-sm font-semibold text-slate-300 mb-2">Favorite Cars (comma separated)</label>
                   <input type="text" id="edit-favorite-cars" class="w-full edit-input" placeholder="Porsche 911, BMW M3, McLaren 720S" />
                 </div>
-                
-                <!-- Team Role Selection -->
                 <div>
                   <label class="block text-sm font-semibold text-slate-300 mb-3">Team Role</label>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <label class="persona-option flex items-center p-4 rounded-xl">
+                    <label class="persona-option flex items-center p-4">
                       <input type="radio" name="profile-team-role" value="racer" class="sr-only" />
                       <div class="flex items-center gap-3 w-full">
-                        <div class="w-10 h-10 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-lg flex items-center justify-center text-xl">🏎️</div>
+                        <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center text-xl">🏎️</div>
                         <div>
                           <div class="font-bold text-white text-sm">Racer</div>
-                          <div class="text-xs text-slate-400">Driver competing in races</div>
+                          <div class="text-xs text-slate-400">Competes in races</div>
                         </div>
                       </div>
                     </label>
-                    
-                    <label class="persona-option flex items-center p-4 rounded-xl">
+                    <label class="persona-option flex items-center p-4">
                       <input type="radio" name="profile-team-role" value="crew" class="sr-only" />
                       <div class="flex items-center gap-3 w-full">
-                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg flex items-center justify-center text-xl">🔧</div>
+                        <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center text-xl">🔧</div>
                         <div>
                           <div class="font-bold text-white text-sm">Crew Member</div>
-                          <div class="text-xs text-slate-400">Support team, mechanics</div>
+                          <div class="text-xs text-slate-400">Supports setup and operations</div>
                         </div>
                       </div>
                     </label>
                   </div>
                 </div>
-                
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label for="edit-status-emoji" class="block text-sm font-semibold text-slate-300 mb-2">Status Emoji</label>
@@ -774,24 +773,16 @@
                   </div>
                   <div>
                     <label for="edit-theme-color" class="block text-sm font-semibold text-slate-300 mb-2">Theme Color</label>
-                    <input type="color" id="edit-theme-color" value="#f7ff00" class="w-full h-[46px] p-1 rounded-xl bg-slate-800 border-2 border-slate-600 cursor-pointer" />
+                    <input type="color" id="edit-theme-color" value="#f7ff00" class="w-full h-[42px] p-1 rounded-lg bg-slate-800 border border-slate-600 cursor-pointer" />
                   </div>
                 </div>
               </div>
-              
-              <!-- Modal Footer -->
-              <div class="sticky bottom-0 bg-slate-900/95 backdrop-blur border-t border-slate-700 p-6 rounded-b-2xl">
+              <div class="sticky bottom-0 bg-slate-900/95 backdrop-blur border-t border-slate-700 p-5 rounded-b-2xl">
                 <div class="flex flex-wrap items-center gap-3">
-                  <button id="surprise-me-btn" type="button" class="action-btn bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-                    🎲 Surprise Me
-                  </button>
+                  <button id="surprise-me-btn" type="button" class="action-btn bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white">Surprise Me</button>
                   <div class="flex-1"></div>
-                  <button id="cancel-edit-btn" class="action-btn bg-slate-700 text-white hover:bg-slate-600">
-                    Cancel
-                  </button>
-                  <button id="save-profile-btn" class="action-btn bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25">
-                    Save Changes
-                  </button>
+                  <button id="cancel-edit-btn" class="action-btn bg-slate-700 text-white hover:bg-slate-600">Cancel</button>
+                  <button id="save-profile-btn" class="action-btn bg-gradient-to-r from-emerald-500 to-green-500 text-white">Save Changes</button>
                 </div>
               </div>
             </div>
