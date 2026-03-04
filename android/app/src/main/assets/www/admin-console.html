@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en" class="dark">
   <head>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353"
+         crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🏎️ Admin Command Center - RedsRacing #8</title>
@@ -220,6 +223,22 @@
         border-radius: 12px;
         border: 1px solid rgba(148, 163, 184, 0.1);
       }
+      
+      /* Mobile Tab Navigation */
+      .mobile-tab-btn.active {
+        background: linear-gradient(45deg, #3b82f6, #6366f1) !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      }
+      
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
     </style>
   <script src="assets/js/guest-gate.js"></script>
   </head>
@@ -281,7 +300,7 @@
       </nav>
       
       <!-- Mobile Menu -->
-      <div id="mobile-menu" class="mobile-menu modern-mobile hidden">
+      <div id="mobile-menu" class="mobile-menu modern-mobile hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; background: rgba(15,23,42,0.98); overflow-y: auto;">
         <div class="p-4 border-b border-slate-600">
           <div class="flex items-center space-x-3">
             <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-red-500 rounded-lg flex items-center justify-center">
@@ -429,12 +448,39 @@
       
       <!-- Main Content -->
       <main class="flex-1 overflow-hidden">
-        <!-- Mobile Sidebar Toggle -->
-        <div class="lg:hidden p-4 border-b border-white/10">
-          <button id="sidebar-toggle" class="admin-card px-4 py-2 rounded-lg w-full text-left flex items-center">
-            <i class="fas fa-bars text-yellow-400 mr-2"></i>
-            <span class="font-racing uppercase text-sm text-white">Admin Menu</span>
-          </button>
+        <!-- Mobile Tab Navigation -->
+        <div class="lg:hidden border-b border-white/10 bg-slate-900/50">
+          <div class="overflow-x-auto scrollbar-hide">
+            <div class="flex space-x-2 p-3 min-w-max">
+              <a href="#overview" class="mobile-tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-blue-600 text-white">
+                <i class="fas fa-chart-pie mr-1"></i> Overview
+              </a>
+              <a href="#analytics" class="mobile-tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-700 text-slate-300">
+                <i class="fas fa-chart-line mr-1"></i> Analytics
+              </a>
+              <a href="#race" class="mobile-tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-700 text-slate-300">
+                <i class="fas fa-flag-checkered mr-1"></i> Races
+              </a>
+              <a href="#media" class="mobile-tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-700 text-slate-300">
+                <i class="fas fa-photo-video mr-1"></i> Media
+              </a>
+              <a href="#videos" class="mobile-tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-700 text-slate-300">
+                <i class="fas fa-video mr-1"></i> Videos
+              </a>
+              <a href="#qna" class="mobile-tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-700 text-slate-300">
+                <i class="fas fa-question-circle mr-1"></i> Q&A
+              </a>
+              <a href="#advanced" class="mobile-tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-700 text-slate-300">
+                <i class="fas fa-users-cog mr-1"></i> Team
+              </a>
+              <a href="#logs" class="mobile-tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-700 text-slate-300">
+                <i class="fas fa-bug mr-1"></i> Logs
+              </a>
+              <a href="settings.html" class="mobile-tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-700 text-slate-300">
+                <i class="fas fa-cog mr-1"></i> Settings
+              </a>
+            </div>
+          </div>
         </div>
 
         <!-- Dashboard Content -->
@@ -1468,12 +1514,17 @@
               e.preventDefault();
               e.stopPropagation();
               const isHidden = mobileMenu.classList.contains('hidden');
+              console.log('[ADMIN] Sidebar toggle clicked, isHidden:', isHidden);
               if (isHidden) {
                 mobileMenu.classList.remove('hidden');
-                mobileMenu.style.cssText = 'display:block !important;visibility:visible !important;opacity:1 !important;transform:translateY(0) !important;pointer-events:auto !important;position:absolute !important;top:0 !important;left:0 !important;right:0 !important;z-index:9999 !important;background:rgba(15,23,42,0.98) !important;';
+                mobileMenu.style.cssText = 'position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;z-index:9999 !important;background:rgba(15,23,42,0.98) !important;overflow-y:auto !important;display:flex !important;flex-direction:column !important;';
+                document.body.style.overflow = 'hidden';
+                console.log('[ADMIN] Mobile menu shown');
               } else {
                 mobileMenu.classList.add('hidden');
-                mobileMenu.style.cssText = '';
+                mobileMenu.style.cssText = 'display:none !important;';
+                document.body.style.overflow = '';
+                console.log('[ADMIN] Mobile menu hidden');
               }
             });
           }
@@ -2729,10 +2780,26 @@
         
         // Mobile menu navigation - close menu when clicking nav items
         document.querySelectorAll('#mobile-menu .mobile-nav-item').forEach(item => {
-          item.addEventListener('click', () => {
+          item.addEventListener('click', (e) => {
             const mobileMenu = document.getElementById('mobile-menu');
-            if (mobileMenu && !item.getAttribute('href').startsWith('http')) {
-              setTimeout(() => mobileMenu.classList.add('hidden'), 100);
+            const href = item.getAttribute('href');
+            console.log('[ADMIN] Mobile nav item clicked:', href);
+            
+            // Close menu
+            if (mobileMenu) {
+              mobileMenu.classList.add('hidden');
+              mobileMenu.style.cssText = 'display:none !important;';
+              document.body.style.overflow = '';
+            }
+            
+            // If it's a hash link, manually handle navigation
+            if (href && href.startsWith('#')) {
+              e.preventDefault();
+              window.location.hash = href;
+              // Trigger hashchange event
+              setTimeout(() => {
+                window.dispatchEvent(new HashChangeEvent('hashchange'));
+              }, 50);
             }
           });
         });
@@ -3211,16 +3278,29 @@
             showDashboard();
           }
           
-          // Remove active class from all nav items
+          // Remove active class from all nav items (desktop sidebar + mobile tabs)
           document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+          document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+            btn.classList.remove('active', 'bg-blue-600', 'text-white');
+            btn.classList.add('bg-slate-700', 'text-slate-300');
+          });
           
-          // Find and activate the corresponding nav item
-          const navItem = document.querySelector(`a[href="${hash}"]`);
+          // Find and activate the corresponding nav item (desktop sidebar)
+          const navItem = document.querySelector('.nav-item[href="' + hash + '"]');
           if (navItem) {
             navItem.classList.add('active');
             console.log('🔗 [HASH] Activated nav item:', navItem.textContent.trim());
-          } else {
-            console.log('🔗 [HASH] No nav item found for hash:', hash);
+          }
+          
+          // Find and activate the corresponding mobile tab
+          const mobileTab = document.querySelector('.mobile-tab-btn[href="' + hash + '"]');
+          if (mobileTab) {
+            mobileTab.classList.remove('bg-slate-700', 'text-slate-300');
+            mobileTab.classList.add('active', 'bg-blue-600', 'text-white');
+            console.log('🔗 [HASH] Activated mobile tab:', mobileTab.textContent.trim());
+            
+            // Scroll the tab into view
+            mobileTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
           }
           
           // Show the appropriate section
