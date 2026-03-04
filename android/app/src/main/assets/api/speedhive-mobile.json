@@ -1,0 +1,105 @@
+{
+  "driver": "Jon Kirsch",
+  "carNumber": "#8K",
+  "season": "2025",
+  "series": "American Super Cup Series",
+  "lastUpdated": "2025-10-07T14:54:00Z",
+  "championship": {
+    "dropPointStandings": 4,
+    "fullPointStandings": 6,
+    "totalPoints": 482,
+    "qualifyingPoints": 67,
+    "poleAwards": 0,
+    "heatWins": 3,
+    "featureWins": 1,
+    "podiumFinishes": 4,
+    "top5Finishes": 6,
+    "averageFinish": 4.0,
+    "bestFinish": 1,
+    "totalLapsLed": 45,
+    "fastestLapOfSeason": "14.198"
+  },
+  "recentEvents": [
+    {
+      "eventName": "Labor Day of Doom",
+      "date": "2025-08-31",
+      "track": "Dells Raceway Park",
+      "bestResult": 1,
+      "sessionType": "Heat Race",
+      "highlights": ["Heat Win", "Feature Podium"]
+    },
+    {
+      "eventName": "Golden Sands Speedway",
+      "date": "2025-08-31", 
+      "track": "Golden Sands Speedway",
+      "bestResult": 1,
+      "sessionType": "Feature",
+      "highlights": ["Perfect Sweep", "Feature Win"]
+    },
+    {
+      "eventName": "On Track Autograph Night",
+      "date": "2025-08-08",
+      "track": "Grundy County Speedway",
+      "bestResult": 3,
+      "sessionType": "Heat Race",
+      "highlights": ["Top 10 Feature"]
+    }
+  ],
+  "statistics": {
+    "wins": {
+      "feature": 1,
+      "heat": 3,
+      "total": 4
+    },
+    "podiums": {
+      "feature": 4,
+      "heat": 6,
+      "total": 10
+    },
+    "performance": {
+      "averageStartingPosition": 5.2,
+      "averageFinishingPosition": 4.0,
+      "positionsGained": 8.4,
+      "fastestLap": "14.198",
+      "totalLapsCompleted": 312,
+      "totalRaceTime": "84:32.145"
+    },
+    "tracks": {
+      "totalTracks": 4,
+      "bestTrack": "Golden Sands Speedway",
+      "trackStats": [
+        {
+          "name": "Golden Sands Speedway",
+          "events": 1,
+          "wins": 1,
+          "podiums": 2,
+          "averageFinish": 1.5
+        },
+        {
+          "name": "Dells Raceway Park", 
+          "events": 3,
+          "wins": 2,
+          "podiums": 3,
+          "averageFinish": 2.7
+        },
+        {
+          "name": "Grundy County Speedway",
+          "events": 2,
+          "wins": 0,
+          "podiums": 1,
+          "averageFinish": 6.0
+        },
+        {
+          "name": "Slinger Speedway",
+          "events": 1,
+          "wins": 0,
+          "podiums": 1,
+          "averageFinish": 4.7
+        }
+      ]
+    }
+  },
+  "version": "1.4",
+  "source": "MYLAPS Speedhive",
+  "mobileOptimized": true
+}

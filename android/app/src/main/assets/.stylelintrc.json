@@ -1,0 +1,18 @@
+{
+  "extends": ["stylelint-config-standard", "stylelint-config-standard-scss"],
+  "plugins": ["stylelint-scss"],
+  "rules": {
+    "function-disallowed-list": [],
+    "scss/function-unquote-no-unquoted-strings-inside": true,
+    "scss/selector-no-redundant-nesting-selector": true
+  },
+  "overrides": [
+    {
+      "files": ["**/*.scss"],
+      "rules": {
+        "at-rule-no-unknown": null,
+        "scss/at-rule-no-unknown": true
+      }
+    }
+  ]
+}

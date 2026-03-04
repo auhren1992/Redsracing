@@ -1,0 +1,42 @@
+﻿    <!-- Modern Newsletter Footer -->
+    <footer class="newsletter-footer">
+        <div class="newsletter-container">
+            <div class="newsletter-content">
+                <h2 class="newsletter-title">Get In Touch</h2>
+                <p class="newsletter-subtitle">Subscribe for race updates and follow the journey on social media.</p>
+                
+                <form id="newsletter-form" class="newsletter-form">
+                    <div class="newsletter-input-group">
+                        <input 
+                            type="email" 
+                            id="newsletter-email" 
+                            placeholder="Enter your email" 
+                            required 
+                            class="newsletter-input"
+                        />
+                        <button type="submit" class="newsletter-button">
+                            <span class="button-text">Subscribe</span>
+                            <span class="button-loader hidden">●●●</span>
+                        </button>
+                    </div>
+                    <p id="newsletter-message" class="newsletter-message"></p>
+                </form>
+                
+                <div class="social-links">
+                    <a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" class="social-link" aria-label="Facebook">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/@redsracing" target="_blank" class="social-link" aria-label="TikTok">
+                        <i class="fab fa-tiktok"></i>
+                    </a>
+                    <a href="https://www.instagram.com/redsracing8/" target="_blank" class="social-link" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 RedsRacing. All Rights Reserved.</p>
+        </div>
+    </footer>

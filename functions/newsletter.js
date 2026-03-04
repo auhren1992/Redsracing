@@ -4,6 +4,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const logger = require("firebase-functions/logger");
 const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
+const nodemailer = require("nodemailer");
 
 // Initialize MailerSend client
 const getMailerSend = () => {
@@ -13,6 +14,17 @@ const getMailerSend = () => {
     return null;
   }
   return new MailerSend({ apiKey });
+};
+
+// Optional SMTP transport (for Gmail / app password)
+const getSmtpTransport = () => {
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  if (!smtpUser || !smtpPass) return null;
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: smtpUser, pass: smtpPass },
+  });
 };
 
 // Welcome email when someone subscribes
@@ -55,6 +67,8 @@ exports.sendWelcomeEmail = onDocumentCreated({
     `;
 
     const sentFrom = new Sender('newsletter@redsracing.org', 'RedsRacing');
+    const smtpFromAddress = process.env.SMTP_USER || 'redsracing65@gmail.com';
+    const smtpFromName = 'RedsRacing';
     const recipients = [new Recipient(subscriber.email)];
     
     const emailParams = new EmailParams()
@@ -77,7 +91,7 @@ exports.sendWelcomeEmail = onDocumentCreated({
 
 // Callable function for admin console email broadcasts
 exports.sendAdminBroadcast = onCall({
-  secrets: ['MAILERSEND_API_KEY']
+  secrets: ['MAILERSEND_API_KEY', 'SMTP_USER', 'SMTP_PASS']
 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Login required');
@@ -101,11 +115,13 @@ exports.sendAdminBroadcast = onCall({
   }
 
   const mailerSend = getMailerSend();
-  if (!mailerSend) {
-    throw new HttpsError('failed-precondition', 'MailerSend not initialized');
+  const smtpTransport = getSmtpTransport();
+  if (!mailerSend && !smtpTransport) {
+    throw new HttpsError('failed-precondition', 'No email provider configured (need MailerSend API key or SMTP credentials)');
   }
 
   try {
+    const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
     const recipientsSet = new Set();
 
     // Pull users by requested target type
@@ -113,7 +129,7 @@ exports.sendAdminBroadcast = onCall({
     usersSnap.forEach((doc) => {
       const u = doc.data() || {};
       const email = (u.email || '').toLowerCase().trim();
-      if (!email || !email.includes('@')) return;
+      if (!isValidEmail(email)) return;
       const userRole = (u.role || '').toLowerCase();
 
       if (recipientType === 'team-members') {
@@ -138,7 +154,7 @@ exports.sendAdminBroadcast = onCall({
       subscribersSnap.forEach((doc) => {
         const s = doc.data() || {};
         const email = (s.email || '').toLowerCase().trim();
-        if (email && email.includes('@')) recipientsSet.add(email);
+        if (isValidEmail(email)) recipientsSet.add(email);
       });
     }
 
@@ -157,28 +173,53 @@ exports.sendAdminBroadcast = onCall({
     `;
 
     const sentFrom = new Sender('newsletter@redsracing.org', 'RedsRacing');
+    const smtpFromAddress = process.env.SMTP_USER || 'redsracing65@gmail.com';
+    const smtpFromName = 'RedsRacing';
     let sentCount = 0;
-    const chunkSize = 50;
-    for (let i = 0; i < recipients.length; i += chunkSize) {
-      const chunk = recipients.slice(i, i + chunkSize);
-      const recipientObjs = chunk.map((email) => new Recipient(email));
-      const emailParams = new EmailParams()
-        .setFrom(sentFrom)
-        .setTo(recipientObjs)
-        .setSubject(subject)
-        .setHtml(htmlContent)
-        .setText(message);
-      await mailerSend.email.send(emailParams);
-      sentCount += chunk.length;
+    const failed = [];
+    // Send one recipient per request so one bad address does not fail the entire batch
+    for (const email of recipients) {
+      try {
+        if (smtpTransport) {
+          await smtpTransport.sendMail({
+            from: `${smtpFromName} <${smtpFromAddress}>`,
+            to: email,
+            subject: String(subject),
+            text: String(message),
+            html: htmlContent,
+          });
+        } else {
+          const recipientObjs = [new Recipient(email)];
+          const emailParams = new EmailParams()
+            .setFrom(sentFrom)
+            .setTo(recipientObjs)
+            .setSubject(subject)
+            .setHtml(htmlContent)
+            .setText(message);
+          await mailerSend.email.send(emailParams);
+        }
+        sentCount += 1;
+      } catch (sendError) {
+        const reason = sendError?.message || sendError?.body?.message || 'unknown send error';
+        failed.push({ email, reason: String(reason).slice(0, 200) });
+      }
+    }
+
+    if (sentCount === 0) {
+      const firstReason = failed[0]?.reason || 'no recipients could be delivered';
+      throw new HttpsError('internal', `No emails sent: ${firstReason}`);
     }
 
     await db.collection('admin_logs').add({
       action: 'admin_broadcast_email',
       recipientType: recipientType || 'all',
       recipientCount: recipients.length,
+      sentCount,
+      failedCount: failed.length,
       subject: String(subject).slice(0, 200),
       sentBy: request.auth.uid,
       role: role || 'unknown',
+      failuresSample: failed.slice(0, 5),
       createdAt: FieldValue.serverTimestamp(),
     });
 
@@ -186,11 +227,22 @@ exports.sendAdminBroadcast = onCall({
       success: true,
       sentCount,
       recipientCount: recipients.length,
-      message: `Sent to ${sentCount} recipient(s)`,
+      failedCount: failed.length,
+      message: failed.length
+        ? `Sent to ${sentCount} recipient(s), ${failed.length} failed`
+        : `Sent to ${sentCount} recipient(s)`,
     };
   } catch (error) {
-    logger.error('sendAdminBroadcast failed:', error);
-    throw new HttpsError('internal', 'Failed to send broadcast email');
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+    const errorMessage = error?.message || error?.body?.message || 'unknown error';
+    logger.error('sendAdminBroadcast failed', {
+      message: String(errorMessage),
+      code: error?.code || error?.statusCode || null,
+      name: error?.name || null,
+    });
+    throw new HttpsError('internal', `Failed to send broadcast email: ${String(errorMessage).slice(0, 300)}`);
   }
 });
 

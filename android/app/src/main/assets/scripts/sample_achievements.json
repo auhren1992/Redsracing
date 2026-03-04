@@ -1,0 +1,82 @@
+[
+  {
+    "id": "first_race",
+    "name": "First Race",
+    "description": "Complete your first race",
+    "icon": "\ud83c\udfc1",
+    "category": "racing",
+    "points": 10
+  },
+  {
+    "id": "speed_demon",
+    "name": "Speed Demon",
+    "description": "Achieve a lap time under 2:00 minutes",
+    "icon": "\u26a1",
+    "category": "performance",
+    "points": 25
+  },
+  {
+    "id": "consistent_racer",
+    "name": "Consistent Racer",
+    "description": "Complete 5 races in a season",
+    "icon": "\ud83c\udfaf",
+    "category": "racing",
+    "points": 30
+  },
+  {
+    "id": "podium_finish",
+    "name": "Podium Finish",
+    "description": "Finish in the top 3 positions",
+    "icon": "\ud83c\udfc6",
+    "category": "performance",
+    "points": 50
+  },
+  {
+    "id": "clean_racer",
+    "name": "Clean Racer",
+    "description": "Complete a race with no penalties",
+    "icon": "\u2728",
+    "category": "sportsmanship",
+    "points": 20
+  },
+  {
+    "id": "community_member",
+    "name": "Community Member",
+    "description": "Join the RedsRacing community",
+    "icon": "\ud83d\udc65",
+    "category": "community",
+    "points": 5
+  },
+  {
+    "id": "photographer",
+    "name": "Photographer",
+    "description": "Upload 5 photos to the gallery",
+    "icon": "\ud83d\udcf8",
+    "category": "community",
+    "points": 15
+  },
+  {
+    "id": "fan_favorite",
+    "name": "Fan Favorite",
+    "description": "Receive 10 likes on your photos",
+    "icon": "\u2764\ufe0f",
+    "category": "community",
+    "points": 25
+  },
+  {
+    "id": "season_veteran",
+    "name": "Season Veteran",
+    "description": "Participate in an entire racing season",
+    "icon": "\ud83d\uddd3\ufe0f",
+    "category": "racing",
+    "points": 100
+  },
+  {
+    "id": "track_master",
+    "name": "Track Master",
+    "description": "Win a race at your home track",
+    "icon": "\ud83c\udfc5",
+    "category": "performance",
+    "points": 75
+  }
+]

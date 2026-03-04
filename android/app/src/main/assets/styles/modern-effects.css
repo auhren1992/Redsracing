@@ -1,0 +1,341 @@
+/* Modern Visual Effects - Sitewide */
+
+/* Global Background Patterns */
+body {
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(251, 191, 36, 0.05) 0%, transparent 50%);
+  background-attachment: fixed;
+  background-size: 100% 100%;
+}
+
+/* Modern Typography Effects */
+.text-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #fbbf24 50%, #3b82f6 100%);
+  background-size: 200% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: gradientFlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+/* Enhanced Card Styles */
+.card, .modern-card {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before, .modern-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.05), transparent);
+  transition: left 0.8s ease;
+}
+
+.card:hover, .modern-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(251, 191, 36, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.card:hover::before, .modern-card:hover::before {
+  left: 100%;
+}
+
+/* Animated Counters */
+.animated-counter {
+  font-weight: 900;
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: counterGlow 2s ease-out;
+}
+
+@keyframes counterGlow {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.8); 
+    filter: brightness(0.5);
+  }
+  50% { 
+    transform: scale(1.1); 
+    filter: brightness(1.2);
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1); 
+    filter: brightness(1);
+  }
+}
+
+/* Professional Loading States */
+.loading-shimmer {
+  background: linear-gradient(90deg, 
+    rgba(148, 163, 184, 0.1) 25%, 
+    rgba(148, 163, 184, 0.3) 50%, 
+    rgba(148, 163, 184, 0.1) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.loading-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fbbf24;
+  animation: loadingBounce 1.4s ease-in-out infinite both;
+}
+
+.loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes loadingBounce {
+  0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+  40% { transform: scale(1.2); opacity: 1; }
+}
+
+/* Enhanced Buttons */
+.modern-btn {
+  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+  border: none;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modern-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s;
+}
+
+.modern-btn:hover::before {
+  left: 100%;
+}
+
+.modern-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+/* Progress Indicators */
+.progress-ring {
+  width: 120px;
+  height: 120px;
+  position: relative;
+}
+
+.progress-ring-circle {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.2);
+  stroke-width: 4;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.progress-ring-progress {
+  stroke: url(#progressGradient);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: progressGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes progressGlow {
+  0% { filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.3)); }
+  100% { filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.6)); }
+}
+
+/* Status Indicators */
+.status-online {
+  position: relative;
+}
+
+.status-online::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  top: -2px;
+  right: -2px;
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { 
+    box-shadow: 0 0 0 0px rgba(16, 185, 129, 0.7);
+    opacity: 1;
+  }
+  50% { 
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    opacity: 0.8;
+  }
+}
+
+/* Notification Badges */
+.notification-badge {
+  background: linear-gradient(45deg, #ef4444, #dc2626);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Glassmorphism Elements */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+/* Racing-themed Animations */
+.racing-pulse {
+  animation: racingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes racingPulse {
+  0%, 100% { 
+    box-shadow: 0 0 0 0px rgba(251, 191, 36, 0.7);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 0 10px rgba(251, 191, 36, 0);
+    transform: scale(1.05);
+  }
+}
+
+.speed-lines {
+  position: relative;
+  overflow: hidden;
+}
+
+.speed-lines::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 10px,
+    rgba(251, 191, 36, 0.1) 10px,
+    rgba(251, 191, 36, 0.1) 12px
+  );
+  animation: speedLines 2s linear infinite;
+}
+
+@keyframes speedLines {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Scroll Reveal Animations */
+.reveal-fade {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s ease-out;
+}
+
+.reveal-fade.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-slide {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: all 0.8s ease-out;
+}
+
+.reveal-slide.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.5s ease-out;
+}
+
+.reveal-scale.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Enhanced Focus States */
+*:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+input:focus, textarea:focus {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+}
+
+/* Performance Optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
