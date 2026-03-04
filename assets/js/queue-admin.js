@@ -286,10 +286,14 @@ async function main() {
     document.getElementById('dlq-refresh').addEventListener('click', loadDlq);
     document.getElementById('queue-process').addEventListener('click', async ()=>{
       try {
-        await fetch('/process_queues', { method: 'POST' });
+        // Call Firebase Cloud Function instead of local endpoint
+        const functionUrl = 'https://us-central1-redsracing-a7f8b.cloudfunctions.net/process_queues';
+        await fetch(functionUrl, { method: 'POST' });
         await loadQueue();
         await loadDlq();
-      } catch {}
+      } catch(e) {
+        console.error('Failed to process queues:', e);
+      }
     });
 
     await loadQueue();

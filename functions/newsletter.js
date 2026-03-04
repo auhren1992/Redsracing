@@ -75,6 +75,125 @@ exports.sendWelcomeEmail = onDocumentCreated({
   }
 });
 
+// Callable function for admin console email broadcasts
+exports.sendAdminBroadcast = onCall({
+  secrets: ['MAILERSEND_API_KEY']
+}, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Login required');
+  }
+
+  const db = getFirestore();
+  let role = request.auth.token?.role || '';
+  if (!role) {
+    try {
+      const userSnap = await db.collection('users').doc(request.auth.uid).get();
+      role = userSnap.exists ? (userSnap.data().role || '') : '';
+    } catch (_) {}
+  }
+  if (role !== 'admin' && role !== 'team-member') {
+    throw new HttpsError('permission-denied', 'Admin or team member only');
+  }
+
+  const { recipientType, subject, message } = request.data || {};
+  if (!subject || !message) {
+    throw new HttpsError('invalid-argument', 'subject and message are required');
+  }
+
+  const mailerSend = getMailerSend();
+  if (!mailerSend) {
+    throw new HttpsError('failed-precondition', 'MailerSend not initialized');
+  }
+
+  try {
+    const recipientsSet = new Set();
+
+    // Pull users by requested target type
+    const usersSnap = await db.collection('users').get();
+    usersSnap.forEach((doc) => {
+      const u = doc.data() || {};
+      const email = (u.email || '').toLowerCase().trim();
+      if (!email || !email.includes('@')) return;
+      const userRole = (u.role || '').toLowerCase();
+
+      if (recipientType === 'team-members') {
+        if (userRole === 'admin' || userRole === 'team-member') recipientsSet.add(email);
+        return;
+      }
+      if (recipientType === 'public-fans') {
+        if (userRole === 'public-fan') recipientsSet.add(email);
+        return;
+      }
+      if (recipientType === 'team-red') {
+        // TeamRed audience comes from subscribers collection below
+        return;
+      }
+      // default: all
+      recipientsSet.add(email);
+    });
+
+    // Subscribers represent TeamRed followers and newsletter audience
+    if (recipientType === 'team-red' || recipientType === 'all' || recipientType === 'public-fans') {
+      const subscribersSnap = await db.collection('subscribers').where('subscribed', '==', true).get();
+      subscribersSnap.forEach((doc) => {
+        const s = doc.data() || {};
+        const email = (s.email || '').toLowerCase().trim();
+        if (email && email.includes('@')) recipientsSet.add(email);
+      });
+    }
+
+    const recipients = Array.from(recipientsSet);
+    if (!recipients.length) {
+      return { success: true, sentCount: 0, recipientCount: 0, message: 'No recipients found' };
+    }
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; background: #0f172a; padding: 24px; border-radius: 12px;">
+        <h1 style="color: #fbbf24; margin: 0 0 16px 0;">RedsRacing Update</h1>
+        <h2 style="color: #ffffff; margin: 0 0 12px 0; font-size: 20px;">${String(subject).replace(/</g, '&lt;')}</h2>
+        <div style="color: #cbd5e1; white-space: pre-wrap; line-height: 1.6;">${String(message).replace(/</g, '&lt;')}</div>
+        <p style="margin-top: 24px; color: #94a3b8; font-size: 12px;">Sent from RedsRacing Admin Console</p>
+      </div>
+    `;
+
+    const sentFrom = new Sender('newsletter@redsracing.org', 'RedsRacing');
+    let sentCount = 0;
+    const chunkSize = 50;
+    for (let i = 0; i < recipients.length; i += chunkSize) {
+      const chunk = recipients.slice(i, i + chunkSize);
+      const recipientObjs = chunk.map((email) => new Recipient(email));
+      const emailParams = new EmailParams()
+        .setFrom(sentFrom)
+        .setTo(recipientObjs)
+        .setSubject(subject)
+        .setHtml(htmlContent)
+        .setText(message);
+      await mailerSend.email.send(emailParams);
+      sentCount += chunk.length;
+    }
+
+    await db.collection('admin_logs').add({
+      action: 'admin_broadcast_email',
+      recipientType: recipientType || 'all',
+      recipientCount: recipients.length,
+      subject: String(subject).slice(0, 200),
+      sentBy: request.auth.uid,
+      role: role || 'unknown',
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    return {
+      success: true,
+      sentCount,
+      recipientCount: recipients.length,
+      message: `Sent to ${sentCount} recipient(s)`,
+    };
+  } catch (error) {
+    logger.error('sendAdminBroadcast failed:', error);
+    throw new HttpsError('internal', 'Failed to send broadcast email');
+  }
+});
+
 // Callable function to send new race notification
 exports.notifyNewRace = onCall({ 
   secrets: ['MAILERSEND_API_KEY'] 

@@ -1497,3 +1497,4 @@ const newsletter = require('./newsletter');
 exports.sendWelcomeEmail = newsletter.sendWelcomeEmail;
 exports.notifyNewRace = newsletter.notifyNewRace;
 exports.sendUpcomingRaceReminders = newsletter.sendUpcomingRaceReminders;
+exports.sendAdminBroadcast = newsletter.sendAdminBroadcast;

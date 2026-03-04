@@ -34,17 +34,44 @@
       // CRITICAL FIX: Wait for auth to initialize before doing anything else
       // Firebase needs time to validate stored tokens with the server
       console.log('[RedsRacing Auth] Waiting for auth to initialize...');
+      
+      // Single initialization promise that resolves when auth is ready
       await new Promise((resolve) => {
+        // Check if already initialized
+        if (auth.currentUser !== undefined) {
+          console.log('[RedsRacing Auth] Auth already initialized');
+          resolve();
+          return;
+        }
+        
         const unsubscribe = onAuthStateChanged(auth, (user) => {
           console.log('[RedsRacing Auth] Initial auth state resolved:', user ? user.email : 'null');
           unsubscribe();
           resolve();
+        }, (error) => {
+          console.error('[RedsRacing Auth] Auth state change error:', error);
+          unsubscribe();
+          resolve(); // Resolve anyway to not block
         });
+        
+        // Timeout after 5 seconds to prevent hanging
+        setTimeout(() => {
+          console.warn('[RedsRacing Auth] Auth initialization timeout');
+          unsubscribe();
+          resolve();
+        }, 5000);
       });
       console.log('[RedsRacing Auth] Auth initialized, setting up listeners');
       
+      // Setup single auth state listener with error handling
       let pendingSignOutTimer = null;
-      onAuthStateChanged(auth, (user) => {
+      let authListenerSetup = false;
+      
+      // Prevent duplicate listener setup
+      if (!window.__redsracingAuthListenerActive) {
+        window.__redsracingAuthListenerActive = true;
+        
+        onAuthStateChanged(auth, (user) => {
         // Wait for DOM to be ready before manipulating elements
         const handleAuth = () => {
         try {
@@ -296,9 +323,12 @@ const core = await import('./assets/js/firebase-core.js');
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', handleAuth);
         } else {
-          handleAuth();
+        handleAuth();
         }
+      }, (error) => {
+        console.error('[RedsRacing Auth] Auth listener error:', error);
       });
+      } // Close the auth listener active check
     } catch (err) {
       console.error('[RedsRacing Auth] ===== INIT FAILED =====', err);
       console.error('[RedsRacing Auth] Error stack:', err.stack);

@@ -191,6 +191,13 @@ service cloud.firestore {
       allow update, delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
     }
     
+    // Admin action logs (team-members and admins can write)
+    match /admin_logs/{logId} {
+      allow create: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+    
     // Default deny - catches everything not explicitly allowed above
     match /{document=**} {
       allow read, write: if false;
