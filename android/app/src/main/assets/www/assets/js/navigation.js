@@ -250,7 +250,7 @@ import "./app.js";
   }
 
   // Lazy-load Sentry once per page if configured and in production
-  if (process.env.NODE_ENV === 'production' && !window.__sentryLoaded) {
+  if (!window.__sentryLoaded && window.location.hostname !== 'localhost') {
     window.__sentryLoaded = true;
     setTimeout(() => {
       import(/* webpackChunkName: "sentry" */ './sentry-init.js')
