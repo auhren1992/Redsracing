@@ -132,6 +132,32 @@ service cloud.firestore {
       allow write: if hasRole('team-member') || hasRole('admin');
     }
     
+    // App configuration (version management, push notification settings)
+    match /app_config/{docId} {
+      // Public read for version checking in apps
+      allow read: if true;
+      // Only admins can update app config
+      allow write: if hasRole('admin') || hasProfileRole('admin');
+    }
+    
+    // App usage tracking (version distribution, device info)
+    match /app_usage/{usageId} {
+      // Apps can write their own usage data
+      allow create, update: if true;
+      // Admins can read all usage data
+      allow read: if hasRole('admin') || hasProfileRole('admin') || hasRole('team-member') || hasProfileRole('team-member');
+    }
+    
+    // Push notification queue (for Cloud Functions)
+    match /push_notifications/{notificationId} {
+      // Team members and admins can create notifications
+      allow create: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      // Admins can read notification status
+      allow read: if hasRole('admin') || hasProfileRole('admin');
+      // Cloud Functions can update status
+      allow update: if true;
+    }
+    
     // Jonny-specific images (approvals)
     match /jonny_gallery_images/{imageId} {
       // Public can read approved images; team members/admins can read all

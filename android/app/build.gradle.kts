@@ -4,6 +4,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.github.triplet.play")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -14,8 +15,8 @@ android {
         applicationId = "com.redsracing.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 91
-        versionName = "9.1"
+        versionCode = 92
+        versionName = "9.2"
 
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
@@ -87,4 +88,8 @@ dependencies {
     implementation("com.google.android.play:integrity:1.5.0")
     // Google Mobile Ads SDK
     implementation("com.google.android.gms:play-services-ads:23.6.0")
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
 }

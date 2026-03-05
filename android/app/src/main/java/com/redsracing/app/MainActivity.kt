@@ -36,6 +36,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.webkit.WebViewAssetLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import com.redsracing.app.databinding.ActivityMainBottomNavBinding
 import java.io.File
 import java.io.IOException
@@ -65,6 +67,8 @@ class MainActivity : AppCompatActivity() {
         setupToolbarGradient()
 
         createNotificationChannel()
+        initializeFirebaseMessaging()
+        checkAppVersion()
 
         permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
@@ -590,6 +594,157 @@ class MainActivity : AppCompatActivity() {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 permissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
             }
+        }
+    }
+
+    private fun initializeFirebaseMessaging() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                android.util.Log.w("MainActivity", "FCM token fetch failed", task.exception)
+                return@addOnCompleteListener
+            }
+
+            val token = task.result
+            android.util.Log.d("MainActivity", "FCM Token: $token")
+
+            // Subscribe to topics
+            FirebaseMessaging.getInstance().subscribeToTopic("all_users")
+                .addOnCompleteListener { topicTask ->
+                    if (topicTask.isSuccessful) {
+                        android.util.Log.d("MainActivity", "Subscribed to all_users topic")
+                    }
+                }
+
+            FirebaseMessaging.getInstance().subscribeToTopic("android_users")
+                .addOnCompleteListener { topicTask ->
+                    if (topicTask.isSuccessful) {
+                        android.util.Log.d("MainActivity", "Subscribed to android_users topic")
+                    }
+                }
+            
+            // Report app version and device info to Firestore
+            reportAppUsage(token)
+        }
+    }
+    
+    private fun reportAppUsage(fcmToken: String) {
+        try {
+            val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0)).longVersionCode.toInt()
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, 0).versionCode
+            }
+            
+            val versionName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0)).versionName
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, 0).versionName
+            }
+            
+            val usageData = hashMapOf(
+                "platform" to "android",
+                "app_version" to versionCode,
+                "app_version_name" to versionName,
+                "fcm_token" to fcmToken,
+                "device_model" to Build.MODEL,
+                "android_version" to Build.VERSION.RELEASE,
+                "last_seen" to com.google.firebase.Timestamp.now()
+            )
+            
+            // Use FCM token as document ID for upsert behavior
+            FirebaseFirestore.getInstance()
+                .collection("app_usage")
+                .document(fcmToken)
+                .set(usageData)
+                .addOnSuccessListener {
+                    android.util.Log.d("MainActivity", "App usage reported successfully")
+                }
+                .addOnFailureListener { e ->
+                    android.util.Log.w("MainActivity", "Failed to report app usage", e)
+                }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error reporting app usage", e)
+        }
+    }
+
+    private fun checkAppVersion() {
+        val currentVersionCode = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0)).longVersionCode.toInt()
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, 0).versionCode
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Failed to get version code", e)
+            return
+        }
+
+        // Check Firestore for latest version
+        FirebaseFirestore.getInstance()
+            .collection("app_config")
+            .document("android_version")
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val latestVersion = document.getLong("latest_version")?.toInt() ?: currentVersionCode
+                    val minimumVersion = document.getLong("minimum_version")?.toInt() ?: currentVersionCode
+                    
+                    if (currentVersionCode < minimumVersion) {
+                        // Force update required
+                        showUpdateDialog(true, latestVersion)
+                    } else if (currentVersionCode < latestVersion) {
+                        // Optional update available
+                        showUpdateDialog(false, latestVersion)
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.w("MainActivity", "Failed to check app version", e)
+            }
+    }
+
+    private fun showUpdateDialog(isForced: Boolean, latestVersion: Int) {
+        val message = if (isForced) {
+            "A required update is available. Please update to continue using the app."
+        } else {
+            "A new version (v$latestVersion) is available. Would you like to update?"
+        }
+
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(if (isForced) "Update Required" else "Update Available")
+            .setMessage(message)
+            .setPositiveButton("Update") { _, _ ->
+                // Open Play Store
+                val playStoreIntent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
+                )
+                try {
+                    startActivity(playStoreIntent)
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Unable to open Play Store", Toast.LENGTH_SHORT).show()
+                }
+                if (isForced) {
+                    finish()
+                }
+            }
+            .setCancelable(!isForced)
+
+        if (!isForced) {
+            builder.setNegativeButton("Later") { dialog, _ ->
+                dialog.dismiss()
+            }
+        } else {
+            builder.setOnCancelListener {
+                finish()
+            }
+        }
+
+        runOnUiThread {
+            builder.create().show()
         }
     }
 }

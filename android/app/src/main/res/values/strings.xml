@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Redsracing</string>
+    <string name="default_notification_channel_id">redsracing_notifications</string>
 </resources>

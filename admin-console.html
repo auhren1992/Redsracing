@@ -1550,6 +1550,78 @@
                   </div>
                 </div>
                 
+                <!-- App Version Management -->
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 mb-4">
+                  <h4 class="text-white font-semibold mb-3">App Version Management</h4>
+                  
+                  <!-- Version Distribution Stats -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-3">
+                      <h5 class="text-white font-medium text-sm mb-2">Android Version Distribution</h5>
+                      <div id="android-version-distribution" class="text-xs text-slate-300 space-y-1">
+                        <div class="text-slate-500">Loading...</div>
+                      </div>
+                    </div>
+                    <div class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-3">
+                      <h5 class="text-white font-medium text-sm mb-2">iOS Version Distribution</h5>
+                      <div id="ios-version-distribution" class="text-xs text-slate-300 space-y-1">
+                        <div class="text-slate-500">Loading...</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Android Version Config -->
+                  <div class="bg-slate-900/50 border border-green-700/30 rounded-lg p-3 mb-3">
+                    <h5 class="text-white font-medium text-sm mb-2 flex items-center">
+                      <i class="fab fa-android text-green-400 mr-2"></i>Android Version Config
+                    </h5>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Latest Version Code</label>
+                        <input type="number" id="android-latest-version" class="modern-input w-full p-2 text-white text-sm" placeholder="91" />
+                      </div>
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Minimum Required</label>
+                        <input type="number" id="android-min-version" class="modern-input w-full p-2 text-white text-sm" placeholder="85" />
+                      </div>
+                    </div>
+                    <div class="mt-2">
+                      <label class="block text-xs text-slate-400 mb-1">Update Message (Optional)</label>
+                      <input type="text" id="android-update-message" class="modern-input w-full p-2 text-white text-sm" placeholder="New features and bug fixes!" />
+                    </div>
+                  </div>
+                  
+                  <!-- iOS Version Config -->
+                  <div class="bg-slate-900/50 border border-blue-700/30 rounded-lg p-3 mb-3">
+                    <h5 class="text-white font-medium text-sm mb-2 flex items-center">
+                      <i class="fab fa-apple text-blue-400 mr-2"></i>iOS Version Config
+                    </h5>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Latest Version Code</label>
+                        <input type="number" id="ios-latest-version" class="modern-input w-full p-2 text-white text-sm" placeholder="91" />
+                      </div>
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Minimum Required</label>
+                        <input type="number" id="ios-min-version" class="modern-input w-full p-2 text-white text-sm" placeholder="85" />
+                      </div>
+                    </div>
+                    <div class="mt-2">
+                      <label class="block text-xs text-slate-400 mb-1">Update Message (Optional)</label>
+                      <input type="text" id="ios-update-message" class="modern-input w-full p-2 text-white text-sm" placeholder="New features and bug fixes!" />
+                    </div>
+                  </div>
+                  
+                  <div class="flex justify-end space-x-2">
+                    <button id="load-version-config-btn" class="modern-btn text-white px-3 py-2 rounded text-sm">
+                      <i class="fas fa-sync mr-2"></i>Load Current
+                    </button>
+                    <button id="save-version-config-btn" class="success-btn text-white px-3 py-2 rounded text-sm">
+                      <i class="fas fa-save mr-2"></i>Save Config
+                    </button>
+                  </div>
+                </div>
+                
                 <!-- Push Notifications -->
                 <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 mb-4">
                   <h4 class="text-white font-semibold mb-3">Send Push Notification</h4>
@@ -1806,6 +1878,28 @@
                     <div>
                       <label class="block text-sm font-medium text-slate-300 mb-2">Points Earned</label>
                       <input type="number" id="race-points" class="modern-input w-full p-3 text-white" min="0" placeholder="0" />
+                    </div>
+                  </div>
+                  
+                  <!-- Race Achievements -->
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="flex items-center space-x-3 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                      <input type="checkbox" id="race-is-win" class="w-5 h-5 text-yellow-400 bg-slate-700 border-slate-600 rounded focus:ring-yellow-400" />
+                      <label for="race-is-win" class="text-sm font-medium text-white flex items-center">
+                        <i class="fas fa-trophy text-yellow-400 mr-2"></i>1st Place Win
+                      </label>
+                    </div>
+                    <div class="flex items-center space-x-3 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                      <input type="checkbox" id="race-is-podium" class="w-5 h-5 text-blue-400 bg-slate-700 border-slate-600 rounded focus:ring-blue-400" />
+                      <label for="race-is-podium" class="text-sm font-medium text-white flex items-center">
+                        <i class="fas fa-medal text-blue-400 mr-2"></i>Podium Finish (Top 3)
+                      </label>
+                    </div>
+                    <div class="flex items-center space-x-3 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                      <input type="checkbox" id="race-is-dnf" class="w-5 h-5 text-red-400 bg-slate-700 border-slate-600 rounded focus:ring-red-400" />
+                      <label for="race-is-dnf" class="text-sm font-medium text-white flex items-center">
+                        <i class="fas fa-times-circle text-red-400 mr-2"></i>Did Not Finish (DNF)
+                      </label>
                     </div>
                   </div>
                   
@@ -4092,6 +4186,8 @@
             try { await refreshUserActivity(); } catch(e) { console.warn('Activity refresh failed:', e); }
             // Load initial app stats
             try { await refreshAppStats(); } catch(e) { console.warn('App stats refresh failed:', e); }
+            // Load version distribution
+            try { await loadVersionDistribution(); } catch(e) { console.warn('Version distribution load failed:', e); }
             // Load initial revenue stats
             try { await refreshRevenueStats(); } catch(e) { console.warn('Revenue stats refresh failed:', e); }
           } catch(e) {
@@ -4172,6 +4268,12 @@
           if (exportAllDataBtn) exportAllDataBtn.addEventListener('click', exportAllData);
           
           // Mobile App Management
+          const loadVersionConfigBtn = document.getElementById('load-version-config-btn');
+          if (loadVersionConfigBtn) loadVersionConfigBtn.addEventListener('click', loadVersionConfig);
+          
+          const saveVersionConfigBtn = document.getElementById('save-version-config-btn');
+          if (saveVersionConfigBtn) saveVersionConfigBtn.addEventListener('click', saveVersionConfig);
+          
           const refreshAppStatsBtn = document.getElementById('refresh-app-stats-btn');
           if (refreshAppStatsBtn) refreshAppStatsBtn.addEventListener('click', refreshAppStats);
           
@@ -4823,14 +4925,26 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
             
-            // Log push notification (in production would call FCM Cloud Function)
             const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
             const auth = getAuth();
             
+            // Store notification in Firestore for Cloud Function to send
             try {
+              const notificationData = {
+                platform,
+                title,
+                message,
+                timestamp: serverTimestamp(),
+                sentBy: auth.currentUser?.uid || null,
+                status: 'pending'
+              };
+              
+              await addDoc(collection(db, 'push_notifications'), notificationData);
+              
+              // Also log to admin logs
               await addDoc(collection(db, 'admin_logs'), {
                 action: 'push_notification_sent',
                 platform,
@@ -4840,8 +4954,9 @@
                 uid: auth.currentUser?.uid || null,
                 role: role || 'unknown'
               });
-            } catch(logError) {
-              console.warn('Could not log push notification:', logError);
+            } catch(error) {
+              console.error('Failed to queue push notification:', error);
+              throw error;
             }
             
             // Clear form
@@ -4849,8 +4964,8 @@
             document.getElementById('push-message').value = '';
             
             document.getElementById('app-operation-result').innerHTML = 
-              `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Push notification logged for ${platform}</div>`;
-            showToast('Push notification logged!');
+              `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Push notification queued for ${platform}. Users will receive it shortly.</div>`;
+            showToast('Push notification sent!');
             
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-bell mr-2"></i>Send Notification';
@@ -4860,6 +4975,175 @@
             const btn = document.getElementById('send-push-notification-btn');
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-bell mr-2"></i>Send Notification';
+          }
+        }
+        
+        async function loadVersionConfig() {
+          try {
+            const { getFirestore, doc, getDoc, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            
+            // Load Android config
+            const androidDoc = await getDoc(doc(db, 'app_config', 'android_version'));
+            if (androidDoc.exists()) {
+              const data = androidDoc.data();
+              document.getElementById('android-latest-version').value = data.latest_version || '';
+              document.getElementById('android-min-version').value = data.minimum_version || '';
+              document.getElementById('android-update-message').value = data.update_message || '';
+            }
+            
+            // Load iOS config
+            const iosDoc = await getDoc(doc(db, 'app_config', 'ios_version'));
+            if (iosDoc.exists()) {
+              const data = iosDoc.data();
+              document.getElementById('ios-latest-version').value = data.latest_version || '';
+              document.getElementById('ios-min-version').value = data.minimum_version || '';
+              document.getElementById('ios-update-message').value = data.update_message || '';
+            }
+            
+            // Load version distribution from app_usage collection
+            await loadVersionDistribution();
+            
+            showToast('Version config loaded');
+          } catch(e) {
+            console.error('Failed to load version config:', e);
+            showToast('Failed to load version config', 'error');
+          }
+        }
+        
+        async function saveVersionConfig() {
+          try {
+            const role = await getUserRole();
+            if (role !== 'admin') {
+              showToast('You need to be an admin to manage app versions', 'error');
+              return;
+            }
+            
+            const btn = document.getElementById('save-version-config-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+            
+            const { getFirestore, doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const auth = getAuth();
+            
+            const androidLatest = parseInt(document.getElementById('android-latest-version').value) || 0;
+            const androidMin = parseInt(document.getElementById('android-min-version').value) || 0;
+            const androidMessage = document.getElementById('android-update-message').value;
+            
+            const iosLatest = parseInt(document.getElementById('ios-latest-version').value) || 0;
+            const iosMin = parseInt(document.getElementById('ios-min-version').value) || 0;
+            const iosMessage = document.getElementById('ios-update-message').value;
+            
+            // Save Android config
+            await setDoc(doc(db, 'app_config', 'android_version'), {
+              latest_version: androidLatest,
+              minimum_version: androidMin,
+              update_message: androidMessage,
+              updated_at: serverTimestamp(),
+              updated_by: auth.currentUser?.uid || null
+            });
+            
+            // Save iOS config
+            await setDoc(doc(db, 'app_config', 'ios_version'), {
+              latest_version: iosLatest,
+              minimum_version: iosMin,
+              update_message: iosMessage,
+              updated_at: serverTimestamp(),
+              updated_by: auth.currentUser?.uid || null
+            });
+            
+            showToast('Version config saved successfully');
+            document.getElementById('app-operation-result').innerHTML = 
+              '<div class="text-green-400"><i class="fas fa-check mr-2"></i>App version config updated. Users will be prompted on next app launch.</div>';
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Config';
+          } catch(e) {
+            console.error('Failed to save version config:', e);
+            showToast('Failed to save version config', 'error');
+            const btn = document.getElementById('save-version-config-btn');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Config';
+          }
+        }
+        
+        async function loadVersionDistribution() {
+          try {
+            const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            
+            const usageSnap = await getDocs(collection(db, 'app_usage'));
+            const androidVersions = {};
+            const iosVersions = {};
+            
+            usageSnap.forEach(doc => {
+              const data = doc.data();
+              const platform = data.platform;
+              const version = data.app_version;
+              
+              if (platform === 'android' && version) {
+                androidVersions[version] = (androidVersions[version] || 0) + 1;
+              } else if (platform === 'ios' && version) {
+                iosVersions[version] = (iosVersions[version] || 0) + 1;
+              }
+            });
+            
+            // Display Android distribution
+            const androidDiv = document.getElementById('android-version-distribution');
+            if (Object.keys(androidVersions).length === 0) {
+              androidDiv.innerHTML = '<div class="text-slate-500">No version data available</div>';
+            } else {
+              const androidTotal = Object.values(androidVersions).reduce((a, b) => a + b, 0);
+              const sorted = Object.entries(androidVersions).sort((a, b) => b[1] - a[1]);
+              androidDiv.innerHTML = sorted.map(([version, count]) => {
+                const percent = ((count / androidTotal) * 100).toFixed(1);
+                return `
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-300">v${version}:</span>
+                    <div class="flex items-center space-x-2">
+                      <div class="w-24 h-2 bg-slate-700 rounded overflow-hidden">
+                        <div class="h-full bg-green-400" style="width: ${percent}%"></div>
+                      </div>
+                      <span class="text-slate-400 w-16 text-right">${count} (${percent}%)</span>
+                    </div>
+                  </div>
+                `;
+              }).join('');
+            }
+            
+            // Display iOS distribution
+            const iosDiv = document.getElementById('ios-version-distribution');
+            if (Object.keys(iosVersions).length === 0) {
+              iosDiv.innerHTML = '<div class="text-slate-500">No version data available</div>';
+            } else {
+              const iosTotal = Object.values(iosVersions).reduce((a, b) => a + b, 0);
+              const sorted = Object.entries(iosVersions).sort((a, b) => b[1] - a[1]);
+              iosDiv.innerHTML = sorted.map(([version, count]) => {
+                const percent = ((count / iosTotal) * 100).toFixed(1);
+                return `
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-300">v${version}:</span>
+                    <div class="flex items-center space-x-2">
+                      <div class="w-24 h-2 bg-slate-700 rounded overflow-hidden">
+                        <div class="h-full bg-blue-400" style="width: ${percent}%"></div>
+                      </div>
+                      <span class="text-slate-400 w-16 text-right">${count} (${percent}%)</span>
+                    </div>
+                  </div>
+                `;
+              }).join('');
+            }
+          } catch(e) {
+            console.error('Failed to load version distribution:', e);
+            document.getElementById('android-version-distribution').innerHTML = 
+              '<div class="text-red-400 text-xs">Failed to load</div>';
+            document.getElementById('ios-version-distribution').innerHTML = 
+              '<div class="text-red-400 text-xs">Failed to load</div>';
           }
         }
         
@@ -5798,6 +6082,9 @@
                 weather: document.getElementById('race-weather').value || '',
                 notes: document.getElementById('race-notes').value || '',
                 incidents: incidents,
+                isWin: document.getElementById('race-is-win').checked,
+                isPodium: document.getElementById('race-is-podium').checked,
+                isDNF: document.getElementById('race-is-dnf').checked,
                 createdAt: new Date(),
                 createdBy: user.uid
               };
