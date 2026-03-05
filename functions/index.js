@@ -1492,6 +1492,102 @@ exports.tiktokAutoIngest = onSchedule('every 120 minutes', async (event) => {
   }
 });
 
+/**
+ * Send push notification via FCM when a document is created in push_notifications collection.
+ * Triggered automatically when admin console writes to push_notifications with status 'pending'.
+ */
+exports.sendPushNotification = onDocumentCreated(
+  { document: "push_notifications/{notificationId}", secrets: ["SENTRY_DSN"] },
+  async (event) => {
+    const notificationData = event.data.data();
+    const notificationId = event.params.notificationId;
+    
+    logger.info(`Processing push notification ${notificationId}`, notificationData);
+    
+    try {
+      // Check if already processed or not pending
+      if (notificationData.status !== 'pending') {
+        logger.info(`Skipping notification ${notificationId} with status ${notificationData.status}`);
+        return;
+      }
+      
+      const { platform, title, message } = notificationData;
+      
+      if (!title || !message) {
+        throw new Error('Missing title or message');
+      }
+      
+      // Get Firebase Messaging instance
+      const { getMessaging } = require('firebase-admin/messaging');
+      const messaging = getMessaging();
+      
+      // Determine which topics to send to based on platform
+      let topics = [];
+      switch (platform) {
+        case 'all':
+        case 'both':
+          // Send to both Android and iOS separately
+          topics = ['android_users', 'ios_users'];
+          break;
+        case 'android':
+          topics = ['android_users'];
+          break;
+        case 'ios':
+          topics = ['ios_users'];
+          break;
+        default:
+          throw new Error(`Unknown platform: ${platform}`);
+      }
+      
+      // Send messages to all topics
+      const responses = [];
+      for (const topic of topics) {
+        const fcmMessage = {
+          notification: {
+            title: title,
+            body: message,
+          },
+          topic: topic,
+        };
+        
+        try {
+          const response = await messaging.send(fcmMessage);
+          logger.info(`Successfully sent notification ${notificationId} to topic ${topic}:`, response);
+          responses.push({ topic, success: true, response });
+        } catch (topicError) {
+          logger.error(`Failed to send to topic ${topic}:`, topicError);
+          responses.push({ topic, success: false, error: topicError.message });
+        }
+      }
+      
+      // Update the notification document to mark as sent
+      const db = getFirestore();
+      await db.collection('push_notifications').doc(notificationId).update({
+        status: 'sent',
+        sentAt: FieldValue.serverTimestamp(),
+        fcmResponses: responses,
+        topicsSentTo: topics,
+      });
+      
+    } catch (error) {
+      logger.error(`Failed to send push notification ${notificationId}:`, error);
+      try { Sentry.captureException(error); } catch (_) {}
+      
+      // Update the notification document to mark as failed
+      try {
+        const db = getFirestore();
+        await db.collection('push_notifications').doc(notificationId).update({
+          status: 'failed',
+          error: error.message || String(error),
+          failedAt: FieldValue.serverTimestamp(),
+        });
+      } catch (updateError) {
+        logger.error(`Failed to update notification status for ${notificationId}:`, updateError);
+      }
+    }
+  }
+);
+
 // Newsletter functions
 const newsletter = require('./newsletter');
 exports.sendWelcomeEmail = newsletter.sendWelcomeEmail;

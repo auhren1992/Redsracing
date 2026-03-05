@@ -16,6 +16,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.os.Message
 import android.provider.MediaStore
 import android.view.LayoutInflater
@@ -36,6 +38,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.webkit.WebViewAssetLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 import com.redsracing.app.databinding.ActivityMainBottomNavBinding
@@ -128,8 +131,8 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // Load home page
-        binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
+        // Check authentication and route to appropriate page
+        checkAuthAndRoute()
     }
 
     private fun setupToolbarGradient() {
@@ -706,6 +709,26 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
+    private fun checkAuthAndRoute() {
+        // Check Firebase authentication state
+        val auth = FirebaseAuth.getInstance()
+        
+        // Give Firebase Auth a moment to restore session
+        Handler(Looper.getMainLooper()).postDelayed({
+            val currentUser = auth.currentUser
+            
+            if (currentUser != null) {
+                // User is authenticated - go directly to home
+                android.util.Log.d("MainActivity", "User is authenticated: ${currentUser.email}")
+                binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
+            } else {
+                // Not authenticated - show login page
+                android.util.Log.d("MainActivity", "User not authenticated - showing login")
+                binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/login.html")
+            }
+        }, 500)  // 500ms delay to allow Firebase Auth to restore session
+    }
+    
     private fun showUpdateDialog(isForced: Boolean, latestVersion: Int) {
         val message = if (isForced) {
             "A required update is available. Please update to continue using the app."
