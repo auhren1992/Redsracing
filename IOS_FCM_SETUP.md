@@ -27,12 +27,20 @@ import UIKit
 import Firebase
 import FirebaseMessaging
 import UserNotifications
+import AppTrackingTransparency
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         FirebaseApp.configure()
+        
+        // Request App Tracking Transparency permission (required for AdMob)
+        if #available(iOS 14, *) {
+            ATTrackingManager.requestTrackingAuthorization { status in
+                print("ATT Status: \(status.rawValue)")
+            }
+        }
         
         // Request notification permissions
         UNUserNotificationCenter.current().delegate = self
