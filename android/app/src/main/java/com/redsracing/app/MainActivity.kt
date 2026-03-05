@@ -560,7 +560,7 @@ class MainActivity : AppCompatActivity() {
             null
         }
         return if (photoFile != null) {
-            val photoURI = FileProvider.getUriForFile(this, "com.example.redsracing.fileprovider", photoFile)
+            val photoURI = FileProvider.getUriForFile(this, "com.redsracing.app.fileprovider", photoFile)
             cameraPhotoUri = photoURI
             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
             takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
