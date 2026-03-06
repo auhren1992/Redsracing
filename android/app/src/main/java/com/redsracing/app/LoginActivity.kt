@@ -46,7 +46,7 @@ class LoginActivity : AppCompatActivity() {
         }
         binding.createAccountLink.setOnClickListener {
             // Do not remember yet; only after account creation + login is successful in the web app
-            startMain("file:///android_asset/www/signup.html", guest = false)
+            startMain("https://www.redsracing.org/signup.html", guest = false)
         }
     }
 

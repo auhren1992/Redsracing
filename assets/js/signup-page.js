@@ -80,11 +80,18 @@ export async function handleSignup(email, password, inviteCode) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log('[SIGNUP] DOM loaded, initializing signup form...');
   const signupForm = document.getElementById("signup-form");
   const signupError = document.getElementById("signup-error");
   const inviteCodeInput = document.getElementById("invite-code");
   const inviteCodeHelp = document.getElementById("invite-code-help");
   const teamRoleInputs = document.querySelectorAll('input[name="team-role"]');
+  
+  if (!signupForm) {
+    console.error('[SIGNUP] Form element not found!');
+    return;
+  }
+  console.log('[SIGNUP] Form element found, setting up listeners...');
   
   // Show/hide invite code requirement based on role selection
   teamRoleInputs.forEach(input => {
@@ -109,14 +116,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   if (signupForm) {
+    console.log('[SIGNUP] Attaching submit listener to form...');
     signupForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      console.log('[SIGNUP] Form submitted!');
       signupError.textContent = "";
+      
+      // Show loading state
+      const submitBtn = signupForm.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="inline-block animate-spin mr-2">⟳</span> Creating Account...';
 
       const email = signupForm.email.value;
       const password = signupForm.password.value;
       const inviteCode = signupForm["invite-code"].value;
       const teamRole = signupForm["team-role"].value;
+      
+      console.log('[SIGNUP] Form data:', { email, teamRole, hasInviteCode: !!inviteCode });
 
       // Validate invite code requirement for team roles
       if ((teamRole === 'racer' || teamRole === 'crew') && (!inviteCode || !inviteCode.trim())) {
@@ -125,18 +142,27 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
+        console.log('[SIGNUP] Calling handleSignup...');
         const user = await handleSignup(email, password, inviteCode);
+        console.log('[SIGNUP] Signup successful!', user.uid);
         
         // Redirect based on role
         if (teamRole === 'fan' || !inviteCode || !inviteCode.trim()) {
           // Fan/follower - go to follower dashboard
+          console.log('[SIGNUP] Redirecting to follower dashboard...');
           window.location.href = "/follower-dashboard.html";
         } else {
           // Team member with invite code - go to login to refresh token
+          console.log('[SIGNUP] Redirecting to login...');
           window.location.href = "/login.html";
         }
       } catch (error) {
-        signupError.textContent = error.message;
+        console.error('[SIGNUP] Signup failed:', error);
+        signupError.textContent = error.message || 'Signup failed. Please try again.';
+      } finally {
+        // Restore button state
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
       }
     });
   }
