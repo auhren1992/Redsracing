@@ -334,11 +334,22 @@ struct WebView: UIViewRepresentable {
     
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
+        
+        // CRITICAL: Enable data storage for localStorage, IndexedDB, cookies
+        configuration.websiteDataStore = WKWebsiteDataStore.default()
+        
+        // Media playback
         configuration.allowsInlineMediaPlayback = true
         configuration.mediaTypesRequiringUserActionForPlayback = []
+        
+        // JavaScript preferences
         let preferences = WKWebpagePreferences()
         preferences.allowsContentJavaScript = true
         configuration.defaultWebpagePreferences = preferences
+        
+        // Enable picture-in-picture
+        configuration.allowsPictureInPictureMediaPlayback = true
+        
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
@@ -348,6 +359,10 @@ struct WebView: UIViewRepresentable {
         webView.backgroundColor = UIColor(red: 0.02, green: 0.03, blue: 0.06, alpha: 1)
         webView.scrollView.backgroundColor = UIColor(red: 0.02, green: 0.03, blue: 0.06, alpha: 1)
         webView.customUserAgent = "RedsRacingApp/1.0 iOS"
+        
+        // IMPORTANT: Allow link previews and interactions
+        webView.allowsLinkPreview = true
+        
         DispatchQueue.main.async { self.webViewRef = webView }
         webView.load(URLRequest(url: url))
         return webView
@@ -413,11 +428,22 @@ struct WebView: UIViewRepresentable {
         }
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
             if let url = navigationAction.request.url {
-                if !url.absoluteString.contains("redsracing") && (url.scheme == "http" || url.scheme == "https") && navigationAction.navigationType == .linkActivated {
+                print("[iOS WebView] Navigation to: \(url.absoluteString)")
+                
+                // Allow all redsracing.org and www.redsracing.org URLs
+                if url.absoluteString.contains("redsracing") {
+                    decisionHandler(.allow)
+                    return
+                }
+                
+                // Open external links in Safari
+                if (url.scheme == "http" || url.scheme == "https") && navigationAction.navigationType == .linkActivated {
                     UIApplication.shared.open(url)
                     decisionHandler(.cancel)
                     return
                 }
+                
+                // Handle tel: and mailto: links
                 if let scheme = url.scheme, ["tel","mailto"].contains(scheme) {
                     UIApplication.shared.open(url)
                     decisionHandler(.cancel)
