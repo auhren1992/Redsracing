@@ -210,6 +210,13 @@ service cloud.firestore {
       allow delete: if hasRole('admin') || hasProfileRole('admin');
     }
     
+    // Analytics events (public write for tracking user interactions)
+    match /analytics_events/{eventId} {
+      allow create: if true; // Anyone can track events
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+    
     // Feedback submissions (public create and read for stats)
     match /feedback/{feedbackId} {
       allow create: if true; // Anyone can submit feedback
