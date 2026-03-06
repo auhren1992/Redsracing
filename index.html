@@ -762,12 +762,57 @@
           
           // Check if notifications are supported
           if (!('Notification' in window)) {
-            alert('Your browser does not support notifications. Please try a different browser.');
+            btn.innerHTML = '<i class="fas fa-times"></i> <span>Not Supported</span>';
+            btn.style.background = 'linear-gradient(45deg, #ef4444, #dc2626)';
+            
+            alert('Your browser does not support notifications. Please use Chrome, Firefox, Safari, or Edge.');
+            
+            setTimeout(() => {
+              btn.innerHTML = '<i class="fas fa-bell"></i> <span>Enable Notifications</span>';
+              btn.style.background = 'linear-gradient(45deg, #fbbf24, #f59e0b)';
+            }, 3000);
             return;
           }
           
-          // Request permission
+          // Check current permission state
+          const currentPermission = Notification.permission;
+          
+          if (currentPermission === 'granted') {
+            // Already granted
+            btn.innerHTML = '<i class="fas fa-check"></i> <span>Already Following!</span>';
+            btn.style.background = 'linear-gradient(45deg, #10b981, #059669)';
+            trackEvent('follow_team_already_granted', { permission: 'granted' });
+            return;
+          }
+          
+          if (currentPermission === 'denied') {
+            // Previously denied - show instructions
+            btn.innerHTML = '<i class="fas fa-info-circle"></i> <span>Blocked</span>';
+            btn.style.background = 'linear-gradient(45deg, #ef4444, #dc2626)';
+            
+            trackEvent('follow_team_blocked', { permission: 'denied' });
+            
+            // Show instructions to reset
+            const instructions = `Notifications are blocked. To enable:\n\n` +
+              `Chrome/Edge: Click the lock icon 🔒 in the address bar → Notifications → Allow\n` +
+              `Firefox: Click the shield icon 🛡️ → Permissions → Notifications → Allow\n` +
+              `Safari: Safari menu → Settings for This Website → Notifications → Allow`;
+            
+            alert(instructions);
+            
+            setTimeout(() => {
+              btn.innerHTML = '<i class="fas fa-bell"></i> <span>Enable Notifications</span>';
+              btn.style.background = 'linear-gradient(45deg, #fbbf24, #f59e0b)';
+            }, 3000);
+            return;
+          }
+          
+          // Request permission (only works if not previously denied)
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Requesting...</span>';
+          btn.disabled = true;
+          
           const permission = await Notification.requestPermission();
+          btn.disabled = false;
           
           if (permission === 'granted') {
             btn.innerHTML = '<i class="fas fa-check"></i> <span>Notifications Enabled!</span>';
@@ -775,28 +820,47 @@
             
             trackEvent('follow_team_success', { permission: 'granted' });
             
-            // Show success message
+            // Show a test notification
+            new Notification('RedsRacing', {
+              body: '🏁 You\'re now following the team! You\'ll get race updates and exclusive content.',
+              icon: 'favicon.ico',
+              badge: 'favicon.ico'
+            });
+            
+            // Update button after delay
             setTimeout(() => {
               btn.innerHTML = '<i class="fas fa-bell"></i> <span>You\'re Following!</span>';
             }, 2000);
-          } else {
-            btn.innerHTML = '<i class="fas fa-times"></i> <span>Permission Denied</span>';
+          } else if (permission === 'denied') {
+            btn.innerHTML = '<i class="fas fa-times"></i> <span>Access Denied</span>';
             btn.style.background = 'linear-gradient(45deg, #ef4444, #dc2626)';
             
-            trackEvent('follow_team_denied', { permission: permission });
+            trackEvent('follow_team_denied', { permission: 'denied' });
             
             setTimeout(() => {
               btn.innerHTML = '<i class="fas fa-bell"></i> <span>Enable Notifications</span>';
               btn.style.background = 'linear-gradient(45deg, #fbbf24, #f59e0b)';
             }, 3000);
+          } else {
+            // 'default' - user dismissed the prompt
+            btn.innerHTML = '<i class="fas fa-undo"></i> <span>Try Again</span>';
+            trackEvent('follow_team_dismissed', { permission: 'default' });
+            
+            setTimeout(() => {
+              btn.innerHTML = '<i class="fas fa-bell"></i> <span>Enable Notifications</span>';
+            }, 2000);
           }
         } catch (error) {
           console.error('Follow error:', error);
           btn.innerHTML = '<i class="fas fa-exclamation"></i> <span>Error</span>';
+          btn.style.background = 'linear-gradient(45deg, #ef4444, #dc2626)';
+          btn.disabled = false;
+          
           trackEvent('follow_team_error', { error: error.message });
           
           setTimeout(() => {
             btn.innerHTML = '<i class="fas fa-bell"></i> <span>Enable Notifications</span>';
+            btn.style.background = 'linear-gradient(45deg, #fbbf24, #f59e0b)';
           }, 3000);
         }
       }

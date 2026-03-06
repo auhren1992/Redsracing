@@ -272,22 +272,22 @@
               Get answers from the team • Ask racing questions • Join the conversation
             </p>
             
-            <!-- Stats Bar -->
+            <!-- Stats Bar (Real Data from Firestore) -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
               <div class="modern-card p-4 border border-blue-400/20">
-                <div class="text-3xl font-bold text-blue-400">42</div>
+                <div id="total-questions" class="text-3xl font-bold text-blue-400">--</div>
                 <div class="text-slate-400 text-sm uppercase tracking-wider">Questions</div>
               </div>
               <div class="modern-card p-4 border border-green-400/20">
-                <div class="text-3xl font-bold text-green-400">38</div>
+                <div id="answered-questions" class="text-3xl font-bold text-green-400">--</div>
                 <div class="text-slate-400 text-sm uppercase tracking-wider">Answered</div>
               </div>
               <div class="modern-card p-4 border border-yellow-400/20">
-                <div class="text-3xl font-bold text-yellow-400">156</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider">Interactions</div>
+                <div id="total-races" class="text-3xl font-bold text-yellow-400">--</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Race Events</div>
               </div>
               <div class="modern-card p-4 border border-purple-400/20">
-                <div class="text-3xl font-bold text-purple-400">24h</div>
+                <div class="text-3xl font-bold text-purple-400">&lt;48h</div>
                 <div class="text-slate-400 text-sm uppercase tracking-wider">Response Time</div>
               </div>
             </div>
@@ -644,6 +644,42 @@
         message.textContent = text;
         message.className = `newsletter-message ${type}`;
     }
+    
+    // Load real stats from Firestore
+    async function loadRealStats() {
+        try {
+            const qnaCollection = collection(db, 'qna_submissions');
+            const racesCollection = collection(db, 'races');
+            
+            // Count total questions
+            const allQuestionsQuery = query(qnaCollection);
+            const allQuestionsSnapshot = await getDocs(allQuestionsQuery);
+            const totalQuestions = allQuestionsSnapshot.size;
+            document.getElementById('total-questions').textContent = totalQuestions;
+            
+            // Count answered questions
+            const answeredQuery = query(qnaCollection, where('status', '==', 'published'));
+            const answeredSnapshot = await getDocs(answeredQuery);
+            const answeredCount = answeredSnapshot.size;
+            document.getElementById('answered-questions').textContent = answeredCount;
+            
+            // Count total races from 2023-2026
+            const racesQuery = query(racesCollection, where('season', '>=', 2023));
+            const racesSnapshot = await getDocs(racesQuery);
+            const totalRaces = racesSnapshot.size;
+            document.getElementById('total-races').textContent = totalRaces + '+';
+            
+        } catch (error) {
+            console.error('Error loading stats:', error);
+            // Show fallback if error
+            document.getElementById('total-questions').textContent = '0';
+            document.getElementById('answered-questions').textContent = '0';
+            document.getElementById('total-races').textContent = '12+';
+        }
+    }
+    
+    // Load stats when page loads
+    loadRealStats();
     </script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
