@@ -282,19 +282,62 @@ async function main() {
       }
     });
 
-    document.getElementById('queue-refresh').addEventListener('click', async ()=>{ await loadQueue(); await loadDlq(); await loadEligibleSoon(); });
-    document.getElementById('dlq-refresh').addEventListener('click', loadDlq);
-    document.getElementById('queue-process').addEventListener('click', async ()=>{
-      try {
-        // Call Firebase Cloud Function instead of local endpoint
-        const functionUrl = 'https://us-central1-redsracing-a7f8b.cloudfunctions.net/process_queues';
-        await fetch(functionUrl, { method: 'POST' });
-        await loadQueue();
-        await loadDlq();
-      } catch(e) {
-        console.error('Failed to process queues:', e);
-      }
-    });
+    // Wire up buttons with proper error handling
+    const queueRefreshBtn = document.getElementById('queue-refresh');
+    const dlqRefreshBtn = document.getElementById('dlq-refresh');
+    const queueProcessBtn = document.getElementById('queue-process');
+    
+    if (queueRefreshBtn) {
+      queueRefreshBtn.addEventListener('click', async ()=>{ 
+        queueRefreshBtn.disabled = true;
+        queueRefreshBtn.innerHTML = '<i class="fas fa-sync fa-spin mr-1"></i>Refreshing...';
+        try {
+          await loadQueue(); 
+          await loadDlq(); 
+          await loadEligibleSoon();
+        } finally {
+          queueRefreshBtn.disabled = false;
+          queueRefreshBtn.innerHTML = '<i class="fas fa-sync mr-1"></i>Refresh';
+        }
+      });
+    }
+    
+    if (dlqRefreshBtn) {
+      dlqRefreshBtn.addEventListener('click', async ()=>{
+        dlqRefreshBtn.disabled = true;
+        dlqRefreshBtn.innerHTML = '<i class="fas fa-sync fa-spin mr-1"></i>Refreshing...';
+        try {
+          await loadDlq();
+        } finally {
+          dlqRefreshBtn.disabled = false;
+          dlqRefreshBtn.innerHTML = '<i class="fas fa-sync mr-1"></i>Refresh';
+        }
+      });
+    }
+    
+    if (queueProcessBtn) {
+      queueProcessBtn.addEventListener('click', async ()=>{
+        queueProcessBtn.disabled = true;
+        queueProcessBtn.innerHTML = '<i class="fas fa-cogs fa-spin mr-1"></i>Processing...';
+        try {
+          // Call Firebase Cloud Function instead of local endpoint
+          const functionUrl = 'https://us-central1-redsracing-a7f8b.cloudfunctions.net/process_queues';
+          const response = await fetch(functionUrl, { method: 'POST' });
+          if (!response.ok) {
+            throw new Error('Failed to process queues');
+          }
+          await loadQueue();
+          await loadDlq();
+          await loadEligibleSoon();
+        } catch(e) {
+          console.error('Failed to process queues:', e);
+          alert('Failed to process queues. Check console for details.');
+        } finally {
+          queueProcessBtn.disabled = false;
+          queueProcessBtn.innerHTML = '<i class="fas fa-cogs mr-1"></i>Process Now';
+        }
+      });
+    }
 
     await loadQueue();
     await loadDlq();
