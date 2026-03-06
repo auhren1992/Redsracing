@@ -163,6 +163,7 @@ struct ContentView: View {
         let guestItems: [MenuItem] = [
             .init(icon: "👤", title: "My Profile", url: "https://redsracing.org/profile.html"),
             .init(icon: "🔐", title: "Sign In", url: "https://redsracing.org/login.html"),
+            .init(icon: "✏️", title: "Create Account", url: "https://www.redsracing.org/signup.html"),
             .init(icon: "⚙️", title: "Settings", url: "https://redsracing.org/settings.html"),
             .init(icon: "📊", title: "Admin Console", url: "https://redsracing.org/admin-console.html")
         ]
