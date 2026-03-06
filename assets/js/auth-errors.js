@@ -95,11 +95,32 @@ export function getFriendlyAuthError(error) {
     };
   }
 
-  // Generic Firebase auth errors
+  // Specific Firebase auth error messages
   if (String(code).startsWith("auth/")) {
+    let userMessage = "We had trouble verifying your account. Please try again.";
+    
+    // Common auth errors with user-friendly messages
+    if (code === "auth/invalid-login-credentials" || code === "auth/wrong-password" || code === "auth/user-not-found") {
+      userMessage = "Invalid email or password. Please check your credentials and try again.";
+    } else if (code === "auth/user-disabled") {
+      userMessage = "This account has been disabled. Please contact support.";
+    } else if (code === "auth/too-many-requests") {
+      userMessage = "Too many failed login attempts. Please try again later or reset your password.";
+    } else if (code === "auth/invalid-email") {
+      userMessage = "Please enter a valid email address.";
+    } else if (code === "auth/email-already-in-use") {
+      userMessage = "This email is already registered. Please sign in instead.";
+    } else if (code === "auth/weak-password") {
+      userMessage = "Password should be at least 6 characters long.";
+    } else if (code === "auth/operation-not-allowed") {
+      userMessage = "This sign-in method is not enabled. Please contact support.";
+    } else if (code === "auth/popup-closed-by-user") {
+      userMessage = "Sign-in popup was closed. Please try again.";
+    }
+    
     return {
       title: "Authentication error",
-      userMessage: "We had trouble verifying your account. Please try again.",
+      userMessage,
       icon: "⚠️",
       requiresReauth: false,
       retryable,
