@@ -42,6 +42,7 @@ jobs:
         run: ./gradlew bundleRelease --no-daemon --stacktrace -PREDSRACING_KEYSTORE_PASSWORD=$REDSRACING_KEYSTORE_PASSWORD -PREDSRACING_KEY_PASSWORD=$REDSRACING_KEY_PASSWORD
 
       - name: Upload to Google Play (Internal Testing)
+        if: secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != ''
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         working-directory: android
