@@ -15,7 +15,7 @@ const SEO_CONFIG = {
     home: {
       title: '2026 Season Countdown - RedsRacing #8 & #88',
       description: 'Follow RedsRacing drivers Jon and Jonny Kirsch competing in the American Super Cup Series. Get race updates, team news, and exclusive behind-the-scenes content.',
-      keywords: 'redsracing, jon kirsch, jonny kirsch, racing team, super cup series, illinois racing, dirt track racing',
+      keywords: 'redsracing, jon kirsch, jonny kirsch, racing team, super cup series, illinois racing, paved track racing, asphalt racing',
       type: 'website'
     },
     team: {
