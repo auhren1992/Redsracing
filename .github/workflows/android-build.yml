@@ -34,20 +34,12 @@ jobs:
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > upload-keystore.jks
 
-      - name: Create gradle.properties
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.REDSRACING_KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.REDSRACING_KEY_PASSWORD }}
-        working-directory: android
-        run: |
-          cat > gradle.properties << EOF
-          REDSRACING_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD
-          REDSRACING_KEY_PASSWORD=$KEY_PASSWORD
-          EOF
-
       - name: Build Release Bundle
+        env:
+          REDSRACING_KEYSTORE_PASSWORD: ${{ secrets.REDSRACING_KEYSTORE_PASSWORD }}
+          REDSRACING_KEY_PASSWORD: ${{ secrets.REDSRACING_KEY_PASSWORD }}
         working-directory: android
-        run: ./gradlew bundleRelease --no-daemon --stacktrace
+        run: ./gradlew bundleRelease --no-daemon --stacktrace -PREDSRACING_KEYSTORE_PASSWORD=$REDSRACING_KEYSTORE_PASSWORD -PREDSRACING_KEY_PASSWORD=$REDSRACING_KEY_PASSWORD
 
       - name: Upload to Google Play (Internal Testing)
         env:
@@ -77,6 +69,4 @@ jobs:
       - name: Clean up keystore
         if: always()
         working-directory: android
-        run: |
-          rm -f upload-keystore.jks
-          rm -f gradle.properties
+        run: rm -f upload-keystore.jks

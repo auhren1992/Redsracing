@@ -16,10 +16,10 @@
     <string>$(PRODUCT_NAME)</string>
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
-    <key>CFBundleShortVersionString</key>
-    <string>9.7</string>
-    <key>CFBundleVersion</key>
-    <string>97</string>
+	<key>CFBundleShortVersionString</key>
+	<string>9.8</string>
+	<key>CFBundleVersion</key>
+	<string>98</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>UIApplicationSceneManifest</key>
