@@ -1,0 +1,65 @@
+User-agent: *
+
+# Allow main content pages
+Allow: /
+Allow: /index.html
+Allow: /driver.html
+Allow: /jonny.html
+Allow: /legends.html
+Allow: /gallery.html
+Allow: /jonny-gallery.html
+Allow: /schedule.html
+Allow: /leaderboard.html
+Allow: /qna.html
+Allow: /feedback.html
+Allow: /sponsorship.html
+Allow: /videos.html
+Allow: /jons.html
+Allow: /jonny-results.html
+Allow: /privacy-policy.html
+
+# Block admin and internal tools
+Disallow: /admin*.html
+Disallow: /admin-*.html
+Disallow: /setup-*.html
+Disallow: /simple-admin.html
+
+# Block debug and test pages
+Disallow: /debug*.html
+Disallow: /debug-*.html
+Disallow: /test*.html
+Disallow: /test-*.html
+Disallow: /test_*.html
+Disallow: /mobile-test.html
+Disallow: /mobile-debug.html
+Disallow: /modern-auth-test.html
+Disallow: /temp_nav.html
+
+# Block development/migration tools
+Disallow: /migrate-*.html
+Disallow: /force-dashboard.html
+
+# Block authentication pages (not valuable for search)
+Disallow: /login.html
+Disallow: /signup.html
+Disallow: /follower-login.html
+
+# Block user-specific pages
+Disallow: /profile.html
+Disallow: /settings.html
+Disallow: /fan-settings.html
+Disallow: /team-settings.html
+Disallow: /dashboard.html
+Disallow: /follower-dashboard.html
+Disallow: /redsracing-dashboard.html
+
+# Block template files
+Disallow: /HEADER_TEMPLATE.html
+Disallow: /newsletter-footer.html
+
+# Allow assets
+Allow: /assets/
+Allow: /styles/
+Allow: /images/
+
+Sitemap: https://www.redsracing.org/sitemap.xml
