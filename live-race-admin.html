@@ -99,7 +99,16 @@
         <p class="text-slate-400 text-center mb-6">Quick updates from the track</p>
         
         <div id="status" class="status-indicator status-inactive">
-            📡 Waiting for race start...
+            📡 Checking authentication...
+        </div>
+        
+        <!-- Quick Login Form (hidden by default) -->
+        <div id="quickLogin" style="display:none;">
+            <input type="email" id="loginEmail" placeholder="Email" style="margin-top:8px;" />
+            <input type="password" id="loginPassword" placeholder="Password" style="margin-top:8px;" />
+            <button onclick="quickLogin()" class="big-button" style="background:#3b82f6;margin-top:12px;">
+                <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+            </button>
         </div>
 
         <!-- Race Info -->
@@ -238,42 +247,58 @@
         const updateLogEl = document.getElementById('updateLog');
         const statusEl = document.getElementById('status');
 
-        // Check auth status - use persistence to maintain login across tabs
+        // Check auth status
         firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
         
-        let authCheckComplete = false;
-        
         firebase.auth().onAuthStateChanged(async (user) => {
-            if (authCheckComplete) return;
-            authCheckComplete = true;
-            
             if (!user) {
-                // Wait longer for auth to sync across tabs (3 seconds)
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                // Wait for auth to sync
+                await new Promise(resolve => setTimeout(resolve, 2000));
                 
-                // Check again after wait
-                const currentUser = firebase.auth().currentUser;
-                if (!currentUser) {
-                    // Show friendly message instead of redirecting
+                if (!firebase.auth().currentUser) {
+                    // Show quick login form
                     statusEl.className = 'status-indicator';
-                    statusEl.style.background = 'rgba(239, 68, 68, 0.2)';
-                    statusEl.style.color = '#ef4444';
-                    statusEl.style.border = '1px solid #ef4444';
-                    statusEl.innerHTML = '⚠️ Not logged in. Please log in to admin console first.';
+                    statusEl.style.background = 'rgba(251, 191, 36, 0.2)';
+                    statusEl.style.color = '#fbbf24';
+                    statusEl.style.border = '1px solid #fbbf24';
+                    statusEl.innerHTML = '⚠️ Please sign in to post live updates';
+                    document.getElementById('quickLogin').style.display = 'block';
                     
-                    // Disable all buttons
-                    document.querySelectorAll('button, input, select').forEach(el => el.disabled = true);
+                    // Disable race controls
+                    document.querySelectorAll('button:not([onclick*="quickLogin"]), input:not([id*="login"]), select').forEach(el => el.disabled = true);
                 } else {
-                    console.log('✅ Authenticated as:', currentUser.email);
-                    statusEl.innerHTML = '✅ Ready - Logged in as ' + currentUser.email;
-                    statusEl.className = 'status-indicator status-inactive';
+                    showAuthenticated(firebase.auth().currentUser);
                 }
             } else {
-                console.log('✅ Authenticated as:', user.email);
-                statusEl.innerHTML = '✅ Ready - Logged in as ' + user.email;
-                statusEl.className = 'status-indicator status-inactive';
+                showAuthenticated(user);
             }
         });
+        
+        function showAuthenticated(user) {
+            console.log('✅ Authenticated as:', user.email);
+            statusEl.innerHTML = '✅ Ready - ' + user.email.split('@')[0];
+            statusEl.className = 'status-indicator status-inactive';
+            document.getElementById('quickLogin').style.display = 'none';
+            // Enable all controls
+            document.querySelectorAll('button, input, select').forEach(el => el.disabled = false);
+        }
+        
+        async function quickLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                alert('Please enter email and password');
+                return;
+            }
+            
+            try {
+                await firebase.auth().signInWithEmailAndPassword(email, password);
+                // Auth state change will handle the rest
+            } catch (error) {
+                alert('Login failed: ' + error.message);
+            }
+        }
 
         function getOrdinalSuffix(n) {
             if (n === 'DNF') return '';
