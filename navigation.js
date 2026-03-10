@@ -6,8 +6,31 @@
   (async function initAuthPersistence() {
     console.log('[RedsRacing Auth] ===== INIT STARTING =====');
     try {
-      const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
-      const { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+      // Check if Firebase compat is already loaded (Android/iOS WebView)
+      const useCompat = typeof firebase !== 'undefined';
+      console.log('[RedsRacing Auth] Using Firebase compat:', useCompat);
+      
+      let initializeApp, getApps, getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged;
+      
+      if (useCompat) {
+        // Use Firebase compat API
+        initializeApp = firebase.initializeApp.bind(firebase);
+        getApps = () => firebase.apps;
+        getAuth = () => firebase.auth();
+        setPersistence = (auth, persistence) => auth.setPersistence(persistence);
+        browserLocalPersistence = firebase.auth.Auth.Persistence.LOCAL;
+        onAuthStateChanged = (auth, callback, errorCallback) => auth.onAuthStateChanged(callback, errorCallback);
+      } else {
+        // Use modular Firebase (web browser)
+        const firebaseApp = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+        const firebaseAuth = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+        initializeApp = firebaseApp.initializeApp;
+        getApps = firebaseApp.getApps;
+        getAuth = firebaseAuth.getAuth;
+        setPersistence = firebaseAuth.setPersistence;
+        browserLocalPersistence = firebaseAuth.browserLocalPersistence;
+        onAuthStateChanged = firebaseAuth.onAuthStateChanged;
+      }
       const cfg = {
         apiKey: 'AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg',
         authDomain: 'redsracing-a7f8b.firebaseapp.com',

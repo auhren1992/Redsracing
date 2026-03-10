@@ -151,6 +151,9 @@ struct ContentView: View {
     private func showCommunityMenu() {
         overlayTitle = "Community"
         overlayItems = [
+            .init(icon: "ℹ️", title: "About Us", url: "https://redsracing.org/about.html"),
+            .init(icon: "📞", title: "Contact", url: "https://redsracing.org/contact.html"),
+            .init(icon: "📖", title: "Racing Guide", url: "https://redsracing.org/racing-guide.html"),
             .init(icon: "❓", title: "Q&A", url: "https://redsracing.org/qna.html"),
             .init(icon: "💬", title: "Feedback", url: "https://redsracing.org/feedback.html"),
             .init(icon: "💰", title: "Sponsorship", url: "https://redsracing.org/sponsorship.html")
@@ -417,6 +420,26 @@ struct WebView: UIViewRepresentable {
                 })();
             """
             webView.evaluateJavaScript(js, completionHandler: nil)
+            
+            // Monitor Firebase auth state (matching Android behavior)
+            let authMonitorJS = """
+                (function() {
+                    // Check if Firebase auth is available (compat mode)
+                    if (typeof firebase !== 'undefined' && firebase.auth) {
+                        var auth = firebase.auth();
+                        
+                        // Listen for auth state changes
+                        auth.onAuthStateChanged(function(user) {
+                            if (user) {
+                                console.log('[iOS WebView] User signed in:', user.uid);
+                            } else {
+                                console.log('[iOS WebView] User signed out');
+                            }
+                        });
+                    }
+                })();
+            """
+            webView.evaluateJavaScript(authMonitorJS, completionHandler: nil)
         }
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
             parent.isLoading = false

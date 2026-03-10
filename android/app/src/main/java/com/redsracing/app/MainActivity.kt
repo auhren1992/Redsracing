@@ -54,6 +54,7 @@ class MainActivity : AppCompatActivity() {
     private var cameraPhotoUri: Uri? = null
     private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var firebaseAuthBridge: FirebaseAuthBridge
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -222,6 +223,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun showCommunityMenu() {
         val items = listOf(
+            MenuItem("📖", "Racing Guide", "racing-guide.html"),
+            MenuItem("📧", "Contact", "contact.html"),
+            MenuItem("ℹ️", "About Us", "about.html"),
             MenuItem("❓", "Q&A", "qna.html"),
             MenuItem("💬", "Feedback", "feedback.html"),
             MenuItem("💰", "Sponsorship", "sponsorship.html")
@@ -462,6 +466,38 @@ class MainActivity : AppCompatActivity() {
                     })();
                 """.trimIndent()
                 view?.evaluateJavascript(hideNavJS, null)
+                
+                // Inject JavaScript to capture Firebase auth tokens and handle logout
+                val authTokenCaptureJS = """
+                    (function() {
+                        // Check if Firebase auth is available (compat mode)
+                        if (typeof firebase !== 'undefined' && firebase.auth) {
+                            var auth = firebase.auth();
+                            
+                            // Listen for auth state changes
+                            auth.onAuthStateChanged(function(user) {
+                                if (user) {
+                                    // User is signed in - get and store the ID token
+                                    user.getIdToken().then(function(token) {
+                                        if (window.FirebaseAuthBridge) {
+                                            window.FirebaseAuthBridge.storeAuthToken(token);
+                                            console.log('Auth token stored via FirebaseAuthBridge');
+                                        }
+                                    }).catch(function(error) {
+                                        console.error('Error getting ID token:', error);
+                                    });
+                                } else {
+                                    // User is signed out - clear the stored token
+                                    if (window.FirebaseAuthBridge) {
+                                        window.FirebaseAuthBridge.clearAuthToken();
+                                        console.log('Auth token cleared via FirebaseAuthBridge');
+                                    }
+                                }
+                            });
+                        }
+                    })();
+                """.trimIndent()
+                view?.evaluateJavascript(authTokenCaptureJS, null)
             }
         }
 
@@ -508,6 +544,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        firebaseAuthBridge = FirebaseAuthBridge(this)
+        webView.addJavascriptInterface(firebaseAuthBridge, "FirebaseAuthBridge")
         webView.addJavascriptInterface(NotificationsBridge(this), "AndroidNotifications")
         webView.addJavascriptInterface(AuthBridge(this), "AndroidAuth")
     }
@@ -687,23 +725,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAuthAndRoute() {
-        // Check Firebase authentication state
-        val auth = FirebaseAuth.getInstance()
-        
-        // Give Firebase Auth a moment to restore session
-        Handler(Looper.getMainLooper()).postDelayed({
-            val currentUser = auth.currentUser
-            
-            if (currentUser != null) {
-                // User is authenticated - go directly to home
-                android.util.Log.d("MainActivity", "User is authenticated: ${currentUser.email}")
-                binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
-            } else {
-                // Not authenticated - show login page
-                android.util.Log.d("MainActivity", "User not authenticated - showing login")
-                binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/login.html")
-            }
-        }, 500)  // 500ms delay to allow Firebase Auth to restore session
+        // Always start at index and let web Firebase auth/local persistence decide session state.
+        // Native FirebaseAuth state is separate from WebView Firebase auth and should not route here.
+        android.util.Log.d("MainActivity", "Loading index route and deferring auth state to WebView Firebase")
+        binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
     }
     
     private fun showUpdateDialog(isForced: Boolean, latestVersion: Int) {

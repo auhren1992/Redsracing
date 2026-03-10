@@ -23,6 +23,11 @@
     <!-- Mobile App Detection -->
     <script src="assets/js/mobile-app-detector.js"></script>
     
+    <!-- Global Error Tracking (MUST load before Firebase) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="assets/js/global-error-tracker.js"></script>
+    
     <style>
       /* Modern Admin Console Styles */
       .admin-glass {
@@ -753,24 +758,22 @@
           </div>
 
             <div id="gallery-approvals" class="space-y-6">
-              <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-white">
-                  <i class="fas fa-images text-purple-400 mr-2"></i>
-                  Gallery Approvals
-                </h2>
-                <div class="flex items-center space-x-2">
-                  <span class="status-badge status-pending">3 Pending</span>
+              <div class="admin-card rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 class="text-2xl font-bold text-white flex items-center">
+                      <i class="fas fa-images text-purple-400 mr-3"></i>
+                      Gallery Approvals
+                    </h2>
+                    <p class="text-slate-400 text-sm mt-1">Review and approve photos before they appear in the public gallery</p>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="status-badge status-pending">3 Pending</span>
+                  </div>
                 </div>
               </div>
               
-              <div id="photo-approval-card" class="admin-card rounded-xl p-6" style="display: none">
-                <div class="mb-4">
-                  <h3 class="text-lg font-semibold text-white mb-2">
-                    <i class="fas fa-clock text-yellow-400 mr-2"></i>
-                    Pending Photo Reviews
-                  </h3>
-                  <p class="text-sm text-slate-400">Review and approve photos before they appear in the public gallery</p>
-                </div>
+              <div id="photo-approval-card" class="admin-card rounded-xl p-6 mt-6" style="display: none">
                 <div id="unapproved-photos-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
               </div>
             </div>
@@ -942,7 +945,7 @@
                 </div>
                 
                 <div class="mt-6 flex justify-end">
-                  <button id="save-stats-btn" class="success-btn px-6 py-3 rounded-lg font-semibold flex items-center">
+                  <button id="save-stats-btn" class="success-btn text-white px-6 py-3 rounded-lg font-semibold flex items-center">
                     <i class="fas fa-chart-line mr-2"></i>Update Statistics
                   </button>
                 </div>
@@ -950,10 +953,15 @@
               
               <!-- Content Management -->
               <div class="admin-card rounded-xl p-6">
-                <h3 class="text-xl font-bold text-white mb-4">
-                  <i class="fas fa-edit text-purple-400 mr-2"></i>
-                  Content Management
-                </h3>
+                <div class="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 class="text-xl font-bold text-white flex items-center">
+                      <i class="fas fa-edit text-purple-400 mr-3"></i>
+                      Content Management
+                    </h3>
+                    <p class="text-slate-400 text-sm mt-1">Update homepage content and contact information</p>
+                  </div>
+                </div>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div class="space-y-4">
@@ -990,7 +998,7 @@
                 </div>
                 
                 <div class="mt-6 flex justify-end">
-                  <button id="save-content-btn" class="success-btn px-6 py-3 rounded-lg font-semibold flex items-center">
+                  <button id="save-content-btn" class="success-btn text-white px-6 py-3 rounded-lg font-semibold flex items-center">
                     <i class="fas fa-globe mr-2"></i>Update Content
                   </button>
                 </div>
@@ -999,24 +1007,33 @@
             
             <!-- Advanced Section -->
             <div id="advanced-section" class="space-y-6" style="display: none">
-              <div class="flex items-center justify-between">
-                <h2 class="text-3xl font-bold text-white">
-                  <i class="fas fa-tools text-yellow-300 mr-3"></i>
-                  Advanced Tools
-                </h2>
-                <div class="flex items-center space-x-2">
-                  <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span class="text-green-400 text-sm font-medium">Available</span>
+              <div class="admin-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h2 class="text-2xl font-bold text-white flex items-center">
+                      <i class="fas fa-tools text-yellow-400 mr-3"></i>
+                      Advanced Tools
+                    </h2>
+                    <p class="text-slate-400 text-sm mt-1">Role management, invitation codes, and advanced features</p>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-green-400 text-sm font-medium">Available</span>
+                  </div>
                 </div>
               </div>
 
               <!-- Role Management -->
               <div class="admin-card rounded-xl p-6">
-                <h3 class="text-xl font-bold text-white mb-4">
-                  <i class="fas fa-user-shield text-green-400 mr-2"></i>
-                  Role Management
-                </h3>
-                <p class="text-slate-400 text-sm mb-4">Assign roles by email. Admin only for role changes.</p>
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 class="text-xl font-bold text-white flex items-center">
+                      <i class="fas fa-user-shield text-green-400 mr-3"></i>
+                      Role Management
+                    </h3>
+                    <p class="text-slate-400 text-sm mt-1">Assign roles by email. Admin only for role changes.</p>
+                  </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                   <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-slate-300 mb-1">Email addresses (one per line)</label>
@@ -1030,7 +1047,7 @@
                       <option value="public-fan">public-fan</option>
                       <option value="admin">admin</option>
                     </select>
-                    <button id="assign-role-btn" class="success-btn text-white px-4 py-2 rounded-lg text-sm font-semibold mt-3 w-full">
+                    <button id="assign-role-btn" class="success-btn text-white px-6 py-3 rounded-lg font-semibold mt-3 w-full flex items-center justify-center">
                       <i class="fas fa-user-check mr-2"></i>Assign Role(s)
                     </button>
                   </div>
@@ -1042,15 +1059,17 @@
 
               <!-- Invitation Codes Manager -->
               <div class="admin-card rounded-xl p-6">
-                <h3 class="text-xl font-bold text-white mb-4">
-                  <i class="fas fa-key text-yellow-400 mr-2"></i>
-                  Invitation Codes
-                </h3>
-                <div class="flex items-center justify-between mb-3">
-                  <p class="text-slate-400 text-sm">Team-members and admins can view codes. Only admins can create codes.</p>
-                  <div class="space-x-2">
-                    <button id="refresh-invites-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-sync mr-1"></i>Refresh</button>
+                <div class="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 class="text-xl font-bold text-white flex items-center">
+                      <i class="fas fa-key text-yellow-400 mr-3"></i>
+                      Invitation Codes
+                    </h3>
+                    <p class="text-slate-400 text-sm mt-1">Team-members and admins can view codes. Only admins can create codes.</p>
                   </div>
+                  <button id="refresh-invites-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                    <i class="fas fa-sync mr-2"></i>Refresh
+                  </button>
                 </div>
                 <div class="overflow-x-auto">
                   <table class="w-full text-left text-sm">
@@ -1092,7 +1111,9 @@
                     </div>
                   </div>
                   <div class="mt-3 flex justify-end">
-                    <button id="create-codes-btn" class="success-btn text-white px-4 py-2 rounded text-sm"><i class="fas fa-key mr-2"></i>Create</button>
+                    <button id="create-codes-btn" class="success-btn text-white px-6 py-3 rounded-lg font-semibold flex items-center">
+                      <i class="fas fa-key mr-2"></i>Create Codes
+                    </button>
                   </div>
                   <div id="create-codes-result" class="text-sm text-slate-300 mt-2"></div>
                 </div>
@@ -1173,12 +1194,17 @@
                 <div id="perf-diagnostics-result" class="mt-3 text-sm text-slate-300"></div>
               </div>
 
-              <!-- User Activity Tracking -->
+              <!-- Statistics Manager -->
               <div class="admin-card rounded-xl p-6">
-                <h3 class="text-xl font-bold text-white mb-4">
-                  <i class="fas fa-users text-purple-400 mr-2"></i>
-                  User Activity Tracking
-                </h3>
+                <div class="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 class="text-xl font-bold text-white flex items-center">
+                      <i class="fas fa-chart-bar text-blue-400 mr-3"></i>
+                      Statistics Manager
+                    </h3>
+                    <p class="text-slate-400 text-sm mt-1">Configure homepage and gallery statistics</p>
+                  </div>
+                </div>
                 <p class="text-slate-400 text-sm mb-4">Monitor user engagement and activity patterns</p>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
@@ -1550,6 +1576,78 @@
                   </div>
                 </div>
                 
+                <!-- App Version Management -->
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 mb-4">
+                  <h4 class="text-white font-semibold mb-3">App Version Management</h4>
+                  
+                  <!-- Version Distribution Stats -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-3">
+                      <h5 class="text-white font-medium text-sm mb-2">Android Version Distribution</h5>
+                      <div id="android-version-distribution" class="text-xs text-slate-300 space-y-1">
+                        <div class="text-slate-500">Loading...</div>
+                      </div>
+                    </div>
+                    <div class="bg-slate-900/50 border border-slate-700/50 rounded-lg p-3">
+                      <h5 class="text-white font-medium text-sm mb-2">iOS Version Distribution</h5>
+                      <div id="ios-version-distribution" class="text-xs text-slate-300 space-y-1">
+                        <div class="text-slate-500">Loading...</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Android Version Config -->
+                  <div class="bg-slate-900/50 border border-green-700/30 rounded-lg p-3 mb-3">
+                    <h5 class="text-white font-medium text-sm mb-2 flex items-center">
+                      <i class="fab fa-android text-green-400 mr-2"></i>Android Version Config
+                    </h5>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Latest Version Code</label>
+                        <input type="number" id="android-latest-version" class="modern-input w-full p-2 text-white text-sm" placeholder="91" />
+                      </div>
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Minimum Required</label>
+                        <input type="number" id="android-min-version" class="modern-input w-full p-2 text-white text-sm" placeholder="85" />
+                      </div>
+                    </div>
+                    <div class="mt-2">
+                      <label class="block text-xs text-slate-400 mb-1">Update Message (Optional)</label>
+                      <input type="text" id="android-update-message" class="modern-input w-full p-2 text-white text-sm" placeholder="New features and bug fixes!" />
+                    </div>
+                  </div>
+                  
+                  <!-- iOS Version Config -->
+                  <div class="bg-slate-900/50 border border-blue-700/30 rounded-lg p-3 mb-3">
+                    <h5 class="text-white font-medium text-sm mb-2 flex items-center">
+                      <i class="fab fa-apple text-blue-400 mr-2"></i>iOS Version Config
+                    </h5>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Latest Version Code</label>
+                        <input type="number" id="ios-latest-version" class="modern-input w-full p-2 text-white text-sm" placeholder="91" />
+                      </div>
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Minimum Required</label>
+                        <input type="number" id="ios-min-version" class="modern-input w-full p-2 text-white text-sm" placeholder="85" />
+                      </div>
+                    </div>
+                    <div class="mt-2">
+                      <label class="block text-xs text-slate-400 mb-1">Update Message (Optional)</label>
+                      <input type="text" id="ios-update-message" class="modern-input w-full p-2 text-white text-sm" placeholder="New features and bug fixes!" />
+                    </div>
+                  </div>
+                  
+                  <div class="flex justify-end space-x-2">
+                    <button id="load-version-config-btn" class="modern-btn text-white px-3 py-2 rounded text-sm">
+                      <i class="fas fa-sync mr-2"></i>Load Current
+                    </button>
+                    <button id="save-version-config-btn" class="success-btn text-white px-3 py-2 rounded text-sm">
+                      <i class="fas fa-save mr-2"></i>Save Config
+                    </button>
+                  </div>
+                </div>
+                
                 <!-- Push Notifications -->
                 <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 mb-4">
                   <h4 class="text-white font-semibold mb-3">Send Push Notification</h4>
@@ -1688,14 +1786,14 @@
                   </div>
                 </div>
                 
-                <div class="flex flex-wrap gap-2">
-                  <button id="refresh-revenue-btn" class="modern-btn text-white px-4 py-2 rounded text-sm">
+                <div class="flex flex-wrap gap-3">
+                  <button id="refresh-revenue-btn" class="modern-btn text-white px-4 py-2 rounded-lg font-semibold flex items-center">
                     <i class="fas fa-sync mr-2"></i>Refresh Revenue
                   </button>
-                  <button id="export-revenue-btn" class="modern-btn text-white px-4 py-2 rounded text-sm">
+                  <button id="export-revenue-btn" class="modern-btn text-white px-4 py-2 rounded-lg font-semibold flex items-center">
                     <i class="fas fa-file-csv mr-2"></i>Export Report
                   </button>
-                  <button id="ad-settings-btn" class="modern-btn text-white px-4 py-2 rounded text-sm">
+                  <button id="ad-settings-btn" class="modern-btn text-white px-4 py-2 rounded-lg font-semibold flex items-center">
                     <i class="fas fa-cog mr-2"></i>Ad Settings
                   </button>
                 </div>
@@ -1708,6 +1806,19 @@
 
           <!-- Dedicated Race Management Section -->
           <div id="race-section" class="space-y-6 hidden">
+            <!-- Section Header -->
+            <div class="admin-card rounded-xl p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-flag-checkered text-yellow-400 mr-3"></i>
+                    Race Management
+                  </h2>
+                  <p class="text-slate-400 text-sm mt-1">Add race results and view race statistics</p>
+                </div>
+              </div>
+            </div>
+            
             <!-- Quick Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div class="stat-card rounded-xl p-4">
@@ -1730,11 +1841,14 @@
             
             <!-- Add Race Form -->
             <div class="admin-card rounded-xl p-6">
-              <div class="flex items-center justify-between mb-4">
-                <h2 class="text-2xl font-bold text-white">
-                  <i class="fas fa-plus-circle text-green-400 mr-2"></i>Add Race Result
-                </h2>
-                <button id="toggle-race-form-btn" class="modern-btn text-white px-4 py-2 rounded text-sm">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-plus-circle text-green-400 mr-3"></i>Add Race Result
+                  </h2>
+                  <p class="text-slate-400 text-sm mt-1">Add new race results to the database</p>
+                </div>
+                <button id="toggle-race-form-btn" class="modern-btn text-white px-4 py-2 rounded-lg font-semibold flex items-center">
                   <i class="fas fa-chevron-down mr-2"></i>Show Form
                 </button>
               </div>
@@ -1809,6 +1923,28 @@
                     </div>
                   </div>
                   
+                  <!-- Race Achievements -->
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="flex items-center space-x-3 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                      <input type="checkbox" id="race-is-win" class="w-5 h-5 text-yellow-400 bg-slate-700 border-slate-600 rounded focus:ring-yellow-400" />
+                      <label for="race-is-win" class="text-sm font-medium text-white flex items-center">
+                        <i class="fas fa-trophy text-yellow-400 mr-2"></i>1st Place Win
+                      </label>
+                    </div>
+                    <div class="flex items-center space-x-3 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                      <input type="checkbox" id="race-is-podium" class="w-5 h-5 text-blue-400 bg-slate-700 border-slate-600 rounded focus:ring-blue-400" />
+                      <label for="race-is-podium" class="text-sm font-medium text-white flex items-center">
+                        <i class="fas fa-medal text-blue-400 mr-2"></i>Podium Finish (Top 3)
+                      </label>
+                    </div>
+                    <div class="flex items-center space-x-3 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                      <input type="checkbox" id="race-is-dnf" class="w-5 h-5 text-red-400 bg-slate-700 border-slate-600 rounded focus:ring-red-400" />
+                      <label for="race-is-dnf" class="text-sm font-medium text-white flex items-center">
+                        <i class="fas fa-times-circle text-red-400 mr-2"></i>Did Not Finish (DNF)
+                      </label>
+                    </div>
+                  </div>
+                  
                   <!-- Lap Times -->
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -1839,7 +1975,7 @@
                     <button type="button" id="cancel-race-form-btn" class="px-6 py-3 rounded-lg font-semibold text-slate-300 hover:bg-slate-700/50 transition">
                       Cancel
                     </button>
-                    <button type="submit" class="success-btn px-6 py-3 rounded-lg font-semibold flex items-center">
+                    <button type="submit" class="success-btn text-white px-6 py-3 rounded-lg font-semibold flex items-center">
                       <i class="fas fa-save mr-2"></i>Save Race Result
                     </button>
                   </div>
@@ -1849,23 +1985,26 @@
             
             <!-- Race Results Table -->
             <div class="admin-card rounded-xl p-6">
-              <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-bold text-white">
-                  <i class="fas fa-table text-blue-400 mr-2"></i>Race Results
-                </h2>
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-xl font-bold text-white flex items-center">
+                    <i class="fas fa-table text-blue-400 mr-3"></i>Race Results
+                  </h2>
+                  <p class="text-slate-400 text-sm mt-1">View and filter race results by season and driver</p>
+                </div>
                 <div class="flex items-center space-x-2">
-                  <select id="race-filter-season" class="modern-input px-3 py-2 text-white text-sm rounded">
+                  <select id="race-filter-season" class="modern-input px-3 py-2 text-white text-sm rounded-lg">
                     <option value="2026" selected>2026 Season</option>
                     <option value="2025">2025 Season</option>
                     <option value="2024">2024 Season</option>
                   </select>
-                  <select id="race-filter-driver" class="modern-input px-3 py-2 text-white text-sm rounded">
+                  <select id="race-filter-driver" class="modern-input px-3 py-2 text-white text-sm rounded-lg">
                     <option value="">All Drivers</option>
                     <option value="jon_kirsch">Jon Kirsch</option>
                     <option value="jonny_kirsch">Jonny Kirsch</option>
                   </select>
-                  <button id="refresh-races-btn" class="modern-btn text-white px-3 py-2 rounded text-sm">
-                    <i class="fas fa-sync mr-1"></i>Refresh
+                  <button id="refresh-races-btn" class="modern-btn text-white px-4 py-2 rounded-lg font-semibold flex items-center">
+                    <i class="fas fa-sync mr-2"></i>Refresh
                   </button>
                 </div>
               </div>
@@ -1897,11 +2036,18 @@
           <!-- Q&A Management Section -->
           <div id="qna-section" class="space-y-6 hidden">
             <div class="admin-card rounded-xl p-6">
-              <div class="flex items-center justify-between mb-4">
-                <h2 class="text-2xl font-bold text-white"><i class="fas fa-question-circle text-cyan-400 mr-2"></i>Q&A Management</h2>
-                <button id="refresh-qna-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-sync mr-1"></i>Refresh</button>
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-question-circle text-cyan-400 mr-3"></i>
+                    Q&A Management
+                  </h2>
+                  <p class="text-slate-400 text-sm mt-1">Review questions submitted by fans. Add an answer and publish, or reject.</p>
+                </div>
+                <button id="refresh-qna-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                  <i class="fas fa-sync mr-2"></i>Refresh
+                </button>
               </div>
-              <p class="text-slate-400 text-sm mb-4">Review questions submitted by fans. Add an answer and publish, or reject.</p>
               <div id="qna-management-card" class="space-y-4">
                 <div id="qna-list" class="space-y-3"></div>
               </div>
@@ -1916,15 +2062,30 @@
           <!-- Videos Section (Approvals + Size Settings) -->
           <div id="videos-section" class="space-y-6 hidden">
             <div class="admin-card rounded-xl p-6">
-              <div class="flex items-center justify-between mb-4">
-                <h2 class="text-2xl font-bold text-white"><i class="fas fa-video text-pink-400 mr-2"></i>Video Approvals</h2>
-                <button id="refresh-videos-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-sync mr-1"></i>Refresh</button>
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-video text-pink-400 mr-3"></i>
+                    Video Approvals
+                  </h2>
+                  <p class="text-slate-400 text-sm mt-1">Approve or reject submitted videos. Only unapproved items appear here.</p>
+                </div>
+                <button id="refresh-videos-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                  <i class="fas fa-sync mr-2"></i>Refresh
+                </button>
               </div>
-              <p class="text-slate-400 text-sm mb-4">Approve or reject submitted videos. Only unapproved items appear here.</p>
               <div id="video-approvals-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
             </div>
             <div class="admin-card rounded-xl p-6">
-              <h3 class="text-xl font-bold text-white mb-4"><i class="fas fa-ruler-combined text-yellow-400 mr-2"></i>Video Size Settings</h3>
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h3 class="text-xl font-bold text-white flex items-center">
+                    <i class="fas fa-ruler-combined text-yellow-400 mr-3"></i>
+                    Video Size Settings
+                  </h3>
+                  <p class="text-slate-400 text-sm mt-1">Configure default video dimensions and aspect ratio</p>
+                </div>
+              </div>
               <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-slate-300 mb-1">Width (px)</label>
@@ -1949,7 +2110,9 @@
                 </div>
               </div>
               <div class="mt-4 flex justify-end">
-                <button id="save-video-settings" class="success-btn px-4 py-2 rounded-lg text-white font-semibold"><i class="fas fa-save mr-2"></i>Save</button>
+                <button id="save-video-settings" class="success-btn px-6 py-3 rounded-lg font-semibold flex items-center">
+                  <i class="fas fa-save mr-2"></i>Save Settings
+                </button>
               </div>
             </div>
           </div>
@@ -1958,48 +2121,46 @@
           <!-- Error Logs Section -->
           <div id="logs-section" class="space-y-6 hidden">
             <div class="admin-card rounded-xl p-6">
-              <div class="flex items-center justify-between mb-3">
-                <h2 class="text-2xl font-bold text-white"><i class="fas fa-bug text-red-400 mr-2"></i>Error Logs</h2>
-                <div class="space-x-2">
-                  <button id="refresh-logs-btn" class="modern-btn text-white px-3 py-2 rounded text-sm"><i class="fas fa-sync mr-1"></i>Refresh</button>
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-bug text-red-400 mr-3"></i>
+                    Error Logs
+                  </h2>
+                  <p class="text-slate-400 text-sm mt-1">Real-time error tracking from all devices</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <button id="clear-logs-btn" class="danger-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                    <i class="fas fa-trash mr-2"></i>Clear Old Logs
+                  </button>
+                  <button id="refresh-logs-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                    <i class="fas fa-sync mr-2"></i>Refresh
+                  </button>
                 </div>
               </div>
+              
               <div class="overflow-x-auto">
                 <table class="w-full text-left modern-table text-sm">
                   <thead class="table-header">
                     <tr>
-                      <th class="p-2">Time</th>
-                      <th class="p-2">Level</th>
-                      <th class="p-2">Message</th>
-                      <th class="p-2">Page</th>
-                      <th class="p-2">User</th>
+                      <th class="p-3 font-semibold">Time</th>
+                      <th class="p-3 font-semibold">Type</th>
+                      <th class="p-3 font-semibold">Message</th>
+                      <th class="p-3 font-semibold">Page</th>
+                      <th class="p-3 font-semibold">Device</th>
+                      <th class="p-3 font-semibold">User</th>
                     </tr>
                   </thead>
                   <tbody id="logs-table-body"></tbody>
                 </table>
               </div>
-              <p class="text-slate-500 text-xs mt-2">Frontend errors are sampled and stored as a fallback when developer tools are not available.</p>
-
-              <!-- Quick Actions (moved here per request) -->
-              <div class="admin-card rounded-xl p-6 mt-6">
-                <h3 class="text-lg font-bold text-white mb-4">
-                  <i class="fas fa-bolt text-yellow-400 mr-2"></i>
-                  Quick Actions
-                </h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <button id="approve-all-btn" class="success-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
-                    <i class="fas fa-check mr-1"></i>Approve All
-                  </button>
-                  <button id="refresh-data-btn" class="modern-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
-                    <i class="fas fa-sync mr-1"></i>Refresh Data
-                  </button>
-                  <button id="export-data-btn" class="modern-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
-                    <i class="fas fa-download mr-1"></i>Export
-                  </button>
-                  <button id="cleanup-btn" class="danger-btn text-white px-4 py-3 rounded-lg text-sm font-semibold flex items-center justify-center">
-                    <i class="fas fa-trash mr-1"></i>Cleanup
-                  </button>
-                </div>
+              
+              <div class="mt-4 flex items-center justify-between text-sm">
+                <p class="text-slate-400">
+                  <i class="fas fa-info-circle mr-2"></i>
+                  Click any row to view full error details and stack trace
+                </p>
+                <p class="text-slate-500" id="logs-count">Loading...</p>
               </div>
             </div>
           </div>
@@ -2043,17 +2204,9 @@
       if (getApps().length === 0) initializeApp(cfg);
     </script>
     <script>
-      // Wire advanced actions after DOM load
+      // Mobile menu and dropdown handling for Android WebView
       document.addEventListener('DOMContentLoaded', function(){
-        try { wireAdvancedActions(); } catch {}
-        try {
-          const btn1 = document.getElementById('save-roster-btn');
-          if (btn1) btn1.addEventListener('click', saveRosterSettings);
-          const btn2 = document.getElementById('save-stats-btn');
-          if (btn2) btn2.addEventListener('click', saveHomepageStats);
-          const btn3 = document.getElementById('save-content-btn');
-          if (btn3) btn3.addEventListener('click', saveContentSettings);
-        } catch {}
+        console.log('[ADMIN] DOM loaded, setting up mobile menu handlers...');
         
         // Explicit dropdown handling for Android WebView
         try {
@@ -3110,38 +3263,275 @@
 
         // Logs: functions
         async function refreshLogsUI() {
+          const button = document.getElementById('refresh-logs-btn');
+          const originalHtml = button?.innerHTML;
+          
           try {
+            // Show loading state
+            if (button) {
+              button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
+              button.disabled = true;
+            }
+            
             const { getFirestore, collection, getDocs, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const db = getFirestore();
-            const q = query(collection(db, 'client_logs'), orderBy('createdAt','desc'), limit(50));
+            const q = query(collection(db, 'client_logs'), orderBy('serverTimestamp','desc'), limit(100));
             const snap = await getDocs(q);
             const tbody = document.getElementById('logs-table-body');
             if (!tbody) return;
             tbody.innerHTML = '';
             if (snap.empty) {
               const tr = document.createElement('tr');
-              tr.innerHTML = '<td class="p-2 text-slate-400" colspan="5">No logs</td>';
+              tr.innerHTML = '<td class="p-2 text-slate-400" colspan="6">No errors logged yet</td>';
               tbody.appendChild(tr);
               return;
             }
             snap.forEach(d => {
               const v = d.data() || {};
-              const ts = v.createdAt?.seconds ? new Date(v.createdAt.seconds*1000) : null;
+              
+              // Handle both old format (createdAt) and new format (timestamp + serverTimestamp)
+              let ts;
+              if (v.serverTimestamp?.seconds) {
+                ts = new Date(v.serverTimestamp.seconds * 1000);
+              } else if (v.timestamp) {
+                ts = new Date(v.timestamp);
+              } else if (v.createdAt?.seconds) {
+                ts = new Date(v.createdAt.seconds * 1000);
+              } else {
+                ts = null;
+              }
+              
               const when = ts ? ts.toLocaleString() : '—';
+              const errorType = v.errorType || v.level || 'Error';
+              const message = v.message || '';
+              const page = v.page || '';
+              const device = v.device?.deviceType || 'unknown';
+              const isAndroidApp = v.device?.isAndroidApp ? ' (Android App)' : '';
+              const userId = v.userId || v.uid || v.email || 'anonymous';
+              
               const tr = document.createElement('tr');
-              tr.className = 'table-row';
+              tr.className = 'table-row cursor-pointer hover:bg-slate-700/30';
+              tr.title = 'Click to view details';
+              
+              // Create detail view
+              const detailData = {
+                message: message,
+                errorType: errorType,
+                page: page,
+                fullUrl: v.fullUrl || '',
+                source: v.source || '',
+                lineno: v.lineno || 0,
+                colno: v.colno || 0,
+                stack: v.stack || 'No stack trace available',
+                timestamp: when,
+                sessionId: v.sessionId || '',
+                userId: userId,
+                device: v.device || {},
+                referrer: v.referrer || 'direct'
+              };
+              
               tr.innerHTML = `
-                <td class="p-2 whitespace-nowrap">${when}</td>
-                <td class="p-2">${v.level || 'error'}</td>
-                <td class="p-2 truncate" title="${(v.message||'').replace(/"/g,'&quot;')}">${v.message || ''}</td>
-                <td class="p-2 truncate" title="${(v.page||'').replace(/"/g,'&quot;')}">${v.page || ''}</td>
-                <td class="p-2">${v.email || v.uid || '—'}</td>
+                <td class="p-2 whitespace-nowrap text-xs">${when}</td>
+                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${errorType.toLowerCase().includes('promise') ? 'bg-orange-600/20 text-orange-400' : 'bg-red-600/20 text-red-400'}">${errorType}</span></td>
+                <td class="p-2 text-xs" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${message.replace(/"/g, '&quot;')}">${message}</td>
+                <td class="p-2 text-xs truncate" title="${page.replace(/"/g, '&quot;')}">${page}</td>
+                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${device === 'mobile' ? 'bg-blue-600/20 text-blue-400' : device === 'desktop' ? 'bg-purple-600/20 text-purple-400' : 'bg-gray-600/20 text-gray-400'}">${device}${isAndroidApp}</span></td>
+                <td class="p-2 text-xs truncate">${userId}</td>
               `;
+              
+              tr.addEventListener('click', () => {
+                showErrorDetails(detailData);
+              });
+              
               tbody.appendChild(tr);
             });
+            
+            // Update count
+            const countEl = document.getElementById('logs-count');
+            if (countEl) countEl.textContent = `${snap.size} errors logged`;
+            
+            showToast(`Loaded ${snap.size} error logs`, 'info');
           } catch (e) {
             console.error('Failed to load logs:', e);
+            showToast('Failed to load error logs', 'error');
+            const countEl = document.getElementById('logs-count');
+            if (countEl) countEl.textContent = 'Error loading';
+          } finally {
+            // Restore button state
+            if (button) {
+              button.innerHTML = originalHtml || '<i class="fas fa-sync mr-2"></i>Refresh';
+              button.disabled = false;
+            }
           }
+        }
+        
+        async function clearOldLogs() {
+          // Ask user for confirmation and days to keep
+          const daysInput = prompt('Delete error logs older than how many days? (Enter 0 to delete all logs)', '7');
+          if (daysInput === null) return; // User cancelled
+          
+          const daysToKeep = parseInt(daysInput) || 0;
+          const confirmMsg = daysToKeep === 0 
+            ? 'Delete ALL error logs? This cannot be undone!'
+            : `Delete error logs older than ${daysToKeep} days?`;
+          
+          if (!confirm(confirmMsg)) return;
+
+          const button = document.getElementById('clear-logs-btn');
+          if (button) {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Clearing...';
+            button.disabled = true;
+          }
+
+          try {
+            const { getFirestore, collection, query, getDocs, deleteDoc, doc, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const db = getFirestore();
+
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - daysToKeep);
+
+            const snap = await getDocs(
+              query(
+                collection(db, 'client_logs'),
+                orderBy('serverTimestamp', 'desc'),
+                limit(1000)
+              )
+            );
+
+            if (snap.empty) {
+              showToast('No logs found', 'info');
+              return;
+            }
+
+            const toDelete = [];
+            snap.forEach((d) => {
+              const v = d.data() || {};
+              let ts = null;
+              if (v.serverTimestamp?.seconds) ts = new Date(v.serverTimestamp.seconds * 1000);
+              else if (v.createdAt?.seconds) ts = new Date(v.createdAt.seconds * 1000);
+              else if (v.timestamp) ts = new Date(v.timestamp);
+
+              // If daysToKeep is 0, delete everything, otherwise delete only older logs
+              if (daysToKeep === 0 || (ts && ts < cutoff)) {
+                toDelete.push(d.id);
+              }
+            });
+
+            if (!toDelete.length) {
+              showToast(daysToKeep === 0 ? 'No logs to delete' : `No logs older than ${daysToKeep} days`, 'info');
+              return;
+            }
+
+            let deleted = 0;
+            for (let i = 0; i < toDelete.length; i += 50) {
+              const chunk = toDelete.slice(i, i + 50);
+              await Promise.all(chunk.map((id) => deleteDoc(doc(db, 'client_logs', id))));
+              deleted += chunk.length;
+            }
+
+            showToast(`Deleted ${deleted} old logs`, 'success');
+            await refreshLogsUI();
+          } catch (error) {
+            console.error('Failed to clear logs:', error);
+            showToast(`Failed to clear logs: ${error?.message || 'Unknown error'}`, 'error');
+          } finally {
+            if (button) {
+              button.innerHTML = '<i class="fas fa-trash mr-2"></i>Clear Old Logs';
+              button.disabled = false;
+            }
+          }
+        }
+        
+        function showErrorDetails(data) {
+          const modal = document.createElement('div');
+          modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4';
+          modal.innerHTML = `
+            <div class="bg-slate-900 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-slate-700">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-white"><i class="fas fa-bug text-red-400 mr-2"></i>Error Details</h3>
+                <button class="text-slate-400 hover:text-white" onclick="this.closest('.fixed').remove()">
+                  <i class="fas fa-times text-xl"></i>
+                </button>
+              </div>
+              
+              <div class="space-y-4 text-sm">
+                <div class="bg-slate-800/50 rounded-lg p-4">
+                  <div class="text-slate-400 text-xs mb-1">Error Type</div>
+                  <div class="text-red-400 font-semibold">${data.errorType}</div>
+                </div>
+                
+                <div class="bg-slate-800/50 rounded-lg p-4">
+                  <div class="text-slate-400 text-xs mb-1">Message</div>
+                  <div class="text-white font-mono break-words">${data.message}</div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="bg-slate-800/50 rounded-lg p-4">
+                    <div class="text-slate-400 text-xs mb-1">Page</div>
+                    <div class="text-white font-mono text-xs break-all">${data.page}</div>
+                  </div>
+                  <div class="bg-slate-800/50 rounded-lg p-4">
+                    <div class="text-slate-400 text-xs mb-1">Timestamp</div>
+                    <div class="text-white">${data.timestamp}</div>
+                  </div>
+                </div>
+                
+                ${data.fullUrl ? `
+                <div class="bg-slate-800/50 rounded-lg p-4">
+                  <div class="text-slate-400 text-xs mb-1">Full URL</div>
+                  <div class="text-white font-mono text-xs break-all">${data.fullUrl}</div>
+                </div>
+                ` : ''}
+                
+                ${data.source && data.source !== data.fullUrl ? `
+                <div class="bg-slate-800/50 rounded-lg p-4">
+                  <div class="text-slate-400 text-xs mb-1">Source</div>
+                  <div class="text-white font-mono text-xs break-all">${data.source}</div>
+                  ${data.lineno ? `<div class="text-slate-400 mt-1">Line ${data.lineno}, Column ${data.colno}</div>` : ''}
+                </div>
+                ` : ''}
+                
+                <div class="bg-slate-800/50 rounded-lg p-4">
+                  <div class="text-slate-400 text-xs mb-2">Device Information</div>
+                  <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div><span class="text-slate-400">Type:</span> <span class="text-white">${data.device.deviceType || 'unknown'}${data.device.isAndroidApp ? ' (Android App)' : ''}</span></div>
+                    <div><span class="text-slate-400">Platform:</span> <span class="text-white">${data.device.platform || 'unknown'}</span></div>
+                    <div><span class="text-slate-400">Viewport:</span> <span class="text-white">${data.device.viewport || 'unknown'}</span></div>
+                    <div><span class="text-slate-400">Online:</span> <span class="text-white">${data.device.online !== undefined ? (data.device.online ? 'Yes' : 'No') : 'unknown'}</span></div>
+                  </div>
+                </div>
+                
+                ${data.stack && data.stack !== 'No stack trace available' ? `
+                <div class="bg-slate-800/50 rounded-lg p-4">
+                  <div class="text-slate-400 text-xs mb-2">Stack Trace</div>
+                  <pre class="text-white font-mono text-xs overflow-x-auto whitespace-pre-wrap break-words">${data.stack}</pre>
+                </div>
+                ` : ''}
+                
+                <div class="grid grid-cols-3 gap-4">
+                  <div class="bg-slate-800/50 rounded-lg p-4">
+                    <div class="text-slate-400 text-xs mb-1">User ID</div>
+                    <div class="text-white text-xs break-all">${data.userId}</div>
+                  </div>
+                  <div class="bg-slate-800/50 rounded-lg p-4">
+                    <div class="text-slate-400 text-xs mb-1">Session ID</div>
+                    <div class="text-white text-xs break-all">${data.sessionId || '—'}</div>
+                  </div>
+                  <div class="bg-slate-800/50 rounded-lg p-4">
+                    <div class="text-slate-400 text-xs mb-1">Referrer</div>
+                    <div class="text-white text-xs break-all">${data.referrer}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(modal);
+          
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+              modal.remove();
+            }
+          });
         }
 
         // Roles & Invites: functions
@@ -3532,6 +3922,11 @@
           });
         }
 
+        // Expose critical functions globally for cross-module access
+        window.refreshLogsUI = refreshLogsUI;
+        window.clearOldLogs = clearOldLogs;
+        window.showToast = showToast;
+        
         // Global functions for photo approval
         window.approvePhoto = async function(photoId) {
           try {
@@ -3998,6 +4393,8 @@
           
           // Setup new admin tool buttons
           wireAdvancedToolButtons();
+          wireAdvancedActions();
+          initializeAdminButtons();
           
           // Ensure admin/public-fan role claims are set before loading data
           (async () => {
@@ -4024,8 +4421,8 @@
             // Update timestamps every minute
             setInterval(updateTimestamps, 60000);
             
-          // Initialize all button functionality
-          initializeAdminButtons();
+          // Initialize all button functionality (moved to DOMContentLoaded for earlier execution)
+          // initializeAdminButtons(); // Now called in DOMContentLoaded
           loadRealFirebaseData();
           // Load Advanced > TikTok settings
           loadTikTokSettings();
@@ -4092,6 +4489,8 @@
             try { await refreshUserActivity(); } catch(e) { console.warn('Activity refresh failed:', e); }
             // Load initial app stats
             try { await refreshAppStats(); } catch(e) { console.warn('App stats refresh failed:', e); }
+            // Load version distribution
+            try { await loadVersionDistribution(); } catch(e) { console.warn('Version distribution load failed:', e); }
             // Load initial revenue stats
             try { await refreshRevenueStats(); } catch(e) { console.warn('Revenue stats refresh failed:', e); }
           } catch(e) {
@@ -4172,6 +4571,12 @@
           if (exportAllDataBtn) exportAllDataBtn.addEventListener('click', exportAllData);
           
           // Mobile App Management
+          const loadVersionConfigBtn = document.getElementById('load-version-config-btn');
+          if (loadVersionConfigBtn) loadVersionConfigBtn.addEventListener('click', loadVersionConfig);
+          
+          const saveVersionConfigBtn = document.getElementById('save-version-config-btn');
+          if (saveVersionConfigBtn) saveVersionConfigBtn.addEventListener('click', saveVersionConfig);
+          
           const refreshAppStatsBtn = document.getElementById('refresh-app-stats-btn');
           if (refreshAppStatsBtn) refreshAppStatsBtn.addEventListener('click', refreshAppStats);
           
@@ -4823,14 +5228,26 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
             
-            // Log push notification (in production would call FCM Cloud Function)
             const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
             const auth = getAuth();
             
+            // Store notification in Firestore for Cloud Function to send
             try {
+              const notificationData = {
+                platform,
+                title,
+                message,
+                timestamp: serverTimestamp(),
+                sentBy: auth.currentUser?.uid || null,
+                status: 'pending'
+              };
+              
+              await addDoc(collection(db, 'push_notifications'), notificationData);
+              
+              // Also log to admin logs
               await addDoc(collection(db, 'admin_logs'), {
                 action: 'push_notification_sent',
                 platform,
@@ -4840,8 +5257,9 @@
                 uid: auth.currentUser?.uid || null,
                 role: role || 'unknown'
               });
-            } catch(logError) {
-              console.warn('Could not log push notification:', logError);
+            } catch(error) {
+              console.error('Failed to queue push notification:', error);
+              throw error;
             }
             
             // Clear form
@@ -4849,8 +5267,8 @@
             document.getElementById('push-message').value = '';
             
             document.getElementById('app-operation-result').innerHTML = 
-              `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Push notification logged for ${platform}</div>`;
-            showToast('Push notification logged!');
+              `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Push notification queued for ${platform}. Users will receive it shortly.</div>`;
+            showToast('Push notification sent!');
             
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-bell mr-2"></i>Send Notification';
@@ -4860,6 +5278,175 @@
             const btn = document.getElementById('send-push-notification-btn');
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-bell mr-2"></i>Send Notification';
+          }
+        }
+        
+        async function loadVersionConfig() {
+          try {
+            const { getFirestore, doc, getDoc, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            
+            // Load Android config
+            const androidDoc = await getDoc(doc(db, 'app_config', 'android_version'));
+            if (androidDoc.exists()) {
+              const data = androidDoc.data();
+              document.getElementById('android-latest-version').value = data.latest_version || '';
+              document.getElementById('android-min-version').value = data.minimum_version || '';
+              document.getElementById('android-update-message').value = data.update_message || '';
+            }
+            
+            // Load iOS config
+            const iosDoc = await getDoc(doc(db, 'app_config', 'ios_version'));
+            if (iosDoc.exists()) {
+              const data = iosDoc.data();
+              document.getElementById('ios-latest-version').value = data.latest_version || '';
+              document.getElementById('ios-min-version').value = data.minimum_version || '';
+              document.getElementById('ios-update-message').value = data.update_message || '';
+            }
+            
+            // Load version distribution from app_usage collection
+            await loadVersionDistribution();
+            
+            showToast('Version config loaded');
+          } catch(e) {
+            console.error('Failed to load version config:', e);
+            showToast('Failed to load version config', 'error');
+          }
+        }
+        
+        async function saveVersionConfig() {
+          try {
+            const role = await getUserRole();
+            if (role !== 'admin') {
+              showToast('You need to be an admin to manage app versions', 'error');
+              return;
+            }
+            
+            const btn = document.getElementById('save-version-config-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+            
+            const { getFirestore, doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const auth = getAuth();
+            
+            const androidLatest = parseInt(document.getElementById('android-latest-version').value) || 0;
+            const androidMin = parseInt(document.getElementById('android-min-version').value) || 0;
+            const androidMessage = document.getElementById('android-update-message').value;
+            
+            const iosLatest = parseInt(document.getElementById('ios-latest-version').value) || 0;
+            const iosMin = parseInt(document.getElementById('ios-min-version').value) || 0;
+            const iosMessage = document.getElementById('ios-update-message').value;
+            
+            // Save Android config
+            await setDoc(doc(db, 'app_config', 'android_version'), {
+              latest_version: androidLatest,
+              minimum_version: androidMin,
+              update_message: androidMessage,
+              updated_at: serverTimestamp(),
+              updated_by: auth.currentUser?.uid || null
+            });
+            
+            // Save iOS config
+            await setDoc(doc(db, 'app_config', 'ios_version'), {
+              latest_version: iosLatest,
+              minimum_version: iosMin,
+              update_message: iosMessage,
+              updated_at: serverTimestamp(),
+              updated_by: auth.currentUser?.uid || null
+            });
+            
+            showToast('Version config saved successfully');
+            document.getElementById('app-operation-result').innerHTML = 
+              '<div class="text-green-400"><i class="fas fa-check mr-2"></i>App version config updated. Users will be prompted on next app launch.</div>';
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Config';
+          } catch(e) {
+            console.error('Failed to save version config:', e);
+            showToast('Failed to save version config', 'error');
+            const btn = document.getElementById('save-version-config-btn');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Config';
+          }
+        }
+        
+        async function loadVersionDistribution() {
+          try {
+            const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            
+            const usageSnap = await getDocs(collection(db, 'app_usage'));
+            const androidVersions = {};
+            const iosVersions = {};
+            
+            usageSnap.forEach(doc => {
+              const data = doc.data();
+              const platform = data.platform;
+              const version = data.app_version;
+              
+              if (platform === 'android' && version) {
+                androidVersions[version] = (androidVersions[version] || 0) + 1;
+              } else if (platform === 'ios' && version) {
+                iosVersions[version] = (iosVersions[version] || 0) + 1;
+              }
+            });
+            
+            // Display Android distribution
+            const androidDiv = document.getElementById('android-version-distribution');
+            if (Object.keys(androidVersions).length === 0) {
+              androidDiv.innerHTML = '<div class="text-slate-500">No version data available</div>';
+            } else {
+              const androidTotal = Object.values(androidVersions).reduce((a, b) => a + b, 0);
+              const sorted = Object.entries(androidVersions).sort((a, b) => b[1] - a[1]);
+              androidDiv.innerHTML = sorted.map(([version, count]) => {
+                const percent = ((count / androidTotal) * 100).toFixed(1);
+                return `
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-300">v${version}:</span>
+                    <div class="flex items-center space-x-2">
+                      <div class="w-24 h-2 bg-slate-700 rounded overflow-hidden">
+                        <div class="h-full bg-green-400" style="width: ${percent}%"></div>
+                      </div>
+                      <span class="text-slate-400 w-16 text-right">${count} (${percent}%)</span>
+                    </div>
+                  </div>
+                `;
+              }).join('');
+            }
+            
+            // Display iOS distribution
+            const iosDiv = document.getElementById('ios-version-distribution');
+            if (Object.keys(iosVersions).length === 0) {
+              iosDiv.innerHTML = '<div class="text-slate-500">No version data available</div>';
+            } else {
+              const iosTotal = Object.values(iosVersions).reduce((a, b) => a + b, 0);
+              const sorted = Object.entries(iosVersions).sort((a, b) => b[1] - a[1]);
+              iosDiv.innerHTML = sorted.map(([version, count]) => {
+                const percent = ((count / iosTotal) * 100).toFixed(1);
+                return `
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-300">v${version}:</span>
+                    <div class="flex items-center space-x-2">
+                      <div class="w-24 h-2 bg-slate-700 rounded overflow-hidden">
+                        <div class="h-full bg-blue-400" style="width: ${percent}%"></div>
+                      </div>
+                      <span class="text-slate-400 w-16 text-right">${count} (${percent}%)</span>
+                    </div>
+                  </div>
+                `;
+              }).join('');
+            }
+          } catch(e) {
+            console.error('Failed to load version distribution:', e);
+            document.getElementById('android-version-distribution').innerHTML = 
+              '<div class="text-red-400 text-xs">Failed to load</div>';
+            document.getElementById('ios-version-distribution').innerHTML = 
+              '<div class="text-red-400 text-xs">Failed to load</div>';
           }
         }
         
@@ -5314,7 +5901,27 @@
 
           // Logs
           const refreshLogsBtn = document.getElementById('refresh-logs-btn');
-          if (refreshLogsBtn) refreshLogsBtn.addEventListener('click', (e)=>{ e.preventDefault(); refreshLogsUI(); });
+          if (refreshLogsBtn) {
+            refreshLogsBtn.addEventListener('click', (e)=>{
+              e.preventDefault();
+              console.log('[ADMIN] Refresh logs button clicked');
+              refreshLogsUI();
+            });
+            console.log('[ADMIN] ✓ Refresh logs button wired');
+          } else {
+            console.warn('[ADMIN] ✗ refresh-logs-btn not found');
+          }
+          const clearLogsBtn = document.getElementById('clear-logs-btn');
+          if (clearLogsBtn) {
+            clearLogsBtn.addEventListener('click', (e)=>{
+              e.preventDefault();
+              console.log('[ADMIN] Clear logs button clicked');
+              clearOldLogs();
+            });
+            console.log('[ADMIN] ✓ Clear logs button wired');
+          } else {
+            console.warn('[ADMIN] ✗ clear-logs-btn not found');
+          }
 
           // Roles & Invites events
           const refreshInvBtn = document.getElementById('refresh-invites-btn');
@@ -5417,7 +6024,8 @@
           
           Promise.all([
             loadRealFirebaseData(),
-            loadPendingPhotos()
+            loadPendingPhotos(),
+            refreshLogsUI()
           ]).then(() => {
             button.innerHTML = '<i class="fas fa-sync mr-1"></i>Refresh Data';
             button.disabled = false;
@@ -5798,6 +6406,9 @@
                 weather: document.getElementById('race-weather').value || '',
                 notes: document.getElementById('race-notes').value || '',
                 incidents: incidents,
+                isWin: document.getElementById('race-is-win').checked,
+                isPodium: document.getElementById('race-is-podium').checked,
+                isDNF: document.getElementById('race-is-dnf').checked,
                 createdAt: new Date(),
                 createdBy: user.uid
               };

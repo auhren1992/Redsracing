@@ -15,8 +15,8 @@ android {
         applicationId = "com.redsracing.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 98
-        versionName = "9.8"
+        versionCode = 103
+        versionName = "10.3"
 
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
@@ -93,4 +93,6 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    // Encrypted storage for auth tokens
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 }
