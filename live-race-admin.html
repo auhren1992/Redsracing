@@ -241,18 +241,37 @@
         // Check auth status - use persistence to maintain login across tabs
         firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
         
+        let authCheckComplete = false;
+        
         firebase.auth().onAuthStateChanged(async (user) => {
+            if (authCheckComplete) return;
+            authCheckComplete = true;
+            
             if (!user) {
-                // Wait a moment for auth to sync across tabs
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                // Wait longer for auth to sync across tabs (3 seconds)
+                await new Promise(resolve => setTimeout(resolve, 3000));
                 
                 // Check again after wait
-                if (!firebase.auth().currentUser) {
-                    alert('⚠️ You must be logged in to the admin console first.\n\nPlease log in at admin-console.html, then return here.');
-                    window.location.href = 'admin-console.html';
+                const currentUser = firebase.auth().currentUser;
+                if (!currentUser) {
+                    // Show friendly message instead of redirecting
+                    statusEl.className = 'status-indicator';
+                    statusEl.style.background = 'rgba(239, 68, 68, 0.2)';
+                    statusEl.style.color = '#ef4444';
+                    statusEl.style.border = '1px solid #ef4444';
+                    statusEl.innerHTML = '⚠️ Not logged in. Please log in to admin console first.';
+                    
+                    // Disable all buttons
+                    document.querySelectorAll('button, input, select').forEach(el => el.disabled = true);
+                } else {
+                    console.log('✅ Authenticated as:', currentUser.email);
+                    statusEl.innerHTML = '✅ Ready - Logged in as ' + currentUser.email;
+                    statusEl.className = 'status-indicator status-inactive';
                 }
             } else {
                 console.log('✅ Authenticated as:', user.email);
+                statusEl.innerHTML = '✅ Ready - Logged in as ' + user.email;
+                statusEl.className = 'status-indicator status-inactive';
             }
         });
 
