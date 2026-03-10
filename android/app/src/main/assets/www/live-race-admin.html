@@ -238,12 +238,21 @@
         const updateLogEl = document.getElementById('updateLog');
         const statusEl = document.getElementById('status');
 
-        // Check auth status
-        firebase.auth().onAuthStateChanged((user) => {
+        // Check auth status - use persistence to maintain login across tabs
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+        
+        firebase.auth().onAuthStateChanged(async (user) => {
             if (!user) {
-                if (confirm('You must be logged in to use Live Race Control. Go to login page?')) {
-                    window.location.href = 'login.html?returnTo=' + encodeURIComponent(window.location.pathname);
+                // Wait a moment for auth to sync across tabs
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Check again after wait
+                if (!firebase.auth().currentUser) {
+                    alert('⚠️ You must be logged in to the admin console first.\n\nPlease log in at admin-console.html, then return here.');
+                    window.location.href = 'admin-console.html';
                 }
+            } else {
+                console.log('✅ Authenticated as:', user.email);
             }
         });
 
