@@ -18,7 +18,7 @@
         getApps = () => firebase.apps;
         getAuth = () => firebase.auth();
         setPersistence = (auth, persistence) => auth.setPersistence(persistence);
-        browserLocalPersistence = firebase.auth.Auth.Persistence.LOCAL;
+        browserLocalPersistence = (firebase.auth && firebase.auth.Auth && firebase.auth.Auth.Persistence && firebase.auth.Auth.Persistence.LOCAL) || 'local';
         onAuthStateChanged = (auth, callback, errorCallback) => auth.onAuthStateChanged(callback, errorCallback);
       } else {
         // Use modular Firebase (web browser)
