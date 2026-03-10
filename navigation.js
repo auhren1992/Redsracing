@@ -7,7 +7,7 @@
     console.log('[RedsRacing Auth] ===== INIT STARTING =====');
     try {
       // Check if Firebase compat is already loaded (Android/iOS WebView)
-      const useCompat = typeof firebase !== 'undefined';
+      const useCompat = typeof firebase !== 'undefined' && typeof firebase.auth === 'function';
       console.log('[RedsRacing Auth] Using Firebase compat:', useCompat);
       
       let initializeApp, getApps, getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged;
