@@ -93,9 +93,15 @@
 </head>
 <body>
     <div class="control-panel">
-        <h1 class="text-3xl font-bold text-white mb-2 text-center">
-            <i class="fas fa-flag-checkered mr-2"></i>Live Race Control
-        </h1>
+        <div class="flex items-center justify-between mb-4">
+            <button onclick="window.location.href='admin-console.html'" class="text-slate-400 hover:text-white transition-colors" style="background:none;border:none;padding:8px;margin:0;width:auto;">
+                <i class="fas fa-arrow-left mr-2"></i>Back
+            </button>
+            <h1 class="text-2xl font-bold text-white text-center flex-1">
+                <i class="fas fa-flag-checkered mr-2"></i>Live Race Control
+            </h1>
+            <div style="width:60px;"></div>
+        </div>
         <p class="text-slate-400 text-center mb-6">Quick updates from the track</p>
         
         <div id="status" class="status-indicator status-inactive">
@@ -213,9 +219,9 @@
         <button onclick="endRace()" class="big-button" style="background: #6366f1; color: white; margin-top: 12px;">
             <i class="fas fa-stop-circle mr-2"></i>End Race Session
         </button>
-    </div>
-
-    <!-- Recent Updates Log -->
+        <button onclick="deleteRace()" class="big-button" style="background: #ef4444; color: white; margin-top: 12px;">
+            <i class="fas fa-trash mr-2"></i>Delete Race Data
+        </button>
     <div class="control-panel">
         <h3 class="text-xl font-bold text-white mb-4">Recent Updates</h3>
         <div id="updateLog" class="text-slate-400 text-sm space-y-2">
@@ -395,6 +401,29 @@
                 
             } catch (error) {
                 console.error('Error ending race:', error);
+            }
+        }
+        
+        async function deleteRace() {
+            if (!confirm('DELETE all race data? This will remove the live race from the website. This cannot be undone!')) return;
+            
+            try {
+                await db.collection('live_race').doc('current').delete();
+                
+                statusEl.className = 'status-indicator status-inactive';
+                statusEl.textContent = '🗑️ Race data deleted';
+                addToLog('❌ Race data deleted');
+                
+                // Clear the form
+                document.getElementById('trackName').value = '';
+                document.getElementById('currentLap').value = '';
+                document.getElementById('totalLaps').value = '';
+                document.getElementById('jonGap').value = '';
+                document.getElementById('jonnyGap').value = '';
+                
+            } catch (error) {
+                console.error('Error deleting race:', error);
+                alert('Failed to delete: ' + error.message);
             }
         }
 
