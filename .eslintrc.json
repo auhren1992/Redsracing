@@ -1,0 +1,13 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "globals": {
+    "firebase": "readonly",
+    "FirebaseAuthBridge": "readonly"
+  },
+  "rules": {
+    "no-undef": "error"
+  }
+}
