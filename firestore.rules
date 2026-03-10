@@ -231,6 +231,15 @@ service cloud.firestore {
       allow delete: if hasRole('admin') || hasProfileRole('admin');
     }
     
+    // Live race updates
+    match /live_race/{document} {
+      // Anyone can read live race data
+      allow read: if true;
+      // Only authenticated team members can write
+      allow write: if isAuthenticated() && 
+        (hasRole('admin') || hasRole('team-member') || hasProfileRole('admin') || hasProfileRole('team-member'));
+    }
+    
     // Default deny - catches everything not explicitly allowed above
     match /{document=**} {
       allow read, write: if false;
