@@ -1588,6 +1588,168 @@ exports.sendPushNotification = onDocumentCreated(
   }
 );
 
+/**
+ * Automatically send push notification when live race starts.
+ * Triggered when live_race/current document is created or updated with isLive=true.
+ */
+exports.autoNotifyLiveRaceStart = onDocumentCreated(
+  { document: "live_race/current", secrets: ["SENTRY_DSN"] },
+  async (event) => {
+    const raceData = event.data.data();
+    
+    if (!raceData.isLive) {
+      logger.info('Live race document created but race is not live yet, skipping notification');
+      return;
+    }
+    
+    logger.info('Live race started, sending push notification');
+    
+    try {
+      const db = getFirestore();
+      const trackName = raceData.trackName || 'the track';
+      const driverName = raceData.driverName || 'Jon Kirsch #8';
+      
+      await db.collection('push_notifications').add({
+        title: '🏁 Live Racing Now!',
+        message: `${driverName} is racing live at ${trackName}! Open the app for real-time updates.`,
+        platform: 'all',
+        status: 'pending',
+        createdBy: 'system',
+        createdByEmail: 'auto@redsracing.org',
+        createdAt: FieldValue.serverTimestamp(),
+        autoTriggered: true,
+        triggeredBy: 'live_race_start',
+      });
+      
+      logger.info('Auto notification created for live race start');
+    } catch (error) {
+      logger.error('Failed to create auto notification for live race:', error);
+      try { Sentry.captureException(error); } catch (_) {}
+    }
+  }
+);
+
+/**
+ * Check for upcoming races and send reminders.
+ * Runs every hour to check if any races are starting soon.
+ */
+exports.sendRaceDayReminders = onSchedule(
+  { schedule: 'every 60 minutes', secrets: ["SENTRY_DSN"] },
+  async (event) => {
+    logger.info('Checking for upcoming races to send reminders');
+    
+    try {
+      const db = getFirestore();
+      const now = new Date();
+      const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+      
+      // Check race_results collection for upcoming races
+      const upcomingRacesSnapshot = await db.collection('race_results')
+        .where('date', '>=', now)
+        .where('date', '<=', oneHourFromNow)
+        .get();
+      
+      if (upcomingRacesSnapshot.empty) {
+        logger.info('No races starting in the next hour');
+        return;
+      }
+      
+      // Check if we already sent a notification for these races
+      const notificationPromises = [];
+      
+      for (const raceDoc of upcomingRacesSnapshot.docs) {
+        const race = raceDoc.data();
+        const raceId = raceDoc.id;
+        
+        // Check if we already sent a reminder for this race
+        const existingNotification = await db.collection('push_notifications')
+          .where('raceId', '==', raceId)
+          .where('triggeredBy', '==', 'race_day_reminder')
+          .limit(1)
+          .get();
+        
+        if (!existingNotification.empty) {
+          logger.info(`Already sent reminder for race ${raceId}, skipping`);
+          continue;
+        }
+        
+        // Calculate time until race
+        const raceTime = race.date.toDate();
+        const minutesUntil = Math.round((raceTime - now) / 1000 / 60);
+        
+        const trackName = race.track || 'the track';
+        const driverName = race.driver || 'Jon Kirsch #8';
+        
+        notificationPromises.push(
+          db.collection('push_notifications').add({
+            title: '🏁 Race Starting Soon!',
+            message: `${driverName} races in ${minutesUntil} minutes at ${trackName}! Don't miss it.`,
+            platform: 'all',
+            status: 'pending',
+            createdBy: 'system',
+            createdByEmail: 'auto@redsracing.org',
+            createdAt: FieldValue.serverTimestamp(),
+            autoTriggered: true,
+            triggeredBy: 'race_day_reminder',
+            raceId: raceId,
+          })
+        );
+      }
+      
+      await Promise.all(notificationPromises);
+      logger.info(`Sent ${notificationPromises.length} race day reminder notifications`);
+      
+    } catch (error) {
+      logger.error('Failed to send race day reminders:', error);
+      try { Sentry.captureException(error); } catch (_) {}
+    }
+  }
+);
+
+/**
+ * Send notification when race results are posted.
+ * Triggered when a new document with results is created in race_results.
+ */
+exports.autoNotifyRaceResults = onDocumentCreated(
+  { document: "race_results/{raceId}", secrets: ["SENTRY_DSN"] },
+  async (event) => {
+    const raceData = event.data.data();
+    const raceId = event.params.raceId;
+    
+    // Only send notification if race has finished (has finishing position or results)
+    if (!raceData.finishingPosition && !raceData.results) {
+      logger.info('Race created but no results yet, skipping notification');
+      return;
+    }
+    
+    logger.info(`Race results posted for ${raceId}, sending notification`);
+    
+    try {
+      const db = getFirestore();
+      const trackName = raceData.track || 'the track';
+      const position = raceData.finishingPosition || 'finished';
+      
+      await db.collection('push_notifications').add({
+        title: '🏆 Race Results Posted!',
+        message: `${trackName} results are in! We ${typeof position === 'number' ? 'finished P' + position : position}. Check the app for full results.`,
+        platform: 'all',
+        status: 'pending',
+        createdBy: 'system',
+        createdByEmail: 'auto@redsracing.org',
+        createdAt: FieldValue.serverTimestamp(),
+        autoTriggered: true,
+        triggeredBy: 'race_results_posted',
+        raceId: raceId,
+      });
+      
+      logger.info('Auto notification created for race results');
+    } catch (error) {
+      logger.error('Failed to create auto notification for race results:', error);
+      try { Sentry.captureException(error); } catch (_) {}
+    }
+  }
+);
+
 // Newsletter functions
 const newsletter = require('./newsletter');
 exports.sendWelcomeEmail = newsletter.sendWelcomeEmail;
