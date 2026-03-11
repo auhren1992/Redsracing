@@ -419,6 +419,30 @@ import { LoadingService } from "./loading.js";
     }
   }
 
+  // Display banner image
+  function displayBanner(bannerUrl) {
+    const bannerEl = document.getElementById('profile-banner');
+    const bannerImg = document.getElementById('profile-banner-img');
+    const profileMainCard = document.getElementById('profile-main-card');
+    
+    if (!bannerEl || !bannerImg) return;
+
+    if (bannerUrl && bannerUrl.trim()) {
+      bannerImg.src = bannerUrl.trim();
+      bannerEl.classList.remove('hidden');
+      
+      // Add negative margin to profile card to overlap banner
+      if (profileMainCard) {
+        profileMainCard.style.marginTop = '-4rem';
+      }
+    } else {
+      bannerEl.classList.add('hidden');
+      if (profileMainCard) {
+        profileMainCard.style.marginTop = '';
+      }
+    }
+  }
+
   // Display garage cars
   function displayGarageCars(cars) {
     const garageEl = document.getElementById('profile-garage');
@@ -584,6 +608,9 @@ import { LoadingService } from "./loading.js";
     if (statsCarsCount) {
       statsCarsCount.textContent = (profileData.cars || []).length;
     }
+
+    // Display banner if exists
+    displayBanner(profileData.bannerUrl);
 
     // Pre-fill edit form
     if (editUsername) editUsername.value = profileData.username || "";
