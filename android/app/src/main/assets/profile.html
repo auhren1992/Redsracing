@@ -706,7 +706,7 @@
               <div class="sticky top-0 bg-slate-900/95 backdrop-blur border-b border-slate-700 p-6 rounded-t-2xl">
                 <h2 class="text-2xl font-racing text-white uppercase">Edit Profile</h2>
               </div>
-              <div class="p-6 space-y-5">
+              <div class="p-6 space-y-5 pb-24">
                 <div class="text-center">
                   <div class="profile-avatar-ring w-24 h-24 mx-auto mb-3">
                     <div class="w-full h-full rounded-full bg-slate-800 overflow-hidden flex items-center justify-center">
@@ -814,6 +814,9 @@
       <div id="save-toast" class="toast">Profile saved! 🎉</div>
     </main>
 
+    <!-- Role-Based Profile Edit Modal -->
+    <div id="profile-edit-modal-container"></div>
+
     <!-- Fallback (non-module) must load before the module script -->
 
     <script src="assets/js/profile-inline-fallback.js"></script>
@@ -821,6 +824,7 @@
     <script type="module" src="assets/js/navigation.js"></script>
     <script type="module" src="assets/js/auth-guard.js"></script>
     <script type="module" src="assets/js/profile.js"></script>
+    <script src="js/profile-edit-modal.js"></script>
     <script>
       (function(){
         function forceShow(){
@@ -917,44 +921,26 @@
       
       // Initialize persona system when DOM loads
       document.addEventListener('DOMContentLoaded', function() {
-        // Edit Form Modal handling
-        const editForm = document.getElementById('profile-edit-form');
+        // Load new profile edit modal HTML component
+        fetch('components/profile-edit-modal.html')
+          .then(res => res.text())
+          .then(html => {
+            document.getElementById('profile-edit-modal-container').innerHTML = html;
+          })
+          .catch(err => console.error('Failed to load profile edit modal:', err));
+        
+        // Edit Form Modal handling - using NEW modal
         const editBtn = document.getElementById('edit-profile-btn');
-        const cancelBtn = document.getElementById('cancel-edit-btn');
-        const backdrop = document.getElementById('edit-form-backdrop');
         
         function openEditModal() {
-          if (editForm) {
-            editForm.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-          }
-        }
-        
-        function closeEditModal() {
-          if (editForm) {
-            editForm.classList.add('hidden');
-            document.body.style.overflow = '';
+          if (typeof profileEditModal !== 'undefined' && profileEditModal) {
+            profileEditModal.openModal();
           }
         }
         
         if (editBtn) {
           editBtn.addEventListener('click', openEditModal);
         }
-        
-        if (cancelBtn) {
-          cancelBtn.addEventListener('click', closeEditModal);
-        }
-        
-        if (backdrop) {
-          backdrop.addEventListener('click', closeEditModal);
-        }
-        
-        // Close modal on escape key
-        document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape' && editForm && !editForm.classList.contains('hidden')) {
-            closeEditModal();
-          }
-        });
         
         // Handle persona selection
         const personaRadios = document.querySelectorAll('input[name="racing-persona"]');
