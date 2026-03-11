@@ -6,6 +6,7 @@ class ProfileEditModal {
     this.currentTab = 'profile';
     this.cars = [];
     this.maxCars = 5;
+    this.editingCarIndex = -1;
     
     this.init();
   }
@@ -55,7 +56,10 @@ class ProfileEditModal {
     document.getElementById('save-profile-btn')?.addEventListener('click', () => this.saveProfile());
 
     // Garage controls
-    document.getElementById('add-car-btn')?.addEventListener('click', () => this.addCar());
+    document.getElementById('add-car-btn')?.addEventListener('click', () => this.showCarForm());
+    document.getElementById('save-car-btn')?.addEventListener('click', () => this.saveCarFromForm());
+    document.getElementById('cancel-car-btn')?.addEventListener('click', () => this.hideCarForm());
+    document.getElementById('cancel-car-form-btn')?.addEventListener('click', () => this.hideCarForm());
 
     // Avatar preview
     document.getElementById('edit-avatar')?.addEventListener('input', (e) => {
@@ -251,6 +255,7 @@ class ProfileEditModal {
       // Load cars
       this.cars = userData.cars || [];
       this.renderCars();
+      this.updateCarCount();
 
       // Update character counters
       document.getElementById('name-count').textContent = (userData.displayName || '').length;
@@ -266,6 +271,17 @@ class ProfileEditModal {
     } catch (error) {
       console.error('Error loading profile:', error);
       this.showStatus('Failed to load profile data', 'error');
+    }
+  }
+
+  updateCarCount() {
+    const countDisplay = document.getElementById('car-count-display');
+    if (countDisplay) {
+      if (this.cars.length > 0) {
+        countDisplay.textContent = `(${this.cars.length}/${this.maxCars === 999 ? '∞' : this.maxCars})`;
+      } else {
+        countDisplay.textContent = '';
+      }
     }
   }
 
@@ -294,10 +310,10 @@ class ProfileEditModal {
             ${car.mods ? `<p class="text-slate-300 text-sm mt-1">${car.mods}</p>` : ''}
           </div>
           <div class="flex gap-2">
-            <button onclick="profileEditModal.editCar(${index})" class="p-2 text-blue-400 hover:text-blue-300">
+            <button onclick="profileEditModal.editCar(${index})" class="p-2 text-blue-400 hover:text-blue-300 transition">
               <i class="fas fa-edit"></i>
             </button>
-            <button onclick="profileEditModal.deleteCar(${index})" class="p-2 text-red-400 hover:text-red-300">
+            <button onclick="profileEditModal.deleteCar(${index})" class="p-2 text-red-400 hover:text-red-300 transition">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -306,60 +322,78 @@ class ProfileEditModal {
     `).join('');
   }
 
-  addCar() {
-    if (this.cars.length >= this.maxCars) {
-      this.showStatus(`You've reached the maximum of ${this.maxCars} cars`, 'error');
+  showCarForm(editIndex = -1) {
+    const carForm = document.getElementById('car-form');
+    const formTitle = document.getElementById('car-form-title');
+    
+    this.editingCarIndex = editIndex;
+    
+    if (editIndex >= 0) {
+      // Edit mode
+      const car = this.cars[editIndex];
+      formTitle.textContent = 'Edit Car';
+      document.getElementById('car-make').value = car.make || '';
+      document.getElementById('car-model').value = car.model || '';
+      document.getElementById('car-year').value = car.year || '';
+      document.getElementById('car-photo').value = car.photoUrl || '';
+      document.getElementById('car-mods').value = car.mods || '';
+    } else {
+      // Add mode
+      if (this.cars.length >= this.maxCars) {
+        this.showStatus(`You've reached the maximum of ${this.maxCars} cars`, 'error');
+        return;
+      }
+      formTitle.textContent = 'Add New Car';
+      document.getElementById('car-make').value = '';
+      document.getElementById('car-model').value = '';
+      document.getElementById('car-year').value = '';
+      document.getElementById('car-photo').value = '';
+      document.getElementById('car-mods').value = '';
+    }
+    
+    carForm.classList.remove('hidden');
+  }
+
+  hideCarForm() {
+    document.getElementById('car-form')?.classList.add('hidden');
+    this.editingCarIndex = -1;
+  }
+
+  saveCarFromForm() {
+    const make = document.getElementById('car-make').value.trim();
+    const model = document.getElementById('car-model').value.trim();
+    
+    if (!make || !model) {
+      this.showStatus('Make and Model are required', 'error');
       return;
     }
-
-    const make = prompt('Car Make (e.g., Chevrolet, Ford):');
-    if (!make) return;
-
-    const model = prompt('Car Model (e.g., Camaro, Mustang):');
-    if (!model) return;
-
-    const year = prompt('Year (optional):');
-    const photoUrl = prompt('Photo URL (optional):');
-    const mods = prompt('Modifications (optional):');
-
-    this.cars.push({
-      make: make.trim(),
-      model: model.trim(),
-      year: year ? year.trim() : '',
-      photoUrl: photoUrl ? photoUrl.trim() : '',
-      mods: mods ? mods.trim() : '',
+    
+    const carData = {
+      make: make,
+      model: model,
+      year: document.getElementById('car-year').value.trim(),
+      photoUrl: document.getElementById('car-photo').value.trim(),
+      mods: document.getElementById('car-mods').value.trim(),
       isFavorite: false
-    });
-
+    };
+    
+    if (this.editingCarIndex >= 0) {
+      // Update existing car
+      this.cars[this.editingCarIndex] = { ...this.cars[this.editingCarIndex], ...carData };
+      this.showStatus('Car updated!', 'success');
+    } else {
+      // Add new car
+      this.cars.push(carData);
+      this.showStatus('Car added!', 'success');
+    }
+    
+    this.hideCarForm();
     this.renderCars();
-    this.showStatus('Car added!', 'success');
+    this.updateCarCount();
   }
 
   editCar(index) {
-    const car = this.cars[index];
-    if (!car) return;
-
-    const make = prompt('Car Make:', car.make);
-    if (make === null) return;
-
-    const model = prompt('Car Model:', car.model);
-    if (model === null) return;
-
-    const year = prompt('Year:', car.year);
-    const photoUrl = prompt('Photo URL:', car.photoUrl);
-    const mods = prompt('Modifications:', car.mods);
-
-    this.cars[index] = {
-      ...car,
-      make: make.trim(),
-      model: model.trim(),
-      year: year ? year.trim() : '',
-      photoUrl: photoUrl ? photoUrl.trim() : '',
-      mods: mods ? mods.trim() : ''
-    };
-
-    this.renderCars();
-    this.showStatus('Car updated!', 'success');
+    this.showCarForm(index);
   }
 
   deleteCar(index) {
@@ -367,6 +401,7 @@ class ProfileEditModal {
     
     this.cars.splice(index, 1);
     this.renderCars();
+    this.updateCarCount();
     this.showStatus('Car removed', 'success');
   }
 
