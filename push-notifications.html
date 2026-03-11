@@ -336,9 +336,10 @@
         // Check admin claims
         try {
           const idTokenResult = await user.getIdTokenResult();
-          isAdmin = idTokenResult.claims.admin || idTokenResult.claims.teamMember;
+          isAdmin = idTokenResult.claims.admin || idTokenResult.claims.teamMember || idTokenResult.claims['team-member'];
           
           if (!isAdmin) {
+            console.log('Not admin. Claims:', idTokenResult.claims);
             authGate.classList.remove('hidden');
             mainContent.classList.add('hidden');
             return;
