@@ -12,8 +12,6 @@ class ProfileEditModal {
 
   async init() {
     await this.loadUser();
-    this.setupEventListeners();
-    this.setupCharacterCounters();
   }
 
   async loadUser() {
@@ -96,10 +94,18 @@ class ProfileEditModal {
 
   async openModal() {
     const modal = document.getElementById('profile-edit-modal');
-    if (!modal) return;
+    if (!modal) {
+      console.error('Profile edit modal not found. Make sure the HTML component is loaded.');
+      return;
+    }
+
+    // Setup event listeners NOW that modal exists
+    this.setupEventListeners();
+    this.setupCharacterCounters();
 
     // Show modal
     modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
 
     // Load user role and set up tabs
     if (this.currentUser) {
@@ -123,6 +129,7 @@ class ProfileEditModal {
 
   closeModal() {
     document.getElementById('profile-edit-modal')?.classList.add('hidden');
+    document.body.style.overflow = '';
   }
 
   setupTabs() {
