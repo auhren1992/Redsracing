@@ -488,10 +488,10 @@ class ProfileEditModal {
 
       this.showStatus('Profile saved successfully!', 'success');
       
-      // Reload page to show updated profile
+      // Reload page to show updated profile (with cache busting)
       setTimeout(() => {
         console.log('Reloading page to show updated profile...');
-        window.location.reload();
+        window.location.reload(true); // Force reload from server, not cache
       }, 1500);
 
     } catch (error) {
