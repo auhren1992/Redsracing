@@ -1,6 +1,6 @@
 {
   "name": "redsracing-frontend",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "RedsRacing #8 Frontend",
   "scripts": {
     "build-css": "tailwindcss -i ./src/input.css -o ./styles/tailwind.css --watch",

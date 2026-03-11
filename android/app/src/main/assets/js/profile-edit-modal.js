@@ -16,6 +16,12 @@ class ProfileEditModal {
   }
 
   async loadUser() {
+    // Check if firebase is available
+    if (typeof firebase === 'undefined') {
+      console.warn('Firebase not loaded yet, will initialize on modal open');
+      return;
+    }
+    
     firebase.auth().onAuthStateChanged(async (user) => {
       if (user) {
         this.currentUser = user;
@@ -103,6 +109,16 @@ class ProfileEditModal {
       return;
     }
 
+    // Ensure Firebase is loaded and get current user
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+      this.currentUser = firebase.auth().currentUser;
+      if (this.currentUser) {
+        const idTokenResult = await this.currentUser.getIdTokenResult();
+        this.userRole = this.getUserRole(idTokenResult.claims);
+        this.maxCars = this.getMaxCars(this.userRole);
+      }
+    }
+
     // Setup event listeners NOW that modal exists
     this.setupEventListeners();
     this.setupCharacterCounters();
@@ -110,13 +126,6 @@ class ProfileEditModal {
     // Show modal
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-
-    // Load user role and set up tabs
-    if (this.currentUser) {
-      const idTokenResult = await this.currentUser.getIdTokenResult();
-      this.userRole = this.getUserRole(idTokenResult.claims);
-      this.maxCars = this.getMaxCars(this.userRole);
-    }
 
     // Update role badge
     document.getElementById('role-badge').innerHTML = this.getRoleBadgeHTML(this.userRole);
@@ -229,7 +238,7 @@ class ProfileEditModal {
   }
 
   async loadProfileData() {
-    if (!this.currentUser) return;
+    if (!this.currentUser || typeof firebase === 'undefined') return;
 
     try {
       const userDoc = await firebase.firestore().collection('users').doc(this.currentUser.uid).get();
@@ -406,7 +415,10 @@ class ProfileEditModal {
   }
 
   async saveProfile() {
-    if (!this.currentUser) return;
+    if (!this.currentUser || typeof firebase === 'undefined') {
+      this.showStatus('Error: Not authenticated', 'error');
+      return;
+    }
 
     const saveBtn = document.getElementById('save-profile-btn');
     saveBtn.disabled = true;
