@@ -247,11 +247,19 @@ class ProfileEditModal {
   }
 
   async loadProfileData() {
-    if (!this.currentUser || typeof firebase === 'undefined') return;
+    if (!this.currentUser) return;
 
     try {
-      const userDoc = await firebase.firestore().collection('users').doc(this.currentUser.uid).get();
-      const userData = userDoc.data() || {};
+      const db = getFirebaseDb();
+      if (!db) {
+        console.error('Firestore not available');
+        return;
+      }
+      
+      const { getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+      const userDocRef = doc(db, 'users', this.currentUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      const userData = userDoc.exists() ? userDoc.data() : {};
 
       // Load basic fields
       document.getElementById('edit-avatar').value = userData.avatarUrl || '';
@@ -480,13 +488,11 @@ class ProfileEditModal {
 
       this.showStatus('Profile saved successfully!', 'success');
       
-      // Reload profile display after short delay
+      // Reload page to show updated profile
       setTimeout(() => {
-        this.closeModal();
-        if (typeof loadUserProfile === 'function') {
-          loadUserProfile();
-        }
-      }, 1000);
+        console.log('Reloading page to show updated profile...');
+        window.location.reload();
+      }, 1500);
 
     } catch (error) {
       console.error('Error saving profile:', error);
