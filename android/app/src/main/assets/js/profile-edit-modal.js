@@ -1,4 +1,7 @@
 // Role-Based Profile Edit Modal Controller
+import { getFirebaseAuth, getFirebaseDb } from '../assets/js/firebase-core.js';
+import { serverTimestamp, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
 class ProfileEditModal {
   constructor() {
     this.currentUser = null;
@@ -16,20 +19,21 @@ class ProfileEditModal {
   }
 
   async loadUser() {
-    // Check if firebase is available
-    if (typeof firebase === 'undefined') {
-      console.warn('Firebase not loaded yet, will initialize on modal open');
-      return;
+    try {
+      const auth = getFirebaseAuth();
+      if (!auth) return;
+      
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          this.currentUser = user;
+          const idTokenResult = await user.getIdTokenResult();
+          this.userRole = this.getUserRole(idTokenResult.claims);
+          this.maxCars = this.getMaxCars(this.userRole);
+        }
+      });
+    } catch (error) {
+      console.error('Error loading user:', error);
     }
-    
-    firebase.auth().onAuthStateChanged(async (user) => {
-      if (user) {
-        this.currentUser = user;
-        const idTokenResult = await user.getIdTokenResult();
-        this.userRole = this.getUserRole(idTokenResult.claims);
-        this.maxCars = this.getMaxCars(this.userRole);
-      }
-    });
   }
 
   getUserRole(claims) {
@@ -110,13 +114,18 @@ class ProfileEditModal {
     }
 
     // Ensure Firebase is loaded and get current user
-    if (typeof firebase !== 'undefined' && firebase.auth) {
-      this.currentUser = firebase.auth().currentUser;
-      if (this.currentUser) {
-        const idTokenResult = await this.currentUser.getIdTokenResult();
-        this.userRole = this.getUserRole(idTokenResult.claims);
-        this.maxCars = this.getMaxCars(this.userRole);
+    try {
+      const auth = getFirebaseAuth();
+      if (auth) {
+        this.currentUser = auth.currentUser;
+        if (this.currentUser) {
+          const idTokenResult = await this.currentUser.getIdTokenResult();
+          this.userRole = this.getUserRole(idTokenResult.claims);
+          this.maxCars = this.getMaxCars(this.userRole);
+        }
       }
+    } catch (error) {
+      console.error('Error getting current user:', error);
     }
 
     // Setup event listeners NOW that modal exists
@@ -415,41 +424,59 @@ class ProfileEditModal {
   }
 
   async saveProfile() {
-    if (!this.currentUser || typeof firebase === 'undefined') {
-      this.showStatus('Error: Not authenticated', 'error');
-      return;
-    }
-
-    const saveBtn = document.getElementById('save-profile-btn');
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
-    this.showStatus('Saving changes...', 'info');
-
+    // Ensure we have the latest auth state
     try {
+      const auth = getFirebaseAuth();
+      if (!auth) {
+        this.showStatus('Error: Firebase not initialized', 'error');
+        console.error('Firebase auth not available');
+        return;
+      }
+
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        this.showStatus('Error: Not authenticated. Please log in again.', 'error');
+        console.error('No authenticated user found');
+        return;
+      }
+
+      this.currentUser = currentUser;
+
+      const saveBtn = document.getElementById('save-profile-btn');
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+      this.showStatus('Saving changes...', 'info');
+
+      console.log('Gathering profile data...');
       const profileData = {
-        avatarUrl: document.getElementById('edit-avatar').value.trim(),
-        displayName: document.getElementById('edit-display-name').value.trim(),
-        username: document.getElementById('edit-username').value.trim(),
-        bio: document.getElementById('edit-bio').value.trim(),
-        location: document.getElementById('edit-location').value.trim(),
-        racingSince: document.getElementById('edit-racing-since').value,
+        avatarUrl: document.getElementById('edit-avatar')?.value.trim() || '',
+        displayName: document.getElementById('edit-display-name')?.value.trim() || '',
+        username: document.getElementById('edit-username')?.value.trim() || '',
+        bio: document.getElementById('edit-bio')?.value.trim() || '',
+        location: document.getElementById('edit-location')?.value.trim() || '',
+        racingSince: document.getElementById('edit-racing-since')?.value || '',
         socialLinks: {
-          instagram: document.getElementById('edit-instagram').value.trim(),
-          tiktok: document.getElementById('edit-tiktok').value.trim(),
-          youtube: document.getElementById('edit-youtube').value.trim(),
+          instagram: document.getElementById('edit-instagram')?.value.trim() || '',
+          tiktok: document.getElementById('edit-tiktok')?.value.trim() || '',
+          youtube: document.getElementById('edit-youtube')?.value.trim() || '',
           discord: document.getElementById('edit-discord')?.value.trim() || '',
           twitch: document.getElementById('edit-twitch')?.value.trim() || ''
         },
         cars: this.cars,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        updatedAt: serverTimestamp()
       };
+      console.log('Profile data collected:', profileData);
 
       // Add banner for team/admin only
       if (this.userRole === 'team-member' || this.userRole === 'admin') {
-        profileData.bannerUrl = document.getElementById('edit-banner').value.trim();
+        profileData.bannerUrl = document.getElementById('edit-banner')?.value.trim() || '';
       }
 
-      await firebase.firestore().collection('users').doc(this.currentUser.uid).update(profileData);
+      console.log('Saving to Firestore for user:', currentUser.uid);
+      const db = getFirebaseDb();
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userDocRef, profileData);
+      console.log('Profile saved successfully to Firestore');
 
       this.showStatus('Profile saved successfully!', 'success');
       
@@ -463,10 +490,13 @@ class ProfileEditModal {
 
     } catch (error) {
       console.error('Error saving profile:', error);
-      this.showStatus('Failed to save profile. Please try again.', 'error');
+      this.showStatus(`Failed to save profile: ${error.message}`, 'error');
     } finally {
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Changes';
+      const saveBtn = document.getElementById('save-profile-btn');
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Changes';
+      }
     }
   }
 
@@ -491,8 +521,21 @@ class ProfileEditModal {
   }
 }
 
-// Initialize global instance
+// Initialize global instance and make it available globally
 let profileEditModal;
+
+// Export for use as a module
+export { ProfileEditModal };
+
+// Also make it available globally for non-module scripts
+if (typeof window !== 'undefined') {
+  window.ProfileEditModal = ProfileEditModal;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   profileEditModal = new ProfileEditModal();
+  // Make instance globally available
+  if (typeof window !== 'undefined') {
+    window.profileEditModal = profileEditModal;
+  }
 });
