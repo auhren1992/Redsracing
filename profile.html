@@ -572,14 +572,30 @@
                 </div>
               </article>
             </section>
+            <!-- Garage Section -->
             <section class="profile-panel rounded-2xl p-6">
               <div class="flex items-center justify-between gap-4 mb-4">
-                <h2 class="text-xl md:text-2xl font-racing text-white uppercase tracking-wide">Garage Preferences</h2>
+                <h2 class="text-xl md:text-2xl font-racing text-white uppercase tracking-wide flex items-center">
+                  <i class="fas fa-car mr-3 text-red-400"></i>My Garage
+                </h2>
+                <span id="garage-count" class="text-sm text-slate-400"></span>
               </div>
-              <div id="profile-favorite-cars" class="flex flex-wrap gap-2.5">
-                <span class="text-slate-500 italic">No favorite cars added yet. Click Edit Profile to add some.</span>
+              <div id="profile-garage" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="text-center py-8 col-span-full">
+                  <i class="fas fa-car text-4xl text-slate-600 mb-3"></i>
+                  <p class="text-slate-500">No cars in garage yet</p>
+                </div>
               </div>
-              <p id="profile-favorite-track" class="hidden"></p>
+            </section>
+
+            <!-- Social Links Section -->
+            <section id="social-section" class="profile-panel rounded-2xl p-6 hidden">
+              <h2 class="text-xl md:text-2xl font-racing text-white uppercase tracking-wide mb-4 flex items-center">
+                <i class="fas fa-share-alt mr-3 text-purple-400"></i>Connect
+              </h2>
+              <div id="profile-social-links" class="flex flex-wrap gap-3">
+                <!-- Social links will be injected here -->
+              </div>
             </section>
             <section class="persona-card rounded-2xl">
               <div class="persona-card-inner p-6 md:p-8 rounded-2xl">

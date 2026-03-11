@@ -419,6 +419,93 @@ import { LoadingService } from "./loading.js";
     }
   }
 
+  // Display garage cars
+  function displayGarageCars(cars) {
+    const garageEl = document.getElementById('profile-garage');
+    const garageCount = document.getElementById('garage-count');
+    
+    if (!garageEl) return;
+
+    if (!cars || cars.length === 0) {
+      garageEl.innerHTML = `
+        <div class="text-center py-8 col-span-full">
+          <i class="fas fa-car text-4xl text-slate-600 mb-3"></i>
+          <p class="text-slate-500">No cars in garage yet</p>
+        </div>
+      `;
+      if (garageCount) garageCount.textContent = '';
+      return;
+    }
+
+    if (garageCount) garageCount.textContent = `${cars.length} ${cars.length === 1 ? 'car' : 'cars'}`;
+
+    garageEl.innerHTML = cars.map(car => `
+      <div class="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden hover:border-slate-600 transition group">
+        ${car.photoUrl ? `
+          <div class="h-40 overflow-hidden bg-slate-900">
+            <img src="${car.photoUrl}" alt="${car.make} ${car.model}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+          </div>
+        ` : `
+          <div class="h-40 bg-slate-900 flex items-center justify-center">
+            <i class="fas fa-car text-5xl text-slate-700"></i>
+          </div>
+        `}
+        <div class="p-4">
+          <h3 class="text-white font-bold text-lg">${car.make || 'Unknown'} ${car.model || ''}</h3>
+          ${car.year ? `<p class="text-slate-400 text-sm">${car.year}</p>` : ''}
+          ${car.mods ? `<p class="text-slate-300 text-sm mt-2 line-clamp-2">${car.mods}</p>` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Display social links
+  function displaySocialLinks(socialLinks) {
+    const socialEl = document.getElementById('profile-social-links');
+    const socialSection = document.getElementById('social-section');
+    
+    if (!socialEl || !socialSection) return;
+
+    const links = [];
+    const socialPlatforms = [
+      { key: 'instagram', icon: 'fab fa-instagram', color: 'from-purple-500 to-pink-500', label: 'Instagram', url: (val) => val.startsWith('@') ? `https://instagram.com/${val.slice(1)}` : `https://instagram.com/${val}` },
+      { key: 'tiktok', icon: 'fab fa-tiktok', color: 'from-slate-900 to-slate-700', label: 'TikTok', url: (val) => val.startsWith('@') ? `https://tiktok.com/@${val.slice(1)}` : `https://tiktok.com/@${val}` },
+      { key: 'youtube', icon: 'fab fa-youtube', color: 'from-red-600 to-red-500', label: 'YouTube', url: (val) => val.includes('youtube.com') || val.includes('youtu.be') ? val : `https://youtube.com/@${val}` },
+      { key: 'discord', icon: 'fab fa-discord', color: 'from-indigo-600 to-blue-500', label: 'Discord', url: null },
+      { key: 'twitch', icon: 'fab fa-twitch', color: 'from-purple-600 to-purple-500', label: 'Twitch', url: (val) => `https://twitch.tv/${val}` }
+    ];
+
+    socialPlatforms.forEach(platform => {
+      const value = socialLinks[platform.key];
+      if (value && value.trim()) {
+        const urlFunc = platform.url;
+        if (urlFunc) {
+          links.push(`
+            <a href="${urlFunc(value.trim())}" target="_blank" rel="noopener noreferrer" 
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r ${platform.color} text-white rounded-lg font-semibold text-sm hover:scale-105 transition-transform">
+              <i class="${platform.icon}"></i>
+              <span>${platform.label}</span>
+            </a>
+          `);
+        } else {
+          links.push(`
+            <div class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r ${platform.color} text-white rounded-lg font-semibold text-sm">
+              <i class="${platform.icon}"></i>
+              <span>${value.trim()}</span>
+            </div>
+          `);
+        }
+      }
+    });
+
+    if (links.length > 0) {
+      socialEl.innerHTML = links.join('');
+      socialSection.classList.remove('hidden');
+    } else {
+      socialSection.classList.add('hidden');
+    }
+  }
+
   // Display profile data
   function displayProfile(profileData) {
     if (isDestroyed) return;
@@ -485,6 +572,18 @@ import { LoadingService } from "./loading.js";
       try { document.documentElement.style.setProperty('--fun-accent', col); } catch {}
     }
     if (profileFavoriteTrack) setSafeText(profileFavoriteTrack, profileData.favoriteTrack || "Add one in edit mode.");
+
+    // Display garage cars
+    displayGarageCars(profileData.cars || []);
+
+    // Display social links
+    displaySocialLinks(profileData.socialLinks || {});
+
+    // Update stats
+    const statsCarsCount = document.getElementById('stat-cars-count');
+    if (statsCarsCount) {
+      statsCarsCount.textContent = (profileData.cars || []).length;
+    }
 
     // Pre-fill edit form
     if (editUsername) editUsername.value = profileData.username || "";
