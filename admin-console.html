@@ -5232,6 +5232,35 @@
         }
         
         // ===== MOBILE APP MANAGEMENT =====
+        const FALLBACK_ANDROID_VERSION_NAME = '10.9.3';
+        const FALLBACK_ANDROID_VERSION_CODE = 112;
+        const FALLBACK_IOS_VERSION_NAME = '10.9.3';
+        const FALLBACK_IOS_VERSION_CODE = 111;
+
+        function extractVersionCode(value) {
+          if (value === null || value === undefined) return null;
+          if (typeof value === 'number' && Number.isFinite(value)) return Math.trunc(value);
+          const s = String(value).trim();
+          if (!s) return null;
+          const direct = parseInt(s, 10);
+          if (Number.isFinite(direct)) return direct;
+          const paren = s.match(/\((\d+)\)/);
+          if (paren && paren[1]) return parseInt(paren[1], 10);
+          const trailing = s.match(/(\d+)\s*$/);
+          if (trailing && trailing[1]) return parseInt(trailing[1], 10);
+          return null;
+        }
+
+        function extractVersionName(value) {
+          if (value === null || value === undefined) return '';
+          const s = String(value).trim();
+          if (!s) return '';
+          const semver = s.match(/\d+\.\d+\.\d+/);
+          if (semver && semver[0]) return semver[0];
+          const simple = s.match(/\d+\.\d+/);
+          if (simple && simple[0]) return simple[0];
+          return '';
+        }
         
         async function refreshAppStats() {
           try {
@@ -5259,12 +5288,34 @@
             usageSnap.forEach((docSnap) => {
               const d = docSnap.data() || {};
               const platform = String(d.platform || '').toLowerCase();
-              const parsed = parseInt(d.app_version, 10);
-              if (!Number.isFinite(parsed)) return;
+              const parsed =
+                extractVersionCode(d.app_version_code) ??
+                extractVersionCode(d.versionCode) ??
+                extractVersionCode(d.build) ??
+                extractVersionCode(d.app_version) ??
+                extractVersionCode(d.version) ??
+                extractVersionCode(d.appVersion);
+              const parsedName =
+                extractVersionName(d.app_version_name) ||
+                extractVersionName(d.versionName) ||
+                extractVersionName(d.app_version) ||
+                extractVersionName(d.version) ||
+                extractVersionName(d.appVersion);
+              if (!Number.isFinite(parsed) && !parsedName) return;
               if (platform === 'android') {
-                androidLatestSeen = androidLatestSeen === null ? parsed : Math.max(androidLatestSeen, parsed);
+                androidLatestSeen = Number.isFinite(parsed)
+                  ? (androidLatestSeen === null ? parsed : Math.max(androidLatestSeen, parsed))
+                  : androidLatestSeen;
+                if (parsedName) {
+                  document.getElementById('android-version').dataset.versionName = parsedName;
+                }
               } else if (platform === 'ios') {
-                iosLatestSeen = iosLatestSeen === null ? parsed : Math.max(iosLatestSeen, parsed);
+                iosLatestSeen = Number.isFinite(parsed)
+                  ? (iosLatestSeen === null ? parsed : Math.max(iosLatestSeen, parsed))
+                  : iosLatestSeen;
+                if (parsedName) {
+                  document.getElementById('ios-version').dataset.versionName = parsedName;
+                }
               }
             });
 
@@ -5273,14 +5324,16 @@
             const iosMin = parseInt(document.getElementById('ios-min-version')?.value, 10);
 
             if (androidLatestSeen !== null) {
+              const androidName = document.getElementById('android-version')?.dataset?.versionName || '';
               document.getElementById('android-version').textContent = Number.isFinite(androidMin)
-                ? `v${androidLatestSeen} (min v${androidMin})`
-                : `v${androidLatestSeen}`;
+                ? (androidName ? `${androidName} (${androidLatestSeen})` : `v${androidLatestSeen} (min v${androidMin})`)
+                : (androidName ? `${androidName} (${androidLatestSeen})` : `v${androidLatestSeen}`);
             }
             if (iosLatestSeen !== null) {
+              const iosName = document.getElementById('ios-version')?.dataset?.versionName || '';
               document.getElementById('ios-version').textContent = Number.isFinite(iosMin)
-                ? `v${iosLatestSeen} (min v${iosMin})`
-                : `v${iosLatestSeen}`;
+                ? (iosName ? `${iosName} (${iosLatestSeen})` : `v${iosLatestSeen} (min v${iosMin})`)
+                : (iosName ? `${iosName} (${iosLatestSeen})` : `v${iosLatestSeen}`);
             }
             
             document.getElementById('app-operation-result').innerHTML = 
@@ -5382,6 +5435,10 @@
               const latest = data.latest_version || '--';
               const min = data.minimum_version || '--';
               document.getElementById('android-version').textContent = `v${latest} (min v${min})`;
+            } else {
+              document.getElementById('android-latest-version').value = FALLBACK_ANDROID_VERSION_CODE;
+              document.getElementById('android-min-version').value = FALLBACK_ANDROID_VERSION_CODE;
+              document.getElementById('android-version').textContent = `${FALLBACK_ANDROID_VERSION_NAME} (${FALLBACK_ANDROID_VERSION_CODE})`;
             }
             
             // Load iOS config
@@ -5394,6 +5451,10 @@
               const latest = data.latest_version || '--';
               const min = data.minimum_version || '--';
               document.getElementById('ios-version').textContent = `v${latest} (min v${min})`;
+            } else {
+              document.getElementById('ios-latest-version').value = FALLBACK_IOS_VERSION_CODE;
+              document.getElementById('ios-min-version').value = FALLBACK_IOS_VERSION_CODE;
+              document.getElementById('ios-version').textContent = `${FALLBACK_IOS_VERSION_NAME} (${FALLBACK_IOS_VERSION_CODE})`;
             }
             
             // Load version distribution from app_usage collection
