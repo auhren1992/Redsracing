@@ -3,6 +3,12 @@ platform :ios, '14.0'
 target 'RedsRacing' do
   use_frameworks!
 
+  # Firebase
+  pod 'FirebaseCore'
+  pod 'FirebaseAuth'
+  pod 'FirebaseMessaging'
+  pod 'FirebaseFirestore'
+  
   # Google Mobile Ads SDK
   pod 'Google-Mobile-Ads-SDK'
 end
