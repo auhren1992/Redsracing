@@ -110,12 +110,7 @@ jobs:
               <key>uploadSymbols</key>
               <true/>
               <key>signingStyle</key>
-              <string>manual</string>
-              <key>provisioningProfiles</key>
-              <dict>
-                  <key>com.redsracing.app</key>
-                  <string>$PROFILE_UUID</string>
-              </dict>
+              <string>automatic</string>
           </dict>
           </plist>
           EOF
