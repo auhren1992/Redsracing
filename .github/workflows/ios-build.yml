@@ -11,6 +11,8 @@ on:
 jobs:
   build:
     runs-on: macos-15
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     
     steps:
       - name: Checkout code
@@ -23,6 +25,11 @@ jobs:
 
       - name: Show Xcode version
         run: xcodebuild -version
+
+      - name: Install CocoaPods dependencies
+        working-directory: ios
+        run: |
+          pod install --repo-update
 
       - name: Boot iOS Simulator
         run: |
@@ -71,7 +78,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         working-directory: ios
         run: |
-          xcodebuild -project RedsRacing.xcodeproj \
+          xcodebuild -workspace RedsRacing.xcworkspace \
             -scheme RedsRacing \
             -destination 'generic/platform=iOS' \
             -configuration Release \
