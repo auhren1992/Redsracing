@@ -4777,9 +4777,10 @@
                 const log = doc.data();
                 const time = log.createdAt ? log.createdAt.toDate() : new Date();
                 const timeAgo = getTimeAgo(time);
+                const message = formatActivityMessage(log);
                 const div = document.createElement('div');
                 div.className = 'bg-slate-800/50 border border-slate-700/50 rounded p-3 text-sm';
-                div.innerHTML = `<div class="text-slate-300">${log.message || log.level || 'Activity'} • ${timeAgo}</div>`;
+                div.innerHTML = `<div class="text-slate-300">${message} • ${timeAgo}</div>`;
                 list.appendChild(div);
               });
             }
@@ -4800,6 +4801,26 @@
           if (hours < 24) return hours + ' hours ago';
           const days = Math.floor(hours / 24);
           return days + ' days ago';
+        }
+
+        function formatActivityMessage(log) {
+          if (!log || typeof log !== 'object') return 'Activity';
+          const candidate =
+            log.message ??
+            log.action ??
+            log.event ??
+            log.type ??
+            log.level ??
+            'Activity';
+          if (typeof candidate === 'string') return candidate;
+          if (typeof candidate === 'number' || typeof candidate === 'boolean') return String(candidate);
+          try {
+            if (candidate && typeof candidate.text === 'string') return candidate.text;
+            if (candidate && typeof candidate.message === 'string') return candidate.message;
+            return JSON.stringify(candidate);
+          } catch (_) {
+            return 'Activity';
+          }
         }
         
         async function exportActivityCSV() {
@@ -5230,6 +5251,37 @@
             document.getElementById('ios-users').textContent = Math.round(activeUsers * 0.4);
             document.getElementById('ios-crashes').textContent = '0.05%';
             document.getElementById('ios-rating').textContent = '4.7 ⭐';
+
+            // Auto-detect latest versions from app usage data
+            const usageSnap = await getDocs(collection(db, 'app_usage'));
+            let androidLatestSeen = null;
+            let iosLatestSeen = null;
+            usageSnap.forEach((docSnap) => {
+              const d = docSnap.data() || {};
+              const platform = String(d.platform || '').toLowerCase();
+              const parsed = parseInt(d.app_version, 10);
+              if (!Number.isFinite(parsed)) return;
+              if (platform === 'android') {
+                androidLatestSeen = androidLatestSeen === null ? parsed : Math.max(androidLatestSeen, parsed);
+              } else if (platform === 'ios') {
+                iosLatestSeen = iosLatestSeen === null ? parsed : Math.max(iosLatestSeen, parsed);
+              }
+            });
+
+            // Use config minimums if available
+            const androidMin = parseInt(document.getElementById('android-min-version')?.value, 10);
+            const iosMin = parseInt(document.getElementById('ios-min-version')?.value, 10);
+
+            if (androidLatestSeen !== null) {
+              document.getElementById('android-version').textContent = Number.isFinite(androidMin)
+                ? `v${androidLatestSeen} (min v${androidMin})`
+                : `v${androidLatestSeen}`;
+            }
+            if (iosLatestSeen !== null) {
+              document.getElementById('ios-version').textContent = Number.isFinite(iosMin)
+                ? `v${iosLatestSeen} (min v${iosMin})`
+                : `v${iosLatestSeen}`;
+            }
             
             document.getElementById('app-operation-result').innerHTML = 
               '<div class="text-green-400"><i class="fas fa-check mr-2"></i>App stats refreshed</div>';
