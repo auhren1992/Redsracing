@@ -374,17 +374,26 @@ import { LoadingService } from "./loading.js";
       const profileData = await callProfileAPI(`/profile/${userId}`);
       displayProfile(profileData);
     } catch (error) {
-      // Distinguish errors and show minimal profile
-      if (isCurrentUserProfile) {
-        try {
-          await createDefaultProfile(userId);
-          return;
-        } catch (_) {
-          displayMinimalProfile(userId);
-          hideLoadingAndShowContent();
-          return;
+      // Retry once for transient network/listen/auth-sync issues
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const retryProfile = await callProfileAPI(`/profile/${userId}`);
+        displayProfile(retryProfile);
+        return;
+      } catch (retryError) {
+        const code = retryError?.code || error?.code;
+        // Only create a default profile if the document truly does not exist
+        if (isCurrentUserProfile && code === "not-found") {
+          try {
+            await createDefaultProfile(userId);
+            return;
+          } catch (_) {
+            displayMinimalProfile(userId);
+            hideLoadingAndShowContent();
+            return;
+          }
         }
-      } else {
+        // For permission/network/listen issues, never overwrite existing profile data
         displayMinimalProfile(userId);
         hideLoadingAndShowContent();
         return;
