@@ -5328,12 +5328,18 @@
               document.getElementById('android-version').textContent = Number.isFinite(androidMin)
                 ? (androidName ? `${androidName} (${androidLatestSeen})` : `v${androidLatestSeen} (min v${androidMin})`)
                 : (androidName ? `${androidName} (${androidLatestSeen})` : `v${androidLatestSeen}`);
+            } else {
+              // No usage data - set fallback display
+              document.getElementById('android-version').textContent = `${FALLBACK_ANDROID_VERSION_NAME} (${FALLBACK_ANDROID_VERSION_CODE})`;
             }
             if (iosLatestSeen !== null) {
               const iosName = document.getElementById('ios-version')?.dataset?.versionName || '';
               document.getElementById('ios-version').textContent = Number.isFinite(iosMin)
                 ? (iosName ? `${iosName} (${iosLatestSeen})` : `v${iosLatestSeen} (min v${iosMin})`)
                 : (iosName ? `${iosName} (${iosLatestSeen})` : `v${iosLatestSeen}`);
+            } else {
+              // No usage data - set fallback display
+              document.getElementById('ios-version').textContent = `${FALLBACK_IOS_VERSION_NAME} (${FALLBACK_IOS_VERSION_CODE})`;
             }
             
             document.getElementById('app-operation-result').innerHTML = 
@@ -5432,9 +5438,9 @@
               document.getElementById('android-latest-version').value = data.latest_version || '';
               document.getElementById('android-min-version').value = data.minimum_version || '';
               document.getElementById('android-update-message').value = data.update_message || '';
-              const latest = data.latest_version || '--';
-              const min = data.minimum_version || '--';
-              document.getElementById('android-version').textContent = `v${latest} (min v${min})`;
+              const latest = data.latest_version || FALLBACK_ANDROID_VERSION_CODE;
+              const min = data.minimum_version || FALLBACK_ANDROID_VERSION_CODE;
+              document.getElementById('android-version').textContent = `${FALLBACK_ANDROID_VERSION_NAME} (${latest})`;
             } else {
               document.getElementById('android-latest-version').value = FALLBACK_ANDROID_VERSION_CODE;
               document.getElementById('android-min-version').value = FALLBACK_ANDROID_VERSION_CODE;
@@ -5448,9 +5454,9 @@
               document.getElementById('ios-latest-version').value = data.latest_version || '';
               document.getElementById('ios-min-version').value = data.minimum_version || '';
               document.getElementById('ios-update-message').value = data.update_message || '';
-              const latest = data.latest_version || '--';
-              const min = data.minimum_version || '--';
-              document.getElementById('ios-version').textContent = `v${latest} (min v${min})`;
+              const latest = data.latest_version || FALLBACK_IOS_VERSION_CODE;
+              const min = data.minimum_version || FALLBACK_IOS_VERSION_CODE;
+              document.getElementById('ios-version').textContent = `${FALLBACK_IOS_VERSION_NAME} (${latest})`;
             } else {
               document.getElementById('ios-latest-version').value = FALLBACK_IOS_VERSION_CODE;
               document.getElementById('ios-min-version').value = FALLBACK_IOS_VERSION_CODE;
