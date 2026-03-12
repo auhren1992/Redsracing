@@ -2361,10 +2361,43 @@
           try {
             const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
             const auth = getAuth();
-            if (!auth.currentUser) return null;
+            
+            if (!auth.currentUser) {
+              console.warn('[getUserRole] No current user - not authenticated');
+              return null;
+            }
+            
+            console.log('[getUserRole] User authenticated:', auth.currentUser.uid);
+            
+            // Try to get fresh token with claims
             const token = await auth.currentUser.getIdTokenResult(true);
-            return token?.claims?.role || null;
-          } catch (_) { return null; }
+            const role = token?.claims?.role || null;
+            
+            console.log('[getUserRole] Token claims role:', role);
+            
+            // Fallback: check Firestore if token doesn't have role
+            if (!role) {
+              console.log('[getUserRole] No role in token, checking Firestore...');
+              try {
+                const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+                const app = await ensureDefaultApp();
+                const db = getFirestore(app);
+                const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+                if (userDoc.exists()) {
+                  const firestoreRole = userDoc.data()?.role;
+                  console.log('[getUserRole] Firestore role:', firestoreRole);
+                  return firestoreRole || null;
+                }
+              } catch (firestoreErr) {
+                console.error('[getUserRole] Firestore fallback failed:', firestoreErr);
+              }
+            }
+            
+            return role;
+          } catch (error) {
+            console.error('[getUserRole] Error:', error);
+            return null;
+          }
         }
         
         function isModeratorRole(role) {
@@ -5232,10 +5265,10 @@
         }
         
         // ===== MOBILE APP MANAGEMENT =====
-        const FALLBACK_ANDROID_VERSION_NAME = '10.9.4';
-        const FALLBACK_ANDROID_VERSION_CODE = 113;
-        const FALLBACK_IOS_VERSION_NAME = '10.9.3';
-        const FALLBACK_IOS_VERSION_CODE = 111;
+        const FALLBACK_ANDROID_VERSION_NAME = '10.9.5';
+        const FALLBACK_ANDROID_VERSION_CODE = 114;
+        const FALLBACK_IOS_VERSION_NAME = '10.9.5';
+        const FALLBACK_IOS_VERSION_CODE = 114;
 
         function extractVersionCode(value) {
           if (value === null || value === undefined) return null;
@@ -5353,11 +5386,23 @@
         
         async function sendPushNotification() {
           try {
+            console.log('[Push Notification] Checking user role...');
             const role = await getUserRole();
-            if (!isModeratorRole(role)) {
-              showToast('You need to be a team-member or admin to send push notifications', 'error');
+            console.log('[Push Notification] User role:', role);
+            
+            if (!role) {
+              console.error('[Push Notification] No role found - user may not be authenticated');
+              showToast('Please log in to send push notifications', 'error');
               return;
             }
+            
+            if (!isModeratorRole(role)) {
+              console.warn('[Push Notification] User role insufficient:', role);
+              showToast(`You need to be a team-member or admin to send push notifications (current role: ${role})`, 'error');
+              return;
+            }
+            
+            console.log('[Push Notification] Role check passed:', role);
             
             const platform = document.getElementById('push-platform').value;
             const title = document.getElementById('push-title').value;
