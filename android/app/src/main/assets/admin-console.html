@@ -5472,10 +5472,10 @@
             // Load version distribution from app_usage collection
             await loadVersionDistribution();
             
-            const btn = document.getElementById('load-version-config-btn');
-            if (btn) {
-              btn.disabled = false;
-              btn.innerHTML = '<i class="fas fa-sync mr-2"></i>Load Current';
+            let loadBtn = document.getElementById('load-version-config-btn');
+            if (loadBtn) {
+              loadBtn.disabled = false;
+              loadBtn.innerHTML = '<i class="fas fa-sync mr-2"></i>Load Current';
             }
             
             showToast('Version config loaded');
@@ -5484,10 +5484,10 @@
           } catch(e) {
             console.error('Failed to load version config:', e);
             showToast('Failed to load version config', 'error');
-            const btn = document.getElementById('load-version-config-btn');
-            if (btn) {
-              btn.disabled = false;
-              btn.innerHTML = '<i class="fas fa-sync mr-2"></i>Load Current';
+            let loadBtn = document.getElementById('load-version-config-btn');
+            if (loadBtn) {
+              loadBtn.disabled = false;
+              loadBtn.innerHTML = '<i class="fas fa-sync mr-2"></i>Load Current';
             }
           }
         }
