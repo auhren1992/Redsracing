@@ -5427,6 +5427,12 @@
         
         async function loadVersionConfig() {
           try {
+            const btn = document.getElementById('load-version-config-btn');
+            if (btn) {
+              btn.disabled = true;
+              btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
+            }
+            
             const { getFirestore, doc, getDoc, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
@@ -5466,10 +5472,23 @@
             // Load version distribution from app_usage collection
             await loadVersionDistribution();
             
+            const btn = document.getElementById('load-version-config-btn');
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-sync mr-2"></i>Load Current';
+            }
+            
             showToast('Version config loaded');
+            document.getElementById('app-operation-result').innerHTML = 
+              '<div class="text-green-400"><i class="fas fa-check mr-2"></i>Version configuration loaded successfully</div>';
           } catch(e) {
             console.error('Failed to load version config:', e);
             showToast('Failed to load version config', 'error');
+            const btn = document.getElementById('load-version-config-btn');
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-sync mr-2"></i>Load Current';
+            }
           }
         }
         
