@@ -78,19 +78,16 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         working-directory: ios
         run: |
-          xcodebuild -workspace RedsRacing.xcworkspace \
+          set -o pipefail && xcodebuild -workspace RedsRacing.xcworkspace \
             -scheme RedsRacing \
             -destination 'generic/platform=iOS' \
             -configuration Release \
             -archivePath "$PWD/build/RedsRacing.xcarchive" \
             archive \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            PROVISIONING_PROFILE_SPECIFIER="" \
-            CODE_SIGN_IDENTITY="" \
             CODE_SIGN_STYLE=Automatic \
             ONLY_ACTIVE_ARCH=NO \
-            ENABLE_ON_DEMAND_RESOURCES=NO \
-            | xcbeautify || cat
+            ENABLE_ON_DEMAND_RESOURCES=NO
           
           # Verify archive was created
           ls -la "$PWD/build/RedsRacing.xcarchive"
