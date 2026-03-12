@@ -53,8 +53,14 @@
     <string>UIStatusBarStyleLightContent</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>remote-notification</string>
+    </array>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>FirebaseMessagingAutoInitEnabled</key>
+    <true/>
     <key>NSAppTransportSecurity</key>
     <dict>
         <!-- Block all cleartext (HTTP) traffic by default -->
