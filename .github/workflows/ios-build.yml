@@ -82,7 +82,7 @@ jobs:
             -scheme RedsRacing \
             -destination 'generic/platform=iOS' \
             -configuration Release \
-            -archivePath build/RedsRacing.xcarchive \
+            -archivePath "$PWD/build/RedsRacing.xcarchive" \
             archive \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             PROVISIONING_PROFILE_SPECIFIER="" \
@@ -90,8 +90,10 @@ jobs:
             CODE_SIGN_STYLE=Automatic \
             ONLY_ACTIVE_ARCH=NO \
             ENABLE_ON_DEMAND_RESOURCES=NO \
-            -quiet \
-            | grep -E '^(error|warning):' || true
+            | xcbeautify || cat
+          
+          # Verify archive was created
+          ls -la "$PWD/build/RedsRacing.xcarchive"
 
       - name: Export IPA
         env:
@@ -116,9 +118,9 @@ jobs:
           EOF
           
           xcodebuild -exportArchive \
-            -archivePath build/RedsRacing.xcarchive \
+            -archivePath "$PWD/build/RedsRacing.xcarchive" \
             -exportOptionsPlist ExportOptions.plist \
-            -exportPath build/export
+            -exportPath "$PWD/build/export"
 
       - name: Upload to App Store Connect
         env:
