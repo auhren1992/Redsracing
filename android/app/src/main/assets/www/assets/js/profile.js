@@ -194,6 +194,40 @@ import { LoadingService } from "./loading.js";
   let isEditing = false;
   let isCurrentUserProfile = false;
 
+  async function updateRolePill(user) {
+    const roleTextEl = document.getElementById("role-text");
+    const roleEmojiEl = document.getElementById("role-emoji");
+    if (!roleTextEl || !roleEmojiEl || !user) return;
+
+    let roleText = "Fan";
+    let roleEmoji = "🏎️";
+
+    try {
+      const token = await user.getIdTokenResult();
+      const claims = token?.claims || {};
+
+      if (claims.admin || claims.role === "admin") {
+        roleText = "Admin";
+        roleEmoji = "👑";
+      } else if (
+        claims["team-member"] ||
+        claims.teamMember ||
+        claims.role === "team-member"
+      ) {
+        roleText = "Team Member";
+        roleEmoji = "⭐";
+      } else {
+        roleText = "Fan";
+        roleEmoji = "🏎️";
+      }
+    } catch (_) {
+      // Keep safe defaults when claims are temporarily unavailable
+    }
+
+    setSafeText(roleTextEl, roleText);
+    setSafeText(roleEmojiEl, roleEmoji);
+  }
+
   // Enhanced logout handler
   async function handleLogout() {
     if (isDestroyed) return;
@@ -365,33 +399,52 @@ import { LoadingService } from "./loading.js";
       throw error;
     }
   }
-
-  // Load user profile
+  // Load user profile with resilient error handling
   async function loadUserProfile(userId) {
     if (isDestroyed) return;
 
-    try {
-      const profileData = await callProfileAPI(`/profile/${userId}`);
-      displayProfile(profileData);
-    } catch (error) {
-      // Distinguish errors and show minimal profile
-      if (isCurrentUserProfile) {
-        try {
-          await createDefaultProfile(userId);
-          return;
-        } catch (_) {
-          displayMinimalProfile(userId);
-          hideLoadingAndShowContent();
-          return;
+    let lastError = null;
+    const maxRetries = 2;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`[Profile] Load attempt ${attempt + 1}/${maxRetries + 1} for user:`, userId);
+        
+        // Add small delay before retry attempts to allow auth to sync
+        if (attempt > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 600 * attempt));
         }
-      } else {
-        displayMinimalProfile(userId);
-        hideLoadingAndShowContent();
-        return;
+
+        const profileData = await callProfileAPI(`/profile/${userId}`);
+        console.log('[Profile] Profile loaded successfully:', profileData);
+        displayProfile(profileData);
+        return; // Success!
+      } catch (error) {
+        lastError = error;
+        console.warn(`[Profile] Attempt ${attempt + 1} failed:`, error?.message || error);
       }
     }
-  }
 
+    // All retries failed
+    console.error('[Profile] All load attempts failed. Last error:', lastError);
+    const code = lastError?.code;
+
+    // Only create a default profile if the document truly does not exist
+    if (isCurrentUserProfile && code === "not-found") {
+      console.log('[Profile] Creating default profile for new user');
+      try {
+        await createDefaultProfile(userId);
+        return;
+      } catch (createError) {
+        console.error('[Profile] Failed to create default profile:', createError);
+      }
+    }
+
+    // Fallback to minimal profile using auth data
+    console.warn('[Profile] Showing minimal profile with auth data fallback');
+    displayMinimalProfile(userId);
+    hideLoadingAndShowContent();
+  }
 
   // Create default profile for new users
   async function createDefaultProfile(userId) {
@@ -416,6 +469,117 @@ import { LoadingService } from "./loading.js";
     } catch (error) {
       displayMinimalProfile(userId);
       hideLoadingAndShowContent();
+    }
+  }
+
+  // Display banner image
+  function displayBanner(bannerUrl) {
+    const bannerEl = document.getElementById('profile-banner');
+    const bannerImg = document.getElementById('profile-banner-img');
+    const profileMainCard = document.getElementById('profile-main-card');
+    
+    if (!bannerEl || !bannerImg) return;
+
+    if (bannerUrl && bannerUrl.trim()) {
+      bannerImg.src = bannerUrl.trim();
+      bannerEl.classList.remove('hidden');
+      
+      // Add negative margin to profile card to overlap banner
+      if (profileMainCard) {
+        profileMainCard.style.marginTop = '-4rem';
+      }
+    } else {
+      bannerEl.classList.add('hidden');
+      if (profileMainCard) {
+        profileMainCard.style.marginTop = '';
+      }
+    }
+  }
+
+  // Display garage cars
+  function displayGarageCars(cars) {
+    const garageEl = document.getElementById('profile-garage');
+    const garageCount = document.getElementById('garage-count');
+    
+    if (!garageEl) return;
+
+    if (!cars || cars.length === 0) {
+      garageEl.innerHTML = `
+        <div class="text-center py-8 col-span-full">
+          <i class="fas fa-car text-4xl text-slate-600 mb-3"></i>
+          <p class="text-slate-500">No cars in garage yet</p>
+        </div>
+      `;
+      if (garageCount) garageCount.textContent = '';
+      return;
+    }
+
+    if (garageCount) garageCount.textContent = `${cars.length} ${cars.length === 1 ? 'car' : 'cars'}`;
+
+    garageEl.innerHTML = cars.map(car => `
+      <div class="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden hover:border-slate-600 transition group">
+        ${car.photoUrl ? `
+          <div class="h-40 overflow-hidden bg-slate-900">
+            <img src="${car.photoUrl}" alt="${car.make} ${car.model}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+          </div>
+        ` : `
+          <div class="h-40 bg-slate-900 flex items-center justify-center">
+            <i class="fas fa-car text-5xl text-slate-700"></i>
+          </div>
+        `}
+        <div class="p-4">
+          <h3 class="text-white font-bold text-lg">${car.make || 'Unknown'} ${car.model || ''}</h3>
+          ${car.year ? `<p class="text-slate-400 text-sm">${car.year}</p>` : ''}
+          ${car.mods ? `<p class="text-slate-300 text-sm mt-2 line-clamp-2">${car.mods}</p>` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Display social links
+  function displaySocialLinks(socialLinks) {
+    const socialEl = document.getElementById('profile-social-links');
+    const socialSection = document.getElementById('social-section');
+    
+    if (!socialEl || !socialSection) return;
+
+    const links = [];
+    const socialPlatforms = [
+      { key: 'instagram', icon: 'fab fa-instagram', color: 'from-purple-500 to-pink-500', label: 'Instagram', url: (val) => val.startsWith('@') ? `https://instagram.com/${val.slice(1)}` : `https://instagram.com/${val}` },
+      { key: 'tiktok', icon: 'fab fa-tiktok', color: 'from-slate-900 to-slate-700', label: 'TikTok', url: (val) => val.startsWith('@') ? `https://tiktok.com/@${val.slice(1)}` : `https://tiktok.com/@${val}` },
+      { key: 'youtube', icon: 'fab fa-youtube', color: 'from-red-600 to-red-500', label: 'YouTube', url: (val) => val.includes('youtube.com') || val.includes('youtu.be') ? val : `https://youtube.com/@${val}` },
+      { key: 'discord', icon: 'fab fa-discord', color: 'from-indigo-600 to-blue-500', label: 'Discord', url: null },
+      { key: 'twitch', icon: 'fab fa-twitch', color: 'from-purple-600 to-purple-500', label: 'Twitch', url: (val) => `https://twitch.tv/${val}` }
+    ];
+
+    socialPlatforms.forEach(platform => {
+      const value = socialLinks[platform.key];
+      if (value && value.trim()) {
+        const urlFunc = platform.url;
+        if (urlFunc) {
+          links.push(`
+            <a href="${urlFunc(value.trim())}" target="_blank" rel="noopener noreferrer" 
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r ${platform.color} text-white rounded-lg font-semibold text-sm hover:scale-105 transition-transform">
+              <i class="${platform.icon}"></i>
+              <span>${platform.label}</span>
+            </a>
+          `);
+        } else {
+          links.push(`
+            <div class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r ${platform.color} text-white rounded-lg font-semibold text-sm">
+              <i class="${platform.icon}"></i>
+              <span>${value.trim()}</span>
+            </div>
+          `);
+        }
+      }
+    });
+
+    if (links.length > 0) {
+      socialEl.innerHTML = links.join('');
+      socialSection.classList.remove('hidden');
+    } else {
+      socialSection.classList.add('hidden');
     }
   }
 
@@ -486,6 +650,21 @@ import { LoadingService } from "./loading.js";
     }
     if (profileFavoriteTrack) setSafeText(profileFavoriteTrack, profileData.favoriteTrack || "Add one in edit mode.");
 
+    // Display garage cars
+    displayGarageCars(profileData.cars || []);
+
+    // Display social links
+    displaySocialLinks(profileData.socialLinks || {});
+
+    // Update stats
+    const statsCarsCount = document.getElementById('stat-cars-count');
+    if (statsCarsCount) {
+      statsCarsCount.textContent = (profileData.cars || []).length;
+    }
+
+    // Display banner if exists
+    displayBanner(profileData.bannerUrl);
+
     // Pre-fill edit form
     if (editUsername) editUsername.value = profileData.username || "";
     if (editDisplayName) editDisplayName.value = profileData.displayName || "";
@@ -525,41 +704,21 @@ import { LoadingService } from "./loading.js";
       displayName:
         isViewingOwnProfile && user.displayName
           ? user.displayName
+          : isViewingOwnProfile
+          ? "Anonymous User"
           : "User Not Found",
       bio: isViewingOwnProfile
-        ? "Profile backend not available. Some features may not work correctly."
+        ? "Your profile is loading. If this persists, try refreshing the page."
         : "This user profile could not be loaded",
       avatarUrl: isViewingOwnProfile ? user.photoURL || "" : "",
       favoriteCars: [],
-      joinDate: new Date().toISOString(),
+      joinDate: user.metadata?.creationTime || new Date().toISOString(),
     };
 
     displayProfile(basicProfile);
   }
 
-  // Toggle edit mode
-  async function toggleEditMode() {
-    if (isDestroyed) return;
-
-    isEditing = !isEditing;
-    if (isEditing) {
-      if (profileDisplay) profileDisplay.classList.add("hidden");
-      if (profileEditForm) profileEditForm.classList.remove("hidden");
-      if (editProfileBtn) setSafeText(editProfileBtn, "Cancel");
-    } else {
-      if (profileDisplay) profileDisplay.classList.remove("hidden");
-      if (profileEditForm) profileEditForm.classList.add("hidden");
-      if (editProfileBtn) setSafeText(editProfileBtn, "Edit Profile");
-    }
-  }
-
-  // Event listeners with null checks
-  if (editProfileBtn) {
-    editProfileBtn.addEventListener("click", toggleEditMode);
-  }
-  if (cancelEditBtn) {
-    cancelEditBtn.addEventListener("click", toggleEditMode);
-  }
+  // Legacy edit toggle removed - now using modal system from profile.html
   if (saveProfileBtn) {
     saveProfileBtn.addEventListener("click", async () => {
       if (isDestroyed || !currentUser) return;
@@ -659,6 +818,7 @@ const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/
 
           if (user && validToken) {
             currentUser = user;
+            await updateRolePill(user);
             const targetUserId = getUserIdFromUrl() || user.uid;
             isCurrentUserProfile = targetUserId === user.uid;
 

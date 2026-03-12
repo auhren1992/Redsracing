@@ -17,67 +17,40 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Log.d(TAG, "New FCM token: $token")
+        subscribeToAppTopics()
+    }
+    
+    private fun subscribeToAppTopics() {
+        val messagingInstance = com.google.firebase.messaging.FirebaseMessaging.getInstance()
         
-        // Subscribe to general topic for all users
-        com.google.firebase.messaging.FirebaseMessaging.getInstance()
-            .subscribeToTopic("all_users")
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d(TAG, "Subscribed to all_users topic")
-                } else {
-                    Log.w(TAG, "Failed to subscribe to all_users topic", task.exception)
-                }
-            }
+        messagingInstance.subscribeToTopic("all_users")
+            .addOnSuccessListener { Log.d(TAG, "Subscribed to all_users") }
+            .addOnFailureListener { Log.w(TAG, "Failed to subscribe to all_users", it) }
         
-        // Subscribe to android-specific topic
-        com.google.firebase.messaging.FirebaseMessaging.getInstance()
-            .subscribeToTopic("android_users")
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d(TAG, "Subscribed to android_users topic")
-                } else {
-                    Log.w(TAG, "Failed to subscribe to android_users topic", task.exception)
-                }
-            }
+        messagingInstance.subscribeToTopic("android_users")
+            .addOnSuccessListener { Log.d(TAG, "Subscribed to android_users") }
+            .addOnFailureListener { Log.w(TAG, "Failed to subscribe to android_users", it) }
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
         
-        Log.d(TAG, "Message received from: ${remoteMessage.from}")
+        Log.d(TAG, "Push received from: ${remoteMessage.from}")
         
-        // Check if message contains notification payload
         remoteMessage.notification?.let { notification ->
-            val title = notification.title ?: "RedsRacing"
-            val body = notification.body ?: ""
-            sendNotification(title, body, remoteMessage.data)
+            sendNotification(
+                notification.title ?: "RedsRacing",
+                notification.body ?: "",
+                remoteMessage.data
+            )
+            return
         }
         
-        // Check if message contains data payload
         if (remoteMessage.data.isNotEmpty()) {
-            Log.d(TAG, "Message data payload: ${remoteMessage.data}")
-            
-            // Handle specific data-only messages
-            val messageType = remoteMessage.data["type"]
-            when (messageType) {
-                "app_update" -> {
-                    val title = remoteMessage.data["title"] ?: "Update Available"
-                    val body = remoteMessage.data["body"] ?: "A new version of RedsRacing is available!"
-                    sendNotification(title, body, remoteMessage.data)
-                }
-                "race_update" -> {
-                    val title = remoteMessage.data["title"] ?: "Race Update"
-                    val body = remoteMessage.data["body"] ?: ""
-                    sendNotification(title, body, remoteMessage.data)
-                }
-                else -> {
-                    // Generic notification from data payload
-                    val title = remoteMessage.data["title"] ?: "RedsRacing"
-                    val body = remoteMessage.data["body"] ?: remoteMessage.data["message"] ?: ""
-                    if (body.isNotEmpty()) {
-                        sendNotification(title, body, remoteMessage.data)
-                    }
-                }
+            val title = remoteMessage.data["title"] ?: "RedsRacing"
+            val body = remoteMessage.data["body"] ?: remoteMessage.data["message"] ?: ""
+            if (body.isNotEmpty()) {
+                sendNotification(title, body, remoteMessage.data)
             }
         }
     }

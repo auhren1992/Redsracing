@@ -194,6 +194,40 @@ import { LoadingService } from "./loading.js";
   let isEditing = false;
   let isCurrentUserProfile = false;
 
+  async function updateRolePill(user) {
+    const roleTextEl = document.getElementById("role-text");
+    const roleEmojiEl = document.getElementById("role-emoji");
+    if (!roleTextEl || !roleEmojiEl || !user) return;
+
+    let roleText = "Fan";
+    let roleEmoji = "🏎️";
+
+    try {
+      const token = await user.getIdTokenResult();
+      const claims = token?.claims || {};
+
+      if (claims.admin || claims.role === "admin") {
+        roleText = "Admin";
+        roleEmoji = "👑";
+      } else if (
+        claims["team-member"] ||
+        claims.teamMember ||
+        claims.role === "team-member"
+      ) {
+        roleText = "Team Member";
+        roleEmoji = "⭐";
+      } else {
+        roleText = "Fan";
+        roleEmoji = "🏎️";
+      }
+    } catch (_) {
+      // Keep safe defaults when claims are temporarily unavailable
+    }
+
+    setSafeText(roleTextEl, roleText);
+    setSafeText(roleEmojiEl, roleEmoji);
+  }
+
   // Enhanced logout handler
   async function handleLogout() {
     if (isDestroyed) return;
@@ -365,42 +399,52 @@ import { LoadingService } from "./loading.js";
       throw error;
     }
   }
-
-  // Load user profile
+  // Load user profile with resilient error handling
   async function loadUserProfile(userId) {
     if (isDestroyed) return;
 
-    try {
-      const profileData = await callProfileAPI(`/profile/${userId}`);
-      displayProfile(profileData);
-    } catch (error) {
-      // Retry once for transient network/listen/auth-sync issues
+    let lastError = null;
+    const maxRetries = 2;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        await new Promise((resolve) => setTimeout(resolve, 400));
-        const retryProfile = await callProfileAPI(`/profile/${userId}`);
-        displayProfile(retryProfile);
-        return;
-      } catch (retryError) {
-        const code = retryError?.code || error?.code;
-        // Only create a default profile if the document truly does not exist
-        if (isCurrentUserProfile && code === "not-found") {
-          try {
-            await createDefaultProfile(userId);
-            return;
-          } catch (_) {
-            displayMinimalProfile(userId);
-            hideLoadingAndShowContent();
-            return;
-          }
+        console.log(`[Profile] Load attempt ${attempt + 1}/${maxRetries + 1} for user:`, userId);
+        
+        // Add small delay before retry attempts to allow auth to sync
+        if (attempt > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 600 * attempt));
         }
-        // For permission/network/listen issues, never overwrite existing profile data
-        displayMinimalProfile(userId);
-        hideLoadingAndShowContent();
-        return;
+
+        const profileData = await callProfileAPI(`/profile/${userId}`);
+        console.log('[Profile] Profile loaded successfully:', profileData);
+        displayProfile(profileData);
+        return; // Success!
+      } catch (error) {
+        lastError = error;
+        console.warn(`[Profile] Attempt ${attempt + 1} failed:`, error?.message || error);
       }
     }
-  }
 
+    // All retries failed
+    console.error('[Profile] All load attempts failed. Last error:', lastError);
+    const code = lastError?.code;
+
+    // Only create a default profile if the document truly does not exist
+    if (isCurrentUserProfile && code === "not-found") {
+      console.log('[Profile] Creating default profile for new user');
+      try {
+        await createDefaultProfile(userId);
+        return;
+      } catch (createError) {
+        console.error('[Profile] Failed to create default profile:', createError);
+      }
+    }
+
+    // Fallback to minimal profile using auth data
+    console.warn('[Profile] Showing minimal profile with auth data fallback');
+    displayMinimalProfile(userId);
+    hideLoadingAndShowContent();
+  }
 
   // Create default profile for new users
   async function createDefaultProfile(userId) {
@@ -660,41 +704,21 @@ import { LoadingService } from "./loading.js";
       displayName:
         isViewingOwnProfile && user.displayName
           ? user.displayName
+          : isViewingOwnProfile
+          ? "Anonymous User"
           : "User Not Found",
       bio: isViewingOwnProfile
-        ? "Profile backend not available. Some features may not work correctly."
+        ? "Your profile is loading. If this persists, try refreshing the page."
         : "This user profile could not be loaded",
       avatarUrl: isViewingOwnProfile ? user.photoURL || "" : "",
       favoriteCars: [],
-      joinDate: new Date().toISOString(),
+      joinDate: user.metadata?.creationTime || new Date().toISOString(),
     };
 
     displayProfile(basicProfile);
   }
 
-  // Toggle edit mode
-  async function toggleEditMode() {
-    if (isDestroyed) return;
-
-    isEditing = !isEditing;
-    if (isEditing) {
-      if (profileDisplay) profileDisplay.classList.add("hidden");
-      if (profileEditForm) profileEditForm.classList.remove("hidden");
-      if (editProfileBtn) setSafeText(editProfileBtn, "Cancel");
-    } else {
-      if (profileDisplay) profileDisplay.classList.remove("hidden");
-      if (profileEditForm) profileEditForm.classList.add("hidden");
-      if (editProfileBtn) setSafeText(editProfileBtn, "Edit Profile");
-    }
-  }
-
-  // Event listeners with null checks
-  if (editProfileBtn) {
-    editProfileBtn.addEventListener("click", toggleEditMode);
-  }
-  if (cancelEditBtn) {
-    cancelEditBtn.addEventListener("click", toggleEditMode);
-  }
+  // Legacy edit toggle removed - now using modal system from profile.html
   if (saveProfileBtn) {
     saveProfileBtn.addEventListener("click", async () => {
       if (isDestroyed || !currentUser) return;
@@ -794,6 +818,7 @@ const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/
 
           if (user && validToken) {
             currentUser = user;
+            await updateRolePill(user);
             const targetUserId = getUserIdFromUrl() || user.uid;
             isCurrentUserProfile = targetUserId === user.uid;
 

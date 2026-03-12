@@ -48,19 +48,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     }
 
     private func subscribeToDefaultTopics() {
-        Messaging.messaging().subscribe(toTopic: "all_users") { error in
-            if let error = error {
-                print("Error subscribing to all_users topic: \(error.localizedDescription)")
-            } else {
-                print("Successfully subscribed to all_users topic")
-            }
-        }
-
-        Messaging.messaging().subscribe(toTopic: "ios_users") { error in
-            if let error = error {
-                print("Error subscribing to ios_users topic: \(error.localizedDescription)")
-            } else {
-                print("Successfully subscribed to ios_users topic")
+        let topics = ["all_users", "ios_users"]
+        for topic in topics {
+            Messaging.messaging().subscribe(toTopic: topic) { error in
+                if let error = error {
+                    print("Failed to subscribe to \(topic): \(error.localizedDescription)")
+                } else {
+                    print("Subscribed to \(topic)")
+                }
             }
         }
     }
