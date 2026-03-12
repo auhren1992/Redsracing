@@ -4492,9 +4492,9 @@
             document.getElementById('backup-size').textContent = '0 KB';
             document.getElementById('backup-count').textContent = '0';
             
-            // Mobile App stats
-            document.getElementById('android-version').textContent = '9.0 (90)';
-            document.getElementById('ios-version').textContent = '9.0 (90)';
+            // Mobile App stats (versions come from app_config via loadVersionConfig)
+            document.getElementById('android-version').textContent = '--';
+            document.getElementById('ios-version').textContent = '--';
             document.getElementById('android-users').textContent = '--';
             document.getElementById('ios-users').textContent = '--';
             document.getElementById('android-crashes').textContent = '--';
@@ -4520,6 +4520,8 @@
             try { await refreshUserActivity(); } catch(e) { console.warn('Activity refresh failed:', e); }
             // Load initial app stats
             try { await refreshAppStats(); } catch(e) { console.warn('App stats refresh failed:', e); }
+            // Load configured app versions into cards + form
+            try { await loadVersionConfig(); } catch(e) { console.warn('Version config load failed:', e); }
             // Load version distribution
             try { await loadVersionDistribution(); } catch(e) { console.warn('Version distribution load failed:', e); }
             // Load initial revenue stats
@@ -5325,6 +5327,9 @@
               document.getElementById('android-latest-version').value = data.latest_version || '';
               document.getElementById('android-min-version').value = data.minimum_version || '';
               document.getElementById('android-update-message').value = data.update_message || '';
+              const latest = data.latest_version || '--';
+              const min = data.minimum_version || '--';
+              document.getElementById('android-version').textContent = `v${latest} (min v${min})`;
             }
             
             // Load iOS config
@@ -5334,6 +5339,9 @@
               document.getElementById('ios-latest-version').value = data.latest_version || '';
               document.getElementById('ios-min-version').value = data.minimum_version || '';
               document.getElementById('ios-update-message').value = data.update_message || '';
+              const latest = data.latest_version || '--';
+              const min = data.minimum_version || '--';
+              document.getElementById('ios-version').textContent = `v${latest} (min v${min})`;
             }
             
             // Load version distribution from app_usage collection
@@ -5393,6 +5401,8 @@
             showToast('Version config saved successfully');
             document.getElementById('app-operation-result').innerHTML = 
               '<div class="text-green-400"><i class="fas fa-check mr-2"></i>App version config updated. Users will be prompted on next app launch.</div>';
+            document.getElementById('android-version').textContent = `v${androidLatest} (min v${androidMin})`;
+            document.getElementById('ios-version').textContent = `v${iosLatest} (min v${iosMin})`;
             
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Config';
@@ -5414,6 +5424,8 @@
             const usageSnap = await getDocs(collection(db, 'app_usage'));
             const androidVersions = {};
             const iosVersions = {};
+            const androidLatest = parseInt(document.getElementById('android-latest-version').value) || null;
+            const iosLatest = parseInt(document.getElementById('ios-latest-version').value) || null;
             
             usageSnap.forEach(doc => {
               const data = doc.data();
@@ -5430,7 +5442,9 @@
             // Display Android distribution
             const androidDiv = document.getElementById('android-version-distribution');
             if (Object.keys(androidVersions).length === 0) {
-              androidDiv.innerHTML = '<div class="text-slate-500">No version data available</div>';
+              androidDiv.innerHTML = androidLatest
+                ? `<div class="text-slate-400">Latest configured: <span class="text-green-400 font-medium">v${androidLatest}</span></div>`
+                : '<div class="text-slate-500">No version data available</div>';
             } else {
               const androidTotal = Object.values(androidVersions).reduce((a, b) => a + b, 0);
               const sorted = Object.entries(androidVersions).sort((a, b) => b[1] - a[1]);
@@ -5453,7 +5467,9 @@
             // Display iOS distribution
             const iosDiv = document.getElementById('ios-version-distribution');
             if (Object.keys(iosVersions).length === 0) {
-              iosDiv.innerHTML = '<div class="text-slate-500">No version data available</div>';
+              iosDiv.innerHTML = iosLatest
+                ? `<div class="text-slate-400">Latest configured: <span class="text-blue-400 font-medium">v${iosLatest}</span></div>`
+                : '<div class="text-slate-500">No version data available</div>';
             } else {
               const iosTotal = Object.values(iosVersions).reduce((a, b) => a + b, 0);
               const sorted = Object.entries(iosVersions).sort((a, b) => b[1] - a[1]);
