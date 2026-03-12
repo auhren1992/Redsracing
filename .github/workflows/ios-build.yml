@@ -73,12 +73,18 @@ jobs:
           # Rename to UUID for Xcode to find it
           mv ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
 
+      - name: Clean Build Folder
+        working-directory: ios
+        run: |
+          rm -rf build
+          xcodebuild clean -workspace RedsRacing.xcworkspace -scheme RedsRacing
+
       - name: Build Signed Archive
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         working-directory: ios
         run: |
-          set -o pipefail && xcodebuild -workspace RedsRacing.xcworkspace \
+          xcodebuild -workspace RedsRacing.xcworkspace \
             -scheme RedsRacing \
             -destination 'generic/platform=iOS' \
             -configuration Release \
@@ -87,9 +93,16 @@ jobs:
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CODE_SIGN_STYLE=Automatic \
             ONLY_ACTIVE_ARCH=NO \
-            ENABLE_ON_DEMAND_RESOURCES=NO
+            ENABLE_ON_DEMAND_RESOURCES=NO 2>&1 | tee build.log
           
-          # Verify archive was created
+          # Check if archive succeeded
+          if [ ! -d "$PWD/build/RedsRacing.xcarchive" ]; then
+            echo "Archive not created, showing last 50 lines of build log:"
+            tail -50 build.log
+            exit 1
+          fi
+          
+          echo "Archive created successfully:"
           ls -la "$PWD/build/RedsRacing.xcarchive"
 
       - name: Export IPA
