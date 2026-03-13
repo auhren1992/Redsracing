@@ -84,16 +84,27 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         working-directory: ios
         run: |
+          set -e
+          
+          echo "Starting iOS build..."
           xcodebuild -workspace RedsRacing.xcworkspace \
             -scheme RedsRacing \
             -destination 'generic/platform=iOS' \
             -configuration Release \
             -archivePath "$PWD/build/RedsRacing.xcarchive" \
+            -allowProvisioningUpdates \
             archive \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CODE_SIGN_STYLE=Automatic \
-            ONLY_ACTIVE_ARCH=NO \
-            ENABLE_ON_DEMAND_RESOURCES=NO
+            ONLY_ACTIVE_ARCH=YES \
+            ARCHS=arm64 \
+            ENABLE_ON_DEMAND_RESOURCES=NO || {
+              echo "Build failed with exit code $?"
+              echo "Checking for common issues..."
+              pod --version
+              xcodebuild -version
+              exit 1
+            }
           
           echo "Archive created successfully:"
           ls -la "$PWD/build/RedsRacing.xcarchive"
