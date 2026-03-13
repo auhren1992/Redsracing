@@ -62,7 +62,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             putExtra("title", title)
             putExtra("body", messageBody)
             // Add URL for deep linking - default to admin console
-            val url = data["url"] ?: "https://appassets.androidplatform.net/assets/admin-console.html"
+            val url = data["url"] ?: "https://appassets.androidplatform.net/assets/www/admin-console.html"
             putExtra("url", url)
             // Pass any additional data
             data.forEach { (key, value) ->

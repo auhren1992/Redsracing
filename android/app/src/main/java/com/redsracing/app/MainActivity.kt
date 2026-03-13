@@ -151,7 +151,13 @@ class MainActivity : AppCompatActivity() {
             
             if (hasNotificationData) {
                 // Notification was tapped - navigate to admin console
-                val url = extras.getString("url") ?: "https://appassets.androidplatform.net/assets/admin-console.html"
+                val rawUrl = extras.getString("url")
+                val url = when {
+                    rawUrl.isNullOrBlank() -> "https://appassets.androidplatform.net/assets/www/admin-console.html"
+                    rawUrl.startsWith("http://") || rawUrl.startsWith("https://") -> rawUrl
+                    rawUrl.endsWith(".html") -> "https://appassets.androidplatform.net/assets/www/$rawUrl"
+                    else -> "https://appassets.androidplatform.net/assets/www/admin-console.html"
+                }
                 android.util.Log.d("MainActivity", "Opening from notification: $url")
                 binding.webview.loadUrl(url)
                 return
@@ -353,8 +359,7 @@ class MainActivity : AppCompatActivity() {
         if (savedVersion != currentVersion && currentVersion > 0) {
             binding.webview.clearCache(true)
             binding.webview.clearHistory()
-            CookieManager.getInstance().removeAllCookies(null)
-            CookieManager.getInstance().flush()
+            // Keep cookies/local auth state so users stay logged in after app updates.
             prefs.edit().putInt("app_version_code", currentVersion).apply()
             Toast.makeText(this, "App updated - loading new content", Toast.LENGTH_SHORT).show()
         }
