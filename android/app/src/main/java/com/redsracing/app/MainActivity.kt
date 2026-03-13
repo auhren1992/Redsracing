@@ -132,7 +132,33 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // Check authentication and route to appropriate page
+        // Handle notification intent if present
+        handleNotificationIntent(intent)
+    }
+    
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNotificationIntent(intent)
+    }
+    
+    private fun handleNotificationIntent(intent: Intent?) {
+        intent?.extras?.let { extras ->
+            // Check if this intent came from a notification
+            val hasNotificationData = extras.containsKey("title") || 
+                                     extras.containsKey("body") ||
+                                     extras.containsKey("url")
+            
+            if (hasNotificationData) {
+                // Notification was tapped - navigate to admin console
+                val url = extras.getString("url") ?: "https://appassets.androidplatform.net/assets/admin-console.html"
+                android.util.Log.d("MainActivity", "Opening from notification: $url")
+                binding.webview.loadUrl(url)
+                return
+            }
+        }
+        
+        // No notification data - check auth and route normally
         checkAuthAndRoute()
     }
 

@@ -57,10 +57,18 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     private fun sendNotification(title: String, messageBody: String, data: Map<String, String>) {
         val intent = Intent(this, MainActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            // Pass data to MainActivity if needed
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            // Pass notification data to MainActivity
+            putExtra("title", title)
+            putExtra("body", messageBody)
+            // Add URL for deep linking - default to admin console
+            val url = data["url"] ?: "https://appassets.androidplatform.net/assets/admin-console.html"
+            putExtra("url", url)
+            // Pass any additional data
             data.forEach { (key, value) ->
-                putExtra(key, value)
+                if (key !in listOf("title", "body", "url")) {
+                    putExtra(key, value)
+                }
             }
         }
         
