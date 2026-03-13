@@ -396,7 +396,7 @@
     <!-- Main Dashboard Layout -->
     <div class="flex min-h-screen">
       <!-- Modern Sidebar -->
-      <aside class="sidebar-nav w-64 lg:w-72 flex-shrink-0 hidden lg:block">
+      <aside class="sidebar-nav w-64 lg:w-72 flex-shrink-0 hidden md:block">
         <div class="p-6">
           <div class="mb-8">
             <h2 class="text-lg font-bold text-white mb-2">
@@ -479,7 +479,7 @@
       <!-- Main Content -->
       <main class="flex-1 overflow-hidden">
         <!-- Mobile Tab Navigation -->
-        <div class="lg:hidden border-b border-white/10 bg-slate-900/50">
+        <div class="md:hidden border-b border-white/10 bg-slate-900/50">
           <div class="overflow-x-auto scrollbar-hide">
             <div class="flex space-x-2 p-3 min-w-max">
               <a href="#overview" class="mobile-tab-btn flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-blue-600 text-white">
@@ -2359,8 +2359,16 @@
         
         async function getUserRole() {
           try {
-            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
-            const auth = getAuth();
+            const { getAuth, setPersistence, browserLocalPersistence } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const app = await ensureDefaultApp();
+            const auth = getAuth(app);
+            
+            // Ensure persistence is set (critical for mobile WebView)
+            try {
+              await setPersistence(auth, browserLocalPersistence);
+            } catch (persistErr) {
+              console.warn('[getUserRole] Could not set persistence:', persistErr);
+            }
             
             if (!auth.currentUser) {
               console.warn('[getUserRole] No current user - not authenticated');
@@ -2369,31 +2377,30 @@
             
             console.log('[getUserRole] User authenticated:', auth.currentUser.uid);
             
-            // Try to get fresh token with claims
-            const token = await auth.currentUser.getIdTokenResult(true);
-            const role = token?.claims?.role || null;
-            
-            console.log('[getUserRole] Token claims role:', role);
-            
-            // Fallback: check Firestore if token doesn't have role
-            if (!role) {
-              console.log('[getUserRole] No role in token, checking Firestore...');
-              try {
-                const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-                const app = await ensureDefaultApp();
-                const db = getFirestore(app);
-                const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-                if (userDoc.exists()) {
-                  const firestoreRole = userDoc.data()?.role;
-                  console.log('[getUserRole] Firestore role:', firestoreRole);
-                  return firestoreRole || null;
-                }
-              } catch (firestoreErr) {
-                console.error('[getUserRole] Firestore fallback failed:', firestoreErr);
+            // ALWAYS check Firestore first for mobile reliability
+            try {
+              const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const db = getFirestore(app);
+              const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+              if (userDoc.exists()) {
+                const firestoreRole = userDoc.data()?.role;
+                console.log('[getUserRole] Firestore role:', firestoreRole);
+                if (firestoreRole) return firestoreRole;
               }
+            } catch (firestoreErr) {
+              console.warn('[getUserRole] Firestore check failed, trying token:', firestoreErr);
             }
             
-            return role;
+            // Fallback to token claims
+            try {
+              const token = await auth.currentUser.getIdTokenResult(false); // Don't force refresh
+              const role = token?.claims?.role || null;
+              console.log('[getUserRole] Token claims role:', role);
+              return role;
+            } catch (tokenErr) {
+              console.error('[getUserRole] Token fetch failed:', tokenErr);
+              return null;
+            }
           } catch (error) {
             console.error('[getUserRole] Error:', error);
             return null;
