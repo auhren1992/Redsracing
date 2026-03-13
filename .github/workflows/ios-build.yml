@@ -138,13 +138,22 @@ jobs:
             -exportOptionsPlist ExportOptions.plist \
             -exportPath "$PWD/build/export"
 
+      - name: Decode API Key
+        id: decode_key
+        run: |
+          DECODED_KEY=$(echo "${{ secrets.ASC_API_KEY_BASE64 }}" | base64 --decode)
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "API_PRIVATE_KEY<<$EOF" >> $GITHUB_ENV
+          echo "$DECODED_KEY" >> $GITHUB_ENV
+          echo "$EOF" >> $GITHUB_ENV
+
       - name: Upload to App Store Connect
         uses: apple-actions/upload-testflight-build@v3
         with:
           app-path: 'ios/build/export/RedsRacing.ipa'
           issuer-id: ${{ secrets.ASC_ISSUER_ID }}
           api-key-id: ${{ secrets.ASC_KEY_ID }}
-          api-private-key: ${{ secrets.ASC_API_KEY_BASE64 }}
+          api-private-key: ${{ env.API_PRIVATE_KEY }}
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
