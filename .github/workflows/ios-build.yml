@@ -87,16 +87,14 @@ jobs:
           set -e
           
           echo "Starting iOS build..."
+          # Let Xcode auto-select provisioning profile based on UUID
           xcodebuild -workspace RedsRacing.xcworkspace \
             -scheme RedsRacing \
             -destination 'generic/platform=iOS' \
             -configuration Release \
             -archivePath "$PWD/build/RedsRacing.xcarchive" \
             archive \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="iPhone Distribution" \
-            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            PROVISIONING_PROFILE="$PROFILE_UUID" || {
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" || {
               echo "Build failed with exit code $?"
               echo "Checking for common issues..."
               pod --version
