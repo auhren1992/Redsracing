@@ -3,11 +3,11 @@ platform :ios, '14.0'
 target 'RedsRacing' do
   use_frameworks!
 
-  # Firebase - pin to stable versions
-  pod 'FirebaseCore', '~> 10.18.0'
-  pod 'FirebaseAuth', '~> 10.18.0'
-  pod 'FirebaseMessaging', '~> 10.18.0'
-  pod 'FirebaseFirestore', '~> 10.18.0'
+  # Firebase - latest version for better Xcode compatibility
+  pod 'FirebaseCore', '~> 11.0'
+  pod 'FirebaseAuth', '~> 11.0'
+  pod 'FirebaseMessaging', '~> 11.0'
+  pod 'FirebaseFirestore', '~> 11.0'
   
   # Google Mobile Ads SDK
   pod 'Google-Mobile-Ads-SDK'
