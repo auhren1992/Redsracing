@@ -93,10 +93,10 @@ jobs:
             -configuration Release \
             -archivePath "$PWD/build/RedsRacing.xcarchive" \
             archive \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
-            ONLY_ACTIVE_ARCH=YES \
-            ARCHS=arm64 \
+            PROVISIONING_PROFILE="$PROFILE_UUID" \
             ENABLE_ON_DEMAND_RESOURCES=NO || {
               echo "Build failed with exit code $?"
               echo "Checking for common issues..."
