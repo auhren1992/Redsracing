@@ -96,8 +96,7 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="iPhone Distribution" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            PROVISIONING_PROFILE="$PROFILE_UUID" \
-            ENABLE_ON_DEMAND_RESOURCES=NO || {
+            PROVISIONING_PROFILE="$PROFILE_UUID" || {
               echo "Build failed with exit code $?"
               echo "Checking for common issues..."
               pod --version
