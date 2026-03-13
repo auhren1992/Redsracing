@@ -87,6 +87,7 @@ jobs:
           set -e
           
           echo "Starting iOS build..."
+          echo "Using provisioning profile: $PROFILE_UUID"
           xcodebuild -workspace RedsRacing.xcworkspace \
             -scheme RedsRacing \
             -destination 'generic/platform=iOS' \
@@ -94,7 +95,7 @@ jobs:
             -archivePath "$PWD/build/RedsRacing.xcarchive" \
             archive \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            -allowProvisioningUpdates || {
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" || {
               echo "Build failed with exit code $?"
               echo "Checking for common issues..."
               pod --version
