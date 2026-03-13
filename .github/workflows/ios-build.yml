@@ -92,10 +92,11 @@ jobs:
             -destination 'generic/platform=iOS' \
             -configuration Release \
             -archivePath "$PWD/build/RedsRacing.xcarchive" \
-            -allowProvisioningUpdates \
             archive \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            PROVISIONING_PROFILE="$PROFILE_UUID" \
             ONLY_ACTIVE_ARCH=YES \
             ARCHS=arm64 \
             ENABLE_ON_DEMAND_RESOURCES=NO || {
@@ -126,7 +127,12 @@ jobs:
               <key>uploadSymbols</key>
               <true/>
               <key>signingStyle</key>
-              <string>automatic</string>
+              <string>manual</string>
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>com.redsracing.app</key>
+                  <string>$PROFILE_UUID</string>
+              </dict>
           </dict>
           </plist>
           EOF
