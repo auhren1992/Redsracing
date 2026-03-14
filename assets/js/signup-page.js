@@ -44,21 +44,28 @@ export async function handleSignup(email, password, inviteCode) {
     const user = userCredential.user;
 
     // If invite code provided, process it (admin/team code paths)
+    let inviteProcessed = false;
     if (inviteCode && inviteCode.trim()) {
       try {
-        await processInvitationCode(inviteCode.trim(), user.uid);
+        const result = await processInvitationCode(inviteCode.trim(), user.uid);
+        if (result && result.status === "success") {
+          inviteProcessed = true;
+        } else {
+          console.warn('Invite code was invalid or expired, continuing as follower.');
+        }
       } catch (e) {
         // If invite invalid, continue as follower without blocking signup
         console.warn('Invite code processing failed, continuing as follower:', e?.message || e);
       }
-    } else {
-      // No invite provided: default to follower role via callable
+    }
+
+    // No invite provided or invite failed: default to follower role via callable
+    if (!inviteProcessed) {
       try {
         const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
         const f = getFunctions();
         const setFollowerRole = httpsCallable(f, 'setFollowerRole');
         await setFollowerRole();
-        try { await user.getIdToken(true); } catch(_) {}
       } catch (e) {
         console.warn('setFollowerRole failed (continuing without blocking):', e?.message || e);
       }
@@ -146,8 +153,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const user = await handleSignup(email, password, inviteCode);
         console.log('[SIGNUP] Signup successful!', user.uid);
         
+        // Refresh token one more time to make sure claims are up to date
+        try { await user.getIdToken(true); } catch (_) {}
+
+        // We check the role from token or default to follower if it fails
+        let currentRole = 'public-fan';
+        try {
+          const idTokenResult = await user.getIdTokenResult();
+          currentRole = idTokenResult.claims.role || 'public-fan';
+        } catch (_) {}
+
         // Redirect based on role
-        if (teamRole === 'fan' || !inviteCode || !inviteCode.trim()) {
+        if (currentRole === 'public-fan' || currentRole === 'TeamRedFollower') {
           // Fan/follower - go to follower dashboard
           console.log('[SIGNUP] Redirecting to follower dashboard...');
           window.location.href = "/follower-dashboard.html";
