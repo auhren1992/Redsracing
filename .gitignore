@@ -50,3 +50,6 @@ android/.gradle/
 *.aab
 android/app/release/
 android/app/debug/
+android/app/build/
+ios/RedsRacing/www/
+android/app/src/main/assets/www/
