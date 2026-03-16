@@ -146,15 +146,28 @@ document.addEventListener("DOMContentLoaded", () => {
         const user = await handleSignup(email, password, inviteCode);
         console.log('[SIGNUP] Signup successful!', user.uid);
         
-        // Redirect based on role
-        if (teamRole === 'fan' || !inviteCode || !inviteCode.trim()) {
-          // Fan/follower - go to follower dashboard
-          console.log('[SIGNUP] Redirecting to follower dashboard...');
+        // Refresh token to get latest claims after role assignment
+        try {
+          await user.getIdToken(true);
+          const tokenResult = await user.getIdTokenResult();
+          const role = tokenResult?.claims?.role || null;
+          console.log('[SIGNUP] User role after signup:', role);
+          
+          // Redirect based on assigned role from claims
+          if (role === 'admin') {
+            console.log('[SIGNUP] Redirecting to admin console...');
+            window.location.href = "/admin-console.html";
+          } else if (role === 'team-member') {
+            console.log('[SIGNUP] Redirecting to team dashboard...');
+            window.location.href = "/dashboard.html";
+          } else {
+            // Default to follower dashboard for fans and unknown roles
+            console.log('[SIGNUP] Redirecting to follower dashboard...');
+            window.location.href = "/follower-dashboard.html";
+          }
+        } catch (e) {
+          console.warn('[SIGNUP] Could not fetch role claims, defaulting to follower dashboard:', e);
           window.location.href = "/follower-dashboard.html";
-        } else {
-          // Team member with invite code - go to login to refresh token
-          console.log('[SIGNUP] Redirecting to login...');
-          window.location.href = "/login.html";
         }
       } catch (error) {
         console.error('[SIGNUP] Signup failed:', error);
