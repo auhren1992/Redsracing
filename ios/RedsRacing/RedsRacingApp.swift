@@ -85,7 +85,7 @@ struct RedsRacingApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
-        // Configure Firebase
+        // Configure Firebase for iOS app
         FirebaseApp.configure()
     }
     
