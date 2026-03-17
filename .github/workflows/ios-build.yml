@@ -142,6 +142,11 @@ jobs:
         id: decode_key
         run: |
           DECODED_KEY=$(echo "${{ secrets.ASC_API_KEY_BASE64 }}" | base64 --decode)
+          # Mask the multiline key
+          while IFS= read -r line; do
+            echo "::add-mask::$line"
+          done <<< "$DECODED_KEY"
+
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "API_PRIVATE_KEY<<$EOF" >> $GITHUB_ENV
           echo "$DECODED_KEY" >> $GITHUB_ENV
