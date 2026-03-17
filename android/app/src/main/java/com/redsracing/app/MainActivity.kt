@@ -132,7 +132,39 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // Check authentication and route to appropriate page
+        // Handle notification intent if present
+        handleNotificationIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: Intent?) {
+        intent?.extras?.let { extras ->
+            // Check if this intent came from a notification
+            val hasNotificationData = extras.containsKey("title") ||
+                                     extras.containsKey("body") ||
+                                     extras.containsKey("url")
+
+            if (hasNotificationData) {
+                // Notification was tapped - navigate to admin console
+                val rawUrl = extras.getString("url")
+                val url = when {
+                    rawUrl.isNullOrBlank() -> "https://appassets.androidplatform.net/assets/www/admin-console.html"
+                    rawUrl.startsWith("http://") || rawUrl.startsWith("https://") -> rawUrl
+                    rawUrl.endsWith(".html") -> "https://appassets.androidplatform.net/assets/www/$rawUrl"
+                    else -> "https://appassets.androidplatform.net/assets/www/admin-console.html"
+                }
+                android.util.Log.d("MainActivity", "Opening from notification: $url")
+                binding.webview.loadUrl(url)
+                return
+            }
+        }
+
+        // No notification data - check auth and route normally
         checkAuthAndRoute()
     }
 
@@ -327,8 +359,7 @@ class MainActivity : AppCompatActivity() {
         if (savedVersion != currentVersion && currentVersion > 0) {
             binding.webview.clearCache(true)
             binding.webview.clearHistory()
-            CookieManager.getInstance().removeAllCookies(null)
-            CookieManager.getInstance().flush()
+            // Keep cookies/local auth state so users stay logged in after app updates.
             prefs.edit().putInt("app_version_code", currentVersion).apply()
             Toast.makeText(this, "App updated - loading new content", Toast.LENGTH_SHORT).show()
         }
