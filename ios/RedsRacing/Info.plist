@@ -160,6 +160,8 @@
     </dict>
     <key>NSCameraUsageDescription</key>
     <string>Allow RedsRacing to use the camera to capture photos and videos for upload.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Allow RedsRacing to use the microphone to record audio when capturing videos.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Allow RedsRacing to access your photo library to select images for upload.</string>
     <key>NSUserTrackingUsageDescription</key>
