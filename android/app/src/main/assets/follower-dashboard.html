@@ -1,159 +1,723 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
   <head>
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353"
-         crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Follower Dashboard - RedsRacing #8</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseio.com https://*.googleapis.com https://*.google-analytics.com https://*.googletagmanager.com https://*.googlesyndication.com https://www.gstatic.com https://pagead2.googlesyndication.com https://adservice.google.com https://cdnjs.cloudflare.com https://unpkg.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' https: data: blob:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.cloudfunctions.net https://*.google-analytics.com https://*.doubleclick.net https://*.googlesyndication.com https://*.google.com https://*.gstatic.com https://*.ampproject.org https://unpkg.com https://adservice.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google wss://*.firebaseio.com; frame-src https://www.google.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; object-src 'none';">
+    <title>Fan Dashboard - RedsRacing #8</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-    <link rel="manifest" href="site.webmanifest" />
-    <link rel="stylesheet" href="styles/tailwind.css" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="styles/main.css" />
-    <link rel="stylesheet" href="styles/input-fix.css" />
-    <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
-  <script src="assets/js/guest-gate.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <script src="assets/js/guest-gate.js"></script>
+    
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      
+      body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #0a0e17 0%, #1a1f2e 50%, #0a0e17 100%);
+        color: white;
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+      
+      /* Animated Background */
+      .bg-animation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      
+      .bg-gradient {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(100px);
+        opacity: 0.2;
+        animation: float 25s ease-in-out infinite;
+      }
+      
+      .gradient-1 {
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, #3b82f6, transparent);
+        top: -200px;
+        left: -200px;
+      }
+      
+      .gradient-2 {
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, #fbbf24, transparent);
+        bottom: -150px;
+        right: -150px;
+        animation-delay: 10s;
+      }
+      
+      @keyframes float {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(100px, -100px); }
+      }
+      
+      /* Grid Pattern */
+      .grid-pattern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+          linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size: 50px 50px;
+        z-index: 1;
+        pointer-events: none;
+      }
+      
+      /* Header */
+      header {
+        position: relative;
+        z-index: 100;
+        background: rgba(10, 14, 23, 0.8);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(251, 191, 36, 0.1);
+      }
+      
+      nav {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+      }
+      
+      .logo {
+        font-family: 'Racing Sans One', cursive;
+        font-size: 1.75rem;
+        letter-spacing: 0.1em;
+        text-decoration: none;
+      }
+      
+      .logo-blue {
+        background: linear-gradient(45deg, #3b82f6, #60a5fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .logo-yellow {
+        background: linear-gradient(45deg, #fbbf24, #fde047);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+      }
+      
+      .nav-links a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s;
+        font-size: 0.95rem;
+      }
+      
+      .nav-links a:hover {
+        color: #fbbf24;
+      }
+      
+      .logout-btn {
+        background: linear-gradient(45deg, #ef4444, #dc2626);
+        color: white;
+        padding: 0.6rem 1.5rem;
+        border-radius: 0.5rem;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      
+      .logout-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+      }
+      
+      /* Main Content */
+      main {
+        position: relative;
+        z-index: 10;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+      }
+      
+      .welcome-section {
+        text-align: center;
+        margin-bottom: 3rem;
+        animation: fadeInDown 0.8s ease-out;
+      }
+      
+      .welcome-title {
+        font-family: 'Racing Sans One', cursive;
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      
+      .welcome-subtitle {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 1.125rem;
+      }
+      
+      .user-email {
+        color: #fbbf24;
+        font-weight: 700;
+      }
+      
+      /* Dashboard Grid */
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+        animation: fadeIn 0.8s ease-out 0.2s both;
+      }
+      
+      /* Card Styles */
+      .card {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        border-radius: 1rem;
+        padding: 2rem;
+        transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+      }
+      
+      .card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(251, 191, 36, 0.4);
+        box-shadow: 0 20px 40px rgba(251, 191, 36, 0.1);
+      }
+      
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      .card-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(45deg, #fbbf24, #f59e0b);
+        border-radius: 0.75rem;
+        font-size: 1.5rem;
+      }
+      
+      .card-title {
+        font-family: 'Racing Sans One', cursive;
+        font-size: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: linear-gradient(45deg, #fbbf24, #fde047);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      /* Countdown Timer */
+      .countdown-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+      
+      .countdown-item {
+        text-align: center;
+        background: rgba(251, 191, 36, 0.05);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        border-radius: 0.75rem;
+        padding: 1rem 0.5rem;
+      }
+      
+      .countdown-number {
+        font-family: 'Racing Sans One', cursive;
+        font-size: 2.5rem;
+        color: #fbbf24;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+      }
+      
+      .countdown-label {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+      }
+      
+      .race-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 0.5rem;
+      }
+      
+      .race-track {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.95rem;
+      }
+      
+      /* Quick Links */
+      .quick-links {
+        display: grid;
+        gap: 1rem;
+      }
+      
+      .quick-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        background: rgba(251, 191, 36, 0.05);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        border-radius: 0.75rem;
+        text-decoration: none;
+        color: white;
+        transition: all 0.3s;
+      }
+      
+      .quick-link:hover {
+        background: rgba(251, 191, 36, 0.1);
+        border-color: rgba(251, 191, 36, 0.4);
+        transform: translateX(5px);
+      }
+      
+      .quick-link-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(45deg, #fbbf24, #f59e0b);
+        border-radius: 0.5rem;
+        font-size: 1.25rem;
+        color: #0a0e17;
+      }
+      
+      .quick-link-text {
+        flex: 1;
+      }
+      
+      .quick-link-title {
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+      }
+      
+      .quick-link-desc {
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      
+      /* Loading State */
+      .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 60vh;
+        gap: 1.5rem;
+      }
+      
+      .spinner {
+        width: 64px;
+        height: 64px;
+        border: 4px solid rgba(251, 191, 36, 0.2);
+        border-top-color: #fbbf24;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      .loading-text {
+        font-family: 'Racing Sans One', cursive;
+        font-size: 1.5rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        background: linear-gradient(45deg, #fbbf24, #fde047);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .hidden { display: none !important; }
+      
+      /* Animations */
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      /* Mobile Responsive */
+      @media (max-width: 768px) {
+        nav {
+          flex-direction: column;
+          gap: 1rem;
+        }
+        
+        .nav-links {
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 1rem;
+        }
+        
+        .countdown-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .countdown-number {
+          font-size: 2rem;
+        }
+      }
+    </style>
   </head>
-  <body class="flex flex-col min-h-screen">
-    <header
-      class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50"
-    >
-      <nav
-        class="container mx-auto px-6 py-3 flex justify-between items-center"
-      >
-        <a
-          href="index.html"
-          class="text-4xl font-racing uppercase tracking-wider"
-        >
-          <span class="title-blue">Reds</span
-          ><span class="neon-yellow">Racing</span>
+  <body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+      <div class="bg-gradient gradient-1"></div>
+      <div class="bg-gradient gradient-2"></div>
+    </div>
+    <div class="grid-pattern"></div>
+
+    <!-- Header -->
+    <header>
+      <nav>
+        <a href="index.html" class="logo">
+          <span class="logo-blue">Reds</span><span class="logo-yellow">Racing</span>
         </a>
-        <div class="flex items-center space-x-6 font-bold">
-          <a
-            href="index.html"
-            class="hover:text-neon-yellow transition duration-300"
-            >Home</a
-          >
-          <a
-            href="jonny.html"
-            class="hover:text-neon-yellow transition duration-300"
-            >Jonny's Page</a
-          >
-          <a
-            href="schedule.html"
-            class="hover:text-neon-yellow transition duration-300"
-            >Full Schedule</a
-          >
-          <a
-            href="profile.html"
-            class="hover:text-neon-yellow transition duration-300"
-            >Profile</a
-          >
-          <a
-            href="leaderboard.html"
-            class="hover:text-neon-yellow transition duration-300"
-            >Leaderboard</a
-          >
-          <a
-            id="logout-button"
-            href="#"
-            class="bg-red-600 text-white py-2 px-5 rounded-md hover:bg-red-500 transition duration-300"
-          >
-            Logout
-          </a>
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="schedule.html">Schedule</a>
+          <a href="gallery.html">Gallery</a>
+          <a href="leaderboard.html">Leaderboard</a>
+          <a href="profile.html">Profile</a>
+          <button id="logout-button" class="logout-btn">Logout</button>
         </div>
       </nav>
     </header>
 
-    <main class="flex-grow container mx-auto px-6 py-12">
-      <!-- Authentication and general error container -->
-      <div id="auth-error-container" class="mb-6"></div>
-
-      <div
-        id="loading-state"
-        class="flex flex-col items-center justify-center text-center py-20"
-      >
-        <div
-          class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-neon-yellow"
-        ></div>
-        <p class="text-2xl mt-4 font-racing uppercase tracking-wider">
-          Loading Dashboard...
-        </p>
+    <!-- Main Content -->
+    <main>
+      <!-- Loading State -->
+      <div id="loading-state" class="loading-container">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading Dashboard...</div>
       </div>
 
+      <!-- Dashboard Content -->
       <div id="dashboard-content" class="hidden">
-        <h1 class="text-5xl font-racing uppercase mb-2">
-          Follower <span class="neon-yellow">Dashboard</span>
-        </h1>
-        <p class="text-slate-400 mb-8">
-          Welcome back,
-          <span id="user-email" class="font-bold text-white"></span>.
-        </p>
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+          <h1 class="welcome-title">Welcome Back, Fan!</h1>
+          <p class="welcome-subtitle">
+            Signed in as <span id="user-email" class="user-email"></span>
+          </p>
+        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- Column 1 -->
-          <div class="space-y-8">
-            <!-- Next Race Countdown -->
-            <div class="card rounded-lg p-6">
-              <h2 class="text-3xl font-racing text-white uppercase mb-4">
-                Next <span class="neon-yellow">Race</span>
-              </h2>
-              <p
-                id="next-race-name"
-                class="text-2xl font-bold text-white uppercase mb-4"
-              >
-                Loading...
-              </p>
-              <div
-                id="countdown-timer"
-                class="grid grid-cols-4 gap-4 text-center"
-              >
-                <div>
-                  <div id="days" class="text-4xl font-bold">0</div>
-                  <div class="text-xs uppercase text-slate-400">Days</div>
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+          <!-- Next Race Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-flag-checkered"></i>
+              </div>
+              <h2 class="card-title">Next Race</h2>
+            </div>
+            
+            <div id="race-info">
+              <div id="next-race-name" class="race-name">Loading...</div>
+              <div id="next-race-track" class="race-track"></div>
+              
+              <div id="countdown-timer" class="countdown-grid">
+                <div class="countdown-item">
+                  <div id="days" class="countdown-number">0</div>
+                  <div class="countdown-label">Days</div>
                 </div>
-                <div>
-                  <div id="hours" class="text-4xl font-bold">0</div>
-                  <div class="text-xs uppercase text-slate-400">Hours</div>
+                <div class="countdown-item">
+                  <div id="hours" class="countdown-number">0</div>
+                  <div class="countdown-label">Hours</div>
                 </div>
-                <div>
-                  <div id="minutes" class="text-4xl font-bold">0</div>
-                  <div class="text-xs uppercase text-slate-400">Minutes</div>
+                <div class="countdown-item">
+                  <div id="minutes" class="countdown-number">0</div>
+                  <div class="countdown-label">Minutes</div>
                 </div>
-                <div>
-                  <div id="seconds" class="text-4xl font-bold">0</div>
-                  <div class="text-xs uppercase text-slate-400">Seconds</div>
+                <div class="countdown-item">
+                  <div id="seconds" class="countdown-number">0</div>
+                  <div class="countdown-label">Seconds</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Column 2 -->
-          <div class="space-y-8">
-            <!-- Placeholder for follower content -->
+          <!-- Quick Links Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-rocket"></i>
+              </div>
+              <h2 class="card-title">Quick Actions</h2>
+            </div>
+            
+            <div class="quick-links">
+              <a href="schedule.html" class="quick-link">
+                <div class="quick-link-icon">
+                  <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="quick-link-text">
+                  <div class="quick-link-title">Full Schedule</div>
+                  <div class="quick-link-desc">View all 2026 races</div>
+                </div>
+                <i class="fas fa-chevron-right" style="color: rgba(255,255,255,0.3);"></i>
+              </a>
+              
+              <a href="gallery.html" class="quick-link">
+                <div class="quick-link-icon">
+                  <i class="fas fa-images"></i>
+                </div>
+                <div class="quick-link-text">
+                  <div class="quick-link-title">Photo Gallery</div>
+                  <div class="quick-link-desc">Latest race photos</div>
+                </div>
+                <i class="fas fa-chevron-right" style="color: rgba(255,255,255,0.3);"></i>
+              </a>
+              
+              <a href="videos.html" class="quick-link">
+                <div class="quick-link-icon">
+                  <i class="fas fa-play-circle"></i>
+                </div>
+                <div class="quick-link-text">
+                  <div class="quick-link-title">Race Highlights</div>
+                  <div class="quick-link-desc">Watch the action</div>
+                </div>
+                <i class="fas fa-chevron-right" style="color: rgba(255,255,255,0.3);"></i>
+              </a>
+              
+              <a href="leaderboard.html" class="quick-link">
+                <div class="quick-link-icon">
+                  <i class="fas fa-trophy"></i>
+                </div>
+                <div class="quick-link-text">
+                  <div class="quick-link-title">Leaderboard</div>
+                  <div class="quick-link-desc">2026 standings</div>
+                </div>
+                <i class="fas fa-chevron-right" style="color: rgba(255,255,255,0.3);"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Team Info Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">
+                <i class="fas fa-users"></i>
+              </div>
+              <h2 class="card-title">Team Reds</h2>
+            </div>
+            
+            <div class="quick-links">
+              <a href="driver.html" class="quick-link">
+                <div class="quick-link-icon">
+                  <i class="fas fa-user"></i>
+                </div>
+                <div class="quick-link-text">
+                  <div class="quick-link-title">Jon Kirsch #8</div>
+                  <div class="quick-link-desc">Driver profile</div>
+                </div>
+                <i class="fas fa-chevron-right" style="color: rgba(255,255,255,0.3);"></i>
+              </a>
+              
+              <a href="jonny.html" class="quick-link">
+                <div class="quick-link-icon">
+                  <i class="fas fa-user"></i>
+                </div>
+                <div class="quick-link-text">
+                  <div class="quick-link-title">Jonny Kirsch #88</div>
+                  <div class="quick-link-desc">Driver profile</div>
+                </div>
+                <i class="fas fa-chevron-right" style="color: rgba(255,255,255,0.3);"></i>
+              </a>
+              
+              <a href="sponsorship.html" class="quick-link">
+                <div class="quick-link-icon">
+                  <i class="fas fa-handshake"></i>
+                </div>
+                <div class="quick-link-text">
+                  <div class="quick-link-title">Become a Sponsor</div>
+                  <div class="quick-link-desc">Support the team</div>
+                </div>
+                <i class="fas fa-chevron-right" style="color: rgba(255,255,255,0.3);"></i>
+              </a>
+            </div>
           </div>
         </div>
       </div>
     </main>
 
-    <footer class="bg-black/50 border-t border-slate-800 py-8 mt-12">
-      <div class="container mx-auto px-6 text-center text-slate-500 text-sm">
-        <p>© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
-      </div>
-    </footer>
+    <script>
+      // Firebase Configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+        authDomain: "redsracing-a7f8b.firebaseapp.com",
+        projectId: "redsracing-a7f8b",
+        storageBucket: "redsracing-a7f8b.firebasestorage.app",
+        messagingSenderId: "517034606151",
+        appId: "1:517034606151:web:24cae262e1d98832757b62"
+      };
 
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
 
-    <script src="vendors.js"></script>
-    <script type="module" src="assets/js/auth-guard.js"></script>
-    <script src="navigation.js"></script>
-    <script type="module" src="assets/js/follower-dashboard.js"></script>
+      const loadingState = document.getElementById('loading-state');
+      const dashboardContent = document.getElementById('dashboard-content');
+      const userEmailEl = document.getElementById('user-email');
+      const logoutButton = document.getElementById('logout-button');
+      
+      let countdownInterval;
+
+      // Show dashboard
+      function showDashboard() {
+        loadingState.classList.add('hidden');
+        dashboardContent.classList.remove('hidden');
+      }
+
+      // Logout handler
+      logoutButton.addEventListener('click', async () => {
+        try {
+          await auth.signOut();
+          window.location.href = '/login.html';
+        } catch (error) {
+          console.error('Logout error:', error);
+          window.location.href = '/login.html';
+        }
+      });
+
+      // Countdown timer
+      function startCountdown(raceDate, raceName, raceTrack) {
+        const raceNameEl = document.getElementById('next-race-name');
+        const raceTrackEl = document.getElementById('next-race-track');
+        
+        if (raceNameEl) raceNameEl.textContent = raceName;
+        if (raceTrackEl) raceTrackEl.textContent = raceTrack;
+
+        if (countdownInterval) clearInterval(countdownInterval);
+
+        countdownInterval = setInterval(() => {
+          const now = new Date().getTime();
+          const distance = raceDate - now;
+
+          if (distance < 0) {
+            clearInterval(countdownInterval);
+            document.getElementById('countdown-timer').innerHTML = '<div style="grid-column: 1/-1; font-size: 2rem; font-family: Racing Sans One, cursive; color: #fbbf24;">RACE DAY!</div>';
+            return;
+          }
+
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+          document.getElementById('days').textContent = days;
+          document.getElementById('hours').textContent = hours;
+          document.getElementById('minutes').textContent = minutes;
+          document.getElementById('seconds').textContent = seconds;
+        }, 1000);
+      }
+
+      // Load race data
+      async function loadRaceData() {
+        try {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          const racesSnapshot = await db.collection('races')
+            .where('season', '==', 2026)
+            .orderBy('date', 'asc')
+            .get();
+
+          let nextRace = null;
+          racesSnapshot.forEach(doc => {
+            const race = doc.data();
+            if (race.date) {
+              const raceDate = new Date(race.date + 'T00:00:00');
+              if (raceDate >= today && !nextRace) {
+                nextRace = race;
+              }
+            }
+          });
+
+          if (nextRace) {
+            const raceDateTime = new Date(nextRace.date + 'T19:00:00').getTime();
+            startCountdown(raceDateTime, nextRace.name || nextRace.eventName || 'Upcoming Race', nextRace.track || '');
+          } else {
+            document.getElementById('next-race-name').textContent = 'Season Complete!';
+            document.getElementById('next-race-track').textContent = '';
+            document.getElementById('countdown-timer').innerHTML = '<div style="grid-column: 1/-1; font-size: 1.5rem; font-style: italic; color: rgba(255,255,255,0.6);">Thanks for a great season!</div>';
+          }
+        } catch (error) {
+          console.error('Error loading races:', error);
+          document.getElementById('next-race-name').textContent = 'Error loading race data';
+        }
+      }
+
+      // Auth state observer
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          if (userEmailEl) userEmailEl.textContent = user.email;
+          loadRaceData();
+          showDashboard();
+        } else {
+          window.location.href = '/login.html';
+        }
+      });
+    </script>
   </body>
 </html>

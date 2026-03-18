@@ -147,26 +147,72 @@
     }
   }
 
-  // Update countdown timer for next race
-  function updateCountdown(races) {
+  // Active countdown interval (track so we can clear on season switch)
+  let activeCountdownInterval = null;
+
+  // Update countdown timer for next race (synced with homepage via Firestore)
+  async function updateCountdown(races) {
+    // Clear any previous countdown interval
+    if (activeCountdownInterval) {
+      clearInterval(activeCountdownInterval);
+      activeCountdownInterval = null;
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const nextRace = races.find(race => new Date(race.date + 'T00:00:00') >= today);
-    
-    if (nextRace) {
-      const nextRaceNameEl = document.getElementById('next-race-name');
-      if (nextRaceNameEl) nextRaceNameEl.textContent = nextRace.eventName;
+    let nextRaceName = null;
+    let nextRaceDate = null;
 
-      const nextRaceDate = new Date(nextRace.date + 'T19:00:00').getTime();
-      
-      const countdownInterval = setInterval(() => {
+    // Try Firestore first — same query as index.html so both pages stay in sync
+    try {
+      if (window.__countdownDb) {
+        const raceSnapshot = await window.__countdownDb.collection('races')
+          .where('season', '==', 2026)
+          .where('type', '==', 'superCup')
+          .orderBy('date', 'asc')
+          .limit(1)
+          .get();
+
+        if (!raceSnapshot.empty) {
+          const firstRace = raceSnapshot.docs[0].data();
+          const raceDate = firstRace.date;
+
+          // Parse the date — handle both Firestore Timestamp and string
+          if (raceDate && raceDate.toDate) {
+            nextRaceDate = raceDate.toDate().getTime();
+          } else if (typeof raceDate === 'string') {
+            nextRaceDate = new Date(raceDate).getTime();
+          }
+
+          nextRaceName = firstRace.eventName || firstRace.name || 'First Race';
+          console.log('Schedule countdown synced from Firestore:', nextRaceName);
+        }
+      }
+    } catch (error) {
+      console.warn('Firestore countdown unavailable, using local schedule:', error);
+    }
+
+    // Fallback to local JSON data if Firestore didn't work
+    if (!nextRaceDate) {
+      const nextRace = races.find(race => new Date(race.date + 'T00:00:00') >= today);
+      if (nextRace) {
+        nextRaceName = nextRace.eventName;
+        nextRaceDate = new Date(nextRace.date + 'T00:00:00').getTime();
+      }
+    }
+
+    if (nextRaceName && nextRaceDate) {
+      const nextRaceNameEl = document.getElementById('next-race-name');
+      if (nextRaceNameEl) nextRaceNameEl.textContent = nextRaceName;
+
+      function tick() {
         const now = new Date().getTime();
         const distance = nextRaceDate - now;
         const countdownTimerEl = document.getElementById('countdown-timer');
 
         if (distance < 0) {
-          clearInterval(countdownInterval);
+          clearInterval(activeCountdownInterval);
           if (countdownTimerEl) {
             countdownTimerEl.innerHTML = '<div class="col-span-4 text-3xl font-racing text-yellow-400">RACE DAY!</div>';
           }
@@ -182,7 +228,10 @@
         if (hoursEl) hoursEl.textContent = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         if (minutesEl) minutesEl.textContent = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         if (secondsEl) secondsEl.textContent = Math.floor((distance % (1000 * 60)) / 1000);
-      }, 1000);
+      }
+
+      tick(); // Run immediately so there's no flash of "0"
+      activeCountdownInterval = setInterval(tick, 1000);
     } else {
       updateCountdownForPastSeason();
     }
