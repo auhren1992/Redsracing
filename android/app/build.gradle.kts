@@ -15,7 +15,7 @@ android {
         applicationId = "com.redsracing.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 118
+        versionCode = 119
         versionName = "10.9.9"
 
         ndk {
