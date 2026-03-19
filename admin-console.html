@@ -2376,6 +2376,7 @@
                       <th class="p-3 font-semibold">Type</th>
                       <th class="p-3 font-semibold">Message</th>
                       <th class="p-3 font-semibold">Page</th>
+                      <th class="p-3 font-semibold">Source File</th>
                       <th class="p-3 font-semibold">Device</th>
                       <th class="p-3 font-semibold">User</th>
                     </tr>
@@ -3574,6 +3575,11 @@
               const errorType = v.errorType || v.level || 'Error';
               const message = v.message || '';
               const page = v.page || '';
+              const pageName = v.pageName || (page === '/' || page === '/index.html' ? 'Homepage (index)' : page.replace(/^\//, '').replace(/\.html$/i, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())) || '—';
+              const docTitle = v.documentTitle || '';
+              const sourceFile = v.source || '';
+              const sourceShort = sourceFile ? sourceFile.split('/').pop().split('?')[0] : '—';
+              const lineInfo = v.lineno ? `:${v.lineno}${v.colno ? ':' + v.colno : ''}` : '';
               const device = v.device?.deviceType || 'unknown';
               const isAndroidApp = v.device?.isAndroidApp ? ' (Android App)' : '';
               const userId = v.userId || v.uid || v.email || 'anonymous';
@@ -3587,6 +3593,8 @@
                 message: message,
                 errorType: errorType,
                 page: page,
+                pageName: pageName,
+                documentTitle: docTitle,
                 fullUrl: v.fullUrl || '',
                 source: v.source || '',
                 lineno: v.lineno || 0,
@@ -3603,7 +3611,8 @@
                 <td class="p-2 whitespace-nowrap text-xs">${when}</td>
                 <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${errorType.toLowerCase().includes('promise') ? 'bg-orange-600/20 text-orange-400' : 'bg-red-600/20 text-red-400'}">${errorType}</span></td>
                 <td class="p-2 text-xs" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${message.replace(/"/g, '&quot;')}">${message}</td>
-                <td class="p-2 text-xs truncate" title="${page.replace(/"/g, '&quot;')}">${page}</td>
+                <td class="p-2 text-xs"><span class="font-semibold text-yellow-300">${pageName}</span>${docTitle ? '<br><span class="text-slate-500 text-[10px]">' + docTitle + '</span>' : ''}</td>
+                <td class="p-2 text-xs font-mono" title="${sourceFile.replace(/"/g, '&quot;')}"><span class="text-cyan-400">${sourceShort}${lineInfo}</span></td>
                 <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${device === 'mobile' ? 'bg-blue-600/20 text-blue-400' : device === 'desktop' ? 'bg-purple-600/20 text-purple-400' : 'bg-gray-600/20 text-gray-400'}">${device}${isAndroidApp}</span></td>
                 <td class="p-2 text-xs truncate">${userId}</td>
               `;
@@ -3734,10 +3743,17 @@
                   <div class="text-white font-mono break-words">${data.message}</div>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-4">
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Page</div>
-                    <div class="text-white font-mono text-xs break-all">${data.page}</div>
+                    <div class="text-yellow-300 font-semibold">${data.pageName || data.page}</div>
+                    <div class="text-slate-500 text-xs mt-1 font-mono">${data.page}</div>
+                    ${data.documentTitle ? '<div class="text-slate-400 text-xs mt-1">' + data.documentTitle + '</div>' : ''}
+                  </div>
+                  <div class="bg-slate-800/50 rounded-lg p-4">
+                    <div class="text-slate-400 text-xs mb-1">Source File</div>
+                    <div class="text-cyan-400 font-mono text-xs break-all">${data.source || '—'}</div>
+                    ${data.lineno ? '<div class="text-slate-400 mt-1">Line ' + data.lineno + ', Column ' + data.colno + '</div>' : ''}
                   </div>
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Timestamp</div>

@@ -10,6 +10,7 @@
 		A1000001234567890ABCDEF /* RedsRacingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002234567890ABCDEF /* RedsRacingApp.swift */; };
 		A1000003234567890ABCDEF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004234567890ABCDEF /* ContentView.swift */; };
 		A1000005234567890ABCDEF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006234567890ABCDEF /* Assets.xcassets */; };
+		A1000018234567890ABCDEF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A1000017234567890ABCDEF /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -18,6 +19,7 @@
 		A1000004234567890ABCDEF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A1000006234567890ABCDEF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1000008234567890ABCDEF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A1000017234567890ABCDEF /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +56,7 @@
 				A1000004234567890ABCDEF /* ContentView.swift */,
 				A1000006234567890ABCDEF /* Assets.xcassets */,
 				A1000008234567890ABCDEF /* Info.plist */,
+				A1000017234567890ABCDEF /* GoogleService-Info.plist */,
 			);
 			path = RedsRacing;
 			sourceTree = "<group>";
@@ -117,6 +120,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000005234567890ABCDEF /* Assets.xcassets in Resources */,
+				A1000018234567890ABCDEF /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -261,7 +265,7 @@
 				CODE_SIGN_ENTITLEMENTS = RedsRacing/RedsRacing.entitlements;
 		ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 		CODE_SIGN_STYLE = Automatic;
-		CURRENT_PROJECT_VERSION = 121;
+		CURRENT_PROJECT_VERSION = 123;
 		DEVELOPMENT_TEAM = "";
 			ENABLE_PREVIEWS = YES;
 			GENERATE_INFOPLIST_FILE = YES;
@@ -275,7 +279,7 @@
 				"$(inherited)",
 				"@executable_path/Frameworks",
 			);
-		MARKETING_VERSION = 10.9.11;
+		MARKETING_VERSION = 10.9.13;
 				PRODUCT_BUNDLE_IDENTIFIER = com.redsracing.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -292,7 +296,7 @@
 		ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 		CODE_SIGN_IDENTITY = "iPhone Distribution";
 		CODE_SIGN_STYLE = Manual;
-		CURRENT_PROJECT_VERSION = 121;
+		CURRENT_PROJECT_VERSION = 123;
 		DEVELOPMENT_TEAM = "";
 			ENABLE_PREVIEWS = NO;
 			GENERATE_INFOPLIST_FILE = YES;
@@ -306,7 +310,7 @@
 				"$(inherited)",
 				"@executable_path/Frameworks",
 			);
-		MARKETING_VERSION = 10.9.11;
+		MARKETING_VERSION = 10.9.13;
 				PRODUCT_BUNDLE_IDENTIFIER = com.redsracing.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
