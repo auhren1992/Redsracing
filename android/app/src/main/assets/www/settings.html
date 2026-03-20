@@ -1015,18 +1015,59 @@
         }, 3000);
       }
       
-      // Listen to theme changes
+      // Auto-save helper: gathers all settings, saves, and shows toast
+      async function autoSave(settingName) {
+        const settings = {
+          notifRace: document.getElementById('notif-race').checked,
+          notifNewsletter: document.getElementById('notif-newsletter').checked,
+          notifSocial: document.getElementById('notif-social').checked,
+          notifAdmin: document.getElementById('notif-admin').checked,
+          theme: document.getElementById('theme-select').value,
+          autoplayVideos: document.getElementById('autoplay-videos').checked,
+          reduceMotion: document.getElementById('reduce-motion').checked,
+          favoriteDriver: document.getElementById('favorite-driver').value,
+          updatedAt: new Date().toISOString()
+        };
+        localStorage.setItem('rr_settings', JSON.stringify(settings));
+        if (currentUser) {
+          try {
+            await setDoc(doc(db, 'users', currentUser.uid), { settings, updatedAt: new Date() }, { merge: true });
+          } catch(e) { console.log('Firestore save failed:', e); }
+        }
+        showToast(settingName + ' updated', 'success');
+      }
+
+      // Wire every toggle and select to auto-save on change
+      document.getElementById('notif-race').addEventListener('change', (e) => {
+        autoSave('Race Updates ' + (e.target.checked ? 'enabled' : 'disabled'));
+      });
+      document.getElementById('notif-newsletter').addEventListener('change', (e) => {
+        autoSave('Newsletter ' + (e.target.checked ? 'enabled' : 'disabled'));
+      });
+      document.getElementById('notif-social').addEventListener('change', (e) => {
+        autoSave('Social Updates ' + (e.target.checked ? 'enabled' : 'disabled'));
+      });
+      document.getElementById('notif-admin').addEventListener('change', (e) => {
+        autoSave('Admin Alerts ' + (e.target.checked ? 'enabled' : 'disabled'));
+      });
       document.getElementById('theme-select').addEventListener('change', (e) => {
         applyTheme(e.target.value);
+        autoSave('Theme changed to ' + e.target.value);
       });
-      
-      // Listen to reduce motion changes
+      document.getElementById('autoplay-videos').addEventListener('change', (e) => {
+        autoSave('Autoplay Videos ' + (e.target.checked ? 'enabled' : 'disabled'));
+      });
       document.getElementById('reduce-motion').addEventListener('change', (e) => {
         if (e.target.checked) {
           document.documentElement.style.setProperty('--animation-duration', '0.01ms');
         } else {
           document.documentElement.style.removeProperty('--animation-duration');
         }
+        autoSave('Reduce Animations ' + (e.target.checked ? 'enabled' : 'disabled'));
+      });
+      document.getElementById('favorite-driver').addEventListener('change', (e) => {
+        const labels = { '': 'None', 'jon': 'Jon Kirsch #8', 'jonny': 'Jonny Kirsch #88' };
+        autoSave('Favorite Driver set to ' + (labels[e.target.value] || e.target.value));
       });
     </script>
   </body>
