@@ -6,25 +6,25 @@
       "isActive": true,
       "races": [
         {
-          "date": "2026-05-25",
+          "date": "2026-04-18",
           "track": "Grundy County Speedway",
           "city": "Morris",
           "state": "IL",
-          "eventName": "Spring Classic",
+          "eventName": "Grundy County Speedway",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2026-05-25",
+          "track": "Golden Sands Speedway",
+          "city": "Wisconsin Rapids",
+          "state": "WI",
+          "eventName": "Golden Sands Speedway",
           "startTime": "TBD",
           "type": "superCup"
         },
         {
           "date": "2026-06-07",
-          "track": "Golden Sands Speedway",
-          "city": "Wisconsin Rapids",
-          "state": "WI",
-          "eventName": "Memorial Day Show",
-          "startTime": "TBD",
-          "type": "superCup"
-        },
-        {
-          "date": "2026-07-03",
           "track": "Slinger Speedway",
           "city": "Slinger",
           "state": "WI",
@@ -33,20 +33,29 @@
           "type": "superCup"
         },
         {
-          "date": "2026-07-04",
+          "date": "2026-06-13",
+          "track": "Grundy County Speedway",
+          "city": "Morris",
+          "state": "IL",
+          "eventName": "Grundy County Speedway",
+          "startTime": "TBD",
+          "type": "superCup"
+        },
+        {
+          "date": "2026-07-03",
           "track": "Tomah Speedway",
           "city": "Tomah",
           "state": "WI",
-          "eventName": "4th of July Show (Back-to-Back)",
+          "eventName": "Tomah Speedway",
           "startTime": "TBD",
           "type": "superCup"
         },
         {
           "date": "2026-07-04",
-          "track": "LaCrosse Speedway",
+          "track": "La Crosse Speedway",
           "city": "West Salem",
           "state": "WI",
-          "eventName": "4th of July Show (Back-to-Back)",
+          "eventName": "La Crosse Speedway",
           "startTime": "TBD",
           "type": "superCup"
         },
@@ -91,16 +100,7 @@
           "track": "Dells Raceway Park",
           "city": "Wisconsin Dells",
           "state": "WI",
-          "eventName": "Labor Day of Doom (Back to Back)",
-          "startTime": "TBD",
-          "type": "superCup"
-        },
-        {
-          "date": "2026-09-07",
-          "track": "Golden Sands Speedway",
-          "city": "Wisconsin Rapids",
-          "state": "WI",
-          "eventName": "Labor Day (Back-to-Back)",
+          "eventName": "Dells Raceway Park",
           "startTime": "TBD",
           "type": "superCup"
         }

@@ -8,7 +8,7 @@ import "./app.js";
 import { getFriendlyAuthError } from "./auth-errors.js";
 import { navigateToInternal, validateRedirectUrl } from "./navigation-helpers.js";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 /**
  * Login Page Controller Class
@@ -43,9 +43,19 @@ class LoginPageController {
   /**
    * Initialize the login controller
    */
+  /**
+   * Detect if running inside a native app WebView
+   */
+  isInAppWebView() {
+    const ua = navigator.userAgent || '';
+    return /RedsRacingApp/i.test(ua);
+  }
+
   async initialize() {
     try {
       console.info("[Login] Initializing controller");
+      console.info("[Login] User Agent:", navigator.userAgent);
+      console.info("[Login] In-app WebView:", this.isInAppWebView());
 
       // Get DOM elements
       this.cacheElements();
@@ -67,6 +77,27 @@ class LoginPageController {
       try { await setPersistence(this.auth, browserLocalPersistence); } catch(_) {}
       this.googleProvider = new GoogleAuthProvider();
       console.info("[Login] Firebase auth ready:", !!this.auth);
+
+      // Check for redirect result (from signInWithRedirect on iOS/Android WebView)
+      try {
+        const result = await getRedirectResult(this.auth);
+        if (result?.user) {
+          console.info("[Login] Redirect sign-in completed for:", result.user.email);
+          this.setAuthMarker(result.user);
+          this.showMessage("Sign-in successful! Redirecting...", false);
+          const returnTo = this.getReturnTo();
+          setTimeout(() => {
+            navigateToInternal(returnTo || "/follower-dashboard.html");
+          }, 800);
+          return; // Don't initialize rest of UI — we're redirecting
+        }
+      } catch (redirectError) {
+        // Only show error if it's not just "no redirect result"
+        if (redirectError.code && redirectError.code !== 'auth/null-user') {
+          console.error("[Login] Redirect result error:", redirectError);
+          this.showMessage(getFriendlyAuthError(redirectError));
+        }
+      }
 
       // Bind event listeners
       this.bindEvents();
@@ -382,6 +413,16 @@ class LoginPageController {
     );
 
     try {
+      // Use redirect mode inside native app WebViews (popup doesn't work in WKWebView/Android WebView)
+      if (this.isInAppWebView()) {
+        console.info("[Login] Using signInWithRedirect (in-app WebView detected)");
+        await signInWithRedirect(this.auth, this.googleProvider);
+        // Page will reload after redirect — getRedirectResult handles the rest in initialize()
+        return;
+      }
+
+      // Use popup mode on regular browsers
+      console.info("[Login] Using signInWithPopup (regular browser)");
       await signInWithPopup(this.auth, this.googleProvider);
       this.showMessage("Google sign-in successful! Redirecting...", false);
       this.setAuthMarker(this.auth.currentUser);
@@ -392,7 +433,8 @@ class LoginPageController {
         this.handleSuccess();
       }
     } catch (error) {
-      if (error.code !== "auth/popup-closed-by-user") {
+      if (error.code !== "auth/popup-closed-by-user" && error.code !== "auth/redirect-cancelled-by-user") {
+        console.error("[Login] Google sign-in error:", error.code, error.message);
         this.showMessage(getFriendlyAuthError(error));
       }
     } finally {

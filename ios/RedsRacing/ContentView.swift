@@ -449,17 +449,42 @@ struct WebView: UIViewRepresentable {
             parent.isLoading = false
             print("WebView provisional error: \(error.localizedDescription)")
         }
+        // Auth-related domains that must stay inside the WebView for sign-in to work
+        private static let authDomains = [
+            "accounts.google.com",
+            "googleapis.com",
+            "firebaseapp.com",
+            "gstatic.com",
+            "google.com/o/oauth",
+            "googleapis.com/identitytoolkit",
+            "securetoken.googleapis.com",
+            "redsracing-a7f8b.firebaseapp.com",
+            "redsracing-a7f8b.web.app"
+        ]
+        
+        private func isAuthURL(_ url: URL) -> Bool {
+            let urlString = url.absoluteString.lowercased()
+            return Coordinator.authDomains.contains { urlString.contains($0) }
+        }
+        
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
             if let url = navigationAction.request.url {
                 print("[iOS WebView] Navigation to: \(url.absoluteString)")
                 
-                // Allow all redsracing.org and www.redsracing.org URLs
+                // Allow all redsracing URLs
                 if url.absoluteString.contains("redsracing") {
                     decisionHandler(.allow)
                     return
                 }
                 
-                // Open external links in Safari
+                // Allow all auth-related URLs inside the WebView (Google OAuth, Firebase Auth)
+                if isAuthURL(url) {
+                    print("[iOS WebView] Allowing auth URL inside WebView: \(url.host ?? "")")
+                    decisionHandler(.allow)
+                    return
+                }
+                
+                // Open truly external links in Safari (only user-tapped links)
                 if (url.scheme == "http" || url.scheme == "https") && navigationAction.navigationType == .linkActivated {
                     UIApplication.shared.open(url)
                     decisionHandler(.cancel)
@@ -474,6 +499,18 @@ struct WebView: UIViewRepresentable {
                 }
             }
             decisionHandler(.allow)
+        }
+        
+        // Handle popup windows (needed for Google OAuth signInWithPopup)
+        func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+            // If the target is a popup (no target frame), load it in the current webview
+            if navigationAction.targetFrame == nil || !(navigationAction.targetFrame!.isMainFrame) {
+                if let url = navigationAction.request.url {
+                    print("[iOS WebView] Popup requested: \(url.absoluteString)")
+                    webView.load(navigationAction.request)
+                }
+            }
+            return nil
         }
     }
 }

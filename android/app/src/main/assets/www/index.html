@@ -551,7 +551,7 @@
 
       <!-- Race Info -->
       <p class="race-info">
-        <i class="fas fa-flag-checkered"></i> FIRST RACE: SPRING CLASSIC - GRUNDY COUNTY SPEEDWAY
+        <i class="fas fa-flag-checkered"></i> NEXT RACE: GRUNDY COUNTY SPEEDWAY
       </p>
 
       <!-- Countdown Timer -->
@@ -651,36 +651,41 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
 
-      // Countdown Timer with Dynamic First Race
+      // Countdown Timer with Dynamic NEXT Race
       (function() {
-        let firstRaceDate = new Date('2026-05-25T00:00:00').getTime(); // Default fallback
-        let raceInfo = 'FIRST RACE: SPRING CLASSIC - GRUNDY COUNTY SPEEDWAY'; // Default fallback
+        let firstRaceDate = new Date('2026-04-18T00:00:00').getTime(); // Default fallback
+        let raceInfo = 'NEXT RACE: GRUNDY COUNTY SPEEDWAY'; // Default fallback
 
-        // Fetch first race from Firestore (excluding special events)
+        // Fetch the next upcoming race from Firestore
         async function loadFirstRace() {
           try {
+            // Get today's date as YYYY-MM-DD string for comparison
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+
             const raceSnapshot = await db.collection('races')
               .where('season', '==', 2026)
               .where('type', '==', 'superCup')
+              .where('date', '>=', todayStr)
               .orderBy('date', 'asc')
               .limit(1)
               .get();
 
             if (!raceSnapshot.empty) {
-              const firstRace = raceSnapshot.docs[0].data();
-              const raceDate = firstRace.date;
+              const nextRace = raceSnapshot.docs[0].data();
+              const raceDate = nextRace.date;
               
               // Parse the date - handle both Firestore Timestamp and string formats
               if (raceDate && raceDate.toDate) {
                 firstRaceDate = raceDate.toDate().getTime();
               } else if (typeof raceDate === 'string') {
-                firstRaceDate = new Date(raceDate).getTime();
+                firstRaceDate = new Date(raceDate + 'T00:00:00').getTime();
               }
 
               // Update race info text
-              const raceName = firstRace.eventName || firstRace.name || 'First Race';
-              const trackName = firstRace.track || '';
-              raceInfo = `FIRST RACE: ${raceName.toUpperCase()}${trackName ? ' - ' + trackName.toUpperCase() : ''}`;
+              const raceName = nextRace.eventName || nextRace.name || 'Next Race';
+              const trackName = nextRace.track || '';
+              raceInfo = `NEXT RACE: ${raceName.toUpperCase()}${trackName ? ' - ' + trackName.toUpperCase() : ''}`;
               
               // Update the UI
               const raceInfoEl = document.querySelector('.race-info');
@@ -688,12 +693,12 @@
                 raceInfoEl.innerHTML = `<i class="fas fa-flag-checkered"></i> ${raceInfo}`;
               }
 
-              console.log('Loaded first race from Firestore:', firstRace);
+              console.log('Loaded next upcoming race from Firestore:', nextRace);
             } else {
-              console.log('No races found for 2026, using fallback');
+              console.log('No upcoming races found for 2026, using fallback');
             }
           } catch (error) {
-            console.error('Error loading first race:', error);
+            console.error('Error loading next race:', error);
             // Use fallback values if Firebase fails
           }
         }
