@@ -248,7 +248,9 @@ class MainActivity : AppCompatActivity() {
             MenuItem("🔴", "Live Race", "live.html"),
             MenuItem("📅", "Schedule", "schedule.html"),
             MenuItem("📊", "Season Stats", "stats.html"),
+            MenuItem("🏁", "Race Recaps", "recaps.html"),
             MenuItem("🏆", "Leaderboard", "leaderboard.html"),
+            MenuItem("🗺️", "Track Guides", "tracks.html"),
             MenuItem("🎥", "Videos", "videos.html")
         )
         showMenuOverlay("Racing", items)
@@ -257,6 +259,7 @@ class MainActivity : AppCompatActivity() {
     private fun showCommunityMenu() {
         val items = listOf(
             MenuItem("🏆", "Predictions", "predictions.html"),
+            MenuItem("📣", "Fan Wall", "fan-wall.html"),
             MenuItem("❓", "Q&A", "qna.html"),
             MenuItem("💬", "Feedback", "feedback.html"),
             MenuItem("ℹ️", "About Us", "about.html"),
@@ -268,26 +271,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showMoreMenu() {
-        // Check if user is logged in via JavaScript
+        // Check login state and admin role from cached localStorage values
         binding.webview.evaluateJavascript(
-            "(function(){ try { return localStorage.getItem('redsracing_user') !== null; } catch(e) { return false; } })();"
+            "(function(){ try { var l=!!localStorage.getItem('rr_auth_uid'); var r=localStorage.getItem('rr_user_role')||''; return JSON.stringify({l:l,r:r}); } catch(e){ return '{\"l\":false,\"r\":\"\"}'; } })();"
         ) { result ->
-            val isLoggedIn = result == "true"
+            val clean = result?.trim()?.removeSurrounding("\"")?.replace("\\\"", "\"") ?: ""
+            val isLoggedIn = clean.contains("\"l\":true")
+            val isAdmin = clean.contains("\"r\":\"admin\"")
             
-            val items = if (isLoggedIn) {
-                listOf(
-                    MenuItem("👤", "My Profile", "profile.html"),
-                    MenuItem("📊", "Admin Console", "admin-console.html"),
-                    MenuItem("⚙️", "Settings", "settings.html"),
-                    MenuItem("🚪", "Sign Out", "javascript:logout")
-                )
+            val items = mutableListOf<MenuItem>()
+            items.add(MenuItem("👤", "My Profile", "profile.html"))
+            
+            if (isLoggedIn) {
+                if (isAdmin) {
+                    items.add(MenuItem("📊", "Admin Console", "admin-console.html"))
+                }
+                items.add(MenuItem("⚙️", "Settings", "settings.html"))
+                items.add(MenuItem("🚪", "Sign Out", "javascript:logout"))
             } else {
-                listOf(
-                    MenuItem("👤", "My Profile", "profile.html"),
-                    MenuItem("🔐", "Sign In", "login.html"),
-                    MenuItem("⚙️", "Settings", "settings.html"),
-                    MenuItem("📊", "Admin Console", "admin-console.html")
-                )
+                items.add(MenuItem("🔐", "Sign In", "login.html"))
+                items.add(MenuItem("⚙️", "Settings", "settings.html"))
             }
             
             runOnUiThread {

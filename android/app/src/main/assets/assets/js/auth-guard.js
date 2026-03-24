@@ -7,7 +7,8 @@ const protectedPages = [
   'profile.html',
   'admin-console.html',
 ];
-const teamMemberPages = ['redsracing-dashboard.html', 'admin-console.html'];
+const teamMemberPages = ['redsracing-dashboard.html'];
+const adminOnlyPages = ['admin-console.html'];
 const followerPages = ["follower-dashboard.html"];
 
 const currentPage = window.location.pathname.split("/").pop();
@@ -103,15 +104,22 @@ if (protectedPages.includes(currentPage)) {
           console.warn('[AuthGuard] Failed to ensure user profile:', error);
         }
         const isTeamMember = ['team-member', 'admin'].includes(normalizedRole);
+        const isAdmin = normalizedRole === 'admin';
         const isFollower = ['teamredfollower', 'public-fan', 'follower'].includes(normalizedRole);
 
-        if (teamMemberPages.includes(currentPage) && !isTeamMember) {
+        // Force refresh role if it doesn't match the required level
+        if ((adminOnlyPages.includes(currentPage) && !isAdmin) ||
+            (teamMemberPages.includes(currentPage) && !isTeamMember)) {
           normalizedRole = await resolveRole(true);
         }
+        const finalIsAdmin = normalizedRole === 'admin';
         const finalIsTeamMember = ['team-member', 'admin'].includes(normalizedRole);
         const finalIsFollower = ['teamredfollower', 'public-fan', 'follower'].includes(normalizedRole);
 
-        if (teamMemberPages.includes(currentPage) && !finalIsTeamMember) {
+        if (adminOnlyPages.includes(currentPage) && !finalIsAdmin) {
+          console.warn('[AuthGuard] User does not have admin role, redirecting home. Role:', normalizedRole);
+          navigateToInternal('/index.html');
+        } else if (teamMemberPages.includes(currentPage) && !finalIsTeamMember) {
           console.warn('[AuthGuard] User does not have team-member role, redirecting to follower dashboard. Role:', normalizedRole);
           navigateToInternal('/follower-dashboard.html');
         } else if (

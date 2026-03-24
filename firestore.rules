@@ -124,11 +124,10 @@ service cloud.firestore {
       allow delete: if hasRole('admin') || hasProfileRole('admin');
     }
 
-    // Site configuration (e.g., config/tiktok)
+    // Site configuration (e.g., config/tiktok, config/photo_of_week)
     match /config/{docId} {
-      // Allow any authenticated user to read config (e.g., to show UI),
-      // but restrict writes to team-members or admins
-      allow read: if isAuthenticated();
+      // Public read for photo_of_week on team page; auth read for other config
+      allow read: if true;
       allow write: if hasRole('team-member') || hasRole('admin');
     }
     
@@ -233,11 +232,38 @@ service cloud.firestore {
     
     // Live race updates
     match /live_race/{document} {
-      // Anyone can read live race data
       allow read: if true;
-      // Only authenticated team members can write
       allow write: if isAuthenticated() && 
         (hasRole('admin') || hasRole('team-member') || hasProfileRole('admin') || hasProfileRole('team-member'));
+    }
+    
+    // Live race commentary feed
+    match /live_race_updates/{updateId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && 
+        (hasRole('admin') || hasRole('team-member') || hasProfileRole('admin') || hasProfileRole('team-member'));
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+    
+    // Fan Wall shoutouts
+    match /fan_wall/{postId} {
+      // Public can read approved posts
+      allow read: if (resource.data.approved == true)
+                  || hasRole('team-member') || hasRole('admin')
+                  || hasProfileRole('team-member') || hasProfileRole('admin');
+      // Authenticated users can create (with approved=false)
+      allow create: if isAuthenticated();
+      // Team/admin can approve or delete
+      allow update: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+    }
+    
+    // Fan predictions
+    match /predictions/{predictionId} {
+      allow read: if true; // Public leaderboard
+      allow create: if isAuthenticated();
+      // Admin can score predictions
+      allow update: if hasRole('admin') || hasProfileRole('admin') || hasRole('team-member') || hasProfileRole('team-member');
     }
     
     // Default deny - catches everything not explicitly allowed above

@@ -201,6 +201,8 @@
               mobileLoginBtn.style.display = '';
             }
             unmountLoggedOutButton();
+            hideAdminConsoleLinks();
+            try { localStorage.removeItem('rr_user_role'); } catch(_) {}
           };
 
           if (user) {
@@ -299,6 +301,8 @@
             const name = user.displayName || user.email || 'Driver';
             if (userNameEl) userNameEl.textContent = name;
             if (mobileUserNameEl) mobileUserNameEl.textContent = name;
+            // Check admin role and show/hide admin-console links accordingly
+            checkAdminRole(user);
             async function multiSignOut() {
               try { await auth.signOut(); } catch(_) {}
               try {
@@ -358,6 +362,51 @@ const core = await import('./assets/js/firebase-core.js');
     }
     console.log('[RedsRacing Auth] ===== INIT COMPLETE =====');
   })();
+
+  // ===== Admin-console link visibility (admin-only) =====
+  // Hide all admin-console links on the page (called by default and on sign-out)
+  function hideAdminConsoleLinks() {
+    // Don't hide links if we're on the admin console page itself
+    if (window.location.pathname.includes('admin-console')) return;
+    document.querySelectorAll('a[href*="admin-console"]').forEach(function(link) {
+      link.style.display = 'none';
+    });
+  }
+
+  // Check user role in Firestore; only show admin-console links for admin role
+  async function checkAdminRole(user) {
+    if (!user) { hideAdminConsoleLinks(); return; }
+    if (window.location.pathname.includes('admin-console')) return;
+    try {
+      const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+      const db = getFirestore();
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      let role = null;
+      if (userDoc.exists()) {
+        role = userDoc.data()?.role || null;
+      }
+      if (!role) {
+        try {
+          const token = await user.getIdTokenResult(false);
+          role = token?.claims?.role || null;
+        } catch (_) {}
+      }
+      // Cache role for native app menu checks
+      try { localStorage.setItem('rr_user_role', role || ''); } catch(_) {}
+      if (role === 'admin') {
+        document.querySelectorAll('a[href*="admin-console"]').forEach(function(link) {
+          link.style.display = '';
+        });
+        console.log('[RedsRacing Auth] Admin role confirmed — admin links visible');
+      } else {
+        hideAdminConsoleLinks();
+        console.log('[RedsRacing Auth] Non-admin role — admin links hidden');
+      }
+    } catch (err) {
+      console.warn('[RedsRacing Auth] Admin role check failed:', err);
+      hideAdminConsoleLinks();
+    }
+  }
 
   function hideAllDropdowns() {
     document.querySelectorAll('.dropdown-menu, .modern-dropdown').forEach((menu) => {
@@ -863,6 +912,7 @@ const core = await import('./assets/js/firebase-core.js');
   window.upgradeNavMenus = upgradeNavMenus;
 
   function ready() {
+    try { hideAdminConsoleLinks(); } catch (_) {} // Hide admin links by default until role verified
     try { upgradeNavMenus(); } catch (_) {}
     try { initDropdowns(); } catch (_) {}
     try { initMobileMenu(); } catch (_) {}

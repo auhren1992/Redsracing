@@ -143,7 +143,9 @@ struct ContentView: View {
             .init(icon: "🔴", title: "Live Race", url: "https://redsracing.org/live.html"),
             .init(icon: "📅", title: "Schedule", url: "https://redsracing.org/schedule.html"),
             .init(icon: "📊", title: "Season Stats", url: "https://redsracing.org/stats.html"),
+            .init(icon: "🏁", title: "Race Recaps", url: "https://redsracing.org/recaps.html"),
             .init(icon: "🏆", title: "Leaderboard", url: "https://redsracing.org/leaderboard.html"),
+            .init(icon: "🗺️", title: "Track Guides", url: "https://redsracing.org/tracks.html"),
             .init(icon: "🎥", title: "Videos", url: "https://redsracing.org/videos.html")
         ]
         withAnimation { showMenuOverlay = true }
@@ -153,6 +155,7 @@ struct ContentView: View {
         overlayTitle = "Community"
         overlayItems = [
             .init(icon: "🏆", title: "Predictions", url: "https://redsracing.org/predictions.html"),
+            .init(icon: "📣", title: "Fan Wall", url: "https://redsracing.org/fan-wall.html"),
             .init(icon: "❓", title: "Q&A", url: "https://redsracing.org/qna.html"),
             .init(icon: "💬", title: "Feedback", url: "https://redsracing.org/feedback.html"),
             .init(icon: "ℹ️", title: "About Us", url: "https://redsracing.org/about.html"),
@@ -164,29 +167,39 @@ struct ContentView: View {
     }
 
     private func showMoreMenu() {
-        // Try to detect login state via JS (optional). If it fails, fall back to guest menu.
-        let guestItems: [MenuItem] = [
-            .init(icon: "👤", title: "My Profile", url: "https://redsracing.org/profile.html"),
-            .init(icon: "🔐", title: "Sign In", url: "https://redsracing.org/login.html"),
-            .init(icon: "✏️", title: "Create Account", url: "https://www.redsracing.org/signup.html"),
-            .init(icon: "⚙️", title: "Settings", url: "https://redsracing.org/settings.html"),
-            .init(icon: "📊", title: "Admin Console", url: "https://redsracing.org/admin-console.html")
-        ]
-        let authedItems: [MenuItem] = [
-            .init(icon: "👤", title: "My Profile", url: "https://redsracing.org/profile.html"),
-            .init(icon: "📊", title: "Admin Console", url: "https://redsracing.org/admin-console.html"),
-            .init(icon: "⚙️", title: "Settings", url: "https://redsracing.org/settings.html"),
-            .init(icon: "🚪", title: "Sign Out", url: "javascript:logout")
-        ]
         overlayTitle = "More"
+        // Check login state and admin role from cached localStorage values
         if let web = webViewRef {
-            web.evaluateJavaScript("(function(){ try { return localStorage.getItem('redsracing_user') !== null; } catch(e) { return false; } })();") { result, _ in
-                let isLoggedIn = (result as? Bool) ?? false
-                overlayItems = isLoggedIn ? authedItems : guestItems
-                withAnimation { showMenuOverlay = true }
+            web.evaluateJavaScript("(function(){ try { var l=!!localStorage.getItem('rr_auth_uid'); var r=localStorage.getItem('rr_user_role')||''; return JSON.stringify({l:l,r:r}); } catch(e){ return '{\"l\":false,\"r\":\"\"}'; } })();") { result, _ in
+                let resultStr = "\(result ?? "")"
+                let isLoggedIn = resultStr.contains("\"l\":true") || resultStr.contains("\"l\": true")
+                let isAdmin = resultStr.contains("\"r\":\"admin\"") || resultStr.contains("\"r\": \"admin\"")
+                
+                var items: [MenuItem] = []
+                items.append(.init(icon: "👤", title: "My Profile", url: "https://redsracing.org/profile.html"))
+                
+                if isLoggedIn {
+                    if isAdmin {
+                        items.append(.init(icon: "📊", title: "Admin Console", url: "https://redsracing.org/admin-console.html"))
+                    }
+                    items.append(.init(icon: "⚙️", title: "Settings", url: "https://redsracing.org/settings.html"))
+                    items.append(.init(icon: "🚪", title: "Sign Out", url: "javascript:logout"))
+                } else {
+                    items.append(.init(icon: "🔐", title: "Sign In", url: "https://redsracing.org/login.html"))
+                    items.append(.init(icon: "✏️", title: "Create Account", url: "https://www.redsracing.org/signup.html"))
+                    items.append(.init(icon: "⚙️", title: "Settings", url: "https://redsracing.org/settings.html"))
+                }
+                
+                self.overlayItems = items
+                withAnimation { self.showMenuOverlay = true }
             }
         } else {
-            overlayItems = guestItems
+            overlayItems = [
+                .init(icon: "👤", title: "My Profile", url: "https://redsracing.org/profile.html"),
+                .init(icon: "🔐", title: "Sign In", url: "https://redsracing.org/login.html"),
+                .init(icon: "✏️", title: "Create Account", url: "https://www.redsracing.org/signup.html"),
+                .init(icon: "⚙️", title: "Settings", url: "https://redsracing.org/settings.html")
+            ]
             withAnimation { showMenuOverlay = true }
         }
     }
