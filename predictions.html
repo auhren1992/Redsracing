@@ -305,9 +305,23 @@
         snap.forEach(d => {
           const v = d.data();
           const uid = v.userId;
-          if (!users[uid]) users[uid] = { name: v.userName || v.userEmail?.split('@')[0] || 'Fan', total: 0, count: 0 };
+          if (!users[uid]) users[uid] = { name: v.userName || v.userEmail?.split('@')[0] || 'Fan', total: 0, count: 0, perfectPicks: 0, raceIds: new Set() };
           users[uid].count++;
-          if (v.score !== null && v.score !== undefined) users[uid].total += v.score;
+          users[uid].raceIds.add(v.raceId);
+          if (v.score !== null && v.score !== undefined) {
+            users[uid].total += v.score;
+            if (v.score >= 8) users[uid].perfectPicks++;
+          }
+        });
+        // Calculate badges
+        Object.values(users).forEach(u => {
+          const badges = [];
+          if (u.count >= 1) badges.push('🎫'); // First Prediction
+          if (u.count >= 3) badges.push('🔥'); // 3-Race Streak
+          if (u.count >= 5) badges.push('🎯'); // Dedicated
+          if (u.perfectPicks >= 1) badges.push('💥'); // Perfect Pick
+          if (u.raceIds.size >= 10) badges.push('⭐'); // Superfan
+          u.badges = badges.join('');
         });
         const sorted = Object.values(users).sort((a,b) => b.total - a.total || b.count - a.count);
         loading.classList.add('hidden');
@@ -320,7 +334,7 @@
           row.className = 'leaderboard-row grid grid-cols-12 gap-2 items-center px-3 py-2 rounded-lg';
           row.innerHTML = `
             <div class="col-span-1 text-lg">${medal}</div>
-            <div class="col-span-5 text-white font-semibold text-sm truncate">${u.name}</div>
+            <div class="col-span-5 text-white font-semibold text-sm truncate">${u.name} ${u.badges?'<span class="ml-1">'+u.badges+'</span>':''}</div>
             <div class="col-span-3 text-center text-slate-400 text-sm">${u.count}</div>
             <div class="col-span-3 text-right text-yellow-400 font-bold">${u.total} pts</div>`;
           list.appendChild(row);

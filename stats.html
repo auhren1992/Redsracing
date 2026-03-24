@@ -112,6 +112,13 @@
         </div>
       </div>
 
+      <!-- Season Milestones -->
+      <div class="glass-card p-6">
+        <h2 class="text-xl font-bold text-white mb-4"><i class="fas fa-award text-yellow-400 mr-2"></i>Season Milestones</h2>
+        <div id="milestones-list" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+        <p id="milestones-empty" class="hidden text-slate-500 text-center py-4 text-sm">Milestones unlock as the season progresses!</p>
+      </div>
+
       <!-- Race-by-Race Table -->
       <div class="glass-card p-6">
         <h2 class="text-xl font-bold text-white mb-4"><i class="fas fa-list text-yellow-400 mr-2"></i>Race-by-Race Results</h2>
@@ -210,6 +217,39 @@
               </div>
             </div>`;
         });
+
+        // Milestones
+        const ml = document.getElementById('milestones-list');
+        const me = document.getElementById('milestones-empty');
+        const milestones = [];
+        function addM(icon, label, driver) { milestones.push({icon, label, driver}); }
+        // Per-driver milestones
+        [{id:'jon',name:'Jon #8',s:jonS,color:'blue'},{id:'jonny',name:'Jonny #88',s:jonnyS,color:'red'}].forEach(d => {
+          if (d.s.wins >= 1) addM('🏆', d.name + ' First Win', d.color);
+          if (d.s.wins >= 3) addM('🔥', d.name + ' 3 Wins', d.color);
+          if (d.s.wins >= 5) addM('👑', d.name + ' 5 Wins!', d.color);
+          if (d.s.races >= 5) addM('🏁', d.name + ' 5 Races', d.color);
+          if (d.s.races >= 10) addM('💪', d.name + ' 10 Races!', d.color);
+          if (d.s.podiums >= 3) addM('🥇', d.name + ' 3 Podiums', d.color);
+          if (d.s.podiums >= 5) addM('⭐', d.name + ' 5 Podiums!', d.color);
+          if (d.s.points >= 50) addM('📈', d.name + ' 50 Points', d.color);
+          if (d.s.points >= 100) addM('💯', d.name + ' 100 Points!', d.color);
+          if (d.s.bestFinish === 1) addM('🥇', d.name + ' Race Winner', d.color);
+        });
+        // Team milestones
+        if (races.length >= 5) addM('🏎️', 'Team: 5 Races Complete', 'yellow');
+        if (races.length >= 20) addM('🎯', 'Team: 20 Races!', 'yellow');
+        if (ml) {
+          ml.innerHTML = '';
+          if (milestones.length === 0) { me.classList.remove('hidden'); }
+          else {
+            me.classList.add('hidden');
+            milestones.forEach(m => {
+              const c = m.driver === 'blue' ? 'border-blue-500/30 bg-blue-500/5' : m.driver === 'red' ? 'border-red-500/30 bg-red-500/5' : 'border-yellow-500/30 bg-yellow-500/5';
+              ml.innerHTML += `<div class="border ${c} rounded-lg p-3 text-center"><div class="text-2xl mb-1">${m.icon}</div><div class="text-white text-xs font-semibold">${m.label}</div></div>`;
+            });
+          }
+        }
 
         // Results table
         const tbody = document.getElementById('results-table');

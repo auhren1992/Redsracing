@@ -676,6 +676,10 @@
                 <i class="fas fa-comments w-5 mr-3 text-cyan-400"></i>
                 <span>Q&A</span>
               </a>
+              <a href="#fanwall" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+                <i class="fas fa-bullhorn w-5 mr-3 text-orange-400"></i>
+                <span>Fan Wall</span>
+              </a>
             </div>
             
             <!-- Admin -->
@@ -2383,6 +2387,33 @@
             </div>
           </div>
 
+          <!-- Fan Wall & Content Tools Section -->
+          <div id="fanwall-section" class="space-y-6 hidden">
+            <!-- Photo of the Week -->
+            <div class="admin-card rounded-xl p-6">
+              <h2 class="text-2xl font-bold text-white flex items-center mb-4"><i class="fas fa-camera text-yellow-400 mr-3"></i>Photo of the Week</h2>
+              <p class="text-slate-400 text-sm mb-4">Set a featured photo that appears on the team page.</p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label class="block text-sm font-medium text-slate-300 mb-1">Image URL</label><input type="text" id="potw-url" class="modern-input w-full p-3 text-white" placeholder="https://..." /></div>
+                <div><label class="block text-sm font-medium text-slate-300 mb-1">Caption</label><input type="text" id="potw-caption-input" class="modern-input w-full p-3 text-white" placeholder="Race night at Grundy!" /></div>
+              </div>
+              <div class="mt-4 flex items-center space-x-3">
+                <button id="save-potw-btn" class="success-btn text-white px-6 py-3 rounded-lg font-semibold flex items-center"><i class="fas fa-save mr-2"></i>Save Photo</button>
+                <button id="clear-potw-btn" class="danger-btn text-white px-4 py-2 rounded-lg text-sm font-semibold"><i class="fas fa-trash mr-2"></i>Remove</button>
+              </div>
+            </div>
+            <!-- Fan Wall Moderation -->
+            <div class="admin-card rounded-xl p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h2 class="text-2xl font-bold text-white flex items-center"><i class="fas fa-bullhorn text-orange-400 mr-3"></i>Fan Wall Moderation</h2>
+                  <p class="text-slate-400 text-sm mt-1">Approve or reject fan shoutouts before they appear publicly.</p>
+                </div>
+                <button id="refresh-fanwall-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center"><i class="fas fa-sync mr-2"></i>Refresh</button>
+              </div>
+              <div id="fanwall-pending" class="space-y-3"><p class="text-slate-500 text-center py-4">Loading...</p></div>
+            </div>
+          </div>
 
           <!-- Error Logs Section -->
           <div id="logs-section" class="space-y-6 hidden">
@@ -2957,6 +2988,9 @@
                 } else if (href === '#logs') {
                   console.log('[NAV] Showing logs...');
                   showLogs();
+                } else if (href === '#fanwall') {
+                  console.log('[NAV] Showing fan wall...');
+                  showFanWall();
                 } else if (href === '#schedule-mgmt') {
                   console.log('[NAV] Showing schedule management...');
                   showScheduleMgmt();
@@ -3039,6 +3073,16 @@
           }
         }
 
+        function showFanWall() {
+          hideAllSections();
+          const sec = document.getElementById('fanwall-section');
+          if (sec) {
+            sec.classList.remove('hidden');
+            sec.style.display = 'block';
+            setTimeout(() => { try { loadFanWallPending(); loadPotwAdmin(); } catch(e) { console.error(e); } }, 100);
+          }
+        }
+
         function showHealth() {
           hideAllSections();
           const sec = document.getElementById('health-section');
@@ -3076,7 +3120,7 @@
         }
         
         function hideAllSections() {
-          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'admin-pages', 'qna-section', 'videos-section', 'analytics-section', 'schedule-mgmt-section', 'health-section'];
+          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'admin-pages', 'qna-section', 'videos-section', 'analytics-section', 'schedule-mgmt-section', 'health-section', 'fanwall-section'];
           sections.forEach(id => {
             const section = document.getElementById(id);
             if (section) {
@@ -4165,6 +4209,58 @@
           }
         }
 
+        // ========== FAN WALL MODERATION ==========
+        async function loadFanWallPending() {
+          const container = document.getElementById('fanwall-pending');
+          if (!container) return;
+          container.innerHTML = '<p class="text-slate-500 text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</p>';
+          try {
+            const { getFirestore, collection, getDocs, query, where, orderBy, doc, updateDoc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const snap = await getDocs(query(collection(db, 'fan_wall'), where('approved','==',false), orderBy('createdAt','desc')));
+            container.innerHTML = '';
+            if (snap.empty) { container.innerHTML = '<p class="text-slate-500 text-center py-4">No pending shoutouts</p>'; return; }
+            snap.forEach(d => {
+              const v = d.data();
+              const time = v.createdAt?.toDate ? v.createdAt.toDate().toLocaleDateString() : '';
+              const tagLabel = v.tag === 'jon' ? 'Jon #8' : v.tag === 'jonny' ? 'Jonny #88' : 'Team';
+              const row = document.createElement('div');
+              row.className = 'bg-slate-800/50 rounded-lg p-4 flex items-start justify-between';
+              row.innerHTML = `<div class="flex-1"><div class="flex items-center space-x-2 mb-1"><span class="text-white font-semibold text-sm">${v.userName||'Fan'}</span><span class="text-slate-600 text-xs">${time}</span><span class="bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded text-[10px] font-bold">${tagLabel}</span></div><p class="text-slate-300 text-sm">${v.text||''}</p></div><div class="flex space-x-2 ml-3"><button class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs font-semibold" data-action="approve" data-id="${d.id}"><i class="fas fa-check mr-1"></i>Approve</button><button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-semibold" data-action="reject" data-id="${d.id}"><i class="fas fa-trash mr-1"></i>Reject</button></div>`;
+              container.appendChild(row);
+            });
+            container.addEventListener('click', async e => {
+              const btn = e.target.closest('[data-action]');
+              if (!btn) return;
+              const id = btn.dataset.id;
+              const action = btn.dataset.action;
+              try {
+                if (action === 'approve') { await updateDoc(doc(db, 'fan_wall', id), { approved: true }); showToast('Shoutout approved!'); }
+                else { await deleteDoc(doc(db, 'fan_wall', id)); showToast('Shoutout rejected'); }
+                loadFanWallPending();
+              } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+            });
+          } catch(e) { console.error('Fan wall load error:', e); container.innerHTML = '<p class="text-red-400 text-center py-4">Failed to load</p>'; }
+        }
+
+        // ========== PHOTO OF THE WEEK ADMIN ==========
+        async function loadPotwAdmin() {
+          try {
+            const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const snap = await getDoc(doc(db, 'config', 'photo_of_week'));
+            if (snap.exists()) {
+              const d = snap.data();
+              const urlEl = document.getElementById('potw-url');
+              const capEl = document.getElementById('potw-caption-input');
+              if (urlEl) urlEl.value = d.imageUrl || '';
+              if (capEl) capEl.value = d.caption || '';
+            }
+          } catch(e) { console.error('POTW load error:', e); }
+        }
+
         // ========== SITE HEALTH DASHBOARD ==========
         async function loadHealthData() {
           try {
@@ -5146,6 +5242,10 @@
                 console.log('🔗 [HASH] Showing admin pages...');
                 showAdminPages();
                 break;
+              case '#fanwall':
+                console.log('🔗 [HASH] Showing fan wall...');
+                showFanWall();
+                break;
               case '#schedule-mgmt':
                 console.log('🔗 [HASH] Showing schedule management...');
                 showScheduleMgmt();
@@ -5181,6 +5281,7 @@
           window.showOverview = showOverview;
           window.showScheduleMgmt = showScheduleMgmt;
           window.showHealth = showHealth;
+          window.showFanWall = showFanWall;
           window.hideAllSections = hideAllSections;
           
           initNavigation();
@@ -5245,6 +5346,34 @@
           if (schedSeasonFilter) schedSeasonFilter.addEventListener('change', loadScheduleTable);
           const schedTypeFilter = document.getElementById('sched-filter-type');
           if (schedTypeFilter) schedTypeFilter.addEventListener('change', loadScheduleTable);
+          // Fan Wall + Photo of Week admin buttons
+          const refreshFwBtn = document.getElementById('refresh-fanwall-btn');
+          if (refreshFwBtn) refreshFwBtn.addEventListener('click', loadFanWallPending);
+          const savePotwBtn = document.getElementById('save-potw-btn');
+          if (savePotwBtn) savePotwBtn.addEventListener('click', async () => {
+            try {
+              const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const db = getFirestore(await ensureDefaultApp());
+              await setDoc(doc(db, 'config', 'photo_of_week'), {
+                imageUrl: document.getElementById('potw-url')?.value || '',
+                caption: document.getElementById('potw-caption-input')?.value || '',
+                updatedAt: new Date().toISOString()
+              });
+              showToast('Photo of the Week saved!');
+            } catch(e) { showToast('Failed to save: ' + e.message, 'error'); }
+          });
+          const clearPotwBtn = document.getElementById('clear-potw-btn');
+          if (clearPotwBtn) clearPotwBtn.addEventListener('click', async () => {
+            if (!confirm('Remove Photo of the Week?')) return;
+            try {
+              const { getFirestore, doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const db = getFirestore(await ensureDefaultApp());
+              await deleteDoc(doc(db, 'config', 'photo_of_week'));
+              document.getElementById('potw-url').value = '';
+              document.getElementById('potw-caption-input').value = '';
+              showToast('Photo removed');
+            } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+          });
           // Site Health button
           const refreshHealthBtn = document.getElementById('refresh-health-btn');
           if (refreshHealthBtn) refreshHealthBtn.addEventListener('click', async () => {

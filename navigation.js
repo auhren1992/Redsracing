@@ -680,7 +680,9 @@ const core = await import('./assets/js/firebase-core.js');
             <a href="live.html" class="dropdown-item">🔴 Live Race</a>
             <a href="schedule.html" class="dropdown-item">📅 Schedule</a>
             <a href="stats.html" class="dropdown-item">📊 Season Stats</a>
+            <a href="recaps.html" class="dropdown-item">🏁 Race Recaps</a>
             <a href="leaderboard.html" class="dropdown-item">🏆 Leaderboard</a>
+            <a href="tracks.html" class="dropdown-item">🗺️ Track Guides</a>
             <a href="videos.html" class="dropdown-item">🎥 Videos</a>
           `;
         }
@@ -688,6 +690,7 @@ const core = await import('./assets/js/firebase-core.js');
           console.log('[RedsRacing] Upgrading Community desktop menu');
           menu.innerHTML = `
             <a href="predictions.html" class="dropdown-item">🏆 Predictions</a>
+            <a href="fan-wall.html" class="dropdown-item">📣 Fan Wall</a>
             <a href="qna.html" class="dropdown-item">❓ Q&A</a>
             <a href="feedback.html" class="dropdown-item">💬 Feedback</a>
             <a href="about.html" class="dropdown-item">ℹ️ About Us</a>
@@ -737,7 +740,9 @@ const core = await import('./assets/js/firebase-core.js');
               <a href="live.html" class="mobile-nav-subitem">🔴 Live Race</a>
               <a href="schedule.html" class="mobile-nav-subitem">📅 Schedule</a>
               <a href="stats.html" class="mobile-nav-subitem">📊 Season Stats</a>
+              <a href="recaps.html" class="mobile-nav-subitem">🏁 Race Recaps</a>
               <a href="leaderboard.html" class="mobile-nav-subitem">🏆 Leaderboard</a>
+              <a href="tracks.html" class="mobile-nav-subitem">🗺️ Track Guides</a>
               <a href="videos.html" class="mobile-nav-subitem">🎥 Videos</a>
             `;
           }
@@ -745,6 +750,7 @@ const core = await import('./assets/js/firebase-core.js');
             console.log('[RedsRacing] Upgrading Community mobile menu');
             content.innerHTML = `
               <a href="predictions.html" class="mobile-nav-subitem">🏆 Predictions</a>
+              <a href="fan-wall.html" class="mobile-nav-subitem">📣 Fan Wall</a>
               <a href="qna.html" class="mobile-nav-subitem">❓ Q&A</a>
               <a href="feedback.html" class="mobile-nav-subitem">💬 Feedback</a>
               <a href="about.html" class="mobile-nav-subitem">ℹ️ About Us</a>

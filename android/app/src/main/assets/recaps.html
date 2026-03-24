@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353" crossorigin="anonymous"></script>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Race Recaps - RedsRacing #8 & #88</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" /><link rel="manifest" href="site.webmanifest" />
+  <link rel="stylesheet" href="styles/tailwind.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" /><link rel="stylesheet" href="styles/input-fix.css" />
+  <link rel="stylesheet" href="styles/modern-nav.css" /><link rel="stylesheet" href="styles/mobile-menu-tabs.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    body{background:linear-gradient(135deg,#0f172a,#1e293b,#0f172a);min-height:100vh}
+    .recap-card{background:linear-gradient(145deg,rgba(30,41,59,.7),rgba(15,23,42,.9));border:1px solid rgba(148,163,184,.1);border-radius:1rem;transition:all .3s}
+    .recap-card:hover{transform:translateY(-2px);border-color:rgba(251,191,36,.3)}
+    .gain{color:#22c55e}.loss{color:#ef4444}.neutral{color:#94a3b8}
+    .share-toast{position:fixed;bottom:2rem;right:2rem;background:#10b981;color:#fff;padding:1rem 1.5rem;border-radius:.75rem;z-index:10000;opacity:0;transform:translateY(20px);transition:all .3s}.share-toast.show{opacity:1;transform:translateY(0)}
+  </style>
+  <script src="assets/js/guest-gate.js"></script>
+</head>
+<body class="flex flex-col min-h-screen">
+  <div id="navigation-placeholder"></div>
+  <div style="margin-top:70px" class="bg-gradient-to-r from-green-900/20 to-blue-900/20 border-b border-slate-700/50">
+    <div class="container mx-auto px-4 py-10">
+      <div class="flex items-center justify-between mb-4">
+        <a href="team.html" class="text-slate-400 hover:text-white transition flex items-center text-sm"><i class="fas fa-arrow-left mr-2"></i>Home</a>
+        <a href="stats.html" class="text-yellow-400 hover:text-yellow-300 transition text-sm"><i class="fas fa-chart-bar mr-2"></i>Full Stats</a>
+      </div>
+      <div class="text-center">
+        <h1 class="text-4xl md:text-6xl font-racing text-white mb-2">RACE RECAPS</h1>
+        <p class="text-slate-400 mb-4">Relive every race of the season</p>
+        <select id="season-select" class="bg-slate-800 border border-slate-600 text-white px-4 py-2 rounded-lg text-sm"><option value="2026" selected>2026</option><option value="2025">2025</option></select>
+      </div>
+    </div>
+  </div>
+  <div class="container mx-auto px-4 py-8">
+    <div id="loading" class="text-center py-16"><i class="fas fa-spinner fa-spin text-yellow-400 text-3xl"></i><p class="text-slate-400 mt-4">Loading recaps...</p></div>
+    <div id="empty" class="hidden text-center py-16"><i class="fas fa-flag-checkered text-slate-600 text-5xl mb-4"></i><h2 class="text-2xl font-bold text-white mb-2">No Race Results Yet</h2><p class="text-slate-400">Recaps appear after races are completed.</p></div>
+    <div id="recaps-list" class="hidden space-y-6"></div>
+  </div>
+  <div id="share-toast" class="share-toast"><i class="fas fa-check mr-2"></i>Copied to clipboard!</div>
+  <script type="module" src="navigation.js"></script><script src="assets/js/mobile-menu-tabs.js"></script>
+  <script>
+  if(!firebase.apps.length)firebase.initializeApp({apiKey:"AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",authDomain:"redsracing-a7f8b.firebaseapp.com",projectId:"redsracing-a7f8b",storageBucket:"redsracing-a7f8b.firebasestorage.app",messagingSenderId:"517034606151",appId:"1:517034606151:web:24cae262e1d98832757b62"});
+  const db=firebase.firestore();
+  function ord(n){n=parseInt(n);return n===1?'1st':n===2?'2nd':n===3?'3rd':n+'th'}
+  function delta(s,f){if(!s||!f)return'';const d=s-f;return d>0?'<span class="gain">▲+'+d+'</span>':d<0?'<span class="loss">▼'+d+'</span>':'<span class="neutral">—</span>'}
+  function shareResult(btn){
+    const t=`🏁 RACE RESULT — ${btn.dataset.track}\n📅 ${btn.dataset.date}\n🔵 Jon #8: ${btn.dataset.jon}\n🔴 Jonny #88: ${btn.dataset.jonny}\n\n🏎️ redsracing.org/recaps.html`;
+    if(navigator.share){navigator.share({title:'RedsRacing Result',text:t}).catch(()=>{})}
+    else{navigator.clipboard.writeText(t).then(()=>{const s=document.getElementById('share-toast');s.classList.add('show');setTimeout(()=>s.classList.remove('show'),2000)})}
+  }
+  async function load(season){
+    const ld=document.getElementById('loading'),em=document.getElementById('empty'),ls=document.getElementById('recaps-list');
+    ld.classList.remove('hidden');em.classList.add('hidden');ls.classList.add('hidden');
+    try{
+      const snap=await db.collection('race_results').get();
+      const races=snap.docs.map(d=>d.data()).filter(r=>r.season===season);
+      ld.classList.add('hidden');
+      if(!races.length){em.classList.remove('hidden');return}
+      const g={};races.forEach(r=>{const k=(r.raceDate||'')+'|'+(r.trackName||'');if(!g[k])g[k]={date:r.raceDate,track:r.trackName,loc:r.trackLocation||'',res:[]};g[k].res.push(r)});
+      const sorted=Object.values(g).sort((a,b)=>new Date(b.date)-new Date(a.date));
+      ls.innerHTML='';
+      sorted.forEach(rc=>{
+        const j=rc.res.find(r=>r.driverId==='jon_kirsch'),jy=rc.res.find(r=>r.driverId==='jonny_kirsch');
+        const ds=rc.date?new Date(rc.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}):'--';
+        const jRes=j?(j.isDNF?'DNF':ord(j.finishPosition)):'--';
+        const jyRes=jy?(jy.isDNF?'DNF':ord(jy.finishPosition)):'--';
+        const c=document.createElement('div');c.className='recap-card p-6';
+        c.innerHTML=`<div class="flex items-center justify-between mb-4"><div><div class="text-yellow-400 font-bold text-lg">${rc.track||'Track'}</div><div class="text-slate-500 text-sm">${ds}${rc.loc?' • '+rc.loc:''}</div></div><button onclick="shareResult(this)" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-xs transition" data-track="${rc.track||''}" data-date="${ds}" data-jon="${jRes}" data-jonny="${jyRes}"><i class="fas fa-share-alt mr-1"></i>Share</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${j?`<div class="bg-slate-800/50 rounded-lg p-4 border-l-4 border-blue-500"><div class="flex justify-between mb-2"><span class="text-blue-400 font-bold">Jon #8</span><span class="text-white font-racing text-2xl">${jRes}</span></div><div class="text-xs text-slate-400"><div>P${j.startPosition||'?'} → P${j.isDNF?'DNF':j.finishPosition} ${delta(j.startPosition,j.finishPosition)}</div>${j.points?'<div class="mt-1">Points: <span class="text-green-400">+'+j.points+'</span></div>':''}${j.notes?'<div class="text-slate-300 mt-1">'+j.notes+'</div>':''}</div></div>`:''}${jy?`<div class="bg-slate-800/50 rounded-lg p-4 border-l-4 border-red-500"><div class="flex justify-between mb-2"><span class="text-red-400 font-bold">Jonny #88</span><span class="text-white font-racing text-2xl">${jyRes}</span></div><div class="text-xs text-slate-400"><div>P${jy.startPosition||'?'} → P${jy.isDNF?'DNF':jy.finishPosition} ${delta(jy.startPosition,jy.finishPosition)}</div>${jy.points?'<div class="mt-1">Points: <span class="text-green-400">+'+jy.points+'</span></div>':''}${jy.notes?'<div class="text-slate-300 mt-1">'+jy.notes+'</div>':''}</div></div>`:''}</div>`;
+        ls.appendChild(c)});
+      ls.classList.remove('hidden');
+    }catch(e){console.error(e);ld.classList.add('hidden');em.classList.remove('hidden')}
+  }
+  document.getElementById('season-select').addEventListener('change',e=>load(parseInt(e.target.value)));
+  load(2026);
+  </script>
+  <script src="assets/js/cookie-consent.js"></script>
+</body>
+</html>

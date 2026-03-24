@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353" crossorigin="anonymous"></script>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fan Wall - RedsRacing #8 & #88</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" /><link rel="manifest" href="site.webmanifest" />
+  <link rel="stylesheet" href="styles/tailwind.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" /><link rel="stylesheet" href="styles/input-fix.css" />
+  <link rel="stylesheet" href="styles/modern-nav.css" /><link rel="stylesheet" href="styles/mobile-menu-tabs.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <style>
+    body{background:linear-gradient(135deg,#0f172a,#1e293b,#0f172a);min-height:100vh}
+    .glass-card{background:rgba(30,41,59,.4);backdrop-filter:blur(16px);border:1px solid rgba(148,163,184,.1);border-radius:1rem}
+    .shout-card{background:rgba(30,41,59,.5);border:1px solid rgba(148,163,184,.08);border-radius:.75rem;transition:all .3s;animation:fadeUp .4s ease-out}
+    .shout-card:hover{border-color:rgba(251,191,36,.2)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .tag-jon{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.3)}
+    .tag-jonny{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+    .tag-team{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3)}
+    .toast{position:fixed;bottom:2rem;right:2rem;background:#10b981;color:#fff;padding:1rem 1.5rem;border-radius:.75rem;z-index:10000;opacity:0;transform:translateY(20px);transition:all .3s}.toast.show{opacity:1;transform:translateY(0)}.toast.error{background:#ef4444}
+  </style>
+  <script src="assets/js/guest-gate.js"></script>
+</head>
+<body class="flex flex-col min-h-screen">
+  <div id="navigation-placeholder"></div>
+  <div style="margin-top:70px" class="bg-gradient-to-r from-yellow-900/20 to-red-900/20 border-b border-yellow-500/20">
+    <div class="container mx-auto px-4 py-10">
+      <div class="flex items-center justify-between mb-4">
+        <a href="team.html" class="text-slate-400 hover:text-white transition flex items-center text-sm"><i class="fas fa-arrow-left mr-2"></i>Home</a>
+      </div>
+      <div class="text-center">
+        <h1 class="text-4xl md:text-6xl font-racing text-white mb-2">FAN WALL</h1>
+        <p class="text-slate-400">Cheer for your favorite driver!</p>
+      </div>
+    </div>
+  </div>
+  <div class="container mx-auto px-4 py-8 max-w-2xl space-y-6">
+    <!-- Post Form -->
+    <div id="post-form-container" class="hidden">
+      <div class="glass-card p-6">
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center"><i class="fas fa-bullhorn text-white"></i></div>
+          <div><div class="text-white font-semibold" id="post-user-name">Fan</div><div class="text-slate-500 text-xs">Post a shoutout</div></div>
+        </div>
+        <textarea id="shout-text" maxlength="280" rows="3" class="w-full bg-slate-800 border border-slate-600 text-white p-3 rounded-lg resize-none focus:border-yellow-400 focus:outline-none transition" placeholder="Go Jon! 🏎️ or Jonny for the win! 🔥"></textarea>
+        <div class="flex items-center justify-between mt-3">
+          <div class="flex items-center space-x-2">
+            <span class="text-slate-500 text-xs">Tag:</span>
+            <button type="button" class="tag-btn tag-jon px-2 py-1 rounded text-xs font-semibold" data-tag="jon">Jon #8</button>
+            <button type="button" class="tag-btn tag-jonny px-2 py-1 rounded text-xs font-semibold" data-tag="jonny">Jonny #88</button>
+            <button type="button" class="tag-btn tag-team px-2 py-1 rounded text-xs font-semibold selected" data-tag="team">Team</button>
+            <input type="hidden" id="shout-tag" value="team" />
+          </div>
+          <div class="flex items-center space-x-3">
+            <span id="char-count" class="text-slate-600 text-xs">0/280</span>
+            <button id="post-btn" class="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold px-5 py-2 rounded-lg text-sm transition"><i class="fas fa-paper-plane mr-1"></i>Post</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Sign In Prompt -->
+    <div id="signin-prompt" class="hidden">
+      <div class="glass-card p-6 text-center">
+        <i class="fas fa-user-circle text-yellow-400 text-3xl mb-3"></i>
+        <p class="text-white font-semibold mb-2">Sign in to post on the Fan Wall</p>
+        <a href="login.html?returnTo=fan-wall.html" class="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-2 rounded-lg font-bold text-sm transition inline-block"><i class="fas fa-sign-in-alt mr-2"></i>Sign In</a>
+      </div>
+    </div>
+    <!-- Feed -->
+    <div id="feed-loading" class="text-center py-8"><i class="fas fa-spinner fa-spin text-yellow-400 text-2xl"></i></div>
+    <div id="feed-empty" class="hidden text-center py-8 text-slate-500">No shoutouts yet — be the first!</div>
+    <div id="feed" class="hidden space-y-4"></div>
+  </div>
+  <div id="toast" class="toast"><i class="fas fa-check mr-2"></i><span id="toast-msg"></span></div>
+  <script type="module" src="navigation.js"></script><script src="assets/js/mobile-menu-tabs.js"></script>
+  <script>
+  if(!firebase.apps.length)firebase.initializeApp({apiKey:"AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",authDomain:"redsracing-a7f8b.firebaseapp.com",projectId:"redsracing-a7f8b",storageBucket:"redsracing-a7f8b.firebasestorage.app",messagingSenderId:"517034606151",appId:"1:517034606151:web:24cae262e1d98832757b62"});
+  const db=firebase.firestore(),auth=firebase.auth();
+  let currentUser=null;
+  function showToast(m,err){const t=document.getElementById('toast');document.getElementById('toast-msg').textContent=m;t.className='toast'+(err?' error':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+  // Tag buttons
+  document.querySelectorAll('.tag-btn').forEach(b=>{b.addEventListener('click',()=>{document.querySelectorAll('.tag-btn').forEach(x=>x.classList.remove('selected','ring-2','ring-white'));b.classList.add('selected','ring-2','ring-white');document.getElementById('shout-tag').value=b.dataset.tag})});
+  // Char counter
+  document.getElementById('shout-text').addEventListener('input',e=>{document.getElementById('char-count').textContent=e.target.value.length+'/280'});
+
+  // Auth
+  auth.onAuthStateChanged(user=>{
+    currentUser=user;
+    if(user){
+      document.getElementById('post-form-container').classList.remove('hidden');
+      document.getElementById('signin-prompt').classList.add('hidden');
+      document.getElementById('post-user-name').textContent=user.displayName||user.email?.split('@')[0]||'Fan';
+    }else{
+      document.getElementById('post-form-container').classList.add('hidden');
+      document.getElementById('signin-prompt').classList.remove('hidden');
+    }
+    loadFeed();
+  });
+
+  // Post
+  document.getElementById('post-btn').addEventListener('click',async()=>{
+    if(!currentUser){showToast('Please sign in',true);return}
+    const text=document.getElementById('shout-text').value.trim();
+    if(!text){showToast('Write something!',true);return}
+    if(text.length>280){showToast('Max 280 characters',true);return}
+    const btn=document.getElementById('post-btn');btn.disabled=true;btn.textContent='Posting...';
+    try{
+      await db.collection('fan_wall').add({
+        text,tag:document.getElementById('shout-tag').value,
+        userId:currentUser.uid,userName:currentUser.displayName||currentUser.email?.split('@')[0]||'Fan',
+        approved:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+      document.getElementById('shout-text').value='';document.getElementById('char-count').textContent='0/280';
+      showToast('Posted! Awaiting approval.');
+    }catch(e){console.error(e);showToast('Failed to post',true)}
+    finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-paper-plane mr-1"></i>Post'}
+  });
+
+  // Load approved posts
+  async function loadFeed(){
+    const ld=document.getElementById('feed-loading'),em=document.getElementById('feed-empty'),feed=document.getElementById('feed');
+    try{
+      const snap=await db.collection('fan_wall').where('approved','==',true).orderBy('createdAt','desc').limit(50).get();
+      ld.classList.add('hidden');
+      if(snap.empty){em.classList.remove('hidden');feed.classList.add('hidden');return}
+      em.classList.add('hidden');feed.classList.remove('hidden');feed.innerHTML='';
+      snap.forEach(d=>{
+        const v=d.data();
+        const time=v.createdAt?.toDate?v.createdAt.toDate().toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+        const tagClass=v.tag==='jon'?'tag-jon':v.tag==='jonny'?'tag-jonny':'tag-team';
+        const tagLabel=v.tag==='jon'?'Jon #8':v.tag==='jonny'?'Jonny #88':'Team';
+        const card=document.createElement('div');card.className='shout-card p-4';
+        card.innerHTML=`<div class="flex items-start justify-between"><div class="flex-1"><div class="flex items-center space-x-2 mb-1"><span class="text-white font-semibold text-sm">${v.userName||'Fan'}</span><span class="${tagClass} px-2 py-0.5 rounded text-[10px] font-bold">${tagLabel}</span></div><p class="text-slate-300 text-sm">${v.text}</p></div><span class="text-slate-600 text-xs ml-3 whitespace-nowrap">${time}</span></div>`;
+        feed.appendChild(card)});
+    }catch(e){console.error('Feed error:',e);ld.classList.add('hidden');em.classList.remove('hidden')}
+  }
+  </script>
+  <script src="assets/js/cookie-consent.js"></script>
+</body>
+</html>

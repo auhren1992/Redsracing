@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353" crossorigin="anonymous"></script>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Track Guides - RedsRacing #8 & #88</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" /><link rel="manifest" href="site.webmanifest" />
+  <link rel="stylesheet" href="styles/tailwind.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" /><link rel="stylesheet" href="styles/input-fix.css" />
+  <link rel="stylesheet" href="styles/modern-nav.css" /><link rel="stylesheet" href="styles/mobile-menu-tabs.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    body{background:linear-gradient(135deg,#0f172a,#1e293b,#0f172a);min-height:100vh}
+    .track-card{background:linear-gradient(145deg,rgba(30,41,59,.6),rgba(15,23,42,.8));backdrop-filter:blur(12px);border:1px solid rgba(148,163,184,.1);border-radius:1rem;transition:all .3s}
+    .track-card:hover{transform:translateY(-2px);border-color:rgba(251,191,36,.3)}
+    .map-frame{border-radius:.75rem;overflow:hidden;border:1px solid rgba(148,163,184,.15)}
+  </style>
+  <script src="assets/js/guest-gate.js"></script>
+</head>
+<body class="flex flex-col min-h-screen">
+  <div id="navigation-placeholder"></div>
+  <div style="margin-top:70px" class="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-b border-slate-700/50">
+    <div class="container mx-auto px-4 py-10">
+      <div class="flex items-center justify-between mb-4">
+        <a href="team.html" class="text-slate-400 hover:text-white transition flex items-center text-sm"><i class="fas fa-arrow-left mr-2"></i>Home</a>
+        <a href="schedule.html" class="text-yellow-400 hover:text-yellow-300 transition text-sm"><i class="fas fa-calendar mr-2"></i>Schedule</a>
+      </div>
+      <div class="text-center">
+        <h1 class="text-4xl md:text-6xl font-racing text-white mb-2">TRACK GUIDES</h1>
+        <p class="text-slate-400">Know the tracks before you go</p>
+      </div>
+    </div>
+  </div>
+  <div class="container mx-auto px-4 py-8">
+    <div id="loading" class="text-center py-16"><i class="fas fa-spinner fa-spin text-yellow-400 text-3xl"></i><p class="text-slate-400 mt-4">Loading tracks...</p></div>
+    <div id="tracks-list" class="hidden space-y-8"></div>
+  </div>
+  <script type="module" src="navigation.js"></script><script src="assets/js/mobile-menu-tabs.js"></script>
+  <script>
+  if(!firebase.apps.length)firebase.initializeApp({apiKey:"AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",authDomain:"redsracing-a7f8b.firebaseapp.com",projectId:"redsracing-a7f8b",storageBucket:"redsracing-a7f8b.firebasestorage.app",messagingSenderId:"517034606151",appId:"1:517034606151:web:24cae262e1d98832757b62"});
+  const db=firebase.firestore();
+
+  async function loadTracks(){
+    try{
+      const [tracksResp,resultsSnap]=await Promise.all([fetch('data/tracks.json'),db.collection('race_results').get()]);
+      const tracks=await tracksResp.json();
+      const results=resultsSnap.docs.map(d=>d.data());
+      document.getElementById('loading').classList.add('hidden');
+      const list=document.getElementById('tracks-list');list.classList.remove('hidden');list.innerHTML='';
+
+      tracks.forEach(track=>{
+        // Calc stats for this track
+        const trackResults=results.filter(r=>(r.trackName||'').toLowerCase().includes(track.name.split(' ')[0].toLowerCase()));
+        const jonResults=trackResults.filter(r=>r.driverId==='jon_kirsch'&&r.finishPosition&&!r.isDNF);
+        const jonnyResults=trackResults.filter(r=>r.driverId==='jonny_kirsch'&&r.finishPosition&&!r.isDNF);
+        const jonAvg=jonResults.length?(jonResults.reduce((a,r)=>a+r.finishPosition,0)/jonResults.length).toFixed(1):'--';
+        const jonBest=jonResults.length?Math.min(...jonResults.map(r=>r.finishPosition)):'--';
+        const jonnyAvg=jonnyResults.length?(jonnyResults.reduce((a,r)=>a+r.finishPosition,0)/jonnyResults.length).toFixed(1):'--';
+        const jonnyBest=jonnyResults.length?Math.min(...jonnyResults.map(r=>r.finishPosition)):'--';
+        const totalRaces=new Set(trackResults.map(r=>r.raceDate)).size;
+
+        const card=document.createElement('div');card.className='track-card p-6';
+        card.innerHTML=`
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <h2 class="text-2xl font-bold text-white flex items-center"><i class="fas fa-map-marker-alt text-yellow-400 mr-3"></i>${track.name}</h2>
+              <p class="text-slate-400 text-sm">${track.city}, ${track.state}</p>
+            </div>
+            <span class="bg-slate-800 text-slate-400 px-3 py-1 rounded-full text-xs">${totalRaces} race${totalRaces!==1?'s':''}</span>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <div class="map-frame mb-4">
+                <iframe src="https://www.google.com/maps?q=${track.mapQuery}&output=embed" width="100%" height="250" style="border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              </div>
+              <div class="bg-slate-800/40 rounded-lg p-4">
+                <h4 class="text-yellow-400 font-semibold text-sm mb-2"><i class="fas fa-lightbulb mr-1"></i>Fan Tips</h4>
+                <p class="text-slate-300 text-sm">${track.tips}</p>
+              </div>
+            </div>
+            <div>
+              <h4 class="text-white font-semibold mb-3"><i class="fas fa-chart-bar text-blue-400 mr-2"></i>Driver Performance</h4>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-800/50 rounded-lg p-3 border-l-4 border-blue-500">
+                  <div class="text-blue-400 font-bold text-sm mb-2">Jon #8</div>
+                  <div class="text-xs text-slate-400 space-y-1">
+                    <div>Races: <span class="text-white font-semibold">${jonResults.length}</span></div>
+                    <div>Avg Finish: <span class="text-white font-semibold">${jonAvg}</span></div>
+                    <div>Best: <span class="text-yellow-400 font-semibold">${jonBest!=='--'?'P'+jonBest:'--'}</span></div>
+                  </div>
+                </div>
+                <div class="bg-slate-800/50 rounded-lg p-3 border-l-4 border-red-500">
+                  <div class="text-red-400 font-bold text-sm mb-2">Jonny #88</div>
+                  <div class="text-xs text-slate-400 space-y-1">
+                    <div>Races: <span class="text-white font-semibold">${jonnyResults.length}</span></div>
+                    <div>Avg Finish: <span class="text-white font-semibold">${jonnyAvg}</span></div>
+                    <div>Best: <span class="text-yellow-400 font-semibold">${jonnyBest!=='--'?'P'+jonnyBest:'--'}</span></div>
+                  </div>
+                </div>
+              </div>
+              ${totalRaces===0?'<p class="text-slate-600 text-xs mt-3 text-center">No results at this track yet</p>':''}
+            </div>
+          </div>`;
+        list.appendChild(card)});
+    }catch(e){console.error('Tracks error:',e);document.getElementById('loading').innerHTML='<p class="text-red-400">Failed to load tracks</p>'}
+  }
+  loadTracks();
+  </script>
+  <script src="assets/js/cookie-consent.js"></script>
+</body>
+</html>
