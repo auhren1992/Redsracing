@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353" crossorigin="anonymous"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🔴 LIVE Race Updates - RedsRacing #8 & #88</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  <link rel="stylesheet" href="styles/tailwind.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/input-fix.css" />
+  <link rel="stylesheet" href="styles/modern-nav.css" />
+  <link rel="stylesheet" href="styles/mobile-menu-tabs.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); min-height: 100vh; }
+    .live-pulse { animation: livePulse 2s ease-in-out infinite; }
+    @keyframes livePulse { 0%,100%{box-shadow:0 0 20px rgba(239,68,68,0.4);} 50%{box-shadow:0 0 40px rgba(239,68,68,0.8);} }
+    .driver-card { background:linear-gradient(145deg,rgba(30,41,59,0.6),rgba(15,23,42,0.8)); backdrop-filter:blur(12px); border:1px solid rgba(148,163,184,0.1); transition:all 0.3s ease; }
+    .driver-card:hover { transform:translateY(-2px); border-color:rgba(251,191,36,0.3); }
+    .position-num { font-family:'Racing Sans One',sans-serif; font-size:3.5rem; line-height:1; }
+    .commentary-item { border-left:3px solid rgba(251,191,36,0.4); animation:slideIn 0.3s ease-out; }
+    @keyframes slideIn { from{opacity:0;transform:translateX(-10px);} to{opacity:1;transform:translateX(0);} }
+    .flag-indicator { width:48px; height:32px; border-radius:4px; border:2px solid rgba(255,255,255,0.2); }
+    .flag-green { background:#22c55e; }
+    .flag-yellow { background:#eab308; }
+    .flag-red { background:#ef4444; }
+    .flag-checkered { background:repeating-conic-gradient(#000 0% 25%, #fff 0% 50%) 50%/16px 16px; }
+    .not-live-hero { background:linear-gradient(135deg,rgba(30,41,59,0.8),rgba(15,23,42,0.9)); }
+    .glass-card { background:rgba(30,41,59,0.4); backdrop-filter:blur(16px); border:1px solid rgba(148,163,184,0.1); border-radius:1rem; }
+  </style>
+  <script src="assets/js/guest-gate.js"></script>
+</head>
+<body class="flex flex-col min-h-screen">
+  <div id="navigation-placeholder"></div>
+
+  <!-- LIVE STATE (shown when race is active) -->
+  <div id="live-state" class="hidden">
+    <!-- Live Hero -->
+    <div class="live-pulse bg-gradient-to-r from-red-900/40 to-orange-900/40 border-b border-red-500/30" style="margin-top:70px;">
+      <div class="container mx-auto px-4 py-6 text-center">
+        <div class="flex items-center justify-center space-x-3 mb-2">
+          <span class="w-4 h-4 bg-red-500 rounded-full animate-pulse"></span>
+          <span class="text-red-400 font-bold text-sm uppercase tracking-widest">LIVE NOW</span>
+          <span class="w-4 h-4 bg-red-500 rounded-full animate-pulse"></span>
+        </div>
+        <h1 id="live-track" class="text-3xl md:text-5xl font-racing text-white mb-2">LOADING...</h1>
+        <div class="flex items-center justify-center space-x-4 text-slate-300">
+          <span id="live-race-type" class="text-sm">Feature Race</span>
+          <span>•</span>
+          <span id="live-lap" class="text-lg font-bold text-yellow-400">LAP --/--</span>
+        </div>
+        <!-- Flag Status -->
+        <div class="flex items-center justify-center space-x-3 mt-4">
+          <span class="text-slate-500 text-xs uppercase">Flag:</span>
+          <div id="live-flag" class="flag-indicator flag-green"></div>
+          <span id="live-flag-text" class="text-green-400 text-sm font-semibold">GREEN</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Driver Position Cards -->
+    <div class="container mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Jon #8 -->
+        <div class="driver-card rounded-2xl p-6" style="border-left:4px solid #3b82f6;">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span class="text-blue-400 text-sm font-bold uppercase tracking-wider">Jon Kirsch</span>
+              <div class="text-blue-400 font-racing text-4xl">#8</div>
+            </div>
+            <div class="text-right">
+              <div class="text-slate-500 text-xs uppercase">Position</div>
+              <div id="live-jon-pos" class="position-num text-white">--</div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-400">Gap to leader</span>
+            <span id="live-jon-gap" class="text-blue-400 font-semibold">--</span>
+          </div>
+        </div>
+        <!-- Jonny #88 -->
+        <div class="driver-card rounded-2xl p-6" style="border-left:4px solid #ef4444;">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span class="text-red-400 text-sm font-bold uppercase tracking-wider">Jonny Kirsch</span>
+              <div class="text-red-400 font-racing text-4xl">#88</div>
+            </div>
+            <div class="text-right">
+              <div class="text-slate-500 text-xs uppercase">Position</div>
+              <div id="live-jonny-pos" class="position-num text-white">--</div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-400">Gap to leader</span>
+            <span id="live-jonny-gap" class="text-red-400 font-semibold">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Commentary Feed -->
+      <div class="glass-card p-6 mb-8">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+          <i class="fas fa-comment-dots text-yellow-400 mr-3"></i>Live Commentary
+        </h2>
+        <div id="commentary-feed" class="space-y-3 max-h-96 overflow-y-auto">
+          <p class="text-slate-500 text-center py-8">Waiting for updates...</p>
+        </div>
+      </div>
+
+      <!-- Last Updated -->
+      <p class="text-center text-slate-600 text-xs" id="live-updated">Last updated: --</p>
+    </div>
+  </div>
+
+  <!-- NOT LIVE STATE (shown when no race is active) -->
+  <div id="not-live-state" class="hidden">
+    <div class="not-live-hero" style="margin-top:70px;">
+      <div class="container mx-auto px-4 py-16 text-center">
+        <div class="inline-flex items-center space-x-2 bg-slate-800/50 border border-slate-700 rounded-full px-4 py-2 mb-6">
+          <div class="w-3 h-3 bg-slate-500 rounded-full"></div>
+          <span class="text-slate-400 text-sm font-semibold">NO RACE LIVE</span>
+        </div>
+        <h1 class="text-4xl md:text-6xl font-racing text-white mb-4">NEXT RACE</h1>
+        <p id="next-race-name" class="text-2xl font-bold text-yellow-400 mb-2">Loading...</p>
+        <p id="next-race-info" class="text-slate-400 mb-8">--</p>
+        <!-- Countdown -->
+        <div class="flex justify-center space-x-4 mb-8">
+          <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4 w-20 text-center">
+            <div id="cd-days" class="text-3xl font-bold text-white">0</div>
+            <div class="text-xs text-slate-500 uppercase">Days</div>
+          </div>
+          <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4 w-20 text-center">
+            <div id="cd-hours" class="text-3xl font-bold text-white">0</div>
+            <div class="text-xs text-slate-500 uppercase">Hours</div>
+          </div>
+          <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4 w-20 text-center">
+            <div id="cd-mins" class="text-3xl font-bold text-white">0</div>
+            <div class="text-xs text-slate-500 uppercase">Min</div>
+          </div>
+          <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4 w-20 text-center">
+            <div id="cd-secs" class="text-3xl font-bold text-yellow-400">0</div>
+            <div class="text-xs text-slate-500 uppercase">Sec</div>
+          </div>
+        </div>
+        <div class="flex justify-center space-x-4">
+          <a href="schedule.html" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition"><i class="fas fa-calendar mr-2"></i>Full Schedule</a>
+          <a href="predictions.html" class="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-3 rounded-lg font-semibold transition"><i class="fas fa-trophy mr-2"></i>Make a Prediction</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Results Teaser -->
+    <div class="container mx-auto px-4 py-12">
+      <div class="glass-card p-6">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+          <i class="fas fa-chart-line text-emerald-400 mr-3"></i>Quick Links
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <a href="stats.html" class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center hover:border-yellow-400/30 transition">
+            <i class="fas fa-chart-bar text-2xl text-yellow-400 mb-2"></i>
+            <div class="text-white text-sm font-semibold">Season Stats</div>
+          </a>
+          <a href="predictions.html" class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center hover:border-yellow-400/30 transition">
+            <i class="fas fa-trophy text-2xl text-yellow-400 mb-2"></i>
+            <div class="text-white text-sm font-semibold">Predictions</div>
+          </a>
+          <a href="gallery.html" class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center hover:border-yellow-400/30 transition">
+            <i class="fas fa-images text-2xl text-yellow-400 mb-2"></i>
+            <div class="text-white text-sm font-semibold">Gallery</div>
+          </a>
+          <a href="videos.html" class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center hover:border-yellow-400/30 transition">
+            <i class="fas fa-video text-2xl text-yellow-400 mb-2"></i>
+            <div class="text-white text-sm font-semibold">Videos</div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="navigation.js"></script>
+  <script src="assets/js/mobile-menu-tabs.js"></script>
+  <script>
+    // Firebase init
+    // Use same Firebase config as login/navigation so auth state is shared
+    const firebaseConfig = {
+      apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+      authDomain: "redsracing-a7f8b.firebaseapp.com",
+      projectId: "redsracing-a7f8b",
+      storageBucket: "redsracing-a7f8b.firebasestorage.app",
+      messagingSenderId: "517034606151",
+      appId: "1:517034606151:web:24cae262e1d98832757b62"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const liveState = document.getElementById('live-state');
+    const notLiveState = document.getElementById('not-live-state');
+
+    function getOrdinal(n) {
+      n = parseInt(n);
+      if (n===1) return '1st'; if (n===2) return '2nd'; if (n===3) return '3rd';
+      return n+'th';
+    }
+
+    function setFlag(flag) {
+      const el = document.getElementById('live-flag');
+      const txt = document.getElementById('live-flag-text');
+      if (!el || !txt) return;
+      el.className = 'flag-indicator';
+      switch((flag||'').toLowerCase()) {
+        case 'yellow': el.classList.add('flag-yellow'); txt.textContent='CAUTION'; txt.className='text-yellow-400 text-sm font-semibold'; break;
+        case 'red': el.classList.add('flag-red'); txt.textContent='RED FLAG'; txt.className='text-red-400 text-sm font-semibold'; break;
+        case 'checkered': el.classList.add('flag-checkered'); txt.textContent='CHECKERED'; txt.className='text-white text-sm font-semibold'; break;
+        default: el.classList.add('flag-green'); txt.textContent='GREEN'; txt.className='text-green-400 text-sm font-semibold';
+      }
+    }
+
+    // Real-time listener on live_race/current
+    db.collection('live_race').doc('current').onSnapshot(doc => {
+      if (!doc.exists || !doc.data()?.isLive) {
+        liveState.classList.add('hidden');
+        notLiveState.classList.remove('hidden');
+        loadNextRace();
+        return;
+      }
+      notLiveState.classList.add('hidden');
+      liveState.classList.remove('hidden');
+      const d = doc.data();
+      document.getElementById('live-track').textContent = d.trackName || 'LIVE RACE';
+      document.getElementById('live-race-type').textContent = d.raceType || 'Feature Race';
+      document.getElementById('live-lap').textContent = 'LAP ' + (d.currentLap||'--') + '/' + (d.totalLaps||'--');
+      setFlag(d.flag || 'green');
+      // Jon
+      if (d.drivers?.jon) {
+        const p = d.drivers.jon.position;
+        document.getElementById('live-jon-pos').textContent = p === 'DNF' ? 'DNF' : getOrdinal(p);
+        document.getElementById('live-jon-gap').textContent = (p==1||p=='1') ? 'Leading' : (d.drivers.jon.gap || '--');
+      }
+      // Jonny
+      if (d.drivers?.jonny) {
+        const p = d.drivers.jonny.position;
+        document.getElementById('live-jonny-pos').textContent = p === 'DNF' ? 'DNF' : getOrdinal(p);
+        document.getElementById('live-jonny-gap').textContent = (p==1||p=='1') ? 'Leading' : (d.drivers.jonny.gap || '--');
+      }
+      if (d.lastUpdate) {
+        const ago = Math.floor((Date.now() - d.lastUpdate.toMillis()) / 1000);
+        document.getElementById('live-updated').textContent = 'Last updated: ' + (ago < 10 ? 'just now' : ago < 60 ? ago+'s ago' : Math.floor(ago/60)+'m ago');
+      }
+    });
+
+    // Real-time commentary feed
+    db.collection('live_race_updates').orderBy('createdAt','desc').limit(50).onSnapshot(snap => {
+      const feed = document.getElementById('commentary-feed');
+      if (!feed) return;
+      if (snap.empty) { feed.innerHTML = '<p class="text-slate-500 text-center py-8">Waiting for updates...</p>'; return; }
+      feed.innerHTML = '';
+      snap.forEach(doc => {
+        const v = doc.data();
+        const time = v.createdAt?.toDate ? v.createdAt.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
+        const div = document.createElement('div');
+        div.className = 'commentary-item bg-slate-800/40 rounded-lg p-3 pl-4';
+        div.innerHTML = '<div class="flex items-start justify-between"><p class="text-white text-sm flex-1">' + (v.text||'') + '</p><span class="text-slate-600 text-xs ml-3 whitespace-nowrap">' + time + '</span></div>';
+        feed.appendChild(div);
+      });
+    });
+
+    // Next race countdown (for not-live state)
+    let countdownInterval = null;
+    async function loadNextRace() {
+      try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const snap = await db.collection('races').where('season','==',2026).where('type','==','superCup').where('date','>=',todayStr).orderBy('date','asc').limit(1).get();
+        if (!snap.empty) {
+          const r = snap.docs[0].data();
+          document.getElementById('next-race-name').textContent = r.eventName || r.track || 'TBD';
+          document.getElementById('next-race-info').textContent = (r.track||'') + (r.city?' • '+r.city+', '+r.state:'') + (r.startTime && r.startTime!=='TBD'?' • '+r.startTime:'');
+          const target = new Date(r.date + 'T00:00:00').getTime();
+          if (countdownInterval) clearInterval(countdownInterval);
+          function tick() {
+            const dist = target - Date.now();
+            if (dist < 0) { document.getElementById('cd-days').textContent='0'; document.getElementById('cd-hours').textContent='0'; document.getElementById('cd-mins').textContent='0'; document.getElementById('cd-secs').textContent='0'; return; }
+            document.getElementById('cd-days').textContent = Math.floor(dist/(1000*60*60*24));
+            document.getElementById('cd-hours').textContent = Math.floor((dist%(1000*60*60*24))/(1000*60*60));
+            document.getElementById('cd-mins').textContent = Math.floor((dist%(1000*60*60))/(1000*60));
+            document.getElementById('cd-secs').textContent = Math.floor((dist%(1000*60))/1000);
+          }
+          tick();
+          countdownInterval = setInterval(tick, 1000);
+        } else {
+          document.getElementById('next-race-name').textContent = 'No upcoming races';
+        }
+      } catch(e) { console.error('loadNextRace error:', e); }
+    }
+  </script>
+  <script src="assets/js/cookie-consent.js"></script>
+</body>
+</html>

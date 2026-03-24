@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353" crossorigin="anonymous"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Season Stats - RedsRacing #8 vs #88</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  <link rel="stylesheet" href="styles/tailwind.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/input-fix.css" />
+  <link rel="stylesheet" href="styles/modern-nav.css" />
+  <link rel="stylesheet" href="styles/mobile-menu-tabs.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); min-height: 100vh; }
+    .glass-card { background:rgba(30,41,59,0.4); backdrop-filter:blur(16px); border:1px solid rgba(148,163,184,0.1); border-radius:1rem; }
+    .stat-bar { height:12px; border-radius:6px; transition:width 0.8s ease-out; }
+    .stat-bar-jon { background:linear-gradient(90deg,#3b82f6,#60a5fa); }
+    .stat-bar-jonny { background:linear-gradient(90deg,#ef4444,#f87171); }
+    .driver-header-jon { border-left:4px solid #3b82f6; }
+    .driver-header-jonny { border-left:4px solid #ef4444; }
+    .vs-badge { background:linear-gradient(135deg,#fbbf24,#f59e0b); color:#000; font-family:'Racing Sans One',sans-serif; }
+  </style>
+  <script src="assets/js/guest-gate.js"></script>
+</head>
+<body class="flex flex-col min-h-screen">
+  <div id="navigation-placeholder"></div>
+
+  <!-- Hero -->
+  <div style="margin-top:70px;" class="bg-gradient-to-r from-blue-900/30 to-red-900/30 border-b border-slate-700/50">
+    <div class="container mx-auto px-4 py-10 text-center">
+      <h1 class="text-4xl md:text-6xl font-racing text-white mb-2">SEASON STATS</h1>
+      <p class="text-slate-400 mb-4">Head-to-head driver comparison</p>
+      <select id="season-select" class="bg-slate-800 border border-slate-600 text-white px-4 py-2 rounded-lg text-sm">
+        <option value="2026" selected>2026 Season</option>
+        <option value="2025">2025 Season</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="container mx-auto px-4 py-8 space-y-8">
+    <!-- Loading -->
+    <div id="stats-loading" class="text-center py-16">
+      <i class="fas fa-spinner fa-spin text-yellow-400 text-3xl mb-4"></i>
+      <p class="text-slate-400">Loading season stats...</p>
+    </div>
+
+    <!-- No Data -->
+    <div id="stats-empty" class="hidden text-center py-16">
+      <i class="fas fa-flag-checkered text-slate-600 text-5xl mb-4"></i>
+      <h2 class="text-2xl font-bold text-white mb-2">No Race Results Yet</h2>
+      <p class="text-slate-400 mb-6">Check back once the season starts! First race is coming soon.</p>
+      <a href="schedule.html" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition"><i class="fas fa-calendar mr-2"></i>View Schedule</a>
+    </div>
+
+    <!-- Stats Content -->
+    <div id="stats-content" class="hidden space-y-8">
+      <!-- Head to Head Overview -->
+      <div class="glass-card p-6">
+        <div class="grid grid-cols-3 items-center mb-6">
+          <div class="text-center">
+            <div class="text-blue-400 font-racing text-5xl">#8</div>
+            <div class="text-white font-bold">Jon Kirsch</div>
+          </div>
+          <div class="text-center">
+            <div class="vs-badge inline-block px-4 py-2 rounded-full text-2xl font-bold">VS</div>
+          </div>
+          <div class="text-center">
+            <div class="text-red-400 font-racing text-5xl">#88</div>
+            <div class="text-white font-bold">Jonny Kirsch</div>
+          </div>
+        </div>
+
+        <!-- Comparison Bars -->
+        <div id="comparison-bars" class="space-y-5"></div>
+      </div>
+
+      <!-- Individual Driver Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Jon #8 -->
+        <div class="glass-card p-6 driver-header-jon">
+          <h3 class="text-xl font-bold text-blue-400 mb-4"><i class="fas fa-user mr-2"></i>Jon Kirsch #8</h3>
+          <div class="grid grid-cols-2 gap-4" id="jon-stats">
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center"><div class="text-slate-500 text-xs mb-1">Races</div><div class="text-2xl font-bold text-white" id="jon-races">0</div></div>
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center"><div class="text-slate-500 text-xs mb-1">Wins</div><div class="text-2xl font-bold text-yellow-400" id="jon-wins">0</div></div>
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center"><div class="text-slate-500 text-xs mb-1">Podiums</div><div class="text-2xl font-bold text-green-400" id="jon-podiums">0</div></div>
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center"><div class="text-slate-500 text-xs mb-1">DNFs</div><div class="text-2xl font-bold text-red-400" id="jon-dnfs">0</div></div>
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center"><div class="text-slate-500 text-xs mb-1">Avg Finish</div><div class="text-2xl font-bold text-white" id="jon-avg-finish">--</div></div>
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center"><div class="text-slate-500 text-xs mb-1">Best Finish</div><div class="text-2xl font-bold text-white" id="jon-best">--</div></div>
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center col-span-2"><div class="text-slate-500 text-xs mb-1">Total Points</div><div class="text-3xl font-bold text-blue-400" id="jon-points">0</div></div>
+          </div>
+        </div>
+        <!-- Jonny #88 -->
+        <div class="glass-card p-6 driver-header-jonny">
+          <h3 class="text-xl font-bold text-red-400 mb-4"><i class="fas fa-user mr-2"></i>Jonny Kirsch #88</h3>
+          <div class="grid grid-cols-2 gap-4" id="jonny-stats">
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center"><div class="text-slate-500 text-xs mb-1">Races</div><div class="text-2xl font-bold text-white" id="jonny-races">0</div></div>
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center"><div class="text-slate-500 text-xs mb-1">Wins</div><div class="text-2xl font-bold text-yellow-400" id="jonny-wins">0</div></div>
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center"><div class="text-slate-500 text-xs mb-1">Podiums</div><div class="text-2xl font-bold text-green-400" id="jonny-podiums">0</div></div>
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center"><div class="text-slate-500 text-xs mb-1">DNFs</div><div class="text-2xl font-bold text-red-400" id="jonny-dnfs">0</div></div>
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center"><div class="text-slate-500 text-xs mb-1">Avg Finish</div><div class="text-2xl font-bold text-white" id="jonny-avg-finish">--</div></div>
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center"><div class="text-slate-500 text-xs mb-1">Best Finish</div><div class="text-2xl font-bold text-white" id="jonny-best">--</div></div>
+            <div class="bg-slate-800/50 rounded-lg p-3 text-center col-span-2"><div class="text-slate-500 text-xs mb-1">Total Points</div><div class="text-3xl font-bold text-red-400" id="jonny-points">0</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Race-by-Race Table -->
+      <div class="glass-card p-6">
+        <h2 class="text-xl font-bold text-white mb-4"><i class="fas fa-list text-yellow-400 mr-2"></i>Race-by-Race Results</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead>
+              <tr class="border-b border-slate-700 text-slate-400">
+                <th class="p-3">Date</th>
+                <th class="p-3">Track</th>
+                <th class="p-3">Driver</th>
+                <th class="p-3 text-center">Start</th>
+                <th class="p-3 text-center">Finish</th>
+                <th class="p-3 text-center">Points</th>
+              </tr>
+            </thead>
+            <tbody id="results-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="navigation.js"></script>
+  <script src="assets/js/mobile-menu-tabs.js"></script>
+  <script>
+    // Use same Firebase config as login/navigation so auth state is shared
+    if (!firebase.apps.length) firebase.initializeApp({
+      apiKey:"AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",authDomain:"redsracing-a7f8b.firebaseapp.com",
+      projectId:"redsracing-a7f8b",storageBucket:"redsracing-a7f8b.firebasestorage.app",
+      messagingSenderId:"517034606151",appId:"1:517034606151:web:24cae262e1d98832757b62"
+    });
+    const db = firebase.firestore();
+
+    async function loadStats(season) {
+      const loading = document.getElementById('stats-loading');
+      const empty = document.getElementById('stats-empty');
+      const content = document.getElementById('stats-content');
+      loading.classList.remove('hidden'); empty.classList.add('hidden'); content.classList.add('hidden');
+
+      try {
+        const snap = await db.collection('race_results').get();
+        const all = snap.docs.map(d => d.data());
+        const races = all.filter(r => r.season === season);
+
+        loading.classList.add('hidden');
+        if (races.length === 0) { empty.classList.remove('hidden'); return; }
+        content.classList.remove('hidden');
+
+        const jon = races.filter(r => r.driverId === 'jon_kirsch');
+        const jonny = races.filter(r => r.driverId === 'jonny_kirsch');
+
+        function calcStats(arr) {
+          const wins = arr.filter(r => r.isWin || r.finishPosition === 1).length;
+          const podiums = arr.filter(r => r.isPodium || (r.finishPosition && r.finishPosition <= 3)).length;
+          const dnfs = arr.filter(r => r.isDNF).length;
+          const finishes = arr.filter(r => r.finishPosition && !r.isDNF).map(r => r.finishPosition);
+          const avgFinish = finishes.length ? (finishes.reduce((a,b)=>a+b,0)/finishes.length).toFixed(1) : '--';
+          const bestFinish = finishes.length ? Math.min(...finishes) : '--';
+          const points = arr.reduce((a,r)=>a+(r.points||0),0);
+          return { races: arr.length, wins, podiums, dnfs, avgFinish, bestFinish, points };
+        }
+
+        const jonS = calcStats(jon);
+        const jonnyS = calcStats(jonny);
+
+        // Update individual stats
+        const el = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+        el('jon-races',jonS.races); el('jon-wins',jonS.wins); el('jon-podiums',jonS.podiums); el('jon-dnfs',jonS.dnfs);
+        el('jon-avg-finish',jonS.avgFinish); el('jon-best',jonS.bestFinish); el('jon-points',jonS.points);
+        el('jonny-races',jonnyS.races); el('jonny-wins',jonnyS.wins); el('jonny-podiums',jonnyS.podiums); el('jonny-dnfs',jonnyS.dnfs);
+        el('jonny-avg-finish',jonnyS.avgFinish); el('jonny-best',jonnyS.bestFinish); el('jonny-points',jonnyS.points);
+
+        // Comparison bars
+        const bars = document.getElementById('comparison-bars');
+        bars.innerHTML = '';
+        const comparisons = [
+          { label:'Wins', jon:jonS.wins, jonny:jonnyS.wins },
+          { label:'Podiums', jon:jonS.podiums, jonny:jonnyS.podiums },
+          { label:'Points', jon:jonS.points, jonny:jonnyS.points },
+          { label:'Races', jon:jonS.races, jonny:jonnyS.races },
+        ];
+        comparisons.forEach(c => {
+          const max = Math.max(c.jon, c.jonny, 1);
+          const jonPct = (c.jon/max*100).toFixed(0);
+          const jonnyPct = (c.jonny/max*100).toFixed(0);
+          bars.innerHTML += `
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-blue-400 font-semibold">${c.jon}</span>
+                <span class="text-slate-400 text-xs uppercase">${c.label}</span>
+                <span class="text-red-400 font-semibold">${c.jonny}</span>
+              </div>
+              <div class="flex space-x-1">
+                <div class="flex-1 bg-slate-800 rounded-full overflow-hidden flex justify-end"><div class="stat-bar stat-bar-jon" style="width:${jonPct}%"></div></div>
+                <div class="flex-1 bg-slate-800 rounded-full overflow-hidden"><div class="stat-bar stat-bar-jonny" style="width:${jonnyPct}%"></div></div>
+              </div>
+            </div>`;
+        });
+
+        // Results table
+        const tbody = document.getElementById('results-table');
+        tbody.innerHTML = '';
+        const sorted = [...races].sort((a,b) => new Date(b.raceDate) - new Date(a.raceDate));
+        sorted.forEach(r => {
+          const isJon = r.driverId === 'jon_kirsch';
+          const tr = document.createElement('tr');
+          tr.className = 'border-b border-slate-800 hover:bg-slate-800/30';
+          tr.innerHTML = `
+            <td class="p-3 text-slate-300 whitespace-nowrap">${r.raceDate ? new Date(r.raceDate).toLocaleDateString() : '--'}</td>
+            <td class="p-3 text-white">${r.trackName||'--'}</td>
+            <td class="p-3"><span class="${isJon?'text-blue-400':'text-red-400'} font-semibold">${isJon?'Jon #8':'Jonny #88'}</span></td>
+            <td class="p-3 text-center text-slate-400">${r.startPosition||'--'}</td>
+            <td class="p-3 text-center font-bold ${r.finishPosition===1?'text-yellow-400':'text-white'}">${r.isDNF?'DNF':(r.finishPosition||'--')}</td>
+            <td class="p-3 text-center text-green-400 font-semibold">${r.points||0}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch(e) {
+        console.error('Stats error:', e);
+        loading.classList.add('hidden');
+        empty.classList.remove('hidden');
+      }
+    }
+
+    document.getElementById('season-select').addEventListener('change', e => loadStats(parseInt(e.target.value)));
+    loadStats(2026);
+  </script>
+  <script src="assets/js/cookie-consent.js"></script>
+</body>
+</html>

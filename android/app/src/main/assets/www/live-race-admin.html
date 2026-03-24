@@ -199,6 +199,16 @@
         </button>
     </div>
 
+    <!-- Live Commentary -->
+    <div class="control-panel">
+        <h3 class="text-xl font-bold text-white mb-4"><i class="fas fa-comment-dots mr-2 text-yellow-400"></i>Live Commentary</h3>
+        <label>Post an update for fans watching live</label>
+        <input type="text" id="commentaryText" placeholder="e.g., Jon passes for 2nd on the outside!" />
+        <button onclick="postCommentary()" class="big-button" style="background:linear-gradient(45deg,#f59e0b,#d97706);color:#000;">
+            <i class="fas fa-paper-plane mr-2"></i>POST COMMENTARY
+        </button>
+    </div>
+
     <!-- Quick Race Events -->
     <div class="control-panel">
         <h3 class="text-xl font-bold text-white mb-4">Quick Events</h3>
@@ -368,6 +378,24 @@
             } catch (error) {
                 console.error('Error posting update:', error);
                 alert('Failed to post update: ' + error.message);
+            }
+        }
+
+        async function postCommentary() {
+            const text = document.getElementById('commentaryText').value.trim();
+            if (!text) { alert('Please enter commentary text'); return; }
+            try {
+                await db.collection('live_race_updates').add({
+                    text: text,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    author: firebase.auth().currentUser?.email || 'admin'
+                });
+                document.getElementById('commentaryText').value = '';
+                addToLog('💬 Commentary: ' + text);
+                navigator.vibrate && navigator.vibrate(50);
+            } catch(e) {
+                console.error('Commentary error:', e);
+                alert('Failed to post: ' + e.message);
             }
         }
 

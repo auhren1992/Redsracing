@@ -140,9 +140,10 @@ struct ContentView: View {
     private func showRacingMenu() {
         overlayTitle = "Racing"
         overlayItems = [
+            .init(icon: "🔴", title: "Live Race", url: "https://redsracing.org/live.html"),
             .init(icon: "📅", title: "Schedule", url: "https://redsracing.org/schedule.html"),
+            .init(icon: "📊", title: "Season Stats", url: "https://redsracing.org/stats.html"),
             .init(icon: "🏆", title: "Leaderboard", url: "https://redsracing.org/leaderboard.html"),
-            .init(icon: "📸", title: "Gallery", url: "https://redsracing.org/gallery.html"),
             .init(icon: "🎥", title: "Videos", url: "https://redsracing.org/videos.html")
         ]
         withAnimation { showMenuOverlay = true }
@@ -151,11 +152,12 @@ struct ContentView: View {
     private func showCommunityMenu() {
         overlayTitle = "Community"
         overlayItems = [
+            .init(icon: "🏆", title: "Predictions", url: "https://redsracing.org/predictions.html"),
+            .init(icon: "❓", title: "Q&A", url: "https://redsracing.org/qna.html"),
+            .init(icon: "💬", title: "Feedback", url: "https://redsracing.org/feedback.html"),
             .init(icon: "ℹ️", title: "About Us", url: "https://redsracing.org/about.html"),
             .init(icon: "📞", title: "Contact", url: "https://redsracing.org/contact.html"),
             .init(icon: "📖", title: "Racing Guide", url: "https://redsracing.org/racing-guide.html"),
-            .init(icon: "❓", title: "Q&A", url: "https://redsracing.org/qna.html"),
-            .init(icon: "💬", title: "Feedback", url: "https://redsracing.org/feedback.html"),
             .init(icon: "💰", title: "Sponsorship", url: "https://redsracing.org/sponsorship.html")
         ]
         withAnimation { showMenuOverlay = true }

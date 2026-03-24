@@ -6,7 +6,7 @@
   (async function initAuthPersistence() {
     console.log('[RedsRacing Auth] ===== INIT STARTING =====');
     try {
-      // Check if Firebase compat app + auth are available (Android/iOS WebView)
+      // Check if Firebase compat is already loaded (Android/iOS WebView)
       const useCompat = typeof firebase !== 'undefined' && typeof firebase.auth === 'function';
       console.log('[RedsRacing Auth] Using Firebase compat:', useCompat);
       
@@ -675,14 +675,26 @@ const core = await import('./assets/js/firebase-core.js');
           console.log('[RedsRacing] Drivers desktop menu upgraded successfully');
         }
         if (label.includes('racing')) {
-          console.log('[RedsRacing] Processing Racing menu to remove gallery');
-          // Remove Gallery from Racing menu if present
-          try {
-            menu.querySelectorAll('a').forEach(a => {
-              const t = (a.textContent || '').toLowerCase();
-              if (t.includes('gallery')) a.remove();
-            });
-          } catch(_) {}
+          console.log('[RedsRacing] Upgrading Racing desktop menu');
+          menu.innerHTML = `
+            <a href="live.html" class="dropdown-item">🔴 Live Race</a>
+            <a href="schedule.html" class="dropdown-item">📅 Schedule</a>
+            <a href="stats.html" class="dropdown-item">📊 Season Stats</a>
+            <a href="leaderboard.html" class="dropdown-item">🏆 Leaderboard</a>
+            <a href="videos.html" class="dropdown-item">🎥 Videos</a>
+          `;
+        }
+        if (label.includes('community')) {
+          console.log('[RedsRacing] Upgrading Community desktop menu');
+          menu.innerHTML = `
+            <a href="predictions.html" class="dropdown-item">🏆 Predictions</a>
+            <a href="qna.html" class="dropdown-item">❓ Q&A</a>
+            <a href="feedback.html" class="dropdown-item">💬 Feedback</a>
+            <a href="about.html" class="dropdown-item">ℹ️ About Us</a>
+            <a href="contact.html" class="dropdown-item">📞 Contact</a>
+            <a href="racing-guide.html" class="dropdown-item">📖 Racing Guide</a>
+            <a href="sponsorship.html" class="dropdown-item">💰 Sponsorship</a>
+          `;
         }
       });
 
@@ -720,14 +732,26 @@ const core = await import('./assets/js/firebase-core.js');
             console.log('[RedsRacing] Drivers mobile menu upgraded successfully');
           }
           if (label.includes('racing')) {
-            console.log('[RedsRacing] Processing Racing mobile menu to remove gallery');
-            // Remove Gallery from Racing mobile panel
-            try {
-              content.querySelectorAll('a').forEach(a => {
-                const t = (a.textContent || '').toLowerCase();
-                if (t.includes('gallery')) a.remove();
-              });
-            } catch(_) {}
+            console.log('[RedsRacing] Upgrading Racing mobile menu');
+            content.innerHTML = `
+              <a href="live.html" class="mobile-nav-subitem">🔴 Live Race</a>
+              <a href="schedule.html" class="mobile-nav-subitem">📅 Schedule</a>
+              <a href="stats.html" class="mobile-nav-subitem">📊 Season Stats</a>
+              <a href="leaderboard.html" class="mobile-nav-subitem">🏆 Leaderboard</a>
+              <a href="videos.html" class="mobile-nav-subitem">🎥 Videos</a>
+            `;
+          }
+          if (label.includes('community')) {
+            console.log('[RedsRacing] Upgrading Community mobile menu');
+            content.innerHTML = `
+              <a href="predictions.html" class="mobile-nav-subitem">🏆 Predictions</a>
+              <a href="qna.html" class="mobile-nav-subitem">❓ Q&A</a>
+              <a href="feedback.html" class="mobile-nav-subitem">💬 Feedback</a>
+              <a href="about.html" class="mobile-nav-subitem">ℹ️ About Us</a>
+              <a href="contact.html" class="mobile-nav-subitem">📞 Contact</a>
+              <a href="racing-guide.html" class="mobile-nav-subitem">📖 Racing Guide</a>
+              <a href="sponsorship.html" class="mobile-nav-subitem">💰 Sponsorship</a>
+            `;
           }
         });
       }

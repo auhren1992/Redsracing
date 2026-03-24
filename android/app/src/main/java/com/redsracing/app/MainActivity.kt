@@ -245,9 +245,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun showRacingMenu() {
         val items = listOf(
+            MenuItem("🔴", "Live Race", "live.html"),
             MenuItem("📅", "Schedule", "schedule.html"),
+            MenuItem("📊", "Season Stats", "stats.html"),
             MenuItem("🏆", "Leaderboard", "leaderboard.html"),
-            MenuItem("📸", "Gallery", "gallery.html"),
             MenuItem("🎥", "Videos", "videos.html")
         )
         showMenuOverlay("Racing", items)
@@ -255,11 +256,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun showCommunityMenu() {
         val items = listOf(
-            MenuItem("📖", "Racing Guide", "racing-guide.html"),
-            MenuItem("📧", "Contact", "contact.html"),
-            MenuItem("ℹ️", "About Us", "about.html"),
+            MenuItem("🏆", "Predictions", "predictions.html"),
             MenuItem("❓", "Q&A", "qna.html"),
             MenuItem("💬", "Feedback", "feedback.html"),
+            MenuItem("ℹ️", "About Us", "about.html"),
+            MenuItem("📞", "Contact", "contact.html"),
+            MenuItem("📖", "Racing Guide", "racing-guide.html"),
             MenuItem("💰", "Sponsorship", "sponsorship.html")
         )
         showMenuOverlay("Community", items)
