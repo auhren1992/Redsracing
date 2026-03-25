@@ -1,6 +1,7 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseMessaging
+import FirebaseFirestore
 import UIKit
 import UserNotifications
 
@@ -45,6 +46,28 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         }
         print("FCM registration token: \(token)")
         subscribeToDefaultTopics()
+        reportAppUsage(fcmToken: token)
+    }
+
+    private func reportAppUsage(fcmToken: String) {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
+        let usageData: [String: Any] = [
+            "platform": "ios",
+            "app_version": Int(build) ?? 0,
+            "app_version_name": version,
+            "fcm_token": fcmToken,
+            "device_model": UIDevice.current.model,
+            "ios_version": UIDevice.current.systemVersion,
+            "last_seen": Timestamp()
+        ]
+        Firestore.firestore().collection("app_usage").document(fcmToken).setData(usageData) { error in
+            if let error = error {
+                print("Failed to report app usage: \(error.localizedDescription)")
+            } else {
+                print("App usage reported successfully")
+            }
+        }
     }
 
     private func subscribeToDefaultTopics() {
