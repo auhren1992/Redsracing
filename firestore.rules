@@ -229,6 +229,34 @@ service cloud.firestore {
       allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
       allow delete: if hasRole('admin') || hasProfileRole('admin');
     }
+
+    // Configuration history / change tracking
+    match /config_history/{historyId} {
+      allow create: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+
+    // Security events captured from admin actions and suspicious flows
+    match /security_events/{eventId} {
+      allow create: if true;
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow update, delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+
+    // Persisted health check snapshots
+    match /health_checks/{checkId} {
+      allow create: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+
+    // Active admin alerts derived from health/security checks
+    match /admin_alerts/{alertId} {
+      allow create, update: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
     
     // Live race updates
     match /live_race/{document} {

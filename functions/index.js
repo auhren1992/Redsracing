@@ -31,6 +31,31 @@ const cors = require("cors")({ origin: true });
 // Initialize Firebase Admin SDK
 initializeApp({ storageBucket: "redsracing-a7f8b.firebasestorage.app" });
 
+async function writeAdminLog(payload = {}) {
+  try {
+    const db = getFirestore();
+    await db.collection("admin_logs").add({
+      ...payload,
+      timestamp: FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    logger.warn("Failed to write admin log", error);
+  }
+}
+
+async function writeSecurityEvent(payload = {}) {
+  try {
+    const db = getFirestore();
+    await db.collection("security_events").add({
+      severity: "info",
+      ...payload,
+      timestamp: FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    logger.warn("Failed to write security event", error);
+  }
+}
+
 /**
  * Processes an invitation code upon user signup.
  *
@@ -90,6 +115,13 @@ exports.processInvitationCode = onCall({ secrets: ["SENTRY_DSN"] }, async (reque
 
     if (!codeDoc.exists) {
       logger.warn(`Invitation code '${code}' not found for user ${uid}.`);
+      await writeSecurityEvent({
+        type: "invitation_code_invalid",
+        severity: "warning",
+        code,
+        targetUid: uid,
+        actorUid: request.auth.uid,
+      });
       // Grant a default role if the code is invalid, to avoid confusion.
       await auth.setCustomUserClaims(uid, { role: "public-fan" });
       return { status: "error", message: "Invalid invitation code." };
@@ -108,6 +140,13 @@ exports.processInvitationCode = onCall({ secrets: ["SENTRY_DSN"] }, async (reque
     const now = new Date();
     if (codeData.expiresAt && codeData.expiresAt.toDate() < now) {
       logger.warn(`Expired invitation code '${code}' used by ${uid}.`);
+      await writeSecurityEvent({
+        type: "invitation_code_expired",
+        severity: "warning",
+        code,
+        targetUid: uid,
+        actorUid: request.auth.uid,
+      });
       return { status: "error", message: "This invitation code has expired." };
     }
 
@@ -115,6 +154,14 @@ exports.processInvitationCode = onCall({ secrets: ["SENTRY_DSN"] }, async (reque
       logger.warn(
         `Already used invitation code '${code}' attempted by ${uid}.`,
       );
+      await writeSecurityEvent({
+        type: "invitation_code_reused",
+        severity: "warning",
+        code,
+        targetUid: uid,
+        actorUid: request.auth.uid,
+        usedBy: codeData.usedBy || null,
+      });
       return {
         status: "error",
         message: "This invitation code has already been used.",
@@ -145,6 +192,14 @@ exports.processInvitationCode = onCall({ secrets: ["SENTRY_DSN"] }, async (reque
     logger.info(
       `Set role '${roleToAssign}' in user's public profile (users/${uid}).`,
     );
+    await writeSecurityEvent({
+      type: "invitation_code_role_assigned",
+      severity: roleToAssign === "admin" ? "high" : "info",
+      code,
+      targetUid: uid,
+      role: roleToAssign,
+      actorUid: request.auth.uid,
+    });
 
     // 6. Award the "Community Member" achievement to get them on the leaderboard
     const achievementData = {
@@ -1282,6 +1337,8 @@ exports.setUserRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
   const auth = getAuth();
   const db = getFirestore();
   const results = [];
+  const actorUid = request.auth.uid;
+  const actorEmail = request.auth.token?.email || null;
   for (const raw of list) {
     const email = String(raw || '').trim();
     if (!email) continue;
@@ -1289,6 +1346,23 @@ exports.setUserRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
       const userRecord = await auth.getUserByEmail(email);
       await auth.setCustomUserClaims(userRecord.uid, { role });
       await db.collection('users').doc(userRecord.uid).set({ role }, { merge: true });
+      await writeAdminLog({
+        action: "user_role_changed",
+        actorUid,
+        actorEmail,
+        targetUid: userRecord.uid,
+        targetEmail: email,
+        role,
+      });
+      await writeSecurityEvent({
+        type: "role_change",
+        severity: role === "admin" ? "high" : "info",
+        actorUid,
+        actorEmail,
+        targetUid: userRecord.uid,
+        targetEmail: email,
+        role,
+      });
       results.push({ email, uid: userRecord.uid, status: 'ok' });
     } catch (e) {
       results.push({ email, error: e?.message || String(e) });
@@ -1314,6 +1388,8 @@ exports.createInvitationCodes = onCall({ secrets: ["SENTRY_DSN"] }, async (reque
   if (!role) throw new HttpsError('invalid-argument', "'role' is required");
   const db = getFirestore();
   const out = [];
+  const actorUid = request.auth.uid;
+  const actorEmail = request.auth.token?.email || null;
   const gen = (n=10)=>{
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let s=''; for (let i=0;i<n;i++) s+=chars[Math.floor(Math.random()*chars.length)];
@@ -1336,6 +1412,24 @@ exports.createInvitationCodes = onCall({ secrets: ["SENTRY_DSN"] }, async (reque
       out.push({ code: id, error: e?.message || String(e) });
     }
   }
+  const createdCount = out.filter((item) => !item.error).length;
+  await writeAdminLog({
+    action: "invitation_codes_created",
+    actorUid,
+    actorEmail,
+    role,
+    count: createdCount,
+    prefix: prefix || null,
+  });
+  await writeSecurityEvent({
+    type: "invitation_codes_created",
+    severity: role === "admin" ? "high" : "info",
+    actorUid,
+    actorEmail,
+    role,
+    count: createdCount,
+    prefix: prefix || null,
+  });
   return { status: 'done', created: out };
 });
 
