@@ -483,16 +483,18 @@ class MainActivity : AppCompatActivity() {
                                 label.style.opacity = '1';
                                 label.style.color = '#ffffff';
                             });
-                            // Show admin sidebar on mobile for admin-console page
+                            // Admin console: hide sidebar, show mobile nav grid
                             if (window.location.href.indexOf('admin-console') !== -1) {
                                 var sidebar = document.querySelector('.sidebar-nav');
                                 if (sidebar) {
-                                    sidebar.classList.remove('hidden', 'lg:block');
-                                    sidebar.style.display = 'block';
-                                    sidebar.style.position = 'relative';
-                                    sidebar.style.width = '100%';
+                                    sidebar.style.display = 'none';
                                 }
-                                // Make the layout stack vertically on mobile
+                                // Ensure mobile nav grid is visible
+                                var mobileNav = document.querySelector('.mobile-admin-nav');
+                                if (mobileNav) {
+                                    mobileNav.style.display = 'block';
+                                }
+                                // Make the layout stack vertically
                                 var flexContainer = document.querySelector('.flex.min-h-screen');
                                 if (flexContainer) {
                                     flexContainer.style.flexDirection = 'column';

@@ -731,79 +731,109 @@
       <!-- Main Content -->
       <main class="flex-1 overflow-hidden">
         <!-- Mobile Navigation Grid -->
-        <div class="md:hidden bg-slate-900/80 border-b border-white/10 p-3">
+        <div class="md:hidden bg-slate-900/80 border-b border-white/10 p-3 mobile-admin-nav">
           <!-- Quick access row -->
           <div class="flex space-x-2 mb-3">
             <a href="#overview" class="mobile-tab-btn flex-1 py-2 rounded-lg text-xs font-bold text-center bg-blue-600 text-white">Overview</a>
             <a href="live-race-admin.html" class="flex-1 py-2 rounded-lg text-xs font-bold text-center bg-gradient-to-r from-red-600 to-orange-600 text-white"><i class="fas fa-broadcast-tower mr-1 animate-pulse"></i>Live</a>
             <a href="push-notifications.html" class="flex-1 py-2 rounded-lg text-xs font-bold text-center bg-gradient-to-r from-orange-600 to-amber-600 text-white"><i class="fas fa-bell mr-1"></i>Notify</a>
           </div>
-          <!-- Icon grid -->
-          <div class="grid grid-cols-4 gap-2">
-            <a href="#schedule-mgmt" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-calendar-alt text-green-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Schedule</div>
-            </a>
-            <a href="#race" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-flag-checkered text-yellow-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Results</div>
-            </a>
-            <a href="#media" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-photo-video text-purple-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Media</div>
-            </a>
-            <a href="#videos" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-video text-pink-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Videos</div>
-            </a>
-            <a href="#qna" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-comments text-cyan-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Q&A</div>
-            </a>
-            <a href="#fanwall" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-bullhorn text-orange-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Fan Wall</div>
-            </a>
-            <a href="#analytics" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-chart-line text-emerald-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Analytics</div>
-            </a>
-            <a href="#health" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-heartbeat text-emerald-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Health</div>
-            </a>
-            <a href="#advanced" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-user-shield text-yellow-300 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Roles</div>
-            </a>
-            <a href="#logs" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-bug text-red-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Logs</div>
-            </a>
-            <a href="settings.html" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-cog text-slate-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Settings</div>
-            </a>
-            <a href="#inbox" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-inbox text-cyan-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Inbox</div>
-            </a>
-            <a href="#raceday" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-flag text-red-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Race Day</div>
-            </a>
-            <a href="#audit" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-history text-amber-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Audit</div>
-            </a>
-            <a href="#data-quality" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-check-double text-teal-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Quality</div>
-            </a>
-            <a href="#releases" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-rocket text-indigo-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Releases</div>
-            </a>
+          <!-- Categorized navigation -->
+          <div class="space-y-2 mobile-nav-categories">
+            <!-- Dashboard -->
+            <div>
+              <div class="text-[9px] uppercase tracking-widest text-slate-500 font-bold px-1 mb-1">Dashboard</div>
+              <div class="grid grid-cols-3 gap-1.5">
+                <a href="#analytics" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-chart-line text-emerald-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Analytics</span>
+                </a>
+                <a href="#health" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-heartbeat text-emerald-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Health</span>
+                </a>
+              </div>
+            </div>
+            <!-- Racing -->
+            <div>
+              <div class="text-[9px] uppercase tracking-widest text-slate-500 font-bold px-1 mb-1">Racing</div>
+              <div class="grid grid-cols-3 gap-1.5">
+                <a href="#schedule-mgmt" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-calendar-alt text-green-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Schedule</span>
+                </a>
+                <a href="#race" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-flag-checkered text-yellow-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Results</span>
+                </a>
+              </div>
+            </div>
+            <!-- Content -->
+            <div>
+              <div class="text-[9px] uppercase tracking-widest text-slate-500 font-bold px-1 mb-1">Content</div>
+              <div class="grid grid-cols-3 gap-1.5">
+                <a href="#media" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-photo-video text-purple-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Media</span>
+                </a>
+                <a href="#videos" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-video text-pink-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Videos</span>
+                </a>
+                <a href="#qna" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-comments text-cyan-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Q&A</span>
+                </a>
+                <a href="#fanwall" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-bullhorn text-orange-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Fan Wall</span>
+                </a>
+              </div>
+            </div>
+            <!-- Operations -->
+            <div>
+              <div class="text-[9px] uppercase tracking-widest text-slate-500 font-bold px-1 mb-1">Operations</div>
+              <div class="grid grid-cols-3 gap-1.5">
+                <a href="#inbox" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-inbox text-cyan-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Inbox</span>
+                </a>
+                <a href="#raceday" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-flag text-red-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Race Day</span>
+                </a>
+                <a href="#audit" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-history text-amber-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Audit</span>
+                </a>
+                <a href="#data-quality" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-check-double text-teal-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Quality</span>
+                </a>
+                <a href="#releases" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-rocket text-indigo-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Releases</span>
+                </a>
+              </div>
+            </div>
+            <!-- Admin -->
+            <div>
+              <div class="text-[9px] uppercase tracking-widest text-slate-500 font-bold px-1 mb-1">Admin</div>
+              <div class="grid grid-cols-3 gap-1.5">
+                <a href="#advanced" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-user-shield text-yellow-300 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Roles</span>
+                </a>
+                <a href="#logs" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-bug text-red-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Logs</span>
+                </a>
+                <a href="settings.html" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg px-2 py-1.5 flex items-center space-x-2 hover:border-yellow-400/30 transition">
+                  <i class="fas fa-cog text-slate-400 text-sm"></i>
+                  <span class="text-[11px] text-slate-300 truncate">Settings</span>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
