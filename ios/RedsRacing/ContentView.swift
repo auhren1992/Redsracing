@@ -387,7 +387,17 @@ struct WebView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
-        if uiView.url != url { uiView.load(URLRequest(url: url)) }
+        // Compare URLs without fragment (#hash) to prevent reload loops
+        // from hash-based routing (e.g., admin-console.html#overview)
+        func stripFragment(_ u: URL?) -> String {
+            guard let u = u else { return "" }
+            var comp = URLComponents(url: u, resolvingAgainstBaseURL: false)
+            comp?.fragment = nil
+            return comp?.url?.absoluteString ?? u.absoluteString
+        }
+        if stripFragment(uiView.url) != stripFragment(url) {
+            uiView.load(URLRequest(url: url))
+        }
     }
 
     class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
@@ -419,17 +429,21 @@ struct WebView: UIViewRepresentable {
                     });
                     // Show admin sidebar on mobile for admin-console page
                     if (window.location.href.indexOf('admin-console') !== -1) {
-                        var sidebar = document.querySelector('.sidebar-nav');
-                        if (sidebar) {
-                            sidebar.classList.remove('hidden', 'lg:block');
-                            sidebar.style.display = 'block';
-                            sidebar.style.position = 'relative';
-                            sidebar.style.width = '100%';
+                        function applyAdminMobileLayout() {
+                            var sidebar = document.querySelector('.sidebar-nav');
+                            if (sidebar) {
+                                sidebar.classList.remove('hidden', 'lg:block');
+                                sidebar.style.cssText = 'display:block !important;position:relative !important;width:100% !important;';
+                            }
+                            var flexContainer = document.querySelector('.flex.min-h-screen');
+                            if (flexContainer) {
+                                flexContainer.style.cssText += 'flex-direction:column !important;';
+                            }
                         }
-                        var flexContainer = document.querySelector('.flex.min-h-screen');
-                        if (flexContainer) {
-                            flexContainer.style.flexDirection = 'column';
-                        }
+                        applyAdminMobileLayout();
+                        // Re-apply after page JS runs to prevent layout fights
+                        setTimeout(applyAdminMobileLayout, 600);
+                        setTimeout(applyAdminMobileLayout, 2500);
                     }
                   }, 100);
                 })();
