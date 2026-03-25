@@ -106,6 +106,18 @@ jobs:
           echo "Archive created successfully:"
           ls -la "$PWD/build/RedsRacing.xcarchive"
 
+      - name: Show effective iOS versions
+        working-directory: ios
+        run: |
+          echo "Release build settings:"
+          xcodebuild -workspace RedsRacing.xcworkspace \
+            -scheme RedsRacing \
+            -configuration Release \
+            -showBuildSettings | grep -E "CURRENT_PROJECT_VERSION|MARKETING_VERSION"
+          echo "Archived app Info.plist versions:"
+          /usr/libexec/PlistBuddy -c "Print :ApplicationProperties:CFBundleShortVersionString" "$PWD/build/RedsRacing.xcarchive/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print :ApplicationProperties:CFBundleVersion" "$PWD/build/RedsRacing.xcarchive/Info.plist"
+
       - name: Export IPA
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
