@@ -8,7 +8,7 @@ struct ContentView: View {
     @State private var showMenuOverlay = false
     @State private var overlayTitle = ""
     @State private var overlayItems: [MenuItem] = []
-    @State private var currentURL: URL = URL(string: "https://redsracing.org")!
+    @State private var currentURL: URL = URL(string: "https://redsracing.org/signup.html")!
     @State private var webViewRef: WKWebView? = nil
 
     var body: some View {

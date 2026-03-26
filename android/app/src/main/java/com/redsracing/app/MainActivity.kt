@@ -232,12 +232,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun showDriversMenu() {
         val items = listOf(
-            MenuItem("🏎️", "Jon Kirsch #8 - Profile", "driver.html"),
-            MenuItem("📸", "Jon Kirsch #8 - Gallery", "gallery.html"),
-            MenuItem("📊", "Jon Kirsch #8 - Race Results", "jons.html"),
-            MenuItem("🏎️", "Jonny Kirsch #88 - Profile", "jonny.html"),
-            MenuItem("📸", "Jonny Kirsch #88 - Gallery", "jonny-gallery.html"),
-            MenuItem("📊", "Jonny Kirsch #88 - Results", "jonny-results.html"),
+            MenuItem("", "Jon Kirsch #8", "", isHeader = true),
+            MenuItem("👤", "Profile", "driver.html"),
+            MenuItem("📸", "Gallery", "gallery.html"),
+            MenuItem("📊", "Race Results", "jons.html"),
+            MenuItem("", "Jonny Kirsch #88", "", isHeader = true),
+            MenuItem("👤", "Profile", "jonny.html"),
+            MenuItem("📸", "Gallery", "jonny-gallery.html"),
+            MenuItem("📊", "Race Results", "jonny-results.html"),
+            MenuItem("", "Team", "", isHeader = true),
             MenuItem("🏆", "Team Legends", "legends.html")
         )
         showMenuOverlay("Drivers", items)
@@ -245,11 +248,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun showRacingMenu() {
         val items = listOf(
+            MenuItem("", "Live", "", isHeader = true),
             MenuItem("🔴", "Live Race", "live.html"),
+            MenuItem("", "Season", "", isHeader = true),
             MenuItem("📅", "Schedule", "schedule.html"),
             MenuItem("📊", "Season Stats", "stats.html"),
             MenuItem("🏁", "Race Recaps", "recaps.html"),
             MenuItem("🏆", "Leaderboard", "leaderboard.html"),
+            MenuItem("", "Media", "", isHeader = true),
             MenuItem("🗺️", "Track Guides", "tracks.html"),
             MenuItem("🎥", "Videos", "videos.html")
         )
@@ -258,10 +264,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun showCommunityMenu() {
         val items = listOf(
+            MenuItem("", "Interact", "", isHeader = true),
             MenuItem("🏆", "Predictions", "predictions.html"),
             MenuItem("📣", "Fan Wall", "fan-wall.html"),
             MenuItem("❓", "Q&A", "qna.html"),
             MenuItem("💬", "Feedback", "feedback.html"),
+            MenuItem("", "Info", "", isHeader = true),
             MenuItem("ℹ️", "About Us", "about.html"),
             MenuItem("📞", "Contact", "contact.html"),
             MenuItem("📖", "Racing Guide", "racing-guide.html"),
@@ -280,16 +288,21 @@ class MainActivity : AppCompatActivity() {
             val isAdmin = clean.contains("\"r\":\"admin\"")
             
             val items = mutableListOf<MenuItem>()
+            items.add(MenuItem("", "Account", "", isHeader = true))
             items.add(MenuItem("👤", "My Profile", "profile.html"))
             
             if (isLoggedIn) {
                 if (isAdmin) {
+                    items.add(MenuItem("", "Admin", "", isHeader = true))
                     items.add(MenuItem("📊", "Admin Console", "admin-console.html"))
                 }
+                items.add(MenuItem("", "", "", isHeader = true))
                 items.add(MenuItem("⚙️", "Settings", "settings.html"))
                 items.add(MenuItem("🚪", "Sign Out", "javascript:logout"))
             } else {
+                items.add(MenuItem("", "Get Started", "", isHeader = true))
                 items.add(MenuItem("🔐", "Sign In", "login.html"))
+                items.add(MenuItem("✏️", "Create Account", "signup.html"))
                 items.add(MenuItem("⚙️", "Settings", "settings.html"))
             }
             
@@ -761,10 +774,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAuthAndRoute() {
-        // Always start at index and let web Firebase auth/local persistence decide session state.
-        // Native FirebaseAuth state is separate from WebView Firebase auth and should not route here.
-        android.util.Log.d("MainActivity", "Loading index route and deferring auth state to WebView Firebase")
-        binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
+        // Start at login page so users see sign-in / create-account first.
+        // guest-gate.js + login-page.js handle auto-redirect for already-authenticated users.
+        android.util.Log.d("MainActivity", "Loading login route — guest-gate handles auth redirect")
+        binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/signup.html")
     }
     
     private fun showUpdateDialog(isForced: Boolean, latestVersion: Int) {
@@ -810,29 +823,63 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-data class MenuItem(val icon: String, val title: String, val url: String)
+data class MenuItem(val icon: String, val title: String, val url: String, val isHeader: Boolean = false)
 
 class MenuAdapter(
     private val items: List<MenuItem>,
     private val onClick: (MenuItem) -> Unit
-) : RecyclerView.Adapter<MenuAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    companion object {
+        private const val TYPE_HEADER = 0
+        private const val TYPE_ITEM = 1
+    }
+
+    class ItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val icon: TextView = view.findViewById(R.id.item_icon)
         val title: TextView = view.findViewById(R.id.item_title)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.menu_item_card, parent, false)
-        return ViewHolder(view)
+    class HeaderViewHolder(val textView: TextView) : RecyclerView.ViewHolder(textView)
+
+    override fun getItemViewType(position: Int): Int {
+        return if (items[position].isHeader) TYPE_HEADER else TYPE_ITEM
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == TYPE_HEADER) {
+            val tv = TextView(parent.context).apply {
+                layoutParams = ViewGroup.MarginLayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topMargin = 16
+                    bottomMargin = 4
+                }
+                setPadding(4, 0, 0, 0)
+                setTextColor(0xFF64748b.toInt())
+                textSize = 11f
+                isAllCaps = true
+                letterSpacing = 0.08f
+                typeface = android.graphics.Typeface.DEFAULT_BOLD
+            }
+            HeaderViewHolder(tv)
+        } else {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.menu_item_card, parent, false)
+            ItemViewHolder(view)
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = items[position]
-        holder.icon.text = item.icon
-        holder.title.text = item.title
-        holder.itemView.setOnClickListener { onClick(item) }
+        if (holder is HeaderViewHolder) {
+            holder.textView.text = item.title
+        } else if (holder is ItemViewHolder) {
+            holder.icon.text = item.icon
+            holder.title.text = item.title
+            holder.itemView.setOnClickListener { onClick(item) }
+        }
     }
 
     override fun getItemCount() = items.size

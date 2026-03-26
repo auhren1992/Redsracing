@@ -15,6 +15,15 @@
     />
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/input-fix.css" />
+    <script src="assets/js/guest-gate.js"></script>
+    <script>
+      // Already logged in — skip signup entirely
+      try {
+        if (localStorage.getItem('rr_auth_uid')) {
+          window.location.replace('team.html');
+        }
+      } catch(_) {}
+    </script>
   </head>
   <body class="flex items-center justify-center min-h-screen p-4 signup-page-bg">
     <div class="w-full max-w-md signup-container">

@@ -523,8 +523,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
     const rt = params.get('returnTo');
     const safeReturnTo = rt ? validateRedirectUrl(rt, null) : null;
+
+    // Already logged in — skip login page entirely
+    if (localStorage.getItem('rr_auth_uid')) {
+      console.info("[Login] User already authenticated, redirecting...");
+      navigateToInternal(safeReturnTo || '/team.html');
+      return;
+    }
+
+    // Guest flag set with a return target — go straight there
     if (localStorage.getItem('rr_guest_ok') === '1' && safeReturnTo) {
-      // If guest flag is set, immediately route to returnTo
       navigateToInternal(safeReturnTo);
       return;
     }
