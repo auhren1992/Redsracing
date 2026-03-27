@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - RedsRacing #8</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="assets/js/guest-gate.js"></script>
+    <script src="assets/js/role-theme.js"></script>
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box}
+      body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0a0e17 0%,#1a1f2e 50%,#0a0e17 100%);color:#fff;min-height:100vh;overflow-x:hidden}
+      .bg-anim{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+      .bg-blob{position:absolute;border-radius:50%;filter:blur(100px);opacity:.12;animation:bfloat 25s ease-in-out infinite}
+      .b1{width:500px;height:500px;top:-200px;left:-200px;background:radial-gradient(circle,var(--rr-accent,#fbbf24),transparent)}
+      .b2{width:400px;height:400px;bottom:-150px;right:-150px;background:radial-gradient(circle,var(--rr-accent-dark,#f59e0b),transparent);animation-delay:12s}
+      @keyframes bfloat{0%,100%{transform:translate(0,0)}50%{transform:translate(80px,-80px)}}
+      .grid-bg{position:fixed;top:0;left:0;width:100%;height:100%;background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:50px 50px;z-index:1;pointer-events:none}
+      header{position:relative;z-index:100;background:rgba(10,14,23,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
+      nav{max-width:1200px;margin:0 auto;padding:.6rem 1.5rem;display:flex;justify-content:space-between;align-items:center}
+      .logo{font-family:'Racing Sans One',cursive;font-size:1.4rem;letter-spacing:.1em;text-decoration:none}
+      .logo-b{background:linear-gradient(45deg,#3b82f6,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+      .logo-y{background:linear-gradient(45deg,#fbbf24,#fde047);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+      .nav-r{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
+      .nav-r a{color:rgba(255,255,255,.65);text-decoration:none;font-weight:600;font-size:.8rem;transition:color .3s}
+      .nav-r a:hover{color:var(--rr-accent,#fbbf24)}
+      .rbadge{display:inline-flex;align-items:center;gap:.35rem;padding:.2rem .6rem;border-radius:2rem;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--rr-accent-dim,rgba(251,191,36,.15));background:var(--rr-accent-bg,rgba(251,191,36,.05));color:var(--rr-accent,#fbbf24)}
+      .lbtn{background:linear-gradient(45deg,#ef4444,#dc2626);color:#fff;padding:.35rem .8rem;border-radius:.5rem;border:none;font-weight:700;font-size:.8rem;cursor:pointer;transition:transform .2s}
+      .lbtn:hover{transform:translateY(-1px)}
+      main{position:relative;z-index:10;max-width:1200px;margin:0 auto;padding:2rem 1.5rem}
+      .wsec{text-align:center;margin-bottom:2rem}
+      .wtitle{font-family:'Racing Sans One',cursive;font-size:clamp(1.6rem,4vw,2.8rem);margin-bottom:.2rem;letter-spacing:.05em;text-transform:uppercase;background:linear-gradient(45deg,var(--rr-accent,#fbbf24),var(--rr-accent-light,#fde047));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+      .wsub{color:rgba(255,255,255,.45);font-size:.9rem}
+      .uemail{color:var(--rr-accent,#fbbf24);font-weight:700}
+      .dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.25rem}
+      .crd{background:rgba(15,23,42,.55);backdrop-filter:blur(16px);border:1px solid var(--rr-accent-dim,rgba(251,191,36,.15));border-radius:1rem;padding:1.5rem;transition:transform .3s,border-color .3s}
+      .crd:hover{transform:translateY(-3px);border-color:var(--rr-accent-mid,rgba(251,191,36,.4))}
+      .ch{display:flex;align-items:center;gap:.7rem;margin-bottom:1rem}
+      .ci{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:linear-gradient(45deg,var(--rr-accent,#fbbf24),var(--rr-accent-dark,#f59e0b));border-radius:.65rem;font-size:1.1rem;color:#0a0e17}
+      .ct{font-family:'Racing Sans One',cursive;font-size:1.15rem;text-transform:uppercase;letter-spacing:.05em;color:var(--rr-accent,#fbbf24)}
+      .cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-top:.75rem}
+      .citem{text-align:center;background:var(--rr-accent-bg,rgba(251,191,36,.05));border:1px solid var(--rr-accent-dim,rgba(251,191,36,.15));border-radius:.65rem;padding:.6rem .2rem}
+      .cnum{font-family:'Racing Sans One',cursive;font-size:1.8rem;color:var(--rr-accent,#fbbf24);line-height:1;margin-bottom:.15rem}
+      .clab{font-size:.6rem;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+      .rn{font-size:1rem;font-weight:700;color:#fff;margin-bottom:.15rem}
+      .rt{color:rgba(255,255,255,.45);font-size:.85rem}
+      .qlinks{display:grid;gap:.6rem}
+      .ql{display:flex;align-items:center;gap:.7rem;padding:.65rem .9rem;background:var(--rr-accent-bg,rgba(251,191,36,.05));border:1px solid var(--rr-accent-dim,rgba(251,191,36,.15));border-radius:.65rem;text-decoration:none;color:#fff;transition:all .3s}
+      .ql:hover{background:rgba(255,255,255,.04);border-color:var(--rr-accent-mid);transform:translateX(3px)}
+      .qi{width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:linear-gradient(45deg,var(--rr-accent),var(--rr-accent-dark));border-radius:.5rem;font-size:.95rem;color:#0a0e17;flex-shrink:0}
+      .qlt{font-weight:700;font-size:.85rem}
+      .qld{font-size:.7rem;color:rgba(255,255,255,.45)}
+      .ldg{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem}
+      .spn{width:50px;height:50px;border:3px solid var(--rr-accent-dim);border-top-color:var(--rr-accent);border-radius:50%;animation:spin 1s linear infinite}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      .hid{display:none!important}
+      @media(max-width:640px){nav{flex-direction:column;gap:.5rem}.nav-r{justify-content:center}.cgrid{grid-template-columns:repeat(2,1fr)}.cnum{font-size:1.4rem}}
+    </style>
+  </head>
+  <body class="theme-fan">
+    <div class="bg-anim"><div class="bg-blob b1"></div><div class="bg-blob b2"></div></div>
+    <div class="grid-bg"></div>
+    <header>
+      <nav>
+        <a href="team.html" class="logo"><span class="logo-b">Reds</span><span class="logo-y">Racing</span></a>
+        <div class="nav-r">
+          <span class="rbadge rr-role-badge"><i class="fas fa-flag-checkered"></i> Racing Fan</span>
+          <a href="team.html">Home</a>
+          <a href="schedule.html">Schedule</a>
+          <a href="gallery.html">Gallery</a>
+          <a href="profile.html">Profile</a>
+          <button id="logout-btn" class="lbtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+      </nav>
+    </header>
+    <main>
+      <div id="loading" class="ldg"><div class="spn"></div><div style="font-family:'Racing Sans One',cursive;font-size:1.15rem;letter-spacing:.1em;text-transform:uppercase;color:var(--rr-accent);">Loading Dashboard...</div></div>
+      <div id="dash" class="hid">
+        <div class="wsec">
+          <h1 id="wtitle" class="wtitle">Welcome Back!</h1>
+          <p class="wsub">Signed in as <span id="uemail" class="uemail"></span></p>
+        </div>
+        <div id="dgrid" class="dgrid"></div>
+      </div>
+    </main>
+    <script>
+      firebase.initializeApp({apiKey:"AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",authDomain:"redsracing-a7f8b.firebaseapp.com",projectId:"redsracing-a7f8b",storageBucket:"redsracing-a7f8b.firebasestorage.app",messagingSenderId:"517034606151",appId:"1:517034606151:web:24cae262e1d98832757b62"});
+      var auth=firebase.auth(),db=firebase.firestore(),ci;
+
+      document.getElementById('logout-btn').addEventListener('click',async function(){
+        try{localStorage.removeItem('rr_auth_uid');localStorage.removeItem('rr_user_role');localStorage.removeItem('rr_signup_role');}catch(_){}
+        try{await auth.signOut();}catch(_){}
+        window.location.href='signup.html';
+      });
+
+      function startCD(rd,rn,rt){
+        document.getElementById('rn').textContent=rn;
+        document.getElementById('rt').textContent=rt;
+        if(ci)clearInterval(ci);
+        ci=setInterval(function(){
+          var d=rd-Date.now();
+          if(d<0){clearInterval(ci);document.getElementById('cdg').innerHTML='<div style="grid-column:1/-1;font-size:1.8rem;font-family:Racing Sans One,cursive;color:var(--rr-accent);">RACE DAY!</div>';return;}
+          document.getElementById('cdd').textContent=Math.floor(d/864e5);
+          document.getElementById('cdh').textContent=Math.floor((d%864e5)/36e5);
+          document.getElementById('cdm').textContent=Math.floor((d%36e5)/6e4);
+          document.getElementById('cds').textContent=Math.floor((d%6e4)/1e3);
+        },1000);
+      }
+
+      async function loadRace(){
+        try{
+          var today=new Date();today.setHours(0,0,0,0);
+          var snap=await db.collection('races').where('season','==',2026).orderBy('date','asc').get();
+          var nr=null;
+          snap.forEach(function(d){var r=d.data();if(r.date&&!nr){var rd=new Date(r.date+'T00:00:00');if(rd>=today)nr=r;}});
+          if(nr){startCD(new Date(nr.date+'T19:00:00').getTime(),nr.name||nr.eventName||'Upcoming Race',nr.track||'');}
+          else{document.getElementById('rn').textContent='Season Complete!';document.getElementById('rt').textContent='';document.getElementById('cdg').innerHTML='<div style="grid-column:1/-1;font-size:1.1rem;font-style:italic;color:rgba(255,255,255,.45);">Thanks for a great season!</div>';}
+        }catch(e){console.error('Race load error:',e);}
+      }
+
+      var CARDS={
+        fan:[
+          {icon:'fa-flag-checkered',title:'Next Race',race:true},
+          {icon:'fa-rocket',title:'Fan Zone',links:[
+            {h:'schedule.html',i:'fa-calendar-alt',t:'Race Schedule',d:'View all 2026 races'},
+            {h:'gallery.html',i:'fa-images',t:'Photo Gallery',d:'Latest race photos'},
+            {h:'videos.html',i:'fa-play-circle',t:'Race Highlights',d:'Watch the action'},
+            {h:'leaderboard.html',i:'fa-trophy',t:'Leaderboard',d:'2026 standings'}
+          ]},
+          {icon:'fa-users',title:'Community',links:[
+            {h:'fan-wall.html',i:'fa-bullhorn',t:'Fan Wall',d:'Shoutouts & support'},
+            {h:'predictions.html',i:'fa-star',t:'Predictions',d:'Predict race outcomes'},
+            {h:'qna.html',i:'fa-comments',t:'Q&A',d:'Ask the team'},
+            {h:'sponsorship.html',i:'fa-handshake',t:'Become a Sponsor',d:'Support the team'}
+          ]}
+        ],
+        racer:[
+          {icon:'fa-flag-checkered',title:'Next Race',race:true},
+          {icon:'fa-tachometer-alt',title:'Driver Tools',links:[
+            {h:'schedule.html',i:'fa-calendar-alt',t:'Race Schedule',d:'Upcoming events'},
+            {h:'live.html',i:'fa-broadcast-tower',t:'Live Race',d:'Go live on race day'},
+            {h:'jonny-results.html',i:'fa-chart-bar',t:'My Results',d:'Season stats & lap times'},
+            {h:'leaderboard.html',i:'fa-trophy',t:'Standings',d:'Championship points'}
+          ]},
+          {icon:'fa-user',title:'My Profile',links:[
+            {h:'profile.html',i:'fa-id-card',t:'Driver Profile',d:'Edit your info'},
+            {h:'gallery.html',i:'fa-camera',t:'Race Photos',d:'Upload & view photos'},
+            {h:'videos.html',i:'fa-video',t:'Race Videos',d:'Highlights & replays'},
+            {h:'settings.html',i:'fa-cog',t:'Settings',d:'Account preferences'}
+          ]}
+        ],
+        crew:[
+          {icon:'fa-flag-checkered',title:'Next Race',race:true},
+          {icon:'fa-tools',title:'Crew Tools',links:[
+            {h:'schedule.html',i:'fa-calendar-alt',t:'Race Schedule',d:'Plan ahead'},
+            {h:'live.html',i:'fa-broadcast-tower',t:'Live Race',d:'Real-time updates'},
+            {h:'gallery.html',i:'fa-camera',t:'Pit Photos',d:'Upload crew shots'},
+            {h:'leaderboard.html',i:'fa-chart-line',t:'Team Standings',d:'Track performance'}
+          ]},
+          {icon:'fa-clipboard-list',title:'Team Hub',links:[
+            {h:'driver.html',i:'fa-user',t:'Jon Kirsch #8',d:'Driver profile'},
+            {h:'jonny.html',i:'fa-user',t:'Jonny Kirsch #88',d:'Driver profile'},
+            {h:'profile.html',i:'fa-id-card',t:'My Profile',d:'Your crew profile'},
+            {h:'settings.html',i:'fa-cog',t:'Settings',d:'Account preferences'}
+          ]}
+        ]
+      };
+
+      var WELCOMES={fan:'Welcome Back, Fan!',racer:'Ready to Race!',crew:'Welcome Back, Crew!'};
+
+      function render(role){
+        var cards=CARDS[role]||CARDS.fan;
+        document.getElementById('wtitle').textContent=WELCOMES[role]||WELCOMES.fan;
+        var g=document.getElementById('dgrid');g.innerHTML='';
+        cards.forEach(function(c){
+          var el=document.createElement('div');el.className='crd';
+          if(c.race){
+            el.innerHTML='<div class="ch"><div class="ci"><i class="fas '+c.icon+'"></i></div><h2 class="ct">'+c.title+'</h2></div><div id="rn" class="rn">Loading...</div><div id="rt" class="rt"></div><div id="cdg" class="cgrid"><div class="citem"><div id="cdd" class="cnum">0</div><div class="clab">Days</div></div><div class="citem"><div id="cdh" class="cnum">0</div><div class="clab">Hours</div></div><div class="citem"><div id="cdm" class="cnum">0</div><div class="clab">Min</div></div><div class="citem"><div id="cds" class="cnum">0</div><div class="clab">Sec</div></div></div>';
+          } else {
+            var h='<div class="qlinks">';
+            (c.links||[]).forEach(function(l){h+='<a href="'+l.h+'" class="ql"><div class="qi"><i class="fas '+l.i+'"></i></div><div><div class="qlt">'+l.t+'</div><div class="qld">'+l.d+'</div></div><i class="fas fa-chevron-right" style="color:rgba(255,255,255,.15);margin-left:auto;"></i></a>';});
+            h+='</div>';
+            el.innerHTML='<div class="ch"><div class="ci"><i class="fas '+c.icon+'"></i></div><h2 class="ct">'+c.title+'</h2></div>'+h;
+          }
+          g.appendChild(el);
+        });
+      }
+
+      auth.onAuthStateChanged(async function(user){
+        if(user){
+          try{localStorage.setItem('rr_auth_uid',user.uid);}catch(_){}
+          document.getElementById('uemail').textContent=user.email;
+          var sr='fan';
+          try{
+            var ud=await db.collection('users').doc(user.uid).get();
+            if(ud.exists()){sr=ud.data().signupRole||'fan';}
+          }catch(e){console.warn('Profile load error:',e);}
+          if(window._rrApplyRoleTheme)window._rrApplyRoleTheme(sr);
+          render(sr);
+          loadRace();
+          document.getElementById('loading').classList.add('hid');
+          document.getElementById('dash').classList.remove('hid');
+        } else {
+          try{localStorage.removeItem('rr_auth_uid');}catch(_){}
+          window.location.href='signup.html';
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -379,15 +379,8 @@ class LoginPageController {
       if (role === 'admin') {
         navigateToInternal('/admin-console.html');
         return;
-      } else if (role === 'team-member') {
-        navigateToInternal('/dashboard.html'); // Racer/Crew dashboard
-        return;
-      } else if (role === 'TeamRedFollower') {
-        navigateToInternal('/follower-dashboard.html'); // Fan dashboard
-        return;
       }
-
-      // Unknown role: default to follower dashboard
+      // All other roles go to role-aware dashboard
       navigateToInternal('/follower-dashboard.html');
     } catch (error) {
       console.error("[Login] Email sign-in failed:", error);

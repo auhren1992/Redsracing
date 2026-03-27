@@ -193,11 +193,8 @@ service cloud.firestore {
     
     // TikTok videos library
     match /tiktok_videos/{videoId} {
-      // Public can read published videos; team-members/admins can read all
-      allow read: if (resource.data.published == true)
-                  || hasRole('team-member')
-                  || hasProfileRole('team-member')
-                  || hasProfileRole('admin');
+      // Any authenticated user can read videos
+      allow read: if isAuthenticated();
       allow write: if hasRole('team-member') || hasRole('admin') || hasProfileRole('admin');
       allow delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('admin');
     }

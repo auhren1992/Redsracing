@@ -7481,25 +7481,21 @@
           } catch(_) { showToast('Add failed', 'error'); }
         }
 
-        // Countdown timer for next race
-        let countdownInterval = null;
+        // Countdown timer for next race — single global instance
+        window.__adminCountdownId = window.__adminCountdownId || null;
         function startCountdownTimer(targetDate) {
-          // Clear any existing countdown
-          if (countdownInterval) {
-            clearInterval(countdownInterval);
-          }
+          // Kill ALL previous countdown intervals to prevent jumping
+          if (window.__adminCountdownId) clearInterval(window.__adminCountdownId);
           
           function updateCountdown() {
-            const now = new Date().getTime();
-            const distance = targetDate.getTime() - now;
+            const distance = targetDate.getTime() - Date.now();
+            const daysEl = document.getElementById('days');
+            const hoursEl = document.getElementById('hours');
+            const minutesEl = document.getElementById('minutes');
+            const secondsEl = document.getElementById('seconds');
             
             if (distance < 0) {
-              // Race has passed
-              clearInterval(countdownInterval);
-              const daysEl = document.getElementById('days');
-              const hoursEl = document.getElementById('hours');
-              const minutesEl = document.getElementById('minutes');
-              const secondsEl = document.getElementById('seconds');
+              clearInterval(window.__adminCountdownId);
               if (daysEl) daysEl.textContent = '0';
               if (hoursEl) hoursEl.textContent = '0';
               if (minutesEl) minutesEl.textContent = '0';
@@ -7507,27 +7503,14 @@
               return;
             }
             
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-            
-            const daysEl = document.getElementById('days');
-            const hoursEl = document.getElementById('hours');
-            const minutesEl = document.getElementById('minutes');
-            const secondsEl = document.getElementById('seconds');
-            
-            if (daysEl) daysEl.textContent = days;
-            if (hoursEl) hoursEl.textContent = hours;
-            if (minutesEl) minutesEl.textContent = minutes;
-            if (secondsEl) secondsEl.textContent = seconds;
+            if (daysEl) daysEl.textContent = Math.floor(distance / 86400000);
+            if (hoursEl) hoursEl.textContent = Math.floor((distance % 86400000) / 3600000);
+            if (minutesEl) minutesEl.textContent = Math.floor((distance % 3600000) / 60000);
+            if (secondsEl) secondsEl.textContent = Math.floor((distance % 60000) / 1000);
           }
           
-          // Update immediately
           updateCountdown();
-          
-          // Update every second
-          countdownInterval = setInterval(updateCountdown, 1000);
+          window.__adminCountdownId = setInterval(updateCountdown, 1000);
         }
         
         // Load analytics data from Firestore

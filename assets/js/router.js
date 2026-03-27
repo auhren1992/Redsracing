@@ -34,14 +34,12 @@ monitorAuthState(
       if (user) {
         const role = await resolveRoleWithFallback(user);
 
-        // Route based on role with fallbacks
-        if (role === 'admin' || role === 'team-member') {
+        // Route based on role
+        if (role === 'admin') {
           navigateToInternal('/admin-console.html');
-        } else if (role === 'TeamRedFollower') {
-          navigateToInternal('/follower-dashboard.html');
         } else {
-          // Unknown role, send to login to avoid confusing profile loop
-          navigateToInternal('/login.html');
+          // All other roles go to the role-aware dashboard
+          navigateToInternal('/follower-dashboard.html');
         }
       } else {
         navigateToInternal('/login.html');

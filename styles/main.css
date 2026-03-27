@@ -844,3 +844,62 @@ input[type="file"]:not(:disabled)::-webkit-file-upload-button {
   pointer-events: auto !important;
   cursor: pointer !important;
 }
+
+/* ============================================
+   ROLE-AWARE THEME OVERRIDES
+   Applied via --rr-accent CSS vars from role-theme.js
+   ============================================ */
+
+/* Nav link hover uses role accent */
+.nav-link:hover,
+.dropdown-item:hover,
+.mobile-nav-item:hover,
+.mobile-nav-subitem:hover {
+  color: var(--rr-accent, #f7ff00) !important;
+}
+
+/* Card hover glow uses role accent */
+.card:hover,
+.stat-card:hover,
+.video-item:hover,
+.gallery-item:hover {
+  box-shadow: 0 0 30px color-mix(in srgb, var(--rr-accent, #f7ff00) 20%, transparent),
+              0 0 12px color-mix(in srgb, var(--rr-accent, #f7ff00) 15%, transparent);
+  border-color: color-mix(in srgb, var(--rr-accent, #f7ff00) 40%, transparent);
+}
+
+/* Buttons use role accent */
+body.theme-racer .bg-neon-yellow,
+body.theme-racer .bg-gradient-to-r.from-yellow-400 { background: linear-gradient(45deg, #f97316, #fb923c) !important; }
+body.theme-crew .bg-neon-yellow,
+body.theme-crew .bg-gradient-to-r.from-yellow-400 { background: linear-gradient(45deg, #06b6d4, #22d3ee) !important; }
+
+/* Neon yellow text adapts to role */
+body.theme-racer .neon-yellow { color: #f97316 !important; }
+body.theme-crew .neon-yellow { color: #06b6d4 !important; }
+
+/* Schedule card border */
+body.theme-racer .schedule-card.upcoming { border-left-color: #f97316; }
+body.theme-crew .schedule-card.upcoming { border-left-color: #06b6d4; }
+
+/* Form input focus */
+body.theme-racer .form-input:focus { border-color: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,0.3); }
+body.theme-crew .form-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6,182,212,0.3); }
+
+/* Swiper pagination */
+body.theme-racer .swiper-pagination-bullet-active { background: #f97316 !important; }
+body.theme-crew .swiper-pagination-bullet-active { background: #06b6d4 !important; }
+
+/* Swiper nav arrows */
+body.theme-racer .swiper-button-next, body.theme-racer .swiper-button-prev { color: #f97316 !important; }
+body.theme-crew .swiper-button-next, body.theme-crew .swiper-button-prev { color: #06b6d4 !important; }
+
+/* Text gradient */
+body.theme-racer .text-gradient { background-image: linear-gradient(to right, #ef4444, #f97316); }
+body.theme-crew .text-gradient { background-image: linear-gradient(to right, #0ea5e9, #06b6d4); }
+
+/* Mobile accordion active state */
+body.theme-racer .mobile-accordion.active { background: rgba(249,115,22,0.15); color: #f97316; border-left-color: #f97316; }
+body.theme-racer .mobile-accordion:hover { background: rgba(249,115,22,0.1); color: #f97316; }
+body.theme-crew .mobile-accordion.active { background: rgba(6,182,212,0.15); color: #06b6d4; border-left-color: #06b6d4; }
+body.theme-crew .mobile-accordion:hover { background: rgba(6,182,212,0.1); color: #06b6d4; }

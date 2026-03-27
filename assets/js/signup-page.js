@@ -12,10 +12,11 @@ import {
   captureInvitationCodeFromURL,
 } from "./invitation-codes.js";
 
-async function createDefaultProfile(user) {
+async function createDefaultProfile(user, signupRole = 'fan') {
   try {
     const db = getFirebaseDb();
     const profileRef = doc(db, "users", user.uid);
+    const roleLabels = { fan: 'Racing Fan', racer: 'Racer', crew: 'Crew Member' };
     const defaultProfile = {
       username: user.email.split("@")[0],
       displayName: user.displayName || user.email.split("@")[0],
@@ -23,9 +24,12 @@ async function createDefaultProfile(user) {
       avatarUrl: user.photoURL || "",
       favoriteCars: [],
       joinDate: new Date().toISOString(),
+      createdAt: new Date(),
       totalPoints: 0,
       achievementCount: 0,
       role: "public-fan",
+      signupRole: signupRole,
+      signupRoleLabel: roleLabels[signupRole] || 'Racing Fan',
     };
     await setDoc(profileRef, defaultProfile, { merge: true });
   } catch (error) {
@@ -33,7 +37,7 @@ async function createDefaultProfile(user) {
   }
 }
 
-export async function handleSignup(email, password, inviteCode) {
+export async function handleSignup(email, password, inviteCode, signupRole = 'fan') {
   try {
     const auth = getFirebaseAuth();
     const userCredential = await createUserWithEmailAndPassword(
@@ -67,8 +71,8 @@ export async function handleSignup(email, password, inviteCode) {
     // Ensure auth token is ready before writing to Firestore
     try { await user.getIdToken(true); } catch (_) {}
 
-    // Create a default profile document in Firestore
-    await createDefaultProfile(user);
+    // Create a default profile document in Firestore with signup role
+    await createDefaultProfile(user, signupRole);
 
     // Send email verification (best-effort)
     try { await sendEmailVerification(user); } catch(_) {}
@@ -143,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         console.log('[SIGNUP] Calling handleSignup...');
-        const user = await handleSignup(email, password, inviteCode);
+        const user = await handleSignup(email, password, inviteCode, teamRole);
         console.log('[SIGNUP] Signup successful!', user.uid);
         
         // Refresh token to get latest claims after role assignment
@@ -153,16 +157,18 @@ document.addEventListener("DOMContentLoaded", () => {
           const role = tokenResult?.claims?.role || null;
           console.log('[SIGNUP] User role after signup:', role);
           
+          // Cache signup role for theme system
+          try { localStorage.setItem('rr_signup_role', teamRole || 'fan'); } catch(_) {}
+          try { localStorage.setItem('rr_auth_uid', user.uid); } catch(_) {}
           // Redirect based on assigned role from claims
           if (role === 'admin') {
             console.log('[SIGNUP] Redirecting to admin console...');
             window.location.href = "/admin-console.html";
           } else if (role === 'team-member') {
-            console.log('[SIGNUP] Redirecting to team dashboard...');
-            window.location.href = "/dashboard.html";
+            console.log('[SIGNUP] Redirecting to dashboard...');
+            window.location.href = "/follower-dashboard.html";
           } else {
-            // Default to follower dashboard for fans and unknown roles
-            console.log('[SIGNUP] Redirecting to follower dashboard...');
+            console.log('[SIGNUP] Redirecting to dashboard...');
             window.location.href = "/follower-dashboard.html";
           }
         } catch (e) {

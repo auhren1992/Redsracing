@@ -374,8 +374,36 @@
       }
     </style>
   <script src="assets/js/guest-gate.js"></script>
-  </head>
+  
+<style>
+  .sidebar-nav { display:none; position:fixed; top:0; left:0; width:280px; height:100vh; z-index:9999; overflow-y:auto; background:rgba(15,23,42,0.98); backdrop-filter:blur(20px); border-right:1px solid rgba(148,163,184,0.1); transition:transform 0.3s ease; transform:translateX(-100%); }
+  .sidebar-nav.open { display:block; transform:translateX(0); }
+  .sidebar-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9998; }
+  .sidebar-overlay.open { display:block; }
+  #hamburger-btn { position:fixed; top:8px; left:8px; z-index:9997; background:#1e293b; border:1px solid rgba(148,163,184,0.15); color:#fbbf24; width:40px; height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+</style>
+</head>
   <body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+<button id="hamburger-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+<script>
+function toggleSidebar(){
+  var sb=document.querySelector('.sidebar-nav');
+  var ov=document.getElementById('sidebar-overlay');
+  if(sb.classList.contains('open')){sb.classList.remove('open');ov.classList.remove('open');}
+  else{sb.classList.add('open');ov.classList.add('open');}
+}
+// Close sidebar when clicking a nav link
+document.addEventListener('click',function(e){
+  if(e.target.closest&&e.target.closest('.nav-item')){
+    var sb=document.querySelector('.sidebar-nav');
+    var ov=document.getElementById('sidebar-overlay');
+    if(sb)sb.classList.remove('open');
+    if(ov)ov.classList.remove('open');
+  }
+});
+</script>
+
     <!-- Clean Modern Header -->
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
       <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
@@ -604,9 +632,9 @@
     </header>
 
     <!-- Main Dashboard Layout -->
-    <div class="flex min-h-screen">
+    <div class="flex flex-col min-h-screen">
       <!-- Modern Sidebar -->
-      <aside class="sidebar-nav w-64 lg:w-72 flex-shrink-0 hidden md:block">
+      <aside class="sidebar-nav">
         <div class="p-6">
           <div class="mb-6">
             <div class="flex items-center space-x-3 mb-1">
@@ -682,6 +710,32 @@
               </a>
             </div>
             
+            <!-- Operations -->
+            <div class="mb-3">
+              <h3 class="text-[10px] uppercase tracking-widest text-slate-500 px-3 mb-1.5 font-bold">Operations</h3>
+              <a href="#inbox" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+                <i class="fas fa-inbox w-5 mr-3 text-cyan-400"></i>
+                <span>Admin Inbox</span>
+                <span class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full" id="inbox-badge" style="display:none">0</span>
+              </a>
+              <a href="#raceday" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+                <i class="fas fa-flag w-5 mr-3 text-red-400"></i>
+                <span>Race Day</span>
+              </a>
+              <a href="#audit" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+                <i class="fas fa-history w-5 mr-3 text-amber-400"></i>
+                <span>Audit Trail</span>
+              </a>
+              <a href="#data-quality" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+                <i class="fas fa-check-double w-5 mr-3 text-teal-400"></i>
+                <span>Data Quality</span>
+              </a>
+              <a href="#releases" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+                <i class="fas fa-rocket w-5 mr-3 text-indigo-400"></i>
+                <span>Releases</span>
+              </a>
+            </div>
+
             <!-- Admin -->
             <div class="mb-3">
               <h3 class="text-[10px] uppercase tracking-widest text-slate-500 px-3 mb-1.5 font-bold">Admin</h3>
@@ -704,63 +758,6 @@
       
       <!-- Main Content -->
       <main class="flex-1 overflow-hidden">
-        <!-- Mobile Navigation Grid -->
-        <div class="md:hidden bg-slate-900/80 border-b border-white/10 p-3">
-          <!-- Quick access row -->
-          <div class="flex space-x-2 mb-3">
-            <a href="#overview" class="mobile-tab-btn flex-1 py-2 rounded-lg text-xs font-bold text-center bg-blue-600 text-white">Overview</a>
-            <a href="live-race-admin.html" class="flex-1 py-2 rounded-lg text-xs font-bold text-center bg-gradient-to-r from-red-600 to-orange-600 text-white"><i class="fas fa-broadcast-tower mr-1 animate-pulse"></i>Live</a>
-            <a href="push-notifications.html" class="flex-1 py-2 rounded-lg text-xs font-bold text-center bg-gradient-to-r from-orange-600 to-amber-600 text-white"><i class="fas fa-bell mr-1"></i>Notify</a>
-          </div>
-          <!-- Icon grid -->
-          <div class="grid grid-cols-4 gap-2">
-            <a href="#schedule-mgmt" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-calendar-alt text-green-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Schedule</div>
-            </a>
-            <a href="#race" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-flag-checkered text-yellow-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Results</div>
-            </a>
-            <a href="#media" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-photo-video text-purple-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Media</div>
-            </a>
-            <a href="#videos" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-video text-pink-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Videos</div>
-            </a>
-            <a href="#qna" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-comments text-cyan-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Q&A</div>
-            </a>
-            <a href="#fanwall" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-bullhorn text-orange-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Fan Wall</div>
-            </a>
-            <a href="#analytics" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-chart-line text-emerald-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Analytics</div>
-            </a>
-            <a href="#health" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-heartbeat text-emerald-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Health</div>
-            </a>
-            <a href="#advanced" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-user-shield text-yellow-300 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Roles</div>
-            </a>
-            <a href="#logs" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-bug text-red-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Logs</div>
-            </a>
-            <a href="settings.html" class="mobile-tab-btn bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 text-center hover:border-yellow-400/30 transition">
-              <i class="fas fa-cog text-slate-400 text-lg"></i>
-              <div class="text-[10px] text-slate-400 mt-1">Settings</div>
-            </a>
-          </div>
-        </div>
-
         <!-- Dashboard Content -->
         <div class="p-4 lg:p-6 space-y-6">
           <!-- Error Container -->
@@ -929,103 +926,67 @@
           <div id="analytics-section" class="space-y-6 hidden">
             <div class="admin-card rounded-xl p-6">
               <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-white">
-                  <i class="fas fa-chart-line text-emerald-400 mr-2"></i>
-                  Analytics Dashboard
-                </h2>
-                <div class="flex items-center space-x-2">
-                  <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span class="text-green-400 text-sm">Active</span>
+                <div>
+                  <h2 class="text-2xl font-bold text-white">
+                    <i class="fas fa-chart-line text-emerald-400 mr-2"></i>
+                    Analytics Dashboard
+                  </h2>
+                  <p class="text-slate-400 text-sm mt-1">Real-time data from page_views + analytics_events (last 30 days)</p>
                 </div>
+                <button id="refresh-analytics-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                  <i class="fas fa-sync mr-2"></i>Refresh
+                </button>
               </div>
               
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Google Analytics Integration -->
-                <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-                  <div class="flex items-start space-x-4">
-                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <i class="fas fa-chart-area text-white text-xl"></i>
-                    </div>
-                    <div class="flex-1">
-                      <h3 class="text-lg font-bold text-white mb-2">Google Analytics</h3>
-                      <p class="text-slate-400 text-sm mb-4">Track website visitors, page views, and user behavior</p>
-                      <div class="space-y-2">
-                        <div class="text-sm text-slate-300">
-                          <i class="fas fa-circle text-xs text-green-400 mr-2"></i>Status: Configured
-                        </div>
-                        <div class="text-xs text-slate-400">
-                          <i class="fas fa-tag mr-1"></i>Measurement ID: G-YD3ZWC13SR
-                        </div>
-                        <div class="text-xs text-slate-500">
-                          Tracking active on all public pages
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              <!-- Top Stats -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="stat-card rounded-xl p-4">
+                  <div class="text-slate-400 text-xs mb-1">Page Views</div>
+                  <div class="text-2xl font-bold text-white" id="anal-page-views">--</div>
                 </div>
-                
-                <!-- Firebase Analytics -->
-                <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-6">
-                  <div class="flex items-start space-x-4">
-                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <i class="fab fa-google text-white text-xl"></i>
-                    </div>
-                    <div class="flex-1">
-                      <h3 class="text-lg font-bold text-white mb-2">Firebase Analytics</h3>
-                      <p class="text-slate-400 text-sm mb-4">Built-in analytics for app and web usage</p>
-                      <div class="space-y-2">
-                        <div class="text-sm text-slate-300">
-                          <i class="fas fa-circle text-xs text-green-400 mr-2"></i>Status: Available
-                        </div>
-                        <div class="text-xs text-slate-500">
-                          Firebase is configured - enable Analytics in Firebase Console
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div class="stat-card rounded-xl p-4">
+                  <div class="text-slate-400 text-xs mb-1">Unique Visitors</div>
+                  <div class="text-2xl font-bold text-blue-400" id="anal-unique-visitors">--</div>
+                </div>
+                <div class="stat-card rounded-xl p-4">
+                  <div class="text-slate-400 text-xs mb-1">Tracked Events</div>
+                  <div class="text-2xl font-bold text-purple-400" id="anal-total-events">--</div>
+                </div>
+                <div class="stat-card rounded-xl p-4">
+                  <div class="text-slate-400 text-xs mb-1">Avg Engagement</div>
+                  <div class="text-2xl font-bold text-emerald-400" id="anal-avg-engagement">--</div>
                 </div>
               </div>
-              
-              <!-- Placeholder Stats -->
-              <div class="mt-8">
-                <h3 class="text-lg font-bold text-white mb-4">
-                  <i class="fas fa-info-circle text-blue-400 mr-2"></i>
-                  What You'll See Here
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div class="bg-slate-800/30 border border-slate-700/30 rounded-lg p-4">
-                    <div class="text-slate-500 text-xs mb-1">Page Views</div>
-                    <div class="text-2xl font-bold text-slate-600">--</div>
-                  </div>
-                  <div class="bg-slate-800/30 border border-slate-700/30 rounded-lg p-4">
-                    <div class="text-slate-500 text-xs mb-1">Unique Visitors</div>
-                    <div class="text-2xl font-bold text-slate-600">--</div>
-                  </div>
-                  <div class="bg-slate-800/30 border border-slate-700/30 rounded-lg p-4">
-                    <div class="text-slate-500 text-xs mb-1">Avg. Session</div>
-                    <div class="text-2xl font-bold text-slate-600">--</div>
-                  </div>
-                  <div class="bg-slate-800/30 border border-slate-700/30 rounded-lg p-4">
-                    <div class="text-slate-500 text-xs mb-1">Bounce Rate</div>
-                    <div class="text-2xl font-bold text-slate-600">--</div>
-                  </div>
+
+              <!-- Breakdowns -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <!-- Top Pages -->
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                  <h4 class="text-white font-semibold text-sm mb-3"><i class="fas fa-file text-blue-400 mr-2"></i>Top Pages</h4>
+                  <div id="anal-top-pages" class="space-y-2 text-sm"><div class="text-slate-500">Loading...</div></div>
+                </div>
+                <!-- Referrer Sources -->
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                  <h4 class="text-white font-semibold text-sm mb-3"><i class="fas fa-share-alt text-green-400 mr-2"></i>Traffic Sources</h4>
+                  <div id="anal-referrers" class="space-y-2 text-sm"><div class="text-slate-500">Loading...</div></div>
+                </div>
+                <!-- Device / Platform -->
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                  <h4 class="text-white font-semibold text-sm mb-3"><i class="fas fa-mobile-alt text-yellow-400 mr-2"></i>Devices</h4>
+                  <div id="anal-devices" class="space-y-2 text-sm"><div class="text-slate-500">Loading...</div></div>
                 </div>
               </div>
-              
-              <!-- Integration Instructions -->
-              <div class="mt-6 bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-                <div class="flex items-start space-x-3">
-                  <i class="fas fa-lightbulb text-blue-400 mt-1"></i>
-                  <div>
-                    <h4 class="text-white font-semibold mb-2">Enable Analytics</h4>
-                    <p class="text-slate-300 text-sm mb-3">To see real visitor data:</p>
-                    <ol class="text-slate-400 text-sm space-y-1 list-decimal list-inside">
-                      <li>Enable Google Analytics in Firebase Console</li>
-                      <li>Or add Google Analytics 4 tracking code to your website</li>
-                      <li>Data will automatically populate here once configured</li>
-                    </ol>
-                  </div>
-                </div>
+
+              <!-- Top Events -->
+              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 mb-6">
+                <h4 class="text-white font-semibold text-sm mb-3"><i class="fas fa-bolt text-purple-400 mr-2"></i>Top Events (analytics_events)</h4>
+                <div id="anal-top-events" class="space-y-2 text-sm"><div class="text-slate-500">Loading...</div></div>
+              </div>
+
+              <!-- Daily Trend -->
+              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                <h4 class="text-white font-semibold text-sm mb-3"><i class="fas fa-chart-bar text-cyan-400 mr-2"></i>Daily Page Views (last 14 days)</h4>
+                <div id="anal-daily-trend" class="flex items-end space-x-1 h-32"><div class="text-slate-500 text-sm">Loading...</div></div>
               </div>
             </div>
           </div>
@@ -1999,7 +1960,7 @@
                       <h4 class="text-white font-semibold flex items-center">
                         <i class="fab fa-google text-red-400 mr-2"></i>Google AdSense
                       </h4>
-                      <span class="px-2 py-1 bg-green-600 text-white text-xs rounded">Active</span>
+                    <span class="px-2 py-1 text-white text-xs rounded" id="adsense-badge">Estimated</span>
                     </div>
                     <div class="space-y-2">
                       <div class="flex justify-between text-sm">
@@ -2027,7 +1988,7 @@
                       <h4 class="text-white font-semibold flex items-center">
                         <i class="fas fa-mobile-alt text-blue-400 mr-2"></i>Google AdMob
                       </h4>
-                      <span class="px-2 py-1 bg-green-600 text-white text-xs rounded">Active</span>
+                      <span class="px-2 py-1 text-white text-xs rounded" id="admob-badge">Estimated</span>
                     </div>
                     <div class="space-y-2">
                       <div class="flex justify-between text-sm">
@@ -2559,9 +2520,12 @@
                   </h2>
                   <p class="text-slate-400 text-sm mt-1">Monitor app versions, system status, and error rates</p>
                 </div>
-                <button id="refresh-health-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
-                  <i class="fas fa-sync mr-2"></i>Refresh
-                </button>
+                <div class="flex items-center space-x-3">
+                  <span class="text-slate-500 text-xs" id="health-last-check"></span>
+                  <button id="refresh-health-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                    <i class="fas fa-sync mr-2"></i>Refresh
+                  </button>
+                </div>
               </div>
 
               <!-- App Versions -->
@@ -2664,6 +2628,78 @@
               </div>
             </div>
           </div>
+
+          <!-- ===== PHASE 3: OPERATIONS SECTIONS ===== -->
+
+          <!-- Unified Admin Inbox -->
+          <div id="ops-inbox-section" class="space-y-6 hidden">
+            <div class="admin-card rounded-xl p-6">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-2xl font-bold text-white flex items-center"><i class="fas fa-inbox text-cyan-400 mr-3"></i>Admin Inbox</h2>
+                  <p class="text-slate-400 text-sm mt-1">Pending approvals, alerts, and action items in one place</p>
+                </div>
+                <button id="refresh-inbox-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center"><i class="fas fa-sync mr-2"></i>Refresh</button>
+              </div>
+              <div id="inbox-items" class="space-y-3"><div class="text-slate-500 text-center py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Loading inbox...</div></div>
+            </div>
+          </div>
+
+          <!-- Race Day Command Center -->
+          <div id="raceday-section" class="space-y-6 hidden">
+            <div class="admin-card rounded-xl p-6">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-2xl font-bold text-white flex items-center"><i class="fas fa-flag text-red-400 mr-3"></i>Race Day Command Center</h2>
+                  <p class="text-slate-400 text-sm mt-1">Next race countdown, quick actions, checklists</p>
+                </div>
+              </div>
+              <div id="raceday-content" class="space-y-4"><div class="text-slate-500 text-center py-8">Loading race day data...</div></div>
+            </div>
+          </div>
+
+          <!-- Audit Trail -->
+          <div id="audit-section" class="space-y-6 hidden">
+            <div class="admin-card rounded-xl p-6">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-2xl font-bold text-white flex items-center"><i class="fas fa-history text-amber-400 mr-3"></i>Audit Trail</h2>
+                  <p class="text-slate-400 text-sm mt-1">All admin actions and config changes with full history</p>
+                </div>
+                <button id="refresh-audit-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center"><i class="fas fa-sync mr-2"></i>Refresh</button>
+              </div>
+              <div id="audit-list" class="space-y-2"><div class="text-slate-500 text-center py-8">Loading audit trail...</div></div>
+            </div>
+          </div>
+
+          <!-- Data Quality -->
+          <div id="data-quality-section" class="space-y-6 hidden">
+            <div class="admin-card rounded-xl p-6">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-2xl font-bold text-white flex items-center"><i class="fas fa-check-double text-teal-400 mr-3"></i>Data Quality & Sync</h2>
+                  <p class="text-slate-400 text-sm mt-1">Schedule consistency, content gaps, version drift checks</p>
+                </div>
+                <button id="run-quality-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center"><i class="fas fa-play mr-2"></i>Run Checks</button>
+              </div>
+              <div id="quality-results" class="space-y-3"><div class="text-slate-500 text-center py-8">Click "Run Checks" to validate data</div></div>
+            </div>
+          </div>
+
+          <!-- Releases -->
+          <div id="releases-section" class="space-y-6 hidden">
+            <div class="admin-card rounded-xl p-6">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h2 class="text-2xl font-bold text-white flex items-center"><i class="fas fa-rocket text-indigo-400 mr-3"></i>Deployment & Releases</h2>
+                  <p class="text-slate-400 text-sm mt-1">Active versions, version distribution, recent deployments</p>
+                </div>
+                <button id="refresh-releases-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center"><i class="fas fa-sync mr-2"></i>Refresh</button>
+              </div>
+              <div id="releases-content" class="space-y-4"><div class="text-slate-500 text-center py-8">Loading release data...</div></div>
+            </div>
+          </div>
+
         </div>
       </main>
     </div>
@@ -2880,6 +2916,302 @@
           return role === 'team-member' || role === 'admin';
         }
         
+        // ===== PHASE 1: CLIENT TELEMETRY HELPERS =====
+        async function _getActorInfo() {
+          try {
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const app = await ensureDefaultApp();
+            const auth = getAuth(app);
+            const u = auth.currentUser;
+            return { uid: u?.uid || null, email: u?.email || null };
+          } catch (_) { return { uid: null, email: null }; }
+        }
+
+        async function writeAdminLogClient(payload = {}) {
+          try {
+            const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const actor = await _getActorInfo();
+            await addDoc(collection(db, 'admin_logs'), {
+              ...payload,
+              actorUid: actor.uid,
+              actorEmail: actor.email,
+              source: 'admin-console',
+              timestamp: serverTimestamp(),
+            });
+          } catch (e) { console.warn('writeAdminLogClient failed', e); }
+        }
+
+        async function writeConfigHistoryClient(configPath, oldData, newData) {
+          try {
+            const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const actor = await _getActorInfo();
+            await addDoc(collection(db, 'config_history'), {
+              configPath,
+              before: oldData || null,
+              after: newData || null,
+              actorUid: actor.uid,
+              actorEmail: actor.email,
+              timestamp: serverTimestamp(),
+            });
+          } catch (e) { console.warn('writeConfigHistoryClient failed', e); }
+        }
+
+        async function writeSecurityEventClient(payload = {}) {
+          try {
+            const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const actor = await _getActorInfo();
+            await addDoc(collection(db, 'security_events'), {
+              severity: 'info',
+              ...payload,
+              actorUid: actor.uid,
+              actorEmail: actor.email,
+              source: 'admin-console',
+              timestamp: serverTimestamp(),
+            });
+          } catch (e) { console.warn('writeSecurityEventClient failed', e); }
+        }
+
+        async function persistHealthCheck(results = {}) {
+          try {
+            const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const actor = await _getActorInfo();
+            await addDoc(collection(db, 'health_checks'), {
+              ...results,
+              checkedBy: actor.uid,
+              timestamp: serverTimestamp(),
+            });
+          } catch (e) { console.warn('persistHealthCheck failed', e); }
+        }
+        // ===== END PHASE 1 HELPERS =====
+
+        // ===== PHASE 3: OPERATIONS DATA LOADERS =====
+        async function loadOpsInbox() {
+          const container = document.getElementById('inbox-items');
+          if (!container) return;
+          container.innerHTML = '<div class="text-slate-500 text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</div>';
+          try {
+            const { getFirestore, collection, getDocs, query, where, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const items = [];
+            // Pending gallery photos
+            try { const s = await getDocs(query(collection(db, 'gallery_images'), where('approved','==',false))); if (s.size) items.push({ icon: 'fa-images', color: 'text-purple-400', label: `${s.size} photo(s) awaiting approval`, action: '#media', priority: 2 }); } catch(_){}
+            // Pending fan wall
+            try { const s = await getDocs(query(collection(db, 'fan_wall'), where('approved','==',false))); if (s.size) items.push({ icon: 'fa-bullhorn', color: 'text-orange-400', label: `${s.size} fan wall shoutout(s) pending`, action: '#fanwall', priority: 2 }); } catch(_){}
+            // Pending Q&A
+            try { const s = await getDocs(query(collection(db, 'qna_submissions'), where('status','==','pending'))); if (s.size) items.push({ icon: 'fa-comments', color: 'text-cyan-400', label: `${s.size} Q&A submission(s) pending`, action: '#qna', priority: 1 }); } catch(_){}
+            // Pending videos
+            try { const s = await getDocs(query(collection(db, 'jonny_videos'), where('approved','==',false))); if (s.size) items.push({ icon: 'fa-video', color: 'text-pink-400', label: `${s.size} video(s) awaiting approval`, action: '#videos', priority: 2 }); } catch(_){}
+            // Recent admin alerts
+            try { const s = await getDocs(query(collection(db, 'admin_alerts'), orderBy('timestamp','desc'), limit(5))); s.forEach(d => { const v = d.data(); items.push({ icon: 'fa-bell', color: 'text-red-400', label: v.message || 'Alert', action: '#health', priority: 3 }); }); } catch(_){}
+            // Failed push notifications
+            try { const s = await getDocs(query(collection(db, 'push_notifications'), where('status','==','failed'))); if (s.size) items.push({ icon: 'fa-exclamation-circle', color: 'text-red-500', label: `${s.size} failed push notification(s)`, action: '#advanced', priority: 3 }); } catch(_){}
+            // Sort by priority
+            items.sort((a,b) => b.priority - a.priority);
+            // Update badge
+            const badge = document.getElementById('inbox-badge');
+            if (badge) { badge.textContent = items.length; badge.style.display = items.length > 0 ? '' : 'none'; }
+            if (items.length === 0) {
+              container.innerHTML = '<div class="text-center py-8"><i class="fas fa-check-circle text-green-400 text-3xl mb-3"></i><div class="text-green-400 font-semibold">All clear!</div><div class="text-slate-500 text-sm">No pending items</div></div>';
+            } else {
+              container.innerHTML = items.map(it => `<a href="${it.action}" class="block bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 hover:border-yellow-400/30 transition flex items-center space-x-3"><i class="fas ${it.icon} ${it.color} text-lg w-6"></i><span class="text-slate-200 text-sm flex-1">${it.label}</span><i class="fas fa-chevron-right text-slate-600 text-xs"></i></a>`).join('');
+            }
+            showToast(`Inbox: ${items.length} item(s)`);
+          } catch(e) { console.error('loadOpsInbox error:', e); container.innerHTML = '<div class="text-red-400 text-center py-4">Failed to load inbox</div>'; }
+        }
+
+        async function loadRaceDay() {
+          const container = document.getElementById('raceday-content');
+          if (!container) return;
+          try {
+            const { getFirestore, collection, getDocs, query, orderBy, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const now = new Date();
+            // Find next race
+            const racesSnap = await getDocs(query(collection(db, 'races'), orderBy('date','asc')));
+            let nextRace = null;
+            racesSnap.forEach(d => {
+              if (nextRace) return;
+              const v = d.data();
+              const rd = v.date?.toDate ? v.date.toDate() : new Date(v.date);
+              if (rd > now) nextRace = { id: d.id, ...v, raceDate: rd };
+            });
+            if (!nextRace) {
+              container.innerHTML = '<div class="text-center py-8"><i class="fas fa-trophy text-yellow-400 text-3xl mb-3"></i><div class="text-yellow-400 font-semibold">Season Complete!</div><div class="text-slate-500 text-sm">No upcoming races</div></div>';
+              return;
+            }
+            const diff = nextRace.raceDate - now;
+            const daysLeft = Math.floor(diff / 86400000);
+            const hoursLeft = Math.floor((diff % 86400000) / 3600000);
+            const checklist = [
+              { label: 'Schedule entry exists', ok: true },
+              { label: 'Countdown timer active', ok: daysLeft >= 0 },
+            ];
+            // Check if live race doc exists
+            try { const lr = await getDoc(doc(db, 'live_race', 'current')); checklist.push({ label: 'Live race doc configured', ok: lr.exists() }); } catch(_) { checklist.push({ label: 'Live race doc configured', ok: false }); }
+            container.innerHTML = `
+              <div class="bg-gradient-to-r from-red-900/30 to-orange-900/30 border border-red-500/30 rounded-xl p-6 mb-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="text-red-400 text-xs uppercase tracking-wider font-bold">Next Race</div>
+                    <div class="text-white text-2xl font-bold mt-1">${nextRace.eventName || nextRace.name || 'Race Day'}</div>
+                    <div class="text-slate-400 text-sm mt-1">${nextRace.track || ''} ${nextRace.city ? '— ' + nextRace.city + ', ' + nextRace.state : ''}</div>
+                    <div class="text-slate-500 text-xs mt-1">${nextRace.raceDate.toLocaleDateString()} ${nextRace.raceDate.toLocaleTimeString()}</div>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-4xl font-bold text-yellow-400">${daysLeft}d ${hoursLeft}h</div>
+                    <div class="text-slate-500 text-xs">until race</div>
+                  </div>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <a href="live-race-admin.html" class="bg-red-600/20 border border-red-500/30 rounded-lg p-4 text-center hover:bg-red-600/30 transition"><i class="fas fa-broadcast-tower text-red-400 text-xl mb-1"></i><div class="text-white text-sm font-semibold">Go Live</div></a>
+                <a href="push-notifications.html" class="bg-orange-600/20 border border-orange-500/30 rounded-lg p-4 text-center hover:bg-orange-600/30 transition"><i class="fas fa-bell text-orange-400 text-xl mb-1"></i><div class="text-white text-sm font-semibold">Send Notification</div></a>
+                <a href="#race" class="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-4 text-center hover:bg-yellow-600/30 transition"><i class="fas fa-flag-checkered text-yellow-400 text-xl mb-1"></i><div class="text-white text-sm font-semibold">Enter Results</div></a>
+              </div>
+              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                <h4 class="text-white font-semibold text-sm mb-3"><i class="fas fa-clipboard-check text-green-400 mr-2"></i>Pre-Race Checklist</h4>
+                <div class="space-y-2">${checklist.map(c => `<div class="flex items-center text-sm"><i class="fas ${c.ok ? 'fa-check-circle text-green-400' : 'fa-times-circle text-red-400'} mr-2"></i><span class="${c.ok ? 'text-slate-300' : 'text-red-300'}">${c.label}</span></div>`).join('')}</div>
+              </div>`;
+            showToast('Race day loaded');
+          } catch(e) { console.error('loadRaceDay error:', e); container.innerHTML = '<div class="text-red-400 text-center py-4">Failed to load race day data</div>'; }
+        }
+
+        async function loadAuditTrail() {
+          const container = document.getElementById('audit-list');
+          if (!container) return;
+          container.innerHTML = '<div class="text-slate-500 text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</div>';
+          try {
+            const { getFirestore, collection, getDocs, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const [logsSnap, histSnap] = await Promise.all([
+              getDocs(query(collection(db, 'admin_logs'), orderBy('timestamp','desc'), limit(50))),
+              getDocs(query(collection(db, 'config_history'), orderBy('timestamp','desc'), limit(50))),
+            ]);
+            const entries = [];
+            logsSnap.forEach(d => { const v = d.data(); entries.push({ type: 'action', ts: v.timestamp?.toDate ? v.timestamp.toDate() : new Date(), actor: v.actorEmail || v.actorUid || v.uid || '--', label: v.action || 'admin_action', detail: v.configPath || v.targetEmail || v.role || '' }); });
+            histSnap.forEach(d => { const v = d.data(); entries.push({ type: 'config', ts: v.timestamp?.toDate ? v.timestamp.toDate() : new Date(), actor: v.actorEmail || v.actorUid || '--', label: 'config_change', detail: v.configPath || '' }); });
+            entries.sort((a,b) => b.ts - a.ts);
+            if (entries.length === 0) {
+              container.innerHTML = '<div class="text-slate-500 text-center py-8">No audit entries yet</div>';
+            } else {
+              container.innerHTML = entries.slice(0, 60).map(e => {
+                const icon = e.type === 'config' ? 'fa-sliders-h text-amber-400' : 'fa-user-edit text-blue-400';
+                const time = e.ts.toLocaleString();
+                return `<div class="bg-slate-800/40 border border-slate-700/30 rounded-lg px-4 py-3 flex items-center space-x-3"><i class="fas ${icon} w-5"></i><div class="flex-1 min-w-0"><div class="text-white text-sm font-medium truncate">${e.label}${e.detail ? ' — ' + e.detail : ''}</div><div class="text-slate-500 text-xs">${e.actor} • ${time}</div></div></div>`;
+              }).join('');
+            }
+            showToast(`Audit trail: ${entries.length} entries`);
+          } catch(e) { console.error('loadAuditTrail error:', e); container.innerHTML = '<div class="text-red-400 text-center py-4">Failed to load audit trail</div>'; }
+        }
+
+        async function loadDataQuality() {
+          const container = document.getElementById('quality-results');
+          if (!container) return;
+          container.innerHTML = '<div class="text-slate-500 text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Running checks...</div>';
+          try {
+            const { getFirestore, collection, getDocs, query, where, orderBy, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const checks = [];
+            const now = new Date();
+            // 1. Schedule: upcoming races exist
+            try {
+              const rs = await getDocs(query(collection(db, 'races'), orderBy('date','asc')));
+              const upcoming = rs.docs.filter(d => { const v=d.data(); const rd = v.date?.toDate ? v.date.toDate() : new Date(v.date); return rd > now; });
+              checks.push({ ok: upcoming.length > 0, label: `Upcoming races: ${upcoming.length}`, warn: upcoming.length === 0 });
+            } catch(_) { checks.push({ ok: false, label: 'Could not read races' }); }
+            // 2. Gallery: no orphan unapproved older than 30 days
+            try {
+              const gs = await getDocs(query(collection(db, 'gallery_images'), where('approved','==',false)));
+              let stale = 0;
+              gs.forEach(d => { const v = d.data(); const up = v.uploadedAt?.toDate ? v.uploadedAt.toDate() : null; if (up && (now - up) > 30*86400000) stale++; });
+              checks.push({ ok: stale === 0, label: stale ? `${stale} photo(s) pending > 30 days` : 'No stale pending photos', warn: stale > 0 });
+            } catch(_) {}
+            // 3. App version drift
+            try {
+              const ad = await getDoc(doc(db, 'app_config', 'android_version'));
+              const id = await getDoc(doc(db, 'app_config', 'ios_version'));
+              const av = ad.exists() ? ad.data().latest_version : null;
+              const iv = id.exists() ? id.data().latest_version : null;
+              if (av && iv) {
+                checks.push({ ok: Math.abs(Number(av) - Number(iv)) <= 2, label: `Android v${av} / iOS v${iv}${Math.abs(Number(av)-Number(iv)) > 2 ? ' — version drift!' : ''}`, warn: Math.abs(Number(av)-Number(iv)) > 2 });
+              } else { checks.push({ ok: false, label: 'App version config missing', warn: true }); }
+            } catch(_) { checks.push({ ok: false, label: 'Could not read app_config' }); }
+            // 4. Config/site exists
+            try { const cs = await getDoc(doc(db, 'config', 'site')); checks.push({ ok: cs.exists(), label: cs.exists() ? 'Site config present' : 'config/site missing' }); } catch(_) {}
+            // 5. Subscribers collection
+            try { const ss = await getDocs(collection(db, 'subscribers')); checks.push({ ok: true, label: `${ss.size} subscriber(s)` }); } catch(_) {}
+            const passCount = checks.filter(c => c.ok).length;
+            container.innerHTML = `<div class="mb-3 text-sm"><span class="text-white font-semibold">${passCount}/${checks.length} checks passed</span></div>` +
+              checks.map(c => {
+                const color = c.ok ? (c.warn ? 'text-yellow-400' : 'text-green-400') : 'text-red-400';
+                const icon = c.ok ? (c.warn ? 'fa-exclamation-triangle' : 'fa-check-circle') : 'fa-times-circle';
+                return `<div class="flex items-center text-sm space-x-2"><i class="fas ${icon} ${color}"></i><span class="text-slate-300">${c.label}</span></div>`;
+              }).join('');
+            showToast(`Data quality: ${passCount}/${checks.length} passed`);
+          } catch(e) { console.error('loadDataQuality error:', e); container.innerHTML = '<div class="text-red-400 text-center py-4">Quality check failed</div>'; }
+        }
+
+        async function loadReleases() {
+          const container = document.getElementById('releases-content');
+          if (!container) return;
+          try {
+            const { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            let html = '';
+            // Active versions
+            const androidDoc = await getDoc(doc(db, 'app_config', 'android_version'));
+            const iosDoc = await getDoc(doc(db, 'app_config', 'ios_version'));
+            const av = androidDoc.exists() ? androidDoc.data() : {};
+            const iv = iosDoc.exists() ? iosDoc.data() : {};
+            html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">`;
+            html += `<div class="bg-slate-800/50 border border-green-500/30 rounded-lg p-4"><div class="flex items-center space-x-2 mb-2"><i class="fab fa-android text-green-400"></i><span class="text-white font-semibold text-sm">Android</span></div><div class="text-2xl font-bold text-green-400">${av.latest_version || '--'}</div><div class="text-slate-500 text-xs">Min: ${av.minimum_version || '--'}</div></div>`;
+            html += `<div class="bg-slate-800/50 border border-blue-500/30 rounded-lg p-4"><div class="flex items-center space-x-2 mb-2"><i class="fab fa-apple text-blue-400"></i><span class="text-white font-semibold text-sm">iOS</span></div><div class="text-2xl font-bold text-blue-400">${iv.latest_version || '--'}</div><div class="text-slate-500 text-xs">Min: ${iv.minimum_version || '--'}</div></div>`;
+            html += `<div class="bg-slate-800/50 border border-indigo-500/30 rounded-lg p-4"><div class="flex items-center space-x-2 mb-2"><i class="fas fa-globe text-indigo-400"></i><span class="text-white font-semibold text-sm">Web</span></div><div class="text-2xl font-bold text-indigo-400">Live</div><div class="text-slate-500 text-xs">Firebase Hosting</div></div>`;
+            html += `</div>`;
+            // Version distribution
+            try {
+              const usSnap = await getDocs(collection(db, 'app_usage'));
+              const dist = { android: {}, ios: {} };
+              usSnap.forEach(d => { const v = d.data(); if (v.platform && v.app_version) dist[v.platform] = dist[v.platform] || {}, dist[v.platform][v.app_version] = (dist[v.platform][v.app_version]||0)+1; });
+              const renderDist = (obj, color) => { const entries = Object.entries(obj).sort((a,b)=>b[1]-a[1]); const total = entries.reduce((s,e)=>s+e[1],0); return entries.length ? entries.map(([ver,cnt]) => { const pct = total?((cnt/total)*100).toFixed(0):'0'; return `<div class="flex items-center justify-between text-xs"><span class="text-slate-300">v${ver}</span><div class="flex items-center space-x-2"><div class="w-16 h-1.5 bg-slate-700 rounded"><div class="h-full ${color} rounded" style="width:${pct}%"></div></div><span class="text-slate-500 w-10 text-right">${cnt}</span></div></div>`; }).join('') : '<div class="text-slate-500 text-xs">No usage data</div>'; };
+              html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">`;
+              html += `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4"><h4 class="text-white font-semibold text-sm mb-2"><i class="fab fa-android text-green-400 mr-2"></i>Android Distribution</h4><div class="space-y-1">${renderDist(dist.android||{}, 'bg-green-500')}</div></div>`;
+              html += `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4"><h4 class="text-white font-semibold text-sm mb-2"><i class="fab fa-apple text-blue-400 mr-2"></i>iOS Distribution</h4><div class="space-y-1">${renderDist(dist.ios||{}, 'bg-blue-500')}</div></div>`;
+              html += `</div>`;
+            } catch(_) {}
+            // Recent admin logs related to deployments
+            try {
+              const ls = await getDocs(query(collection(db, 'admin_logs'), orderBy('timestamp','desc'), limit(10)));
+              const deployLogs = [];
+              ls.forEach(d => { const v = d.data(); if (v.action && (v.action.includes('version') || v.action.includes('deploy') || v.action.includes('build') || v.action.includes('settings_saved'))) deployLogs.push(v); });
+              if (deployLogs.length) {
+                html += `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4"><h4 class="text-white font-semibold text-sm mb-2"><i class="fas fa-clock text-slate-400 mr-2"></i>Recent Config Activity</h4><div class="space-y-1">`;
+                deployLogs.slice(0,5).forEach(v => {
+                  const ts = v.timestamp?.toDate ? v.timestamp.toDate().toLocaleString() : '--';
+                  html += `<div class="text-xs text-slate-400">${ts} — <span class="text-white">${v.action}</span> ${v.configPath ? '(' + v.configPath + ')' : ''} by ${v.actorEmail||'--'}</div>`;
+                });
+                html += `</div></div>`;
+              }
+            } catch(_) {}
+            container.innerHTML = html;
+            showToast('Releases loaded');
+          } catch(e) { console.error('loadReleases error:', e); container.innerHTML = '<div class="text-red-400 text-center py-4">Failed to load releases</div>'; }
+        }
+        // ===== END PHASE 3 LOADERS =====
+        
         // Enhanced loading with modern animations
         function showDashboard() {
           const loader = document.getElementById('loading-state');
@@ -3000,6 +3332,16 @@
                 } else if (href === '#health') {
                   console.log('[NAV] Showing site health...');
                   showHealth();
+                } else if (href === '#inbox') {
+                  showOpsInbox();
+                } else if (href === '#raceday') {
+                  showRaceDay();
+                } else if (href === '#audit') {
+                  showAudit();
+                } else if (href === '#data-quality') {
+                  showDataQuality();
+                } else if (href === '#releases') {
+                  showReleases();
                 } else {
                   console.log('[NAV] Showing overview...');
                   showOverview();
@@ -3096,6 +3438,33 @@
           }
         }
         
+        // ===== PHASE 3 SHOW FUNCTIONS =====
+        function showOpsInbox() {
+          hideAllSections();
+          const sec = document.getElementById('ops-inbox-section');
+          if (sec) { sec.classList.remove('hidden'); sec.style.display = 'block'; setTimeout(() => { try { loadOpsInbox(); } catch(e) { console.error(e); } }, 100); }
+        }
+        function showRaceDay() {
+          hideAllSections();
+          const sec = document.getElementById('raceday-section');
+          if (sec) { sec.classList.remove('hidden'); sec.style.display = 'block'; setTimeout(() => { try { loadRaceDay(); } catch(e) { console.error(e); } }, 100); }
+        }
+        function showAudit() {
+          hideAllSections();
+          const sec = document.getElementById('audit-section');
+          if (sec) { sec.classList.remove('hidden'); sec.style.display = 'block'; setTimeout(() => { try { loadAuditTrail(); } catch(e) { console.error(e); } }, 100); }
+        }
+        function showDataQuality() {
+          hideAllSections();
+          const sec = document.getElementById('data-quality-section');
+          if (sec) { sec.classList.remove('hidden'); sec.style.display = 'block'; }
+        }
+        function showReleases() {
+          hideAllSections();
+          const sec = document.getElementById('releases-section');
+          if (sec) { sec.classList.remove('hidden'); sec.style.display = 'block'; setTimeout(() => { try { loadReleases(); } catch(e) { console.error(e); } }, 100); }
+        }
+
         function showAdvanced() {
           hideAllSections();
           const adv = document.getElementById('advanced-section');
@@ -3123,7 +3492,7 @@
         }
         
         function hideAllSections() {
-          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'admin-pages', 'qna-section', 'videos-section', 'analytics-section', 'schedule-mgmt-section', 'health-section', 'fanwall-section'];
+          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'admin-pages', 'qna-section', 'videos-section', 'analytics-section', 'schedule-mgmt-section', 'health-section', 'fanwall-section', 'ops-inbox-section', 'raceday-section', 'audit-section', 'data-quality-section', 'releases-section'];
           sections.forEach(id => {
             const section = document.getElementById(id);
             if (section) {
@@ -3717,16 +4086,24 @@
           try {
             const role = await getUserRole();
             if (!isModeratorRole(role)) { showToast('Team-member or admin only', 'error'); return; }
-            const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getFirestore, doc, setDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
+            // Snapshot before
+            const beforeSnap = await getDoc(doc(db, 'config', 'videos'));
+            const beforeData = beforeSnap.exists() ? beforeSnap.data() : null;
             const payload = {
               width: Number(document.getElementById('video-width')?.value || 0) || null,
               height: Number(document.getElementById('video-height')?.value || 0) || null,
               aspect: document.getElementById('video-aspect')?.value || '16:9',
               maxWidth: document.getElementById('video-max-width')?.value || '100%'
             };
+            // Validate
+            if (payload.width !== null && payload.width < 0) { showToast('Width cannot be negative', 'error'); return; }
+            if (payload.height !== null && payload.height < 0) { showToast('Height cannot be negative', 'error'); return; }
             await setDoc(doc(db, 'config', 'videos'), payload, { merge: true });
+            writeConfigHistoryClient('config/videos', beforeData, payload);
+            writeAdminLogClient({ action: 'settings_saved', configPath: 'config/videos' });
             showToast('Video settings saved');
           } catch(e) { console.error('Save video settings failed', e); showToast('Failed to save settings', 'error'); }
         }
@@ -3778,63 +4155,80 @@
 
         async function saveRosterSettings() {
           try {
-            const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getFirestore, doc, setDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const db = getFirestore();
+            // Snapshot before
+            const beforeSnap = await getDoc(doc(db, 'config', 'site'));
+            const beforeData = beforeSnap.exists() ? { jon: beforeSnap.data()?.jon, jonny: beforeSnap.data()?.jonny } : null;
             const payload = {
               jon: {
                 number: document.getElementById('jon-number')?.value || null,
-                years: Number(document.getElementById('jon-years')?.value || 0) || 0,
-                wins: Number(document.getElementById('jon-wins')?.value || 0) || 0,
-                podiums: Number(document.getElementById('jon-podiums')?.value || 0) || 0,
-                bio: document.getElementById('jon-bio')?.value || null,
+                years: Math.max(0, Number(document.getElementById('jon-years')?.value || 0) || 0),
+                wins: Math.max(0, Number(document.getElementById('jon-wins')?.value || 0) || 0),
+                podiums: Math.max(0, Number(document.getElementById('jon-podiums')?.value || 0) || 0),
+                bio: (document.getElementById('jon-bio')?.value || '').trim() || null,
               },
               jonny: {
                 number: document.getElementById('jonny-number')?.value || null,
-                years: Number(document.getElementById('jonny-years')?.value || 0) || 0,
-                wins: Number(document.getElementById('jonny-wins')?.value || 0) || 0,
-                championships: Number(document.getElementById('jonny-championships')?.value || 0) || 0,
-                bio: document.getElementById('jonny-bio')?.value || null,
+                years: Math.max(0, Number(document.getElementById('jonny-years')?.value || 0) || 0),
+                wins: Math.max(0, Number(document.getElementById('jonny-wins')?.value || 0) || 0),
+                championships: Math.max(0, Number(document.getElementById('jonny-championships')?.value || 0) || 0),
+                bio: (document.getElementById('jonny-bio')?.value || '').trim() || null,
               },
             };
             await setDoc(doc(db, 'config', 'site'), payload, { merge: true });
+            writeConfigHistoryClient('config/site:roster', beforeData, payload);
+            writeAdminLogClient({ action: 'settings_saved', configPath: 'config/site:roster' });
             showToast('Roster saved');
           } catch (e) { showToast('Failed to save roster', 'error'); }
         }
 
         async function saveHomepageStats() {
           try {
-            const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getFirestore, doc, setDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const db = getFirestore();
+            const beforeSnap = await getDoc(doc(db, 'config', 'site'));
+            const beforeData = beforeSnap.exists() ? { homepage: beforeSnap.data()?.homepage } : null;
             const payload = {
               homepage: {
-                years: Number(document.getElementById('homepage-years')?.value || 0) || 0,
-                wins: Number(document.getElementById('homepage-wins')?.value || 0) || 0,
+                years: Math.max(0, Number(document.getElementById('homepage-years')?.value || 0) || 0),
+                wins: Math.max(0, Number(document.getElementById('homepage-wins')?.value || 0) || 0),
                 numbers: document.getElementById('homepage-numbers')?.value || null,
-                users: Number(document.getElementById('homepage-users')?.value || 0) || 0,
+                users: Math.max(0, Number(document.getElementById('homepage-users')?.value || 0) || 0),
               },
             };
             await setDoc(doc(db, 'config', 'site'), payload, { merge: true });
+            writeConfigHistoryClient('config/site:homepage', beforeData, payload);
+            writeAdminLogClient({ action: 'settings_saved', configPath: 'config/site:homepage' });
             showToast('Homepage stats saved');
           } catch (e) { showToast('Failed to save homepage stats', 'error'); }
         }
 
         async function saveContentSettings() {
           try {
-            const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getFirestore, doc, setDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const db = getFirestore();
+            const beforeSnap = await getDoc(doc(db, 'config', 'site'));
+            const beforeData = beforeSnap.exists() ? { content: beforeSnap.data()?.content, social: beforeSnap.data()?.social } : null;
+            const fbUrl = (document.getElementById('facebook-url')?.value || '').trim();
+            if (fbUrl && !fbUrl.startsWith('http')) { showToast('Facebook URL must start with http(s)', 'error'); return; }
+            const copyrightYear = Number(document.getElementById('copyright-year')?.value || new Date().getFullYear());
+            if (copyrightYear < 2000 || copyrightYear > 2100) { showToast('Copyright year looks invalid', 'error'); return; }
             const payload = {
               content: {
-                heroTitle: document.getElementById('hero-title')?.value || null,
-                heroSubtitle: document.getElementById('hero-subtitle')?.value || null,
-                season: document.getElementById('racing-season')?.value || null,
-                copyright: Number(document.getElementById('copyright-year')?.value || new Date().getFullYear()),
+                heroTitle: (document.getElementById('hero-title')?.value || '').trim() || null,
+                heroSubtitle: (document.getElementById('hero-subtitle')?.value || '').trim() || null,
+                season: (document.getElementById('racing-season')?.value || '').trim() || null,
+                copyright: copyrightYear,
               },
               social: {
-                facebook: document.getElementById('facebook-url')?.value || null,
-                tiktok: document.getElementById('tiktok-handle')?.value || null,
+                facebook: fbUrl || null,
+                tiktok: (document.getElementById('tiktok-handle')?.value || '').trim() || null,
               }
             };
             await setDoc(doc(db, 'config', 'site'), payload, { merge: true });
+            writeConfigHistoryClient('config/site:content', beforeData, payload);
+            writeAdminLogClient({ action: 'settings_saved', configPath: 'config/site:content' });
             showToast('Content saved');
           } catch (e) { showToast('Failed to save content', 'error'); }
         }
@@ -4267,12 +4661,14 @@
         // ========== SITE HEALTH DASHBOARD ==========
         async function loadHealthData() {
           try {
-            const { getFirestore, collection, getDocs, query, orderBy, limit, where } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getFirestore, collection, getDocs, getDoc, doc, query, orderBy, limit, where } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
             const auth = getAuth(app);
             const el = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+            // Track individual check results for persistence
+            const checkResults = { firebase: null, firestore: null, auth: null, hosting: null };
             // Reset all status dots to yellow "checking" state
             ['health-firebase','health-firestore','health-auth','health-hosting'].forEach(prefix => {
               const dot = document.getElementById(prefix + '-dot');
@@ -4283,10 +4679,26 @@
             // Reset stat values to show loading
             ['health-errors-24h','health-errors-7d','health-subscribers'].forEach(id => el(id, '...'));
             el('health-top-error-page', '...');
-            // App versions (hardcoded — update with each release)
-            el('health-android-ver', '10.9.13'); el('health-android-code', 'Build 123');
-            el('health-ios-ver', '10.9.13'); el('health-ios-code', 'Build 123');
-            el('health-web-ver', 'v2.0.1');
+            // ---- App versions from app_config (replaces hardcoded values) ----
+            try {
+              const androidCfg = await getDoc(doc(db, 'app_config', 'android_version'));
+              if (androidCfg.exists()) {
+                const d = androidCfg.data();
+                el('health-android-ver', d.version_name || d.latest_version || '?');
+                el('health-android-code', 'Build ' + (d.latest_version || d.version_code || '?'));
+              } else { el('health-android-ver', 'No config'); el('health-android-code', '--'); }
+              const iosCfg = await getDoc(doc(db, 'app_config', 'ios_version'));
+              if (iosCfg.exists()) {
+                const d = iosCfg.data();
+                el('health-ios-ver', d.version_name || d.latest_version || '?');
+                el('health-ios-code', 'Build ' + (d.latest_version || d.version_code || '?'));
+              } else { el('health-ios-ver', 'No config'); el('health-ios-code', '--'); }
+            } catch(e) {
+              console.warn('Failed to read app_config versions:', e);
+              el('health-android-ver', '?'); el('health-android-code', '?');
+              el('health-ios-ver', '?'); el('health-ios-code', '?');
+            }
+            el('health-web-ver', document.querySelector('meta[name="app-version"]')?.content || 'live');
             // Firebase status
             const setStatus = (prefix, ok, msg) => {
               const dot = document.getElementById(prefix + '-dot');
@@ -4295,25 +4707,27 @@
               if (txt) txt.textContent = msg;
             };
             // Check Firebase App
-            try { const { getApps } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js'); setStatus('health-firebase', getApps().length > 0, getApps().length > 0 ? 'Connected' : 'No app'); } catch(e) { setStatus('health-firebase', false, 'Error'); }
+            try { const { getApps } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js'); const ok = getApps().length > 0; setStatus('health-firebase', ok, ok ? 'Connected' : 'No app'); checkResults.firebase = ok; } catch(e) { setStatus('health-firebase', false, 'Error'); checkResults.firebase = false; }
             // Check Firestore
             try {
               const testQ = query(collection(db, 'config'), limit(1));
               await getDocs(testQ);
               setStatus('health-firestore', true, 'Read OK');
-            } catch(e) { setStatus('health-firestore', false, 'Read failed'); }
+              checkResults.firestore = true;
+            } catch(e) { setStatus('health-firestore', false, 'Read failed'); checkResults.firestore = false; }
             // Check Auth
-            try { setStatus('health-auth', !!auth.currentUser, auth.currentUser ? 'Signed in' : 'Not signed in'); } catch(e) { setStatus('health-auth', false, 'Error'); }
+            try { const ok = !!auth.currentUser; setStatus('health-auth', ok, ok ? 'Signed in' : 'Not signed in'); checkResults.auth = ok; } catch(e) { setStatus('health-auth', false, 'Error'); checkResults.auth = false; }
             // Hosting
             try {
               const resp = await fetch(window.location.origin + '/ads.txt', { method: 'HEAD', cache: 'no-store' });
               setStatus('health-hosting', resp.ok, resp.ok ? 'Online (' + resp.status + ')' : 'Error ' + resp.status);
-            } catch(e) { setStatus('health-hosting', false, 'Unreachable'); }
+              checkResults.hosting = resp.ok;
+            } catch(e) { setStatus('health-hosting', false, 'Unreachable'); checkResults.hosting = false; }
             // Error counts
+            let last24h = 0, last7d = 0;
             try {
               const logsSnap = await getDocs(query(collection(db, 'client_logs'), orderBy('serverTimestamp', 'desc'), limit(500)));
               const now = Date.now();
-              let last24h = 0, last7d = 0;
               const pageCounts = {};
               const recentRows = [];
               logsSnap.forEach(d => {
@@ -4357,6 +4771,24 @@
               const subsSnap = await getDocs(collection(db, 'subscribers'));
               el('health-subscribers', subsSnap.size);
             } catch(e) { el('health-subscribers', '?'); }
+            // ---- Show last health check timestamp ----
+            try {
+              const prevSnap = await getDocs(query(collection(db, 'health_checks'), orderBy('timestamp', 'desc'), limit(1)));
+              if (!prevSnap.empty) {
+                const prev = prevSnap.docs[0].data();
+                const lastTs = prev.timestamp?.toDate ? prev.timestamp.toDate().toLocaleString() : '--';
+                const lastEl = document.getElementById('health-last-check');
+                if (lastEl) lastEl.textContent = 'Last check: ' + lastTs;
+              }
+            } catch (_) {}
+            // ---- Persist this health check ----
+            const allOk = checkResults.firebase && checkResults.firestore && checkResults.auth && checkResults.hosting;
+            persistHealthCheck({
+              ...checkResults,
+              allOk,
+              errors24h: last24h,
+              errors7d: last7d,
+            });
             showToast('Health data loaded', 'info');
           } catch (e) {
             console.error('loadHealthData error:', e);
@@ -4861,7 +5293,7 @@
           try {
             const role = await getUserRole();
             if (!isModeratorRole(role)) {
-              alert('You need to be a team-member or admin to approve photos.');
+              showToast('You need to be a team-member or admin to approve photos', 'error');
               return;
             }
             const { getFirestore, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
@@ -4876,10 +5308,10 @@
             
             // Reload pending photos
             loadPendingPhotos();
-            
-            console.log('Photo approved successfully');
+            showToast('Photo approved');
           } catch (error) {
             console.error('Error approving photo:', error);
+            showToast('Failed to approve photo', 'error');
           }
         };
         
@@ -4891,7 +5323,7 @@
           try {
             const role = await getUserRole();
             if (!isModeratorRole(role)) {
-              alert('You need to be a team-member or admin to reject photos.');
+              showToast('You need to be a team-member or admin to reject photos', 'error');
               return;
             }
             const { getFirestore, doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
@@ -4902,10 +5334,10 @@
             
             // Reload pending photos
             loadPendingPhotos();
-            
-            console.log('Photo rejected and deleted');
+            showToast('Photo rejected and deleted');
           } catch (error) {
             console.error('Error rejecting photo:', error);
+            showToast('Failed to reject photo', 'error');
           }
         };
         
@@ -5257,6 +5689,21 @@
                 console.log('🔗 [HASH] Showing site health...');
                 showHealth();
                 break;
+              case '#inbox':
+                showOpsInbox();
+                break;
+              case '#raceday':
+                showRaceDay();
+                break;
+              case '#audit':
+                showAudit();
+                break;
+              case '#data-quality':
+                showDataQuality();
+                break;
+              case '#releases':
+                showReleases();
+                break;
               default:
                 console.log('🔗 [HASH] Unknown hash, showing overview...');
                 showOverview();
@@ -5285,6 +5732,11 @@
           window.showScheduleMgmt = showScheduleMgmt;
           window.showHealth = showHealth;
           window.showFanWall = showFanWall;
+          window.showOpsInbox = showOpsInbox;
+          window.showRaceDay = showRaceDay;
+          window.showAudit = showAudit;
+          window.showDataQuality = showDataQuality;
+          window.showReleases = showReleases;
           window.hideAllSections = hideAllSections;
           
           initNavigation();
@@ -5376,6 +5828,26 @@
               document.getElementById('potw-caption-input').value = '';
               showToast('Photo removed');
             } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+          });
+          // Phase 3 buttons
+          const refreshInboxBtn = document.getElementById('refresh-inbox-btn');
+          if (refreshInboxBtn) refreshInboxBtn.addEventListener('click', () => loadOpsInbox());
+          const refreshAuditBtn = document.getElementById('refresh-audit-btn');
+          if (refreshAuditBtn) refreshAuditBtn.addEventListener('click', () => loadAuditTrail());
+          const runQualityBtn = document.getElementById('run-quality-btn');
+          if (runQualityBtn) runQualityBtn.addEventListener('click', () => loadDataQuality());
+          const refreshReleasesBtn = document.getElementById('refresh-releases-btn');
+          if (refreshReleasesBtn) refreshReleasesBtn.addEventListener('click', () => loadReleases());
+          // Analytics refresh button
+          const refreshAnalyticsBtn = document.getElementById('refresh-analytics-btn');
+          if (refreshAnalyticsBtn) refreshAnalyticsBtn.addEventListener('click', async () => {
+            const btn = refreshAnalyticsBtn;
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
+            btn.disabled = true;
+            try { await loadAnalyticsData(); } catch(e) { console.error('Analytics refresh failed:', e); }
+            btn.innerHTML = orig;
+            btn.disabled = false;
           });
           // Site Health button
           const refreshHealthBtn = document.getElementById('refresh-health-btn');
@@ -5675,17 +6147,30 @@
         async function runDiagnostics() {
           const result = document.getElementById('perf-diagnostics-result');
           result.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Running diagnostics...</div>';
-          
-          setTimeout(() => {
-            result.innerHTML = `
-              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-1">
-                <div class="text-green-400"><i class="fas fa-check mr-2"></i>Firebase connection: OK</div>
-                <div class="text-green-400"><i class="fas fa-check mr-2"></i>Authentication system: OK</div>
-                <div class="text-green-400"><i class="fas fa-check mr-2"></i>Database queries: OK</div>
-                <div class="text-green-400"><i class="fas fa-check mr-2"></i>Storage access: OK</div>
-              </div>
-            `;
-          }, 2000);
+          try {
+            const { getFirestore, collection, getDocs, query, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+            const checks = [];
+            // Firebase
+            try { const { getApps } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js'); checks.push({ ok: getApps().length > 0, label: 'Firebase connection' }); } catch (_) { checks.push({ ok: false, label: 'Firebase connection' }); }
+            // Firestore
+            try { await getDocs(query(collection(db, 'config'), limit(1))); checks.push({ ok: true, label: 'Database queries' }); } catch (_) { checks.push({ ok: false, label: 'Database queries' }); }
+            // Auth
+            checks.push({ ok: !!auth.currentUser, label: 'Authentication system' });
+            // Hosting
+            try { const r = await fetch(window.location.origin + '/ads.txt', { method: 'HEAD', cache: 'no-store' }); checks.push({ ok: r.ok, label: 'Hosting / Storage access' }); } catch (_) { checks.push({ ok: false, label: 'Hosting / Storage access' }); }
+            result.innerHTML = '<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-1">' +
+              checks.map(c => `<div class="${c.ok ? 'text-green-400' : 'text-red-400'}"><i class="fas ${c.ok ? 'fa-check' : 'fa-times'} mr-2"></i>${c.label}: ${c.ok ? 'OK' : 'FAIL'}</div>`).join('') +
+              '</div>';
+            const allOk = checks.every(c => c.ok);
+            showToast(allOk ? 'All diagnostics passed' : 'Some diagnostics failed', allOk ? 'success' : 'error');
+          } catch (e) {
+            result.innerHTML = '<div class="text-red-400"><i class="fas fa-times mr-2"></i>Diagnostics failed: ' + (e.message || e) + '</div>';
+            showToast('Diagnostics failed', 'error');
+          }
         }
         
         // User Activity Functions
@@ -5831,46 +6316,125 @@
         async function runSecurityAudit() {
           const result = document.getElementById('security-audit-result');
           result.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Running security audit...</div>';
-          
-          // Simulate security metrics
-          document.getElementById('security-failed-logins').textContent = '2';
-          document.getElementById('security-blocked-ips').textContent = '0';
-          document.getElementById('security-score').textContent = '95';
-          
           const checksList = document.getElementById('security-checks-list');
-          setTimeout(() => {
-            checksList.innerHTML = `
-              <div class="flex items-center text-sm text-green-400">
-                <i class="fas fa-check-circle mr-2"></i>HTTPS enabled
-              </div>
-              <div class="flex items-center text-sm text-green-400">
-                <i class="fas fa-check-circle mr-2"></i>Firebase security rules configured
-              </div>
-              <div class="flex items-center text-sm text-green-400">
-                <i class="fas fa-check-circle mr-2"></i>Authentication tokens valid
-              </div>
-              <div class="flex items-center text-sm text-yellow-400">
-                <i class="fas fa-exclamation-triangle mr-2"></i>2 failed login attempts (within normal range)
-              </div>
-            `;
-            result.innerHTML = '<div class="text-green-400"><i class="fas fa-check mr-2"></i>Security audit complete</div>';
-          }, 2000);
+          try {
+            const { getFirestore, collection, getDocs, query, orderBy, limit, where, Timestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+            const thirtyDaysAgo = Timestamp.fromDate(new Date(Date.now() - 30 * 86400000));
+            // Pull real security events
+            const evSnap = await getDocs(query(collection(db, 'security_events'), orderBy('timestamp', 'desc'), limit(500)));
+            const events = evSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const recent = events.filter(e => {
+              const ts = e.timestamp?.toMillis ? e.timestamp.toMillis() : 0;
+              return ts >= thirtyDaysAgo.toMillis();
+            });
+            // Classify
+            const highCount = recent.filter(e => e.severity === 'high').length;
+            const warnCount = recent.filter(e => e.severity === 'warning').length;
+            const codeInvalid = recent.filter(e => e.type === 'invitation_code_invalid').length;
+            const codeReused = recent.filter(e => e.type === 'invitation_code_reused').length;
+            const codeExpired = recent.filter(e => e.type === 'invitation_code_expired').length;
+            const roleChanges = recent.filter(e => e.type === 'role_change' || e.type === 'invitation_code_role_assigned').length;
+            const adminPromos = recent.filter(e => (e.type === 'role_change' || e.type === 'invitation_code_role_assigned') && e.role === 'admin').length;
+            // Compute score
+            let score = 100;
+            score -= highCount * 10;
+            score -= warnCount * 3;
+            score -= adminPromos * 5;
+            score = Math.max(0, Math.min(100, score));
+            document.getElementById('security-failed-logins').textContent = codeInvalid + codeReused + codeExpired;
+            document.getElementById('security-blocked-ips').textContent = highCount;
+            document.getElementById('security-score').textContent = score;
+            // Build checks list from real data
+            const checks = [];
+            checks.push({ ok: true, msg: 'HTTPS enabled' });
+            try {
+              const rulesCheck = await getDocs(query(collection(db, 'config'), limit(1)));
+              checks.push({ ok: true, msg: 'Firestore rules configured (read OK)' });
+            } catch (_) { checks.push({ ok: false, msg: 'Firestore rules check failed' }); }
+            checks.push({ ok: !!auth.currentUser, msg: auth.currentUser ? 'Auth session active' : 'No auth session' });
+            if (adminPromos > 0) checks.push({ ok: false, warn: true, msg: `${adminPromos} admin promotions in 30 days — review` });
+            if (codeInvalid + codeReused > 0) checks.push({ ok: true, warn: true, msg: `${codeInvalid + codeReused} invalid/reused code attempts (monitored)` });
+            if (roleChanges > 0) checks.push({ ok: true, msg: `${roleChanges} role changes tracked` });
+            if (recent.length === 0) checks.push({ ok: true, msg: 'No security events in last 30 days' });
+            checksList.innerHTML = checks.map(c => {
+              const color = !c.ok ? 'text-red-400' : c.warn ? 'text-yellow-400' : 'text-green-400';
+              const icon = !c.ok ? 'fa-times-circle' : c.warn ? 'fa-exclamation-triangle' : 'fa-check-circle';
+              return `<div class="flex items-center text-sm ${color}"><i class="fas ${icon} mr-2"></i>${c.msg}</div>`;
+            }).join('');
+            result.innerHTML = '<div class="text-green-400"><i class="fas fa-check mr-2"></i>Security audit complete — ' + recent.length + ' events analyzed</div>';
+            // Persist audit run
+            await writeAdminLogClient({ action: 'security_audit_run', eventsAnalyzed: recent.length, score });
+          } catch (e) {
+            console.error('Security audit error:', e);
+            result.innerHTML = '<div class="text-red-400"><i class="fas fa-times mr-2"></i>Audit failed: ' + (e.message || e) + '</div>';
+          }
         }
         
-        function viewSuspiciousActivity() {
-          alert('Suspicious Activity Log:\n\nNo suspicious activity detected in the last 30 days.');
+        async function viewSuspiciousActivity() {
+          try {
+            const { getFirestore, collection, getDocs, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const snap = await getDocs(query(collection(db, 'security_events'), orderBy('timestamp', 'desc'), limit(50)));
+            if (snap.empty) {
+              showToast('No security events recorded yet', 'info');
+              return;
+            }
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4';
+            let rows = '';
+            snap.forEach(d => {
+              const v = d.data();
+              const ts = v.timestamp?.toDate ? v.timestamp.toDate().toLocaleString() : '--';
+              const sev = v.severity || 'info';
+              const sevColor = sev === 'high' ? 'text-red-400' : sev === 'warning' ? 'text-yellow-400' : 'text-slate-400';
+              rows += `<tr class="border-b border-slate-700/50"><td class="p-2 text-xs text-slate-400">${ts}</td><td class="p-2 text-xs ${sevColor} font-semibold uppercase">${sev}</td><td class="p-2 text-xs text-white">${v.type || '--'}</td><td class="p-2 text-xs text-slate-300">${v.actorEmail || v.actorUid || '--'}</td><td class="p-2 text-xs text-slate-400">${v.targetEmail || v.code || v.role || '--'}</td></tr>`;
+            });
+            modal.innerHTML = `<div class="bg-slate-900 rounded-xl p-6 max-w-5xl w-full max-h-[85vh] overflow-y-auto border border-slate-700"><div class="flex items-center justify-between mb-4"><h3 class="text-xl font-bold text-white"><i class="fas fa-shield-alt text-red-400 mr-2"></i>Security Events (last 50)</h3><button class="text-slate-400 hover:text-white" onclick="this.closest('.fixed').remove()"><i class="fas fa-times text-xl"></i></button></div><table class="w-full"><thead><tr class="text-left text-slate-500 text-xs"><th class="p-2">Time</th><th class="p-2">Severity</th><th class="p-2">Type</th><th class="p-2">Actor</th><th class="p-2">Detail</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+            document.body.appendChild(modal);
+            modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+          } catch (e) {
+            console.error('viewSuspiciousActivity error:', e);
+            showToast('Failed to load security events', 'error');
+          }
         }
         
-        function exportSecurityLog() {
-          const log = 'Timestamp,Event,IP,Status\n2026-03-04 09:00,Login Attempt,192.168.1.1,Success\n2026-03-04 08:30,Failed Login,10.0.0.1,Blocked';
-          const blob = new Blob([log], { type: 'text/csv' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `security-log-${new Date().toISOString().split('T')[0]}.csv`;
-          a.click();
-          URL.revokeObjectURL(url);
-          showToast('Security log exported');
+        async function exportSecurityLog() {
+          try {
+            const { getFirestore, collection, getDocs, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const [secSnap, logSnap] = await Promise.all([
+              getDocs(query(collection(db, 'security_events'), orderBy('timestamp', 'desc'), limit(1000))),
+              getDocs(query(collection(db, 'admin_logs'), orderBy('timestamp', 'desc'), limit(1000))),
+            ]);
+            let csv = 'Source,Timestamp,Type,Severity,Actor,Detail\n';
+            secSnap.forEach(d => {
+              const v = d.data();
+              const ts = v.timestamp?.toDate ? v.timestamp.toDate().toISOString() : '';
+              csv += `security_event,${ts},${v.type||''},${v.severity||''},${v.actorEmail||v.actorUid||''},${v.targetEmail||v.code||v.role||''}\n`;
+            });
+            logSnap.forEach(d => {
+              const v = d.data();
+              const ts = v.timestamp?.toDate ? v.timestamp.toDate().toISOString() : '';
+              csv += `admin_log,${ts},${v.action||''},info,${v.actorEmail||v.actorUid||v.uid||''},${v.targetEmail||v.role||''}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `security-log-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast(`Security log exported (${secSnap.size + logSnap.size} records)`);
+          } catch (e) {
+            console.error('Export security log error:', e);
+            showToast('Failed to export security log', 'error');
+          }
         }
         
         // ===== EMAIL & NOTIFICATION MANAGEMENT =====
@@ -5886,7 +6450,19 @@
             return;
           }
           
-          alert(`Email Preview\n\nTo: ${recipientType}\nSubject: ${subject}\nMessage: ${message}\nPush Notification: ${pushNotif ? 'Yes' : 'No'}`);
+          const previewEl = document.getElementById('email-operation-result');
+          if (previewEl) {
+            previewEl.innerHTML = `
+              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 space-y-2">
+                <div class="text-white font-semibold"><i class="fas fa-eye mr-2"></i>Email Preview</div>
+                <div class="text-slate-300 text-sm"><strong>To:</strong> ${recipientType}</div>
+                <div class="text-slate-300 text-sm"><strong>Subject:</strong> ${subject}</div>
+                <div class="text-slate-300 text-sm"><strong>Message:</strong> ${message}</div>
+                <div class="text-slate-300 text-sm"><strong>Push Notification:</strong> ${pushNotif ? 'Yes' : 'No'}</div>
+              </div>
+            `;
+          }
+          showToast('Email preview generated');
         }
         
         async function sendEmailNotification() {
@@ -5957,26 +6533,60 @@
           btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
           
           try {
-            // Generate basic sitemap XML
+            const { getFirestore, collection, getDocs, query, where } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            // Static pages
             const pages = [
-              { url: 'index.html', priority: '1.0' },
-              { url: 'gallery.html', priority: '0.9' },
-              { url: 'race-day.html', priority: '0.9' },
-              { url: 'about.html', priority: '0.8' },
-              { url: 'contact.html', priority: '0.7' }
+              { url: '', priority: '1.0', changefreq: 'daily' },
+              { url: 'index.html', priority: '1.0', changefreq: 'daily' },
+              { url: 'gallery.html', priority: '0.9', changefreq: 'weekly' },
+              { url: 'race-day.html', priority: '0.9', changefreq: 'weekly' },
+              { url: 'about.html', priority: '0.8', changefreq: 'monthly' },
+              { url: 'contact.html', priority: '0.7', changefreq: 'monthly' },
+              { url: 'fan-wall.html', priority: '0.7', changefreq: 'weekly' },
+              { url: 'leaderboard.html', priority: '0.6', changefreq: 'weekly' },
             ];
+            // Dynamic: published CMS pages
+            try {
+              const cmsSnap = await getDocs(collection(db, 'pages'));
+              cmsSnap.forEach(d => {
+                const slug = d.id;
+                if (slug && !pages.find(p => p.url === slug + '.html')) {
+                  pages.push({ url: slug + '.html', priority: '0.6', changefreq: 'monthly' });
+                }
+              });
+            } catch (_) {}
+            // Dynamic: published Q&A (adds count note)
+            let qnaCount = 0;
+            try { const qSnap = await getDocs(query(collection(db, 'qna_submissions'), where('status','==','published'))); qnaCount = qSnap.size; } catch (_) {}
             
+            const today = new Date().toISOString().split('T')[0];
+            const baseUrl = 'https://redsracing.web.app';
             let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
             xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
             pages.forEach(page => {
               xml += `  <url>\n`;
-              xml += `    <loc>https://redsracing.web.app/${page.url}</loc>\n`;
+              xml += `    <loc>${baseUrl}/${page.url}</loc>\n`;
+              xml += `    <lastmod>${today}</lastmod>\n`;
+              xml += `    <changefreq>${page.changefreq}</changefreq>\n`;
               xml += `    <priority>${page.priority}</priority>\n`;
               xml += `  </url>\n`;
             });
             xml += '</urlset>';
             
-            // Download sitemap
+            // Show preview first
+            const resultEl = document.getElementById('seo-operation-result');
+            if (resultEl) {
+              resultEl.innerHTML = `
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 space-y-2">
+                  <div class="text-white font-semibold"><i class="fas fa-sitemap mr-2 text-green-400"></i>Sitemap Preview</div>
+                  <div class="text-slate-300 text-xs">${pages.length} URLs indexed${qnaCount ? ' + ' + qnaCount + ' published Q&As' : ''}</div>
+                  <div class="bg-slate-900/60 rounded p-2 max-h-40 overflow-y-auto text-xs text-slate-400 font-mono">${pages.map(p => baseUrl + '/' + p.url).join('<br>')}</div>
+                </div>
+              `;
+            }
+            // Download
             const blob = new Blob([xml], { type: 'application/xml' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -5984,10 +6594,7 @@
             a.download = 'sitemap.xml';
             a.click();
             URL.revokeObjectURL(url);
-            
-            document.getElementById('seo-operation-result').innerHTML = 
-              '<div class="text-green-400"><i class="fas fa-check mr-2"></i>Sitemap generated successfully</div>';
-            showToast('Sitemap generated and downloaded');
+            showToast(`Sitemap generated (${pages.length} URLs)`);
           } catch(e) {
             console.error('Failed to generate sitemap:', e);
             showToast('Failed to generate sitemap', 'error');
@@ -5999,29 +6606,31 @@
         
         async function saveMetaTags() {
           try {
-            const title = document.getElementById('meta-title').value;
-            const description = document.getElementById('meta-description').value;
-            const keywords = document.getElementById('meta-keywords').value;
+            const title = (document.getElementById('meta-title').value || '').trim();
+            const description = (document.getElementById('meta-description').value || '').trim();
+            const keywords = (document.getElementById('meta-keywords').value || '').trim();
             
             if (!title || !description) {
               showToast('Please fill in title and description', 'error');
               return;
             }
+            if (title.length > 70) { showToast('Title too long (max 70 chars for SEO)', 'error'); return; }
+            if (description.length > 160) { showToast('Description too long (max 160 chars for SEO)', 'error'); return; }
             
             const btn = document.getElementById('save-meta-tags-btn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
             
-            const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getFirestore, doc, setDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
             
-            await setDoc(doc(db, 'config', 'seo'), {
-              title,
-              description,
-              keywords,
-              updatedAt: new Date()
-            });
+            const beforeSnap = await getDoc(doc(db, 'config', 'seo'));
+            const beforeData = beforeSnap.exists() ? beforeSnap.data() : null;
+            const payload = { title, description, keywords, updatedAt: new Date() };
+            await setDoc(doc(db, 'config', 'seo'), payload);
+            writeConfigHistoryClient('config/seo', beforeData, { title, description, keywords });
+            writeAdminLogClient({ action: 'settings_saved', configPath: 'config/seo' });
             
             showToast('Meta tags saved successfully');
             btn.disabled = false;
@@ -6072,7 +6681,20 @@
         function showSocialPreview() {
           const title = document.getElementById('meta-title').value || 'RedsRacing - Dirt Track Racing Team';
           const description = document.getElementById('meta-description').value || 'Follow our racing journey';
-          alert(`Social Media Preview\n\n${title}\n\n${description}`);
+          const resultEl = document.getElementById('seo-operation-result');
+          if (resultEl) {
+            resultEl.innerHTML = `
+              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 space-y-2">
+                <div class="text-white font-semibold"><i class="fas fa-share-alt mr-2"></i>Social Media Preview</div>
+                <div class="bg-slate-900/50 rounded-lg p-3 border border-slate-600/30">
+                  <div class="text-blue-400 font-semibold text-sm">${title}</div>
+                  <div class="text-slate-400 text-xs mt-1">${description}</div>
+                  <div class="text-green-500 text-xs mt-1">redsracing.web.app</div>
+                </div>
+              </div>
+            `;
+          }
+          showToast('Social preview generated');
         }
         
         // ===== BACKUP & RECOVERY =====
@@ -6617,6 +7239,7 @@
               <div class="text-slate-300 text-xs">iOS: 1 minor crash (0.05% crash rate)</div>
             </div>
           `;
+          showToast('Crash report loaded');
         }
         
         function showAppAnalytics() {
@@ -6722,9 +7345,26 @@
             document.getElementById('admob-impressions').textContent = admobImpressions.toLocaleString();
             document.getElementById('admob-clicks').textContent = admobClicks.toLocaleString();
             document.getElementById('admob-ecpm').textContent = `$${admobEcpm.toFixed(2)}`;
-            
-            document.getElementById('revenue-operation-result').innerHTML = 
-              `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Revenue stats refreshed from tracked analytics${revenueEvents.length ? ' + revenue events' : ''}</div>`;
+
+            // Data source badges: real vs estimated
+            const hasRealRevenue = revenueEvents.length > 0;
+            const badgeReal = 'bg-green-600';
+            const badgeEstimated = 'bg-yellow-600';
+            const adsenseBadge = document.getElementById('adsense-badge');
+            const admobBadge = document.getElementById('admob-badge');
+            const adsenseHasReal = revenueEvents.some(e => (e.source || '').toLowerCase() === 'adsense');
+            const admobHasReal = revenueEvents.some(e => (e.source || '').toLowerCase() === 'admob');
+            if (adsenseBadge) { adsenseBadge.textContent = adsenseHasReal ? 'Real Data' : 'Estimated'; adsenseBadge.className = 'px-2 py-1 text-white text-xs rounded ' + (adsenseHasReal ? badgeReal : badgeEstimated); }
+            if (admobBadge) { admobBadge.textContent = admobHasReal ? 'Real Data' : 'Estimated'; admobBadge.className = 'px-2 py-1 text-white text-xs rounded ' + (admobHasReal ? badgeReal : badgeEstimated); }
+
+            // Gap state when no revenue events
+            let resultMsg = '';
+            if (!hasRealRevenue) {
+              resultMsg = '<div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 space-y-1"><div class="text-yellow-400 font-semibold text-sm"><i class="fas fa-exclamation-triangle mr-2"></i>No revenue_events found</div><div class="text-slate-400 text-xs">All revenue figures above are estimated from page view impressions. Connect AdSense/AdMob or log revenue_events to Firestore for accurate tracking.</div></div>';
+            } else {
+              resultMsg = `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Revenue loaded from ${revenueEvents.length} revenue events + ${pageViews.length} page views</div>`;
+            }
+            document.getElementById('revenue-operation-result').innerHTML = resultMsg;
             showToast('Revenue stats refreshed');
           } catch(e) {
             console.error('Failed to refresh revenue stats:', e);
@@ -6733,11 +7373,33 @@
         }
         
         function connectAdSense() {
-          alert('AdSense Connection\n\nTo connect your AdSense account:\n1. Go to console.cloud.google.com\n2. Enable AdSense Management API\n3. Add credentials to Firebase');
+          const resultEl = document.getElementById('revenue-operation-result');
+          if (resultEl) {
+            resultEl.innerHTML = `
+              <div class="bg-slate-800/50 border border-blue-500/30 rounded-lg p-4 space-y-1">
+                <div class="text-white font-semibold"><i class="fas fa-link mr-2 text-blue-400"></i>AdSense Connection Steps</div>
+                <div class="text-slate-300 text-sm">1. Go to console.cloud.google.com</div>
+                <div class="text-slate-300 text-sm">2. Enable AdSense Management API</div>
+                <div class="text-slate-300 text-sm">3. Add credentials to Firebase</div>
+              </div>
+            `;
+          }
+          showToast('AdSense setup instructions shown', 'info');
         }
         
         function connectAdMob() {
-          alert('AdMob Connection\n\nTo connect your AdMob account:\n1. Go to admob.google.com\n2. Link to Firebase project\n3. Configure ad units in app');
+          const resultEl = document.getElementById('revenue-operation-result');
+          if (resultEl) {
+            resultEl.innerHTML = `
+              <div class="bg-slate-800/50 border border-purple-500/30 rounded-lg p-4 space-y-1">
+                <div class="text-white font-semibold"><i class="fas fa-link mr-2 text-purple-400"></i>AdMob Connection Steps</div>
+                <div class="text-slate-300 text-sm">1. Go to admob.google.com</div>
+                <div class="text-slate-300 text-sm">2. Link to Firebase project</div>
+                <div class="text-slate-300 text-sm">3. Configure ad units in app</div>
+              </div>
+            `;
+          }
+          showToast('AdMob setup instructions shown', 'info');
         }
         
         // ===== END NEW ADMIN TOOLS =====
@@ -6802,25 +7464,21 @@
           } catch(_) { showToast('Add failed', 'error'); }
         }
 
-        // Countdown timer for next race
-        let countdownInterval = null;
+        // Countdown timer for next race — single global instance
+        window.__adminCountdownId = window.__adminCountdownId || null;
         function startCountdownTimer(targetDate) {
-          // Clear any existing countdown
-          if (countdownInterval) {
-            clearInterval(countdownInterval);
-          }
+          // Kill ALL previous countdown intervals to prevent jumping
+          if (window.__adminCountdownId) clearInterval(window.__adminCountdownId);
           
           function updateCountdown() {
-            const now = new Date().getTime();
-            const distance = targetDate.getTime() - now;
+            const distance = targetDate.getTime() - Date.now();
+            const daysEl = document.getElementById('days');
+            const hoursEl = document.getElementById('hours');
+            const minutesEl = document.getElementById('minutes');
+            const secondsEl = document.getElementById('seconds');
             
             if (distance < 0) {
-              // Race has passed
-              clearInterval(countdownInterval);
-              const daysEl = document.getElementById('days');
-              const hoursEl = document.getElementById('hours');
-              const minutesEl = document.getElementById('minutes');
-              const secondsEl = document.getElementById('seconds');
+              clearInterval(window.__adminCountdownId);
               if (daysEl) daysEl.textContent = '0';
               if (hoursEl) hoursEl.textContent = '0';
               if (minutesEl) minutesEl.textContent = '0';
@@ -6828,82 +7486,115 @@
               return;
             }
             
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-            
-            const daysEl = document.getElementById('days');
-            const hoursEl = document.getElementById('hours');
-            const minutesEl = document.getElementById('minutes');
-            const secondsEl = document.getElementById('seconds');
-            
-            if (daysEl) daysEl.textContent = days;
-            if (hoursEl) hoursEl.textContent = hours;
-            if (minutesEl) minutesEl.textContent = minutes;
-            if (secondsEl) secondsEl.textContent = seconds;
+            if (daysEl) daysEl.textContent = Math.floor(distance / 86400000);
+            if (hoursEl) hoursEl.textContent = Math.floor((distance % 86400000) / 3600000);
+            if (minutesEl) minutesEl.textContent = Math.floor((distance % 3600000) / 60000);
+            if (secondsEl) secondsEl.textContent = Math.floor((distance % 60000) / 1000);
           }
           
-          // Update immediately
           updateCountdown();
-          
-          // Update every second
-          countdownInterval = setInterval(updateCountdown, 1000);
+          window.__adminCountdownId = setInterval(updateCountdown, 1000);
         }
         
         // Load analytics data from Firestore
         async function loadAnalyticsData() {
-          console.log('[Analytics] Loading visitor data...');
           try {
             const { getFirestore, collection, getDocs, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
-            
-            // Get page views from Firestore (last 30 days)
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            
-            const pageViewsQuery = query(
-              collection(db, 'page_views'),
-              orderBy('timestamp', 'desc'),
-              limit(1000)
-            );
-            
-            const snapshot = await getDocs(pageViewsQuery);
-            const pageViews = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
-            
-            console.log('[Analytics] Loaded', pageViews.length, 'page views');
-            
-            // Calculate stats
+            const el = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+
+            // --- page_views ---
+            const pvSnap = await getDocs(query(collection(db, 'page_views'), orderBy('timestamp', 'desc'), limit(5000)));
+            const pageViews = pvSnap.docs.map(d => d.data() || {});
             const totalViews = pageViews.length;
             const uniqueVisitors = new Set(pageViews.map(v => v.visitorId || v.sessionId)).size;
-            
-            // Count by page
-            const pageCount = {};
+            el('anal-page-views', totalViews.toLocaleString());
+            el('anal-unique-visitors', uniqueVisitors.toLocaleString());
+
+            // --- analytics_events ---
+            const aeSnap = await getDocs(query(collection(db, 'analytics_events'), orderBy('timestamp', 'desc'), limit(5000)));
+            const events = aeSnap.docs.map(d => d.data() || {});
+            el('anal-total-events', events.length.toLocaleString());
+
+            // Avg engagement from page_engagement events
+            const engagements = events.filter(e => e.event === 'page_engagement' && e.params?.duration_seconds);
+            if (engagements.length > 0) {
+              const avg = Math.round(engagements.reduce((s, e) => s + (e.params.duration_seconds || 0), 0) / engagements.length);
+              el('anal-avg-engagement', avg + 's');
+            } else { el('anal-avg-engagement', '--'); }
+
+            // Helper: bar row
+            const barRow = (label, count, total, color = 'bg-blue-500') => {
+              const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+              return `<div class="flex items-center justify-between"><span class="text-slate-300 truncate max-w-[60%]">${label}</span><div class="flex items-center space-x-2"><div class="w-20 h-1.5 bg-slate-700 rounded overflow-hidden"><div class="h-full ${color}" style="width:${pct}%"></div></div><span class="text-slate-400 text-xs w-14 text-right">${count}</span></div></div>`;
+            };
+
+            // Top pages
+            const pageCounts = {};
+            pageViews.forEach(v => { const p = (v.page || 'unknown').replace(/^\//,'') || 'index'; pageCounts[p] = (pageCounts[p] || 0) + 1; });
+            const topPages = Object.entries(pageCounts).sort((a,b) => b[1] - a[1]).slice(0, 8);
+            const tpEl = document.getElementById('anal-top-pages');
+            if (tpEl) tpEl.innerHTML = topPages.length ? topPages.map(([p, c]) => barRow(p, c, totalViews, 'bg-blue-500')).join('') : '<div class="text-slate-500">No data</div>';
+
+            // Referrer / traffic source
+            const refCounts = {};
             pageViews.forEach(v => {
-              const page = v.page || 'Unknown';
-              pageCount[page] = (pageCount[page] || 0) + 1;
+              let src = v.referrer || 'Direct';
+              try { if (src.startsWith('http')) src = new URL(src).hostname; } catch (_) {}
+              if (src === window.location.hostname || src === 'redsracing.web.app' || src === 'redsracing-a7f8b.web.app') src = 'Direct';
+              refCounts[src] = (refCounts[src] || 0) + 1;
             });
-            
-            // Update the stats in the Analytics section
-            const pageViewsEl = document.querySelector('#analytics-section .grid > div:nth-child(1) .text-2xl');
-            const uniqueVisitorsEl = document.querySelector('#analytics-section .grid > div:nth-child(2) .text-2xl');
-            
-            if (pageViewsEl) pageViewsEl.textContent = totalViews.toLocaleString();
-            if (pageViewsEl) pageViewsEl.className = 'text-2xl font-bold text-white';
-            if (uniqueVisitorsEl) uniqueVisitorsEl.textContent = uniqueVisitors.toLocaleString();
-            if (uniqueVisitorsEl) uniqueVisitorsEl.className = 'text-2xl font-bold text-white';
-            
-            // Show top pages
-            const topPages = Object.entries(pageCount)
-              .sort((a, b) => b[1] - a[1])
-              .slice(0, 5);
-            
-            console.log('[Analytics] Top pages:', topPages);
-            console.log('[Analytics] Total views:', totalViews, 'Unique visitors:', uniqueVisitors);
-            
+            const topRefs = Object.entries(refCounts).sort((a,b) => b[1] - a[1]).slice(0, 8);
+            const refEl = document.getElementById('anal-referrers');
+            if (refEl) refEl.innerHTML = topRefs.length ? topRefs.map(([r, c]) => barRow(r, c, totalViews, 'bg-green-500')).join('') : '<div class="text-slate-500">No data</div>';
+
+            // Device breakdown from userAgent
+            const devCounts = { Mobile: 0, Desktop: 0, Tablet: 0 };
+            pageViews.forEach(v => {
+              const ua = (v.userAgent || '').toLowerCase();
+              if (/ipad|tablet/i.test(ua)) devCounts.Tablet++;
+              else if (/mobile|android|iphone/i.test(ua)) devCounts.Mobile++;
+              else devCounts.Desktop++;
+            });
+            const devEl = document.getElementById('anal-devices');
+            if (devEl) devEl.innerHTML = Object.entries(devCounts).filter(([,c]) => c > 0).sort((a,b) => b[1] - a[1]).map(([d, c]) => barRow(d, c, totalViews, 'bg-yellow-500')).join('') || '<div class="text-slate-500">No data</div>';
+
+            // Top events
+            const evCounts = {};
+            events.forEach(e => { const n = e.event || 'unknown'; evCounts[n] = (evCounts[n] || 0) + 1; });
+            const topEv = Object.entries(evCounts).sort((a,b) => b[1] - a[1]).slice(0, 10);
+            const evEl = document.getElementById('anal-top-events');
+            if (evEl) evEl.innerHTML = topEv.length ? '<div class="grid grid-cols-2 md:grid-cols-5 gap-2">' + topEv.map(([n, c]) => `<div class="bg-slate-900/50 rounded px-3 py-2"><div class="text-purple-300 font-medium text-xs truncate">${n}</div><div class="text-white font-bold">${c}</div></div>`).join('') + '</div>' : '<div class="text-slate-500">No events tracked yet</div>';
+
+            // Daily trend (last 14 days)
+            const dayCounts = {};
+            const now = Date.now();
+            for (let i = 13; i >= 0; i--) {
+              const d = new Date(now - i * 86400000);
+              dayCounts[d.toISOString().split('T')[0]] = 0;
+            }
+            pageViews.forEach(v => {
+              const ts = v.timestamp?.toDate ? v.timestamp.toDate() : (v.timestamp ? new Date(v.timestamp) : null);
+              if (!ts) return;
+              const key = ts.toISOString().split('T')[0];
+              if (key in dayCounts) dayCounts[key]++;
+            });
+            const dayArr = Object.entries(dayCounts);
+            const maxDay = Math.max(1, ...dayArr.map(([,c]) => c));
+            const trendEl = document.getElementById('anal-daily-trend');
+            if (trendEl) {
+              trendEl.innerHTML = dayArr.map(([d, c]) => {
+                const pct = Math.max(4, (c / maxDay) * 100);
+                const label = d.substring(5); // MM-DD
+                return `<div class="flex-1 flex flex-col items-center"><div class="w-full bg-cyan-500/80 rounded-t" style="height:${pct}%" title="${d}: ${c} views"></div><div class="text-[9px] text-slate-500 mt-1 truncate w-full text-center">${label}</div></div>`;
+              }).join('');
+            }
+
+            showToast('Analytics loaded');
           } catch (error) {
             console.error('[Analytics] Error loading data:', error);
+            showToast('Failed to load analytics', 'error');
           }
         }
         
@@ -7137,7 +7828,7 @@
           try {
             const role = await getUserRole();
             if (!isModeratorRole(role)) {
-              alert('You need to be a team-member or admin to approve photos.');
+              showToast('You need to be a team-member or admin to approve photos', 'error');
               button.innerHTML = '<i class="fas fa-check mr-1"></i>Approve All';
               button.disabled = false;
               return;
@@ -7162,13 +7853,13 @@
             
             await Promise.all(updatePromises);
             
-            alert(`Successfully approved ${pendingPhotos.size} photos!`);
+            showToast(`Approved ${pendingPhotos.size} photos!`);
             loadPendingPhotos();
             loadRealFirebaseData();
             
           } catch (error) {
             console.error('Error approving all photos:', error);
-            alert('Error approving photos. Please try again.');
+            showToast('Error approving photos. Please try again.', 'error');
           } finally {
             button.innerHTML = '<i class="fas fa-check mr-1"></i>Approve All';
             button.disabled = false;
@@ -7321,7 +8012,7 @@
             
             button.innerHTML = '<i class="fas fa-download mr-1"></i>Export';
             button.disabled = false;
-            alert('Data exported successfully!');
+            showToast('Data exported successfully');
           }, 2000);
         }
         
@@ -7337,7 +8028,7 @@
           setTimeout(() => {
             button.innerHTML = '<i class="fas fa-trash mr-1"></i>Cleanup';
             button.disabled = false;
-            alert('Cleanup completed successfully!');
+            showToast('Cleanup completed');
             loadRealFirebaseData();
           }, 3000);
         }
@@ -7448,11 +8139,7 @@
             }
             
             // Try to show user-friendly message
-            if (typeof showToast === 'function') {
-              showToast('Failed to load schedule: ' + error.message, 'error');
-            } else {
-              alert('Failed to load race schedule. Please check browser console.');
-            }
+            showToast('Failed to load schedule: ' + error.message, 'error');
           }
         }
         

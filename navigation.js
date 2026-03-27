@@ -924,6 +924,15 @@ const core = await import('./assets/js/firebase-core.js');
       window.addEventListener('error', logClientError);
       window.addEventListener('unhandledrejection', logClientError);
     } catch (_) {}
+    // Load role theme system on every page
+    try {
+      if (!document.getElementById('rr-theme-script')) {
+        var s = document.createElement('script');
+        s.id = 'rr-theme-script';
+        s.src = 'assets/js/role-theme.js';
+        document.head.appendChild(s);
+      }
+    } catch (_) {}
   }
 
   if (document.readyState === 'loading') {

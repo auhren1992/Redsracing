@@ -375,11 +375,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedVersion != currentVersion && currentVersion > 0) {
-            binding.webview.clearCache(true)
+            // Only clear HTTP cache, NOT localStorage/sessionStorage/cookies
+            // clearCache(true) destroys Firebase auth persistence — don't use it
             binding.webview.clearHistory()
-            // Keep cookies/local auth state so users stay logged in after app updates.
             prefs.edit().putInt("app_version_code", currentVersion).apply()
-            Toast.makeText(this, "App updated - loading new content", Toast.LENGTH_SHORT).show()
+            android.util.Log.d("MainActivity", "Version changed from $savedVersion to $currentVersion — history cleared, auth preserved")
         }
     }
 
@@ -496,20 +496,15 @@ class MainActivity : AppCompatActivity() {
                                 label.style.opacity = '1';
                                 label.style.color = '#ffffff';
                             });
-                            // Show admin sidebar on mobile for admin-console page
+                            // Admin console: show sidebar as stacked nav (mobile nav already stripped from Android copy)
                             if (window.location.href.indexOf('admin-console') !== -1) {
                                 var sidebar = document.querySelector('.sidebar-nav');
                                 if (sidebar) {
-                                    sidebar.classList.remove('hidden', 'lg:block');
-                                    sidebar.style.display = 'block';
-                                    sidebar.style.position = 'relative';
-                                    sidebar.style.width = '100%';
+                                    sidebar.classList.remove('hidden');
+                                    sidebar.style.cssText = 'display:block!important;position:relative!important;width:100%!important;border-right:none!important;border-bottom:1px solid rgba(255,255,255,0.06)!important;max-height:none!important;overflow:visible!important;';
                                 }
-                                // Make the layout stack vertically on mobile
-                                var flexContainer = document.querySelector('.flex.min-h-screen');
-                                if (flexContainer) {
-                                    flexContainer.style.flexDirection = 'column';
-                                }
+                                var fc = document.querySelector('.flex.min-h-screen');
+                                if (fc) fc.style.flexDirection = 'column';
                             }
                         }, 100);
                     })();
