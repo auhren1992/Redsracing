@@ -1,69 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const base = 'C:/Users/Parts/Documents/Desktop/Redsracing';
-
-const FB = `firebase.initializeApp({apiKey:"AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",authDomain:"redsracing-a7f8b.firebaseapp.com",projectId:"redsracing-a7f8b",storageBucket:"redsracing-a7f8b.firebasestorage.app",messagingSenderId:"517034606151",appId:"1:517034606151:web:24cae262e1d98832757b62"});`;
-
-const roles = {
-  fan: {
-    emoji: '🏁', label: 'Racing Fan', icon: 'fa-flag-checkered',
-    ac: '#fbbf24', ac2: '#fde047', ac3: '#f59e0b',
-    welcome: 'Welcome Back, Fan!',
-    tabs: [
-      { id: 'home', icon: 'fa-home', label: 'Home' },
-      { id: 'schedule', icon: 'fa-calendar-alt', label: 'Schedule' },
-      { id: 'gallery', icon: 'fa-images', label: 'Gallery' },
-      { id: 'videos', icon: 'fa-play-circle', label: 'Videos' },
-      { id: 'fanwall', icon: 'fa-bullhorn', label: 'Fan Wall' },
-      { id: 'drivers', icon: 'fa-users', label: 'Drivers' },
-      { id: 'profile', icon: 'fa-id-card', label: 'Profile' },
-    ]
-  },
-  racer: {
-    emoji: '🏎️', label: 'Racer', icon: 'fa-car-side',
-    ac: '#f97316', ac2: '#fb923c', ac3: '#ea580c',
-    welcome: 'Ready to Race!',
-    tabs: [
-      { id: 'home', icon: 'fa-home', label: 'Home' },
-      { id: 'schedule', icon: 'fa-calendar-alt', label: 'Schedule' },
-      { id: 'gallery', icon: 'fa-camera', label: 'Photos' },
-      { id: 'videos', icon: 'fa-video', label: 'Videos' },
-      { id: 'drivers', icon: 'fa-user', label: 'Drivers' },
-      { id: 'standings', icon: 'fa-trophy', label: 'Standings' },
-      { id: 'profile', icon: 'fa-id-card', label: 'Profile' },
-    ]
-  },
-  crew: {
-    emoji: '🔧', label: 'Crew Member', icon: 'fa-wrench',
-    ac: '#06b6d4', ac2: '#22d3ee', ac3: '#0891b2',
-    welcome: 'Welcome Back, Crew!',
-    tabs: [
-      { id: 'home', icon: 'fa-home', label: 'Home' },
-      { id: 'schedule', icon: 'fa-calendar-alt', label: 'Schedule' },
-      { id: 'gallery', icon: 'fa-camera', label: 'Pit Photos' },
-      { id: 'videos', icon: 'fa-video', label: 'Videos' },
-      { id: 'drivers', icon: 'fa-users', label: 'Team' },
-      { id: 'standings', icon: 'fa-chart-line', label: 'Standings' },
-      { id: 'profile', icon: 'fa-id-card', label: 'Profile' },
-    ]
-  }
-};
-
-function buildSPA(role) {
-  const r = roles[role];
-  const tabBtns = r.tabs.map((t, i) =>
-    `<button onclick="showTab('${t.id}')" id="tb-${t.id}" class="tb${i === 0 ? ' act' : ''}"><i class="fas ${t.icon}"></i><span>${t.label}</span></button>`
-  ).join('');
-
-  const tabPanels = r.tabs.map((t, i) =>
-    `<div id="pn-${t.id}" class="pn${i === 0 ? '' : ' hid'}"></div>`
-  ).join('\n          ');
-
-  return `<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${r.emoji} ${r.label} Dashboard - RedsRacing</title>
+  <title>🏎️ Racer Dashboard - RedsRacing</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -71,7 +10,7 @@ function buildSPA(role) {
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
   <style>
-    :root{--ac:${r.ac};--ac2:${r.ac2};--ac3:${r.ac3};--dim:${r.ac}1f;--mid:${r.ac}59;--bg:${r.ac}0a}
+    :root{--ac:#f97316;--ac2:#fb923c;--ac3:#ea580c;--dim:#f973161f;--mid:#f9731659;--bg:#f973160a}
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Inter',sans-serif;background:#0a0e17;color:#fff;min-height:100vh;display:flex;flex-direction:column}
     header{background:rgba(10,14,23,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--dim);padding:.4rem 1rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
@@ -131,19 +70,25 @@ function buildSPA(role) {
   <header>
     <a href="dashboard.html" class="logo"><span class="lb">Reds</span><span class="ly">Racing</span></a>
     <div style="display:flex;align-items:center;gap:.5rem">
-      <span class="badge"><i class="fas ${r.icon}"></i> ${r.label}</span>
+      <span class="badge"><i class="fas fa-car-side"></i> Racer</span>
       <button id="lo" class="lo"><i class="fas fa-sign-out-alt"></i></button>
     </div>
   </header>
-  <div class="tabs">${tabBtns}</div>
+  <div class="tabs"><button onclick="showTab('home')" id="tb-home" class="tb act"><i class="fas fa-home"></i><span>Home</span></button><button onclick="showTab('schedule')" id="tb-schedule" class="tb"><i class="fas fa-calendar-alt"></i><span>Schedule</span></button><button onclick="showTab('gallery')" id="tb-gallery" class="tb"><i class="fas fa-camera"></i><span>Photos</span></button><button onclick="showTab('videos')" id="tb-videos" class="tb"><i class="fas fa-video"></i><span>Videos</span></button><button onclick="showTab('drivers')" id="tb-drivers" class="tb"><i class="fas fa-user"></i><span>Drivers</span></button><button onclick="showTab('standings')" id="tb-standings" class="tb"><i class="fas fa-trophy"></i><span>Standings</span></button><button onclick="showTab('profile')" id="tb-profile" class="tb"><i class="fas fa-id-card"></i><span>Profile</span></button></div>
   <main>
     <div id="ld" class="ldg"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
     <div id="content" class="hid">
-      ${tabPanels}
+      <div id="pn-home" class="pn"></div>
+          <div id="pn-schedule" class="pn hid"></div>
+          <div id="pn-gallery" class="pn hid"></div>
+          <div id="pn-videos" class="pn hid"></div>
+          <div id="pn-drivers" class="pn hid"></div>
+          <div id="pn-standings" class="pn hid"></div>
+          <div id="pn-profile" class="pn hid"></div>
     </div>
   </main>
   <script>
-    ${FB}
+    firebase.initializeApp({apiKey:"AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",authDomain:"redsracing-a7f8b.firebaseapp.com",projectId:"redsracing-a7f8b",storageBucket:"redsracing-a7f8b.firebasestorage.app",messagingSenderId:"517034606151",appId:"1:517034606151:web:24cae262e1d98832757b62"});
     var au=firebase.auth(),db=firebase.firestore();
     document.getElementById('lo').onclick=async function(){try{localStorage.removeItem('rr_auth_uid');localStorage.removeItem('rr_signup_role');}catch(_){}try{await au.signOut();}catch(_){}window.location.href='../signup.html';};
 
@@ -170,7 +115,7 @@ function buildSPA(role) {
 
     // ---- HOME ----
     async function loadHome(el){
-      el.innerHTML='<h2>${r.welcome} ${r.emoji}</h2><div id="ue" style="color:rgba(255,255,255,.4);font-size:.85rem;margin-bottom:1rem"></div><div class="card"><div class="card-t"><i class="fas fa-flag-checkered"></i>Next Race</div><div id="rn" style="font-weight:700"></div><div id="rt" style="color:rgba(255,255,255,.4);font-size:.8rem"></div><div id="cdg" class="cgrid"><div class="ci"><div id="d0" class="cn">0</div><div class="cl">Days</div></div><div class="ci"><div id="d1" class="cn">0</div><div class="cl">Hrs</div></div><div class="ci"><div id="d2" class="cn">0</div><div class="cl">Min</div></div><div class="ci"><div id="d3" class="cn">0</div><div class="cl">Sec</div></div></div></div>';
+      el.innerHTML='<h2>Ready to Race! 🏎️</h2><div id="ue" style="color:rgba(255,255,255,.4);font-size:.85rem;margin-bottom:1rem"></div><div class="card"><div class="card-t"><i class="fas fa-flag-checkered"></i>Next Race</div><div id="rn" style="font-weight:700"></div><div id="rt" style="color:rgba(255,255,255,.4);font-size:.8rem"></div><div id="cdg" class="cgrid"><div class="ci"><div id="d0" class="cn">0</div><div class="cl">Days</div></div><div class="ci"><div id="d1" class="cn">0</div><div class="cl">Hrs</div></div><div class="ci"><div id="d2" class="cn">0</div><div class="cl">Min</div></div><div class="ci"><div id="d3" class="cn">0</div><div class="cl">Sec</div></div></div></div>';
       document.getElementById('ue').textContent='Signed in as '+au.currentUser.email;
       try{var t=new Date();t.setHours(0,0,0,0);var s=await db.collection('races').where('season','==',2026).orderBy('date','asc').get();var nr=null;s.forEach(function(d){var r=d.data();if(r.date&&!nr){var rd=new Date(r.date+'T00:00:00');if(rd>=t)nr=r;}});if(nr){document.getElementById('rn').textContent=nr.name||nr.eventName||'Upcoming Race';document.getElementById('rt').textContent=nr.track||'';var rd=new Date(nr.date+'T19:00:00').getTime();setInterval(function(){var d=rd-Date.now();if(d<0)return;document.getElementById('d0').textContent=Math.floor(d/864e5);document.getElementById('d1').textContent=Math.floor((d%864e5)/36e5);document.getElementById('d2').textContent=Math.floor((d%36e5)/6e4);document.getElementById('d3').textContent=Math.floor((d%6e4)/1e3);},1000);}else{document.getElementById('rn').textContent='Season Complete!';document.getElementById('cdg').innerHTML='<div style="grid-column:1/-1;color:rgba(255,255,255,.4);font-style:italic">Great season!</div>';}}catch(e){console.error(e);}
     }
@@ -190,7 +135,7 @@ function buildSPA(role) {
     // ---- VIDEOS ----
     async function loadVideos(el){
       el.innerHTML='<h2><i class="fas fa-play-circle" style="margin-right:.4rem"></i>Race Videos</h2><div id="vlist"><div class="ldg"><i class="fas fa-spinner fa-spin"></i></div></div>';
-      try{var s=await db.collection('tiktok_videos').orderBy('createdAt','desc').limit(12).get();var g=document.getElementById('vlist');g.innerHTML='';if(s.empty){g.innerHTML='<div class="ldg">No videos yet</div>';return;}s.forEach(function(d){var v=d.data();var url=v.sampleUrl||v.url||'';var m=url.match(/\\/(video|photo)\\/(\\d{6,})/);if(!m)return;var div=document.createElement('div');div.className='vid';div.innerHTML='<iframe src="https://www.tiktok.com/embed/v2/'+m[2]+'" allowfullscreen scrolling="no"></iframe><div class="vt">'+(v.title||'Highlight')+'</div>';g.appendChild(div);});}catch(e){document.getElementById('vlist').innerHTML='<div class="ldg">Failed to load</div>';}
+      try{var s=await db.collection('tiktok_videos').orderBy('createdAt','desc').limit(12).get();var g=document.getElementById('vlist');g.innerHTML='';if(s.empty){g.innerHTML='<div class="ldg">No videos yet</div>';return;}s.forEach(function(d){var v=d.data();var url=v.sampleUrl||v.url||'';var m=url.match(/\/(video|photo)\/(\d{6,})/);if(!m)return;var div=document.createElement('div');div.className='vid';div.innerHTML='<iframe src="https://www.tiktok.com/embed/v2/'+m[2]+'" allowfullscreen scrolling="no"></iframe><div class="vt">'+(v.title||'Highlight')+'</div>';g.appendChild(div);});}catch(e){document.getElementById('vlist').innerHTML='<div class="ldg">Failed to load</div>';}
     }
 
     // ---- FAN WALL ----
@@ -216,7 +161,7 @@ function buildSPA(role) {
             '<div style="background:linear-gradient(135deg,var(--ac)15,var(--ac3)10);padding:1.25rem;border-bottom:1px solid var(--dim)">'+
               '<div style="display:flex;align-items:center;gap:1rem">'+
                 '<div style="width:72px;height:72px;background:linear-gradient(45deg,var(--ac),var(--ac3));border-radius:1rem;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#0a0e17;font-family:Racing Sans One,cursive;font-weight:900;flex-shrink:0">#'+d.num+'</div>'+
-                '<div style="flex:1"><div style="font-size:1.3rem;font-weight:900">'+d.name+'</div><div style="color:var(--ac);font-weight:700;font-size:.85rem">Car #'+d.num+' \u2022 RedsRacing</div><div style="color:rgba(255,255,255,.4);font-size:.75rem;margin-top:.2rem">'+d.tagline+'</div></div>'+
+                '<div style="flex:1"><div style="font-size:1.3rem;font-weight:900">'+d.name+'</div><div style="color:var(--ac);font-weight:700;font-size:.85rem">Car #'+d.num+' • RedsRacing</div><div style="color:rgba(255,255,255,.4);font-size:.75rem;margin-top:.2rem">'+d.tagline+'</div></div>'+
               '</div>'+
             '</div>'+
             '<div style="padding:1.25rem">'+
@@ -236,14 +181,14 @@ function buildSPA(role) {
         }
         document.getElementById('drvs').innerHTML=driverCard({
           name:'Jon Kirsch',num:j.number||'8',years:j.years||2,wins:j.wins||12,pods:j.podiums||11,podLabel:'Podiums',
-          tagline:'Father \u2022 Mentor \u2022 Racing Legend',
+          tagline:'Father • Mentor • Racing Legend',
           bio:j.bio||'Jon Kirsch brings decades of racing passion to the dirt track. As the patriarch of RedsRacing, he combines experience, skill, and an unrelenting drive to compete. Behind Car #8, Jon has built a legacy that inspires both his son and fans alike. Every race is a chance to add to the family tradition.',
-          highlights:'\u2022 Multiple race winner at Grundy County Speedway<br>\u2022 Consistent top-5 finisher in Super Cup series<br>\u2022 Mentor to next-generation racers<br>\u2022 Known for clean, strategic racing style'
+          highlights:'• Multiple race winner at Grundy County Speedway<br>• Consistent top-5 finisher in Super Cup series<br>• Mentor to next-generation racers<br>• Known for clean, strategic racing style'
         })+driverCard({
           name:'Jonny Kirsch',num:jy.number||'88',years:jy.years||1,wins:jy.wins||8,pods:jy.championships||1,podLabel:'Championships',
-          tagline:'Next Generation \u2022 Speed Demon \u2022 Rising Star',
+          tagline:'Next Generation • Speed Demon • Rising Star',
           bio:jy.bio||'Jonny Kirsch is the future of RedsRacing. Carrying the #88 with pride, he has quickly established himself as one of the most exciting young drivers on the dirt track circuit. With natural talent inherited from his father and a fearless approach to racing, Jonny is destined for greatness.',
-          highlights:'\u2022 Championship winner in debut season<br>\u2022 Fastest lap times at multiple tracks<br>\u2022 Aggressive yet calculated driving style<br>\u2022 Fan favorite for highlight-reel moments'
+          highlights:'• Championship winner in debut season<br>• Fastest lap times at multiple tracks<br>• Aggressive yet calculated driving style<br>• Fan favorite for highlight-reel moments'
         });
       }catch(e){document.getElementById('drvs').innerHTML='<div class="ldg">Failed to load driver data</div>';}
     }
@@ -273,14 +218,4 @@ function buildSPA(role) {
     });
   </script>
 </body>
-</html>`;
-}
-
-// Generate all 3 SPAs
-Object.keys(roles).forEach(role => {
-  const html = buildSPA(role);
-  fs.writeFileSync(path.join(base, role, 'dashboard.html'), html);
-  console.log(`Created ${role}/dashboard.html (SPA - ${html.length} bytes)`);
-});
-
-console.log('Done! 3 SPA dashboards created.');
+</html>

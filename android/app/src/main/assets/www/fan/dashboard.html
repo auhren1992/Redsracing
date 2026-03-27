@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏁 Racing Fan Dashboard - RedsRacing</title>
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <style>
+    :root{--ac:#fbbf24;--ac2:#fde047;--ac3:#f59e0b;--dim:#fbbf241f;--mid:#fbbf2459;--bg:#fbbf240a}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',sans-serif;background:#0a0e17;color:#fff;min-height:100vh;display:flex;flex-direction:column}
+    header{background:rgba(10,14,23,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--dim);padding:.4rem 1rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+    .logo{font-family:'Racing Sans One',cursive;font-size:1.2rem;text-decoration:none;letter-spacing:.08em}
+    .lb{color:#3b82f6}.ly{color:var(--ac)}
+    .badge{display:inline-flex;align-items:center;gap:.3rem;padding:.15rem .5rem;border-radius:2rem;font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--dim);background:var(--bg);color:var(--ac)}
+    .lo{background:#ef4444;color:#fff;padding:.25rem .6rem;border-radius:.4rem;border:none;font-weight:700;font-size:.7rem;cursor:pointer}
+    .tabs{display:flex;overflow-x:auto;gap:.25rem;padding:.4rem .75rem;background:rgba(10,14,23,.8);border-bottom:1px solid rgba(255,255,255,.04);-webkit-overflow-scrolling:touch}
+    .tabs::-webkit-scrollbar{display:none}
+    .tb{display:flex;align-items:center;gap:.35rem;padding:.4rem .7rem;border-radius:2rem;border:1px solid transparent;background:transparent;color:rgba(255,255,255,.5);font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s}
+    .tb:hover{color:var(--ac);background:var(--bg)}
+    .tb.act{background:var(--bg);color:var(--ac);border-color:var(--dim)}
+    .tb i{font-size:.7rem}
+    main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:1.25rem}
+    .pn{animation:fi .3s ease}
+    .hid{display:none!important}
+    @keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    h2{font-family:'Racing Sans One',cursive;font-size:clamp(1.2rem,3vw,1.8rem);background:linear-gradient(45deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem;text-transform:uppercase;letter-spacing:.04em}
+    .card{background:rgba(15,23,42,.5);border:1px solid var(--dim);border-radius:.8rem;padding:1.1rem;margin-bottom:.75rem;transition:all .25s}
+    .card:hover{border-color:var(--mid);transform:translateY(-2px)}
+    .card-t{font-family:'Racing Sans One',cursive;color:var(--ac);font-size:.95rem;text-transform:uppercase;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem}
+    .card-t i{font-size:.85rem}
+    .ql{display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;background:var(--bg);border:1px solid var(--dim);border-radius:.5rem;color:#fff;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;margin-bottom:.4rem;text-decoration:none}
+    .ql:hover{background:rgba(255,255,255,.03);border-color:var(--mid);transform:translateX(2px)}
+    .qi{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:linear-gradient(45deg,var(--ac),var(--ac3));border-radius:.4rem;font-size:.8rem;color:#0a0e17;flex-shrink:0}
+    .cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin:.6rem 0}
+    .ci{text-align:center;background:var(--bg);border:1px solid var(--dim);border-radius:.5rem;padding:.5rem .1rem}
+    .cn{font-family:'Racing Sans One',cursive;font-size:1.5rem;color:var(--ac);line-height:1}
+    .cl{font-size:.5rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-top:.1rem}
+    .race{display:flex;justify-content:space-between;align-items:center;padding:.7rem .9rem;background:rgba(15,23,42,.4);border:1px solid var(--dim);border-radius:.6rem;margin-bottom:.5rem;transition:all .2s}
+    .race:hover{border-color:var(--mid)}
+    .race.past{opacity:.45}
+    .rdate{color:var(--ac);font-weight:700;font-size:.8rem;min-width:70px}
+    .rname{font-weight:700;font-size:.85rem}.rtrack{color:rgba(255,255,255,.4);font-size:.7rem}
+    .st{font-size:.6rem;font-weight:700;padding:.15rem .5rem;border-radius:1rem;text-transform:uppercase}
+    .st.up{background:rgba(34,197,94,.12);color:#22c55e}.st.dn{background:rgba(100,116,139,.12);color:#94a3b8}
+    .ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem}
+    .gimg{border-radius:.6rem;overflow:hidden;border:1px solid var(--dim);aspect-ratio:4/3;background:#1e293b;cursor:pointer;transition:all .2s}
+    .gimg:hover{border-color:var(--mid);transform:scale(1.02)}
+    .gimg img{width:100%;height:100%;object-fit:cover}
+    .vid{background:rgba(15,23,42,.4);border:1px solid var(--dim);border-radius:.6rem;overflow:hidden;margin-bottom:.75rem}
+    .vid iframe{width:100%;aspect-ratio:16/9;border:none}
+    .vid .vt{padding:.5rem .7rem;font-weight:700;font-size:.8rem}
+    textarea,select{background:#1e293b;border:1px solid var(--dim);color:#fff;padding:.5rem;border-radius:.4rem;font-size:.8rem;width:100%;font-family:inherit}
+    textarea{resize:none}
+    .btn{background:linear-gradient(45deg,var(--ac),var(--ac3));color:#0a0e17;padding:.45rem 1.2rem;border:none;border-radius:.4rem;font-weight:700;cursor:pointer;font-size:.8rem}
+    .msg{font-size:.75rem;margin-top:.3rem}
+    .stat{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem}
+    .stat-i{background:var(--bg);border:1px solid var(--dim);border-radius:.5rem;padding:.6rem;font-size:.75rem}
+    .stat-i .v{font-family:'Racing Sans One',cursive;font-size:1.3rem;color:var(--ac)}
+    .stat-i .l{color:rgba(255,255,255,.4);font-size:.6rem;text-transform:uppercase;letter-spacing:.05em;margin-top:.1rem}
+    .ldg{text-align:center;padding:2rem;color:rgba(255,255,255,.3)}
+    @media(max-width:640px){.cgrid{grid-template-columns:repeat(2,1fr)}.cn{font-size:1.2rem}.ggrid{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+  <header>
+    <a href="dashboard.html" class="logo"><span class="lb">Reds</span><span class="ly">Racing</span></a>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <span class="badge"><i class="fas fa-flag-checkered"></i> Racing Fan</span>
+      <button id="lo" class="lo"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+  </header>
+  <div class="tabs"><button onclick="showTab('home')" id="tb-home" class="tb act"><i class="fas fa-home"></i><span>Home</span></button><button onclick="showTab('schedule')" id="tb-schedule" class="tb"><i class="fas fa-calendar-alt"></i><span>Schedule</span></button><button onclick="showTab('gallery')" id="tb-gallery" class="tb"><i class="fas fa-images"></i><span>Gallery</span></button><button onclick="showTab('videos')" id="tb-videos" class="tb"><i class="fas fa-play-circle"></i><span>Videos</span></button><button onclick="showTab('fanwall')" id="tb-fanwall" class="tb"><i class="fas fa-bullhorn"></i><span>Fan Wall</span></button><button onclick="showTab('drivers')" id="tb-drivers" class="tb"><i class="fas fa-users"></i><span>Drivers</span></button><button onclick="showTab('profile')" id="tb-profile" class="tb"><i class="fas fa-id-card"></i><span>Profile</span></button></div>
+  <main>
+    <div id="ld" class="ldg"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+    <div id="content" class="hid">
+      <div id="pn-home" class="pn"></div>
+          <div id="pn-schedule" class="pn hid"></div>
+          <div id="pn-gallery" class="pn hid"></div>
+          <div id="pn-videos" class="pn hid"></div>
+          <div id="pn-fanwall" class="pn hid"></div>
+          <div id="pn-drivers" class="pn hid"></div>
+          <div id="pn-profile" class="pn hid"></div>
+    </div>
+  </main>
+  <script>
+    firebase.initializeApp({apiKey:"AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",authDomain:"redsracing-a7f8b.firebaseapp.com",projectId:"redsracing-a7f8b",storageBucket:"redsracing-a7f8b.firebasestorage.app",messagingSenderId:"517034606151",appId:"1:517034606151:web:24cae262e1d98832757b62"});
+    var au=firebase.auth(),db=firebase.firestore();
+    document.getElementById('lo').onclick=async function(){try{localStorage.removeItem('rr_auth_uid');localStorage.removeItem('rr_signup_role');}catch(_){}try{await au.signOut();}catch(_){}window.location.href='../signup.html';};
+
+    function showTab(id){
+      document.querySelectorAll('.pn').forEach(function(p){p.classList.add('hid');});
+      document.querySelectorAll('.tb').forEach(function(b){b.classList.remove('act');});
+      var pn=document.getElementById('pn-'+id);if(pn){pn.classList.remove('hid');pn.style.animation='none';pn.offsetHeight;pn.style.animation='';}
+      var tb=document.getElementById('tb-'+id);if(tb)tb.classList.add('act');
+      // Lazy load content
+      if(!pn.dataset.loaded){pn.dataset.loaded='1';loadSection(id);}
+    }
+
+    async function loadSection(id){
+      var pn=document.getElementById('pn-'+id);
+      if(id==='home') loadHome(pn);
+      else if(id==='schedule') loadSchedule(pn);
+      else if(id==='gallery') loadGallery(pn);
+      else if(id==='videos') loadVideos(pn);
+      else if(id==='fanwall') loadFanWall(pn);
+      else if(id==='drivers') loadDrivers(pn);
+      else if(id==='profile') loadProfile(pn);
+      else if(id==='standings') loadStandings(pn);
+    }
+
+    // ---- HOME ----
+    async function loadHome(el){
+      el.innerHTML='<h2>Welcome Back, Fan! 🏁</h2><div id="ue" style="color:rgba(255,255,255,.4);font-size:.85rem;margin-bottom:1rem"></div><div class="card"><div class="card-t"><i class="fas fa-flag-checkered"></i>Next Race</div><div id="rn" style="font-weight:700"></div><div id="rt" style="color:rgba(255,255,255,.4);font-size:.8rem"></div><div id="cdg" class="cgrid"><div class="ci"><div id="d0" class="cn">0</div><div class="cl">Days</div></div><div class="ci"><div id="d1" class="cn">0</div><div class="cl">Hrs</div></div><div class="ci"><div id="d2" class="cn">0</div><div class="cl">Min</div></div><div class="ci"><div id="d3" class="cn">0</div><div class="cl">Sec</div></div></div></div>';
+      document.getElementById('ue').textContent='Signed in as '+au.currentUser.email;
+      try{var t=new Date();t.setHours(0,0,0,0);var s=await db.collection('races').where('season','==',2026).orderBy('date','asc').get();var nr=null;s.forEach(function(d){var r=d.data();if(r.date&&!nr){var rd=new Date(r.date+'T00:00:00');if(rd>=t)nr=r;}});if(nr){document.getElementById('rn').textContent=nr.name||nr.eventName||'Upcoming Race';document.getElementById('rt').textContent=nr.track||'';var rd=new Date(nr.date+'T19:00:00').getTime();setInterval(function(){var d=rd-Date.now();if(d<0)return;document.getElementById('d0').textContent=Math.floor(d/864e5);document.getElementById('d1').textContent=Math.floor((d%864e5)/36e5);document.getElementById('d2').textContent=Math.floor((d%36e5)/6e4);document.getElementById('d3').textContent=Math.floor((d%6e4)/1e3);},1000);}else{document.getElementById('rn').textContent='Season Complete!';document.getElementById('cdg').innerHTML='<div style="grid-column:1/-1;color:rgba(255,255,255,.4);font-style:italic">Great season!</div>';}}catch(e){console.error(e);}
+    }
+
+    // ---- SCHEDULE ----
+    async function loadSchedule(el){
+      el.innerHTML='<h2><i class="fas fa-calendar-alt" style="margin-right:.4rem"></i>2026 Schedule</h2><div id="slist"><div class="ldg"><i class="fas fa-spinner fa-spin"></i></div></div>';
+      try{var t=new Date();t.setHours(0,0,0,0);var s=await db.collection('races').where('season','==',2026).orderBy('date','asc').get();var list=document.getElementById('slist');list.innerHTML='';if(s.empty){list.innerHTML='<div class="ldg">No races yet</div>';return;}s.forEach(function(d){var r=d.data();var rd=r.date?new Date(r.date+'T00:00:00'):null;var past=rd&&rd<t;var div=document.createElement('div');div.className='race'+(past?' past':'');div.innerHTML='<div class="rdate">'+(rd?rd.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'TBD')+'</div><div style="flex:1;margin:0 .75rem"><div class="rname">'+(r.eventName||r.name||'Race')+'</div><div class="rtrack">'+(r.track||'')+(r.city?' — '+r.city+', '+r.state:'')+'</div></div><span class="st '+(past?'dn':'up')+'">'+(past?'Done':'Upcoming')+'</span>';list.appendChild(div);});}catch(e){document.getElementById('slist').innerHTML='<div class="ldg">Failed to load</div>';}
+    }
+
+    // ---- GALLERY ----
+    async function loadGallery(el){
+      el.innerHTML='<h2><i class="fas fa-images" style="margin-right:.4rem"></i>Photo Gallery</h2><div id="glist" class="ggrid"><div class="ldg"><i class="fas fa-spinner fa-spin"></i></div></div>';
+      try{var s=await db.collection('gallery_images').where('approved','==',true).orderBy('uploadedAt','desc').limit(30).get();var g=document.getElementById('glist');g.innerHTML='';if(s.empty){g.innerHTML='<div class="ldg">No photos yet</div>';return;}s.forEach(function(d){var v=d.data();var url=v.imageUrl||v.downloadURL;if(!url)return;var div=document.createElement('div');div.className='gimg';div.innerHTML='<img src="'+url+'" alt="" loading="lazy">';div.onclick=function(){window.open(url,'_blank');};g.appendChild(div);});}catch(e){document.getElementById('glist').innerHTML='<div class="ldg">Failed to load</div>';}
+    }
+
+    // ---- VIDEOS ----
+    async function loadVideos(el){
+      el.innerHTML='<h2><i class="fas fa-play-circle" style="margin-right:.4rem"></i>Race Videos</h2><div id="vlist"><div class="ldg"><i class="fas fa-spinner fa-spin"></i></div></div>';
+      try{var s=await db.collection('tiktok_videos').orderBy('createdAt','desc').limit(12).get();var g=document.getElementById('vlist');g.innerHTML='';if(s.empty){g.innerHTML='<div class="ldg">No videos yet</div>';return;}s.forEach(function(d){var v=d.data();var url=v.sampleUrl||v.url||'';var m=url.match(/\/(video|photo)\/(\d{6,})/);if(!m)return;var div=document.createElement('div');div.className='vid';div.innerHTML='<iframe src="https://www.tiktok.com/embed/v2/'+m[2]+'" allowfullscreen scrolling="no"></iframe><div class="vt">'+(v.title||'Highlight')+'</div>';g.appendChild(div);});}catch(e){document.getElementById('vlist').innerHTML='<div class="ldg">Failed to load</div>';}
+    }
+
+    // ---- FAN WALL ----
+    async function loadFanWall(el){
+      el.innerHTML='<h2><i class="fas fa-bullhorn" style="margin-right:.4rem"></i>Fan Wall</h2><div style="margin-bottom:1rem"><select id="fwtag"><option value="team">Team</option><option value="jon">Jon #8</option><option value="jonny">Jonny #88</option></select><textarea id="fwtxt" rows="3" placeholder="Write your shoutout..." style="margin-top:.4rem"></textarea><div style="display:flex;align-items:center;gap:.5rem;margin-top:.4rem"><button class="btn" id="fwbtn">Post Shoutout</button><span id="fwmsg" class="msg"></span></div></div><div id="fwlist"></div>';
+      document.getElementById('fwbtn').onclick=async function(){var t=document.getElementById('fwtxt').value.trim();if(!t){document.getElementById('fwmsg').innerHTML='<span style="color:#ef4444">Write something!</span>';return;}try{await db.collection('fan_wall').add({text:t,tag:document.getElementById('fwtag').value,userName:au.currentUser.displayName||au.currentUser.email.split('@')[0],userId:au.currentUser.uid,approved:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});document.getElementById('fwtxt').value='';document.getElementById('fwmsg').innerHTML='<span style="color:var(--ac)">Posted! Awaiting approval.</span>';setTimeout(function(){document.getElementById('fwmsg').innerHTML='';},3000);}catch(e){document.getElementById('fwmsg').innerHTML='<span style="color:#ef4444">'+e.message+'</span>';}};
+      try{var s=await db.collection('fan_wall').where('approved','==',true).orderBy('createdAt','desc').limit(20).get();var list=document.getElementById('fwlist');s.forEach(function(d){var v=d.data();var div=document.createElement('div');div.className='card';var tl=v.tag==='jon'?'Jon #8':v.tag==='jonny'?'Jonny #88':'Team';div.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:.2rem"><span style="font-weight:700;font-size:.85rem">'+(v.userName||'Fan')+'</span><span style="font-size:.6rem;color:var(--ac)">'+tl+'</span></div><div style="color:rgba(255,255,255,.6);font-size:.85rem">'+v.text+'</div>';list.appendChild(div);});}catch(e){console.warn(e);}
+    }
+
+    // ---- DRIVERS ----
+    async function loadDrivers(el){
+      el.innerHTML='<h2><i class="fas fa-users" style="margin-right:.4rem"></i>Our Drivers</h2><div id="drvs"><div class="ldg"><i class="fas fa-spinner fa-spin"></i></div></div>';
+      try{
+        var cfg=await db.collection('config').doc('site').get();var s=cfg.exists?cfg.data():{};var j=s.jon||{};var jy=s.jonny||{};
+        // Get recent race results
+        var races=[];try{var rs=await db.collection('races').where('season','==',2026).orderBy('date','desc').limit(5).get();rs.forEach(function(d){races.push(d.data());});}catch(_){}
+        var recentHtml=races.length?races.map(function(r){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="font-size:.8rem">'+(r.eventName||r.name||'Race')+'</span><span style="font-size:.7rem;color:rgba(255,255,255,.4)">'+(r.date||'TBD')+'</span></div>';}).join(''):'<div style="color:rgba(255,255,255,.3);font-size:.8rem">No races yet this season</div>';
+        // Get gallery preview
+        var photos=[];try{var gs=await db.collection('gallery_images').where('approved','==',true).orderBy('uploadedAt','desc').limit(4).get();gs.forEach(function(d){var v=d.data();if(v.imageUrl||v.downloadURL)photos.push(v.imageUrl||v.downloadURL);});}catch(_){}
+        var photoHtml=photos.length?'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin-top:.5rem">'+photos.map(function(u){return '<div style="aspect-ratio:1;border-radius:.4rem;overflow:hidden;border:1px solid var(--dim)"><img src="'+u+'" style="width:100%;height:100%;object-fit:cover" loading="lazy"></div>';}).join('')+'</div>':'<div style="color:rgba(255,255,255,.3);font-size:.8rem">No photos yet</div>';
+        function driverCard(d){
+          return '<div class="card" style="padding:0;overflow:hidden">'+
+            '<div style="background:linear-gradient(135deg,var(--ac)15,var(--ac3)10);padding:1.25rem;border-bottom:1px solid var(--dim)">'+
+              '<div style="display:flex;align-items:center;gap:1rem">'+
+                '<div style="width:72px;height:72px;background:linear-gradient(45deg,var(--ac),var(--ac3));border-radius:1rem;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#0a0e17;font-family:Racing Sans One,cursive;font-weight:900;flex-shrink:0">#'+d.num+'</div>'+
+                '<div style="flex:1"><div style="font-size:1.3rem;font-weight:900">'+d.name+'</div><div style="color:var(--ac);font-weight:700;font-size:.85rem">Car #'+d.num+' • RedsRacing</div><div style="color:rgba(255,255,255,.4);font-size:.75rem;margin-top:.2rem">'+d.tagline+'</div></div>'+
+              '</div>'+
+            '</div>'+
+            '<div style="padding:1.25rem">'+
+              '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:1.25rem">'+
+                '<div style="background:var(--bg);border:1px solid var(--dim);border-radius:.5rem;padding:.6rem;text-align:center"><div style="font-family:Racing Sans One,cursive;font-size:1.5rem;color:var(--ac)">'+d.years+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-top:.1rem">Years Racing</div></div>'+
+                '<div style="background:var(--bg);border:1px solid var(--dim);border-radius:.5rem;padding:.6rem;text-align:center"><div style="font-family:Racing Sans One,cursive;font-size:1.5rem;color:var(--ac)">'+d.wins+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-top:.1rem">Race Wins</div></div>'+
+                '<div style="background:var(--bg);border:1px solid var(--dim);border-radius:.5rem;padding:.6rem;text-align:center"><div style="font-family:Racing Sans One,cursive;font-size:1.5rem;color:var(--ac)">'+d.pods+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-top:.1rem">'+d.podLabel+'</div></div>'+
+                '<div style="background:var(--bg);border:1px solid var(--dim);border-radius:.5rem;padding:.6rem;text-align:center"><div style="font-family:Racing Sans One,cursive;font-size:1.5rem;color:var(--ac)">#'+d.num+'</div><div style="font-size:.55rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-top:.1rem">Car Number</div></div>'+
+              '</div>'+
+              '<div style="margin-bottom:1.25rem"><div style="font-weight:700;font-size:.9rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem"><i class="fas fa-user" style="color:var(--ac);font-size:.75rem"></i>About</div><div style="color:rgba(255,255,255,.55);font-size:.85rem;line-height:1.7">'+d.bio+'</div></div>'+
+              '<div style="margin-bottom:1.25rem"><div style="font-weight:700;font-size:.9rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem"><i class="fas fa-star" style="color:var(--ac);font-size:.75rem"></i>Highlights</div><div style="color:rgba(255,255,255,.5);font-size:.8rem;line-height:1.7">'+d.highlights+'</div></div>'+
+              '<div style="margin-bottom:1.25rem"><div style="font-weight:700;font-size:.9rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem"><i class="fas fa-flag-checkered" style="color:var(--ac);font-size:.75rem"></i>Recent Races</div>'+recentHtml+'</div>'+
+              '<div style="margin-bottom:1rem"><div style="font-weight:700;font-size:.9rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem"><i class="fas fa-camera" style="color:var(--ac);font-size:.75rem"></i>Latest Photos</div>'+photoHtml+'</div>'+
+              '<div style="display:flex;gap:.5rem;flex-wrap:wrap"><a href="https://www.facebook.com/share/1F1RTxz9xa/" target="_blank" style="display:flex;align-items:center;gap:.3rem;padding:.4rem .8rem;background:var(--bg);border:1px solid var(--dim);border-radius:.4rem;text-decoration:none;color:#fff;font-size:.75rem;font-weight:600"><i class="fab fa-facebook" style="color:#3b82f6"></i>Facebook</a><a href="https://www.tiktok.com/@redsracing" target="_blank" style="display:flex;align-items:center;gap:.3rem;padding:.4rem .8rem;background:var(--bg);border:1px solid var(--dim);border-radius:.4rem;text-decoration:none;color:#fff;font-size:.75rem;font-weight:600"><i class="fab fa-tiktok"></i>TikTok</a><a href="https://www.instagram.com/redsracing8/" target="_blank" style="display:flex;align-items:center;gap:.3rem;padding:.4rem .8rem;background:var(--bg);border:1px solid var(--dim);border-radius:.4rem;text-decoration:none;color:#fff;font-size:.75rem;font-weight:600"><i class="fab fa-instagram" style="color:#e1306c"></i>Instagram</a></div>'+
+            '</div>'+
+          '</div>';
+        }
+        document.getElementById('drvs').innerHTML=driverCard({
+          name:'Jon Kirsch',num:j.number||'8',years:j.years||2,wins:j.wins||12,pods:j.podiums||11,podLabel:'Podiums',
+          tagline:'Father • Mentor • Racing Legend',
+          bio:j.bio||'Jon Kirsch brings decades of racing passion to the dirt track. As the patriarch of RedsRacing, he combines experience, skill, and an unrelenting drive to compete. Behind Car #8, Jon has built a legacy that inspires both his son and fans alike. Every race is a chance to add to the family tradition.',
+          highlights:'• Multiple race winner at Grundy County Speedway<br>• Consistent top-5 finisher in Super Cup series<br>• Mentor to next-generation racers<br>• Known for clean, strategic racing style'
+        })+driverCard({
+          name:'Jonny Kirsch',num:jy.number||'88',years:jy.years||1,wins:jy.wins||8,pods:jy.championships||1,podLabel:'Championships',
+          tagline:'Next Generation • Speed Demon • Rising Star',
+          bio:jy.bio||'Jonny Kirsch is the future of RedsRacing. Carrying the #88 with pride, he has quickly established himself as one of the most exciting young drivers on the dirt track circuit. With natural talent inherited from his father and a fearless approach to racing, Jonny is destined for greatness.',
+          highlights:'• Championship winner in debut season<br>• Fastest lap times at multiple tracks<br>• Aggressive yet calculated driving style<br>• Fan favorite for highlight-reel moments'
+        });
+      }catch(e){document.getElementById('drvs').innerHTML='<div class="ldg">Failed to load driver data</div>';}
+    }
+
+    // ---- PROFILE ----
+    async function loadProfile(el){
+      el.innerHTML='<h2><i class="fas fa-id-card" style="margin-right:.4rem"></i>My Profile</h2><div id="pdata" class="card"><div class="ldg"><i class="fas fa-spinner fa-spin"></i></div></div>';
+      try{var u=au.currentUser;var d=await db.collection('users').doc(u.uid).get();var p=d.exists?d.data():{};
+      document.getElementById('pdata').innerHTML=[
+        {l:'Email',v:u.email},{l:'Display Name',v:p.displayName||u.displayName||'Not set'},
+        {l:'Role',v:p.signupRoleLabel||p.role||'Member',ac:true},{l:'Member Since',v:p.joinDate?new Date(p.joinDate).toLocaleDateString():'Unknown'}
+      ].map(function(f){return '<div style="margin-bottom:.6rem"><div style="color:rgba(255,255,255,.4);font-size:.65rem;text-transform:uppercase;letter-spacing:.05em">'+f.l+'</div><div style="font-weight:700;font-size:.9rem;'+(f.ac?'color:var(--ac)':'')+'">'+f.v+'</div></div>';}).join('');}catch(e){document.getElementById('pdata').innerHTML='<div class="ldg">Failed to load</div>';}
+    }
+
+    // ---- STANDINGS ----
+    async function loadStandings(el){
+      el.innerHTML='<h2><i class="fas fa-trophy" style="margin-right:.4rem"></i>2026 Standings</h2><div class="card" style="text-align:center"><i class="fas fa-trophy" style="font-size:2.5rem;color:var(--ac);margin-bottom:.75rem;display:block"></i><div style="font-weight:700;margin-bottom:.3rem">Standings Coming Soon</div><div style="color:rgba(255,255,255,.4);font-size:.85rem">Check back as the 2026 season progresses!</div></div>';
+    }
+
+    // ---- INIT ----
+    au.onAuthStateChanged(async function(u){
+      if(!u){window.location.replace('../signup.html');return;}
+      try{localStorage.setItem('rr_auth_uid',u.uid);}catch(_){}
+      document.getElementById('ld').classList.add('hid');
+      document.getElementById('content').classList.remove('hid');
+      loadSection('home');
+    });
+  </script>
+</body>
+</html>

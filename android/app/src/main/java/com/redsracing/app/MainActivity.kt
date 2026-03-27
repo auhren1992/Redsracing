@@ -141,6 +141,21 @@ class MainActivity : AppCompatActivity() {
         setIntent(intent)
         handleNotificationIntent(intent)
     }
+
+    override fun onPause() {
+        super.onPause()
+        // Force WebView to flush localStorage/cookies to disk so auth persists across app restarts
+        try {
+            CookieManager.getInstance().flush()
+        } catch (_: Exception) {}
+    }
+
+    override fun onStop() {
+        super.onStop()
+        try {
+            CookieManager.getInstance().flush()
+        } catch (_: Exception) {}
+    }
     
     private fun handleNotificationIntent(intent: Intent?) {
         intent?.extras?.let { extras ->
@@ -375,11 +390,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedVersion != currentVersion && currentVersion > 0) {
-            // Only clear HTTP cache, NOT localStorage/sessionStorage/cookies
-            // clearCache(true) destroys Firebase auth persistence — don't use it
+            // Force clear cache ONCE to flush stale admin-console.html
+            // This will sign the user out this one time, but fixes the stuck cache
+            if (savedVersion < 147) {
+                binding.webview.clearCache(true)
+                android.util.Log.d("MainActivity", "One-time cache clear for build 147+ transition")
+            }
             binding.webview.clearHistory()
             prefs.edit().putInt("app_version_code", currentVersion).apply()
-            android.util.Log.d("MainActivity", "Version changed from $savedVersion to $currentVersion — history cleared, auth preserved")
+            android.util.Log.d("MainActivity", "Version changed from $savedVersion to $currentVersion")
         }
     }
 
@@ -496,16 +515,8 @@ class MainActivity : AppCompatActivity() {
                                 label.style.opacity = '1';
                                 label.style.color = '#ffffff';
                             });
-                            // Admin console: show sidebar as stacked nav (mobile nav already stripped from Android copy)
-                            if (window.location.href.indexOf('admin-console') !== -1) {
-                                var sidebar = document.querySelector('.sidebar-nav');
-                                if (sidebar) {
-                                    sidebar.classList.remove('hidden');
-                                    sidebar.style.cssText = 'display:block!important;position:relative!important;width:100%!important;border-right:none!important;border-bottom:1px solid rgba(255,255,255,0.06)!important;max-height:none!important;overflow:visible!important;';
-                                }
-                                var fc = document.querySelector('.flex.min-h-screen');
-                                if (fc) fc.style.flexDirection = 'column';
-                            }
+                            // Admin console: hamburger drawer handles sidebar via CSS in the HTML itself
+                            // Do NOT touch sidebar here — it breaks the drawer positioning
                         }, 100);
                     })();
                 """.trimIndent()
