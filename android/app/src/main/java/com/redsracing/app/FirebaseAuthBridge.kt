@@ -19,6 +19,8 @@ class FirebaseAuthBridge(private val context: Context) {
         private const val PREFS_NAME = "firebase_auth_prefs"
         private const val PREFS_NAME_FALLBACK = "firebase_auth_prefs_fallback"
         private const val KEY_TOKEN = "firebase_token"
+        private const val KEY_UID = "firebase_uid"
+        private const val KEY_EMAIL = "firebase_email"
     }
     
     private val masterKey: MasterKey by lazy {
@@ -91,5 +93,89 @@ class FirebaseAuthBridge(private val context: Context) {
      */
     fun hasAuthToken(): Boolean {
         return getAuthToken() != null
+    }
+
+    /**
+     * Called from JavaScript when user logs in or signs up.
+     * Stores the Firebase UID so we can restore auth state on app restart.
+     */
+    @JavascriptInterface
+    fun storeAuthUid(uid: String) {
+        try {
+            encryptedPrefs.edit().putString(KEY_UID, uid).apply()
+            android.util.Log.d(TAG, "Auth UID stored successfully")
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Failed to store auth UID", e)
+        }
+    }
+
+    /**
+     * Called from JavaScript when user logs in or signs up.
+     * Stores the user's email for session restoration.
+     */
+    @JavascriptInterface
+    fun storeAuthEmail(email: String) {
+        try {
+            encryptedPrefs.edit().putString(KEY_EMAIL, email).apply()
+            android.util.Log.d(TAG, "Auth email stored successfully")
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Failed to store auth email", e)
+        }
+    }
+
+    /**
+     * Get the stored Firebase UID.
+     * Called from JS synchronously via @JavascriptInterface to restore localStorage.
+     */
+    @JavascriptInterface
+    fun getAuthUid(): String {
+        return try {
+            encryptedPrefs.getString(KEY_UID, "") ?: ""
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Failed to retrieve auth UID", e)
+            ""
+        }
+    }
+
+    /**
+     * Get the stored email.
+     */
+    @JavascriptInterface
+    fun getAuthEmail(): String {
+        return try {
+            encryptedPrefs.getString(KEY_EMAIL, "") ?: ""
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
+    /**
+     * Clear all stored auth data (token, uid, email).
+     * Called on logout.
+     */
+    @JavascriptInterface
+    fun clearAllAuth() {
+        try {
+            encryptedPrefs.edit()
+                .remove(KEY_TOKEN)
+                .remove(KEY_UID)
+                .remove(KEY_EMAIL)
+                .apply()
+            android.util.Log.d(TAG, "All auth data cleared")
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Failed to clear auth data", e)
+        }
+    }
+
+    /**
+     * Check if a UID is stored (called natively on app launch).
+     */
+    fun hasAuthUid(): Boolean {
+        return try {
+            val uid = encryptedPrefs.getString(KEY_UID, null)
+            !uid.isNullOrEmpty()
+        } catch (e: Exception) {
+            false
+        }
     }
 }

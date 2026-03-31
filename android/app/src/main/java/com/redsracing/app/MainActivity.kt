@@ -345,8 +345,14 @@ class MainActivity : AppCompatActivity() {
                             const auth = getAuth();
                             await signOut(auth);
                             localStorage.removeItem('redsracing_user');
+                            localStorage.removeItem('rr_auth_uid');
+                            localStorage.removeItem('rr_user_name');
+                            localStorage.removeItem('rr_guest_ok');
                             if (window.AndroidAuth) {
                                 window.AndroidAuth.onLogout();
+                            }
+                            if (window.FirebaseAuthBridge) {
+                                window.FirebaseAuthBridge.clearAllAuth();
                             }
                             window.location.href = 'index.html';
                         } catch(e) {
@@ -522,37 +528,23 @@ class MainActivity : AppCompatActivity() {
                 """.trimIndent()
                 view?.evaluateJavascript(hideNavJS, null)
                 
-                // Inject JavaScript to capture Firebase auth tokens and handle logout
-                val authTokenCaptureJS = """
+                // Restore auth markers from native storage into localStorage
+                // This runs AFTER guest-gate.js (which is a <script> tag in the HTML head),
+                // but guest-gate.js itself also checks the native bridge synchronously.
+                // This ensures localStorage stays populated for subsequent JS that checks it.
+                val restoreAuthJS = """
                     (function() {
-                        // Check if Firebase auth is available (compat mode)
-                        if (typeof firebase !== 'undefined' && firebase.auth) {
-                            var auth = firebase.auth();
-                            
-                            // Listen for auth state changes
-                            auth.onAuthStateChanged(function(user) {
-                                if (user) {
-                                    // User is signed in - get and store the ID token
-                                    user.getIdToken().then(function(token) {
-                                        if (window.FirebaseAuthBridge) {
-                                            window.FirebaseAuthBridge.storeAuthToken(token);
-                                            console.log('Auth token stored via FirebaseAuthBridge');
-                                        }
-                                    }).catch(function(error) {
-                                        console.error('Error getting ID token:', error);
-                                    });
-                                } else {
-                                    // User is signed out - clear the stored token
-                                    if (window.FirebaseAuthBridge) {
-                                        window.FirebaseAuthBridge.clearAuthToken();
-                                        console.log('Auth token cleared via FirebaseAuthBridge');
-                                    }
+                        try {
+                            if (window.FirebaseAuthBridge) {
+                                var uid = window.FirebaseAuthBridge.getAuthUid();
+                                if (uid && uid.length > 0) {
+                                    localStorage.setItem('rr_auth_uid', uid);
                                 }
-                            });
-                        }
+                            }
+                        } catch(e) { console.warn('Auth restore error:', e); }
                     })();
                 """.trimIndent()
-                view?.evaluateJavascript(authTokenCaptureJS, null)
+                view?.evaluateJavascript(restoreAuthJS, null)
             }
         }
 
@@ -780,10 +772,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAuthAndRoute() {
-        // Start at login page so users see sign-in / create-account first.
-        // guest-gate.js + login-page.js handle auto-redirect for already-authenticated users.
-        android.util.Log.d("MainActivity", "Loading login route — guest-gate handles auth redirect")
-        binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/signup.html")
+        if (firebaseAuthBridge.hasAuthUid()) {
+            // User was previously authenticated — go to home page
+            android.util.Log.d("MainActivity", "Saved auth UID found, loading home page")
+            binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
+        } else {
+            // No saved auth — show signup/login
+            android.util.Log.d("MainActivity", "No saved auth, loading signup")
+            binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/signup.html")
+        }
     }
     
     private fun showUpdateDialog(isForced: Boolean, latestVersion: Int) {

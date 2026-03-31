@@ -126,6 +126,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         const user = await handleSignup(email, password, inviteCode);
+
+        // Persist auth to Android native storage so it survives app restart
+        try {
+          if (user?.uid) {
+            localStorage.setItem('rr_auth_uid', user.uid);
+            if (window.FirebaseAuthBridge) {
+              window.FirebaseAuthBridge.storeAuthUid(user.uid);
+              if (user.email) window.FirebaseAuthBridge.storeAuthEmail(user.email);
+            }
+          }
+        } catch (_) {}
         
         // Redirect based on role
         if (teamRole === 'fan' || !inviteCode || !inviteCode.trim()) {

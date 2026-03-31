@@ -28,6 +28,10 @@ export async function safeSignOut() {
       localStorage.removeItem('rr_user_name');
       localStorage.removeItem('rr_guest_ok');
     } catch (_) {}
+    // Clear Android native auth storage
+    try {
+      if (window.FirebaseAuthBridge) window.FirebaseAuthBridge.clearAllAuth();
+    } catch (_) {}
     
     await auth.signOut();
     return true;
@@ -37,6 +41,9 @@ export async function safeSignOut() {
       localStorage.removeItem('rr_auth_uid');
       localStorage.removeItem('rr_user_name');
       localStorage.removeItem('rr_guest_ok');
+    } catch (_) {}
+    try {
+      if (window.FirebaseAuthBridge) window.FirebaseAuthBridge.clearAllAuth();
     } catch (_) {}
     return false;
   }

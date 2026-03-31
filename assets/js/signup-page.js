@@ -160,6 +160,13 @@ document.addEventListener("DOMContentLoaded", () => {
           // Cache signup role for theme system
           try { localStorage.setItem('rr_signup_role', teamRole || 'fan'); } catch(_) {}
           try { localStorage.setItem('rr_auth_uid', user.uid); } catch(_) {}
+          // Persist auth to Android native storage so it survives app restart
+          try {
+            if (window.FirebaseAuthBridge) {
+              window.FirebaseAuthBridge.storeAuthUid(user.uid);
+              if (user.email) window.FirebaseAuthBridge.storeAuthEmail(user.email);
+            }
+          } catch (_) {}
           // Redirect based on assigned role from claims
           if (role === 'admin') {
             console.log('[SIGNUP] Redirecting to admin console...');

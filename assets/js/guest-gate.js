@@ -9,6 +9,16 @@
     };
     if (skipPages[path]) return;
 
+    // Restore auth from Android native bridge (SharedPreferences) if localStorage lost it
+    try {
+      if (window.FirebaseAuthBridge) {
+        var nativeUid = window.FirebaseAuthBridge.getAuthUid();
+        if (nativeUid && nativeUid.length > 0 && !localStorage.getItem('rr_auth_uid')) {
+          localStorage.setItem('rr_auth_uid', nativeUid);
+        }
+      }
+    } catch (_) {}
+
     var hasGuest = localStorage.getItem('rr_guest_ok') === '1';
     var hasUid = !!localStorage.getItem('rr_auth_uid');
 

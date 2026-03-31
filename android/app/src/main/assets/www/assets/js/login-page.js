@@ -36,6 +36,11 @@ class LoginPageController {
     try {
       if (user?.uid) {
         localStorage.setItem("rr_auth_uid", user.uid);
+        // Persist to Android native storage so auth survives app restart
+        if (window.FirebaseAuthBridge) {
+          window.FirebaseAuthBridge.storeAuthUid(user.uid);
+          if (user.email) window.FirebaseAuthBridge.storeAuthEmail(user.email);
+        }
       }
     } catch (_) {}
   }
