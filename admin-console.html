@@ -457,7 +457,11 @@
       </nav>
       
       <!-- Mobile Menu -->
-      <div id="mobile-menu" class="mobile-menu modern-mobile hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; background: rgba(15,23,42,0.98); overflow-y: auto;">
+      <!-- Mobile Menu Overlay -->
+      <div id="mobile-menu-overlay" class="hidden fixed inset-0 bg-black/60 z-[9998] transition-opacity duration-300"></div>
+
+      <!-- Mobile Menu -->
+      <div id="mobile-menu" class="mobile-menu modern-mobile fixed top-0 left-0 bottom-0 w-[280px] z-[9999] bg-slate-900 border-r border-slate-800 overflow-y-auto transform -translate-x-full transition-transform duration-300 shadow-2xl">
         <div class="p-4 border-b border-slate-600">
           <div class="flex items-center space-x-3">
             <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-red-500 rounded-lg flex items-center justify-center">
@@ -732,6 +736,16 @@
       <main class="flex-1 overflow-hidden">
         <!-- Mobile Navigation -->
         <div class="md:hidden bg-slate-900/95 border-b border-white/10 px-3 pt-2 pb-1">
+          <!-- Mobile Hamburger Menu Button -->
+          <div class="flex items-center justify-between mb-2">
+            <button id="mobile-menu-button-main" class="text-white focus:outline-none flex items-center justify-center bg-slate-800/80 border border-slate-700 rounded-lg w-9 h-9 shadow">
+              <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+              </svg>
+            </button>
+            <div class="text-sm font-bold text-white uppercase tracking-wider flex items-center"><i class="fas fa-crown text-yellow-400 mr-2 text-xs"></i> Admin Console</div>
+            <div class="w-9"></div> <!-- spacer for centering -->
+          </div>
           <!-- Primary actions -->
           <div class="flex space-x-2 mb-2">
             <a href="#overview" class="mobile-tab-btn flex-1 py-1.5 rounded-full text-[11px] font-bold text-center bg-blue-600 text-white">Overview</a>
@@ -2764,23 +2778,36 @@
         // Explicit dropdown handling for Android WebView
         try {
           // Mobile menu toggle (header hamburger)
-          const mobileMenuBtn = document.getElementById('mobile-menu-button');
+          const headerMenuBtn = document.getElementById('mobile-menu-button');
+          const mainMenuBtn = document.getElementById('mobile-menu-button-main');
           const mobileMenu = document.getElementById('mobile-menu');
-          if (mobileMenuBtn && mobileMenu) {
-            mobileMenuBtn.addEventListener('click', function(e) {
+          const mobileOverlay = document.getElementById('mobile-menu-overlay');
+
+          function toggleMobileMenu(e) {
+            if (e) {
               e.preventDefault();
               e.stopPropagation();
-              const isHidden = mobileMenu.classList.contains('hidden');
-              if (isHidden) {
-                mobileMenu.classList.remove('hidden');
-                mobileMenu.style.cssText = 'display:block !important;visibility:visible !important;opacity:1 !important;transform:translateY(0) !important;pointer-events:auto !important;';
-              } else {
-                mobileMenu.classList.add('hidden');
-                mobileMenu.style.cssText = '';
-              }
-            });
+            }
+            if (!mobileMenu) return;
+
+            const isClosed = mobileMenu.classList.contains('-translate-x-full');
+            if (isClosed) {
+              // Open
+              mobileMenu.classList.remove('-translate-x-full');
+              if (mobileOverlay) mobileOverlay.classList.remove('hidden');
+              document.body.style.overflow = 'hidden';
+            } else {
+              // Close
+              mobileMenu.classList.add('-translate-x-full');
+              if (mobileOverlay) mobileOverlay.classList.add('hidden');
+              document.body.style.overflow = '';
+            }
           }
           
+          if (headerMenuBtn) headerMenuBtn.addEventListener('click', toggleMobileMenu);
+          if (mainMenuBtn) mainMenuBtn.addEventListener('click', toggleMobileMenu);
+          if (mobileOverlay) mobileOverlay.addEventListener('click', toggleMobileMenu);
+
           // Admin Menu sidebar toggle (the yellow button in main content area)
           const sidebarToggle = document.getElementById('sidebar-toggle');
           if (sidebarToggle && mobileMenu) {
@@ -2838,10 +2865,11 @@
                 m.style.cssText = '';
               });
             }
-            if (!e.target.closest('#mobile-menu') && !e.target.closest('#mobile-menu-button')) {
-              if (mobileMenu) {
-                mobileMenu.classList.add('hidden');
-                mobileMenu.style.cssText = '';
+            if (!e.target.closest('#mobile-menu') && !e.target.closest('#mobile-menu-button') && !e.target.closest('#mobile-menu-button-main')) {
+              if (mobileMenu && !mobileMenu.classList.contains('-translate-x-full')) {
+                mobileMenu.classList.add('-translate-x-full');
+                if (mobileOverlay) mobileOverlay.classList.add('hidden');
+                document.body.style.overflow = '';
               }
             }
           });
@@ -5144,16 +5172,30 @@
         });
         
         // Mobile menu button toggle (hamburger)
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        if (mobileMenuButton) {
-          mobileMenuButton.addEventListener('click', () => {
-            const mobileMenu = document.getElementById('mobile-menu');
-            if (mobileMenu) {
-              mobileMenu.classList.toggle('hidden');
-            }
-          });
+        const bottomMobileMenuBtn = document.getElementById('mobile-menu-button');
+        const bottomMainMenuBtn = document.getElementById('mobile-menu-button-main');
+
+        function handleMenuToggle() {
+          const mobileMenu = document.getElementById('mobile-menu');
+          const mobileOverlay = document.getElementById('mobile-menu-overlay');
+          if (mobileMenu) {
+             const isClosed = mobileMenu.classList.contains('-translate-x-full');
+             if (isClosed) {
+               mobileMenu.classList.remove('-translate-x-full');
+               if (mobileOverlay) mobileOverlay.classList.remove('hidden');
+               document.body.style.overflow = 'hidden';
+             } else {
+               mobileMenu.classList.add('-translate-x-full');
+               if (mobileOverlay) mobileOverlay.classList.add('hidden');
+               document.body.style.overflow = '';
+             }
+          }
         }
         
+        // Let the upper click handlers handle this to avoid double-firing,
+        // so we can comment this out or remove it to avoid duplicates
+
+
         // Mobile logout button
         const mobileLogoutButton = document.getElementById('mobile-logout-button');
         if (mobileLogoutButton) {
