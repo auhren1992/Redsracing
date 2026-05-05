@@ -55,6 +55,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var firebaseAuthBridge: FirebaseAuthBridge
+    private var lastFcmToken: String? = null
+    private var initialUrl: String? = null
+    private var isGuest: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -62,7 +65,10 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBottomNavBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        WebView.setWebContentsDebuggingEnabled(true)
+        WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
+
+        initialUrl = intent?.getStringExtra("initialUrl")
+        isGuest = intent?.getBooleanExtra("guest", false) ?: false
         
         // Remove navigation icon from toolbar
         binding.toolbar.navigationIcon = null
@@ -179,7 +185,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
         
-        // No notification data - check auth and route normally
+        // No notification data - honor explicit initialUrl when present (LoginActivity flow)
+        val next = intent?.getStringExtra("initialUrl") ?: initialUrl
+        val guest = intent?.getBooleanExtra("guest", false) ?: isGuest
+        if (!next.isNullOrBlank()) {
+            binding.webview.loadUrl(next)
+            return
+        }
+
+        // Otherwise route based on saved auth / guest mode
+        if (guest) {
+            binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
+            return
+        }
         checkAuthAndRoute()
     }
 
@@ -419,15 +437,18 @@ class MainActivity : AppCompatActivity() {
             domStorageEnabled = true
             @Suppress("DEPRECATION")
             databaseEnabled = true
-            allowFileAccess = true
+            allowFileAccess = false
             allowContentAccess = true
-            mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
             mediaPlaybackRequiresUserGesture = false
             loadWithOverviewMode = true
             useWideViewPort = true
             cacheMode = WebSettings.LOAD_DEFAULT
             setSupportMultipleWindows(true)
             javaScriptCanOpenWindowsAutomatically = true
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                safeBrowsingEnabled = true
+            }
         }
 
         CookieManager.getInstance().setAcceptCookie(true)
@@ -496,6 +517,7 @@ class MainActivity : AppCompatActivity() {
                 val hideNavJS = """
                     (function(){
                         setTimeout(function() {
+                            var isAdmin = window.location.href.indexOf('admin-console') !== -1;
                             var header = document.querySelector('header');
                             if (header) {
                                 header.style.display = 'none';
@@ -503,17 +525,26 @@ class MainActivity : AppCompatActivity() {
                                 header.style.height = '0';
                                 header.style.overflow = 'hidden';
                             }
+                            // On admin console: show the admin menu bar and ensure mobile-menu works
+                            if (isAdmin) {
+                                var adminBar = document.getElementById('admin-menu-bar');
+                                if (adminBar) {
+                                    adminBar.style.display = 'flex';
+                                    adminBar.style.visibility = 'visible';
+                                }
+                                // Hide desktop sidebar on app
+                                var sidebar = document.querySelector('.sidebar-nav');
+                                if (sidebar) sidebar.style.display = 'none';
+                            }
                             document.body.style.paddingTop = '0';
                             document.body.style.marginTop = '0';
                             document.body.style.paddingBottom = '120px';
-                            document.body.style.overflow = 'visible';
                             var mainElements = document.querySelectorAll('main');
                             mainElements.forEach(function(main) {
                                 main.style.marginTop = '0';
                                 main.style.paddingTop = '0';
                                 main.style.paddingBottom = '120px';
                             });
-                            // Ensure countdown labels are visible
                             var countdownLabels = document.querySelectorAll('.countdown-label');
                             countdownLabels.forEach(function(label) {
                                 label.style.display = 'block';
@@ -521,8 +552,6 @@ class MainActivity : AppCompatActivity() {
                                 label.style.opacity = '1';
                                 label.style.color = '#ffffff';
                             });
-                            // Admin console: hamburger drawer handles sidebar via CSS in the HTML itself
-                            // Do NOT touch sidebar here — it breaks the drawer positioning
                         }, 100);
                     })();
                 """.trimIndent()
@@ -671,6 +700,7 @@ class MainActivity : AppCompatActivity() {
 
             val token = task.result
             android.util.Log.d("MainActivity", "FCM Token: $token")
+            lastFcmToken = token
 
             // Subscribe to topics
             FirebaseMessaging.getInstance().subscribeToTopic("all_users")
@@ -708,6 +738,12 @@ class MainActivity : AppCompatActivity() {
                 packageManager.getPackageInfo(packageName, 0).versionName
             }
             
+            // Prefer identity saved by WebView (FirebaseAuthBridge) since most auth happens in JS.
+            val bridgeUid = try { firebaseAuthBridge.getAuthUid().trim() } catch (_: Exception) { "" }
+            val bridgeEmail = try { firebaseAuthBridge.getAuthEmail().trim() } catch (_: Exception) { "" }
+            val currentUser = try { com.google.firebase.auth.FirebaseAuth.getInstance().currentUser } catch (_: Exception) { null }
+            val uid = if (bridgeUid.isNotEmpty()) bridgeUid else (currentUser?.uid ?: "")
+            val email = if (bridgeEmail.isNotEmpty()) bridgeEmail else (currentUser?.email ?: "")
             val usageData = hashMapOf(
                 "platform" to "android",
                 "app_version" to versionCode,
@@ -715,6 +751,9 @@ class MainActivity : AppCompatActivity() {
                 "fcm_token" to fcmToken,
                 "device_model" to Build.MODEL,
                 "android_version" to Build.VERSION.RELEASE,
+                // Optional identity fields (present only when signed in)
+                "auth_uid" to uid,
+                "auth_email" to email,
                 "last_seen" to com.google.firebase.Timestamp.now()
             )
             
@@ -732,6 +771,17 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Error reporting app usage", e)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh app_usage on resume so "who updated / last seen" stays current after login/navigation.
+        try {
+            val token = lastFcmToken
+            if (!token.isNullOrEmpty()) {
+                reportAppUsage(token)
+            }
+        } catch (_: Exception) {}
     }
 
     private fun checkAppVersion() {

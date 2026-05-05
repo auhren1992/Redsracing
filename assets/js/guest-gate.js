@@ -2,12 +2,29 @@
   try {
     var path = (window.location.pathname || '').split('/').pop().toLowerCase();
 
-    // Pages that never redirect (login/signup themselves)
+    // Pages that never redirect (login/signup themselves or always-public content)
     var skipPages = {
       'login.html': true,
-      'signup.html': true
+      'signup.html': true,
+      // Public community pages should never be gated (SEO/AdSense + public visitors)
+      'qna.html': true
     };
     if (skipPages[path]) return;
+
+    // Only gate pages that actually require authentication.
+    // Public content pages (home/team/schedule/etc) must remain accessible for SEO and AdSense review.
+    var protectedPages = {
+      'dashboard.html': true,
+      'follower-dashboard.html': true,
+      'redsracing-dashboard.html': true,
+      'profile.html': true,
+      'settings.html': true,
+      'fan-settings.html': true,
+      'team-settings.html': true,
+      'admin-console.html': true,
+      'admin.html': true
+    };
+    if (!protectedPages[path]) return;
 
     // Restore auth from Android native bridge (SharedPreferences) if localStorage lost it
     try {

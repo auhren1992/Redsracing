@@ -2,16 +2,25 @@ import SwiftUI
 import FirebaseCore
 import FirebaseMessaging
 import FirebaseFirestore
+import FirebaseAuth
 import UIKit
 import UserNotifications
 
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
+    private var lastFcmToken: String? = nil
+    private var authListener: AuthStateDidChangeListenerHandle? = nil
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = self
         Messaging.messaging().delegate = self
+        authListener = Auth.auth().addStateDidChangeListener { [weak self] _, _ in
+            guard let self = self else { return }
+            if let token = self.lastFcmToken, !token.isEmpty {
+                self.reportAppUsage(fcmToken: token)
+            }
+        }
         requestPushPermissions(application)
         return true
     }
@@ -45,6 +54,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
             return
         }
         print("FCM registration token: \(token)")
+        lastFcmToken = token
         subscribeToDefaultTopics()
         reportAppUsage(fcmToken: token)
     }
@@ -52,6 +62,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     private func reportAppUsage(fcmToken: String) {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
+        let user = Auth.auth().currentUser
         let usageData: [String: Any] = [
             "platform": "ios",
             "app_version": Int(build) ?? 0,
@@ -59,6 +70,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
             "fcm_token": fcmToken,
             "device_model": UIDevice.current.model,
             "ios_version": UIDevice.current.systemVersion,
+            // Optional identity fields (present only when signed in)
+            "auth_uid": user?.uid ?? "",
+            "auth_email": user?.email ?? "",
             "last_seen": Timestamp()
         ]
         Firestore.firestore().collection("app_usage").document(fcmToken).setData(usageData) { error in

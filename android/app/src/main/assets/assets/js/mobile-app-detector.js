@@ -16,10 +16,15 @@
       typeof window.AndroidAuth !== 'undefined'
     );
   }
+
+  /** iOS WKWebView sets a custom UA in ContentView.swift (e.g. RedsRacingApp/1.0 iOS). */
+  function isIOSBundledApp() {
+    return /RedsRacingApp\//i.test(navigator.userAgent || '');
+  }
   
   // Load mobile CSS if in app
-  if (isAndroidApp()) {
-    console.log('📱 Android app detected - loading mobile styles');
+  if (isAndroidApp() || isIOSBundledApp()) {
+    console.log('📱 Native app WebView detected - loading mobile styles');
     
     const link = document.createElement('link');
     link.rel = 'stylesheet';

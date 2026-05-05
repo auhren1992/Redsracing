@@ -63,8 +63,9 @@ async function main() {
       host.prepend(card);
     }
 
-    const { getFirestore, collection, query, where, orderBy, limit, getDocs, getDoc, addDoc, setDoc, deleteDoc, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-    const db = getFirestore();
+    const { getFirebaseDb } = await import('./firebase-core.js');
+    const db = getFirebaseDb();
+    const { collection, query, where, orderBy, limit, getDocs, getDoc, addDoc, deleteDoc, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
 
     async function loadEligibleSoon() {
       try {

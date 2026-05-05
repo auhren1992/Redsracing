@@ -60,12 +60,11 @@ function closeModal() {
 async function adminCheck() {
   console.log('[CMS] Starting admin check...');
   try {
-    // Development bypass - check for localhost or specific development domains
-    const isDevelopment = window.location.hostname === 'localhost' || 
-                         window.location.hostname === '127.0.0.1' ||
-                         window.location.hostname.includes('firebase') ||
-                         window.location.hostname.includes('web.app') ||
-                         window.location.hostname.includes('redsracing');
+    // Development bypass should ONLY apply to local development.
+    // Never treat production hostnames as development.
+    const isDevelopment =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
     
     console.log('[CMS] Development environment detected:', isDevelopment, 'hostname:', window.location.hostname);
     
@@ -94,11 +93,6 @@ async function adminCheck() {
     
     if (!user) {
       console.log('[CMS] No authenticated user');
-      // In development, allow access even without login for testing
-      if (isDevelopment) {
-        console.log('[CMS] 🔓 Development bypass: Allowing access without authentication');
-        return true;
-      }
       return false;
     }
 
@@ -166,46 +160,16 @@ async function adminCheck() {
       } else {
         console.warn('[CMS] No Firestore user document found for:', user.uid);
         
-        // In development, allow access if user exists but no document
-        if (isDevelopment) {
-          console.log('[CMS] 🔓 Development bypass: Allowing access for authenticated user without document');
-          return true;
-        }
       }
     } catch (firestoreError) {
       console.warn('[CMS] Firestore role check failed:', firestoreError);
-      
-      // In development, allow access on Firestore errors
-      if (isDevelopment) {
-        console.log('[CMS] 🔓 Development bypass: Allowing access despite Firestore error');
-        return true;
-      }
     }
 
     console.log('[CMS] ❌ No admin access found via any method');
     
-    // Final development bypass
-    if (isDevelopment && user) {
-      console.log('[CMS] 🔓 Final development bypass: Allowing access for any authenticated user in dev');
-      return true;
-    }
-    
     return false;
   } catch (error) {
     console.error('[CMS] Admin check failed:', error);
-    
-    // Development bypass even on complete failure
-    const isDevelopment = window.location.hostname === 'localhost' || 
-                         window.location.hostname === '127.0.0.1' ||
-                         window.location.hostname.includes('firebase') ||
-                         window.location.hostname.includes('web.app') ||
-                         window.location.hostname.includes('redsracing');
-    
-    if (isDevelopment) {
-      console.log('[CMS] 🔓 Development bypass: Allowing access despite admin check failure');
-      return true;
-    }
-    
     return false;
   }
 }

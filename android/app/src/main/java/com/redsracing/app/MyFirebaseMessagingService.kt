@@ -16,7 +16,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Log.d(TAG, "New FCM token: $token")
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "New FCM token: $token")
+        }
         subscribeToAppTopics()
     }
     
@@ -104,11 +106,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
+        val notificationId = (System.currentTimeMillis() and 0x7FFFFFFF).toInt()
+        notificationManager.notify(notificationId, notificationBuilder.build())
     }
 
     companion object {
         private const val TAG = "FCMService"
-        private const val NOTIFICATION_ID = 0
     }
 }

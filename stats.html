@@ -4,6 +4,7 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353" crossorigin="anonymous"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Season stats for RedsRacing — head-to-head comparison for Jon (#8) and Jonny (#88) with races, wins, podiums, DNFs, average finish, and points. Updated after each race." />
   <title>Season Stats - RedsRacing #8 vs #88</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -46,6 +47,28 @@
   </div>
 
   <div class="container mx-auto px-4 py-8 space-y-8">
+    <!-- Static context (helps reviewers even if JS/data is unavailable) -->
+    <section class="glass-card p-6">
+      <h2 class="text-xl font-bold text-white mb-3"><i class="fas fa-circle-info text-yellow-400 mr-2"></i>How these stats work</h2>
+      <div class="text-slate-300 space-y-3 leading-relaxed">
+        <p>
+          This page shows season-by-season performance for RedsRacing drivers Jon Kirsch (#8) and Jonny Kirsch (#88).
+          Stats update after race results are posted (wins, podiums, DNFs, average finish, and total points).
+        </p>
+        <p>
+          If you’re visiting before the first race, you’ll see the “No Race Results Yet” state — check the
+          <a href="schedule.html" class="text-blue-400 hover:text-blue-300 font-semibold">schedule</a>
+          for the next event and come back after race night.
+        </p>
+      </div>
+      <noscript>
+        <div class="mt-4 p-4 rounded-lg bg-slate-800/60 border border-slate-700 text-slate-200">
+          JavaScript is disabled. The interactive stats dashboard requires JavaScript to load season results.
+          You can still view the schedule at <a href="schedule.html" class="text-blue-300 underline">schedule.html</a>.
+        </div>
+      </noscript>
+    </section>
+
     <!-- Loading -->
     <div id="stats-loading" class="text-center py-16">
       <i class="fas fa-spinner fa-spin text-yellow-400 text-3xl mb-4"></i>

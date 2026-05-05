@@ -29,21 +29,28 @@ class FirebaseAuthBridge(private val context: Context) {
             .build()
     }
     
-    private val encryptedPrefs: SharedPreferences by lazy {
+    private data class PrefsState(
+        val prefs: SharedPreferences,
+        val supportsSensitiveStorage: Boolean
+    )
+
+    private val prefsState: PrefsState by lazy {
         try {
-            EncryptedSharedPreferences.create(
+            val encrypted = EncryptedSharedPreferences.create(
                 context,
                 PREFS_NAME,
                 masterKey,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
+            PrefsState(encrypted, supportsSensitiveStorage = true)
         } catch (e: GeneralSecurityException) {
             android.util.Log.e(TAG, "Failed to create encrypted prefs (security)", e)
-            context.getSharedPreferences(PREFS_NAME_FALLBACK, Context.MODE_PRIVATE)
+            // Fail closed for sensitive values: we still allow non-sensitive session markers.
+            PrefsState(context.getSharedPreferences(PREFS_NAME_FALLBACK, Context.MODE_PRIVATE), supportsSensitiveStorage = false)
         } catch (e: IOException) {
             android.util.Log.e(TAG, "Failed to create encrypted prefs (IO)", e)
-            context.getSharedPreferences(PREFS_NAME_FALLBACK, Context.MODE_PRIVATE)
+            PrefsState(context.getSharedPreferences(PREFS_NAME_FALLBACK, Context.MODE_PRIVATE), supportsSensitiveStorage = false)
         }
     }
     
@@ -54,7 +61,11 @@ class FirebaseAuthBridge(private val context: Context) {
     @JavascriptInterface
     fun storeAuthToken(token: String) {
         try {
-            encryptedPrefs.edit().putString(KEY_TOKEN, token).apply()
+            if (!prefsState.supportsSensitiveStorage) {
+                android.util.Log.w(TAG, "Encrypted storage unavailable; refusing to store auth token")
+                return
+            }
+            prefsState.prefs.edit().putString(KEY_TOKEN, token).apply()
             android.util.Log.d(TAG, "Auth token stored successfully")
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Failed to store auth token", e)
@@ -68,7 +79,7 @@ class FirebaseAuthBridge(private val context: Context) {
     @JavascriptInterface
     fun clearAuthToken() {
         try {
-            encryptedPrefs.edit().remove(KEY_TOKEN).apply()
+            prefsState.prefs.edit().remove(KEY_TOKEN).apply()
             android.util.Log.d(TAG, "Auth token cleared")
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Failed to clear auth token", e)
@@ -81,7 +92,7 @@ class FirebaseAuthBridge(private val context: Context) {
      */
     fun getAuthToken(): String? {
         return try {
-            encryptedPrefs.getString(KEY_TOKEN, null)
+            prefsState.prefs.getString(KEY_TOKEN, null)
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Failed to retrieve auth token", e)
             null
@@ -102,7 +113,7 @@ class FirebaseAuthBridge(private val context: Context) {
     @JavascriptInterface
     fun storeAuthUid(uid: String) {
         try {
-            encryptedPrefs.edit().putString(KEY_UID, uid).apply()
+            prefsState.prefs.edit().putString(KEY_UID, uid).apply()
             android.util.Log.d(TAG, "Auth UID stored successfully")
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Failed to store auth UID", e)
@@ -116,7 +127,7 @@ class FirebaseAuthBridge(private val context: Context) {
     @JavascriptInterface
     fun storeAuthEmail(email: String) {
         try {
-            encryptedPrefs.edit().putString(KEY_EMAIL, email).apply()
+            prefsState.prefs.edit().putString(KEY_EMAIL, email).apply()
             android.util.Log.d(TAG, "Auth email stored successfully")
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Failed to store auth email", e)
@@ -130,7 +141,7 @@ class FirebaseAuthBridge(private val context: Context) {
     @JavascriptInterface
     fun getAuthUid(): String {
         return try {
-            encryptedPrefs.getString(KEY_UID, "") ?: ""
+            prefsState.prefs.getString(KEY_UID, "") ?: ""
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Failed to retrieve auth UID", e)
             ""
@@ -143,7 +154,7 @@ class FirebaseAuthBridge(private val context: Context) {
     @JavascriptInterface
     fun getAuthEmail(): String {
         return try {
-            encryptedPrefs.getString(KEY_EMAIL, "") ?: ""
+            prefsState.prefs.getString(KEY_EMAIL, "") ?: ""
         } catch (e: Exception) {
             ""
         }
@@ -156,7 +167,7 @@ class FirebaseAuthBridge(private val context: Context) {
     @JavascriptInterface
     fun clearAllAuth() {
         try {
-            encryptedPrefs.edit()
+            prefsState.prefs.edit()
                 .remove(KEY_TOKEN)
                 .remove(KEY_UID)
                 .remove(KEY_EMAIL)
@@ -172,7 +183,7 @@ class FirebaseAuthBridge(private val context: Context) {
      */
     fun hasAuthUid(): Boolean {
         return try {
-            val uid = encryptedPrefs.getString(KEY_UID, null)
+            val uid = prefsState.prefs.getString(KEY_UID, null)
             !uid.isNullOrEmpty()
         } catch (e: Exception) {
             false

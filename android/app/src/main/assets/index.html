@@ -2,10 +2,9 @@
 <html lang="en" class="scroll-smooth">
   <head>
     <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353"
-         crossorigin="anonymous"></script>
-    <meta charset="UTF-8" />
+<meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RedsRacing Team #8 and #88 — race schedule, season countdown, stats, recaps, and behind-the-scenes updates from asphalt oval racing." />
     <title>2026 Season Countdown - RedsRacing #8</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -244,8 +243,357 @@
         font-size: clamp(0.875rem, 2vw, 1.125rem);
         color: #fbbf24;
         font-weight: 600;
-        margin-bottom: 3rem;
+        margin-bottom: 1rem;
         animation: fadeIn 1s ease-out 0.9s both;
+      }
+
+      /* Featured hero strip (rotating slides — demo of “always fresh” homepage) */
+      .feature-carousel {
+        position: relative;
+        z-index: 3;
+        width: min(980px, 100%);
+        margin: 0 auto 1.35rem;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.45),
+          0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+        animation: fadeInUp 1s ease-out 0.92s both;
+      }
+
+      .fc-viewport {
+        position: relative;
+        min-height: 220px;
+        aspect-ratio: 16 / 9;
+        max-height: 320px;
+        background: rgba(15, 23, 42, 0.35);
+      }
+
+      .fc-slides {
+        position: absolute;
+        inset: 0;
+      }
+
+      .fc-slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.75s ease;
+        display: flex;
+        align-items: flex-end;
+        padding: 1.35rem 1.5rem 2.75rem;
+        text-align: left;
+        background-size: cover;
+        background-position: center;
+      }
+
+      .fc-slide.is-active {
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 1;
+      }
+
+      .fc-slide::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to top,
+          rgba(5, 8, 15, 0.94) 0%,
+          rgba(5, 8, 15, 0.55) 42%,
+          rgba(5, 8, 15, 0.25) 100%
+        );
+        z-index: 0;
+      }
+
+      .fc-slide-inner {
+        position: relative;
+        z-index: 1;
+        max-width: 38rem;
+      }
+
+      .fc-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(251, 191, 36, 0.95);
+        margin-bottom: 0.45rem;
+      }
+
+      .fc-title {
+        font-family: 'Racing Sans One', sans-serif;
+        font-size: clamp(1.35rem, 4.2vw, 2.1rem);
+        line-height: 1.05;
+        color: #fff;
+        margin: 0 0 0.4rem;
+        text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
+      }
+
+      .fc-sub {
+        margin: 0 0 0.85rem;
+        font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+        font-weight: 600;
+        color: rgba(226, 232, 240, 0.88);
+        line-height: 1.35;
+        text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
+      }
+
+      .fc-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.15rem;
+        border-radius: 0.75rem;
+        font-weight: 800;
+        font-size: 0.95rem;
+        text-decoration: none;
+        color: #0a0e17;
+        background: linear-gradient(45deg, #fbbf24, #f59e0b);
+        border: 1px solid rgba(251, 191, 36, 0.45);
+        box-shadow: 0 10px 28px rgba(251, 191, 36, 0.18);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .fc-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 34px rgba(251, 191, 36, 0.28);
+        color: #0a0e17;
+      }
+
+      .fc-cta-secondary {
+        margin-left: 0.5rem;
+        background: rgba(15, 23, 42, 0.45);
+        color: #fff;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        box-shadow: none;
+      }
+
+      .fc-cta-secondary:hover {
+        border-color: rgba(251, 191, 36, 0.55);
+        color: #fff;
+      }
+
+      .fc-cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .fc-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(15, 23, 42, 0.55);
+        color: #fff;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease, border-color 0.2s ease;
+      }
+
+      .fc-nav:hover {
+        background: rgba(15, 23, 42, 0.78);
+        border-color: rgba(251, 191, 36, 0.45);
+        color: #fbbf24;
+      }
+
+      .fc-prev {
+        left: 0.65rem;
+      }
+
+      .fc-next {
+        right: 0.65rem;
+      }
+
+      .fc-dots {
+        position: absolute;
+        left: 50%;
+        bottom: 0.65rem;
+        transform: translateX(-50%);
+        z-index: 2;
+        display: flex;
+        gap: 0.45rem;
+        align-items: center;
+      }
+
+      .fc-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        padding: 0;
+        border: 0;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.35);
+        cursor: pointer;
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+
+      .fc-dot.is-active {
+        background: #fbbf24;
+        transform: scale(1.2);
+      }
+
+      @media (max-width: 640px) {
+        .fc-viewport {
+          min-height: 210px;
+          aspect-ratio: 4 / 3;
+          max-height: none;
+        }
+
+        .fc-slide {
+          padding: 1.1rem 1.1rem 2.5rem;
+        }
+
+        .fc-cta-secondary {
+          margin-left: 0;
+          margin-top: 0.5rem;
+          display: inline-flex;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .fc-slide {
+          transition: none;
+        }
+      }
+
+      /* Eye-pop: spotlight + LIVE ticker */
+      .container::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 2;
+        opacity: 0.9;
+        background:
+          radial-gradient(650px circle at var(--spot-x, 50%) var(--spot-y, 35%),
+            rgba(251, 191, 36, 0.12),
+            rgba(59, 130, 246, 0.10) 35%,
+            rgba(239, 68, 68, 0.06) 55%,
+            transparent 70%);
+        mix-blend-mode: screen;
+        transition: opacity 0.2s ease;
+      }
+
+      .hype-ticker {
+        position: relative;
+        width: min(980px, 100%);
+        margin: -1.75rem auto 2.5rem;
+        background: rgba(15, 23, 42, 0.55);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 9999px;
+        backdrop-filter: blur(18px);
+        overflow: hidden;
+        animation: fadeInUp 1s ease-out 1.0s both;
+      }
+
+      .hype-ticker .badge {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 9999px;
+        background: rgba(251, 191, 36, 0.12);
+        border: 1px solid rgba(251, 191, 36, 0.25);
+        color: #fbbf24;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .hype-ticker .badge .live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #fbbf24;
+        box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.6);
+        animation: livePulse 1.6s ease-in-out infinite;
+      }
+
+      @keyframes livePulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55); transform: scale(1); }
+        50% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0.0); transform: scale(1.05); }
+      }
+
+      .ticker-track {
+        display: flex;
+        gap: 1.25rem;
+        padding: 0.95rem 1.25rem 0.95rem 8.5rem;
+        align-items: center;
+        will-change: transform;
+        animation: marquee 26s linear infinite;
+      }
+
+      .hype-ticker:hover .ticker-track {
+        animation-play-state: paused;
+      }
+
+      @keyframes marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+      }
+
+      .ticker-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        color: rgba(255, 255, 255, 0.86);
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+
+      .ticker-item i {
+        color: rgba(251, 191, 36, 0.95);
+      }
+
+      .ticker-item a {
+        color: rgba(255, 255, 255, 0.92);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(251, 191, 36, 0.25);
+        transition: all 0.2s ease;
+      }
+
+      .ticker-item a:hover {
+        color: #fbbf24;
+        border-bottom-color: rgba(251, 191, 36, 0.65);
+      }
+
+      .ticker-fade {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 56px;
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      .ticker-fade.left {
+        left: 0;
+        background: linear-gradient(to right, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0));
+      }
+
+      .ticker-fade.right {
+        right: 0;
+        background: linear-gradient(to left, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0));
       }
 
       /* Countdown Container */
@@ -516,6 +864,17 @@
           width: 100%;
           justify-content: center;
         }
+
+        .hype-ticker .badge {
+          left: 8px;
+          padding: 0.45rem 0.6rem;
+          font-size: 0.7rem;
+        }
+
+        .ticker-track {
+          padding-left: 7.25rem;
+          animation-duration: 22s;
+        }
       }
     </style>
   </head>
@@ -553,6 +912,37 @@
       <p class="race-info">
         <i class="fas fa-flag-checkered"></i> NEXT RACE: GRUNDY COUNTY SPEEDWAY
       </p>
+
+      <!-- Featured rotating strip: next race / latest results / drivers / (optional) fresh photo -->
+      <div
+        id="feature-carousel"
+        class="feature-carousel"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Featured RedsRacing highlights"
+      >
+        <div class="fc-viewport">
+          <div id="fc-slides" class="fc-slides" aria-live="polite"></div>
+          <button type="button" class="fc-nav fc-prev" aria-label="Previous slide">
+            <i class="fas fa-chevron-left" aria-hidden="true"></i>
+          </button>
+          <button type="button" class="fc-nav fc-next" aria-label="Next slide">
+            <i class="fas fa-chevron-right" aria-hidden="true"></i>
+          </button>
+          <div id="fc-dots" class="fc-dots" role="tablist" aria-label="Slides"></div>
+        </div>
+      </div>
+
+      <!-- LIVE hype ticker -->
+      <div class="hype-ticker" role="region" aria-label="Live RedsRacing updates">
+        <div class="ticker-fade left"></div>
+        <div class="ticker-fade right"></div>
+        <div class="badge">
+          <span class="live-dot" aria-hidden="true"></span>
+          LIVE
+        </div>
+        <div id="ticker-track" class="ticker-track" aria-live="polite"></div>
+      </div>
 
       <!-- Countdown Timer -->
       <div class="countdown">
@@ -651,13 +1041,291 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
 
+      function rrEscapeHtml(value) {
+        return String(value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function rrSafeBgUrl(u) {
+        try {
+          const x = new URL(u, window.location.origin);
+          if (x.protocol !== 'https:' && x.protocol !== 'http:') return '';
+          return x.href.replace(/'/g, '%27');
+        } catch (_) {
+          return '';
+        }
+      }
+
+      function rrFormatRaceDateRaw(raw) {
+        if (!raw) return '';
+        if (raw.toDate) {
+          return raw.toDate().toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          });
+        }
+        if (typeof raw === 'string') {
+          const d = new Date(raw + 'T12:00:00');
+          return isNaN(d.getTime())
+            ? raw
+            : d.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              });
+        }
+        return '';
+      }
+
+      async function rrFetchLatestRecapHeadline() {
+        for (const season of [2026, 2025, 2024]) {
+          try {
+            const snap = await db.collection('race_results').where('season', '==', season).get();
+            if (snap.empty) continue;
+            const races = snap.docs.map((d) => d.data());
+            const g = {};
+            races.forEach((r) => {
+              const k = (r.raceDate || '') + '|' + (r.trackName || '');
+              if (!g[k]) {
+                g[k] = { date: r.raceDate, track: r.trackName, loc: r.trackLocation || '' };
+              }
+            });
+            const sorted = Object.values(g).sort((a, b) => new Date(b.date) - new Date(a.date));
+            const top = sorted[0];
+            if (!top || !top.date) continue;
+            const d = new Date(top.date);
+            const dateLabel = isNaN(d.getTime())
+              ? String(top.date)
+              : d.toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                });
+            return { track: top.track || 'Race recap', loc: top.loc || '', dateLabel };
+          } catch (_) {
+            /* try next season */
+          }
+        }
+        return null;
+      }
+
+      async function rrFetchHeroGalleryUrl() {
+        try {
+          const snap = await db
+            .collection('gallery_images')
+            .where('approved', '==', true)
+            .orderBy('uploadedAt', 'desc')
+            .limit(1)
+            .get();
+          if (snap.empty) return null;
+          const d = snap.docs[0].data();
+          return d.imageUrl || d.downloadURL || null;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      let __rrFcTimer = null;
+      function mountFeatureCarousel(slides) {
+        const root = document.getElementById('feature-carousel');
+        const holder = document.getElementById('fc-slides');
+        const dots = document.getElementById('fc-dots');
+        if (!root || !holder || !dots || !slides.length) return;
+
+        const prevBtn = root.querySelector('.fc-prev');
+        const nextBtn = root.querySelector('.fc-next');
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        holder.innerHTML = slides
+          .map((s, i) => {
+            const img = s.imageUrl ? rrSafeBgUrl(s.imageUrl) : '';
+            const bg = img
+              ? `linear-gradient(120deg, rgba(5,8,15,0.82) 0%, rgba(5,8,15,0.45) 52%, rgba(5,8,15,0.22) 100%), url('${img}')`
+              : s.gradient ||
+                'linear-gradient(125deg, #1e293b 0%, #0f172a 55%, #334155 100%)';
+            const cta2 = s.cta2
+              ? `<a class="fc-cta fc-cta-secondary" href="${rrEscapeHtml(s.cta2.href)}">${rrEscapeHtml(
+                  s.cta2.label,
+                )}</a>`
+              : '';
+            return `<div class="fc-slide${i === 0 ? ' is-active' : ''}" role="group" aria-roledescription="slide" aria-label="${i + 1} of ${
+              slides.length
+            }" style="background-image:${bg}">
+      <div class="fc-slide-inner">
+        <div class="fc-kicker"><i class="fas fa-bolt" aria-hidden="true"></i> ${rrEscapeHtml(s.kicker)}</div>
+        <h3 class="fc-title">${rrEscapeHtml(s.title)}</h3>
+        <p class="fc-sub">${rrEscapeHtml(s.sub)}</p>
+        <div class="fc-cta-row">
+          <a class="fc-cta" href="${rrEscapeHtml(s.href)}">${rrEscapeHtml(s.cta)}</a>${cta2}
+        </div>
+      </div>
+    </div>`;
+          })
+          .join('');
+
+        dots.innerHTML = slides
+          .map(
+            (_, i) =>
+              `<button type="button" class="fc-dot${i === 0 ? ' is-active' : ''}" aria-label="Slide ${
+                i + 1
+              }" role="tab" data-i="${i}"></button>`,
+          )
+          .join('');
+
+        let idx = 0;
+        function go(n) {
+          idx = (n + slides.length) % slides.length;
+          holder.querySelectorAll('.fc-slide').forEach((el, j) => el.classList.toggle('is-active', j === idx));
+          dots.querySelectorAll('.fc-dot').forEach((el, j) => el.classList.toggle('is-active', j === idx));
+        }
+
+        prevBtn.onclick = () => go(idx - 1);
+        nextBtn.onclick = () => go(idx + 1);
+        dots.querySelectorAll('.fc-dot').forEach((b) => {
+          b.onclick = () => go(parseInt(b.dataset.i, 10));
+        });
+
+        if (__rrFcTimer) clearInterval(__rrFcTimer);
+        __rrFcTimer = null;
+        if (!reduced) {
+          __rrFcTimer = setInterval(() => go(idx + 1), 6200);
+        }
+        root.onmouseenter = () => {
+          if (__rrFcTimer) {
+            clearInterval(__rrFcTimer);
+            __rrFcTimer = null;
+          }
+        };
+        root.onmouseleave = () => {
+          if (!reduced && !__rrFcTimer) {
+            __rrFcTimer = setInterval(() => go(idx + 1), 6200);
+          }
+        };
+      }
+
+      async function hydrateFeaturedCarousel(nextMeta, raceInfoLine) {
+        const [recap, photo] = await Promise.all([rrFetchLatestRecapHeadline(), rrFetchHeroGalleryUrl()]);
+        const slides = [];
+
+        if (nextMeta && nextMeta.raceName) {
+          const dateStr = rrFormatRaceDateRaw(nextMeta.date);
+          const sub = [nextMeta.trackName, dateStr].filter(Boolean).join(' • ') || 'Full schedule with dates and tracks.';
+          slides.push({
+            kicker: 'Next race',
+            title: nextMeta.raceName,
+            sub: sub,
+            href: 'schedule.html',
+            cta: 'View schedule',
+            gradient: 'linear-gradient(125deg, #1d4ed8 0%, #0f172a 45%, #b45309 100%)',
+          });
+        } else {
+          slides.push({
+            kicker: 'Schedule',
+            title: 'Race season is rolling',
+            sub: raceInfoLine || 'See every date, track, and update in one place.',
+            href: 'schedule.html',
+            cta: 'View schedule',
+            gradient: 'linear-gradient(125deg, #1d4ed8 0%, #0f172a 45%, #b45309 100%)',
+          });
+        }
+
+        if (recap) {
+          const sub = recap.dateLabel + (recap.loc ? ' • ' + recap.loc : '');
+          slides.push({
+            kicker: 'Latest results',
+            title: recap.track,
+            sub: sub,
+            href: 'recaps.html',
+            cta: 'Read race recaps',
+            gradient: 'linear-gradient(125deg, #065f46 0%, #0f172a 50%, #1d4ed8 100%)',
+          });
+        } else {
+          slides.push({
+            kicker: 'Race recaps',
+            title: 'Recaps land after every race night',
+            sub: 'Finishes, points, and shareable summaries for Jon and Jonny.',
+            href: 'recaps.html',
+            cta: 'Go to recaps',
+            gradient: 'linear-gradient(125deg, #065f46 0%, #0f172a 50%, #1d4ed8 100%)',
+          });
+        }
+
+        slides.push({
+          kicker: 'Driver spotlight',
+          title: 'Two cars. One family.',
+          sub: 'Jon #8 and Jonny #88 — profiles, photos, and season storylines.',
+          href: 'driver.html',
+          cta: 'Jon #8',
+          cta2: { href: 'jonny.html', label: 'Jonny #88' },
+          gradient: 'linear-gradient(125deg, #1e40af 0%, #0f172a 45%, #991b1b 100%)',
+        });
+
+        if (photo) {
+          slides.push({
+            kicker: 'Fresh from the track',
+            title: 'New gallery shots',
+            sub: 'Full-size photos from race weekends and shop days.',
+            href: 'gallery.html',
+            cta: 'Open gallery',
+            imageUrl: photo,
+          });
+        }
+
+        mountFeatureCarousel(slides);
+      }
+
       // Countdown Timer with Dynamic NEXT Race
       (function() {
         let firstRaceDate = new Date('2026-04-18T00:00:00').getTime(); // Default fallback
         let raceInfo = 'NEXT RACE: GRUNDY COUNTY SPEEDWAY'; // Default fallback
 
+        function escapeHtml(value) {
+          return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        }
+
+        function setTickerItems(items) {
+          const track = document.getElementById('ticker-track');
+          if (!track) return;
+
+          const safeItems = Array.isArray(items) && items.length ? items : [];
+          const html = safeItems.map((it) => {
+            const icon = it.icon ? `<i class="${escapeHtml(it.icon)}" aria-hidden="true"></i>` : '';
+            const text = it.href
+              ? `<a href="${escapeHtml(it.href)}">${escapeHtml(it.text)}</a>`
+              : `<span>${escapeHtml(it.text)}</span>`;
+            return `<span class="ticker-item">${icon}${text}</span>`;
+          }).join('<span aria-hidden="true" style="opacity:.35">•</span>');
+
+          // Duplicate once so marquee can loop seamlessly
+          track.innerHTML = html + '<span aria-hidden="true" style="opacity:.35">•</span>' + html;
+        }
+
+        function seedTicker() {
+          setTickerItems([
+            { icon: 'fas fa-flag-checkered', text: raceInfo, href: 'schedule.html' },
+            { icon: 'fas fa-trophy', text: 'Season stats & standings', href: 'stats.html' },
+            { icon: 'fas fa-video', text: 'Highlights & clips', href: 'videos.html' },
+            { icon: 'fas fa-users', text: 'Meet the team', href: 'team.html' },
+            { icon: 'fas fa-handshake', text: 'Sponsors & partnerships', href: 'sponsorship.html' },
+          ]);
+        }
+
         // Fetch the next upcoming race from Firestore
         async function loadFirstRace() {
+          let nextMeta = null;
           try {
             // Get today's date as YYYY-MM-DD string for comparison
             const today = new Date();
@@ -686,12 +1354,16 @@
               const raceName = nextRace.eventName || nextRace.name || 'Next Race';
               const trackName = nextRace.track || '';
               raceInfo = `NEXT RACE: ${raceName.toUpperCase()}${trackName ? ' - ' + trackName.toUpperCase() : ''}`;
+              nextMeta = { raceName, trackName, date: raceDate };
               
               // Update the UI
               const raceInfoEl = document.querySelector('.race-info');
               if (raceInfoEl) {
                 raceInfoEl.innerHTML = `<i class="fas fa-flag-checkered"></i> ${raceInfo}`;
               }
+
+              // Also refresh the LIVE ticker
+              seedTicker();
 
               console.log('Loaded next upcoming race from Firestore:', nextRace);
             } else {
@@ -700,6 +1372,12 @@
           } catch (error) {
             console.error('Error loading next race:', error);
             // Use fallback values if Firebase fails
+          } finally {
+            try {
+              await hydrateFeaturedCarousel(nextMeta, raceInfo);
+            } catch (e) {
+              console.warn('Feature carousel:', e);
+            }
           }
         }
 
@@ -728,10 +1406,34 @@
 
         // Load first race data
         loadFirstRace();
+
+        // Paint initial ticker immediately (then refresh when Firestore returns)
+        seedTicker();
         
         // Start countdown
         updateCountdown();
         setInterval(updateCountdown, 1000);
+      })();
+
+      // Spotlight follow (subtle, premium). Works in app WebView too.
+      (function () {
+        const root = document.documentElement;
+        let raf = 0;
+        function move(e) {
+          const x = (e.clientX / window.innerWidth) * 100;
+          const y = (e.clientY / window.innerHeight) * 100;
+          if (raf) return;
+          raf = requestAnimationFrame(() => {
+            root.style.setProperty('--spot-x', x.toFixed(2) + '%');
+            root.style.setProperty('--spot-y', y.toFixed(2) + '%');
+            raf = 0;
+          });
+        }
+
+        window.addEventListener('pointermove', move, { passive: true });
+        // Set a nice default for touch devices (no pointermove)
+        root.style.setProperty('--spot-x', '50%');
+        root.style.setProperty('--spot-y', '35%');
       })();
       
       // Analytics Event Tracking
@@ -879,13 +1581,7 @@
     
     <!-- Mobile banner -->
     <div style="text-align: center; margin: 40px 0; padding: 0 20px;">
-      <ins class="adsbygoogle"
-           style="display:inline-block;width:320px;height:100px"
-           data-ad-client="ca-pub-8879853783053353"
-           data-ad-slot="9270261295"></ins>
-      <script>
-           (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
+      
     </div>
       <script src="assets/js/cookie-consent.js"></script>
   </body>

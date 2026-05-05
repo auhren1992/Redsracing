@@ -28,7 +28,7 @@
     <link rel="stylesheet" href="styles/input-fix.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
-  <script src="assets/js/guest-gate.js"></script>
+  <script src="assets/js/guest-gate.js?v=20260505"></script>
       <!-- Analytics Tracker -->
     <script type="module" src="assets/js/analytics-tracker.js"></script>
     <!-- Google Analytics -->
@@ -655,25 +655,22 @@
         try {
             const qnaCollection = collection(db, 'qna_submissions');
             const racesCollection = collection(db, 'races');
-            
-            // Count total questions
-            const allQuestionsQuery = query(qnaCollection);
-            const allQuestionsSnapshot = await getDocs(allQuestionsQuery);
-            const totalQuestions = allQuestionsSnapshot.size;
-            document.getElementById('total-questions').textContent = totalQuestions;
-            
-            // Count answered questions
-            const answeredQuery = query(qnaCollection, where('status', '==', 'published'));
-            const answeredSnapshot = await getDocs(answeredQuery);
-            const answeredCount = answeredSnapshot.size;
-            document.getElementById('answered-questions').textContent = answeredCount;
-            
+
+            // Public reads are only allowed for published submissions (see firestore.rules).
+            // Keep all stats queries within that constraint to avoid permission-denied on public visits.
+            const publishedQuery = query(qnaCollection, where('status', '==', 'published'));
+            const publishedSnapshot = await getDocs(publishedQuery);
+            const publishedCount = publishedSnapshot.size;
+
+            document.getElementById('total-questions').textContent = String(publishedCount);
+            document.getElementById('answered-questions').textContent = String(publishedCount);
+
             // Count total races from 2023-2026
             const racesQuery = query(racesCollection, where('season', '>=', 2023));
             const racesSnapshot = await getDocs(racesQuery);
             const totalRaces = racesSnapshot.size;
             document.getElementById('total-races').textContent = totalRaces + '+';
-            
+
         } catch (error) {
             console.error('Error loading stats:', error);
             // Show fallback if error

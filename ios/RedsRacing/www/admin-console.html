@@ -303,8 +303,9 @@
         justify-content: space-between;
         width: 100%;
         padding: 12px 16px;
-        background: none;
-        border: none;
+        background: rgba(2, 6, 23, 0.25);
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 12px;
         color: #e2e8f0;
         text-align: left;
         transition: all 0.3s ease;
@@ -331,29 +332,40 @@
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.3s ease;
+        margin-top: 6px;
+        margin-bottom: 10px;
+        padding-left: 8px;
+        border-left: 1px solid rgba(148, 163, 184, 0.18);
       }
       .mobile-nav-subitem {
         display: block;
-        padding: 8px 16px 8px 40px;
+        padding: 10px 12px 10px 44px;
         color: #94a3b8;
         text-decoration: none;
         font-size: 14px;
+        border-radius: 10px;
       }
       .mobile-nav-subitem:hover {
         background: rgba(59, 130, 246, 0.1);
         color: #60a5fa;
       }
       .mobile-accordion-nested {
-        padding-left: 32px;
+        padding: 10px 12px 10px 40px;
         font-size: 14px;
+        background: rgba(2, 6, 23, 0.18);
+        border-color: rgba(148, 163, 184, 0.10);
       }
       .mobile-accordion-content-nested {
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.3s ease;
+        margin-top: 6px;
+        margin-bottom: 8px;
+        padding-left: 8px;
+        border-left: 1px dashed rgba(148, 163, 184, 0.22);
       }
       .mobile-nav-subitem-nested {
-        padding-left: 60px;
+        padding-left: 68px;
         font-size: 13px;
       }
       
@@ -372,10 +384,43 @@
       .scrollbar-hide::-webkit-scrollbar {
         display: none;
       }
+      /*
+        App-only top bar (Android/iOS WebView). Must be hidden on the normal mobile web:
+        otherwise the Android-style strip + hamburger stacks above the real site header.
+        Shown only when body.mobile-app is set by mobile-app-detector.js.
+      */
+      #admin-menu-bar {
+        display: none;
+        background: #1e293b;
+        padding: 12px 16px;
+        align-items: center;
+        gap: 12px;
+        justify-content: flex-start;
+        border-bottom: 2px solid #fbbf24;
+      }
+      body.mobile-app #admin-menu-bar {
+        display: flex !important;
+      }
+      body.mobile-app header {
+        display: none !important;
+      }
+      body.mobile-app .sidebar-nav {
+        display: none !important;
+      }
     </style>
   <script src="assets/js/guest-gate.js"></script>
   </head>
   <body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <!-- ANDROID APP: top-left hamburger + tucked sidebar drawer -->
+    <div id="admin-menu-bar">
+      <button id="android-hamburger" onclick="openDrawer()" aria-label="Open admin menu" style="background:rgba(2,6,23,0.35);border:1px solid rgba(251,191,36,0.25);color:#fbbf24;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.35);">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div style="display:flex;flex-direction:column;line-height:1.1">
+        <span style="color:#fbbf24;font-weight:800;font-size:13px;letter-spacing:0.5px">Admin Console</span>
+        <span style="color:#94a3b8;font-weight:600;font-size:10px">Command Center</span>
+      </div>
+    </div>
     <!-- Clean Modern Header -->
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
       <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
@@ -455,11 +500,12 @@
 <button id="logout-button-top" class="bg-slate-800/50 hover:bg-slate-700/50 border border-slate-600/50 text-white px-3 py-1 rounded text-sm flex items-center"><i class="fas fa-sign-out-alt mr-2"></i>Sign Out</button>
         </div>
       </nav>
-      
-      <!-- Mobile Menu -->
-      <div id="mobile-menu" class="mobile-menu modern-mobile hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; background: rgba(15,23,42,0.98); overflow-y: auto;">
+    </header>
+
+    <div id="android-menu-drawer" style="position:fixed;top:0;left:0;width:290px;height:100vh;z-index:10000;background:#0f172a;border-right:1px solid rgba(148,163,184,0.12);overflow-y:auto;transform:translateX(-100%);transition:transform 0.25s ease;-webkit-overflow-scrolling:touch;box-shadow:4px 0 22px rgba(0,0,0,0.55);">
         <div class="p-4 border-b border-slate-600">
-          <div class="flex items-center space-x-3">
+          <div class="flex items-center justify-between">
+           <div class="flex items-center space-x-3">
             <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-red-500 rounded-lg flex items-center justify-center">
               <i class="fas fa-crown text-white text-lg"></i>
             </div>
@@ -467,132 +513,62 @@
               <h4 class="text-white font-bold">Admin Console</h4>
               <p class="text-slate-400 text-sm">Command Center</p>
             </div>
+           </div>
+           <button onclick="closeDrawer()" aria-label="Close menu" style="color:#94a3b8;padding:8px;font-size:20px"><i class="fas fa-times"></i></button>
           </div>
         </div>
         
-        <div class="p-4 space-y-2">
-          <!-- Site Navigation -->
-          <a href="index.html" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <i class="fas fa-home w-5 mr-3 text-blue-400"></i>
-            <span>🏠 Home</span>
-          </a>
-          
-          <button class="mobile-accordion">
-            <span>🏎️ Drivers</span><i class="fas fa-chevron-down accordion-icon"></i>
-          </button>
-          <div class="mobile-accordion-content">
-            <!-- Jon Kirsch Nested -->
-            <button class="mobile-accordion mobile-accordion-nested">
-              <span>Jon Kirsch #8</span><i class="fas fa-chevron-down accordion-icon"></i>
-            </button>
-            <div class="mobile-accordion-content mobile-accordion-content-nested">
-              <a href="driver.html" class="mobile-nav-subitem mobile-nav-subitem-nested">👤 Profile</a>
-              <a href="gallery.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📸 Gallery</a>
-            </div>
-            
-            <!-- Jonny Kirsch Nested -->
-            <button class="mobile-accordion mobile-accordion-nested">
-              <span>Jonny Kirsch #88</span><i class="fas fa-chevron-down accordion-icon"></i>
-            </button>
-            <div class="mobile-accordion-content mobile-accordion-content-nested">
-              <a href="jonny.html" class="mobile-nav-subitem mobile-nav-subitem-nested">👤 Profile</a>
-              <a href="jonny-gallery.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📸 Gallery</a>
-              <a href="jonny-results.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📊 Race Results</a>
-            </div>
-            
-            <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
+        <div class="p-4">
+          <style>
+            /* Android drawer: mimic website sidebar (clean + calm) */
+            #android-menu-drawer .a-section { margin-bottom: 14px; }
+            #android-menu-drawer .a-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: #64748b; font-weight: 800; padding: 0 10px 6px; }
+            #android-menu-drawer .a-link { display:flex; align-items:center; gap:12px; padding: 10px 12px; border-radius: 12px; text-decoration:none; color:#cbd5e1; font-size: 14px; font-weight: 600; border: 1px solid transparent; }
+            #android-menu-drawer .a-link:hover { background: rgba(148,163,184,0.10); border-color: rgba(148,163,184,0.12); color: #fff; }
+            #android-menu-drawer .a-link i { width: 18px; text-align:center; font-size: 13px; }
+            #android-menu-drawer .a-link.is-active { background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.20); color:#fff; }
+            #android-menu-drawer .a-divider { height:1px; background: rgba(148,163,184,0.14); margin: 10px 0; }
+            #android-menu-drawer .a-badge { margin-left:auto; background:#ef4444; color:#fff; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 800; }
+          </style>
+
+          <div class="a-section">
+            <div class="a-title">Dashboard</div>
+            <a href="#overview" onclick="closeDrawer()" class="a-link is-active"><i class="fas fa-tachometer-alt" style="color:#3b82f6"></i><span>Overview</span></a>
+            <a href="#analytics" onclick="closeDrawer()" class="a-link"><i class="fas fa-chart-line" style="color:#10b981"></i><span>Analytics</span></a>
+            <a href="#health" onclick="closeDrawer()" class="a-link"><i class="fas fa-heartbeat" style="color:#10b981"></i><span>Site Health</span></a>
           </div>
-          
-          <button class="mobile-accordion">
-            <span>🏁 Racing</span><i class="fas fa-chevron-down accordion-icon"></i>
-          </button>
-          <div class="mobile-accordion-content">
-            <a href="schedule.html" class="mobile-nav-subitem">Schedule</a>
-            <a href="leaderboard.html" class="mobile-nav-subitem">Leaderboard</a>
-            <a href="videos.html" class="mobile-nav-subitem">🎥 Videos</a>
+
+          <div class="a-section">
+            <div class="a-title">Racing</div>
+            <a href="#schedule-mgmt" onclick="closeDrawer()" class="a-link"><i class="fas fa-calendar-alt" style="color:#22c55e"></i><span>Schedule</span></a>
+            <a href="#race" onclick="closeDrawer()" class="a-link"><i class="fas fa-flag-checkered" style="color:#eab308"></i><span>Race Results</span></a>
+            <a href="live-race-admin.html" onclick="closeDrawer()" class="a-link"><i class="fas fa-broadcast-tower" style="color:#ef4444"></i><span>Live Updates</span></a>
+            <a href="push-notifications.html" onclick="closeDrawer()" class="a-link"><i class="fas fa-bell" style="color:#f97316"></i><span>Notifications</span></a>
           </div>
-          
-          <button class="mobile-accordion">
-            <span>👥 Community</span><i class="fas fa-chevron-down accordion-icon"></i>
-          </button>
-          <div class="mobile-accordion-content">
-            <a href="qna.html" class="mobile-nav-subitem">❓ Q&A</a>
-            <a href="feedback.html" class="mobile-nav-subitem">💬 Feedback</a>
-            <a href="sponsorship.html" class="mobile-nav-subitem">💰 Sponsorship</a>
+
+          <div class="a-section">
+            <div class="a-title">Content</div>
+            <a href="#media" onclick="closeDrawer()" class="a-link"><i class="fas fa-photo-video" style="color:#a855f7"></i><span>Media Gallery</span><span id="gallery-pending-count-drawer" class="a-badge">0</span></a>
+            <a href="#videos" onclick="closeDrawer()" class="a-link"><i class="fas fa-video" style="color:#ec4899"></i><span>Videos</span></a>
+            <a href="#qna" onclick="closeDrawer()" class="a-link"><i class="fas fa-comments" style="color:#06b6d4"></i><span>Q&A</span></a>
+            <a href="#fanwall" onclick="closeDrawer()" class="a-link"><i class="fas fa-bullhorn" style="color:#f97316"></i><span>Fan Wall</span></a>
           </div>
-          
-          <div class="border-t border-slate-600 my-3"></div>
-          
-          <!-- Dashboard -->
-          <p class="text-[10px] uppercase tracking-widest text-slate-500 px-3 font-bold mb-1">Dashboard</p>
-          <a href="#overview" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
-            <span>Overview</span>
-          </a>
-          <a href="#analytics" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <i class="fas fa-chart-line w-5 mr-3 text-emerald-400"></i>
-            <span>Analytics</span>
-          </a>
-          <a href="#health" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <i class="fas fa-heartbeat w-5 mr-3 text-emerald-400"></i>
-            <span>Site Health</span>
-          </a>
-          
-          <div class="border-t border-slate-700 my-2"></div>
-          
-          <!-- Racing -->
-          <p class="text-[10px] uppercase tracking-widest text-slate-500 px-3 font-bold mb-1">Racing</p>
-          <a href="#schedule-mgmt" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <i class="fas fa-calendar-alt w-5 mr-3 text-green-400"></i>
-            <span>Schedule</span>
-          </a>
-          <a href="#race" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <i class="fas fa-flag-checkered w-5 mr-3 text-yellow-400"></i>
-            <span>Race Results</span>
-          </a>
-          <a href="live-race-admin.html" class="mobile-nav-item flex items-center p-3 rounded-lg bg-gradient-to-r from-red-600/20 to-orange-600/20 border border-red-500/30 hover:from-red-600/30 hover:to-orange-600/30 transition-colors">
-            <i class="fas fa-broadcast-tower w-5 mr-3 text-red-500 animate-pulse"></i>
-            <span class="font-semibold">Live Updates</span>
-          </a>
-          <a href="push-notifications.html" class="mobile-nav-item flex items-center p-3 rounded-lg bg-gradient-to-r from-yellow-600/20 to-amber-600/20 border border-yellow-500/30 hover:from-yellow-600/30 hover:to-amber-600/30 transition-colors">
-            <i class="fas fa-bell w-5 mr-3 text-orange-400"></i>
-            <span class="font-semibold">Notifications</span>
-          </a>
-          
-          <div class="border-t border-slate-700 my-2"></div>
-          
-          <!-- Content -->
-          <p class="text-[10px] uppercase tracking-widest text-slate-500 px-3 font-bold mb-1">Content</p>
-          <a href="#media" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <i class="fas fa-photo-video w-5 mr-3 text-purple-400"></i>
-            <span>Media Gallery</span>
-            <span class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
-          </a>
-          <a href="#videos" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <i class="fas fa-video w-5 mr-3 text-pink-400"></i>
-            <span>Videos</span>
-          </a>
-          <a href="#qna" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <i class="fas fa-comments w-5 mr-3 text-cyan-400"></i>
-            <span>Q&A</span>
-          </a>
-          
-          <div class="border-t border-slate-700 my-2"></div>
-          
-          <!-- Admin -->
-          <p class="text-[10px] uppercase tracking-widest text-slate-500 px-3 font-bold mb-1">Admin</p>
-          <a href="#advanced" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <i class="fas fa-user-shield w-5 mr-3 text-yellow-300"></i>
-            <span>Team & Roles</span>
-          </a>
-          <a href="#logs" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <i class="fas fa-bug w-5 mr-3 text-red-400"></i>
-            <span>Error Logs</span>
-          </a>
-          <a href="settings.html" class="mobile-nav-item flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors">
-            <i class="fas fa-cog w-5 mr-3 text-slate-400"></i>
-            <span>Settings</span>
-          </a>
+
+          <div class="a-section">
+            <div class="a-title">Operations</div>
+            <a href="#inbox" onclick="closeDrawer()" class="a-link"><i class="fas fa-inbox" style="color:#06b6d4"></i><span>Admin Inbox</span><span id="inbox-badge-drawer" class="a-badge" style="display:none">0</span></a>
+            <a href="#raceday" onclick="closeDrawer()" class="a-link"><i class="fas fa-flag" style="color:#ef4444"></i><span>Race Day</span></a>
+            <a href="#audit" onclick="closeDrawer()" class="a-link"><i class="fas fa-history" style="color:#f59e0b"></i><span>Audit Trail</span></a>
+            <a href="#data-quality" onclick="closeDrawer()" class="a-link"><i class="fas fa-check-double" style="color:#14b8a6"></i><span>Data Quality</span></a>
+            <a href="#releases" onclick="closeDrawer()" class="a-link"><i class="fas fa-rocket" style="color:#6366f1"></i><span>Releases</span></a>
+          </div>
+
+          <div class="a-section">
+            <div class="a-title">Admin</div>
+            <a href="#advanced" onclick="closeDrawer()" class="a-link"><i class="fas fa-user-shield" style="color:#facc15"></i><span>Team & Roles</span></a>
+            <a href="#logs" onclick="closeDrawer()" class="a-link"><i class="fas fa-bug" style="color:#ef4444"></i><span>Error Logs</span></a>
+            <a href="settings.html" onclick="closeDrawer()" class="a-link"><i class="fas fa-cog" style="color:#94a3b8"></i><span>Settings</span></a>
+          </div>
         </div>
         
         <div class="border-t border-slate-600 mt-4 p-4">
@@ -600,8 +576,43 @@
             <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
           </button>
         </div>
+        <script>
+          // Copy badge counts from desktop sidebar if present
+          (function syncDrawerBadges(){
+            try {
+              const srcGallery = document.getElementById('gallery-pending-count');
+              const dstGallery = document.getElementById('gallery-pending-count-drawer');
+              if (srcGallery && dstGallery) dstGallery.textContent = (srcGallery.textContent || '0').trim();
+
+              const srcInbox = document.getElementById('inbox-badge');
+              const dstInbox = document.getElementById('inbox-badge-drawer');
+              if (srcInbox && dstInbox) {
+                dstInbox.textContent = (srcInbox.textContent || '0').trim();
+                dstInbox.style.display = srcInbox.style.display === 'none' ? 'none' : '';
+              }
+            } catch (_) {}
+          })();
+        </script>
       </div>
-    </header>
+    </div>
+    <div id="android-menu-overlay" onclick="closeDrawer()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:9999;"></div>
+
+    <script>
+      function openDrawer(){
+        var d = document.getElementById('android-menu-drawer');
+        var o = document.getElementById('android-menu-overlay');
+        if (d) d.style.transform = 'translateX(0)';
+        if (o) o.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeDrawer(){
+        var d = document.getElementById('android-menu-drawer');
+        var o = document.getElementById('android-menu-overlay');
+        if (d) d.style.transform = 'translateX(-100%)';
+        if (o) o.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    </script>
 
     <!-- Main Dashboard Layout -->
     <div class="flex min-h-screen">
@@ -730,51 +741,6 @@
       
       <!-- Main Content -->
       <main class="flex-1 overflow-hidden">
-        <!-- Mobile Navigation -->
-        <div class="md:hidden bg-slate-900/95 border-b border-white/10 px-3 pt-2 pb-1">
-          <!-- Primary actions -->
-          <div class="flex space-x-2 mb-2">
-            <a href="#overview" class="mobile-tab-btn flex-1 py-1.5 rounded-full text-[11px] font-bold text-center bg-blue-600 text-white">Overview</a>
-            <a href="live-race-admin.html" class="flex-1 py-1.5 rounded-full text-[11px] font-bold text-center bg-gradient-to-r from-red-600 to-orange-600 text-white"><i class="fas fa-broadcast-tower mr-1"></i>Live</a>
-            <a href="push-notifications.html" class="flex-1 py-1.5 rounded-full text-[11px] font-bold text-center bg-gradient-to-r from-orange-500 to-amber-500 text-white"><i class="fas fa-bell mr-1"></i>Notify</a>
-          </div>
-          <!-- Scrollable categorized rows -->
-          <div class="space-y-1 pb-1">
-            <!-- Racing -->
-            <div class="flex items-center overflow-x-auto scrollbar-hide gap-1.5">
-              <span class="text-[9px] uppercase tracking-wider text-slate-600 font-bold shrink-0 w-12">Race</span>
-              <a href="#schedule-mgmt" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-calendar-alt text-green-400 mr-1"></i>Schedule</a>
-              <a href="#race" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-flag-checkered text-yellow-400 mr-1"></i>Results</a>
-              <a href="#raceday" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-flag text-red-400 mr-1"></i>Race Day</a>
-            </div>
-            <!-- Content -->
-            <div class="flex items-center overflow-x-auto scrollbar-hide gap-1.5">
-              <span class="text-[9px] uppercase tracking-wider text-slate-600 font-bold shrink-0 w-12">Content</span>
-              <a href="#media" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-photo-video text-purple-400 mr-1"></i>Media</a>
-              <a href="#videos" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-video text-pink-400 mr-1"></i>Videos</a>
-              <a href="#qna" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-comments text-cyan-400 mr-1"></i>Q&A</a>
-              <a href="#fanwall" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-bullhorn text-orange-400 mr-1"></i>Fan Wall</a>
-            </div>
-            <!-- Dashboard -->
-            <div class="flex items-center overflow-x-auto scrollbar-hide gap-1.5">
-              <span class="text-[9px] uppercase tracking-wider text-slate-600 font-bold shrink-0 w-12">Stats</span>
-              <a href="#analytics" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-chart-line text-emerald-400 mr-1"></i>Analytics</a>
-              <a href="#health" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-heartbeat text-emerald-400 mr-1"></i>Health</a>
-              <a href="#data-quality" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-check-double text-teal-400 mr-1"></i>Quality</a>
-              <a href="#releases" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-rocket text-indigo-400 mr-1"></i>Releases</a>
-            </div>
-            <!-- Ops -->
-            <div class="flex items-center overflow-x-auto scrollbar-hide gap-1.5">
-              <span class="text-[9px] uppercase tracking-wider text-slate-600 font-bold shrink-0 w-12">Ops</span>
-              <a href="#inbox" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-inbox text-cyan-400 mr-1"></i>Inbox</a>
-              <a href="#audit" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-history text-amber-400 mr-1"></i>Audit</a>
-              <a href="#advanced" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-user-shield text-yellow-300 mr-1"></i>Roles</a>
-              <a href="#logs" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-bug text-red-400 mr-1"></i>Logs</a>
-              <a href="settings.html" class="mobile-tab-btn shrink-0 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800/70 text-slate-300 border border-slate-700/50"><i class="fas fa-cog text-slate-400 mr-1"></i>Settings</a>
-            </div>
-          </div>
-        </div>
-
         <!-- Dashboard Content -->
         <div class="p-4 lg:p-6 space-y-6">
           <!-- Error Container -->
@@ -1781,19 +1747,19 @@
                     <div class="space-y-2">
                       <div class="flex justify-between text-sm">
                         <span class="text-slate-400">Version:</span>
-                        <span class="text-white font-medium" id="android-version">8.9 (89)</span>
+                        <span class="text-white font-medium" id="android-version">--</span>
                       </div>
                       <div class="flex justify-between text-sm">
-                        <span class="text-slate-400">Active Users:</span>
+                        <span class="text-slate-400">Devices seen (7d / total):</span>
                         <span class="text-green-400 font-medium" id="android-users">--</span>
                       </div>
                       <div class="flex justify-between text-sm">
-                        <span class="text-slate-400">Crash Rate:</span>
+                        <span class="text-slate-400">WebView JS errors (7d):</span>
                         <span class="text-yellow-400 font-medium" id="android-crashes">--</span>
                       </div>
                       <div class="flex justify-between text-sm">
-                        <span class="text-slate-400">Rating:</span>
-                        <span class="text-white font-medium" id="android-rating">-- ⭐</span>
+                        <span class="text-slate-400">Store rating:</span>
+                        <span class="text-white font-medium" id="android-rating">Not tracked</span>
                       </div>
                     </div>
                   </div>
@@ -1809,19 +1775,19 @@
                     <div class="space-y-2">
                       <div class="flex justify-between text-sm">
                         <span class="text-slate-400">Version:</span>
-                        <span class="text-white font-medium" id="ios-version">8.9 (89)</span>
+                        <span class="text-white font-medium" id="ios-version">--</span>
                       </div>
                       <div class="flex justify-between text-sm">
-                        <span class="text-slate-400">Active Users:</span>
+                        <span class="text-slate-400">Devices seen (7d / total):</span>
                         <span class="text-blue-400 font-medium" id="ios-users">--</span>
                       </div>
                       <div class="flex justify-between text-sm">
-                        <span class="text-slate-400">Crash Rate:</span>
+                        <span class="text-slate-400">WebView JS errors (7d):</span>
                         <span class="text-yellow-400 font-medium" id="ios-crashes">--</span>
                       </div>
                       <div class="flex justify-between text-sm">
-                        <span class="text-slate-400">Rating:</span>
-                        <span class="text-white font-medium" id="ios-rating">-- ⭐</span>
+                        <span class="text-slate-400">Store rating:</span>
+                        <span class="text-white font-medium" id="ios-rating">Not tracked</span>
                       </div>
                     </div>
                   </div>
@@ -2764,23 +2730,36 @@
         // Explicit dropdown handling for Android WebView
         try {
           // Mobile menu toggle (header hamburger)
-          const mobileMenuBtn = document.getElementById('mobile-menu-button');
+          const headerMenuBtn = document.getElementById('mobile-menu-button');
+          const mainMenuBtn = document.getElementById('mobile-menu-button-main');
           const mobileMenu = document.getElementById('mobile-menu');
-          if (mobileMenuBtn && mobileMenu) {
-            mobileMenuBtn.addEventListener('click', function(e) {
+          const mobileOverlay = document.getElementById('mobile-menu-overlay');
+
+          function toggleMobileMenu(e) {
+            if (e) {
               e.preventDefault();
               e.stopPropagation();
-              const isHidden = mobileMenu.classList.contains('hidden');
-              if (isHidden) {
-                mobileMenu.classList.remove('hidden');
-                mobileMenu.style.cssText = 'display:block !important;visibility:visible !important;opacity:1 !important;transform:translateY(0) !important;pointer-events:auto !important;';
-              } else {
-                mobileMenu.classList.add('hidden');
-                mobileMenu.style.cssText = '';
-              }
-            });
+            }
+            if (!mobileMenu) return;
+
+            const isClosed = mobileMenu.classList.contains('-translate-x-full');
+            if (isClosed) {
+              // Open
+              mobileMenu.classList.remove('-translate-x-full');
+              if (mobileOverlay) mobileOverlay.classList.remove('hidden');
+              document.body.style.overflow = 'hidden';
+            } else {
+              // Close
+              mobileMenu.classList.add('-translate-x-full');
+              if (mobileOverlay) mobileOverlay.classList.add('hidden');
+              document.body.style.overflow = '';
+            }
           }
           
+          if (headerMenuBtn) headerMenuBtn.addEventListener('click', toggleMobileMenu);
+          if (mainMenuBtn) mainMenuBtn.addEventListener('click', toggleMobileMenu);
+          if (mobileOverlay) mobileOverlay.addEventListener('click', toggleMobileMenu);
+
           // Admin Menu sidebar toggle (the yellow button in main content area)
           const sidebarToggle = document.getElementById('sidebar-toggle');
           if (sidebarToggle && mobileMenu) {
@@ -2838,10 +2817,11 @@
                 m.style.cssText = '';
               });
             }
-            if (!e.target.closest('#mobile-menu') && !e.target.closest('#mobile-menu-button')) {
-              if (mobileMenu) {
-                mobileMenu.classList.add('hidden');
-                mobileMenu.style.cssText = '';
+            if (!e.target.closest('#mobile-menu') && !e.target.closest('#mobile-menu-button') && !e.target.closest('#mobile-menu-button-main')) {
+              if (mobileMenu && !mobileMenu.classList.contains('-translate-x-full')) {
+                mobileMenu.classList.add('-translate-x-full');
+                if (mobileOverlay) mobileOverlay.classList.add('hidden');
+                document.body.style.overflow = '';
               }
             }
           });
@@ -2859,6 +2839,8 @@
       // Modern Admin Console JavaScript
       (function() {
         'use strict';
+
+        // Android drawer no longer uses nested accordions; keep it simple like the website sidebar.
         
         // --- Firebase initialization helpers (single source of truth) ---
         const FIREBASE_CONFIG = {
@@ -3188,11 +3170,35 @@
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
             let html = '';
+            const msDay = 86400000;
+            const toMillis = (ts) => {
+              try {
+                if (!ts) return null;
+                if (ts.toMillis) return ts.toMillis();
+                const d = ts.toDate ? ts.toDate() : new Date(ts);
+                const n = d.getTime();
+                return Number.isFinite(n) ? n : null;
+              } catch (_) { return null; }
+            };
+            const fmtAgo = (ms) => {
+              if (!ms) return 'never';
+              const delta = Date.now() - ms;
+              const mins = Math.floor(delta / 60000);
+              if (mins < 60) return `${mins}m ago`;
+              const hrs = Math.floor(mins / 60);
+              if (hrs < 48) return `${hrs}h ago`;
+              const days = Math.floor(hrs / 24);
+              return `${days}d ago`;
+            };
             // Active versions
             const androidDoc = await getDoc(doc(db, 'app_config', 'android_version'));
             const iosDoc = await getDoc(doc(db, 'app_config', 'ios_version'));
             const av = androidDoc.exists() ? androidDoc.data() : {};
             const iv = iosDoc.exists() ? iosDoc.data() : {};
+            const androidLatest = Number(av.latest_version || 0) || 0;
+            const androidMin = Number(av.minimum_version || 0) || 0;
+            const iosLatest = Number(iv.latest_version || 0) || 0;
+            const iosMin = Number(iv.minimum_version || 0) || 0;
             html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">`;
             html += `<div class="bg-slate-800/50 border border-green-500/30 rounded-lg p-4"><div class="flex items-center space-x-2 mb-2"><i class="fab fa-android text-green-400"></i><span class="text-white font-semibold text-sm">Android</span></div><div class="text-2xl font-bold text-green-400">${av.latest_version || '--'}</div><div class="text-slate-500 text-xs">Min: ${av.minimum_version || '--'}</div></div>`;
             html += `<div class="bg-slate-800/50 border border-blue-500/30 rounded-lg p-4"><div class="flex items-center space-x-2 mb-2"><i class="fab fa-apple text-blue-400"></i><span class="text-white font-semibold text-sm">iOS</span></div><div class="text-2xl font-bold text-blue-400">${iv.latest_version || '--'}</div><div class="text-slate-500 text-xs">Min: ${iv.minimum_version || '--'}</div></div>`;
@@ -3202,11 +3208,123 @@
             try {
               const usSnap = await getDocs(collection(db, 'app_usage'));
               const dist = { android: {}, ios: {} };
-              usSnap.forEach(d => { const v = d.data(); if (v.platform && v.app_version) dist[v.platform] = dist[v.platform] || {}, dist[v.platform][v.app_version] = (dist[v.platform][v.app_version]||0)+1; });
+              const devices = { android: [], ios: [] };
+              usSnap.forEach(d => {
+                const v = d.data() || {};
+                const platform = String(v.platform || '').toLowerCase();
+                const ver = extractVersionCode(v.app_version) ?? extractVersionCode(v.appVersion) ?? null;
+                if (platform === 'android' || platform === 'ios') {
+                  if (ver !== null) {
+                    dist[platform] = dist[platform] || {};
+                    dist[platform][ver] = (dist[platform][ver] || 0) + 1;
+                  }
+                  devices[platform].push({
+                    id: d.id,
+                    platform,
+                    version: ver,
+                    versionName: extractVersionName(v.app_version_name) || extractVersionName(v.appVersionName) || extractVersionName(v.app_version) || '',
+                    model: v.device_model || '',
+                    os: v.android_version || v.ios_version || '',
+                    lastSeenMs: toMillis(v.last_seen) ?? toMillis(v.lastSeen),
+                    authUid: (v.auth_uid || '').trim(),
+                    authEmail: (v.auth_email || '').trim(),
+                  });
+                }
+              });
+
+              const classify = (platform, version) => {
+                const latest = platform === 'android' ? androidLatest : iosLatest;
+                const min = platform === 'android' ? androidMin : iosMin;
+                if (!version || !latest) return 'unknown';
+                if (min && version < min) return 'must_update';
+                if (latest && version < latest) return 'update_available';
+                return 'up_to_date';
+              };
+              const renderDeviceTable = (platform, list) => {
+                const latest = platform === 'android' ? androidLatest : iosLatest;
+                const min = platform === 'android' ? androidMin : iosMin;
+                const staleCutoff = Date.now() - 7 * msDay;
+                const rows = list
+                  .slice()
+                  .sort((a,b) => (b.lastSeenMs||0) - (a.lastSeenMs||0))
+                  .map((d) => {
+                    const status = classify(platform, d.version);
+                    const isStale = !d.lastSeenMs || d.lastSeenMs < staleCutoff;
+                    const badge =
+                      status === 'up_to_date' ? 'bg-green-500/15 text-green-300 border-green-500/30' :
+                      status === 'update_available' ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30' :
+                      status === 'must_update' ? 'bg-red-500/15 text-red-300 border-red-500/30' :
+                      'bg-slate-500/10 text-slate-300 border-slate-500/20';
+                    const label =
+                      status === 'up_to_date' ? 'Up to date' :
+                      status === 'update_available' ? 'Update available' :
+                      status === 'must_update' ? 'Update required' :
+                      'Unknown';
+                    const staleChip = isStale ? `<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full border border-slate-600/40 text-slate-300 bg-slate-800/30">No check-in 7d+</span>` : '';
+                    const who = (d.authEmail || d.authUid) ? `${d.authEmail || d.authUid}` : '—';
+                    return `
+                      <tr class="border-b border-slate-700/40">
+                        <td class="py-2 pr-2 text-slate-200 text-xs font-semibold">${who}</td>
+                        <td class="py-2 pr-2 text-slate-400 text-xs">${d.model || '—'}</td>
+                        <td class="py-2 pr-2 text-slate-400 text-xs">v${d.version ?? '—'}${d.versionName ? ` (${d.versionName})` : ''}</td>
+                        <td class="py-2 pr-2 text-slate-400 text-xs">${d.os || '—'}</td>
+                        <td class="py-2 pr-2 text-slate-400 text-xs">${fmtAgo(d.lastSeenMs)}</td>
+                        <td class="py-2 text-xs">
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full border ${badge}">${label}</span>
+                          ${staleChip}
+                        </td>
+                      </tr>`;
+                  }).join('');
+
+                const counts = { up_to_date: 0, update_available: 0, must_update: 0, unknown: 0, stale: 0 };
+                list.forEach((d) => {
+                  const s = classify(platform, d.version);
+                  counts[s] = (counts[s] || 0) + 1;
+                  if (!d.lastSeenMs || d.lastSeenMs < (Date.now() - 7 * msDay)) counts.stale += 1;
+                });
+
+                return `
+                  <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+                      <h4 class="text-white font-semibold text-sm">
+                        ${platform === 'android' ? '<i class="fab fa-android text-green-400 mr-2"></i>Android' : '<i class="fab fa-apple text-blue-400 mr-2"></i>iOS'}
+                        <span class="text-slate-500 font-normal text-xs ml-2">(latest v${latest || '--'}, min v${min || '--'})</span>
+                      </h4>
+                      <div class="text-xs text-slate-300 space-x-2">
+                        <span class="text-green-300">Up-to-date: ${counts.up_to_date}</span>
+                        <span class="text-yellow-300">Update: ${counts.update_available}</span>
+                        <span class="text-red-300">Required: ${counts.must_update}</span>
+                        <span class="text-slate-400">No check-in 7d+: ${counts.stale}</span>
+                      </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                      <table class="min-w-full">
+                        <thead>
+                          <tr class="text-[11px] text-slate-500 border-b border-slate-700/50">
+                            <th class="text-left py-2 pr-2 font-semibold">User</th>
+                            <th class="text-left py-2 pr-2 font-semibold">Device</th>
+                            <th class="text-left py-2 pr-2 font-semibold">App</th>
+                            <th class="text-left py-2 pr-2 font-semibold">OS</th>
+                            <th class="text-left py-2 pr-2 font-semibold">Last seen</th>
+                            <th class="text-left py-2 font-semibold">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>${rows || `<tr><td colspan="6" class="py-3 text-slate-500 text-sm">No usage data yet.</td></tr>`}</tbody>
+                      </table>
+                    </div>
+                  </div>`;
+              };
+
               const renderDist = (obj, color) => { const entries = Object.entries(obj).sort((a,b)=>b[1]-a[1]); const total = entries.reduce((s,e)=>s+e[1],0); return entries.length ? entries.map(([ver,cnt]) => { const pct = total?((cnt/total)*100).toFixed(0):'0'; return `<div class="flex items-center justify-between text-xs"><span class="text-slate-300">v${ver}</span><div class="flex items-center space-x-2"><div class="w-16 h-1.5 bg-slate-700 rounded"><div class="h-full ${color} rounded" style="width:${pct}%"></div></div><span class="text-slate-500 w-10 text-right">${cnt}</span></div></div>`; }).join('') : '<div class="text-slate-500 text-xs">No usage data</div>'; };
               html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">`;
               html += `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4"><h4 class="text-white font-semibold text-sm mb-2"><i class="fab fa-android text-green-400 mr-2"></i>Android Distribution</h4><div class="space-y-1">${renderDist(dist.android||{}, 'bg-green-500')}</div></div>`;
               html += `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4"><h4 class="text-white font-semibold text-sm mb-2"><i class="fab fa-apple text-blue-400 mr-2"></i>iOS Distribution</h4><div class="space-y-1">${renderDist(dist.ios||{}, 'bg-blue-500')}</div></div>`;
+              html += `</div>`;
+
+              // Live per-device update monitor (who updated / who hasn't)
+              html += `<div class="grid grid-cols-1 gap-4 mb-4">`;
+              html += renderDeviceTable('android', devices.android || []);
+              html += renderDeviceTable('ios', devices.ios || []);
               html += `</div>`;
             } catch(_) {}
             // Recent admin logs related to deployments
@@ -5144,16 +5262,30 @@
         });
         
         // Mobile menu button toggle (hamburger)
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        if (mobileMenuButton) {
-          mobileMenuButton.addEventListener('click', () => {
-            const mobileMenu = document.getElementById('mobile-menu');
-            if (mobileMenu) {
-              mobileMenu.classList.toggle('hidden');
-            }
-          });
+        const bottomMobileMenuBtn = document.getElementById('mobile-menu-button');
+        const bottomMainMenuBtn = document.getElementById('mobile-menu-button-main');
+
+        function handleMenuToggle() {
+          const mobileMenu = document.getElementById('mobile-menu');
+          const mobileOverlay = document.getElementById('mobile-menu-overlay');
+          if (mobileMenu) {
+             const isClosed = mobileMenu.classList.contains('-translate-x-full');
+             if (isClosed) {
+               mobileMenu.classList.remove('-translate-x-full');
+               if (mobileOverlay) mobileOverlay.classList.remove('hidden');
+               document.body.style.overflow = 'hidden';
+             } else {
+               mobileMenu.classList.add('-translate-x-full');
+               if (mobileOverlay) mobileOverlay.classList.add('hidden');
+               document.body.style.overflow = '';
+             }
+          }
         }
         
+        // Let the upper click handlers handle this to avoid double-firing,
+        // so we can comment this out or remove it to avoid duplicates
+
+
         // Mobile logout button
         const mobileLogoutButton = document.getElementById('mobile-logout-button');
         if (mobileLogoutButton) {
@@ -5919,18 +6051,66 @@
         });
         
         // ===== NEW ADMIN TOOLS FUNCTIONS =====
+
+        function __isAndroidAppUserAgent(ua) {
+          const s = String(ua || '').toLowerCase();
+          if (!s) return false;
+          return s.includes('android') && (s.includes('; wv') || s.includes('redsracingapp'));
+        }
+
+        function __isIosAppUserAgent(ua) {
+          const s = String(ua || '');
+          if (!s) return false;
+          return /iphone|ipad|ipod/i.test(s) && (s.includes('Mobile/') || s.includes('RedsRacingApp'));
+        }
+
+        async function loadEmailMarketingStats() {
+          const { getFirestore, collection, getDocs, query, orderBy, limit, getCountFromServer } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+          const app = await ensureDefaultApp();
+          const db = getFirestore(app);
+
+          let subscriberCount = null;
+          try {
+            const c = await getCountFromServer(collection(db, 'subscribers'));
+            subscriberCount = c.data().count;
+          } catch (_) {
+            try {
+              const snap = await getDocs(collection(db, 'subscribers'));
+              subscriberCount = snap.size;
+            } catch (_) {
+              subscriberCount = null;
+            }
+          }
+          const subEl = document.getElementById('email-subscribers-count');
+          if (subEl) subEl.textContent = subscriberCount === null ? '--' : String(subscriberCount);
+
+          let totalSent = 0;
+          try {
+            const snap = await getDocs(query(collection(db, 'admin_logs'), orderBy('createdAt', 'desc'), limit(3000)));
+            snap.forEach((d) => {
+              const v = d.data() || {};
+              if (v.action !== 'admin_broadcast_email') return;
+              const n = Number(v.sentCount);
+              if (Number.isFinite(n)) totalSent += n;
+            });
+          } catch (_) {
+            totalSent = NaN;
+          }
+          const sentEl = document.getElementById('email-sent-count');
+          if (sentEl) sentEl.textContent = Number.isFinite(totalSent) ? String(totalSent) : '--';
+
+          const openEl = document.getElementById('email-open-rate');
+          if (openEl) openEl.textContent = 'Not tracked';
+        }
         
         async function initializeNewToolStats() {
           try {
-            const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-            const app = await ensureDefaultApp();
-            const db = getFirestore(app);
-            
-            // Email stats
-            const usersSnap = await getDocs(collection(db, 'users'));
-            document.getElementById('email-subscribers-count').textContent = usersSnap.size;
-            document.getElementById('email-sent-count').textContent = '0';
-            document.getElementById('email-open-rate').textContent = '--%';
+            // Email stats (newsletter list + cumulative sends from admin_logs)
+            try { await loadEmailMarketingStats(); } catch (_) {
+              document.getElementById('email-subscribers-count').textContent = '--';
+              document.getElementById('email-sent-count').textContent = '--';
+              document.getElementById('email-open-rate').textContent = 'Not tracked';
+            }
             
             // SEO stats (initial placeholders)
             document.getElementById('seo-score').textContent = '--';
@@ -5950,8 +6130,8 @@
             document.getElementById('ios-users').textContent = '--';
             document.getElementById('android-crashes').textContent = '--';
             document.getElementById('ios-crashes').textContent = '--';
-            document.getElementById('android-rating').textContent = '-- ⭐';
-            document.getElementById('ios-rating').textContent = '-- ⭐';
+            document.getElementById('android-rating').textContent = 'Not tracked';
+            document.getElementById('ios-rating').textContent = 'Not tracked';
             
             // Revenue stats
             document.getElementById('revenue-today').textContent = '$--';
@@ -6133,26 +6313,115 @@
         }
         
         async function cleanupOrphanedData() {
-          if (!confirm('This will remove orphaned records. Continue?')) return;
-          showToast('Cleanup started...');
-          // Placeholder for cleanup logic
-          setTimeout(() => {
-            showToast('Cleanup complete (no orphaned data found)');
-          }, 1500);
+          if (!confirm('Scan for obvious data issues? This does not delete anything.')) return;
+          const resultEl = document.getElementById('db-operation-result');
+          if (resultEl) {
+            resultEl.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Scanning...</div>';
+          }
+          try {
+            const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+
+            const gallerySnap = await getDocs(collection(db, 'gallery_images'));
+            let missingUrl = 0;
+            let missingUser = 0;
+            gallerySnap.forEach((d) => {
+              const v = d.data() || {};
+              const url = v.url || v.imageUrl || v.downloadURL || v.src || '';
+              if (!url) missingUrl += 1;
+              if (!v.userId && !v.uid && !v.uploadedBy) missingUser += 1;
+            });
+
+            const html = `
+              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-1">
+                <div class="text-white font-semibold text-sm">Non-destructive scan</div>
+                <div class="text-slate-300 text-xs">gallery_images: ${gallerySnap.size} docs</div>
+                <div class="text-slate-300 text-xs">Missing image URL fields: ${missingUrl}</div>
+                <div class="text-slate-300 text-xs">Missing uploader id fields: ${missingUser}</div>
+                <div class="text-slate-500 text-[11px] mt-2">This is a heuristic report only. Automated deletion is not enabled.</div>
+              </div>`;
+            if (resultEl) resultEl.innerHTML = html;
+            showToast('Scan complete');
+          } catch (e) {
+            console.error('Scan failed:', e);
+            if (resultEl) resultEl.innerHTML = '<div class="text-red-400 text-sm">Scan failed</div>';
+            showToast('Scan failed', 'error');
+          }
         }
         
         // Performance Monitoring Functions
         async function refreshPerformanceMetrics() {
           try {
-            // Simulate performance metrics
-            const pageLoad = performance.timing ? (performance.timing.loadEventEnd - performance.timing.navigationStart) : 1200;
-            const apiResponse = Math.floor(Math.random() * 300) + 100;
-            const memory = performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : 45;
-            
-            document.getElementById('perf-page-load').textContent = Math.round(pageLoad);
-            document.getElementById('perf-api-response').textContent = apiResponse;
-            document.getElementById('perf-memory').textContent = memory;
-            document.getElementById('perf-error-rate').textContent = '0.2';
+            let pageLoadMs = null;
+            try {
+              const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+              if (nav && Number.isFinite(nav.loadEventEnd) && Number.isFinite(nav.startTime)) {
+                pageLoadMs = Math.max(0, nav.loadEventEnd - nav.startTime);
+              } else if (performance.timing && performance.timing.loadEventEnd > 0) {
+                pageLoadMs = performance.timing.loadEventEnd - performance.timing.navigationStart;
+              }
+            } catch (_) {
+              pageLoadMs = null;
+            }
+
+            let firestoreMs = null;
+            try {
+              const { getFirestore, collection, getDocs, query, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const app = await ensureDefaultApp();
+              const db = getFirestore(app);
+              const t0 = performance.now();
+              await getDocs(query(collection(db, 'config'), limit(1)));
+              firestoreMs = Math.round(performance.now() - t0);
+            } catch (_) {
+              firestoreMs = null;
+            }
+
+            let fetchMs = null;
+            try {
+              const t0 = performance.now();
+              await fetch(window.location.origin + '/index.html', { method: 'GET', cache: 'no-store' });
+              fetchMs = Math.round(performance.now() - t0);
+            } catch (_) {
+              fetchMs = null;
+            }
+
+            const memMb = (performance.memory && Number.isFinite(performance.memory.usedJSHeapSize))
+              ? Math.round(performance.memory.usedJSHeapSize / 1048576)
+              : null;
+
+            let errRate = null;
+            try {
+              const { getFirestore, collection, getDocs, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const app = await ensureDefaultApp();
+              const db = getFirestore(app);
+              const logSnap = await getDocs(query(collection(db, 'client_logs'), orderBy('serverTimestamp', 'desc'), limit(400)));
+              let errs = 0;
+              let total = 0;
+              logSnap.forEach((d) => {
+                const v = d.data() || {};
+                total += 1;
+                if (v.level === 'error') errs += 1;
+                else if (typeof v.errorType === 'string' && v.errorType) errs += 1;
+              });
+              errRate = total ? (errs / total) * 100 : null;
+            } catch (_) {
+              errRate = null;
+            }
+
+            const plEl = document.getElementById('perf-page-load');
+            const apiEl = document.getElementById('perf-api-response');
+            const memEl = document.getElementById('perf-memory');
+            const erEl = document.getElementById('perf-error-rate');
+            if (plEl) plEl.textContent = pageLoadMs == null ? '--' : String(Math.round(pageLoadMs));
+
+            const apiCombined = firestoreMs == null && fetchMs == null
+              ? null
+              : `FS ${firestoreMs == null ? '--' : firestoreMs}ms · HTTP ${fetchMs == null ? '--' : fetchMs}ms`;
+            if (apiEl) apiEl.textContent = apiCombined == null ? '--' : apiCombined;
+
+            if (memEl) memEl.textContent = memMb == null ? 'N/A' : String(memMb);
+            if (erEl) erEl.textContent = errRate == null ? '--' : `${errRate.toFixed(1)}% (recent sample)`;
             
             showToast('Performance metrics updated');
           } catch(e) {
@@ -6514,22 +6783,25 @@
               message,
               pushNotification: !!pushNotif
             });
-            const recipientCount = res?.data?.recipientCount || res?.data?.sentCount || 0;
+            const data = res?.data || {};
+            const sentCount = Number.isFinite(Number(data.sentCount)) ? Number(data.sentCount) : 0;
+            const recipientCount = Number.isFinite(Number(data.recipientCount)) ? Number(data.recipientCount) : 0;
+            const failedCount = Number.isFinite(Number(data.failedCount)) ? Number(data.failedCount) : 0;
+            const delivered = sentCount > 0 ? sentCount : recipientCount;
             
-            // Update stats
-            document.getElementById('email-subscribers-count').textContent = recipientCount;
-            const currentSent = parseInt(document.getElementById('email-sent-count').textContent || '0');
-            document.getElementById('email-sent-count').textContent = currentSent + 1;
+            // Refresh email stats from Firestore (subscribers collection + admin_logs totals)
+            try { await loadEmailMarketingStats(); } catch (_) {}
             
             // Clear form
             document.getElementById('email-subject').value = '';
             document.getElementById('email-message').value = '';
             document.getElementById('email-push-notification').checked = false;
             
+            const failNote = failedCount > 0 ? ` <span class="text-yellow-300 text-xs">(${failedCount} failed)</span>` : '';
             document.getElementById('email-operation-result').innerHTML = 
-              `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Email sent to ${recipientCount} recipient(s)</div>`;
+              `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Delivered to ${delivered} recipient(s)${failNote}</div>`;
             
-            showToast(`Email sent to ${recipientCount} users!`);
+            showToast(`Email delivered to ${delivered} recipient(s)${failedCount > 0 ? ` (${failedCount} failed)` : ''}`);
             
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send';
@@ -6833,11 +7105,6 @@
         }
         
         // ===== MOBILE APP MANAGEMENT =====
-        const FALLBACK_ANDROID_VERSION_NAME = '10.9.6';
-        const FALLBACK_ANDROID_VERSION_CODE = 115;
-        const FALLBACK_IOS_VERSION_NAME = '10.9.6';
-        const FALLBACK_IOS_VERSION_CODE = 115;
-
         function extractVersionCode(value) {
           if (value === null || value === undefined) return null;
           if (typeof value === 'number' && Number.isFinite(value)) return Math.trunc(value);
@@ -6865,30 +7132,42 @@
         
         async function refreshAppStats() {
           try {
-            const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getFirestore, collection, getDocs, query, where, orderBy, limit, Timestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
-            
-            // Get user count as active users proxy
-            const usersSnap = await getDocs(collection(db, 'users'));
-            const activeUsers = usersSnap.size;
-            
-            // Simulate stats (in production, would come from Firebase Analytics or App Distribution)
-            document.getElementById('android-users').textContent = Math.round(activeUsers * 0.6);
-            document.getElementById('android-crashes').textContent = '0.1%';
-            document.getElementById('android-rating').textContent = '4.5 ⭐';
-            
-            document.getElementById('ios-users').textContent = Math.round(activeUsers * 0.4);
-            document.getElementById('ios-crashes').textContent = '0.05%';
-            document.getElementById('ios-rating').textContent = '4.7 ⭐';
 
-            // Auto-detect latest versions from app usage data
+            const msDay = 86400000;
+            const cutoff7d = Timestamp.fromDate(new Date(Date.now() - 7 * msDay));
+
+            const toMillis = (ts) => {
+              try {
+                if (!ts) return null;
+                if (ts.toMillis) return ts.toMillis();
+                const d = ts.toDate ? ts.toDate() : new Date(ts);
+                const n = d.getTime();
+                return Number.isFinite(n) ? n : null;
+              } catch (_) {
+                return null;
+              }
+            };
+
+            // --- Real install / activity signals from app_usage (FCM token doc IDs) ---
             const usageSnap = await getDocs(collection(db, 'app_usage'));
+            let androidTotal = 0;
+            let iosTotal = 0;
+            let androidSeen7d = 0;
+            let iosSeen7d = 0;
             let androidLatestSeen = null;
             let iosLatestSeen = null;
+            let androidLatestName = '';
+            let iosLatestName = '';
+
             usageSnap.forEach((docSnap) => {
               const d = docSnap.data() || {};
               const platform = String(d.platform || '').toLowerCase();
+              const lastMs = toMillis(d.last_seen) ?? toMillis(d.lastSeen);
+              const seenRecently = lastMs !== null && lastMs >= (Date.now() - 7 * msDay);
+
               const parsed =
                 extractVersionCode(d.app_version_code) ??
                 extractVersionCode(d.versionCode) ??
@@ -6902,49 +7181,139 @@
                 extractVersionName(d.app_version) ||
                 extractVersionName(d.version) ||
                 extractVersionName(d.appVersion);
-              if (!Number.isFinite(parsed) && !parsedName) return;
+
               if (platform === 'android') {
-                androidLatestSeen = Number.isFinite(parsed)
-                  ? (androidLatestSeen === null ? parsed : Math.max(androidLatestSeen, parsed))
-                  : androidLatestSeen;
-                if (parsedName) {
-                  document.getElementById('android-version').dataset.versionName = parsedName;
+                androidTotal += 1;
+                if (seenRecently) androidSeen7d += 1;
+                if (Number.isFinite(parsed)) {
+                  androidLatestSeen = androidLatestSeen === null ? parsed : Math.max(androidLatestSeen, parsed);
+                  if (parsedName) androidLatestName = parsedName;
+                } else if (parsedName) {
+                  androidLatestName = parsedName;
                 }
               } else if (platform === 'ios') {
-                iosLatestSeen = Number.isFinite(parsed)
-                  ? (iosLatestSeen === null ? parsed : Math.max(iosLatestSeen, parsed))
-                  : iosLatestSeen;
-                if (parsedName) {
-                  document.getElementById('ios-version').dataset.versionName = parsedName;
+                iosTotal += 1;
+                if (seenRecently) iosSeen7d += 1;
+                if (Number.isFinite(parsed)) {
+                  iosLatestSeen = iosLatestSeen === null ? parsed : Math.max(iosLatestSeen, parsed);
+                  if (parsedName) iosLatestName = parsedName;
+                } else if (parsedName) {
+                  iosLatestName = parsedName;
                 }
               }
             });
 
-            // Use config minimums if available
+            const androidUsersEl = document.getElementById('android-users');
+            const iosUsersEl = document.getElementById('ios-users');
+            if (androidUsersEl) androidUsersEl.textContent = androidTotal ? `${androidSeen7d} / ${androidTotal}` : '--';
+            if (iosUsersEl) iosUsersEl.textContent = iosTotal ? `${iosSeen7d} / ${iosTotal}` : '--';
+
+            // --- WebView JS error rate (7d): client_logs errors vs page_views in app WebViews ---
+            const isTrackedError = (v) => {
+              if (!v || typeof v !== 'object') return false;
+              if (v.level === 'error') return true;
+              if (typeof v.errorType === 'string' && v.errorType) return true;
+              if (v.stack && v.stack !== 'No stack trace available') return true;
+              return false;
+            };
+
+            const classifyPv = (v) => {
+              const ua = v.userAgent || '';
+              const url = v.url || '';
+              if (__isAndroidAppUserAgent(ua)) return 'android';
+              if (__isIosAppUserAgent(ua)) return 'ios';
+              if (String(url).includes('appassets.androidplatform.net')) return 'android';
+              return null;
+            };
+
+            let logs = [];
+            try {
+              const logSnap = await getDocs(query(collection(db, 'client_logs'), where('serverTimestamp', '>=', cutoff7d), orderBy('serverTimestamp', 'desc'), limit(1500)));
+              logs = logSnap.docs.map((d) => d.data() || {});
+            } catch (_) {
+              try {
+                const logSnap = await getDocs(query(collection(db, 'client_logs'), orderBy('serverTimestamp', 'desc'), limit(1500)));
+                logs = logSnap.docs.map((d) => d.data() || {});
+              } catch (_) {
+                logs = [];
+              }
+            }
+
+            let pv = [];
+            try {
+              const pvSnap = await getDocs(query(collection(db, 'page_views'), where('timestamp', '>=', cutoff7d), orderBy('timestamp', 'desc'), limit(4000)));
+              pv = pvSnap.docs.map((d) => d.data() || {});
+            } catch (_) {
+              try {
+                const pvSnap = await getDocs(query(collection(db, 'page_views'), orderBy('timestamp', 'desc'), limit(4000)));
+                pv = pvSnap.docs.map((d) => d.data() || {});
+              } catch (_) {
+                pv = [];
+              }
+            }
+
+            const cutoffMs = Date.now() - 7 * msDay;
+            const logInWindow = (v) => {
+              const ms = toMillis(v.serverTimestamp) ?? toMillis(v.createdAt);
+              return ms !== null && ms >= cutoffMs;
+            };
+            const pvInWindow = (v) => {
+              const ms = toMillis(v.timestamp) ?? toMillis(v.createdAt);
+              return ms !== null && ms >= cutoffMs;
+            };
+
+            const logsW = logs.filter(logInWindow);
+            const pvW = pv.filter(pvInWindow);
+
+            const errAndroid = logsW.filter((v) => isTrackedError(v) && __isAndroidAppUserAgent(v.userAgent)).length;
+            const errIos = logsW.filter((v) => isTrackedError(v) && __isIosAppUserAgent(v.userAgent)).length;
+            const pvAndroid = pvW.filter((v) => classifyPv(v) === 'android').length;
+            const pvIos = pvW.filter((v) => classifyPv(v) === 'ios').length;
+
+            const fmtRate = (errs, views) => {
+              if (!views) return 'N/A';
+              return `${((errs / views) * 100).toFixed(2)}%`;
+            };
+
+            const androidCrashEl = document.getElementById('android-crashes');
+            const iosCrashEl = document.getElementById('ios-crashes');
+            if (androidCrashEl) androidCrashEl.textContent = fmtRate(errAndroid, pvAndroid);
+            if (iosCrashEl) iosCrashEl.textContent = fmtRate(errIos, pvIos);
+
+            document.getElementById('android-rating').textContent = 'Not tracked';
+            document.getElementById('ios-rating').textContent = 'Not tracked';
+
+            // Use config minimums if available (for display only)
             const androidMin = parseInt(document.getElementById('android-min-version')?.value, 10);
             const iosMin = parseInt(document.getElementById('ios-min-version')?.value, 10);
 
-            if (androidLatestSeen !== null) {
-              const androidName = document.getElementById('android-version')?.dataset?.versionName || '';
-              document.getElementById('android-version').textContent = Number.isFinite(androidMin)
-                ? (androidName ? `${androidName} (${androidLatestSeen})` : `v${androidLatestSeen} (min v${androidMin})`)
-                : (androidName ? `${androidName} (${androidLatestSeen})` : `v${androidLatestSeen}`);
-            } else {
-              // No usage data - set fallback display
-              document.getElementById('android-version').textContent = `${FALLBACK_ANDROID_VERSION_NAME} (${FALLBACK_ANDROID_VERSION_CODE})`;
+            if (androidLatestSeen !== null || androidLatestName) {
+              const codePart = Number.isFinite(androidLatestSeen) ? androidLatestSeen : '';
+              const namePart = androidLatestName || '';
+              let label = '';
+              if (namePart && codePart !== '') label = `${namePart} (${codePart})`;
+              else if (namePart) label = namePart;
+              else if (codePart !== '') label = `build ${codePart}`;
+              if (Number.isFinite(androidMin) && codePart !== '') {
+                label = `${label} · min ${androidMin}`;
+              }
+              document.getElementById('android-version').textContent = label;
             }
-            if (iosLatestSeen !== null) {
-              const iosName = document.getElementById('ios-version')?.dataset?.versionName || '';
-              document.getElementById('ios-version').textContent = Number.isFinite(iosMin)
-                ? (iosName ? `${iosName} (${iosLatestSeen})` : `v${iosLatestSeen} (min v${iosMin})`)
-                : (iosName ? `${iosName} (${iosLatestSeen})` : `v${iosLatestSeen}`);
-            } else {
-              // No usage data - set fallback display
-              document.getElementById('ios-version').textContent = `${FALLBACK_IOS_VERSION_NAME} (${FALLBACK_IOS_VERSION_CODE})`;
+            if (iosLatestSeen !== null || iosLatestName) {
+              const codePart = Number.isFinite(iosLatestSeen) ? iosLatestSeen : '';
+              const namePart = iosLatestName || '';
+              let label = '';
+              if (namePart && codePart !== '') label = `${namePart} (${codePart})`;
+              else if (namePart) label = namePart;
+              else if (codePart !== '') label = `build ${codePart}`;
+              if (Number.isFinite(iosMin) && codePart !== '') {
+                label = `${label} · min ${iosMin}`;
+              }
+              document.getElementById('ios-version').textContent = label;
             }
             
             document.getElementById('app-operation-result').innerHTML = 
-              '<div class="text-green-400"><i class="fas fa-check mr-2"></i>App stats refreshed</div>';
+              '<div class="text-green-400"><i class="fas fa-check mr-2"></i>App stats refreshed from <span class="text-slate-200">app_usage</span>, <span class="text-slate-200">page_views</span>, and <span class="text-slate-200">client_logs</span></div>';
             showToast('App stats refreshed');
           } catch(e) {
             console.error('Failed to refresh app stats:', e);
@@ -7057,13 +7426,19 @@
               document.getElementById('android-latest-version').value = data.latest_version || '';
               document.getElementById('android-min-version').value = data.minimum_version || '';
               document.getElementById('android-update-message').value = data.update_message || '';
-              const latest = data.latest_version || FALLBACK_ANDROID_VERSION_CODE;
-              const min = data.minimum_version || FALLBACK_ANDROID_VERSION_CODE;
-              document.getElementById('android-version').textContent = `${FALLBACK_ANDROID_VERSION_NAME} (${latest})`;
+              const latest = data.latest_version;
+              const min = data.minimum_version;
+              const vEl = document.getElementById('android-version');
+              if (vEl) {
+                if (latest != null && min != null) vEl.textContent = `latest ${latest} (min ${min})`;
+                else if (latest != null) vEl.textContent = `latest ${latest}`;
+                else vEl.textContent = '--';
+              }
             } else {
-              document.getElementById('android-latest-version').value = FALLBACK_ANDROID_VERSION_CODE;
-              document.getElementById('android-min-version').value = FALLBACK_ANDROID_VERSION_CODE;
-              document.getElementById('android-version').textContent = `${FALLBACK_ANDROID_VERSION_NAME} (${FALLBACK_ANDROID_VERSION_CODE})`;
+              document.getElementById('android-latest-version').value = '';
+              document.getElementById('android-min-version').value = '';
+              const vEl = document.getElementById('android-version');
+              if (vEl) vEl.textContent = '--';
             }
             
             // Load iOS config
@@ -7073,13 +7448,19 @@
               document.getElementById('ios-latest-version').value = data.latest_version || '';
               document.getElementById('ios-min-version').value = data.minimum_version || '';
               document.getElementById('ios-update-message').value = data.update_message || '';
-              const latest = data.latest_version || FALLBACK_IOS_VERSION_CODE;
-              const min = data.minimum_version || FALLBACK_IOS_VERSION_CODE;
-              document.getElementById('ios-version').textContent = `${FALLBACK_IOS_VERSION_NAME} (${latest})`;
+              const latest = data.latest_version;
+              const min = data.minimum_version;
+              const vEl = document.getElementById('ios-version');
+              if (vEl) {
+                if (latest != null && min != null) vEl.textContent = `latest ${latest} (min ${min})`;
+                else if (latest != null) vEl.textContent = `latest ${latest}`;
+                else vEl.textContent = '--';
+              }
             } else {
-              document.getElementById('ios-latest-version').value = FALLBACK_IOS_VERSION_CODE;
-              document.getElementById('ios-min-version').value = FALLBACK_IOS_VERSION_CODE;
-              document.getElementById('ios-version').textContent = `${FALLBACK_IOS_VERSION_NAME} (${FALLBACK_IOS_VERSION_CODE})`;
+              document.getElementById('ios-latest-version').value = '';
+              document.getElementById('ios-min-version').value = '';
+              const vEl = document.getElementById('ios-version');
+              if (vEl) vEl.textContent = '--';
             }
             
             // Load version distribution from app_usage collection
@@ -7248,28 +7629,193 @@
           }
         }
         
-        function viewCrashReports() {
-          document.getElementById('app-operation-result').innerHTML = `
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-2">
-              <div class="text-green-400"><i class="fas fa-check mr-2"></i>No critical crashes in last 7 days</div>
-              <div class="text-slate-300 text-xs">Android: 2 minor crashes (0.1% crash rate)</div>
-              <div class="text-slate-300 text-xs">iOS: 1 minor crash (0.05% crash rate)</div>
-            </div>
-          `;
-          showToast('Crash report loaded');
+        async function viewCrashReports() {
+          const out = document.getElementById('app-operation-result');
+          if (out) {
+            out.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Loading error telemetry...</div>';
+          }
+          try {
+            const { getFirestore, collection, getDocs, query, where, orderBy, limit, Timestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const cutoff = Timestamp.fromDate(new Date(Date.now() - 7 * 86400000));
+
+            const isErr = (v) => {
+              if (!v || typeof v !== 'object') return false;
+              if (v.level === 'error') return true;
+              if (typeof v.errorType === 'string' && v.errorType) return true;
+              if (v.stack && v.stack !== 'No stack trace available') return true;
+              return false;
+            };
+
+            let rows = [];
+            try {
+              const snap = await getDocs(query(collection(db, 'client_logs'), where('serverTimestamp', '>=', cutoff), orderBy('serverTimestamp', 'desc'), limit(800)));
+              rows = snap.docs.map((d) => d.data() || {});
+            } catch (_) {
+              const snap = await getDocs(query(collection(db, 'client_logs'), orderBy('serverTimestamp', 'desc'), limit(800)));
+              rows = snap.docs.map((d) => d.data() || {});
+            }
+
+            const inWin = (v) => {
+              try {
+                const ts = v.serverTimestamp?.toMillis ? v.serverTimestamp.toMillis() : null;
+                return ts !== null && ts >= (Date.now() - 7 * 86400000);
+              } catch (_) {
+                return true;
+              }
+            };
+
+            const filtered = rows.filter((v) => isErr(v) && inWin(v));
+            let android = 0;
+            let ios = 0;
+            let web = 0;
+            const samples = [];
+            filtered.forEach((v) => {
+              const ua = v.userAgent || '';
+              if (__isAndroidAppUserAgent(ua)) android += 1;
+              else if (__isIosAppUserAgent(ua)) ios += 1;
+              else web += 1;
+              const msg = (v.message || v.error || '').toString().slice(0, 160);
+              if (msg && samples.length < 6) samples.push(msg);
+            });
+
+            const sampleHtml = samples.length
+              ? `<div class="text-slate-400 text-xs mt-2"><div class="text-slate-300 font-semibold mb-1">Recent samples</div><ul class="list-disc pl-5 space-y-1">${samples.map((m) => `<li>${m}</li>`).join('')}</ul></div>`
+              : '';
+
+            if (out) {
+              out.innerHTML = `
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-2">
+                  <div class="text-white font-semibold text-sm">Client errors (7 days)</div>
+                  <div class="text-slate-500 text-[11px]">This is JavaScript / WebView telemetry from <span class="text-slate-300">client_logs</span>, not native Crashlytics.</div>
+                  <div class="text-slate-300 text-xs">Android WebView: <span class="text-yellow-300 font-medium">${android}</span></div>
+                  <div class="text-slate-300 text-xs">iOS WebView: <span class="text-yellow-300 font-medium">${ios}</span></div>
+                  <div class="text-slate-300 text-xs">Other / web: <span class="text-yellow-300 font-medium">${web}</span></div>
+                  ${sampleHtml}
+                </div>`;
+            }
+            showToast('Error telemetry loaded');
+          } catch (e) {
+            console.error('Crash report load failed:', e);
+            if (out) out.innerHTML = '<div class="text-red-400 text-sm">Failed to load error telemetry</div>';
+            showToast('Failed to load crash reports', 'error');
+          }
         }
         
-        function showAppAnalytics() {
-          document.getElementById('app-operation-result').innerHTML = `
-            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-1">
-              <div class="text-white font-semibold">App Analytics Summary</div>
-              <div class="text-slate-300 text-sm">• Daily Active Users: Stable</div>
-              <div class="text-slate-300 text-sm">• Session Duration: 8m 32s avg</div>
-              <div class="text-slate-300 text-sm">• Retention (7d): 68%</div>
-              <div class="text-slate-300 text-sm">• Most Used Feature: Gallery</div>
-            </div>
-          `;
-          showToast('Analytics displayed');
+        async function showAppAnalytics() {
+          const out = document.getElementById('app-operation-result');
+          if (out) {
+            out.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Loading in-app analytics...</div>';
+          }
+          try {
+            const { getFirestore, collection, getDocs, query, orderBy, limit, Timestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+
+            const pvSnap = await getDocs(query(collection(db, 'page_views'), orderBy('timestamp', 'desc'), limit(5000)));
+            const pageViews = pvSnap.docs.map((d) => d.data() || {});
+
+            const dayStart = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+            const today = dayStart(new Date());
+            const yday = today - 86400000;
+
+            const isAppPv = (v) => {
+              const ua = v.userAgent || '';
+              const url = v.url || '';
+              return __isAndroidAppUserAgent(ua) || __isIosAppUserAgent(ua) || String(url).includes('appassets.androidplatform.net');
+            };
+
+            const appPvs = pageViews.filter(isAppPv);
+
+            const visitorsToday = new Set();
+            const visitorsYesterday = new Set();
+            const sessionsToday = new Set();
+
+            appPvs.forEach((v) => {
+              let ts = null;
+              try {
+                ts = v.timestamp?.toDate ? v.timestamp.toDate() : (v.timestamp ? new Date(v.timestamp) : null);
+              } catch (_) {
+                ts = null;
+              }
+              if (!ts) return;
+              const day = dayStart(ts);
+              const vid = v.visitorId || v.sessionId;
+              if (!vid) return;
+              if (day === today) {
+                visitorsToday.add(vid);
+                if (v.sessionId) sessionsToday.add(v.sessionId);
+              }
+              if (day === yday) visitorsYesterday.add(vid);
+            });
+
+            const dau = visitorsToday.size;
+            const yau = visitorsYesterday.size;
+            const dauNote = yau > 0 ? `${dau} today · ${yau} yesterday (unique visitor ids)` : `${dau} today (unique visitor ids)`;
+
+            const aeSnap = await getDocs(query(collection(db, 'analytics_events'), orderBy('timestamp', 'desc'), limit(5000)));
+            const events = aeSnap.docs.map((d) => d.data() || {});
+
+            const isAppEvent = (e) => __isAndroidAppUserAgent(e.userAgent || '') || __isIosAppUserAgent(e.userAgent || '');
+            const appEvents = events.filter(isAppEvent);
+
+            const sevenAgo = Date.now() - 7 * 86400000;
+            const recentAppEvents = appEvents.filter((e) => {
+              try {
+                const ts = e.timestamp?.toMillis ? e.timestamp.toMillis() : (e.timestamp?.toDate ? e.timestamp.toDate().getTime() : null);
+                return ts !== null && ts >= sevenAgo;
+              } catch (_) {
+                return true;
+              }
+            });
+
+            const engagements = recentAppEvents.filter((e) => e.event === 'page_engagement' && e.params && Number.isFinite(Number(e.params.duration_seconds)));
+            const avgEng = engagements.length
+              ? Math.round(engagements.reduce((s, e) => s + Number(e.params.duration_seconds || 0), 0) / engagements.length)
+              : null;
+
+            const featureCounts = {};
+            recentAppEvents.forEach((e) => {
+              const name = e.event || 'unknown';
+              if (name === 'page_engagement') return;
+              featureCounts[name] = (featureCounts[name] || 0) + 1;
+            });
+            const topFeature = Object.entries(featureCounts).sort((a, b) => b[1] - a[1])[0];
+
+            const byVisitorDays = {};
+            appPvs.forEach((v) => {
+              let ts = null;
+              try {
+                ts = v.timestamp?.toDate ? v.timestamp.toDate() : (v.timestamp ? new Date(v.timestamp) : null);
+              } catch (_) {
+                ts = null;
+              }
+              if (!ts || !v.visitorId) return;
+              if (ts.getTime() < sevenAgo) return;
+              const dayKey = ts.toISOString().split('T')[0];
+              if (!byVisitorDays[v.visitorId]) byVisitorDays[v.visitorId] = new Set();
+              byVisitorDays[v.visitorId].add(dayKey);
+            });
+            const multiDayVisitors = Object.values(byVisitorDays).filter((s) => s.size >= 2).length;
+
+            if (out) {
+              out.innerHTML = `
+                <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-2">
+                  <div class="text-white font-semibold text-sm">In-app usage (Firestore telemetry)</div>
+                  <div class="text-slate-500 text-[11px]">Based on <span class="text-slate-300">page_views</span> + <span class="text-slate-300">analytics_events</span> from WebViews. This is not a substitute for Firebase Analytics retention reporting.</div>
+                  <div class="text-slate-300 text-sm">• Daily active visitors (app WebView): <span class="text-white font-medium">${dauNote}</span></div>
+                  <div class="text-slate-300 text-sm">• Avg engagement sample (7d): <span class="text-white font-medium">${avgEng == null ? 'N/A' : (avgEng + 's')}</span></div>
+                  <div class="text-slate-300 text-sm">• Multi-day visitors (7d, same visitor id): <span class="text-white font-medium">${multiDayVisitors}</span></div>
+                  <div class="text-slate-300 text-sm">• Top event (7d): <span class="text-white font-medium">${topFeature ? `${topFeature[0]} (${topFeature[1]})` : 'N/A'}</span></div>
+                </div>`;
+            }
+            showToast('Analytics loaded');
+          } catch (e) {
+            console.error('App analytics failed:', e);
+            if (out) out.innerHTML = '<div class="text-red-400 text-sm">Failed to load analytics</div>';
+            showToast('Failed to load analytics', 'error');
+          }
         }
         
         // ===== REVENUE & MONETIZATION =====

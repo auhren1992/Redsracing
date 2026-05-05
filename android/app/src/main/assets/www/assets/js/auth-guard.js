@@ -64,8 +64,9 @@ if (protectedPages.includes(currentPage)) {
           if (!nextRole && user) {
             // Fallback to users doc role
             try {
-              const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-              const db = getFirestore();
+              const { getFirebaseDb } = await import('./firebase-core.js');
+              const db = getFirebaseDb();
+              const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
               const snap = await getDoc(doc(db, 'users', user.uid));
               if (snap.exists()) {
                 const data = snap.data() || {};
@@ -78,8 +79,9 @@ if (protectedPages.includes(currentPage)) {
         };
 
         const ensureUserProfile = async (resolvedRole) => {
-          const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-          const db = getFirestore();
+          const { getFirebaseDb } = await import('./firebase-core.js');
+          const db = getFirebaseDb();
+          const { doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
           const profileRef = doc(db, 'users', user.uid);
           const snap = await getDoc(profileRef);
           if (snap.exists()) return;

@@ -38,6 +38,15 @@ certificates/
 *.key
 *.certSigningRequest
 
+# Local agent tooling (portable MinGit — do not commit)
+tools/mingit/
+tools/firebase.exe
+
+# Scratch / accidental duplicates
+admin-console-working.tmp
+admin-console-working.txt
+temp/
+
 # Android
 *.keystore
 *.jks

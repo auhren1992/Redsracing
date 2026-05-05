@@ -1,14 +1,7 @@
 import "./app.js";
 
 // Firebase-dependent functionality
-import {
-  getFirestore,
-  collection,
-  query,
-  onSnapshot,
-  where,
-  limit,
-} from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { getFirebaseAuth, getFirebaseDb } from "./firebase-core.js";
 import { monitorAuthState } from "./auth-utils.js";
 
@@ -24,8 +17,7 @@ async function initFirebase() {
     captureInvitationCodeFromURL();
 
     // Initialize Firebase using the core module
-    const auth = getFirebaseAuth();
-    const db = getFirebaseDb();
+    getFirebaseAuth();
 
     // UI Elements
     const authLink = document.getElementById("auth-link");
@@ -101,22 +93,15 @@ async function initFirebase() {
 
     async function writeSubscriberToFirestore(email) {
       try {
-        const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-        const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
-        if (getApps().length === 0) {
-          initializeApp({
-            apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
-            authDomain: "redsracing-a7f8b.firebaseapp.com",
-            projectId: "redsracing-a7f8b",
-            storageBucket: "redsracing-a7f8b.firebasestorage.app",
-            messagingSenderId: "517034606151",
-            appId: "1:517034606151:web:24cae262e1d98832757b62"
-          });
-        }
-        const db = getFirestore();
-        await addDoc(collection(db, 'subscribers'), { email, createdAt: serverTimestamp() });
+        const db = getFirebaseDb();
+        await addDoc(collection(db, "subscribers"), {
+          email,
+          createdAt: serverTimestamp(),
+        });
         return true;
-      } catch (_) { return false; }
+      } catch (_) {
+        return false;
+      }
     }
 
     async function handleSubscribe(email, onStatus) {

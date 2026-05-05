@@ -220,7 +220,6 @@ body {
   box-shadow: 0 8px 24px rgba(0, 198, 255, 0.4);
   color: white;
 }
-}
 .sponsor-logo:hover img {
   filter: grayscale(0%) brightness(1);
 }
@@ -903,3 +902,48 @@ body.theme-racer .mobile-accordion.active { background: rgba(249,115,22,0.15); c
 body.theme-racer .mobile-accordion:hover { background: rgba(249,115,22,0.1); color: #f97316; }
 body.theme-crew .mobile-accordion.active { background: rgba(6,182,212,0.15); color: #06b6d4; border-left-color: #06b6d4; }
 body.theme-crew .mobile-accordion:hover { background: rgba(6,182,212,0.1); color: #06b6d4; }
+
+/* ============================================
+   Polish: cleaner keyboard focus, selection,
+   and calmer motion when users prefer it
+   (applies to hosted site and bundled WebView)
+   ============================================ */
+::selection {
+  background: rgba(0, 198, 255, 0.35);
+  color: #fff;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--rr-accent, #00c6ff);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .card:hover,
+  .stat-card:hover,
+  .video-item:hover,
+  .gallery-item:hover,
+  .sponsor-logo:hover,
+  .schedule-card:hover,
+  .nav-link:hover,
+  .cta-button:hover {
+    transform: none;
+  }
+
+  .hotspot-pulse {
+    animation: none;
+  }
+}

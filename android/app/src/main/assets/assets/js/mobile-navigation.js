@@ -3,6 +3,43 @@
 
 console.log('🚀 Mobile Navigation Script Loading...');
 
+function isNavigationAuthenticated() {
+    try {
+        return !!(
+            localStorage.getItem('rr_auth_uid') ||
+            localStorage.getItem('authToken') ||
+            sessionStorage.getItem('authToken') ||
+            (window.location.href && window.location.href.includes('admin')) ||
+            (document.body && document.body.classList.contains('admin-mode'))
+        );
+    } catch (_) {
+        return false;
+    }
+}
+
+function authUtilsImportUrl() {
+    const s = document.querySelector('script[src*="/assets/js/"]');
+    if (s && s.src) return new URL('auth-utils.js', s.src).href;
+    return new URL('assets/js/auth-utils.js', window.location.href).href;
+}
+
+async function navigationLogout() {
+    try {
+        const { safeSignOut } = await import(authUtilsImportUrl());
+        await safeSignOut();
+    } catch (_) {
+        try {
+            localStorage.removeItem('rr_auth_uid');
+            localStorage.removeItem('rr_user_name');
+            localStorage.removeItem('rr_guest_ok');
+            localStorage.removeItem('authToken');
+            sessionStorage.removeItem('authToken');
+            if (window.FirebaseAuthBridge) window.FirebaseAuthBridge.clearAllAuth();
+        } catch (_e) {}
+    }
+    window.location.href = 'login.html';
+}
+
 // Wait for DOM to be ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initNavigation);
@@ -19,7 +56,45 @@ function initNavigation() {
         setupMobileAccordions();
         setupAdminDropdown();
         setupDesktopDropdowns();
+        setupHeaderScrollEffect();
+        setupHashSmoothScroll();
     }, 100);
+}
+
+function setupHeaderScrollEffect() {
+    const header = document.querySelector('header');
+    if (!header) return;
+    window.addEventListener(
+        'scroll',
+        function () {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            if (scrollTop > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        },
+        { passive: true }
+    );
+}
+
+function setupHashSmoothScroll() {
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
+        link.addEventListener('click', function (e) {
+            const targetId = this.getAttribute('href');
+            if (!targetId || targetId === '#') return;
+            const targetElement = document.querySelector(targetId);
+            if (!targetElement) return;
+            e.preventDefault();
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+                mobileMenu.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
 }
 
 function setupMobileMenu() {
@@ -178,11 +253,7 @@ function setupAdminDropdown() {
     console.log('Mobile User Profile:', mobileUserProfile);
     console.log('Mobile Login Button:', mobileLoginBtn);
     
-    // Check if user is authenticated (simulate with localStorage)
-    const isAuthenticated = localStorage.getItem('authToken') || 
-                          sessionStorage.getItem('authToken') ||
-                          window.location.href.includes('admin') ||
-                          document.body.classList.contains('admin-mode');
+    const isAuthenticated = isNavigationAuthenticated();
     
     console.log('Is Authenticated:', isAuthenticated);
     
@@ -265,15 +336,11 @@ function setupAdminDropdown() {
         const button = document.querySelector(selector);
         if (button) {
             console.log(`✅ Setting up logout button: ${selector}`);
-            button.addEventListener('click', function(e) {
+            button.addEventListener('click', async function (e) {
                 e.preventDefault();
                 console.log('🚪 Logout clicked');
-                
-                if (confirm('Are you sure you want to sign out?')) {
-                    localStorage.removeItem('authToken');
-                    sessionStorage.removeItem('authToken');
-                    window.location.href = 'admin-console.html';
-                }
+                if (!confirm('Are you sure you want to sign out?')) return;
+                await navigationLogout();
             });
         }
     });
@@ -354,14 +421,28 @@ if (window.location.href.includes('admin')) {
 // Export for global access
 window.MobileNavigation = {
     init: initNavigation,
-    showAdminProfile: function() {
+    showAdminProfile: function () {
         localStorage.setItem('authToken', 'admin-mode');
         setupAdminDropdown();
     },
-    hideAdminProfile: function() {
+    hideAdminProfile: function () {
         localStorage.removeItem('authToken');
         setupAdminDropdown();
-    }
+    },
+    closeAllDropdowns: function () {
+        document.querySelectorAll('.dropdown-menu').forEach((menu) => {
+            menu.classList.add('hidden');
+        });
+        console.log('Mobile Navigation: All dropdowns closed');
+    },
+    closeMobileMenu: function () {
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (mobileMenu) {
+            mobileMenu.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        console.log('Mobile Navigation: Mobile menu closed');
+    },
 };
 
 console.log('✅ Mobile Navigation Script Loaded');
@@ -374,219 +455,5 @@ window.debugNavigation = function() {
     console.log('Mobile Accordions:', document.querySelectorAll('.mobile-accordion'));
     console.log('User Profile:', document.getElementById('user-profile'));
     console.log('Auth Token:', localStorage.getItem('authToken'));
-};
-
-    // Desktop Dropdown Functionality
-    const desktopDropdowns = document.querySelectorAll('.dropdown');
-    console.log(`Mobile Navigation: Found ${desktopDropdowns.length} desktop dropdowns`);
-    
-    desktopDropdowns.forEach((dropdown, index) => {
-        const toggle = dropdown.querySelector('.dropdown-toggle');
-        const menu = dropdown.querySelector('.dropdown-menu');
-        
-        if (toggle && menu) {
-            console.log(`Mobile Navigation: Setting up desktop dropdown ${index + 1}`);
-            
-            // Click toggle
-            toggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log(`Mobile Navigation: Desktop dropdown ${index + 1} clicked`);
-                
-                const isOpen = !menu.classList.contains('hidden');
-                
-                // Close all other dropdowns
-                desktopDropdowns.forEach(otherDropdown => {
-                    if (otherDropdown !== dropdown) {
-                        const otherMenu = otherDropdown.querySelector('.dropdown-menu');
-                        if (otherMenu) {
-                            otherMenu.classList.add('hidden');
-                        }
-                    }
-                });
-                
-                // Toggle current dropdown
-                if (isOpen) {
-                    menu.classList.add('hidden');
-                    console.log(`Mobile Navigation: Desktop dropdown ${index + 1} closed`);
-                } else {
-                    menu.classList.remove('hidden');
-                    console.log(`Mobile Navigation: Desktop dropdown ${index + 1} opened`);
-                }
-            });
-
-            // Hover effects for desktop
-            if (window.innerWidth >= 768) {
-                dropdown.addEventListener('mouseenter', function() {
-                    menu.classList.remove('hidden');
-                });
-                
-                dropdown.addEventListener('mouseleave', function() {
-                    menu.classList.add('hidden');
-                });
-            }
-        }
-    });
-
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-        desktopDropdowns.forEach(dropdown => {
-            const menu = dropdown.querySelector('.dropdown-menu');
-            if (menu && !dropdown.contains(e.target)) {
-                menu.classList.add('hidden');
-            }
-        });
-    });
-
-    // Admin Profile Dropdown (Enhanced)
-    const userProfile = document.getElementById('user-profile');
-    const mobileUserProfile = document.getElementById('mobile-user-profile');
-    
-    if (userProfile) {
-        const profileToggle = userProfile.querySelector('.dropdown-toggle');
-        const profileMenu = userProfile.querySelector('.dropdown-menu');
-        
-        if (profileToggle && profileMenu) {
-            console.log('Mobile Navigation: Setting up admin profile dropdown');
-            
-            profileToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Mobile Navigation: Admin profile dropdown clicked');
-                
-                const isOpen = !profileMenu.classList.contains('hidden');
-                
-                if (isOpen) {
-                    profileMenu.classList.add('hidden');
-                    console.log('Mobile Navigation: Admin profile dropdown closed');
-                } else {
-                    profileMenu.classList.remove('hidden');
-                    console.log('Mobile Navigation: Admin profile dropdown opened');
-                }
-            });
-        }
-    }
-
-    // Handle logout buttons
-    const logoutButtons = ['#user-logout', '#mobile-user-logout'];
-    logoutButtons.forEach(selector => {
-        const button = document.querySelector(selector);
-        if (button) {
-            console.log(`Mobile Navigation: Setting up logout button: ${selector}`);
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('Mobile Navigation: Logout button clicked');
-                
-                // Add logout functionality here
-                if (confirm('Are you sure you want to sign out?')) {
-                    // Perform logout
-                    localStorage.removeItem('authToken');
-                    sessionStorage.removeItem('authToken');
-                    
-                    // Redirect to login
-                    window.location.href = 'admin-console.html';
-                }
-            });
-        }
-    });
-
-    // Smooth scroll for internal links
-    const internalLinks = document.querySelectorAll('a[href^="#"]');
-    internalLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
-            
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                e.preventDefault();
-                
-                // Close mobile menu if open
-                if (mobileMenuOpen) {
-                    mobileMenuOpen = false;
-                    mobileMenu.classList.add('hidden');
-                    document.body.style.overflow = '';
-                }
-                
-                targetElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-
-    // Header scroll effect
-    let lastScrollTop = 0;
-    const header = document.querySelector('header');
-    
-    if (header) {
-        window.addEventListener('scroll', function() {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            
-            if (scrollTop > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-            
-            lastScrollTop = scrollTop;
-        });
-    }
-
-    // Initialize auth state checking
-    function checkAuthState() {
-        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-        const loginBtn = document.getElementById('login-btn');
-        const mobileLoginBtn = document.getElementById('mobile-login-btn');
-        
-        if (token) {
-            // Show user profile, hide login button
-            if (userProfile) userProfile.classList.remove('hidden');
-            if (mobileUserProfile) mobileUserProfile.classList.remove('hidden');
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
-            
-            console.log('Mobile Navigation: User authenticated');
-        } else {
-            // Show login button, hide user profile
-            if (userProfile) userProfile.classList.add('hidden');
-            if (mobileUserProfile) mobileUserProfile.classList.add('hidden');
-            if (loginBtn) loginBtn.style.display = 'flex';
-            if (mobileLoginBtn) mobileLoginBtn.style.display = 'block';
-            
-            console.log('Mobile Navigation: User not authenticated');
-        }
-    }
-
-    // Check auth state on load
-    checkAuthState();
-
-    // Listen for storage changes (login/logout in other tabs)
-    window.addEventListener('storage', checkAuthState);
-
-    console.log('Mobile Navigation: Initialization complete');
-});
-
-// Export for potential use by other scripts
-window.MobileNavigation = {
-    init: function() {
-        console.log('Mobile Navigation: Manual initialization called');
-    },
-    
-    closeAllDropdowns: function() {
-        document.querySelectorAll('.dropdown-menu').forEach(menu => {
-            menu.classList.add('hidden');
-        });
-        console.log('Mobile Navigation: All dropdowns closed');
-    },
-    
-    closeMobileMenu: function() {
-        const mobileMenu = document.getElementById('mobile-menu');
-        if (mobileMenu) {
-            mobileMenu.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-        console.log('Mobile Navigation: Mobile menu closed');
-    }
+    console.log('rr_auth_uid:', localStorage.getItem('rr_auth_uid'));
 };

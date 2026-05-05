@@ -1,18 +1,12 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+import { getFirebaseDb } from "./firebase-core.js";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDu91Bi9SiF4K6P_sBjHBUNbjXjEB02X74",
-  authDomain: "redsracing-a7f8b.firebaseapp.com",
-  projectId: "redsracing-a7f8b",
-  storageBucket: "redsracing-a7f8b.firebasestorage.app",
-  messagingSenderId: "517034606151",
-  appId: "1:517034606151:web:ea84d9fb6b21f5ba99c8a9"
-};
-
-const app = initializeApp(firebaseConfig, 'feedback-app');
-const db = getFirestore(app);
+const db = getFirebaseDb();
 
 // Update feedback stats
 async function updateFeedbackStats() {

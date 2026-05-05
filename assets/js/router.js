@@ -12,8 +12,11 @@ async function resolveRoleWithFallback(user) {
 
   // Fallback to users/{uid}.role from Firestore
   try {
-    const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-    const db = getFirestore();
+    const [{ getFirebaseDb }, { doc, getDoc }] = await Promise.all([
+      import('./firebase-core.js'),
+      import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js'),
+    ]);
+    const db = getFirebaseDb();
     const snap = await getDoc(doc(db, 'users', user.uid));
     if (snap.exists()) {
       const data = snap.data() || {};

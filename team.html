@@ -6,6 +6,16 @@
          crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Meet RedsRacing drivers Jon Kirsch (#8) and Jonny Kirsch (#88) — American Super Cup family team racing Illinois and Wisconsin asphalt, with schedules, stats, galleries, and sponsors." />
+    <link rel="canonical" href="https://www.redsracing.org/team.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RedsRacing" />
+    <meta property="og:title" content="The Team - RedsRacing #8 & #88" />
+    <meta property="og:description" content="Meet the RedsRacing drivers Jon (#8) and Jonny (#88) — season goals, highlights, sponsors, and team updates." />
+    <meta property="og:url" content="https://www.redsracing.org/team.html" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="The Team - RedsRacing #8 & #88" />
+    <meta name="twitter:description" content="Meet Jon (#8) and Jonny (#88) — highlights, goals, sponsors, and team updates." />
     <title>The Team - RedsRacing #8 & #88</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -209,6 +219,55 @@
       .section-reveal.visible {
         opacity: 1;
         transform: translateY(0);
+      }
+
+      /*
+        Team hero — keep id="team-hero" (never id="home": main.css #home is min-height:100vh).
+        Minimal editorial layout: type + texture, no heavy cards or countdown.
+      */
+      .team-hero-min {
+        position: relative;
+        background: linear-gradient(165deg, #020617 0%, #0f172a 42%, #020617 100%);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      }
+      .team-hero-min__texture {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.55;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+        background-size: 56px 56px;
+        mask-image: radial-gradient(ellipse 85% 65% at 50% -10%, #000 25%, transparent 62%);
+        -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% -10%, #000 25%, transparent 62%);
+      }
+      .team-hero-min__glow {
+        position: absolute;
+        top: -40%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(90vw, 720px);
+        height: min(55vw, 380px);
+        pointer-events: none;
+        background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.09), transparent 68%);
+        filter: blur(4px);
+      }
+      .team-hero-min__accent {
+        height: 2px;
+        width: 4.5rem;
+        margin-left: auto;
+        margin-right: auto;
+        border-radius: 9999px;
+        background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.85), transparent);
+      }
+      .team-hero-min h1 {
+        text-shadow: 0 2px 40px rgba(0, 0, 0, 0.45);
+      }
+      /* Solid + optional shimmer: avoids “invisible” gradient text if bg-clip fails in a WebView */
+      .team-hero-title-em {
+        color: #fbbf24;
+        text-shadow: 0 0 28px rgba(251, 191, 36, 0.35);
       }
       
       .modern-card {
@@ -493,27 +552,43 @@
     </header>
 
     <main>
-      <!-- Team Hero Section -->
-      <section id="home" class="relative py-8 md:py-10 bg-gradient-to-b from-slate-900 via-black to-slate-900 overflow-hidden">
-        <div class="container mx-auto px-6 text-center">
-          <div class="mb-4">
-            <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-6">
-              <div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse mr-2"></div>
-              <span class="text-sm font-semibold text-white">🏎️ 2026 Season Coming Soon</span>
-            </div>
-            <h1 class="text-5xl md:text-7xl font-racing uppercase mb-4">
-              <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-500">Meet The</span>
-              <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-500"> Team</span>
-            </h1>
-            <p class="text-xl text-slate-300 max-w-2xl mx-auto">
-              Two Drivers • One Team • Unlimited Potential
-            </p>
-          </div>
+      <!-- Team hero: minimal editorial (no id="home" — avoids 100vh gap from main.css) -->
+      <section id="team-hero" class="team-hero-min relative overflow-hidden">
+        <div class="team-hero-min__texture" aria-hidden="true"></div>
+        <div class="team-hero-min__glow" aria-hidden="true"></div>
+        <div class="container relative z-10 mx-auto px-6 py-12 md:py-16 lg:py-20 text-center">
+          <p class="text-slate-500 text-xs md:text-sm font-bold uppercase tracking-[0.28em] mb-6">
+            American Super Cup • 2026
+          </p>
+          <div class="team-hero-min__accent mb-8" aria-hidden="true"></div>
+          <h1 class="font-racing text-white uppercase text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.06] mb-6">
+            Meet the <span class="team-hero-title-em">Team</span>
+          </h1>
+          <p class="text-slate-400 text-base md:text-lg max-w-xl mx-auto leading-relaxed font-medium">
+            Jon and Jonny Kirsch — American Super Cup, two cars, one family program. Weeknights in the shop; race nights on Illinois and Wisconsin asphalt.
+          </p>
+          <nav class="mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-sm md:text-base" aria-label="Team shortcuts">
+            <a href="driver.html" class="text-slate-500 hover:text-blue-400 transition-colors font-semibold">
+              Jon <span class="text-blue-500">#8</span>
+            </a>
+            <span class="hidden sm:inline text-slate-700 select-none" aria-hidden="true">·</span>
+            <a href="jonny.html" class="text-slate-500 hover:text-red-400 transition-colors font-semibold">
+              Jonny <span class="text-red-500">#88</span>
+            </a>
+            <span class="hidden sm:inline text-slate-700 select-none" aria-hidden="true">·</span>
+            <a href="schedule.html" class="text-slate-500 hover:text-amber-400 transition-colors font-semibold">Schedule</a>
+            <span class="hidden sm:inline text-slate-700 select-none" aria-hidden="true">·</span>
+            <a href="gallery.html" class="text-slate-500 hover:text-amber-400 transition-colors font-semibold">Gallery</a>
+          </nav>
+          <p class="mt-10 text-slate-600 text-xs uppercase tracking-widest">
+            <i class="fas fa-chevron-down animate-bounce inline-block opacity-60" aria-hidden="true"></i>
+            <span class="sr-only">Scroll for driver profiles</span>
+          </p>
         </div>
       </section>
 
       <!-- Jon Kirsch #8 Section -->
-      <section class="section-reveal py-6 md:py-8 bg-gradient-to-b from-slate-900 to-slate-800">
+      <section class="section-reveal visible py-6 md:py-8 bg-gradient-to-b from-slate-900 to-slate-800">
         <div class="container mx-auto px-6">
           <div class="max-w-6xl mx-auto">
             <!-- Section Header -->
@@ -815,13 +890,13 @@
             <p class="text-slate-400 text-lg max-w-2xl mx-auto">Excellence on track, supported by industry leaders</p>
           </div>
           
-          <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Sponsor 1 -->
-            <div class="sponsor-logo modern-card glass-card premium-hover hover-3d p-8 rounded-2xl group cursor-pointer">
+          <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- OK1 Automotive -->
+            <a class="sponsor-logo modern-card glass-card premium-hover hover-3d p-8 rounded-2xl group cursor-pointer block" href="https://ok1automotivellc.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit OK1 Automotive website">
               <div class="mb-4">
                 <img
-                  src="https://placehold.co/300x150/e2e8f0/05080f?text=OK1+Automotive"
-                  alt="OK1 Automotive Technology"
+                  src="images/ok1-automotive-logo.png"
+                  alt="OK1 Automotive"
                   loading="lazy"
                   width="300"
                   height="150"
@@ -829,19 +904,19 @@
                 />
               </div>
               <h3 class="text-xl font-bold text-white mb-2">OK1 Automotive</h3>
-              <p class="text-slate-400 text-sm">Advanced automotive technology and performance solutions</p>
+              <p class="text-slate-400 text-sm">Performance and technology partner supporting the RedsRacing program.</p>
               <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
                   <div class="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-1000"></div>
                 </div>
               </div>
-            </div>
-            
-            <!-- Sponsor 2 -->
-            <div class="sponsor-logo modern-card glass-card premium-hover hover-3d p-8 rounded-2xl group cursor-pointer">
+            </a>
+
+            <!-- StepUp Construction -->
+            <a class="sponsor-logo modern-card glass-card premium-hover hover-3d p-8 rounded-2xl group cursor-pointer block" href="https://www.stepupillinois.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit StepUp Construction website">
               <div class="mb-4">
                 <img
-                  src="https://placehold.co/300x150/e2e8f0/05080f?text=StepUp+Construction"
+                  src="images/stepup-construction-logo.png"
                   alt="StepUp Construction"
                   loading="lazy"
                   width="300"
@@ -850,13 +925,97 @@
                 />
               </div>
               <h3 class="text-xl font-bold text-white mb-2">StepUp Construction</h3>
-              <p class="text-slate-400 text-sm">Building champions both on and off the track</p>
+              <p class="text-slate-400 text-sm">Community partner helping build momentum on and off the track.</p>
               <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
                   <div class="h-full bg-gradient-to-r from-blue-400 to-blue-600 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-1000"></div>
                 </div>
               </div>
-            </div>
+            </a>
+
+            <!-- Pro PDR & Tint Corp -->
+            <a class="sponsor-logo modern-card glass-card premium-hover hover-3d p-8 rounded-2xl group cursor-pointer block" href="https://www.chicagopdr.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit Pro PDR & Tint Corp website">
+              <div class="mb-4">
+                <img
+                  src="images/pro-pdr-tint-corp-logo.png"
+                  alt="Pro PDR &amp; Tint Corp"
+                  loading="lazy"
+                  width="300"
+                  height="150"
+                  class="w-full h-20 object-contain"
+                />
+              </div>
+              <h3 class="text-xl font-bold text-white mb-2">Pro PDR &amp; Tint Corp</h3>
+              <p class="text-slate-400 text-sm">Paintless dent repair and tint services supporting the team.</p>
+              <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-green-400 to-green-600 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-1000"></div>
+                </div>
+              </div>
+            </a>
+
+            <!-- Ultimate Batting Cages -->
+            <a class="sponsor-logo modern-card glass-card premium-hover hover-3d p-8 rounded-2xl group cursor-pointer block" href="https://www.ultimatebattingcages.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit Ultimate Batting Cages website">
+              <div class="mb-4">
+                <img
+                  src="images/ultimate-batting-cages-logo.png"
+                  alt="Ultimate Batting Cages"
+                  loading="lazy"
+                  width="300"
+                  height="150"
+                  class="w-full h-20 object-contain"
+                />
+              </div>
+              <h3 class="text-xl font-bold text-white mb-2">Ultimate Batting Cages</h3>
+              <p class="text-slate-400 text-sm">Local partner backing RedsRacing and youth athletics.</p>
+              <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-purple-400 to-purple-600 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-1000"></div>
+                </div>
+              </div>
+            </a>
+
+            <!-- A-One Transmissions -->
+            <a class="sponsor-logo modern-card glass-card premium-hover hover-3d p-8 rounded-2xl group cursor-pointer block" href="https://aonetransmissions.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit A-One Transmissions website">
+              <div class="mb-4">
+                <img
+                  src="images/a-one-transmissions-logo.png"
+                  alt="A-One Transmissions"
+                  loading="lazy"
+                  width="300"
+                  height="150"
+                  class="w-full h-20 object-contain"
+                />
+              </div>
+              <h3 class="text-xl font-bold text-white mb-2">A-One Transmissions</h3>
+              <p class="text-slate-400 text-sm">Drivetrain and transmission support for race-ready reliability.</p>
+              <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-cyan-400 to-blue-600 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-1000"></div>
+                </div>
+              </div>
+            </a>
+
+            <!-- Reeg Plumbing -->
+            <a class="sponsor-logo modern-card glass-card premium-hover hover-3d p-8 rounded-2xl group cursor-pointer block" href="https://www.reegplumbing.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit Reeg Plumbing website">
+              <div class="mb-4">
+                <img
+                  src="images/reeg-plumbing-logo.jpg"
+                  alt="Reeg Plumbing"
+                  loading="lazy"
+                  width="300"
+                  height="150"
+                  class="w-full h-20 object-contain"
+                />
+              </div>
+              <h3 class="text-xl font-bold text-white mb-2">Reeg Plumbing</h3>
+              <p class="text-slate-400 text-sm">Hometown trades partner cheering on RedsRacing.</p>
+              <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div class="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-orange-400 to-red-600 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-1000"></div>
+                </div>
+              </div>
+            </a>
           </div>
           
           <!-- Partnership CTA -->
