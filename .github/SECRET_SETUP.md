@@ -47,6 +47,12 @@ Paste into the secret (single line).
 
 Copy `.env.example` to `.env` for optional local tooling. `.env` is gitignored.
 
+## Firebase Functions runtime configuration
+
+| Name | Where | Purpose |
+|------|-------|---------|
+| `ADMIN_BOOTSTRAP_EMAILS` | Firebase Functions runtime env | Optional, comma-separated list of emails allowed to **self-promote** to `admin` via the `setAdminRole` callable when they have no role yet. Example: `auh­ren1992@gmail.com` |
+
 ## Cursor / cloud AI
 
 `.cursorignore` limits indexing of mobile Firebase config files and keystores so cloud sessions don’t pull those paths into context by default. Your **GitHub secrets** are never in the repo; only **Actions** can read them at build time.

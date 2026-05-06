@@ -983,11 +983,25 @@ exports.setAdminRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
     throw new HttpsError('invalid-argument', 'Target email is required');
   }
 
-  // Allow initial admin setup for your email specifically
-  const isInitialSetup = targetEmail === 'partspimp75@gmail.com' && !currentUserRole;
+  // Optional bootstrap: allow self-promotion only when explicitly configured.
+  // Set ADMIN_BOOTSTRAP_EMAILS="you@example.com,other@example.com" in the functions runtime env.
+  // This avoids hardcoding a personal email in source control.
+  const bootstrapEmails = (process.env.ADMIN_BOOTSTRAP_EMAILS || '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+
+  const callerEmail = String(request.auth.token.email || '').trim().toLowerCase();
+  const targetEmailNormalized = String(targetEmail).trim().toLowerCase();
+  const isBootstrapAllowed =
+    !currentUserRole &&
+    role === 'admin' &&
+    callerEmail &&
+    callerEmail === targetEmailNormalized &&
+    bootstrapEmails.includes(targetEmailNormalized);
   const isCurrentAdmin = currentUserRole === 'admin';
 
-  if (!isInitialSetup && !isCurrentAdmin) {
+  if (!isBootstrapAllowed && !isCurrentAdmin) {
     throw new HttpsError('permission-denied', 'Only admins can assign roles');
   }
 
