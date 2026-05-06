@@ -13,6 +13,15 @@ yarn-error.log*
 *.firebase.*
 firebase-debug.log
 
+# Firebase Admin SDK & Play upload artifacts (never commit real keys)
+**/firebase-adminsdk*.json
+**/service-account*.json
+secrets/generated/
+
+# Optional local overrides for mobile Firebase config (keep real files in CI secrets or default paths)
+*.google-services.local.json
+*.GoogleService-Info.local.plist
+
 # Build output
 dist
 build

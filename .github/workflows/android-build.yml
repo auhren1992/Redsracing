@@ -16,6 +16,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Optional: set repo secret GOOGLE_SERVICES_JSON to full JSON so CI/cloud never relies on a stale committed copy.
+      - name: Inject google-services.json from secret (optional)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "${GOOGLE_SERVICES_JSON:-}" ]; then
+            printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+            echo "Wrote android/app/google-services.json from GOOGLE_SERVICES_JSON secret."
+          else
+            echo "GOOGLE_SERVICES_JSON secret unset — using committed google-services.json."
+          fi
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:

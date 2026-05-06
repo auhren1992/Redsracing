@@ -1,0 +1,22 @@
+﻿# Cursor indexing / cloud AI context — does not affect Git.
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+android/app/google-services.json
+**/google-services.json
+**/GoogleService-Info.plist
+
+**/firebase-adminsdk*.json
+**/*serviceAccount*.json
+**/service-account*.json
+
+*.jks
+*.keystore
+certificates/
+
+tools/mingit/
+tools/firebase.exe
