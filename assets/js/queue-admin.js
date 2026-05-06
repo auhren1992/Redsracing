@@ -1,5 +1,35 @@
 import "./app.js";
 
+/** Opens the staff’s email app to reply to the address the visitor provided (feedback / queue items). */
+function buildFeedbackReplyMailto(email, name, message, kindLabel) {
+  const to = String(email || "").trim();
+  if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return null;
+  const label = kindLabel || "message";
+  const subject = encodeURIComponent(`RedsRacing — re: your ${label}`);
+  const nm = String(name || "").trim();
+  const snippet = String(message || "").replace(/\r/g, "").slice(0, 1200);
+  const body = encodeURIComponent(
+    `Hi${nm ? " " + nm : " there"},\n\nThank you for reaching out to RedsRacing.\n\n\n---\nTheir original ${label}:\n${snippet}\n`,
+  );
+  return `mailto:${to}?subject=${subject}&body=${body}`;
+}
+
+function appendReplyEmailLink(container, email, name, message, kindLabel) {
+  if (!container) return;
+  const href = buildFeedbackReplyMailto(email, name, message, kindLabel);
+  if (!href) return;
+  const a = document.createElement("a");
+  a.href = href;
+  a.className =
+    "success-btn text-white px-2 py-1 rounded text-xs inline-block align-middle ml-1";
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  a.setAttribute("aria-label", "Reply by email");
+  a.textContent = "Reply";
+  container.appendChild(document.createTextNode(" "));
+  container.appendChild(a);
+}
+
 async function main() {
   try {
     const containerId = "queue-management-inject";
@@ -28,12 +58,27 @@ async function main() {
           <h4 class="text-white font-semibold mb-2">Eligible in next hour</h4>
           <canvas id="eligible-sparkline" height="40"></canvas>
         </div>
+        <div class="admin-card rounded-xl p-4 mb-4 col-span-1 lg:col-span-2">
+          <h3 class="text-white font-semibold mb-2">
+            Website feedback <span id="web-feedback-hint" class="text-slate-400 text-sm font-normal">(Firestore <code class="text-slate-500">feedback</code>)</span>
+            <span id="web-feedback-count" class="text-slate-400 text-sm"></span>
+          </h3>
+          <p class="text-slate-400 text-xs mb-2">Submissions from feedback.html. Use <strong class="text-slate-300">Reply</strong> to open your mail app to their address. Retries / failures also appear in “Feedback Queue” below.</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left modern-table text-sm">
+              <thead class="table-header">
+                <tr><th class="p-2">Time</th><th class="p-2">Name</th><th class="p-2">Email</th><th class="p-2">Message</th><th class="p-2">Page</th><th class="p-2">Reply</th><th class="p-2">Actions</th></tr>
+              </thead>
+              <tbody id="web-feedback-rows"></tbody>
+            </table>
+          </div>
+        </div>
         <div>
           <h3 class="text-white font-semibold mb-2">Feedback Queue <span id="feedback-count" class="text-slate-400 text-sm"></span></h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left modern-table text-sm">
               <thead class="table-header">
-                <tr><th class="p-2">Name</th><th class="p-2">Email</th><th class="p-2">Message</th><th class="p-2">Status</th><th class="p-2">Next Attempt</th><th class="p-2">Actions</th></tr>
+                <tr><th class="p-2">Name</th><th class="p-2">Email</th><th class="p-2">Message</th><th class="p-2">Status</th><th class="p-2">Next Attempt</th><th class="p-2">Reply</th><th class="p-2">Actions</th></tr>
               </thead>
               <tbody id="feedback-rows"></tbody>
             </table>
@@ -44,7 +89,7 @@ async function main() {
           <div class="overflow-x-auto">
             <table class="w-full text-left modern-table text-sm">
               <thead class="table-header">
-                <tr><th class="p-2">Company</th><th class="p-2">Name</th><th class="p-2">Email</th><th class="p-2">Status</th><th class="p-2">Next Attempt</th><th class="p-2">Actions</th></tr>
+                <tr><th class="p-2">Company</th><th class="p-2">Name</th><th class="p-2">Email</th><th class="p-2">Status</th><th class="p-2">Next Attempt</th><th class="p-2">Reply</th><th class="p-2">Actions</th></tr>
               </thead>
               <tbody id="sponsorship-rows"></tbody>
             </table>
@@ -67,6 +112,70 @@ async function main() {
     const db = getFirebaseDb();
     const { collection, query, where, orderBy, limit, getDocs, getDoc, addDoc, deleteDoc, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
 
+    /** Filled in below; used by row builders so inspect works even if other scripts stop click propagation. */
+    let inspectDoc = async () => {};
+
+    function attachInspectHandler(btn) {
+      if (!btn || btn.__rrInspectBound) return;
+      btn.__rrInspectBound = true;
+      btn.addEventListener(
+        "click",
+        (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          const id = btn.getAttribute("data-id");
+          const col = btn.getAttribute("data-col");
+          if (id && col) void inspectDoc(col, id);
+        },
+        true
+      );
+    }
+
+    async function loadWebFeedback() {
+      const tbody = document.getElementById("web-feedback-rows");
+      const countEl = document.getElementById("web-feedback-count");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      const webQ = query(collection(db, "feedback"), orderBy("createdAt", "desc"), limit(50));
+      let snap;
+      try {
+        snap = await getDocs(webQ);
+      } catch (e) {
+        console.error("[queue-admin] Failed to load feedback collection:", e);
+        const tr = document.createElement("tr");
+        tr.className = "table-row";
+        tr.innerHTML = `<td class="p-2 text-red-400" colspan="7">Could not load website feedback (check rules/indexes). ${(e && e.message) || e}</td>`;
+        tbody.appendChild(tr);
+        if (countEl) countEl.textContent = "";
+        return;
+      }
+      let n = 0;
+      snap.forEach((d) => {
+        n++;
+        const v = d.data();
+        const tr = document.createElement("tr");
+        tr.className = "table-row";
+        const ts =
+          v.createdAt && v.createdAt.toDate
+            ? v.createdAt.toDate().toLocaleString()
+            : "—";
+        tr.innerHTML = `
+          <td class="p-2 whitespace-nowrap">${ts}</td>
+          <td class="p-2">${(v.name || "").toString().slice(0, 40)}</td>
+          <td class="p-2">${(v.email || "").toString().slice(0, 40)}</td>
+          <td class="p-2">${(v.message || "").toString().slice(0, 80)}</td>
+          <td class="p-2">${(v.page || "").toString().slice(0, 40)}</td>
+          <td class="p-2" data-reply-cell="1"></td>
+          <td class="p-2">
+            <button type="button" data-id="${d.id}" data-col="feedback" class="inspect-btn modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
+          </td>`;
+        tbody.appendChild(tr);
+        appendReplyEmailLink(tr.querySelector("[data-reply-cell]"), v.email, v.name, v.message, "feedback");
+        attachInspectHandler(tr.querySelector(".inspect-btn"));
+      });
+      if (countEl) countEl.textContent = `(${n})`;
+    }
+
     async function loadEligibleSoon() {
       try {
         const cutoff = new Date(Date.now() + 10 * 60 * 1000);
@@ -74,8 +183,18 @@ async function main() {
         const q1 = query(collection(db, 'feedback_queue'), where('status','in',['queued','retry']), where('nextAttemptAt','<=', cutoff), limit(500));
         const q2 = query(collection(db, 'sponsorship_queue'), where('status','in',['queued','retry']), where('nextAttemptAt','<=', cutoff), limit(500));
         let s1, s2;
-        try { s1 = await getDocs(q1); } catch { s1 = { size: 0, forEach: ()=>{} }; }
-        try { s2 = await getDocs(q2); } catch { s2 = { size: 0, forEach: ()=>{} }; }
+        try {
+          s1 = await getDocs(q1);
+        } catch (e) {
+          console.warn("[queue-admin] feedback_queue eligible count:", e);
+          s1 = { size: 0, forEach: () => {} };
+        }
+        try {
+          s2 = await getDocs(q2);
+        } catch (e) {
+          console.warn("[queue-admin] sponsorship_queue eligible count:", e);
+          s2 = { size: 0, forEach: () => {} };
+        }
         total = (s1.size || 0) + (s2.size || 0);
         const el = document.getElementById('eligible-soon');
         if (el) el.textContent = total > 0 ? `Eligible in ≤10m: ${total}` : '';
@@ -93,7 +212,13 @@ async function main() {
 
       // Feedback
       const fbQ = query(collection(db, 'feedback_queue'), where('status', 'in', ['queued','retry']), orderBy('queuedAt','desc'), limit(50));
-      let fbSnap; try { fbSnap = await getDocs(fbQ); } catch { fbSnap = { forEach:()=>{} , size:0}; }
+      let fbSnap;
+      try {
+        fbSnap = await getDocs(fbQ);
+      } catch (e) {
+        console.error("[queue-admin] feedback_queue list failed:", e);
+        fbSnap = { forEach: () => {}, size: 0 };
+      }
       let fbCount = 0;
       fbSnap.forEach((d)=>{
         fbCount++;
@@ -107,18 +232,27 @@ async function main() {
           <td class="p-2">${(v.message||'').toString().slice(0,60)}</td>
           <td class="p-2"><span class="status-badge ${v.status==='retry'?'status-pending':'status-approved'}">${v.status||'queued'}</span></td>
           <td class="p-2">${nextAttempt ? nextAttempt.toLocaleString() : '-'}</td>
+          <td class="p-2" data-reply-cell="1"></td>
           <td class="p-2">
-            <button data-id="${d.id}" data-col="feedback_queue" class="inspect-btn modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
-            <button data-id="${d.id}" data-col="feedback_queue" class="retry-btn modern-btn text-white px-2 py-1 rounded text-xs">Retry</button>
-            <button data-id="${d.id}" data-col="feedback_queue" class="resolve-btn success-btn text-white px-2 py-1 rounded text-xs">Resolve</button>
+            <button type="button" data-id="${d.id}" data-col="feedback_queue" class="inspect-btn modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
+            <button type="button" data-id="${d.id}" data-col="feedback_queue" class="retry-btn modern-btn text-white px-2 py-1 rounded text-xs">Retry</button>
+            <button type="button" data-id="${d.id}" data-col="feedback_queue" class="resolve-btn success-btn text-white px-2 py-1 rounded text-xs">Resolve</button>
           </td>`;
         fbRows.appendChild(tr);
+        appendReplyEmailLink(tr.querySelector("[data-reply-cell]"), v.email, v.name, v.message, "feedback");
+        attachInspectHandler(tr.querySelector(".inspect-btn"));
       });
       document.getElementById('feedback-count').textContent = `(${fbCount})`;
 
       // Sponsorship
       const spQ = query(collection(db, 'sponsorship_queue'), where('status', 'in', ['queued','retry']), orderBy('queuedAt','desc'), limit(50));
-      let spSnap; try { spSnap = await getDocs(spQ); } catch { spSnap = { forEach:()=>{} , size:0}; }
+      let spSnap;
+      try {
+        spSnap = await getDocs(spQ);
+      } catch (e) {
+        console.error("[queue-admin] sponsorship_queue list failed:", e);
+        spSnap = { forEach: () => {}, size: 0 };
+      }
       let spCount = 0;
       spSnap.forEach((d)=>{
         spCount++;
@@ -132,12 +266,15 @@ async function main() {
           <td class="p-2">${(v.email||'').toString().slice(0,40)}</td>
           <td class="p-2"><span class="status-badge ${v.status==='retry'?'status-pending':'status-approved'}">${v.status||'queued'}</span></td>
           <td class="p-2">${nextAttempt ? nextAttempt.toLocaleString() : '-'}</td>
+          <td class="p-2" data-reply-cell="1"></td>
           <td class="p-2">
-            <button data-id="${d.id}" data-col="sponsorship_queue" class="inspect-btn modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
-            <button data-id="${d.id}" data-col="sponsorship_queue" class="retry-btn modern-btn text-white px-2 py-1 rounded text-xs">Retry</button>
-            <button data-id="${d.id}" data-col="sponsorship_queue" class="resolve-btn success-btn text-white px-2 py-1 rounded text-xs">Resolve</button>
+            <button type="button" data-id="${d.id}" data-col="sponsorship_queue" class="inspect-btn modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
+            <button type="button" data-id="${d.id}" data-col="sponsorship_queue" class="retry-btn modern-btn text-white px-2 py-1 rounded text-xs">Retry</button>
+            <button type="button" data-id="${d.id}" data-col="sponsorship_queue" class="resolve-btn success-btn text-white px-2 py-1 rounded text-xs">Resolve</button>
           </td>`;
         spRows.appendChild(tr);
+        appendReplyEmailLink(tr.querySelector("[data-reply-cell]"), v.email, v.name || v.company, v.message, "sponsorship inquiry");
+        attachInspectHandler(tr.querySelector(".inspect-btn"));
       });
       document.getElementById('sponsorship-count').textContent = `(${spCount})`;
 
@@ -175,7 +312,7 @@ async function main() {
       <div class="overflow-x-auto">
         <table class="w-full text-left modern-table text-sm">
           <thead class="table-header">
-            <tr><th class="p-2">Original</th><th class="p-2">Name/Company</th><th class="p-2">Email</th><th class="p-2">Last Error</th><th class="p-2">Actions</th></tr>
+            <tr><th class="p-2">Original</th><th class="p-2">Name/Company</th><th class="p-2">Email</th><th class="p-2">Last Error</th><th class="p-2">Reply</th><th class="p-2">Actions</th></tr>
           </thead>
           <tbody id="dlq-rows"></tbody>
         </table>
@@ -186,7 +323,13 @@ async function main() {
       const dlqRows = document.getElementById('dlq-rows');
       dlqRows.innerHTML = '';
       const qdlq = query(collection(db, 'queue_dead_letter'), orderBy('movedAt','desc'), limit(50));
-      let snap; try { snap = await getDocs(qdlq); } catch { snap = { forEach:()=>{} , size:0}; }
+      let snap;
+      try {
+        snap = await getDocs(qdlq);
+      } catch (e) {
+        console.error("[queue-admin] queue_dead_letter list failed:", e);
+        snap = { forEach: () => {}, size: 0 };
+      }
       let count = 0;
       snap.forEach((d)=>{
         count++;
@@ -248,40 +391,98 @@ async function main() {
     const modal = document.createElement('div');
     modal.id = 'inspect-modal';
     modal.style.display = 'none';
-    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/60';
+    modal.className = 'fixed inset-0 flex items-center justify-center bg-black/60 p-4';
+    modal.style.zIndex = '100000';
     modal.innerHTML = `
-      <div class="bg-slate-900 border border-slate-700 rounded-lg w-11/12 max-w-3xl p-4">
+      <div id="inspect-panel" class="bg-slate-900 border border-slate-700 rounded-lg w-11/12 max-w-3xl p-4 shadow-2xl">
         <div class="flex items-center justify-between mb-2">
-          <h4 class="text-white font-semibold">Queued Item</h4>
-          <button id="inspect-close" class="text-slate-400 hover:text-white">&times;</button>
+          <h4 id="inspect-title" class="text-white font-semibold">Document</h4>
+          <button type="button" id="inspect-close" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
         </div>
-        <pre id="inspect-json" class="text-slate-300 text-xs overflow-auto" style="max-height: 60vh"></pre>
+        <pre id="inspect-json" class="text-slate-300 text-xs overflow-auto whitespace-pre-wrap break-words" style="max-height: 60vh"></pre>
+        <div id="inspect-reply-bar" class="hidden mt-3 pt-3 border-t border-slate-600 flex flex-wrap items-center gap-2">
+          <span class="text-slate-400 text-xs">Reply to their email:</span>
+          <a id="inspect-reply-link" href="#" class="success-btn text-white px-3 py-1.5 rounded text-sm inline-flex items-center gap-1"><i class="fas fa-envelope"></i> Open draft</a>
+        </div>
       </div>`;
     document.body.appendChild(modal);
-    document.getElementById('inspect-close').addEventListener('click', ()=> modal.style.display='none');
+    const inspectPanel = modal.querySelector('#inspect-panel');
+    if (inspectPanel) {
+      inspectPanel.addEventListener('click', (e) => e.stopPropagation());
+    }
+    document.getElementById('inspect-close').addEventListener('click', () => { modal.style.display = 'none'; });
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.style.display = 'none';
+    });
 
-    async function inspectDoc(col, id){
+    inspectDoc = async function inspectDocImpl(col, id) {
+      const pre = document.getElementById('inspect-json');
+      const titleEl = document.getElementById('inspect-title');
+      const replyBar = document.getElementById('inspect-reply-bar');
+      const replyLink = document.getElementById('inspect-reply-link');
+      if (!pre || !id || !col) return;
+      const hideReply = () => {
+        if (replyBar) replyBar.classList.add('hidden');
+      };
       try {
         const snap = await getDoc(doc(db, col, id));
-        if (!snap.exists()) return;
+        if (!snap.exists()) {
+          pre.textContent = `No document at ${col}/${id}`;
+          if (titleEl) titleEl.textContent = 'Not found';
+          hideReply();
+          modal.style.display = 'flex';
+          return;
+        }
         const data = snap.data();
-        document.getElementById('inspect-json').textContent = JSON.stringify(data, (k,v)=>{
-          if (v && v.toDate) { try { return v.toDate().toISOString(); } catch { return v; } }
+        if (titleEl) titleEl.textContent = col === 'feedback' ? 'Website feedback' : 'Queued item';
+        pre.textContent = JSON.stringify(data, (k, v) => {
+          if (v && typeof v.toDate === 'function') {
+            try { return v.toDate().toISOString(); } catch { return String(v); }
+          }
           return v;
         }, 2);
+        const kind =
+          col === 'sponsorship_queue' || (data && data.company)
+            ? 'sponsorship inquiry'
+            : col === 'queue_dead_letter' &&
+                String(data.originalCollection || '').includes('sponsorship')
+              ? 'sponsorship inquiry'
+              : 'feedback';
+        const href = buildFeedbackReplyMailto(
+          data.email,
+          data.name || data.company,
+          data.message,
+          kind,
+        );
+        if (replyBar && replyLink && href) {
+          replyLink.href = href;
+          replyBar.classList.remove('hidden');
+        } else {
+          hideReply();
+        }
         modal.style.display = 'flex';
-      } catch {}
-    }
-
-    // wire generic inspect buttons for queues
-    document.addEventListener('click', (e)=>{
-      const t = e.target;
-      if (t && t.classList && t.classList.contains('inspect-btn')){
-        const id = t.getAttribute('data-id');
-        const col = t.getAttribute('data-col');
-        inspectDoc(col, id);
+      } catch (err) {
+        console.error('[queue-admin] inspectDoc failed:', col, id, err);
+        if (titleEl) titleEl.textContent = 'Inspect failed';
+        pre.textContent = (err && err.message) ? err.message : String(err);
+        hideReply();
+        modal.style.display = 'flex';
       }
-    });
+    };
+
+    card.addEventListener(
+      'click',
+      (e) => {
+        const btn = e.target && e.target.closest ? e.target.closest('.inspect-btn') : null;
+        if (!btn || !card.contains(btn)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const col = btn.getAttribute('data-col');
+        if (id && col) void inspectDoc(col, id);
+      },
+      true
+    );
 
     // Wire up buttons with proper error handling
     const queueRefreshBtn = document.getElementById('queue-refresh');
@@ -293,6 +494,7 @@ async function main() {
         queueRefreshBtn.disabled = true;
         queueRefreshBtn.innerHTML = '<i class="fas fa-sync fa-spin mr-1"></i>Refreshing...';
         try {
+          await loadWebFeedback();
           await loadQueue(); 
           await loadDlq(); 
           await loadEligibleSoon();
@@ -340,6 +542,7 @@ async function main() {
       });
     }
 
+    await loadWebFeedback();
     await loadQueue();
     await loadDlq();
     await loadEligibleSoon();
@@ -355,8 +558,19 @@ async function main() {
 
         const q1 = query(collection(db, 'feedback_queue'), where('status','in',['queued','retry']), where('nextAttemptAt','<=', new Date(horizon)), limit(500));
         const q2 = query(collection(db, 'sponsorship_queue'), where('status','in',['queued','retry']), where('nextAttemptAt','<=', new Date(horizon)), limit(500));
-        let s1, s2; try { s1 = await getDocs(q1); } catch { s1 = { forEach:()=>{} }; };
-        try { s2 = await getDocs(q2); } catch { s2 = { forEach:()=>{} }; };
+        let s1, s2;
+        try {
+          s1 = await getDocs(q1);
+        } catch (e) {
+          console.warn("[queue-admin] sparkline feedback_queue:", e);
+          s1 = { forEach: () => {} };
+        }
+        try {
+          s2 = await getDocs(q2);
+        } catch (e) {
+          console.warn("[queue-admin] sparkline sponsorship_queue:", e);
+          s2 = { forEach: () => {} };
+        }
 
         const buckets = new Array(6).fill(0);
         function bump(ts){
@@ -387,7 +601,7 @@ async function main() {
 
     await drawSparkline();
   } catch (e) {
-    // Swallow errors to avoid breaking admin console
+    console.error('[queue-admin] failed to initialize:', e);
   }
 }
 

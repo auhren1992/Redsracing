@@ -8,6 +8,22 @@ import {
 
 const db = getFirebaseDb();
 
+/** Notifies staff via deployed Cloud Function (MailerSend). Firestore doc is the durable record. */
+const FEEDBACK_EMAIL_FN =
+  "https://us-central1-redsracing-a7f8b.cloudfunctions.net/handleSendFeedback";
+
+async function notifyFeedbackByEmail(name, email, message) {
+  const res = await fetch(FEEDBACK_EMAIL_FN, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, message }),
+  });
+  if (!res.ok && res.status !== 202) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(detail || `Notification request failed (${res.status})`);
+  }
+}
+
 // Update feedback stats
 async function updateFeedbackStats() {
   try {
@@ -67,25 +83,39 @@ async function main() {
   if (feedbackForm) {
     feedbackForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const name = feedbackForm.name.value;
-      const email = feedbackForm.email.value;
-      const message = feedbackForm.message.value;
+      const name = (feedbackForm.name.value || "").trim();
+      const email = (feedbackForm.email.value || "").trim();
+      const message = (feedbackForm.message.value || "").trim();
 
       feedbackStatus.textContent = "Sending...";
-      feedbackStatus.classList.remove("text-red-500", "text-green-500");
+      feedbackStatus.classList.remove("text-red-500", "text-green-500", "text-amber-400");
 
       try {
         const feedbackRef = collection(db, 'feedback');
         await addDoc(feedbackRef, {
-          name: name,
-          email: email,
-          message: message,
+          // Keep payload aligned with firestore.rules onlyHasKeys() for /feedback
+          ...(name ? { name } : {}),
+          ...(email ? { email } : {}),
+          message,
           createdAt: serverTimestamp(),
-          responded: false,
-          improvementMade: false
+          source: 'web',
+          page: (window.location && window.location.pathname ? window.location.pathname : 'feedback.html')
         });
 
-        feedbackStatus.textContent = "Feedback sent successfully! We'll get back to you soon.";
+        try {
+          await notifyFeedbackByEmail(name, email, message);
+        } catch (emailErr) {
+          console.warn("Feedback saved; email notification failed:", emailErr);
+          feedbackStatus.textContent =
+            "Your feedback was saved. When we respond, we’ll reply to the email you entered above—please watch that inbox (and spam). We couldn’t notify the team by email this instant, but they can still read your message in the admin console.";
+          feedbackStatus.classList.add("text-amber-400");
+          feedbackForm.reset();
+          updateFeedbackStats();
+          return;
+        }
+
+        feedbackStatus.textContent =
+          `Thanks! We received your feedback. When we respond, we’ll reply directly to ${email}—please check that inbox and your spam folder.`;
         feedbackStatus.classList.add("text-green-500");
         feedbackForm.reset();
         

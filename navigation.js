@@ -2,6 +2,25 @@
 (function () {
   'use strict';
 
+  // Site-wide helpers: always load app detector + error tracker once.
+  // This keeps native-app UX consistent across ALL pages without adding per-page scripts.
+  (function ensureGlobalHelpers() {
+    try {
+      const scripts = Array.from(document.scripts || []);
+      const has = (needle) => scripts.some(s => (s.getAttribute && (s.getAttribute('src') || '')).includes(needle));
+
+      function inject(src) {
+        const s = document.createElement('script');
+        s.src = src;
+        s.defer = true;
+        document.head.appendChild(s);
+      }
+
+      if (!has('assets/js/mobile-app-detector.js')) inject('assets/js/mobile-app-detector.js');
+      if (!has('global-error-tracker.js')) inject('assets/js/global-error-tracker.js?v=202605061');
+    } catch (_) {}
+  })();
+
   // Ensure a single Firebase app is initialized on every page and use LOCAL persistence
   (async function initAuthPersistence() {
     console.log('[RedsRacing Auth] ===== INIT STARTING =====');

@@ -32,6 +32,51 @@
     link.id = 'mobile-app-styles';
     document.head.appendChild(link);
     
+    function isAuthenticated() {
+      try {
+        return !!(localStorage.getItem('rr_auth_uid') || localStorage.getItem('authToken'));
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function isLoginLikePage() {
+      const p = (window.location && window.location.pathname) ? window.location.pathname.toLowerCase() : '';
+      return p.endsWith('/login.html') || p.endsWith('/signup.html') || p.endsWith('/reset-password.html');
+    }
+
+    function ensureAppAuthFab() {
+      try {
+        if (!document.body) return;
+
+        // Don't show a floating login button on the login/signup pages.
+        if (isLoginLikePage()) {
+          const existing = document.getElementById('rr-app-auth-fab');
+          if (existing) existing.remove();
+          return;
+        }
+
+        let fab = document.getElementById('rr-app-auth-fab');
+        if (!fab) {
+          fab = document.createElement('div');
+          fab.id = 'rr-app-auth-fab';
+          fab.className = 'rr-app-auth-fab';
+          fab.innerHTML = `
+            <a href="login.html" class="rr-app-auth-fab__btn" aria-label="Member Login">
+              <i class="fas fa-user-lock" aria-hidden="true"></i>
+              <span>Login</span>
+            </a>
+          `;
+          document.body.appendChild(fab);
+        }
+
+        const authed = isAuthenticated();
+        fab.style.display = authed ? 'none' : 'block';
+      } catch (e) {
+        // Fail silently: never block page rendering
+      }
+    }
+
     // Wait for body to exist before adding class
     function addBodyClass() {
       if (document.body) {
@@ -40,6 +85,9 @@
         } catch (e) {
           console.warn('Failed to add mobile-app class:', e);
         }
+        ensureAppAuthFab();
+        // Keep it up-to-date if auth state changes inside the WebView
+        setInterval(ensureAppAuthFab, 2000);
       } else {
         setTimeout(addBodyClass, 10);
       }

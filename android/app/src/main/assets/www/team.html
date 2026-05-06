@@ -230,6 +230,72 @@
         background: linear-gradient(165deg, #020617 0%, #0f172a 42%, #020617 100%);
         border-bottom: 1px solid rgba(148, 163, 184, 0.12);
       }
+      /* Cinematic layer: auto-filled from latest approved gallery photo */
+      .team-hero-min__photo {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0;
+        background-position: center;
+        background-size: cover;
+        filter: saturate(1.1) contrast(1.05);
+        transition: opacity 0.6s ease;
+      }
+      .team-hero-min.has-photo .team-hero-min__photo {
+        opacity: 0.85;
+      }
+      .team-hero-min__scrim {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(1100px circle at 50% 10%, rgba(2,6,23,0.25), rgba(2,6,23,0.85) 60%, rgba(2,6,23,0.92) 100%),
+          linear-gradient(90deg, rgba(59,130,246,0.10), rgba(2,6,23,0.15), rgba(239,68,68,0.08));
+      }
+      /* Angled race stripes */
+      .team-hero-min__stripes {
+        position: absolute;
+        inset: -30%;
+        pointer-events: none;
+        opacity: 0.28;
+        background: repeating-linear-gradient(
+          115deg,
+          rgba(251, 191, 36, 0.0) 0px,
+          rgba(251, 191, 36, 0.0) 22px,
+          rgba(251, 191, 36, 0.10) 22px,
+          rgba(251, 191, 36, 0.10) 26px,
+          rgba(59, 130, 246, 0.09) 26px,
+          rgba(59, 130, 246, 0.09) 30px,
+          rgba(2,6,23,0.0) 30px,
+          rgba(2,6,23,0.0) 60px
+        );
+        transform: translate3d(0,0,0);
+        animation: rrStrafe 10s linear infinite;
+      }
+      @keyframes rrStrafe {
+        from { transform: translateX(-4%); }
+        to { transform: translateX(4%); }
+      }
+      /* Light sweep */
+      .team-hero-min__sweep {
+        position: absolute;
+        top: -40%;
+        left: -30%;
+        width: 70%;
+        height: 220%;
+        pointer-events: none;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+        transform: rotate(18deg);
+        animation: rrSweep 6.5s ease-in-out infinite;
+        mix-blend-mode: screen;
+        opacity: 0.65;
+      }
+      @keyframes rrSweep {
+        0% { transform: translateX(-25%) rotate(18deg); opacity: 0.0; }
+        18% { opacity: 0.55; }
+        50% { transform: translateX(130%) rotate(18deg); opacity: 0.2; }
+        100% { transform: translateX(130%) rotate(18deg); opacity: 0.0; }
+      }
       .team-hero-min__texture {
         position: absolute;
         inset: 0;
@@ -268,6 +334,103 @@
       .team-hero-title-em {
         color: #fbbf24;
         text-shadow: 0 0 28px rgba(251, 191, 36, 0.35);
+      }
+
+      /* Whole-page polish: section depth + dividers (keeps variety, avoids “flat”) */
+      .rr-section {
+        position: relative;
+        overflow: hidden;
+      }
+      .rr-section::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.9;
+      }
+      .rr-section.rr-accent-blue::before {
+        background:
+          radial-gradient(900px circle at 15% 20%, rgba(59,130,246,0.14), transparent 55%),
+          radial-gradient(700px circle at 90% 70%, rgba(251,191,36,0.10), transparent 60%);
+      }
+      .rr-section.rr-accent-red::before {
+        background:
+          radial-gradient(900px circle at 15% 20%, rgba(239,68,68,0.12), transparent 55%),
+          radial-gradient(700px circle at 90% 70%, rgba(251,191,36,0.10), transparent 60%);
+      }
+      .rr-section.rr-accent-amber::before {
+        background:
+          radial-gradient(1000px circle at 20% 10%, rgba(251,191,36,0.14), transparent 58%),
+          radial-gradient(800px circle at 85% 75%, rgba(59,130,246,0.10), transparent 62%);
+      }
+      .rr-section > .container {
+        position: relative;
+        z-index: 1;
+      }
+
+      .rr-divider {
+        height: 1px;
+        width: min(1100px, calc(100% - 3rem));
+        margin: 0 auto;
+        background: linear-gradient(90deg, transparent, rgba(148,163,184,0.22), transparent);
+      }
+      .rr-tilt-divider {
+        position: absolute;
+        left: -10%;
+        right: -10%;
+        bottom: -1px;
+        height: 60px;
+        background: linear-gradient(180deg, rgba(2,6,23,0), rgba(2,6,23,0.65));
+        transform: skewY(-2.2deg);
+        transform-origin: bottom;
+        pointer-events: none;
+      }
+
+      /* Timeline */
+      .rr-timeline {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+      }
+      .rr-timeline-card {
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        background: linear-gradient(145deg, rgba(30,41,59,0.55), rgba(2,6,23,0.25));
+        backdrop-filter: blur(14px);
+        padding: 1.1rem 1.1rem 1rem;
+        box-shadow: 0 18px 55px rgba(0,0,0,0.22);
+        transition: transform 0.2s ease, border-color 0.2s ease;
+      }
+      .rr-timeline-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(251,191,36,0.32);
+      }
+      .rr-timeline-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 900;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        font-size: 0.72rem;
+        color: rgba(251,191,36,0.95);
+      }
+      .rr-timeline-title {
+        font-family: "Racing Sans One", sans-serif;
+        color: #fff;
+        font-size: 1.35rem;
+        margin-top: 0.55rem;
+        margin-bottom: 0.35rem;
+        letter-spacing: 0.02em;
+      }
+      .rr-timeline-sub {
+        color: rgba(226, 232, 240, 0.78);
+        font-weight: 650;
+        line-height: 1.35;
+      }
+      @media (max-width: 900px) {
+        .rr-timeline { grid-template-columns: 1fr; }
       }
       
       .modern-card {
@@ -554,6 +717,10 @@
     <main>
       <!-- Team hero: minimal editorial (no id="home" — avoids 100vh gap from main.css) -->
       <section id="team-hero" class="team-hero-min relative overflow-hidden">
+        <div class="team-hero-min__photo" aria-hidden="true"></div>
+        <div class="team-hero-min__scrim" aria-hidden="true"></div>
+        <div class="team-hero-min__stripes" aria-hidden="true"></div>
+        <div class="team-hero-min__sweep" aria-hidden="true"></div>
         <div class="team-hero-min__texture" aria-hidden="true"></div>
         <div class="team-hero-min__glow" aria-hidden="true"></div>
         <div class="container relative z-10 mx-auto px-6 py-12 md:py-16 lg:py-20 text-center">
@@ -586,9 +753,43 @@
           </p>
         </div>
       </section>
+      
+      <!-- Featured strip (live updates) -->
+      <div class="mt-6">
+        <div id="rr-feature-strip"></div>
+      </div>
+      <script type="module" src="assets/js/featured-strip.js"></script>
+      <script type="module">
+        // Make the Team hero feel alive with a real photo backdrop (approved gallery image).
+        // Safe for AdSense: no autoplay media, just an image if available.
+        import { getFirebaseDb } from "./assets/js/firebase-core.js";
+        import { collection, getDocs, limit, orderBy, query, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        try {
+          const hero = document.getElementById("team-hero");
+          const photoLayer = hero ? hero.querySelector(".team-hero-min__photo") : null;
+          if (hero && photoLayer) {
+            const db = getFirebaseDb();
+            const ref = collection(db, "gallery_images");
+            const q = query(ref, where("approved", "==", true), orderBy("uploadedAt", "desc"), limit(1));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+              const d = snap.docs[0].data();
+              const url = d?.imageUrl || d?.downloadURL || "";
+              if (url) {
+                photoLayer.style.backgroundImage =
+                  `linear-gradient(to top, rgba(2,6,23,0.90), rgba(2,6,23,0.22)), url('${url.replace(/'/g, "%27")}')`;
+                hero.classList.add("has-photo");
+              }
+            }
+          }
+        } catch (_) {
+          // non-blocking
+        }
+      </script>
 
       <!-- Jon Kirsch #8 Section -->
-      <section class="section-reveal visible py-6 md:py-8 bg-gradient-to-b from-slate-900 to-slate-800">
+      <section class="rr-section rr-accent-blue section-reveal visible py-10 md:py-14 bg-gradient-to-b from-slate-900 to-slate-800">
         <div class="container mx-auto px-6">
           <div class="max-w-6xl mx-auto">
             <!-- Section Header -->
@@ -690,10 +891,11 @@
             </div>
           </div>
         </div>
+        <div class="rr-tilt-divider" aria-hidden="true"></div>
       </section>
 
       <!-- Jonny Kirsch #88 Section -->
-      <section class="section-reveal py-6 md:py-8 bg-gradient-to-b from-slate-800 to-black">
+      <section class="rr-section rr-accent-red section-reveal py-10 md:py-14 bg-gradient-to-b from-slate-800 to-black">
         <div class="container mx-auto px-6">
           <div class="max-w-6xl mx-auto">
             <!-- Section Header -->
@@ -770,10 +972,49 @@
             </div>
           </div>
         </div>
+        <div class="rr-tilt-divider" aria-hidden="true"></div>
+      </section>
+
+      <!-- Team story beats (adds life + variety) -->
+      <section class="rr-section rr-accent-amber section-reveal py-12 bg-gradient-to-b from-black to-slate-900">
+        <div class="container mx-auto px-6">
+          <div class="max-w-5xl mx-auto text-center">
+            <div class="inline-flex items-center bg-yellow-400/10 px-4 py-2 rounded-full border border-yellow-400/20">
+              <i class="fas fa-radio text-yellow-400 mr-2"></i>
+              <span class="text-yellow-400 font-bold uppercase tracking-wider text-sm">Team Story</span>
+            </div>
+            <h3 class="font-racing text-4xl md:text-5xl text-white uppercase mt-5">
+              Built in the <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">Shop</span>,
+              Proven at the <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-red-500">Track</span>
+            </h3>
+            <p class="text-slate-400 text-lg max-w-3xl mx-auto mt-3">
+              One family program, two entries — chasing clean weekends, smart strategy, and steady improvement all season long.
+            </p>
+
+            <div class="rr-timeline">
+              <div class="rr-timeline-card">
+                <div class="rr-timeline-kicker"><i class="fas fa-wrench"></i> Weeknights</div>
+                <div class="rr-timeline-title">Prep &amp; Setup</div>
+                <div class="rr-timeline-sub">Fit, measure, tune — the little details that turn into big speed.</div>
+              </div>
+              <div class="rr-timeline-card">
+                <div class="rr-timeline-kicker"><i class="fas fa-flag-checkered"></i> Race Nights</div>
+                <div class="rr-timeline-title">Execute</div>
+                <div class="rr-timeline-sub">Qualify, survive, and push — clean laps, smart passes, no drama.</div>
+              </div>
+              <div class="rr-timeline-card">
+                <div class="rr-timeline-kicker"><i class="fas fa-chart-line"></i> Mondays</div>
+                <div class="rr-timeline-title">Review</div>
+                <div class="rr-timeline-sub">What worked, what didn’t — then iterate. That’s how a season gets built.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="rr-tilt-divider" aria-hidden="true"></div>
       </section>
 
       <!-- Rivalry Tracker -->
-      <section class="section-reveal py-12 bg-gradient-to-b from-black to-slate-900">
+      <section class="rr-section rr-accent-amber section-reveal py-12 bg-gradient-to-b from-black to-slate-900">
         <div class="container mx-auto px-6">
           <div class="max-w-3xl mx-auto">
             <div class="modern-card glass-card rounded-2xl p-8 border border-yellow-500/20">
@@ -799,7 +1040,7 @@
       </section>
 
       <!-- Photo of the Week -->
-      <section class="section-reveal py-12 bg-gradient-to-b from-slate-900 to-slate-800" id="photo-of-week-section" style="display:none">
+      <section class="rr-section rr-accent-blue section-reveal py-12 bg-gradient-to-b from-slate-900 to-slate-800" id="photo-of-week-section" style="display:none">
         <div class="container mx-auto px-6">
           <div class="max-w-3xl mx-auto">
             <div class="modern-card glass-card rounded-2xl overflow-hidden border border-yellow-500/20">
@@ -816,7 +1057,7 @@
       </section>
 
       <!-- Modern Results Section -->
-      <section class="section-reveal py-20 md:py-32 bg-gradient-to-b from-slate-900 to-slate-800">
+      <section class="rr-section rr-accent-blue section-reveal py-20 md:py-32 bg-gradient-to-b from-slate-900 to-slate-800">
         <div class="container mx-auto px-6">
           <div class="text-center mb-16">
             <h2 class="text-4xl md:text-5xl font-racing uppercase mb-4">
@@ -880,7 +1121,7 @@
       </section>
 
       <!-- Modern Sponsors Section -->
-      <section class="section-reveal py-20 md:py-32 bg-gradient-to-b from-slate-800 to-slate-900">
+      <section class="rr-section rr-accent-amber section-reveal py-20 md:py-32 bg-gradient-to-b from-slate-800 to-slate-900">
         <div class="container mx-auto px-6 text-center">
           <div class="mb-16">
             <h2 class="font-racing text-4xl md:text-5xl uppercase mb-4">

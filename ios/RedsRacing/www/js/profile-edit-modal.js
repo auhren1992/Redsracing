@@ -271,9 +271,7 @@ class ProfileEditModal {
       document.getElementById('edit-racing-since').value = userData.racingSince || '';
 
       // Load social links
-      const social = userData.socialLinks || {};
-      document.getElementById('edit-instagram').value = social.instagram || '';
-      document.getElementById('edit-tiktok').value = social.tiktok || '';
+      const social = userData.socialLinks || {};      document.getElementById('edit-tiktok').value = social.tiktok || '';
       document.getElementById('edit-youtube').value = social.youtube || '';
       document.getElementById('edit-discord').value = social.discord || '';
       document.getElementById('edit-twitch').value = social.twitch || '';
@@ -472,9 +470,7 @@ class ProfileEditModal {
         bio: document.getElementById('edit-bio')?.value.trim() || '',
         location: document.getElementById('edit-location')?.value.trim() || '',
         racingSince: document.getElementById('edit-racing-since')?.value || '',
-        socialLinks: {
-          instagram: document.getElementById('edit-instagram')?.value.trim() || '',
-          tiktok: document.getElementById('edit-tiktok')?.value.trim() || '',
+        socialLinks: {          tiktok: document.getElementById('edit-tiktok')?.value.trim() || '',
           youtube: document.getElementById('edit-youtube')?.value.trim() || '',
           discord: document.getElementById('edit-discord')?.value.trim() || '',
           twitch: document.getElementById('edit-twitch')?.value.trim() || ''

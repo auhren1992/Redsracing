@@ -23,7 +23,7 @@
     <!-- Global Error Tracking (MUST load before Firebase) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="assets/js/global-error-tracker.js"></script>
+    <script src="assets/js/global-error-tracker.js?v=202605061"></script>
     
     <style>
       /* Modern Admin Console Styles */
@@ -384,6 +384,160 @@
       .scrollbar-hide::-webkit-scrollbar {
         display: none;
       }
+
+      /* --- Admin console premium shell --- */
+      body.admin-console-page {
+        background-color: #070b14;
+        background-image:
+          radial-gradient(ellipse 120% 80% at 50% -25%, rgba(59, 130, 246, 0.16), transparent 55%),
+          radial-gradient(ellipse 90% 55% at 100% 15%, rgba(251, 191, 36, 0.09), transparent 50%),
+          radial-gradient(ellipse 70% 45% at 0% 85%, rgba(239, 68, 68, 0.07), transparent 50%),
+          linear-gradient(180deg, #0f172a 0%, #0a0f1a 45%, #070b14 100%);
+      }
+
+      .admin-main {
+        position: relative;
+      }
+      .admin-main > * {
+        position: relative;
+        z-index: 1;
+      }
+      .admin-main::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background: repeating-linear-gradient(
+          118deg,
+          transparent,
+          transparent 48px,
+          rgba(148, 163, 184, 0.025) 48px,
+          rgba(148, 163, 184, 0.025) 49px
+        );
+        pointer-events: none;
+        opacity: 0.65;
+        mask-image: linear-gradient(180deg, black 0%, transparent 92%);
+      }
+
+      .sidebar-nav.admin-sidebar {
+        background: rgba(7, 11, 20, 0.92);
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        box-shadow: 12px 0 48px rgba(0, 0, 0, 0.28);
+      }
+      .sidebar-nav.admin-sidebar .nav-item {
+        border-radius: 10px;
+        border: 1px solid transparent;
+      }
+      .sidebar-nav.admin-sidebar .nav-item:hover {
+        background: rgba(59, 130, 246, 0.12);
+        border-color: rgba(59, 130, 246, 0.18);
+        transform: translateX(3px);
+      }
+      .sidebar-nav.admin-sidebar .nav-item.active {
+        background: linear-gradient(
+          105deg,
+          rgba(251, 191, 36, 0.2) 0%,
+          rgba(59, 130, 246, 0.12) 100%
+        );
+        border-color: rgba(251, 191, 36, 0.35);
+        box-shadow: 0 0 28px rgba(251, 191, 36, 0.12);
+      }
+
+      .admin-hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 1rem;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        background: linear-gradient(
+          125deg,
+          rgba(15, 23, 42, 0.95) 0%,
+          rgba(30, 41, 59, 0.78) 45%,
+          rgba(15, 23, 42, 0.92) 100%
+        );
+        box-shadow:
+          0 24px 56px rgba(0, 0, 0, 0.38),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+      .admin-hero::after {
+        content: "";
+        position: absolute;
+        top: -40%;
+        right: -15%;
+        width: 55%;
+        height: 140%;
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.14) 0%, transparent 68%);
+        pointer-events: none;
+      }
+      .admin-hero-inner {
+        position: relative;
+        z-index: 1;
+      }
+      .admin-hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgba(251, 191, 36, 0.95);
+      }
+      .admin-hero-title {
+        font-family: "Racing Sans One", sans-serif;
+        font-size: clamp(1.35rem, 3.5vw, 2.1rem);
+        line-height: 1.08;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .admin-hero-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+      }
+
+      .admin-stat-grid .stat-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 1rem;
+        border: 1px solid rgba(148, 163, 184, 0.12) !important;
+      }
+      .admin-stat-grid .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #3b82f6, #fbbf24, #f43f5e);
+        opacity: 0.9;
+      }
+
+      .admin-console-page .admin-card {
+        border-radius: 1rem;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .stat-card:hover,
+        .admin-card:hover,
+        .nav-item:hover,
+        .sidebar-nav.admin-sidebar .nav-item:hover,
+        .sidebar-nav.admin-sidebar .nav-item.active {
+          transform: none !important;
+        }
+        .pulse-glow {
+          animation: none !important;
+        }
+      }
+
       /*
         App-only top bar (Android/iOS WebView). Must be hidden on the normal mobile web:
         otherwise the Android-style strip + hamburger stacks above the real site header.
@@ -391,12 +545,13 @@
       */
       #admin-menu-bar {
         display: none;
-        background: #1e293b;
+        background: linear-gradient(92deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.96) 55%, rgba(15, 23, 42, 0.98) 100%);
         padding: 12px 16px;
         align-items: center;
         gap: 12px;
         justify-content: flex-start;
-        border-bottom: 2px solid #fbbf24;
+        border-bottom: 1px solid rgba(251, 191, 36, 0.35);
+        box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4);
       }
       body.mobile-app #admin-menu-bar {
         display: flex !important;
@@ -410,7 +565,7 @@
     </style>
   <script src="assets/js/guest-gate.js"></script>
   </head>
-  <body class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+  <body class="admin-console-page min-h-screen">
     <!-- ANDROID APP: top-left hamburger + tucked sidebar drawer -->
     <div id="admin-menu-bar">
       <button id="android-hamburger" onclick="openDrawer()" aria-label="Open admin menu" style="background:rgba(2,6,23,0.35);border:1px solid rgba(251,191,36,0.25);color:#fbbf24;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.35);">
@@ -502,7 +657,7 @@
       </nav>
     </header>
 
-    <div id="android-menu-drawer" style="position:fixed;top:0;left:0;width:290px;height:100vh;z-index:10000;background:#0f172a;border-right:1px solid rgba(148,163,184,0.12);overflow-y:auto;transform:translateX(-100%);transition:transform 0.25s ease;-webkit-overflow-scrolling:touch;box-shadow:4px 0 22px rgba(0,0,0,0.55);">
+    <div id="android-menu-drawer" style="position:fixed;top:0;left:0;width:308px;height:100vh;z-index:10000;background:linear-gradient(180deg,#0b1220 0%,#0f172a 45%,#0a0f18 100%);border-right:1px solid rgba(148,163,184,0.14);overflow-y:auto;transform:translateX(-100%);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1);-webkit-overflow-scrolling:touch;box-shadow:12px 0 48px rgba(0,0,0,0.55),4px 0 24px rgba(251,191,36,0.06);">
         <div class="p-4 border-b border-slate-600">
           <div class="flex items-center justify-between">
            <div class="flex items-center space-x-3">
@@ -526,7 +681,12 @@
             #android-menu-drawer .a-link { display:flex; align-items:center; gap:12px; padding: 10px 12px; border-radius: 12px; text-decoration:none; color:#cbd5e1; font-size: 14px; font-weight: 600; border: 1px solid transparent; }
             #android-menu-drawer .a-link:hover { background: rgba(148,163,184,0.10); border-color: rgba(148,163,184,0.12); color: #fff; }
             #android-menu-drawer .a-link i { width: 18px; text-align:center; font-size: 13px; }
-            #android-menu-drawer .a-link.is-active { background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.20); color:#fff; }
+            #android-menu-drawer .a-link.is-active {
+              background: linear-gradient(105deg, rgba(251,191,36,0.22) 0%, rgba(59,130,246,0.14) 100%);
+              border-color: rgba(251,191,36,0.35);
+              color: #fff;
+              box-shadow: 0 0 22px rgba(251,191,36,0.12);
+            }
             #android-menu-drawer .a-divider { height:1px; background: rgba(148,163,184,0.14); margin: 10px 0; }
             #android-menu-drawer .a-badge { margin-left:auto; background:#ef4444; color:#fff; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 800; }
           </style>
@@ -617,7 +777,7 @@
     <!-- Main Dashboard Layout -->
     <div class="flex min-h-screen">
       <!-- Modern Sidebar -->
-      <aside class="sidebar-nav w-64 lg:w-72 flex-shrink-0 hidden md:block">
+      <aside class="sidebar-nav admin-sidebar w-64 lg:w-72 flex-shrink-0 hidden md:block">
         <div class="p-6">
           <div class="mb-6">
             <div class="flex items-center space-x-3 mb-1">
@@ -740,7 +900,7 @@
       </aside>
       
       <!-- Main Content -->
-      <main class="flex-1 overflow-hidden">
+      <main class="flex-1 overflow-hidden admin-main">
         <!-- Dashboard Content -->
         <div class="p-4 lg:p-6 space-y-6">
           <!-- Error Container -->
@@ -774,24 +934,33 @@
 
           <!-- Modern Dashboard Content (Overview) -->
           <div id="dashboard-content" class="hidden space-y-6">
-            <!-- Welcome Header -->
-            <div class="admin-card rounded-xl p-6">
-              <div class="flex items-center justify-between mb-4">
-                <div>
-                  <h1 class="text-2xl font-bold text-white mb-1">
-                    Welcome back, Admin 🏁
+            <!-- Overview hero -->
+            <div class="admin-hero p-6 md:p-8">
+              <div class="admin-hero-inner flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div class="max-w-2xl">
+                  <div class="admin-hero-kicker mb-2">
+                    <i class="fas fa-bolt" aria-hidden="true"></i>
+                    <span>Admin</span>
+                  </div>
+                  <h1 class="admin-hero-title text-white mb-3">
+                    Command <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-amber-300 to-rose-400">Center</span>
                   </h1>
-                  <p class="text-slate-400 text-sm">Your racing empire awaits your command</p>
+                  <p class="text-slate-400 text-sm md:text-base leading-relaxed max-w-xl">
+                    Approvals, race content, analytics, and ops—one cockpit built for race-night speed.
+                  </p>
+                  <div class="mt-4 flex flex-wrap items-center gap-2">
+                    <span class="admin-hero-chip"><i class="fas fa-circle text-[0.45rem] opacity-80" aria-hidden="true"></i> Live console</span>
+                  </div>
                 </div>
-                <div class="text-right">
-                  <div class="text-sm text-slate-400">Last login</div>
-                  <div class="text-white font-semibold" id="last-login-time">Just now</div>
+                <div class="shrink-0 rounded-xl border border-slate-600/40 bg-slate-900/45 px-5 py-4 backdrop-blur-sm text-left lg:text-right">
+                  <div class="text-xs text-slate-400 mb-1">Last login</div>
+                  <div class="text-white font-semibold text-lg" id="last-login-time">Just now</div>
                 </div>
               </div>
             </div>
             
             <!-- Statistics Grid -->
-            <div class="dashboard-grid">
+            <div class="dashboard-grid admin-stat-grid">
               <!-- Total Races Stat -->
               <div class="stat-card rounded-xl p-6">
                 <div class="flex items-center justify-between">
@@ -2833,7 +3002,7 @@
     <script type="module" src="navigation.js"></script>
     <!-- redsracing-dashboard.js removed: admin console has its own countdown/data loading -->
     <script type="module" src="assets/js/cms-admin.js?v=20251006-2"></script>
-    <script type="module" src="assets/js/queue-admin.js?v=20251003-1"></script>
+    <script type="module" src="assets/js/queue-admin.js?v=202605066"></script>
     
     <script>
       // Modern Admin Console JavaScript
@@ -8459,11 +8628,12 @@
           });
         }
         
-        // Emergency modal cleanup function
+        // Emergency modal cleanup function (never remove queue-admin #inspect-modal)
         function clearStuckModals() {
           // Remove any stuck overlays
           const overlays = document.querySelectorAll('[id$="-overlay"], .fixed.inset-0, .z-50, .z-40');
           overlays.forEach(overlay => {
+            if (overlay.id === 'inspect-modal') return;
             if (overlay.style.position === 'fixed' || overlay.classList.contains('fixed')) {
               overlay.remove();
             }
@@ -8471,7 +8641,10 @@
           
           // Remove any stuck modals
           const modals = document.querySelectorAll('[id$="-modal"]');
-          modals.forEach(modal => modal.remove());
+          modals.forEach(modal => {
+            if (modal.id === 'inspect-modal') return;
+            modal.remove();
+          });
           
           // Reset body overflow
           document.body.style.overflow = '';
@@ -8489,6 +8662,11 @@
         // Add escape key handler to close modals
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
+            const inspect = document.getElementById('inspect-modal');
+            if (inspect && inspect.style.display === 'flex') {
+              inspect.style.display = 'none';
+              return;
+            }
             // Try specific close functions first
             if (typeof closeRaceModal === 'function') closeRaceModal();
             
@@ -8499,6 +8677,11 @@
         
         // Add global click handler for modal backgrounds
         document.addEventListener('click', (e) => {
+          if (e.target && e.target.id === 'inspect-modal') {
+            e.stopPropagation();
+            e.target.style.display = 'none';
+            return;
+          }
           if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
             clearStuckModals();
           }
@@ -8507,46 +8690,20 @@
         // Expose cleanup function globally for manual use
         window.clearStuckModals = clearStuckModals;
         
-        // Specific fix for the stuck "Queued Item" modal
+        // Legacy cleanup: stuck "Queued Item" modals only (do not touch queue-admin inspect UI)
         function closeQueuedItemModal() {
-          // Find and remove the specific queued item modal
           const queuedModals = document.querySelectorAll('div:has(h4)');
           queuedModals.forEach(modal => {
+            if (modal.id === 'inspect-modal') return;
             const h4 = modal.querySelector('h4');
             if (h4 && h4.textContent.includes('Queued Item')) {
               modal.remove();
               console.log('🗑️ Removed stuck Queued Item modal');
             }
           });
-          
-          // Also try more specific selectors
-          const inspectClose = document.getElementById('inspect-close');
-          if (inspectClose) {
-            const modal = inspectClose.closest('div');
-            if (modal) modal.remove();
-          }
-          
-          // Remove any modals with inspect-json elements
-          const inspectElements = document.querySelectorAll('#inspect-json');
-          inspectElements.forEach(el => {
-            const modal = el.closest('.bg-slate-900, .border, .rounded-lg');
-            if (modal) modal.remove();
-          });
-          
-          // Clean up any remaining overlays
-          clearStuckModals();
         }
         
-        // Auto-run the fix on page load
-        document.addEventListener('DOMContentLoaded', () => {
-          setTimeout(closeQueuedItemModal, 1000);
-        });
-        
-        // Expose the function globally
         window.closeQueuedItemModal = closeQueuedItemModal;
-        
-        // Try to close it immediately
-        setTimeout(closeQueuedItemModal, 500);
         
         // Export data functionality
         function exportData() {

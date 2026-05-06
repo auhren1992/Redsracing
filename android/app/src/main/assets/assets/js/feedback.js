@@ -1,18 +1,12 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+import { getFirebaseDb } from "./firebase-core.js";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDu91Bi9SiF4K6P_sBjHBUNbjXjEB02X74",
-  authDomain: "redsracing-a7f8b.firebaseapp.com",
-  projectId: "redsracing-a7f8b",
-  storageBucket: "redsracing-a7f8b.firebasestorage.app",
-  messagingSenderId: "517034606151",
-  appId: "1:517034606151:web:ea84d9fb6b21f5ba99c8a9"
-};
-
-const app = initializeApp(firebaseConfig, 'feedback-app');
-const db = getFirestore(app);
+const db = getFirebaseDb();
 
 // Update feedback stats
 async function updateFeedbackStats() {
@@ -73,9 +67,9 @@ async function main() {
   if (feedbackForm) {
     feedbackForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const name = feedbackForm.name.value;
-      const email = feedbackForm.email.value;
-      const message = feedbackForm.message.value;
+      const name = (feedbackForm.name.value || "").trim();
+      const email = (feedbackForm.email.value || "").trim();
+      const message = (feedbackForm.message.value || "").trim();
 
       feedbackStatus.textContent = "Sending...";
       feedbackStatus.classList.remove("text-red-500", "text-green-500");
@@ -83,12 +77,13 @@ async function main() {
       try {
         const feedbackRef = collection(db, 'feedback');
         await addDoc(feedbackRef, {
-          name: name,
-          email: email,
-          message: message,
+          // Keep payload aligned with firestore.rules onlyHasKeys() for /feedback
+          ...(name ? { name } : {}),
+          ...(email ? { email } : {}),
+          message,
           createdAt: serverTimestamp(),
-          responded: false,
-          improvementMade: false
+          source: 'web',
+          page: (window.location && window.location.pathname ? window.location.pathname : 'feedback.html')
         });
 
         feedbackStatus.textContent = "Feedback sent successfully! We'll get back to you soon.";

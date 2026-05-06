@@ -32,18 +32,42 @@
 </head>
 <body class="flex flex-col min-h-screen">
   <div id="navigation-placeholder"></div>
-  <div style="margin-top:70px" class="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border-b border-slate-700/50">
-    <div class="container mx-auto px-4 py-10">
-      <div class="flex items-center justify-between mb-4">
-        <a href="team.html" class="text-slate-400 hover:text-white transition flex items-center text-sm"><i class="fas fa-arrow-left mr-2"></i>Home</a>
-        <a href="schedule.html" class="text-yellow-400 hover:text-yellow-300 transition text-sm"><i class="fas fa-calendar mr-2"></i>Schedule</a>
+  <section class="rr-hero" style="margin-top:70px">
+    <div class="rr-hero__inner container mx-auto px-4 py-12 md:py-16">
+      <div class="flex items-center justify-between mb-6">
+        <a href="team.html" class="text-slate-400 hover:text-white transition flex items-center text-sm">
+          <i class="fas fa-arrow-left mr-2"></i>Home
+        </a>
+        <a href="schedule.html" class="text-yellow-400 hover:text-yellow-300 transition text-sm">
+          <i class="fas fa-calendar mr-2"></i>Schedule
+        </a>
       </div>
+
       <div class="text-center">
-        <h1 class="text-4xl md:text-6xl font-racing text-white mb-2">TRACK GUIDES</h1>
-        <p class="text-slate-400">Know the tracks before you go</p>
+        <div class="rr-hero-kicker mx-auto mb-5">
+          <i class="fas fa-location-dot"></i>
+          <span>Plan your race night</span>
+        </div>
+        <h1 class="rr-hero-title text-4xl md:text-6xl text-white mb-3">TRACK GUIDES</h1>
+        <p class="rr-hero-sub text-lg md:text-xl mb-8">Maps, fan tips, and performance snapshots — know the tracks before you go.</p>
+
+        <div class="rr-hero-actions">
+          <a class="rr-pill rr-pill--primary" href="schedule.html">
+            <i class="fas fa-flag-checkered"></i>
+            <span>See schedule</span>
+          </a>
+          <a class="rr-pill" href="gallery.html">
+            <i class="fas fa-camera"></i>
+            <span>Photo gallery</span>
+          </a>
+          <a class="rr-pill" href="recaps.html">
+            <i class="fas fa-newspaper"></i>
+            <span>Race recaps</span>
+          </a>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
   <div class="container mx-auto px-4 py-8">
     <div id="loading" class="text-center py-16"><i class="fas fa-spinner fa-spin text-yellow-400 text-3xl"></i><p class="text-slate-400 mt-4">Loading tracks...</p></div>
     <div id="tracks-list" class="hidden space-y-8"></div>

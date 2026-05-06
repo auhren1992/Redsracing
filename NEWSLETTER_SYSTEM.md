@@ -17,7 +17,7 @@ Modern, gradient-styled footer with:
 - Real-time Firebase Firestore integration
 - Duplicate email detection
 - Loading states & user feedback
-- Social media links (Facebook, TikTok, Instagram)
+- Social media links (Facebook, TikTok)
 - Mobile responsive design
 
 **Updated Pages:**

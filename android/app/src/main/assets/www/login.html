@@ -222,6 +222,7 @@
               type="email"
               id="email"
               name="email"
+              autocomplete="username webauthn"
               placeholder="you@example.com"
               required
               class="form-input modern-input-enhanced mt-1 block w-full px-4 py-3 rounded-lg shadow-sm focus:ring-yellow-400 text-base"
@@ -245,11 +246,17 @@
               type="password"
               id="password"
               name="password"
+              autocomplete="current-password"
               placeholder="••••••••"
               required
               class="form-input modern-input-enhanced mt-1 block w-full px-4 py-3 rounded-lg shadow-sm focus:ring-yellow-400 text-base"
             />
           </div>
+
+          <label class="flex items-start gap-3 text-sm text-slate-400 cursor-pointer select-none">
+            <input type="checkbox" id="enable-device-unlock" class="mt-1 rounded border-slate-600 bg-slate-900 text-yellow-400 focus:ring-yellow-400" />
+            <span>After a successful sign-in, let my browser save this account for <strong class="text-slate-300">Face ID, Touch ID, fingerprint, or Windows Hello</strong> next time (this device only).</span>
+          </label>
 
           <div class="flex flex-col space-y-3">
             <button
@@ -286,6 +293,18 @@
               >Or continue with</span
             >
           </div>
+        </div>
+
+        <div id="device-signin-wrap" class="hidden flex-col space-y-2 my-4">
+          <button
+            type="button"
+            id="device-signin-button"
+            class="w-full flex justify-center items-center gap-2 bg-slate-700/80 text-white font-semibold py-3 px-4 rounded-lg border border-slate-600 hover:bg-slate-700 hover:border-slate-500 transition-all duration-300"
+          >
+            <i class="fas fa-fingerprint text-yellow-400" aria-hidden="true"></i>
+            Sign in with Face ID / Touch ID / device
+          </button>
+          <p class="text-xs text-slate-500 text-center leading-relaxed">Uses your browser’s saved password and your device lock screen. Enable the checkbox above after your first successful sign-in.</p>
         </div>
 
         <!-- Google Sign-in -->

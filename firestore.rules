@@ -21,7 +21,44 @@ service cloud.firestore {
     // Fallback: check role from users document for current user
     function hasProfileRole(role) {
       return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             'role' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    // Align with client admin checks (cms-admin, queue-admin): token flags + Firestore role/booleans
+    function isPrivilegedStaff() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'team-member' ||
+        request.auth.token.admin == true ||
+        request.auth.token.teamMember == true ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'team-member' ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner' ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isTeamMember', false) == true ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isOwner', false) == true
+          )
+        )
+      );
+    }
+
+    function isAdminOnly() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.admin == true ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true
+          )
+        )
+      );
     }
     
     // ========================================
@@ -255,6 +292,23 @@ service cloud.firestore {
         true; // Anyone can submit feedback
       allow read: if true; // Public read for displaying stats
       allow update, delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+    }
+
+    // Email retry queues (written by Cloud Functions Admin SDK; team reads/updates in admin console)
+    match /feedback_queue/{id} {
+      allow read: if isPrivilegedStaff();
+      allow create, update: if isPrivilegedStaff();
+      allow delete: if isAdminOnly();
+    }
+    match /sponsorship_queue/{id} {
+      allow read: if isPrivilegedStaff();
+      allow create, update: if isPrivilegedStaff();
+      allow delete: if isAdminOnly();
+    }
+    match /queue_dead_letter/{id} {
+      allow read: if isPrivilegedStaff();
+      allow create: if false;
+      allow update, delete: if isPrivilegedStaff();
     }
     
     // Admin action logs (team-members and admins can write)

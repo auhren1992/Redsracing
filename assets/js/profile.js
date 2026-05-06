@@ -545,7 +545,6 @@ import { LoadingService } from "./loading.js";
 
     const links = [];
     const socialPlatforms = [
-      { key: 'instagram', icon: 'fab fa-instagram', color: 'from-purple-500 to-pink-500', label: 'Instagram', url: (val) => val.startsWith('@') ? `https://instagram.com/${val.slice(1)}` : `https://instagram.com/${val}` },
       { key: 'tiktok', icon: 'fab fa-tiktok', color: 'from-slate-900 to-slate-700', label: 'TikTok', url: (val) => val.startsWith('@') ? `https://tiktok.com/@${val.slice(1)}` : `https://tiktok.com/@${val}` },
       { key: 'youtube', icon: 'fab fa-youtube', color: 'from-red-600 to-red-500', label: 'YouTube', url: (val) => val.includes('youtube.com') || val.includes('youtu.be') ? val : `https://youtube.com/@${val}` },
       { key: 'discord', icon: 'fab fa-discord', color: 'from-indigo-600 to-blue-500', label: 'Discord', url: null },

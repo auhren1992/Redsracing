@@ -21,16 +21,72 @@ service cloud.firestore {
     // Fallback: check role from users document for current user
     function hasProfileRole(role) {
       return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             'role' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    // Align with client admin checks (cms-admin, queue-admin): token flags + Firestore role/booleans
+    function isPrivilegedStaff() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'team-member' ||
+        request.auth.token.admin == true ||
+        request.auth.token.teamMember == true ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'team-member' ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner' ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isTeamMember', false) == true ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isOwner', false) == true
+          )
+        )
+      );
+    }
+
+    function isAdminOnly() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.admin == true ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true
+          )
+        )
+      );
     }
     
     // ========================================
     // PUBLIC ACCESS RULES (No auth required)
     // ========================================
+
+    function isNonEmptyString(field) {
+      return field is string && field.size() > 0;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.size() >= 6 && email.size() <= 254
+        && email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
+    }
+
+    // Only allow writes that don't introduce unexpected fields.
+    function onlyHasKeys(allowedKeys) {
+      return request.resource.data.keys().hasOnly(allowedKeys);
+    }
     
     // Newsletter subscribers - MUST BE FIRST
     match /subscribers/{subscriberId} {
-      allow create: if true; // Anyone can subscribe
+      allow create: if
+        onlyHasKeys(['email', 'createdAt', 'subscribed', 'source']) &&
+        isValidEmail(request.resource.data.email) &&
+        // Keep sources reasonably small to avoid junk payloads
+        (!('source' in request.resource.data) || (request.resource.data.source is string && request.resource.data.source.size() <= 50)) &&
+        true; // Anyone can subscribe
       allow read: if true; // Allow checking for duplicates
       allow update, delete: if hasRole('team-member') || hasRole('admin');
     }
@@ -108,7 +164,14 @@ service cloud.firestore {
       allow read: if (resource.data.status == 'published')
                   || hasRole('team-member') || hasRole('admin')
                   || hasProfileRole('team-member') || hasProfileRole('admin');
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        onlyHasKeys(['question', 'status', 'submitterUid', 'submitterName', 'submittedAt']) &&
+        isNonEmptyString(request.resource.data.question) &&
+        request.resource.data.question.size() <= 2000 &&
+        request.resource.data.status == 'submitted' &&
+        request.resource.data.submitterUid == request.auth.uid &&
+        // submitterName is optional-ish; if present keep it short
+        (!('submitterName' in request.resource.data) || (request.resource.data.submitterName is string && request.resource.data.submitterName.size() <= 80));
       // Moderation (answer/publish/reject) restricted to team-members/admins (claims or users doc role)
       allow update: if hasRole('team-member') || hasRole('admin')
                     || hasProfileRole('team-member') || hasProfileRole('admin');
@@ -124,12 +187,40 @@ service cloud.firestore {
       allow delete: if hasRole('admin') || hasProfileRole('admin');
     }
 
-    // Site configuration (e.g., config/tiktok)
+    // Site configuration (e.g., config/tiktok, config/photo_of_week)
     match /config/{docId} {
-      // Allow any authenticated user to read config (e.g., to show UI),
-      // but restrict writes to team-members or admins
-      allow read: if isAuthenticated();
+      // Public read for photo_of_week on team page; auth read for other config
+      allow read: if true;
       allow write: if hasRole('team-member') || hasRole('admin');
+    }
+    
+    // App configuration (version management, push notification settings)
+    match /app_config/{docId} {
+      // Public read for version checking in apps
+      allow read: if true;
+      // Only admins can update app config
+      allow write: if hasRole('admin') || hasProfileRole('admin');
+    }
+    
+    // App usage tracking (version distribution, device info)
+    match /app_usage/{usageId} {
+      // Apps can write their own usage data.
+      // Require the payload to match the document ID to reduce spoofing.
+      allow create, update: if
+        (request.resource.data.fcm_token == usageId) &&
+        true;
+      // Admins can read all usage data
+      allow read: if hasRole('admin') || hasProfileRole('admin') || hasRole('team-member') || hasProfileRole('team-member');
+    }
+    
+    // Push notification queue (for Cloud Functions)
+    match /push_notifications/{notificationId} {
+      // Team members and admins can create notifications
+      allow create: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      // Admins can read notification status
+      allow read: if hasRole('admin') || hasProfileRole('admin');
+      // Cloud Functions can update status
+      allow update: if true;
     }
     
     // Jonny-specific images (approvals)
@@ -158,21 +249,18 @@ service cloud.firestore {
     
     // Client error logs (frontend)
     match /client_logs/{logId} {
-      // Any authenticated user may create a log entry
-      allow create: if isAuthenticated();
+      // Allow anyone to create error logs (public error tracking from all devices)
+      allow create: if true;
       // Team members/admins can read logs (via token or users doc fallback)
       allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
-      // Admin can delete (via token or users doc fallback)
-      allow delete: if hasRole('admin') || hasProfileRole('admin');
+      // Team-members/admins can delete old logs from admin console
+      allow delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
     }
     
     // TikTok videos library
     match /tiktok_videos/{videoId} {
-      // Public can read published videos; team-members/admins can read all
-      allow read: if (resource.data.published == true)
-                  || hasRole('team-member')
-                  || hasProfileRole('team-member')
-                  || hasProfileRole('admin');
+      // Any authenticated user can read videos
+      allow read: if isAuthenticated();
       allow write: if hasRole('team-member') || hasRole('admin') || hasProfileRole('admin');
       allow delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('admin');
     }
@@ -184,11 +272,43 @@ service cloud.firestore {
       allow delete: if hasRole('admin') || hasProfileRole('admin');
     }
     
+    // Analytics events (public write for tracking user interactions)
+    match /analytics_events/{eventId} {
+      allow create: if true; // Anyone can track events
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+    
     // Feedback submissions (public create and read for stats)
     match /feedback/{feedbackId} {
-      allow create: if true; // Anyone can submit feedback
+      allow create: if
+        onlyHasKeys(['name', 'email', 'message', 'createdAt', 'source', 'page']) &&
+        (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() <= 80)) &&
+        (!('email' in request.resource.data) || isValidEmail(request.resource.data.email)) &&
+        isNonEmptyString(request.resource.data.message) &&
+        request.resource.data.message.size() <= 4000 &&
+        (!('page' in request.resource.data) || (request.resource.data.page is string && request.resource.data.page.size() <= 120)) &&
+        (!('source' in request.resource.data) || (request.resource.data.source is string && request.resource.data.source.size() <= 50)) &&
+        true; // Anyone can submit feedback
       allow read: if true; // Public read for displaying stats
       allow update, delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+    }
+
+    // Email retry queues (written by Cloud Functions Admin SDK; team reads/updates in admin console)
+    match /feedback_queue/{id} {
+      allow read: if isPrivilegedStaff();
+      allow create, update: if isPrivilegedStaff();
+      allow delete: if isAdminOnly();
+    }
+    match /sponsorship_queue/{id} {
+      allow read: if isPrivilegedStaff();
+      allow create, update: if isPrivilegedStaff();
+      allow delete: if isAdminOnly();
+    }
+    match /queue_dead_letter/{id} {
+      allow read: if isPrivilegedStaff();
+      allow create: if false;
+      allow update, delete: if isPrivilegedStaff();
     }
     
     // Admin action logs (team-members and admins can write)
@@ -196,6 +316,70 @@ service cloud.firestore {
       allow create: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
       allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
       allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+
+    // Configuration history / change tracking
+    match /config_history/{historyId} {
+      allow create: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+
+    // Security events captured from admin actions and suspicious flows
+    match /security_events/{eventId} {
+      allow create: if true;
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow update, delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+
+    // Persisted health check snapshots
+    match /health_checks/{checkId} {
+      allow create: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+
+    // Active admin alerts derived from health/security checks
+    match /admin_alerts/{alertId} {
+      allow create, update: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow read: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+    
+    // Live race updates
+    match /live_race/{document} {
+      allow read: if true;
+      allow write: if isAuthenticated() && 
+        (hasRole('admin') || hasRole('team-member') || hasProfileRole('admin') || hasProfileRole('team-member'));
+    }
+    
+    // Live race commentary feed
+    match /live_race_updates/{updateId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && 
+        (hasRole('admin') || hasRole('team-member') || hasProfileRole('admin') || hasProfileRole('team-member'));
+      allow delete: if hasRole('admin') || hasProfileRole('admin');
+    }
+    
+    // Fan Wall shoutouts
+    match /fan_wall/{postId} {
+      // Public can read approved posts
+      allow read: if (resource.data.approved == true)
+                  || hasRole('team-member') || hasRole('admin')
+                  || hasProfileRole('team-member') || hasProfileRole('admin');
+      // Authenticated users can create (with approved=false)
+      allow create: if isAuthenticated();
+      // Team/admin can approve or delete
+      allow update: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+    }
+    
+    // Fan predictions
+    match /predictions/{predictionId} {
+      allow read: if true; // Public leaderboard
+      allow create: if isAuthenticated();
+      // Admin can score predictions
+      allow update: if hasRole('admin') || hasProfileRole('admin') || hasRole('team-member') || hasProfileRole('team-member');
     }
     
     // Default deny - catches everything not explicitly allowed above

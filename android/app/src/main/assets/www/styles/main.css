@@ -73,11 +73,165 @@ body {
 .video-item:hover,
 .gallery-item:hover,
 .sponsor-logo:hover {
-  transform: translateY(-10px);
+  transform: translateY(-6px);
   box-shadow:
     0 0 30px rgba(247, 255, 0, 0.2),
     0 0 12px rgba(247, 255, 0, 0.15);
   border-color: rgba(247, 255, 0, 0.4);
+}
+
+/* ============================================
+   Featured Strip (reusable "always fresh" row)
+   ============================================ */
+.rr-feature-strip {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.rr-feature-shell {
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+.rr-feature-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  background: linear-gradient(90deg, rgba(59,130,246,0.10), rgba(251,191,36,0.08), rgba(239,68,68,0.08));
+}
+
+.rr-feature-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: rgba(251, 191, 36, 0.95);
+}
+
+.rr-feature-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #fbbf24;
+  box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55);
+  animation: rr-livePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes rr-livePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55); transform: scale(1); }
+  50% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0.0); transform: scale(1.05); }
+}
+
+.rr-feature-actions a {
+  color: rgba(226, 232, 240, 0.85);
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(2, 6, 23, 0.22);
+  transition: all 0.2s ease;
+}
+.rr-feature-actions a:hover {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.4);
+  transform: translateY(-1px);
+}
+
+.rr-feature-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 0;
+}
+
+.rr-feature-card {
+  position: relative;
+  padding: 16px 16px 14px;
+  border-right: 1px solid rgba(148, 163, 184, 0.10);
+}
+.rr-feature-card:last-child { border-right: 0; }
+
+.rr-feature-label {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.75);
+  margin-bottom: 6px;
+}
+
+.rr-feature-title {
+  font-family: "Racing Sans One", sans-serif;
+  font-size: 1.55rem;
+  line-height: 1.05;
+  color: #fff;
+  margin: 0 0 6px;
+}
+
+.rr-feature-sub {
+  color: rgba(226, 232, 240, 0.80);
+  font-weight: 650;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  margin: 0 0 10px;
+}
+
+.rr-feature-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0b1220;
+  font-weight: 900;
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 26px rgba(251, 191, 36, 0.14);
+}
+.rr-feature-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(251, 191, 36, 0.22);
+}
+
+.rr-feature-card.rr-accent-blue::before,
+.rr-feature-card.rr-accent-red::before,
+.rr-feature-card.rr-accent-amber::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.7;
+}
+.rr-feature-card.rr-accent-blue::before {
+  background: radial-gradient(700px circle at 10% 20%, rgba(59, 130, 246, 0.12), transparent 50%);
+}
+.rr-feature-card.rr-accent-red::before {
+  background: radial-gradient(700px circle at 10% 20%, rgba(239, 68, 68, 0.10), transparent 50%);
+}
+.rr-feature-card.rr-accent-amber::before {
+  background: radial-gradient(700px circle at 10% 20%, rgba(251, 191, 36, 0.12), transparent 50%);
+}
+
+@media (max-width: 900px) {
+  .rr-feature-grid { grid-template-columns: 1fr; }
+  .rr-feature-card { border-right: 0; border-bottom: 1px solid rgba(148, 163, 184, 0.10); }
+  .rr-feature-card:last-child { border-bottom: 0; }
 }
 .textarea-notes,
 .form-input {
@@ -106,6 +260,10 @@ body {
   border-left: 4px solid #475569; /* slate-600 */
   transition: all 0.3s ease;
 }
+.schedule-card.next-up {
+  border-left-color: #fbbf24;
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.14);
+}
 .schedule-card.upcoming {
   border-left-color: #f7ff00;
 }
@@ -115,6 +273,66 @@ body {
 .schedule-card:hover {
   transform: translateX(5px);
   border-left-color: #00c6ff;
+}
+.schedule-card .race-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+.schedule-card .race-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-decoration: none;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(2, 6, 23, 0.22);
+  color: rgba(226, 232, 240, 0.88);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.schedule-card .race-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(251, 191, 36, 0.45);
+  color: #fbbf24;
+}
+.schedule-card .race-btn.primary {
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
+  color: #0b1220;
+  border-color: rgba(251, 191, 36, 0.35);
+}
+.schedule-card .race-btn.primary:hover {
+  color: #0b1220;
+  box-shadow: 0 10px 26px rgba(251, 191, 36, 0.18);
+}
+.schedule-card .race-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.schedule-card .race-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(2, 6, 23, 0.18);
+  color: rgba(226, 232, 240, 0.80);
+}
+.schedule-card .race-badge.next {
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.10);
+  color: #fbbf24;
 }
 .car-hotspot-container {
   position: relative;
@@ -322,14 +540,7 @@ input.bg-white::placeholder, textarea.bg-white::placeholder { color: #6b7280 !im
   transform: translateY(-1px);
 }
 
-/* Remove login buttons from all pages */
-#login-btn,
-#mobile-login-btn,
-.mobile-login-btn,
-#account-toggle-loggedout,
-nav a[href="login.html"] {
-  display: none !important;
-}
+/* Login buttons are used in Web + native apps; keep them visible. */
 
 /* Dropdown Styles */
 .dropdown {
@@ -844,7 +1055,70 @@ input[type="file"]:not(:disabled)::-webkit-file-upload-button {
   cursor: pointer !important;
 }
 
-/* Polish: focus, selection, reduced motion (WebView + site) */
+/* ============================================
+   ROLE-AWARE THEME OVERRIDES
+   Applied via --rr-accent CSS vars from role-theme.js
+   ============================================ */
+
+/* Nav link hover uses role accent */
+.nav-link:hover,
+.dropdown-item:hover,
+.mobile-nav-item:hover,
+.mobile-nav-subitem:hover {
+  color: var(--rr-accent, #f7ff00) !important;
+}
+
+/* Card hover glow uses role accent */
+.card:hover,
+.stat-card:hover,
+.video-item:hover,
+.gallery-item:hover {
+  box-shadow: 0 0 30px color-mix(in srgb, var(--rr-accent, #f7ff00) 20%, transparent),
+              0 0 12px color-mix(in srgb, var(--rr-accent, #f7ff00) 15%, transparent);
+  border-color: color-mix(in srgb, var(--rr-accent, #f7ff00) 40%, transparent);
+}
+
+/* Buttons use role accent */
+body.theme-racer .bg-neon-yellow,
+body.theme-racer .bg-gradient-to-r.from-yellow-400 { background: linear-gradient(45deg, #f97316, #fb923c) !important; }
+body.theme-crew .bg-neon-yellow,
+body.theme-crew .bg-gradient-to-r.from-yellow-400 { background: linear-gradient(45deg, #06b6d4, #22d3ee) !important; }
+
+/* Neon yellow text adapts to role */
+body.theme-racer .neon-yellow { color: #f97316 !important; }
+body.theme-crew .neon-yellow { color: #06b6d4 !important; }
+
+/* Schedule card border */
+body.theme-racer .schedule-card.upcoming { border-left-color: #f97316; }
+body.theme-crew .schedule-card.upcoming { border-left-color: #06b6d4; }
+
+/* Form input focus */
+body.theme-racer .form-input:focus { border-color: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,0.3); }
+body.theme-crew .form-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6,182,212,0.3); }
+
+/* Swiper pagination */
+body.theme-racer .swiper-pagination-bullet-active { background: #f97316 !important; }
+body.theme-crew .swiper-pagination-bullet-active { background: #06b6d4 !important; }
+
+/* Swiper nav arrows */
+body.theme-racer .swiper-button-next, body.theme-racer .swiper-button-prev { color: #f97316 !important; }
+body.theme-crew .swiper-button-next, body.theme-crew .swiper-button-prev { color: #06b6d4 !important; }
+
+/* Text gradient */
+body.theme-racer .text-gradient { background-image: linear-gradient(to right, #ef4444, #f97316); }
+body.theme-crew .text-gradient { background-image: linear-gradient(to right, #0ea5e9, #06b6d4); }
+
+/* Mobile accordion active state */
+body.theme-racer .mobile-accordion.active { background: rgba(249,115,22,0.15); color: #f97316; border-left-color: #f97316; }
+body.theme-racer .mobile-accordion:hover { background: rgba(249,115,22,0.1); color: #f97316; }
+body.theme-crew .mobile-accordion.active { background: rgba(6,182,212,0.15); color: #06b6d4; border-left-color: #06b6d4; }
+body.theme-crew .mobile-accordion:hover { background: rgba(6,182,212,0.1); color: #06b6d4; }
+
+/* ============================================
+   Polish: cleaner keyboard focus, selection,
+   and calmer motion when users prefer it
+   (applies to hosted site and bundled WebView)
+   ============================================ */
 ::selection {
   background: rgba(0, 198, 255, 0.35);
   color: #fff;
