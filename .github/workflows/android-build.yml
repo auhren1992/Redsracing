@@ -16,6 +16,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Read app version
+        id: app_version
+        run: |
+          FILE=android/app/build.gradle.kts
+          VERSION_NAME=$(grep -E 'versionName[[:space:]]*=' "$FILE" | head -1 | sed -E 's/.*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/')
+          VERSION_CODE=$(grep -E 'versionCode[[:space:]]*=' "$FILE" | head -1 | sed -E 's/.*versionCode[[:space:]]*=[[:space:]]*([0-9]+).*/\1/')
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "App version: $VERSION_NAME (versionCode $VERSION_CODE)"
+
       # Optional: set repo secret GOOGLE_SERVICES_JSON to full JSON so CI/cloud never relies on a stale committed copy.
       - name: Inject google-services.json from secret (optional)
         env:
@@ -80,9 +90,32 @@ jobs:
       - name: Upload Bundle Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-bundle
+          name: reds-racing-aab-v${{ steps.app_version.outputs.version_name }}-b${{ steps.app_version.outputs.version_code }}
           path: android/app/build/outputs/bundle/release/*.aab
-          retention-days: 30
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Download instructions (job summary)
+        run: |
+          {
+            echo "## Android App Bundle ready to download"
+            echo ""
+            echo "The signed **Play Store** bundle is published as a workflow artifact (a zip file)."
+            echo ""
+            echo "| | |"
+            echo "|--|--|"
+            echo "| **Artifact name** | \`reds-racing-aab-v${{ steps.app_version.outputs.version_name }}-b${{ steps.app_version.outputs.version_code }}\` |"
+            echo "| **File inside zip** | \`app-release.aab\` |"
+            echo ""
+            echo "### How to download"
+            echo "1. Open this workflow run in the **Actions** tab."
+            echo "2. Scroll to **Artifacts** at the bottom of the page."
+            echo "3. Download the artifact zip, extract it, and use \`app-release.aab\` in [Google Play Console](https://play.google.com/console)."
+            echo ""
+            echo "To trigger a fresh build manually: **Actions → Android Build → Run workflow**."
+            echo ""
+            echo "Workflow file: [\`android-build.yml\`](https://github.com/${{ github.repository }}/actions/workflows/android-build.yml)"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Clean up keystore
         if: always()

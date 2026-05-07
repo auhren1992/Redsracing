@@ -58,3 +58,13 @@ The project uses Firebase for authentication and Firestore for data storage. See
 ### Note on Tailwind CSS
 
 This project previously used Tailwind CSS via CDN, which showed warnings in production. We've migrated to a local build process using the Tailwind CLI for better production performance and to eliminate the development warnings.
+
+## Android app bundle (download signed .aab)
+
+CI builds a signed **Android App Bundle** on every **Android Build** workflow run.
+
+1. Go to [Android Build workflow runs](https://github.com/auhren1992/Redsracing/actions/workflows/android-build.yml).
+2. Open a successful run (or use **Run workflow** to build manually).
+3. Under **Artifacts**, download `reds-racing-aab-v{version}-b{code}` (zip). Inside is `app-release.aab` for Play Console.
+
+More detail: `.github/SECRET_SETUP.md` → **Download the signed Android bundle (.aab)**.

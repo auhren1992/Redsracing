@@ -12,6 +12,18 @@ Keep this repo **private**. Names below are **references only** (never paste sec
 | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | **Not listed** — add if you use the Play upload step | Play Console service account JSON (full text). Step skips upload if unset. |
 | `GOOGLE_SERVICES_JSON` | **Optional** — add when ready | Full JSON → overwrites `android/app/google-services.json` before Gradle. If unset, CI uses the file from Git. |
 
+### Download the signed Android bundle (.aab)
+
+Every successful **Android Build** run uploads a downloadable artifact:
+
+1. Open [Actions → Android Build](https://github.com/auhren1992/Redsracing/actions/workflows/android-build.yml).
+2. Click the latest successful run (or **Run workflow** to build on demand).
+3. Scroll to **Artifacts** at the bottom.
+4. Download the artifact named like `reds-racing-aab-v{versionName}-b{versionCode}` (a zip file).
+5. Unzip and upload `app-release.aab` to [Google Play Console](https://play.google.com/console).
+
+The run summary also repeats these steps. Artifacts are kept for **90 days** (see workflow).
+
 ## iOS (`ios-build.yml`)
 
 | Secret | In your repo? | Purpose |
