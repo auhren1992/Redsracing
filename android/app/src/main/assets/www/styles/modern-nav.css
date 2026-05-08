@@ -231,10 +231,28 @@ body[data-auth="signed-in"] #mobile-user-profile.hidden {
 .dropdown-menu {
   pointer-events: auto;
   z-index: 9999;
+  position: absolute;
 }
 
 .dropdown-menu.hidden {
   pointer-events: none;
+}
+
+/* User profile dropdown must be above everything */
+#user-profile .dropdown-menu {
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+}
+
+#user-profile .dropdown-menu:not(.hidden) {
+  pointer-events: auto !important;
+}
+
+#user-profile .dropdown-menu a,
+#user-profile .dropdown-menu button {
+  pointer-events: auto !important;
+  z-index: 100000 !important;
+  position: relative;
 }
 
 header.scrolled {

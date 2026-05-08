@@ -333,32 +333,77 @@ async function main() {
     const modal = document.createElement('div');
     modal.id = 'inspect-modal';
     modal.style.display = 'none';
-    modal.className = 'fixed inset-0 flex items-center justify-center bg-black/60 p-4';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.right = '0';
+    modal.style.bottom = '0';
+    modal.style.left = '0';
+    modal.style.padding = '16px';
+    modal.style.background = 'rgba(0,0,0,0.60)';
     modal.style.zIndex = '11000';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.webkitTapHighlightColor = 'transparent';
     modal.innerHTML = `
       <div id="inspect-panel" class="bg-slate-900 border border-slate-700 rounded-lg w-11/12 max-w-3xl p-4 shadow-2xl">
         <div class="flex items-center justify-between mb-2">
           <h4 id="inspect-title" class="text-white font-semibold">Document</h4>
-          <button type="button" id="inspect-close" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+          <button type="button" id="inspect-close" class="text-slate-400 hover:text-white text-2xl leading-none px-3 py-2 -mr-2 -mt-2" aria-label="Close">&times;</button>
         </div>
         <pre id="inspect-json" class="text-slate-300 text-xs overflow-auto whitespace-pre-wrap break-words" style="max-height: 60vh"></pre>
       </div>`;
     document.body.appendChild(modal);
-    document.getElementById('inspect-close').addEventListener('click', () => { modal.style.display = 'none'; });
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.style.display = 'none';
-    });
+    let lastInspectCloseTs = 0;
+    const setInspectOpen = (open) => {
+      if (open) {
+        modal.style.display = 'flex';
+        modal.style.pointerEvents = 'auto';
+        modal.setAttribute('aria-hidden', 'false');
+        try { document.body.style.overflow = 'hidden'; } catch (_) {}
+      } else {
+        modal.style.display = 'none';
+        modal.style.pointerEvents = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+        try { document.body.style.overflow = ''; } catch (_) {}
+      }
+    };
+    setInspectOpen(false);
+
+    const closeInspect = (ev) => {
+      try {
+        if (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+        }
+      } catch (_) {}
+      lastInspectCloseTs = Date.now();
+      setInspectOpen(false);
+    };
+
+    const closeBtn = document.getElementById('inspect-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeInspect, true);
+      closeBtn.addEventListener('pointerdown', closeInspect, true);
+      closeBtn.addEventListener('touchstart', closeInspect, { capture: true, passive: false });
+    }
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeInspect(e); }, true);
+    modal.addEventListener('pointerdown', (e) => { if (e.target === modal) closeInspect(e); }, true);
+    modal.addEventListener('touchstart', (e) => { if (e.target === modal) closeInspect(e); }, { capture: true, passive: false });
+    document.addEventListener('keydown', (e) => {
+      if (e && e.key === 'Escape' && modal.style.display !== 'none') closeInspect(e);
+    }, true);
 
     async function inspectDoc(col, id){
       const pre = document.getElementById('inspect-json');
       const titleEl = document.getElementById('inspect-title');
       if (!pre || !id || !col) return;
+      if (Date.now() - lastInspectCloseTs < 350) return;
       try {
         const snap = await getDoc(doc(db, col, id));
         if (!snap.exists()) {
           pre.textContent = `No document at ${col}/${id}`;
           if (titleEl) titleEl.textContent = 'Not found';
-          modal.style.display = 'flex';
+          setInspectOpen(true);
           return;
         }
         const data = snap.data();
@@ -369,12 +414,12 @@ async function main() {
           }
           return v;
         }, 2);
-        modal.style.display = 'flex';
+        setInspectOpen(true);
       } catch (err) {
         console.error('[queue-admin] inspectDoc failed:', col, id, err);
         if (titleEl) titleEl.textContent = 'Inspect failed';
         pre.textContent = (err && err.message) ? err.message : String(err);
-        modal.style.display = 'flex';
+        setInspectOpen(true);
       }
     }
 
@@ -382,6 +427,7 @@ async function main() {
     document.addEventListener('click', (e) => {
       const btn = e.target && e.target.closest ? e.target.closest('.inspect-btn') : null;
       if (!btn) return;
+      if (modal.style.display !== 'none') return;
       const id = btn.getAttribute('data-id');
       const col = btn.getAttribute('data-col');
       if (id && col) inspectDoc(col, id);

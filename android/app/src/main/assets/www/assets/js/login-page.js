@@ -109,6 +109,7 @@ class LoginPageController {
 
       // Enable UI after initialization
       this.enableUI();
+      this.updateDeviceSignInVisibility();
       this.isInitialized = true;
       console.info("[Login] UI enabled");
     } catch (error) {
@@ -131,8 +132,10 @@ class LoginPageController {
       // Buttons
       signinButton: document.getElementById("signin-button"),
       googleSigninButton: document.getElementById("google-signin-button"),
+      deviceSigninButton: document.getElementById("device-signin-button"),
       forgotPasswordLink: document.getElementById("forgot-password-link"),
       continueGuestButton: document.getElementById("continue-guest-button"),
+      deviceUnlockCheckbox: document.getElementById("enable-device-unlock"),
 
       // UI containers
       errorBox: document.getElementById("error-box"),
@@ -182,6 +185,11 @@ class LoginPageController {
       this.handleContinueAsGuest();
     });
 
+    this.elements.deviceSigninButton?.addEventListener("click", () => {
+      console.info("[Login] Device / biometric sign-in clicked");
+      this.handleDeviceCredentialSignIn();
+    });
+
     // Input validation and error clearing
     this.elements.emailInput?.addEventListener("input", () =>
       this.hideMessage(),
@@ -197,10 +205,86 @@ class LoginPageController {
   /**
    * Enable UI interactions after Firebase initialization
    */
+  supportsDeviceCredential() {
+    try {
+      return !!(
+        window.isSecureContext &&
+        navigator.credentials &&
+        typeof window.PasswordCredential !== "undefined"
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  updateDeviceSignInVisibility() {
+    const wrap = document.getElementById("device-signin-wrap");
+    if (!wrap) return;
+    if (this.supportsDeviceCredential()) {
+      wrap.classList.remove("hidden");
+      wrap.classList.add("flex");
+    }
+  }
+
+  async maybeStoreDeviceCredential(email, password) {
+    if (!this.elements.deviceUnlockCheckbox?.checked) return;
+    if (!this.supportsDeviceCredential() || !email || !password) return;
+    try {
+      const c = new PasswordCredential({
+        id: email,
+        password,
+        name: email,
+      });
+      await navigator.credentials.store(c);
+      try {
+        localStorage.setItem("rr_device_unlock_enabled", "1");
+      } catch (_) {}
+      console.info("[Login] Stored device credential for faster sign-in");
+    } catch (e) {
+      console.warn("[Login] Device credential storage skipped:", e);
+    }
+  }
+
+  async handleDeviceCredentialSignIn() {
+    if (!this.isInitialized) {
+      this.showMessage("Please wait for the page to load completely.");
+      return;
+    }
+    this.hideMessage();
+    if (!this.supportsDeviceCredential()) {
+      this.showMessage(
+        "Device sign-in is not available in this browser or context. Use email and password, or open the site over HTTPS.",
+      );
+      return;
+    }
+    try {
+      const cred = await navigator.credentials.get({
+        password: true,
+        mediation: "required",
+      });
+      if (!cred || cred.type !== "password") return;
+      const pc = /** @type {PasswordCredential} */ (cred);
+      if (this.elements.emailInput) this.elements.emailInput.value = pc.id || "";
+      if (this.elements.passwordInput) this.elements.passwordInput.value = pc.password || "";
+      await this.handleEmailSignIn();
+    } catch (e) {
+      if (e && e.name === "AbortError") return;
+      if (e && e.name === "NotAllowedError") {
+        this.showMessage("Device sign-in was cancelled.");
+        return;
+      }
+      console.warn("[Login] Device credential sign-in failed:", e);
+      this.showMessage(
+        "Could not use device sign-in. Enter your email and password, or sign in with Google.",
+      );
+    }
+  }
+
   enableUI() {
     const buttons = [
       this.elements.signinButton,
       this.elements.googleSigninButton,
+      this.elements.deviceSigninButton,
     ];
 
     buttons.forEach((button) => {
@@ -220,6 +304,7 @@ class LoginPageController {
     const buttons = [
       this.elements.signinButton,
       this.elements.googleSigninButton,
+      this.elements.deviceSigninButton,
     ];
 
     buttons.forEach((button) => {
@@ -361,6 +446,7 @@ class LoginPageController {
     try {
       await signInWithEmailAndPassword(this.auth, email, password);
       console.info("[Login] Email sign-in success");
+      await this.maybeStoreDeviceCredential(email, password);
       // Force refresh to get latest custom claims
       const user = this.auth.currentUser;
       this.setAuthMarker(user);
@@ -384,15 +470,8 @@ class LoginPageController {
       if (role === 'admin') {
         navigateToInternal('/admin-console.html');
         return;
-      } else if (role === 'team-member') {
-        navigateToInternal('/dashboard.html'); // Racer/Crew dashboard
-        return;
-      } else if (role === 'TeamRedFollower') {
-        navigateToInternal('/follower-dashboard.html'); // Fan dashboard
-        return;
       }
-
-      // Unknown role: default to follower dashboard
+      // All other roles go to role-aware dashboard
       navigateToInternal('/follower-dashboard.html');
     } catch (error) {
       console.error("[Login] Email sign-in failed:", error);
@@ -528,8 +607,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
     const rt = params.get('returnTo');
     const safeReturnTo = rt ? validateRedirectUrl(rt, null) : null;
+
+    // Already logged in — skip login page entirely
+    if (localStorage.getItem('rr_auth_uid')) {
+      console.info("[Login] User already authenticated, redirecting...");
+      navigateToInternal(safeReturnTo || '/team.html');
+      return;
+    }
+
+    // Guest flag set with a return target — go straight there
     if (localStorage.getItem('rr_guest_ok') === '1' && safeReturnTo) {
-      // If guest flag is set, immediately route to returnTo
       navigateToInternal(safeReturnTo);
       return;
     }

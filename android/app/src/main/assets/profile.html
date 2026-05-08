@@ -19,211 +19,113 @@
     <link rel="stylesheet" href="styles/modern-effects.css" />
     <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
     <style>
-      /* Profile Page Styles */
-      :root {
-        --panel-bg: linear-gradient(150deg, rgba(15, 23, 42, 0.92) 0%, rgba(2, 6, 23, 0.92) 100%);
-        --panel-border: rgba(148, 163, 184, 0.2);
-        --text-soft: #94a3b8;
-        --text-bright: #f8fafc;
-        --accent: #f7ff00;
-      }
+      /* Page-specific polish aligned to theme variables in main.css */
       body {
         background:
-          radial-gradient(circle at 20% -20%, rgba(56, 189, 248, 0.12), transparent 35%),
-          radial-gradient(circle at 90% 0%, rgba(168, 85, 247, 0.12), transparent 30%),
-          radial-gradient(circle at 80% 80%, rgba(251, 191, 36, 0.08), transparent 35%),
-          #020617;
+          radial-gradient(850px circle at 18% 15%, rgba(214, 177, 94, 0.10), transparent 55%),
+          radial-gradient(900px circle at 85% 10%, rgba(59, 130, 246, 0.10), transparent 55%),
+          radial-gradient(900px circle at 60% 85%, rgba(239, 68, 68, 0.08), transparent 55%),
+          var(--rr-bg);
       }
-      .profile-hero {
-        position: relative;
-        overflow: hidden;
-        padding: 2.5rem 0 0.75rem;
+
+      .rr-panel {
+        background: var(--rr-surface);
+        border: 1px solid var(--rr-border);
+        box-shadow: var(--rr-shadow);
+        backdrop-filter: blur(16px);
       }
-      .profile-hero::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background:
-          linear-gradient(120deg, rgba(56, 189, 248, 0.14), transparent 45%),
-          linear-gradient(300deg, rgba(168, 85, 247, 0.14), transparent 50%);
-        pointer-events: none;
+
+      .rr-kicker {
+        font-size: 0.72rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-weight: 900;
+        color: var(--rr-muted);
       }
-      .profile-main-card,
-      .profile-panel,
-      .persona-card,
-      #profile-edit-form .bg-slate-900,
-      #error-state .max-w-md {
-        background: var(--panel-bg);
-        border: 1px solid var(--panel-border);
-        box-shadow: 0 20px 50px rgba(2, 6, 23, 0.45);
+
+      .rr-value {
+        color: var(--rr-text);
       }
-      .profile-main-card {
-        position: relative;
-        overflow: hidden;
-      }
-      .profile-main-card::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(120deg, rgba(247, 255, 0, 0.05), transparent 40%);
-        pointer-events: none;
-      }
-      .profile-avatar-ring {
-        background: linear-gradient(135deg, #0ea5e9 0%, #7c3aed 50%, #facc15 100%);
-        padding: 3px;
+
+      .rr-avatarRing {
+        background: linear-gradient(135deg, rgba(214, 177, 94, 1), rgba(59, 130, 246, 0.85), rgba(239, 68, 68, 0.85));
+        padding: 2px;
         border-radius: 9999px;
-        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 35px rgba(14, 165, 233, 0.25);
       }
-      .profile-stat-card {
-        background: rgba(15, 23, 42, 0.6);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+
+      .rr-avatarInner {
+        border-radius: 9999px;
+        overflow: hidden;
+        background: rgba(2, 6, 23, 0.45);
+        border: 1px solid var(--rr-border);
       }
-      .profile-stat-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(56, 189, 248, 0.5);
-        box-shadow: 0 14px 35px rgba(15, 23, 42, 0.55);
+
+      .rr-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 9999px;
+        border: 1px solid var(--rr-border);
+        background: var(--rr-bg-elev);
+        color: var(--rr-text);
+        font-weight: 800;
       }
-      .stat-icon {
-        width: 3rem;
-        height: 3rem;
+
+      .rr-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 0.8rem;
-        font-size: 1.2rem;
-        border: 1px solid rgba(148, 163, 184, 0.2);
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--rr-border);
+        background: var(--rr-bg-elev);
+        color: var(--rr-text);
+        font-weight: 800;
+        transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
       }
-      .persona-card {
-        position: relative;
-        overflow: hidden;
+      .rr-btn:hover { transform: translateY(-1px); border-color: rgba(214, 177, 94, 0.40); background: var(--rr-surface-strong); }
+      .rr-btn--primary { background: linear-gradient(45deg, var(--rr-accent), var(--rr-accent-2)); color: #0b1220; border-color: rgba(214, 177, 94, 0.42); }
+      .rr-btn--danger { border-color: rgba(239, 68, 68, 0.35); }
+      .rr-btn--danger:hover { border-color: rgba(239, 68, 68, 0.55); }
+
+      .rr-input {
+        width: 100%;
+        background: rgba(2, 6, 23, 0.35);
+        border: 1px solid var(--rr-border);
+        color: var(--rr-text);
+        padding: 12px 14px;
+        border-radius: 12px;
+        outline: none;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease;
       }
-      .persona-card::before {
-        content: '';
-        position: absolute;
-        inset: -40% -40%;
-        background: conic-gradient(from 180deg, transparent, rgba(56, 189, 248, 0.15), transparent, rgba(250, 204, 21, 0.15), transparent);
-        animation: personaGlow 9s linear infinite;
-        opacity: 0.8;
-      }
-      @keyframes personaGlow {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-      .persona-card-inner {
-        position: relative;
-        z-index: 1;
-        background: rgba(2, 6, 23, 0.78);
-      }
-      .persona-option {
-        background: rgba(15, 23, 42, 0.7);
-        border: 1px solid rgba(148, 163, 184, 0.25);
-        border-radius: 0.9rem;
-        transition: all 0.2s ease;
-        cursor: pointer;
-      }
-      .persona-option:hover {
-        border-color: rgba(56, 189, 248, 0.45);
-        transform: translateY(-2px);
-      }
-      .persona-option.selected {
-        border-color: rgba(247, 255, 0, 0.8);
-        box-shadow: 0 0 0 1px rgba(247, 255, 0, 0.35), 0 10px 30px rgba(247, 255, 0, 0.1);
-      }
-      .badge-card {
-        background: rgba(15, 23, 42, 0.75);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        transition: all 0.2s ease;
-      }
-      .badge-card:hover {
-        transform: translateY(-3px);
-        border-color: rgba(250, 204, 21, 0.35);
-      }
-      .badge-card.unlocked {
-        background: linear-gradient(145deg, rgba(234, 179, 8, 0.15), rgba(15, 23, 42, 0.8));
-      }
-      .status-emoji { font-size: 1.4rem; }
+      html[data-theme="light"] .rr-input { background: rgba(255, 255, 255, 0.72); }
+      .rr-input:focus { border-color: rgba(214, 177, 94, 0.55); box-shadow: 0 0 0 4px rgba(214, 177, 94, 0.14); }
+
       .color-dot {
         width: 14px;
         height: 14px;
         border-radius: 9999px;
         display: inline-block;
         border: 2px solid rgba(255, 255, 255, 0.35);
-        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
+        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
       }
-      .profile-meta-pill {
-        background: rgba(15, 23, 42, 0.8);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        border-radius: 9999px;
-        padding: 0.6rem 1rem;
-      }
-      .quick-action-btn {
-        background: rgba(15, 23, 42, 0.75);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        border-radius: 0.75rem;
-        color: var(--text-bright);
-        font-size: 0.85rem;
-        font-weight: 600;
-        padding: 0.6rem 0.9rem;
-        transition: all 0.2s ease;
-      }
-      .quick-action-btn:hover {
-        border-color: rgba(56, 189, 248, 0.55);
-        background: rgba(30, 41, 59, 0.75);
-      }
+      html[data-theme="light"] .color-dot { border-color: rgba(15, 23, 42, 0.22); }
+
       .toast {
         position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(2, 6, 23, 0.95);
-        border: 1px solid rgba(56, 189, 248, 0.4);
-        color: #fff;
-        padding: 0.9rem 1.2rem;
-        border-radius: 0.75rem;
+        top: 18px;
+        right: 18px;
         z-index: 9999;
-        box-shadow: 0 18px 45px rgba(2, 6, 23, 0.55);
+        background: var(--rr-surface-strong);
+        border: 1px solid var(--rr-border);
+        color: var(--rr-text);
+        padding: 0.9rem 1.1rem;
+        border-radius: 14px;
+        box-shadow: var(--rr-shadow);
         display: none;
-        backdrop-filter: blur(10px);
-      }
-      .edit-input {
-        background: rgba(2, 6, 23, 0.65);
-        border: 1px solid rgba(148, 163, 184, 0.25);
-        color: #fff;
-        padding: 0.7rem 0.95rem;
-        border-radius: 0.7rem;
-        transition: all 0.2s ease;
-      }
-      .edit-input:focus {
-        outline: none;
-        border-color: rgba(56, 189, 248, 0.8);
-        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
-      }
-      .action-btn {
-        border-radius: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        padding: 0.7rem 1rem;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-      }
-      .action-btn:hover {
-        transform: translateY(-2px);
-      }
-      .level-bar {
-        height: 8px;
-        background: rgba(51, 65, 85, 0.75);
-        border-radius: 9999px;
-        overflow: hidden;
-      }
-      .level-bar-fill {
-        height: 100%;
-        border-radius: inherit;
-        background: linear-gradient(90deg, #0ea5e9 0%, #a3e635 100%);
-        transition: width 0.7s ease;
-      }
-      @media (max-width: 768px) {
-        .profile-hero {
-          padding-top: 1.4rem;
-        }
+        backdrop-filter: blur(16px);
       }
     </style>
     <script src="assets/js/guest-gate.js"></script>
@@ -293,53 +195,8 @@
           </div>
           
           <!-- User Profile / Login -->
-          <div id="auth-section">
-            <!-- Login Button (shown when not authenticated) -->
-            <a href="admin-console.html" id="login-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-bold transition duration-300 flex items-center space-x-1">
-              <i class="fas fa-sign-in-alt"></i>
-              <span>Login</span>
-            </a>
-            
-            <!-- User Profile Dropdown (shown when authenticated) -->
-            <div id="user-profile" class="relative dropdown hidden">
-              <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
-                <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <i class="fas fa-user text-white text-xs"></i>
-                </div>
-                <div class="text-left hidden md:block">
-                  <div class="text-sm font-semibold text-white" id="user-name">Driver</div>
-                  <div class="text-xs text-slate-400">Team Member</div>
-                </div>
-                <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
-              </button>
-              
-              <div class="dropdown-menu modern-dropdown hidden right-0 w-44">
-                <div class="px-4 py-2 border-b border-slate-600/50">
-                  <div class="flex items-center space-x-2">
-                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span class="text-green-400 text-sm">Online</span>
-                  </div>
-                </div>
-                
-                <a href="admin-console.html" class="dropdown-item flex items-center">
-                  <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
-                  <span>Dashboard</span>
-                </a>
-                
-                <a href="profile.html" class="dropdown-item flex items-center">
-                  <i class="fas fa-user w-4 mr-3 text-green-400"></i>
-                  <span>My Profile</span>
-                </a>
-                
-                <div class="border-t border-slate-600/50 my-1"></div>
-                
-                <button id="user-logout" class="dropdown-item flex items-center w-full text-left hover:bg-red-600/10 hover:text-red-400">
-                  <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i>
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            </div>
-          </div>
+          <!-- Auth UI is managed by assets/js/navigation.js (Account dropdown) -->
+          <div id="auth-section" style="display:none"></div>
         </div>
         
         <!-- Mobile Clock and Menu -->
@@ -401,46 +258,8 @@
         </div>
         <div class="border-t border-slate-600 mt-4 pt-4">
           <!-- Mobile Auth Section -->
-          <div id="mobile-auth-section">
-            <!-- Mobile Login Button (shown when not authenticated) -->
-            <a href="admin-console.html" id="mobile-login-btn" class="mobile-login-btn bg-red-600 hover:bg-red-700">
-              <i class="fas fa-sign-in-alt mr-2"></i>Driver Login
-            </a>
-            
-            <!-- Mobile User Profile (shown when authenticated) -->
-            <div id="mobile-user-profile" class="hidden">
-              <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
-                <div class="flex items-center space-x-3 mb-3">
-                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <i class="fas fa-user text-white"></i>
-                  </div>
-                  <div>
-                    <div class="text-white font-semibold" id="mobile-user-name">Driver</div>
-                    <div class="text-slate-400 text-sm">Team Member</div>
-                    <div class="flex items-center space-x-1 mt-1">
-                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span class="text-green-400 text-xs">Online</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="space-y-1">
-                  <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
-                    <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
-                    <span>Dashboard</span>
-                  </a>
-                  <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
-                    <i class="fas fa-user w-5 mr-3 text-green-400"></i>
-                    <span>My Profile</span>
-                  </a>
-                  <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
-                    <i class="fas fa-sign-out-alt w-5 mr-3 text-red-400"></i>
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <!-- Mobile auth UI is managed by assets/js/navigation.js -->
+          <div id="mobile-auth-section" style="display:none"></div>
         </div>
       </div>
     </header>
@@ -450,272 +269,236 @@
       <div id="auth-error-container" class="container mx-auto px-6 mb-6"></div>
 
       <!-- Loading State -->
-      <div id="loading-state" class="flex flex-col items-center justify-center text-center py-32">
-        <div class="relative">
-          <div class="w-20 h-20 border-4 border-slate-700 rounded-full"></div>
-          <div class="absolute top-0 left-0 w-20 h-20 border-4 border-transparent border-t-yellow-400 rounded-full animate-spin"></div>
+      <section id="loading-state" class="container mx-auto px-6 py-20">
+        <div class="max-w-2xl mx-auto rr-panel rounded-3xl overflow-hidden">
+          <div class="p-10 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl border" style="border-color: var(--rr-border); background: var(--rr-bg-elev);">
+              <div class="w-10 h-10 border-2 rounded-full animate-spin" style="border-color: rgba(148,163,184,0.35); border-top-color: var(--rr-accent);"></div>
+            </div>
+            <div class="mt-7 rr-kicker">Secure profile</div>
+            <h1 class="mt-2 text-3xl md:text-4xl font-racing uppercase tracking-wide rr-value">Loading account</h1>
+            <p class="mt-3" style="color: var(--rr-muted);">Hang tight—this usually takes a second.</p>
+          </div>
+          <div class="border-t px-6 py-4 text-xs text-center" style="border-color: var(--rr-border); color: var(--rr-muted);">
+            Tip: You can switch themes anytime.
+          </div>
         </div>
-        <p class="text-2xl mt-6 font-racing uppercase tracking-wider text-gradient">Loading Profile...</p>
-        <p class="text-slate-500 mt-2">Preparing your racing identity</p>
-      </div>
+      </section>
 
       <!-- Profile Content -->
       <div id="profile-content" class="hidden">
-        <!-- Profile Banner (Team/Admin only) -->
-        <div id="profile-banner" class="hidden w-full h-48 md:h-64 lg:h-80 overflow-hidden relative">
-          <img id="profile-banner-img" src="" alt="Profile Banner" class="w-full h-full object-cover">
-          <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-950"></div>
-        </div>
-        
-        <div class="profile-hero">
-          <div class="container mx-auto px-6">
-            <div class="max-w-6xl mx-auto">
-              <div class="profile-main-card rounded-2xl" id="profile-main-card">
-                <div class="h-1.5 bg-gradient-to-r from-cyan-400 via-purple-500 to-yellow-400"></div>
-                <div class="p-6 md:p-8">
-                  <div class="flex flex-col xl:flex-row gap-8">
-                    <div class="flex-1 min-w-0">
-                      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-5">
-                        <div class="profile-avatar-ring w-24 h-24 md:w-28 md:h-28 flex-shrink-0">
-                          <div class="w-full h-full rounded-full bg-slate-900 overflow-hidden flex items-center justify-center">
-                            <img id="profile-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden" />
-                            <span id="profile-avatar-placeholder" class="text-4xl font-bold text-slate-500">?</span>
-                          </div>
-                        </div>
-                        <div class="min-w-0">
-                          <div class="flex items-center gap-2 mb-1">
-                            <h1 id="profile-display-name" class="text-3xl md:text-4xl font-racing text-white truncate">Loading...</h1>
-                            <span id="profile-status-emoji" class="status-emoji" aria-hidden="true"></span>
-                            <span id="profile-theme-dot" class="color-dot" title="Theme color"></span>
-                          </div>
-                          <p id="profile-username" class="text-cyan-300 font-semibold text-lg">@loading</p>
+        <section class="container mx-auto px-6 pt-10 pb-6">
+          <div class="max-w-6xl mx-auto">
+            <!-- Banner (optional, shown when profile has bannerUrl) -->
+            <div id="profile-banner" class="hidden rr-panel rounded-3xl overflow-hidden mb-6">
+              <img id="profile-banner-img" alt="Profile banner" class="w-full h-44 md:h-56 object-cover" />
+            </div>
+
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-6">
+              <div>
+                <div class="rr-kicker">Account</div>
+                <h1 class="mt-2 text-4xl md:text-5xl font-racing uppercase tracking-wide rr-value">Profile</h1>
+                <p class="mt-2" style="color: var(--rr-muted);">A clean profile looks professional across the app and site.</p>
+              </div>
+              <div class="flex flex-wrap gap-3">
+                <a href="schedule.html" class="rr-btn">
+                  <i class="fa-solid fa-flag-checkered"></i>
+                  Schedule
+                </a>
+                <a href="videos.html" class="rr-btn">
+                  <i class="fa-solid fa-play"></i>
+                  Highlights
+                </a>
+              </div>
+            </div>
+
+            <div id="profile-main-card" class="rr-panel rounded-3xl overflow-hidden">
+              <div class="p-6 md:p-8">
+                <div class="flex flex-col lg:flex-row gap-8">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start gap-5">
+                      <div class="rr-avatarRing w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
+                        <div class="rr-avatarInner w-full h-full flex items-center justify-center">
+                          <img id="profile-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden" />
+                          <span id="profile-avatar-placeholder" class="text-3xl font-black" style="color: var(--rr-muted);">?</span>
                         </div>
                       </div>
-                      <p id="profile-bio" class="text-slate-300 leading-relaxed max-w-3xl">
-                        No bio provided.
-                      </p>
-                      <div class="mt-5 flex flex-wrap gap-3">
-                        <div id="profile-team-role" class="profile-meta-pill inline-flex items-center gap-2">
-                          <span id="role-emoji">🏎️</span>
-                          <span id="role-text" class="text-sm font-semibold text-slate-200">Loading...</span>
+
+                      <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                          <h2 id="profile-display-name" class="text-3xl md:text-4xl font-racing uppercase tracking-wide truncate rr-value">Loading...</h2>
+                          <span id="profile-status-emoji" class="text-2xl" aria-hidden="true"></span>
+                          <span id="profile-theme-dot" class="color-dot" title="Theme color"></span>
                         </div>
-                        <div class="profile-meta-pill inline-flex items-center gap-2">
-                          <span class="text-slate-300">Member Since</span>
-                          <span id="profile-join-date" class="text-sm font-semibold text-slate-100">Loading...</span>
+                        <div class="mt-1 flex flex-wrap items-center gap-3">
+                          <p id="profile-username" class="font-semibold" style="color: var(--rr-muted);">@loading</p>
+                          <span class="rr-pill">
+                            <span style="color: var(--rr-muted);">Role</span>
+                            <span class="rr-value">—</span>
+                          </span>
+                          <span class="rr-pill">
+                            <span style="color: var(--rr-muted);">Member since</span>
+                            <span class="rr-value">—</span>
+                          </span>
                         </div>
                       </div>
                     </div>
-                    <aside class="xl:w-80 flex-shrink-0 space-y-4">
-                      <div class="profile-panel rounded-xl p-4">
-                        <div class="text-xs uppercase tracking-[0.18em] text-slate-400 mb-2">Profile Strength</div>
-                        <div class="flex items-end justify-between gap-2 mb-2">
-                          <div class="text-3xl font-black text-white">84%</div>
-                          <div class="text-xs text-slate-400">Complete</div>
-                        </div>
-                        <div class="level-bar mb-4">
-                          <div class="level-bar-fill" style="width:84%"></div>
-                        </div>
-                        <button id="edit-profile-btn" class="action-btn w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white">
-                          Edit Profile
-                        </button>
-                      </div>
-                      <div class="profile-panel rounded-xl p-4">
-                        <div class="text-xs uppercase tracking-[0.18em] text-slate-400 mb-3">Quick Actions</div>
-                        <div class="grid grid-cols-2 gap-2.5">
-                          <a href="leaderboard.html" class="quick-action-btn text-center">Leaderboard</a>
-                          <a href="schedule.html" class="quick-action-btn text-center">Schedule</a>
-                          <a href="videos.html" class="quick-action-btn text-center">Highlights</a>
-                          <a href="admin-console.html" class="quick-action-btn text-center">Dashboard</a>
-                        </div>
-                      </div>
-                    </aside>
+
+                    <div class="mt-6 rr-panel rounded-2xl p-5" style="background: var(--rr-bg-elev); border-color: var(--rr-border); box-shadow: none;">
+                      <div class="rr-kicker">About</div>
+                      <p id="profile-bio" class="mt-2 leading-relaxed" style="color: var(--rr-muted);">No bio provided.</p>
+                    </div>
                   </div>
+
+                  <aside class="lg:w-80 flex-shrink-0">
+                    <div class="grid grid-cols-2 gap-3">
+                      <button id="edit-profile-btn" class="rr-btn rr-btn--primary col-span-2">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        Edit profile
+                      </button>
+                      <a href="admin-console.html" class="rr-btn">
+                        <i class="fa-solid fa-gauge"></i>
+                        Dashboard
+                      </a>
+                      <a href="index.html" class="rr-btn">
+                        <i class="fa-solid fa-house"></i>
+                        Home
+                      </a>
+                      <button id="logout-button" class="rr-btn rr-btn--danger col-span-2">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        Sign out
+                      </button>
+                    </div>
+                    <div class="mt-4 text-xs" style="color: var(--rr-muted);">
+                      Pro tip: Use a short bio and a clean display name for the most professional look.
+                    </div>
+
+                    <div class="mt-4 rr-panel rounded-2xl p-4" style="background: var(--rr-bg-elev); border-color: var(--rr-border); box-shadow: none;">
+                      <div class="rr-kicker">Garage</div>
+                      <div class="mt-2 flex items-baseline gap-2">
+                        <div class="text-3xl font-black rr-value" id="stat-cars-count">0</div>
+                        <div style="color: var(--rr-muted); font-weight: 700;">cars</div>
+                      </div>
+                      <div class="mt-1 text-xs" style="color: var(--rr-muted);">Your build list & photos.</div>
+                    </div>
+                  </aside>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="container mx-auto px-6 py-6 md:py-8">
-          <div class="max-w-6xl mx-auto space-y-6">
-            <section id="profile-display" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <article class="profile-stat-card rounded-xl p-5">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-xs tracking-widest uppercase text-slate-400 mb-1">Cars</p>
-                    <p class="text-3xl font-black text-white" id="stat-cars-count">0</p>
-                  </div>
-                  <div class="stat-icon bg-cyan-500/15 text-cyan-300">🚗</div>
-                </div>
+        </section>
+
+        <section class="container mx-auto px-6 pb-14">
+          <div class="max-w-6xl mx-auto">
+            <section id="profile-display" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <article class="rr-panel rounded-3xl p-6">
+                <div class="rr-kicker">Favorites</div>
+                <h3 class="mt-2 text-xl font-bold rr-value">Cars</h3>
+                <p id="profile-favorite-cars" class="mt-2" style="color: var(--rr-muted);">—</p>
               </article>
-              <article class="profile-stat-card rounded-xl p-5">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-xs tracking-widest uppercase text-slate-400 mb-1">Track</p>
-                    <p class="text-lg font-bold text-white" id="stat-track">—</p>
-                  </div>
-                  <div class="stat-icon bg-blue-500/15 text-blue-300">🏁</div>
-                </div>
+
+              <article class="rr-panel rounded-3xl p-6">
+                <div class="rr-kicker">Favorites</div>
+                <h3 class="mt-2 text-xl font-bold rr-value">Track</h3>
+                <p id="profile-favorite-track" class="mt-2" style="color: var(--rr-muted);">—</p>
               </article>
-              <article class="profile-stat-card rounded-xl p-5">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-xs tracking-widest uppercase text-slate-400 mb-1">Badges</p>
-                    <p class="text-3xl font-black text-white">6</p>
-                  </div>
-                  <div class="stat-icon bg-purple-500/15 text-purple-300">🏆</div>
-                </div>
-              </article>
-              <article class="profile-stat-card rounded-xl p-5">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-xs tracking-widest uppercase text-slate-400 mb-1">Status</p>
-                    <p class="text-lg font-bold text-emerald-300">Active</p>
-                  </div>
-                  <div class="stat-icon bg-emerald-500/15 text-emerald-300">●</div>
-                </div>
-              </article>
-            </section>
-            <!-- Garage Section -->
-            <section class="profile-panel rounded-2xl p-6">
-              <div class="flex items-center justify-between gap-4 mb-4">
-                <h2 class="text-xl md:text-2xl font-racing text-white uppercase tracking-wide flex items-center">
-                  <i class="fas fa-car mr-3 text-red-400"></i>My Garage
-                </h2>
-                <span id="garage-count" class="text-sm text-slate-400"></span>
-              </div>
-              <div id="profile-garage" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="text-center py-8 col-span-full">
-                  <i class="fas fa-car text-4xl text-slate-600 mb-3"></i>
-                  <p class="text-slate-500">No cars in garage yet</p>
-                </div>
-              </div>
             </section>
 
-            <!-- Social Links Section -->
-            <section id="social-section" class="profile-panel rounded-2xl p-6 hidden">
-              <h2 class="text-xl md:text-2xl font-racing text-white uppercase tracking-wide mb-4 flex items-center">
-                <i class="fas fa-share-alt mr-3 text-purple-400"></i>Connect
-              </h2>
-              <div id="profile-social-links" class="flex flex-wrap gap-3">
-                <!-- Social links will be injected here -->
-              </div>
+            <!-- Social (optional, shown when links exist) -->
+            <section id="social-section" class="hidden mt-6 rr-panel rounded-3xl p-6">
+              <div class="rr-kicker">Social</div>
+              <h3 class="mt-2 text-xl font-bold rr-value">Links</h3>
+              <div id="profile-social-links" class="mt-4 flex flex-wrap gap-3"></div>
             </section>
-            <section class="persona-card rounded-2xl">
-              <div class="persona-card-inner p-6 md:p-8 rounded-2xl">
-                <div class="flex items-center justify-between gap-4 mb-6">
-                  <h2 class="text-2xl md:text-3xl font-racing text-white uppercase">Racing Persona</h2>
-                  <button id="save-persona-btn" class="action-btn bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-900">Save Persona</button>
+
+            <!-- Garage (optional) -->
+            <section class="mt-6 rr-panel rounded-3xl p-6">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <div class="rr-kicker">Garage</div>
+                  <h3 class="mt-2 text-xl font-bold rr-value">Cars</h3>
                 </div>
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
+                <div id="garage-count" class="text-sm" style="color: var(--rr-muted);"></div>
+              </div>
+              <div id="profile-garage" class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </section>
+          </div>
+        </section>
+
+        <!-- Edit Drawer -->
+        <div id="profile-edit-form" class="hidden fixed inset-0 z-50">
+          <div class="absolute inset-0 bg-black/65 backdrop-blur-sm"></div>
+          <div class="relative h-full w-full flex justify-end">
+            <div class="h-full w-full max-w-xl rr-panel overflow-hidden rounded-none sm:rounded-l-3xl">
+              <div class="p-6 border-b" style="border-color: var(--rr-border);">
+                <div class="flex items-start justify-between gap-4">
                   <div>
-                    <p class="text-slate-400 text-sm uppercase tracking-widest mb-3">Choose driving identity</p>
-                    <div class="space-y-3">
-                      <label class="persona-option flex items-center p-4">
-                        <input type="radio" name="racing-persona" value="veteran" class="sr-only" />
-                        <div class="flex items-center gap-4 w-full">
-                          <div class="w-11 h-11 rounded-lg bg-amber-500/20 flex items-center justify-center text-xl">🏁</div>
-                          <div class="flex-grow">
-                            <div class="font-bold text-white">The Veteran</div>
-                            <div class="text-sm text-slate-400">Strategic, measured, composed</div>
-                          </div>
-                          <div class="w-5 h-5 rounded-full border border-slate-500 flex items-center justify-center persona-check">
-                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-300 hidden"></div>
-                          </div>
-                        </div>
-                      </label>
-                      <label class="persona-option flex items-center p-4">
-                        <input type="radio" name="racing-persona" value="speedster" class="sr-only" />
-                        <div class="flex items-center gap-4 w-full">
-                          <div class="w-11 h-11 rounded-lg bg-yellow-500/20 flex items-center justify-center text-xl">⚡</div>
-                          <div class="flex-grow">
-                            <div class="font-bold text-white">Speed Demon</div>
-                            <div class="text-sm text-slate-400">Fast, bold, high pressure</div>
-                          </div>
-                          <div class="w-5 h-5 rounded-full border border-slate-500 flex items-center justify-center persona-check">
-                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-300 hidden"></div>
-                          </div>
-                        </div>
-                      </label>
-                      <label class="persona-option flex items-center p-4">
-                        <input type="radio" name="racing-persona" value="precision" class="sr-only" />
-                        <div class="flex items-center gap-4 w-full">
-                          <div class="w-11 h-11 rounded-lg bg-cyan-500/20 flex items-center justify-center text-xl">🎯</div>
-                          <div class="flex-grow">
-                            <div class="font-bold text-white">Precision Pilot</div>
-                            <div class="text-sm text-slate-400">Technical, smooth, disciplined</div>
-                          </div>
-                          <div class="w-5 h-5 rounded-full border border-slate-500 flex items-center justify-center persona-check">
-                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-300 hidden"></div>
-                          </div>
-                        </div>
-                      </label>
-                      <label class="persona-option flex items-center p-4">
-                        <input type="radio" name="racing-persona" value="wildcard" class="sr-only" />
-                        <div class="flex items-center gap-4 w-full">
-                          <div class="w-11 h-11 rounded-lg bg-fuchsia-500/20 flex items-center justify-center text-xl">🃏</div>
-                          <div class="flex-grow">
-                            <div class="font-bold text-white">Wild Card</div>
-                            <div class="text-sm text-slate-400">Adaptive, disruptive, creative</div>
-                          </div>
-                          <div class="w-5 h-5 rounded-full border border-slate-500 flex items-center justify-center persona-check">
-                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-300 hidden"></div>
-                          </div>
-                        </div>
-                      </label>
-                    </div>
+                    <div class="rr-kicker">Edit</div>
+                    <h3 class="mt-2 text-2xl font-racing uppercase tracking-wide rr-value">Profile details</h3>
+                    <p class="mt-2 text-sm" style="color: var(--rr-muted);">Luxury look: minimal emoji, clean name, strong contrast.</p>
                   </div>
-                  <div id="persona-display" class="profile-panel rounded-xl p-6">
-                    <div class="text-center">
-                      <div id="persona-icon" class="text-6xl md:text-7xl mb-4">🏁</div>
-                      <h4 id="persona-title" class="text-2xl font-racing text-white mb-3">The Veteran</h4>
-                      <p id="persona-description" class="text-slate-300 leading-relaxed mb-5">
-                        You bring wisdom and strategic thinking to every race. Your experience shows in your calculated moves and consistent performance.
-                      </p>
-                      <div class="flex flex-wrap justify-center gap-2">
-                        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-sm text-slate-200">🧠 Strategic</span>
-                        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-sm text-slate-200">⚖️ Balanced</span>
-                        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-sm text-slate-200">🎯 Consistent</span>
-                      </div>
-                    </div>
+                  <button id="cancel-edit-btn" class="rr-btn" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="p-6 overflow-auto" style="max-height: calc(100vh - 92px);">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="rr-kicker block mb-2">Username</label>
+                    <input id="edit-username" class="rr-input" type="text" placeholder="yourname" maxlength="20" />
+                  </div>
+
+                  <div>
+                    <label class="rr-kicker block mb-2">Display name</label>
+                    <input id="edit-display-name" class="rr-input" type="text" placeholder="Your Name" maxlength="30" />
+                  </div>
+
+                  <div class="sm:col-span-2">
+                    <label class="rr-kicker block mb-2">Bio</label>
+                    <textarea id="edit-bio" class="rr-input" rows="4" placeholder="A short, professional bio..."></textarea>
+                  </div>
+
+                  <div class="sm:col-span-2">
+                    <label class="rr-kicker block mb-2">Avatar URL</label>
+                    <input id="edit-avatar-url" class="rr-input" type="url" placeholder="https://..." />
+                  </div>
+
+                  <div class="sm:col-span-2">
+                    <label class="rr-kicker block mb-2">Favorite cars</label>
+                    <input id="edit-favorite-cars" class="rr-input" type="text" placeholder="Camaro, Mustang, ..." />
+                  </div>
+
+                  <div>
+                    <label class="rr-kicker block mb-2">Status emoji</label>
+                    <input id="edit-status-emoji" class="rr-input" type="text" placeholder="🏁" maxlength="2" />
+                  </div>
+
+                  <div>
+                    <label class="rr-kicker block mb-2">Theme color</label>
+                    <input id="edit-theme-color" class="rr-input" type="text" placeholder="#d6b15e" />
+                  </div>
+
+                  <div class="sm:col-span-2">
+                    <label class="rr-kicker block mb-2">Favorite track</label>
+                    <input id="edit-favorite-track" class="rr-input" type="text" placeholder="Your track" />
+                  </div>
+
+                  <div class="sm:col-span-2 flex flex-wrap gap-3 pt-2">
+                    <button id="surprise-me-btn" class="rr-btn" type="button">
+                      <i class="fa-solid fa-wand-magic-sparkles"></i>
+                      Surprise me
+                    </button>
+                    <div class="flex-1"></div>
+                    <button id="save-profile-btn" class="rr-btn rr-btn--primary" type="button">
+                      <i class="fa-solid fa-floppy-disk"></i>
+                      Save
+                    </button>
                   </div>
                 </div>
               </div>
-            </section>
-            <section class="profile-panel rounded-2xl p-6 md:p-7">
-              <h2 class="text-2xl font-racing text-white uppercase mb-5">Achievements</h2>
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5">
-                <div class="badge-card unlocked rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-1">🏁</div>
-                  <div class="text-sm font-semibold text-white">First Race</div>
-                  <div class="text-xs text-slate-400 mt-1">Joined the grid</div>
-                </div>
-                <div class="badge-card unlocked rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-1">👥</div>
-                  <div class="text-sm font-semibold text-white">Team Player</div>
-                  <div class="text-xs text-slate-400 mt-1">Crew approved</div>
-                </div>
-                <div class="badge-card unlocked rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-1">🎮</div>
-                  <div class="text-sm font-semibold text-white">Sim Racer</div>
-                  <div class="text-xs text-slate-400 mt-1">Virtual laps</div>
-                </div>
-                <div class="badge-card unlocked rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-1">⏱️</div>
-                  <div class="text-sm font-semibold text-white">Time Trial</div>
-                  <div class="text-xs text-slate-400 mt-1">Fastest segment</div>
-                </div>
-                <div class="badge-card unlocked rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-1">🏆</div>
-                  <div class="text-sm font-semibold text-white">Podium</div>
-                  <div class="text-xs text-slate-400 mt-1">Top finish</div>
-                </div>
-                <div class="badge-card unlocked rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-1">🌟</div>
-                  <div class="text-sm font-semibold text-white">Legend</div>
-                  <div class="text-xs text-slate-400 mt-1">Elite profile</div>
-                </div>
-              </div>
-            </section>
+            </div>
           </div>
         </div>
       </div>
@@ -741,225 +524,12 @@
         </div>
       </div>
 
-      <div id="save-toast" class="toast">Profile saved! 🎉</div>
+      <div id="save-toast" class="toast">Profile saved.</div>
     </main>
-
-    <!-- Role-Based Profile Edit Modal -->
-    <div id="profile-edit-modal-container"></div>
-
-    <!-- Fallback (non-module) must load before the module script -->
-
     <script src="assets/js/profile-inline-fallback.js"></script>
     <script src="vendors.js"></script>
     <script type="module" src="assets/js/navigation.js"></script>
     <script type="module" src="assets/js/auth-guard.js"></script>
     <script type="module" src="assets/js/profile.js"></script>
-    <script type="module" src="js/profile-edit-modal.js"></script>
-    <script>
-      (function(){
-        function forceShow(){
-          try {
-            var loader = document.getElementById('loading-state');
-            var content = document.getElementById('profile-content');
-            if (loader) {
-              // Complete removal of loading state
-              loader.remove();
-            }
-            if (content) {
-              // Force show content
-              content.classList.remove('hidden');
-              content.style.display = 'block';
-              content.style.visibility = 'visible';
-              content.style.opacity = '1';
-              if (!content.innerHTML || content.innerHTML.trim() === '') {
-                content.innerHTML = '<div class="text-center py-12 text-slate-400">Profile is loading slowly. Try again shortly.</div>';
-              }
-            }
-          } catch(e) { try { console.log('[Profile Fallback]', e); } catch(_){} }
-        }
-        // Immediate force reveal after 2 seconds
-        setTimeout(forceShow, 2000);
-        // Backup force reveal after 4.5 seconds
-        setTimeout(forceShow, 4500);
-        window.addEventListener('error', function(e){ try { console.log('[Profile Error]', e.message || e.error); } catch(_){} });
-        window.addEventListener('unhandledrejection', function(e){ try { console.log('[Profile Rejection]', e.reason); } catch(_){} });
-      })();
-      
-      // Racing Persona System
-      const personaData = {
-        veteran: {
-          icon: '🏁',
-          title: 'The Veteran',
-          description: 'You bring wisdom and strategic thinking to every race. Your experience shows in your calculated moves and consistent performance.',
-          traits: ['🧠 Strategic', '⚖️ Balanced', '🎯 Consistent']
-        },
-        speedster: {
-          icon: '⚡',
-          title: 'Speed Demon',
-          description: 'Raw speed and aggressive racing define your style. You push limits and aren\'t afraid to take risks for that perfect overtake.',
-          traits: ['⚡ Aggressive', '🚀 Fast', '🔥 Passionate']
-        },
-        precision: {
-          icon: '🎯',
-          title: 'Precision Pilot',
-          description: 'Technical perfection is your signature. Every move is calculated, every line optimized for maximum efficiency.',
-          traits: ['🔧 Technical', '📐 Precise', '🧮 Analytical']
-        },
-        wildcard: {
-          icon: '🃏',
-          title: 'Wild Card',
-          description: 'Unpredictability is your strength. You adapt to any situation and find creative solutions others miss.',
-          traits: ['🎲 Unpredictable', '🎨 Creative', '🦎 Adaptable']
-        }
-      };
-      
-      function updatePersonaDisplay(personaType) {
-        const persona = personaData[personaType];
-        if (!persona) return;
-        
-        const iconEl = document.getElementById('persona-icon');
-        const titleEl = document.getElementById('persona-title');
-        const descEl = document.getElementById('persona-description');
-        
-        if (iconEl) iconEl.textContent = persona.icon;
-        if (titleEl) titleEl.textContent = persona.title;
-        if (descEl) descEl.textContent = persona.description;
-        
-        const traitsContainer = document.querySelector('#persona-display .flex.flex-wrap');
-        if (traitsContainer) {
-          traitsContainer.innerHTML = persona.traits.map(trait => 
-            `<span class="bg-slate-700/80 backdrop-blur px-4 py-2 rounded-full text-sm font-medium border border-slate-600/50">${trait}</span>`
-          ).join('');
-        }
-      }
-      
-      function updatePersonaSelection(selectedLabel) {
-        // Remove selected styling from all persona options
-        document.querySelectorAll('.persona-option').forEach(label => {
-          label.classList.remove('selected');
-          const check = label.querySelector('.persona-check div');
-          if (check) check.classList.add('hidden');
-        });
-        
-        // Add selected styling to the chosen option
-        if (selectedLabel) {
-          selectedLabel.classList.add('selected');
-          const check = selectedLabel.querySelector('.persona-check div');
-          if (check) check.classList.remove('hidden');
-        }
-      }
-      
-      // Initialize persona system when DOM loads
-      document.addEventListener('DOMContentLoaded', function() {
-        // Load new profile edit modal HTML component
-        fetch('components/profile-edit-modal.html')
-          .then(res => res.text())
-          .then(html => {
-            document.getElementById('profile-edit-modal-container').innerHTML = html;
-          })
-          .catch(err => console.error('Failed to load profile edit modal:', err));
-        
-        // Edit Form Modal handling - using NEW modal
-        const editBtn = document.getElementById('edit-profile-btn');
-        
-        function openEditModal() {
-          if (typeof profileEditModal !== 'undefined' && profileEditModal) {
-            profileEditModal.openModal();
-          }
-        }
-        
-        if (editBtn) {
-          editBtn.addEventListener('click', openEditModal);
-        }
-        
-        // Handle persona selection
-        const personaRadios = document.querySelectorAll('input[name="racing-persona"]');
-        personaRadios.forEach(radio => {
-          radio.addEventListener('change', function() {
-            updatePersonaSelection(this.closest('label'));
-            updatePersonaDisplay(this.value);
-          });
-        });
-        
-        // Handle team role selection in edit form
-        const teamRoleRadios = document.querySelectorAll('input[name="profile-team-role"]');
-        teamRoleRadios.forEach(radio => {
-          radio.addEventListener('change', function() {
-            // Remove selected styling from all team role options
-            document.querySelectorAll('input[name="profile-team-role"]').forEach(r => {
-              r.closest('label').classList.remove('selected');
-            });
-            // Add selected styling to chosen option
-            if (this.checked) {
-              this.closest('label').classList.add('selected');
-            }
-          });
-        });
-        
-        // Save persona button
-        const savePersonaBtn = document.getElementById('save-persona-btn');
-        if (savePersonaBtn) {
-          savePersonaBtn.addEventListener('click', function() {
-            const selectedPersona = document.querySelector('input[name="racing-persona"]:checked');
-            if (selectedPersona) {
-              // Save to localStorage as fallback
-              localStorage.setItem('userPersona', selectedPersona.value);
-              
-              // Show success toast
-              const toast = document.getElementById('save-toast') || document.createElement('div');
-              if (!toast.id) {
-                toast.className = 'toast';
-                document.body.appendChild(toast);
-              }
-              toast.textContent = 'Racing persona saved! 🏁';
-              toast.style.display = 'block';
-              
-              setTimeout(() => {
-                toast.style.display = 'none';
-              }, 3000);
-            } else {
-              alert('Please select a racing persona first!');
-            }
-          });
-        }
-        
-        // Load saved persona
-        const savedPersona = localStorage.getItem('userPersona');
-        if (savedPersona) {
-          const radio = document.querySelector(`input[name="racing-persona"][value="${savedPersona}"]`);
-          if (radio) {
-            radio.checked = true;
-            updatePersonaSelection(radio.closest('label'));
-            updatePersonaDisplay(savedPersona);
-          }
-        } else {
-          // Default to veteran if no saved persona
-          const defaultRadio = document.querySelector('input[name="racing-persona"][value="veteran"]');
-          if (defaultRadio) {
-            defaultRadio.checked = true;
-            updatePersonaSelection(defaultRadio.closest('label'));
-            updatePersonaDisplay('veteran');
-          }
-        }
-        
-        // Avatar URL preview in edit form
-        const avatarUrlInput = document.getElementById('edit-avatar-url');
-        const avatarPreview = document.getElementById('edit-avatar-preview');
-        if (avatarUrlInput && avatarPreview) {
-          avatarUrlInput.addEventListener('input', function() {
-            const url = this.value.trim();
-            if (url) {
-              avatarPreview.src = url;
-              avatarPreview.classList.remove('hidden');
-              avatarPreview.onerror = function() {
-                this.classList.add('hidden');
-              };
-            } else {
-              avatarPreview.classList.add('hidden');
-            }
-          });
-        }
-      });
-    </script>
   </body>
 </html>

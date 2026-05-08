@@ -2,6 +2,76 @@
 (function () {
   'use strict';
 
+  // ============================================================
+  // Theme (luxury dark / clean light)
+  // - Persists in localStorage as 'rr_theme'
+  // - Defaults to system preference when unset
+  // ============================================================
+  (function initTheme() {
+    try {
+      const root = document.documentElement;
+      const key = 'rr_theme';
+      const stored = localStorage.getItem(key);
+      const systemPrefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      const initial = stored === 'light' || stored === 'dark' ? stored : (systemPrefersLight ? 'light' : 'dark');
+      root.dataset.theme = initial;
+
+      // Expose a tiny API for other scripts/pages if needed
+      window.__rrTheme = {
+        get: () => root.dataset.theme || 'dark',
+        set: (next) => {
+          const t = next === 'light' ? 'light' : 'dark';
+          root.dataset.theme = t;
+          try { localStorage.setItem(key, t); } catch (_) {}
+        },
+        toggle: () => {
+          const next = (root.dataset.theme === 'light') ? 'dark' : 'light';
+          window.__rrTheme.set(next);
+        }
+      };
+    } catch (_) {}
+  })();
+
+  (function mountThemeToggle() {
+    try {
+      const mount = () => {
+        const authSection = document.getElementById('auth-section');
+        if (!authSection) return;
+        if (document.getElementById('rr-theme-toggle')) return;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.id = 'rr-theme-toggle';
+        btn.className = 'rr-theme-toggle';
+        btn.setAttribute('aria-label', 'Toggle theme');
+        btn.title = 'Toggle theme';
+
+        const updateIcon = () => {
+          const theme = (document.documentElement.dataset.theme || 'dark');
+          btn.innerHTML = theme === 'light'
+            ? '<i class="fa-solid fa-moon"></i>'
+            : '<i class="fa-solid fa-sun"></i>';
+        };
+        updateIcon();
+
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (window.__rrTheme && typeof window.__rrTheme.toggle === 'function') window.__rrTheme.toggle();
+          updateIcon();
+        });
+
+        // Keep it on the far right of the nav auth area
+        authSection.appendChild(btn);
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mount, { once: true });
+      } else {
+        mount();
+      }
+    } catch (_) {}
+  })();
+
   // Site-wide helpers: always load app detector + error tracker once.
   // This keeps native-app UX consistent across ALL pages without adding per-page scripts.
   (function ensureGlobalHelpers() {

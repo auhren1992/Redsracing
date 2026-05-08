@@ -28,12 +28,10 @@ import "./app.js";
         accountDropdown.className = "dropdown relative";
         accountDropdown.id = "account-dropdown";
         accountDropdown.innerHTML = `
-          <button id=\"account-toggle\" class=\"dropdown-toggle bg-neon-yellow text-slate-900 py-2 px-4 rounded-md font-bold hover:bg-yellow-300 transition\" aria-haspopup=\"true\" aria-expanded=\"false\">
+          <button id="account-toggle" class="dropdown-toggle rr-pill rr-pill--primary" aria-haspopup="true" aria-expanded="false">
             Account
           </button>
-          <div id=\"account-menu\" class=\"dropdown-menu hidden\" role=\"menu\" aria-hidden=\"true\">
-            <!-- Items populated by JS -->
-          </div>
+          <div id="account-menu" class="dropdown-menu modern-dropdown hidden right-0 w-48" role="menu" aria-hidden="true"></div>
         `;
         desktopNav.appendChild(accountDropdown);
       }
@@ -44,8 +42,8 @@ import "./app.js";
         const container = document.createElement("div");
         container.id = "account-dropdown-mobile";
         container.innerHTML = `
-          <button id=\"account-toggle-mobile\" class=\"mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left\">Login</button>
-          <div id=\"account-menu-mobile\" class=\"mobile-accordion-content hidden pl-4\"></div>
+          <button id="account-toggle-mobile" class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Account</button>
+          <div id="account-menu-mobile" class="mobile-accordion-content hidden pl-4"></div>
         `;
         mobileMenu.appendChild(container);
       }
@@ -214,26 +212,7 @@ import "./app.js";
         if (mobileBtn) mobileBtn.textContent = "Account";
       }
 
-      // Wire dropdown toggle behavior (click to open/close)
-      function wireDropdown() {
-        const toggle = document.getElementById("account-toggle");
-        const menu = document.getElementById("account-menu");
-        if (!toggle || !menu) return;
-        // Remove existing listeners by replacing nodes
-        const newToggle = toggle.cloneNode(true);
-        toggle.parentNode.replaceChild(newToggle, toggle);
-        newToggle.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const hidden = menu.classList.contains("hidden");
-          document.querySelectorAll(".dropdown-menu").forEach((m) => m.classList.add("hidden"));
-          if (hidden) menu.classList.remove("hidden");
-          newToggle.setAttribute("aria-expanded", String(hidden));
-        });
-        document.addEventListener("click", () => menu.classList.add("hidden"));
-      }
-
-      wireDropdown();
+      // Dropdown behavior is handled by initNavigation() below (show/hide + inert + outside click).
 
       monitorAuthState(
         async (user) => {

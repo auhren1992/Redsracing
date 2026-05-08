@@ -2,6 +2,74 @@
 (function () {
   'use strict';
 
+  // ============================================================
+  // Theme (luxury dark / clean light)
+  // - Persists in localStorage as 'rr_theme'
+  // - Defaults to system preference when unset
+  // ============================================================
+  (function initTheme() {
+    try {
+      const root = document.documentElement;
+      const key = 'rr_theme';
+      const stored = localStorage.getItem(key);
+      const systemPrefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      const initial = stored === 'light' || stored === 'dark' ? stored : (systemPrefersLight ? 'light' : 'dark');
+      root.dataset.theme = initial;
+
+      window.__rrTheme = {
+        get: () => root.dataset.theme || 'dark',
+        set: (next) => {
+          const t = next === 'light' ? 'light' : 'dark';
+          root.dataset.theme = t;
+          try { localStorage.setItem(key, t); } catch (_) {}
+        },
+        toggle: () => {
+          const next = (root.dataset.theme === 'light') ? 'dark' : 'light';
+          window.__rrTheme.set(next);
+        }
+      };
+    } catch (_) {}
+  })();
+
+  (function mountThemeToggle() {
+    try {
+      const mount = () => {
+        const authSection = document.getElementById('auth-section');
+        if (!authSection) return;
+        if (document.getElementById('rr-theme-toggle')) return;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.id = 'rr-theme-toggle';
+        btn.className = 'rr-theme-toggle';
+        btn.setAttribute('aria-label', 'Toggle theme');
+        btn.title = 'Toggle theme';
+
+        const updateIcon = () => {
+          const theme = (document.documentElement.dataset.theme || 'dark');
+          btn.innerHTML = theme === 'light'
+            ? '<i class="fa-solid fa-moon"></i>'
+            : '<i class="fa-solid fa-sun"></i>';
+        };
+        updateIcon();
+
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (window.__rrTheme && typeof window.__rrTheme.toggle === 'function') window.__rrTheme.toggle();
+          updateIcon();
+        });
+
+        authSection.appendChild(btn);
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mount, { once: true });
+      } else {
+        mount();
+      }
+    } catch (_) {}
+  })();
+
   // Ensure a single Firebase app is initialized on every page and use LOCAL persistence
   (async function initAuthPersistence() {
     console.log('[RedsRacing Auth] ===== INIT STARTING =====');

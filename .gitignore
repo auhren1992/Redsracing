@@ -68,3 +68,7 @@ android/.gradle/
 *.aab
 android/app/release/
 android/app/debug/
+
+# Android bundled www — exclude tooling accidentally copied from repo root
+android/app/src/main/assets/www/tools/
+android/app/src/main/assets/www/_*.js
