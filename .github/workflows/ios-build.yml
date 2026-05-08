@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-26
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     
@@ -31,9 +31,11 @@ jobs:
           fi
 
       - name: Set up Xcode
-        uses: maxim-lobanov/setup-xcode@v1.6.0
+        uses: maxim-lobanov/setup-xcode@v1.7.0
         with:
-          xcode-version: '16.1'
+          # Apple now requires iOS 26 SDK+ for uploads.
+          # Pin to an Xcode 26.x toolchain available on macos-26 runners.
+          xcode-version: '26.2'
 
       - name: Show Xcode version
         run: xcodebuild -version
