@@ -11,7 +11,9 @@ import android.net.Uri
 import android.widget.RemoteViews
 import com.redsracing.app.MainActivity
 import com.redsracing.app.R
+import org.json.JSONException
 import org.json.JSONObject
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
@@ -49,21 +51,7 @@ class NextRaceWidget : AppWidgetProvider() {
         }
         // Then refresh asynchronously to update the countdown / race data.
         thread(start = true, isDaemon = true, name = "NextRaceWidget-fetch") {
-            try {
-                val race = fetchNextRace()
-                if (race != null) {
-                    saveCache(context, race)
-                }
-            } catch (t: Throwable) {
-                // Swallow — keep prior cached values rather than blanking the widget.
-            }
-            // Re-render after the fetch attempt (with new or existing cache).
-            val freshIds = appWidgetManager.getAppWidgetIds(
-                ComponentName(context, NextRaceWidget::class.java)
-            )
-            for (id in freshIds) {
-                renderFromCache(context, appWidgetManager, id)
-            }
+            refreshAndRerender(context, appWidgetManager)
         }
     }
 
@@ -108,6 +96,34 @@ class NextRaceWidget : AppWidgetProvider() {
             )
         }
 
+        /**
+         * Fetch the latest schedule, persist the next race, then re-render any
+         * widget instances currently on the home screen.
+         */
+        private fun refreshAndRerender(
+            context: Context,
+            appWidgetManager: AppWidgetManager
+        ) {
+            val race = try {
+                fetchNextRace()
+            } catch (e: IOException) {
+                null
+            } catch (e: JSONException) {
+                null
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+            if (race != null) {
+                saveCache(context, race)
+            }
+            val freshIds = appWidgetManager.getAppWidgetIds(
+                ComponentName(context, NextRaceWidget::class.java)
+            )
+            for (id in freshIds) {
+                renderFromCache(context, appWidgetManager, id)
+            }
+        }
+
         fun renderFromCache(
             context: Context,
             appWidgetManager: AppWidgetManager,
@@ -115,56 +131,86 @@ class NextRaceWidget : AppWidgetProvider() {
         ) {
             val views = RemoteViews(context.packageName, R.layout.widget_next_race)
             val race = readCache(context)
-            if (race == null) {
-                views.setTextViewText(R.id.widget_track, "Tap to refresh")
-                views.setTextViewText(R.id.widget_subtitle, "Loading…")
-                views.setTextViewText(R.id.widget_days, "--")
-                views.setTextViewText(R.id.widget_hours, "--")
-                views.setTextViewText(R.id.widget_minutes, "--")
-                views.setTextViewText(R.id.widget_date, "")
-            } else {
-                val target = parseScheduleDate(race.isoDate)
-                if (target == null) {
-                    views.setTextViewText(R.id.widget_track, race.track.ifEmpty { race.name })
-                    views.setTextViewText(R.id.widget_subtitle, race.location)
-                    views.setTextViewText(R.id.widget_days, "--")
-                    views.setTextViewText(R.id.widget_hours, "--")
-                    views.setTextViewText(R.id.widget_minutes, "--")
-                    views.setTextViewText(R.id.widget_date, "")
-                } else {
-                    val remainingMs = target.time - System.currentTimeMillis()
-                    if (remainingMs <= 0) {
-                        views.setTextViewText(R.id.widget_track, race.track.ifEmpty { race.name })
-                        views.setTextViewText(R.id.widget_subtitle, race.location)
-                        views.setTextViewText(R.id.widget_days, "LIVE")
-                        views.setTextViewText(R.id.widget_hours, "")
-                        views.setTextViewText(R.id.widget_minutes, "")
-                        views.setTextViewText(R.id.widget_date, race.isoDate)
-                    } else {
-                        val days = TimeUnit.MILLISECONDS.toDays(remainingMs)
-                        val hours = TimeUnit.MILLISECONDS.toHours(remainingMs) % 24
-                        val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingMs) % 60
-                        views.setTextViewText(R.id.widget_track, race.track.ifEmpty { race.name })
-                        views.setTextViewText(R.id.widget_subtitle, race.location)
-                        views.setTextViewText(R.id.widget_days, days.toString())
-                        views.setTextViewText(R.id.widget_hours, hours.toString())
-                        views.setTextViewText(R.id.widget_minutes, minutes.toString())
-                        views.setTextViewText(R.id.widget_date, prettyDate(target))
-                    }
-                }
-            }
+            applyRaceToViews(views, race)
+            views.setOnClickPendingIntent(
+                R.id.widget_root,
+                buildSchedulePendingIntent(context, appWidgetId)
+            )
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
 
-            // Tap -> open the schedule page inside the app.
+        /**
+         * Decide which rendering state to use (loading / live / countdown) and
+         * write the matching values into the RemoteViews.
+         */
+        private fun applyRaceToViews(views: RemoteViews, race: RaceInfo?) {
+            if (race == null) {
+                writeLoadingState(views)
+                return
+            }
+            val target = parseScheduleDate(race.isoDate)
+            if (target == null) {
+                writeRaceMetadata(views, race, prettyDate = "")
+                writeCountdownChips(views, days = "--", hours = "--", minutes = "--")
+                return
+            }
+            val remainingMs = target.time - System.currentTimeMillis()
+            writeRaceMetadata(views, race, prettyDate = prettyDate(target))
+            if (remainingMs <= 0) {
+                writeCountdownChips(views, days = "LIVE", hours = "", minutes = "")
+            } else {
+                val days = TimeUnit.MILLISECONDS.toDays(remainingMs)
+                val hours = TimeUnit.MILLISECONDS.toHours(remainingMs) % 24
+                val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingMs) % 60
+                writeCountdownChips(
+                    views,
+                    days = days.toString(),
+                    hours = hours.toString(),
+                    minutes = minutes.toString()
+                )
+            }
+        }
+
+        private fun writeLoadingState(views: RemoteViews) {
+            views.setTextViewText(R.id.widget_track, "Tap to refresh")
+            views.setTextViewText(R.id.widget_subtitle, "Loading…")
+            views.setTextViewText(R.id.widget_date, "")
+            writeCountdownChips(views, days = "--", hours = "--", minutes = "--")
+        }
+
+        private fun writeRaceMetadata(
+            views: RemoteViews,
+            race: RaceInfo,
+            prettyDate: String
+        ) {
+            views.setTextViewText(R.id.widget_track, race.track.ifEmpty { race.name })
+            views.setTextViewText(R.id.widget_subtitle, race.location)
+            views.setTextViewText(R.id.widget_date, prettyDate)
+        }
+
+        private fun writeCountdownChips(
+            views: RemoteViews,
+            days: String,
+            hours: String,
+            minutes: String
+        ) {
+            views.setTextViewText(R.id.widget_days, days)
+            views.setTextViewText(R.id.widget_hours, hours)
+            views.setTextViewText(R.id.widget_minutes, minutes)
+        }
+
+        /** Build the tap-to-open-schedule PendingIntent for a widget instance. */
+        private fun buildSchedulePendingIntent(
+            context: Context,
+            appWidgetId: Int
+        ): PendingIntent {
             val openIntent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                 data = Uri.parse("https://redsracing.org/schedule.html")
                 putExtra("rr_target", "schedule")
             }
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            val pi = PendingIntent.getActivity(context, appWidgetId, openIntent, flags)
-            views.setOnClickPendingIntent(R.id.widget_root, pi)
-
-            appWidgetManager.updateAppWidget(appWidgetId, views)
+            return PendingIntent.getActivity(context, appWidgetId, openIntent, flags)
         }
 
         private fun prettyDate(date: Date): String {
@@ -190,9 +236,27 @@ class NextRaceWidget : AppWidgetProvider() {
                     set(Calendar.MILLISECOND, 0)
                 }
                 cal.time
-            } catch (_: Throwable) {
+            } catch (_: IllegalArgumentException) {
                 null
             }
+        }
+
+        /** Parse one race entry; returns null if any required field is missing. */
+        private fun parseRace(json: JSONObject): Pair<Long, RaceInfo>? {
+            val iso = json.optString("date").orEmpty()
+            if (iso.isEmpty()) return null
+            val parsed = parseScheduleDate(iso) ?: return null
+            val name = json.optString("eventName").orEmpty()
+            val track = json.optString("track").orEmpty()
+            val city = json.optString("city").orEmpty()
+            val state = json.optString("state").orEmpty()
+            val loc = listOf(city, state).filter { it.isNotEmpty() }.joinToString(", ")
+            return parsed.time to RaceInfo(
+                name = name.ifEmpty { track },
+                track = track,
+                location = loc,
+                isoDate = iso
+            )
         }
 
         fun fetchNextRace(): RaceInfo? {
@@ -200,36 +264,21 @@ class NextRaceWidget : AppWidgetProvider() {
             val json = JSONObject(raw)
             val seasons = json.optJSONArray("seasons") ?: return null
             val now = System.currentTimeMillis()
-            var best: RaceInfo? = null
+            var bestRace: RaceInfo? = null
             var bestTs: Long = Long.MAX_VALUE
             for (i in 0 until seasons.length()) {
-                val season = seasons.optJSONObject(i) ?: continue
-                val races = season.optJSONArray("races") ?: continue
+                val races = seasons.optJSONObject(i)?.optJSONArray("races") ?: continue
                 for (j in 0 until races.length()) {
-                    val race = races.optJSONObject(j) ?: continue
-                    val iso = race.optString("date").orEmpty()
-                    if (iso.isEmpty()) continue
-                    val parsed = parseScheduleDate(iso) ?: continue
-                    val ts = parsed.time
-                    if (ts <= now) continue
-                    if (ts < bestTs) {
+                    val entry = races.optJSONObject(j) ?: continue
+                    val parsed = parseRace(entry) ?: continue
+                    val ts = parsed.first
+                    if (ts > now && ts < bestTs) {
                         bestTs = ts
-                        val name = race.optString("eventName").orEmpty()
-                        val track = race.optString("track").orEmpty()
-                        val city = race.optString("city").orEmpty()
-                        val state = race.optString("state").orEmpty()
-                        val loc = listOf(city, state).filter { it.isNotEmpty() }
-                            .joinToString(", ")
-                        best = RaceInfo(
-                            name = name.ifEmpty { track },
-                            track = track,
-                            location = loc,
-                            isoDate = iso
-                        )
+                        bestRace = parsed.second
                     }
                 }
             }
-            return best
+            return bestRace
         }
 
         private fun httpGet(urlStr: String): String? {
@@ -246,7 +295,7 @@ class NextRaceWidget : AppWidgetProvider() {
                 val code = connection.responseCode
                 if (code in 200..299) connection.inputStream.bufferedReader().readText()
                 else null
-            } catch (_: Throwable) {
+            } catch (_: IOException) {
                 null
             } finally {
                 connection?.disconnect()

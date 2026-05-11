@@ -61,6 +61,14 @@ enum ScheduleService {
     static let scheduleURL = URL(string: "https://redsracing.org/data/schedule.json")!
 
     static func fetchNextRace() async -> CachedRace? {
+        guard let data = await downloadSchedule() else { return nil }
+        guard let seasons = parseSeasons(from: data) else { return nil }
+        return earliestUpcomingRace(in: seasons, now: Date())
+    }
+
+    /// MARK: Network
+
+    private static func downloadSchedule() async -> Data? {
         var request = URLRequest(url: scheduleURL,
                                  cachePolicy: .reloadIgnoringLocalCacheData,
                                  timeoutInterval: 8)
@@ -73,42 +81,54 @@ enum ScheduleService {
                   (200..<300).contains(http.statusCode) else {
                 return nil
             }
-            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-            guard let seasons = json?["seasons"] as? [[String: Any]] else { return nil }
-
-            let now = Date()
-            var best: (date: Date, race: CachedRace)?
-
-            for season in seasons {
-                guard let races = season["races"] as? [[String: Any]] else { continue }
-                for race in races {
-                    guard let iso = race["date"] as? String,
-                          let parsed = parseLocalDate(iso),
-                          parsed > now else { continue }
-
-                    if best == nil || parsed < best!.date {
-                        let name = (race["eventName"] as? String) ?? ""
-                        let track = (race["track"] as? String) ?? ""
-                        let city = (race["city"] as? String) ?? ""
-                        let state = (race["state"] as? String) ?? ""
-                        let loc = [city, state].filter { !$0.isEmpty }.joined(separator: ", ")
-                        best = (
-                            parsed,
-                            CachedRace(
-                                raceName: name.isEmpty ? track : name,
-                                track: track,
-                                location: loc,
-                                isoDate: iso,
-                                fetchedAt: Date()
-                            )
-                        )
-                    }
-                }
-            }
-            return best?.race
+            return data
         } catch {
             return nil
         }
+    }
+
+    /// MARK: Parsing
+
+    private static func parseSeasons(from data: Data) -> [[String: Any]]? {
+        guard let raw = try? JSONSerialization.jsonObject(with: data),
+              let dict = raw as? [String: Any] else { return nil }
+        return dict["seasons"] as? [[String: Any]]
+    }
+
+    private static func parseRace(_ race: [String: Any], now: Date) -> (date: Date, race: CachedRace)? {
+        guard let iso = race["date"] as? String,
+              let parsed = parseLocalDate(iso),
+              parsed > now else { return nil }
+        let name = (race["eventName"] as? String) ?? ""
+        let track = (race["track"] as? String) ?? ""
+        let city = (race["city"] as? String) ?? ""
+        let state = (race["state"] as? String) ?? ""
+        let loc = [city, state].filter { !$0.isEmpty }.joined(separator: ", ")
+        let cached = CachedRace(
+            raceName: name.isEmpty ? track : name,
+            track: track,
+            location: loc,
+            isoDate: iso,
+            fetchedAt: Date()
+        )
+        return (parsed, cached)
+    }
+
+    private static func earliestUpcomingRace(
+        in seasons: [[String: Any]],
+        now: Date
+    ) -> CachedRace? {
+        var best: (date: Date, race: CachedRace)?
+        for season in seasons {
+            guard let races = season["races"] as? [[String: Any]] else { continue }
+            for race in races {
+                guard let entry = parseRace(race, now: now) else { continue }
+                if best == nil || entry.date < best!.date {
+                    best = entry
+                }
+            }
+        }
+        return best?.race
     }
 
     /// Parse a yyyy-MM-dd string as the local-time "race day", normalized to

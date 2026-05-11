@@ -66,20 +66,24 @@
     'test.html'
   ];
 
-  function isDeniedPath(pathname) {
+  function normalizePath(pathname) {
     var p = (pathname || '').toLowerCase();
-    // Strip query/hash and normalize trailing slash to home.
-    p = p.split('?')[0].split('#')[0];
+    return p.split('?')[0].split('#')[0];
+  }
+
+  function pathMatchesDenied(p, denied) {
+    var needle = '/' + denied;
+    if (p === needle) return true;
+    if (p.lastIndexOf(needle) === p.length - denied.length - 1) return true;
+    return p.indexOf(needle) !== -1;
+  }
+
+  function isDeniedPath(pathname) {
+    var p = normalizePath(pathname);
     if (p === '/' || p === '') return false;
-    // Match against deny list
+    if (p.indexOf('/tests/') !== -1) return true;
     for (var i = 0; i < DENY_PATHS.length; i++) {
-      var d = DENY_PATHS[i].toLowerCase();
-      // either ends with the file name or a sub-path that matches
-      if (p === '/' + d) return true;
-      if (p.lastIndexOf('/' + d) === p.length - d.length - 1) return true;
-      if (p.indexOf('/' + d) !== -1) return true;
-      // anything under /tests/ is a debug/test page
-      if (p.indexOf('/tests/') !== -1) return true;
+      if (pathMatchesDenied(p, DENY_PATHS[i].toLowerCase())) return true;
     }
     return false;
   }
@@ -125,7 +129,7 @@
     return wrapper;
   }
 
-  function pushAd(wrapper) {
+  function pushAd() {
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (e) {
@@ -133,70 +137,71 @@
     }
   }
 
+  function getMain() {
+    return document.querySelector('main');
+  }
+
+  function getContentSections(main) {
+    return main
+      ? main.querySelectorAll('section, article')
+      : document.querySelectorAll('section, article');
+  }
+
+  function injectTop(slotId) {
+    var main = getMain();
+    var firstSection = main
+      ? main.querySelector('section, article, div.container, div.section')
+      : document.querySelector('section, article');
+    var anchor = firstSection || main || document.body;
+    var wrapper = createAdBlock(slotId);
+    if (anchor.parentNode) {
+      anchor.parentNode.insertBefore(wrapper, anchor.nextSibling);
+    } else {
+      anchor.appendChild(wrapper);
+    }
+    return wrapper;
+  }
+
+  function injectMid(slotId) {
+    var sections = getContentSections(getMain());
+    if (!sections.length || sections.length < 3) return null;
+    var midIdx = Math.floor(sections.length / 2);
+    var midAnchor = sections[midIdx];
+    if (!midAnchor || !midAnchor.parentNode) return null;
+    var wrapper = createAdBlock(slotId);
+    midAnchor.parentNode.insertBefore(wrapper, midAnchor);
+    return wrapper;
+  }
+
+  function injectBottom(slotId) {
+    var main = getMain();
+    var wrapper = createAdBlock(slotId);
+    (main || document.body).appendChild(wrapper);
+    return wrapper;
+  }
+
+  var INJECTORS = {
+    top: injectTop,
+    mid: injectMid,
+    bottom: injectBottom
+  };
+
   // Insert a wrapper into the DOM at the requested position and trigger the
   // adsbygoogle push so AdSense fills it.
   function inject(position, slotId) {
     if (!slotId) return false;
-
     // Don't add duplicate slots in the same position on this page.
-    if (document.querySelector('[data-rr-ad-slot="' + slotId + '"]')) {
-      return false;
-    }
-
-    var main = document.querySelector('main');
-    var firstSection = main
-      ? main.querySelector('section, article, div.container, div.section')
-      : document.querySelector('section, article');
-    var lastSection = main
-      ? main.querySelectorAll('section, article, div.container, div.section')
-      : document.querySelectorAll('section, article');
-    var wrapper;
-
-    if (position === 'top') {
-      // Insert after the first major section (so ad is below the hero).
-      var anchor = firstSection || main || document.body;
-      wrapper = createAdBlock(slotId);
-      if (anchor.parentNode) {
-        anchor.parentNode.insertBefore(wrapper, anchor.nextSibling);
-      } else {
-        anchor.appendChild(wrapper);
-      }
-    } else if (position === 'mid') {
-      // Place roughly in the middle of the content sections.
-      var sections = main
-        ? main.querySelectorAll('section, article')
-        : document.querySelectorAll('section, article');
-      if (!sections.length || sections.length < 3) return false;
-      var midIdx = Math.floor(sections.length / 2);
-      var midAnchor = sections[midIdx];
-      wrapper = createAdBlock(slotId);
-      if (midAnchor && midAnchor.parentNode) {
-        midAnchor.parentNode.insertBefore(wrapper, midAnchor);
-      }
-    } else if (position === 'bottom') {
-      // Insert before the closing </main> or append to body.
-      wrapper = createAdBlock(slotId);
-      if (main) {
-        main.appendChild(wrapper);
-      } else {
-        document.body.appendChild(wrapper);
-      }
-    }
-
-    if (wrapper) {
-      pushAd(wrapper);
-      return true;
-    }
-    return false;
+    if (document.querySelector('[data-rr-ad-slot="' + slotId + '"]')) return false;
+    var injector = INJECTORS[position];
+    if (!injector) return false;
+    var wrapper = injector(slotId);
+    if (!wrapper) return false;
+    pushAd();
+    return true;
   }
 
   function shouldInjectMidAd() {
-    var main = document.querySelector('main');
-    var sections = main
-      ? main.querySelectorAll('section, article')
-      : document.querySelectorAll('section, article');
-    // Only inject mid ad if page has lots of content (3+ sections).
-    return sections.length >= 3;
+    return getContentSections(getMain()).length >= 3;
   }
 
   function init() {

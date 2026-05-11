@@ -165,7 +165,12 @@ async function main() {
         console.error("[queue-admin] Failed to load feedback collection:", e);
         const tr = document.createElement("tr");
         tr.className = "table-row";
-        tr.innerHTML = `<td class="p-2 text-red-400" colspan="7">Could not load website feedback (check rules/indexes). ${(e && e.message) || e}</td>`;
+        const td = document.createElement("td");
+        td.className = "p-2 text-red-400";
+        td.colSpan = 7;
+        const msg = (e && typeof e.message === "string") ? e.message : String(e);
+        td.textContent = `Could not load website feedback (check rules/indexes). ${msg}`;
+        tr.appendChild(td);
         tbody.appendChild(tr);
         if (countEl) countEl.textContent = "";
         return;
