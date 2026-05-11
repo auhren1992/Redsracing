@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sizes:
+    - Default 4x2 cells on the home screen (250dp x 110dp).
+    - Resizable horizontally and vertically.
+    - minResizeWidth/minResizeHeight let the user shrink to 3x2 if they want.
+
+  Refresh:
+    - 1800000 ms = 30 minutes (the minimum allowed by Android for built-in
+      widget refresh). The provider also refreshes whenever the system asks
+      for an update (e.g. configuration change or pinned-widget action).
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="180dp"
+    android:minResizeHeight="110dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_next_race"
+    android:previewLayout="@layout/widget_next_race"
+    android:description="@string/widget_next_race_description"
+    android:widgetCategory="home_screen" />

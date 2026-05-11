@@ -1304,3 +1304,46 @@ body.theme-crew .mobile-accordion:hover { background: rgba(6,182,212,0.1); color
     animation: none;
   }
 }
+
+/* ===== AdSense visibility hardening =====
+ * Forces every AdSense slot (manual <ins.adsbygoogle> and Auto Ads injected
+ * containers) to render above decorative full-viewport overlays so the
+ * AdSense overlap/visibility checks don't pull the ad ("flashes then gone"
+ * at normal zoom). Z-index uses the documented INT max so nothing on the
+ * page can outrank an ad. Also guarantees a usable minimum width to avoid
+ * the "ad container too small" pull.
+ */
+ins.adsbygoogle,
+ins.adsbygoogle > iframe,
+iframe[id^="google_ads_iframe_"],
+iframe[src*="googleads.g.doubleclick.net"],
+iframe[src*="googlesyndication.com"],
+.google-auto-placed,
+.google-auto-placed > iframe,
+[data-google-query-id],
+[data-anchor-shown],
+[data-anchor-status] {
+  position: relative;
+  z-index: 2147483646 !important;
+  isolation: isolate;
+  background: transparent !important;
+}
+
+/* Anchor & vignette overlays from Auto Ads must be above everything. */
+ins.adsbygoogle[data-anchor-status],
+ins.adsbygoogle[data-vignette-loaded],
+div[id^="google_anchor_"],
+div[id^="google_vignette_"] {
+  z-index: 2147483647 !important;
+}
+
+/* Avoid pages clipping ads via x-overflow + fixed decorative overlays.
+ * Keep clip behavior on root for the spotlight/grid, but never clip on ad
+ * iframes themselves. */
+ins.adsbygoogle,
+ins.adsbygoogle iframe {
+  overflow: visible !important;
+  clip: auto !important;
+  clip-path: none !important;
+  filter: none !important;
+}

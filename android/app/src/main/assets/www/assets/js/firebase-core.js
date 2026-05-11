@@ -28,13 +28,19 @@ function initializeFirebaseIfNeeded() {
     const isLikelyWebView =
       (typeof navigator !== "undefined" && /wv|Android/i.test(navigator.userAgent || "")) ||
       (typeof location !== "undefined" && location.protocol === "file:");
-    db = isLikelyWebView
-      ? initializeFirestore(app, {
-          experimentalForceLongPolling: true,
-          experimentalAutoDetectLongPolling: true,
-          useFetchStreams: false,
-        })
-      : getFirestore(app);
+    // Avoid double-init: compat `firebase.firestore()` or earlier getFirestore starts Firestore too;
+    // initializeFirestore throws in that case — fall back to the default modular instance.
+    try {
+      db = isLikelyWebView
+        ? initializeFirestore(app, {
+            experimentalForceLongPolling: true,
+            experimentalAutoDetectLongPolling: true,
+            useFetchStreams: false,
+          })
+        : getFirestore(app);
+    } catch (_) {
+      db = getFirestore(app);
+    }
     storage = getStorage(app);
   }
   return { app, auth, db, storage };

@@ -164,6 +164,23 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun handleNotificationIntent(intent: Intent?) {
+        // Widget tap: rr_target=schedule (or any other page key) opens that page.
+        intent?.getStringExtra("rr_target")?.let { target ->
+            val page = when (target.lowercase()) {
+                "schedule" -> "schedule.html"
+                "live" -> "live.html"
+                "recaps" -> "recaps.html"
+                "predictions" -> "predictions.html"
+                "gallery" -> "gallery.html"
+                else -> null
+            }
+            if (page != null) {
+                val url = "https://appassets.androidplatform.net/assets/www/$page"
+                android.util.Log.d("MainActivity", "Opening from widget: $url")
+                binding.webview.loadUrl(url)
+                return
+            }
+        }
         intent?.extras?.let { extras ->
             // Check if this intent came from a notification
             val hasNotificationData = extras.containsKey("title") || 

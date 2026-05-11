@@ -2,7 +2,10 @@
 <html lang="en" class="scroll-smooth">
   <head>
     <!-- Google AdSense -->
-<meta charset="UTF-8" />
+    <meta name="google-adsense-account" content="ca-pub-8879853783053353" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353"
+         crossorigin="anonymous"></script>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="RedsRacing Team #8 and #88 — race schedule, season countdown, stats, recaps, and behind-the-scenes updates from asphalt oval racing." />
     <title>2026 Season Countdown - RedsRacing #8</title>
@@ -48,6 +51,35 @@
         overflow-x: hidden;
         min-height: 100vh;
         position: relative;
+      }
+
+      /* ===== AdSense visibility hardening (inline – page does not load main.css) =====
+       * Promotes any AdSense slot above the page's fixed decorative overlays so
+       * AdSense's overlap/viewability check does not pull the ad at 100% zoom. */
+      ins.adsbygoogle,
+      ins.adsbygoogle > iframe,
+      iframe[id^="google_ads_iframe_"],
+      iframe[src*="googleads.g.doubleclick.net"],
+      iframe[src*="googlesyndication.com"],
+      .google-auto-placed,
+      .google-auto-placed > iframe,
+      [data-google-query-id],
+      [data-anchor-shown],
+      [data-anchor-status] {
+        position: relative;
+        z-index: 2147483646 !important;
+        isolation: isolate;
+        background: transparent !important;
+        overflow: visible !important;
+        clip: auto !important;
+        clip-path: none !important;
+        filter: none !important;
+      }
+      ins.adsbygoogle[data-anchor-status],
+      ins.adsbygoogle[data-vignette-loaded],
+      div[id^="google_anchor_"],
+      div[id^="google_vignette_"] {
+        z-index: 2147483647 !important;
       }
 
       /* Animated Background */
@@ -475,7 +507,10 @@
         position: fixed;
         inset: 0;
         pointer-events: none;
-        z-index: 2;
+        /* Keep below ad iframes/Auto Ads containers (which we elevate in main.css)
+           so AdSense doesn't detect this overlay as covering an ad slot at
+           normal zoom and pull the ad. */
+        z-index: 0;
         opacity: 0.9;
         background:
           radial-gradient(650px circle at var(--spot-x, 50%) var(--spot-y, 35%),
@@ -1002,7 +1037,18 @@
         </a>
         </div>
     </div>
-    
+
+    <!-- AdSense: home-top -->
+    <div class="rr-ad-slot" style="position:relative;z-index:10;max-width:970px;margin:1.5rem auto;padding:0 1rem;min-height:120px;">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-8879853783053353"
+           data-ad-slot="5606437088"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
     <!-- Follow Section -->
     <div id="follow-section" style="position: relative; z-index: 10; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); padding: 3rem 2rem; text-align: center; border-top: 1px solid rgba(251, 191, 36, 0.2);">
       <div style="max-width: 600px; margin: 0 auto;">

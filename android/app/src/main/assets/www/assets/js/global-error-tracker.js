@@ -58,37 +58,41 @@
     initAttempts++;
 
     try {
-      if (typeof firebase !== 'undefined' && typeof firebase.firestore === 'function') {
-        if (!firebase.apps || firebase.apps.length === 0) {
-          firebase.initializeApp(FIREBASE_CFG);
-        }
-        const fs = firebase.firestore();
-        writeClientLog = function (errorData) {
-          return fs.collection('client_logs').add({
-            ...errorData,
-            serverTimestamp: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        };
-        firestoreReady = true;
-        logDebug('Using Firebase compat Firestore');
-        initStarted = false;
-        setTimeout(processErrorQueue, 0);
-        return;
-      }
-
+      // Always prefer modular SDK. Pages that load firebase-*-compat.js for legacy reasons would
+      // otherwise call firebase.firestore() here and spin up a second Firestore runtime, which breaks
+      // modular APIs (collection() / query() rejecting the shared app’s db instance — invalid-argument).
       const { initializeApp, getApps } = await import(
         'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js'
       );
-      const { getFirestore, collection, addDoc, serverTimestamp } = await import(
-        'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js'
-      );
+      const {
+        getFirestore,
+        initializeFirestore,
+        collection,
+        addDoc,
+        serverTimestamp,
+      } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
 
       const apps = getApps();
       const defaultApp = apps.find(function (a) {
         return a.name === '[DEFAULT]';
       });
       const app = defaultApp || initializeApp(FIREBASE_CFG);
-      const fsdb = getFirestore(app);
+
+      let fsdb = null;
+      const isLikelyWebView =
+        (typeof navigator !== 'undefined' && /wv|Android/i.test(navigator.userAgent || '')) ||
+        (typeof location !== 'undefined' && location.protocol === 'file:');
+      try {
+        fsdb = isLikelyWebView
+          ? initializeFirestore(app, {
+              experimentalForceLongPolling: true,
+              experimentalAutoDetectLongPolling: true,
+              useFetchStreams: false,
+            })
+          : getFirestore(app);
+      } catch (_) {
+        fsdb = getFirestore(app);
+      }
 
       writeClientLog = function (errorData) {
         return addDoc(collection(fsdb, 'client_logs'), {
@@ -97,7 +101,7 @@
         });
       };
       firestoreReady = true;
-      logDebug('Using modular Firestore');
+      logDebug('Using modular Firestore (error tracker)');
       setTimeout(processErrorQueue, 0);
     } catch (error) {
       writeClientLog = null;

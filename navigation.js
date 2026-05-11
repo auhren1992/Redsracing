@@ -1022,6 +1022,18 @@ const core = await import('./assets/js/firebase-core.js');
         document.head.appendChild(s);
       }
     } catch (_) {}
+
+    // Load the site-wide AdSense auto-injection once. It self-skips on
+    // auth/admin/dashboard paths via its internal deny-list.
+    try {
+      if (!document.getElementById('rr-ads-inject-script')) {
+        var ads = document.createElement('script');
+        ads.id = 'rr-ads-inject-script';
+        ads.src = 'assets/js/ads-inject.js';
+        ads.defer = true;
+        document.head.appendChild(ads);
+      }
+    } catch (_) {}
   }
 
   if (document.readyState === 'loading') {

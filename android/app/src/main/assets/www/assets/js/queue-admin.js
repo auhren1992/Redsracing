@@ -1,4 +1,18 @@
 import "./app.js";
+import { getFirebaseDb } from "./firebase-core.js";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  updateDoc,
+  where,
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 /** Opens the staff’s email app to reply to the address the visitor provided (feedback / queue items). */
 function buildFeedbackReplyMailto(email, name, message, kindLabel) {
@@ -108,9 +122,11 @@ async function main() {
       host.prepend(card);
     }
 
-    const { getFirebaseDb } = await import('./firebase-core.js');
     const db = getFirebaseDb();
-    const { collection, query, where, orderBy, limit, getDocs, getDoc, addDoc, deleteDoc, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+    if (!db) {
+      console.error("[queue-admin] Firestore is not available (getFirebaseDb returned null/undefined).");
+      return;
+    }
 
     /** Filled in below; used by row builders so inspect works even if other scripts stop click propagation. */
     let inspectDoc = async () => {};
@@ -583,7 +599,13 @@ async function main() {
           const functionUrl = 'https://us-central1-redsracing-a7f8b.cloudfunctions.net/process_queues';
           const response = await fetch(functionUrl, { method: 'POST' });
           if (!response.ok) {
-            throw new Error('Failed to process queues');
+            let detail = "";
+            try {
+              detail = (await response.text()).slice(0, 500);
+            } catch (_) {}
+            throw new Error(
+              `HTTP ${response.status}${detail ? `: ${detail}` : ""}`,
+            );
           }
           await loadQueue();
           await loadDlq();
