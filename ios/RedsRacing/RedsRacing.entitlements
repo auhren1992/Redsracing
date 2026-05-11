@@ -4,9 +4,16 @@
 <dict>
 	<key>aps-environment</key>
 	<string>production</string>
-	<key>com.apple.security.application-groups</key>
-	<array>
-		<string>group.com.redsracing.app.shared</string>
-	</array>
+	<!--
+	  App Groups for the main app are intentionally NOT enabled here until
+	  the App Group is also registered against the `com.redsracing.app`
+	  bundle id in App Store Connect AND the provisioning profile that's
+	  shipped to CI as APPLE_PROVISIONING_PROFILE_BASE64 is regenerated
+	  with the App Group capability. Adding the key here while the
+	  provisioning profile doesn't carry the capability breaks
+	  `xcodebuild archive` with a codesign mismatch.
+	  The widget extension's own .entitlements DOES enable the group so
+	  the widget can keep writing its schedule cache.
+	-->
 </dict>
 </plist>
