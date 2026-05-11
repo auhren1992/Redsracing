@@ -8,8 +8,9 @@ struct ContentView: View {
     @State private var showMenuOverlay = false
     @State private var overlayTitle = ""
     @State private var overlayItems: [MenuItem] = []
-    @State private var currentURL: URL = URL(string: "https://redsracing.org/")!
+    @State private var currentURL: URL = URL(string: "https://redsracing.org/") ?? URL(fileURLWithPath: "/")
     @State private var webViewRef: WKWebView? = nil
+    private let deepLinkPublisher = NotificationCenter.default.publisher(for: .deepLinkTarget)
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -64,6 +65,16 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onReceive(deepLinkPublisher) { notification in
+            guard let page = notification.userInfo?["page"] as? String,
+                  let target = URL(string: "https://redsracing.org/" + page) else { return }
+            // Reset the splash/overlay state so the deep-link page is visible
+            // immediately when the user opens the app via the widget.
+            withAnimation { showSplash = false }
+            showMenuOverlay = false
+            currentURL = target
+            webViewRef?.load(URLRequest(url: target))
+        }
     }
 
     // MARK: - Top Bar
@@ -352,22 +363,29 @@ struct WebView: UIViewRepresentable {
     
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
-        
+
         // CRITICAL: Enable data storage for localStorage, IndexedDB, cookies
         configuration.websiteDataStore = WKWebsiteDataStore.default()
-        
+
         // Media playback
         configuration.allowsInlineMediaPlayback = true
         configuration.mediaTypesRequiringUserActionForPlayback = []
-        
+
         // JavaScript preferences
         let preferences = WKWebpagePreferences()
         preferences.allowsContentJavaScript = true
         configuration.defaultWebpagePreferences = preferences
-        
+
         // Enable picture-in-picture
         configuration.allowsPictureInPictureMediaPlayback = true
-        
+
+        // IMPORTANT: append our identifier to the standard Safari UA rather than
+        // replacing it. Google sign-in / reCAPTCHA / AdMob's consent dialogs all
+        // sniff the UA — `customUserAgent` blew the whole Safari UA away and
+        // those flows refuse to load. `applicationNameForUserAgent` only
+        // appends to the default product line.
+        configuration.applicationNameForUserAgent = "RedsRacingApp/1.0 iOS"
+
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
@@ -376,7 +394,6 @@ struct WebView: UIViewRepresentable {
         webView.isOpaque = false
         webView.backgroundColor = UIColor(red: 0.02, green: 0.03, blue: 0.06, alpha: 1)
         webView.scrollView.backgroundColor = UIColor(red: 0.02, green: 0.03, blue: 0.06, alpha: 1)
-        webView.customUserAgent = "RedsRacingApp/1.0 iOS"
         
         // IMPORTANT: Allow link previews and interactions
         webView.allowsLinkPreview = true

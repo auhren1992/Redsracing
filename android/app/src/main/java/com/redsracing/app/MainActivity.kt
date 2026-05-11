@@ -138,14 +138,62 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // Handle notification intent if present
-        handleNotificationIntent(intent)
+        // Handle notification intent if present.
+        // If the system restored us (savedInstanceState != null) and the intent
+        // has no routing extras, the WebView already restored its state — don't
+        // clobber the page the user was on.
+        if (savedInstanceState == null || hasRoutingExtras(intent)) {
+            handleNotificationIntent(intent)
+        }
     }
-    
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleNotificationIntent(intent)
+        // Only route on intents that actually carry routing extras (widget tap,
+        // notification tap, or LoginActivity hand-off). A bare ACTION_MAIN from
+        // the launcher / recents would otherwise clobber the WebView's current
+        // page with the default landing screen.
+        if (hasRoutingExtras(intent)) {
+            handleNotificationIntent(intent)
+        }
+    }
+
+    private fun hasRoutingExtras(intent: Intent?): Boolean {
+        if (intent == null) return false
+        if (!intent.getStringExtra("rr_target").isNullOrBlank()) return true
+        val e = intent.extras ?: return false
+        return e.containsKey("title") || e.containsKey("body") || e.containsKey("url") ||
+            e.containsKey("initialUrl")
+    }
+
+    /**
+     * Returns a deep-link URL safe to load into the JS-bridged WebView.
+     * Only the asset-loader host is allowed. Bare html filenames are resolved
+     * against the asset-loader. Anything else falls back to home.
+     *
+     * This prevents an FCM `url` payload (which is trivially attacker-controllable
+     * if the server key is ever leaked) from loading an arbitrary URL into a
+     * WebView that exposes FirebaseAuthBridge / AndroidAuth / AndroidNotifications
+     * to JavaScript.
+     */
+    private fun sanitizeNotificationUrl(raw: String?): String {
+        val home = "https://appassets.androidplatform.net/assets/www/index.html"
+        if (raw.isNullOrBlank()) return home
+        // Bare html filename -> resolve against asset-loader.
+        if (!raw.contains("://") && raw.endsWith(".html")) {
+            return "https://appassets.androidplatform.net/assets/www/$raw"
+        }
+        return try {
+            val uri = android.net.Uri.parse(raw)
+            val scheme = uri.scheme?.lowercase()
+            val host = uri.host?.lowercase()
+            val allowed = (scheme == "https" || scheme == "http") &&
+                host == "appassets.androidplatform.net"
+            if (allowed) raw else home
+        } catch (_: Throwable) {
+            home
+        }
     }
 
     override fun onPause() {
@@ -161,6 +209,31 @@ class MainActivity : AppCompatActivity() {
         try {
             CookieManager.getInstance().flush()
         } catch (_: Exception) {}
+    }
+
+    override fun onDestroy() {
+        // Tear down the WebView so the activity doesn't leak when the system
+        // recreates us (locale change, fontScale, density, process trim).
+        try {
+            binding.webview.let { wv ->
+                wv.stopLoading()
+                wv.loadUrl("about:blank")
+                (wv.parent as? android.view.ViewGroup)?.removeView(wv)
+                wv.removeAllViews()
+                wv.destroy()
+            }
+        } catch (_: Throwable) {}
+        super.onDestroy()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        try { binding.webview.saveState(outState) } catch (_: Throwable) {}
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        try { binding.webview.restoreState(savedInstanceState) } catch (_: Throwable) {}
     }
     
     private fun handleNotificationIntent(intent: Intent?) {
@@ -183,19 +256,16 @@ class MainActivity : AppCompatActivity() {
         }
         intent?.extras?.let { extras ->
             // Check if this intent came from a notification
-            val hasNotificationData = extras.containsKey("title") || 
+            val hasNotificationData = extras.containsKey("title") ||
                                      extras.containsKey("body") ||
                                      extras.containsKey("url")
-            
+
             if (hasNotificationData) {
-                // Notification was tapped - navigate to admin console
+                // Notification was tapped — navigate to the home page (NOT
+                // admin-console; non-admin users were being dropped on a page
+                // they cannot use) unless the payload specifies an allowed URL.
                 val rawUrl = extras.getString("url")
-                val url = when {
-                    rawUrl.isNullOrBlank() -> "https://appassets.androidplatform.net/assets/www/admin-console.html"
-                    rawUrl.startsWith("http://") || rawUrl.startsWith("https://") -> rawUrl
-                    rawUrl.endsWith(".html") -> "https://appassets.androidplatform.net/assets/www/$rawUrl"
-                    else -> "https://appassets.androidplatform.net/assets/www/admin-console.html"
-                }
+                val url = sanitizeNotificationUrl(rawUrl)
                 android.util.Log.d("MainActivity", "Opening from notification: $url")
                 binding.webview.loadUrl(url)
                 return
@@ -371,7 +441,9 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = MenuAdapter(items) { item ->
             if (item.url == "javascript:logout") {
-                // Handle logout
+                // Handle logout — also nuke cookies and WebStorage so HttpOnly
+                // auth cookies don't survive the sign-out and silently re-auth
+                // the previous user on the next session.
                 binding.webview.evaluateJavascript(
                     """
                     (async function() {
@@ -394,9 +466,14 @@ class MainActivity : AppCompatActivity() {
                             console.error('Logout error:', e);
                         }
                     })();
-                    """.trimIndent(),
-                    null
-                )
+                    """.trimIndent()
+                ) { _ ->
+                    try {
+                        CookieManager.getInstance().removeAllCookies(null)
+                        CookieManager.getInstance().flush()
+                        android.webkit.WebStorage.getInstance().deleteAllData()
+                    } catch (_: Throwable) {}
+                }
                 hideMenuOverlay()
             } else {
                 binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/${item.url}")
@@ -499,7 +576,17 @@ class MainActivity : AppCompatActivity() {
                 val url = request?.url ?: return false
                 val urlStr = url.toString()
 
-                if (url.host?.endsWith("google.com") == true || urlStr.startsWith("intent:") || urlStr.startsWith("market:")) {
+                // Only kick *specific* Google domains out to the system browser:
+                // Play Store + Maps. Sign-in/reCAPTCHA/AdMob consent must stay
+                // in the WebView or OAuth round-trips break.
+                val host = url.host?.lowercase()
+                val openExternally = host == "play.google.com" ||
+                    host == "maps.google.com" ||
+                    host == "www.google.com" && url.path?.startsWith("/maps") == true ||
+                    urlStr.startsWith("intent:") ||
+                    urlStr.startsWith("market:")
+
+                if (openExternally) {
                     return try {
                         startActivity(Intent(Intent.ACTION_VIEW, url))
                         true
@@ -690,11 +777,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Use the same channel id as the FCM service and the manifest's
+            // default_notification_channel_id meta-data so user-facing
+            // notification settings show one entry (not two competing channels
+            // with different importance + sound).
+            val channelId = getString(R.string.default_notification_channel_id)
             val channel = NotificationChannel(
-                NotificationsBridge.CHANNEL_ID,
-                "App Notifications",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
+                channelId,
+                "RedsRacing Notifications",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Race updates, predictions, and app announcements"
+            }
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nm.createNotificationChannel(channel)
         }
@@ -970,14 +1064,13 @@ class AuthBridge(private val context: Context) {
 }
 
 class NotificationsBridge(private val context: Context) {
-    companion object {
-        const val CHANNEL_ID = "default_channel"
-    }
-
     @android.webkit.JavascriptInterface
     fun notify(title: String, text: String) {
+        // Unified with MainActivity.createNotificationChannel() and FCM service —
+        // single user-visible channel, single importance level.
+        val channelId = context.getString(R.string.default_notification_channel_id)
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val builder = androidx.core.app.NotificationCompat.Builder(context, CHANNEL_ID)
+        val builder = androidx.core.app.NotificationCompat.Builder(context, channelId)
             .setContentTitle(title)
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_dialog_info)

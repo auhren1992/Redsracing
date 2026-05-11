@@ -1,9 +1,6 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353"
-         crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Profile - RedsRacing #8</title>
@@ -129,6 +126,90 @@
         box-shadow: var(--rr-shadow);
         display: none;
         backdrop-filter: blur(16px);
+      }
+
+      /* Luxury hero + layout */
+      .rr-heroShell {
+        position: relative;
+        overflow: hidden;
+        border-radius: 28px;
+        border: 1px solid var(--rr-border);
+        background:
+          radial-gradient(900px circle at 15% 10%, rgba(214, 177, 94, 0.14), transparent 55%),
+          radial-gradient(900px circle at 85% 20%, rgba(59, 130, 246, 0.10), transparent 55%),
+          radial-gradient(900px circle at 55% 90%, rgba(239, 68, 68, 0.08), transparent 55%),
+          var(--rr-surface);
+        box-shadow: var(--rr-shadow);
+        backdrop-filter: blur(18px);
+      }
+      .rr-heroShell::before {
+        content: "";
+        position: absolute;
+        inset: -120px;
+        background: repeating-linear-gradient(
+          115deg,
+          rgba(148, 163, 184, 0.10) 0px,
+          rgba(148, 163, 184, 0.10) 1px,
+          transparent 1px,
+          transparent 18px
+        );
+        opacity: 0.35;
+        transform: rotate(-2deg);
+        pointer-events: none;
+      }
+      .rr-accentLine {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--rr-accent), rgba(59,130,246,0.55), transparent);
+        opacity: 0.8;
+      }
+      .rr-monogram {
+        position: absolute;
+        right: -10px;
+        top: -10px;
+        font-family: var(--rr-font-display);
+        letter-spacing: 0.24em;
+        font-size: 64px;
+        opacity: 0.08;
+        color: var(--rr-text);
+        pointer-events: none;
+        user-select: none;
+      }
+      .rr-statGrid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .rr-stat {
+        grid-column: span 6;
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid var(--rr-border);
+        background: var(--rr-bg-elev);
+      }
+      @media (min-width: 768px) {
+        .rr-stat { grid-column: span 3; }
+      }
+      .rr-statNum {
+        font-size: 1.35rem;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        color: var(--rr-text);
+      }
+      .rr-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 9999px;
+        border: 1px solid var(--rr-border);
+        background: rgba(2, 6, 23, 0.20);
+        color: var(--rr-text);
+        font-weight: 800;
+      }
+      html[data-theme="light"] .rr-chip { background: rgba(255, 255, 255, 0.7); }
+      .rr-colorInput {
+        height: 44px;
+        padding: 8px;
       }
     </style>
     <script src="assets/js/guest-gate.js"></script>
@@ -290,141 +371,164 @@
 
       <!-- Profile Content -->
       <div id="profile-content" class="hidden">
-        <section class="container mx-auto px-6 pt-10 pb-6">
+        <section class="container mx-auto px-6 pt-10 pb-14">
           <div class="max-w-6xl mx-auto">
             <!-- Banner (optional, shown when profile has bannerUrl) -->
             <div id="profile-banner" class="hidden rr-panel rounded-3xl overflow-hidden mb-6">
               <img id="profile-banner-img" alt="Profile banner" class="w-full h-44 md:h-56 object-cover" />
             </div>
 
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-6">
-              <div>
-                <div class="rr-kicker">Account</div>
-                <h1 class="mt-2 text-4xl md:text-5xl font-racing uppercase tracking-wide rr-value">Profile</h1>
-                <p class="mt-2" style="color: var(--rr-muted);">A clean profile looks professional across the app and site.</p>
+            <!-- Abstract street-neon hero -->
+            <div class="rr-heroShell mb-6">
+              <div class="rr-monogram">RR</div>
+              <div class="relative p-6 md:p-8">
+                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                  <div>
+                    <div class="rr-kicker">Account</div>
+                    <h1 class="mt-2 text-4xl md:text-5xl font-racing uppercase tracking-wide rr-value">Profile</h1>
+                    <p class="mt-2" style="color: var(--rr-muted);">Street‑neon premium. Clean. Fast. Personal.</p>
+                  </div>
+                  <div class="flex flex-wrap gap-3">
+                    <a href="schedule.html" class="rr-btn"><i class="fa-solid fa-flag-checkered"></i>Schedule</a>
+                    <a href="videos.html" class="rr-btn"><i class="fa-solid fa-play"></i>Highlights</a>
+                    <a href="gallery.html" class="rr-btn"><i class="fa-solid fa-camera"></i>Gallery</a>
+                  </div>
+                </div>
               </div>
-              <div class="flex flex-wrap gap-3">
-                <a href="schedule.html" class="rr-btn">
-                  <i class="fa-solid fa-flag-checkered"></i>
-                  Schedule
-                </a>
-                <a href="videos.html" class="rr-btn">
-                  <i class="fa-solid fa-play"></i>
-                  Highlights
-                </a>
-              </div>
+              <div class="rr-accentLine"></div>
             </div>
 
-            <div id="profile-main-card" class="rr-panel rounded-3xl overflow-hidden">
-              <div class="p-6 md:p-8">
-                <div class="flex flex-col lg:flex-row gap-8">
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-start gap-5">
-                      <div class="rr-avatarRing w-20 h-20 md:w-24 md:h-24 flex-shrink-0">
-                        <div class="rr-avatarInner w-full h-full flex items-center justify-center">
-                          <img id="profile-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden" />
-                          <span id="profile-avatar-placeholder" class="text-3xl font-black" style="color: var(--rr-muted);">?</span>
-                        </div>
-                      </div>
-
-                      <div class="min-w-0">
-                        <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-                          <h2 id="profile-display-name" class="text-3xl md:text-4xl font-racing uppercase tracking-wide truncate rr-value">Loading...</h2>
-                          <span id="profile-status-emoji" class="text-2xl" aria-hidden="true"></span>
-                          <span id="profile-theme-dot" class="color-dot" title="Theme color"></span>
-                        </div>
-                        <div class="mt-1 flex flex-wrap items-center gap-3">
-                          <p id="profile-username" class="font-semibold" style="color: var(--rr-muted);">@loading</p>
-                          <span class="rr-pill">
-                            <span style="color: var(--rr-muted);">Role</span>
-                            <span class="rr-value">—</span>
-                          </span>
-                          <span class="rr-pill">
-                            <span style="color: var(--rr-muted);">Member since</span>
-                            <span class="rr-value">—</span>
-                          </span>
-                        </div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              <!-- Left identity card -->
+              <aside id="profile-main-card" class="rr-panel rounded-3xl overflow-hidden lg:col-span-4 lg:sticky lg:top-24 self-start">
+                <div class="p-6">
+                  <div class="flex items-start gap-4">
+                    <div class="rr-avatarRing w-20 h-20 flex-shrink-0">
+                      <div class="rr-avatarInner w-full h-full flex items-center justify-center">
+                        <img id="profile-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden" />
+                        <span id="profile-avatar-placeholder" class="text-3xl font-black" style="color: var(--rr-muted);">?</span>
                       </div>
                     </div>
-
-                    <div class="mt-6 rr-panel rounded-2xl p-5" style="background: var(--rr-bg-elev); border-color: var(--rr-border); box-shadow: none;">
-                      <div class="rr-kicker">About</div>
-                      <p id="profile-bio" class="mt-2 leading-relaxed" style="color: var(--rr-muted);">No bio provided.</p>
+                    <div class="min-w-0">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <h2 id="profile-display-name" class="text-2xl font-racing uppercase tracking-wide rr-value truncate">Loading...</h2>
+                        <span id="profile-status-emoji" class="text-xl" aria-hidden="true"></span>
+                        <span id="profile-theme-dot" class="color-dot" title="Theme color"></span>
+                      </div>
+                      <div class="mt-1 flex flex-wrap items-center gap-2">
+                        <span id="profile-username" class="font-semibold" style="color: var(--rr-muted);">@loading</span>
+                        <span class="rr-chip"><span id="role-emoji">🏎️</span><span id="role-text">Loading...</span></span>
+                      </div>
                     </div>
                   </div>
 
-                  <aside class="lg:w-80 flex-shrink-0">
-                    <div class="grid grid-cols-2 gap-3">
-                      <button id="edit-profile-btn" class="rr-btn rr-btn--primary col-span-2">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                        Edit profile
-                      </button>
-                      <a href="admin-console.html" class="rr-btn">
-                        <i class="fa-solid fa-gauge"></i>
-                        Dashboard
-                      </a>
-                      <a href="index.html" class="rr-btn">
-                        <i class="fa-solid fa-house"></i>
-                        Home
-                      </a>
-                      <button id="logout-button" class="rr-btn rr-btn--danger col-span-2">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                        Sign out
-                      </button>
-                    </div>
-                    <div class="mt-4 text-xs" style="color: var(--rr-muted);">
-                      Pro tip: Use a short bio and a clean display name for the most professional look.
-                    </div>
+                  <div class="mt-5 rr-panel rounded-2xl p-4" style="background: var(--rr-bg-elev); border-color: var(--rr-border); box-shadow: none;">
+                    <div class="rr-kicker">Member since</div>
+                    <div id="profile-join-date" class="mt-2 rr-statNum">Loading...</div>
+                  </div>
 
-                    <div class="mt-4 rr-panel rounded-2xl p-4" style="background: var(--rr-bg-elev); border-color: var(--rr-border); box-shadow: none;">
+                  <div class="mt-4 grid grid-cols-2 gap-3">
+                    <div class="rr-panel rounded-2xl p-4" style="background: var(--rr-bg-elev); border-color: var(--rr-border); box-shadow: none;">
                       <div class="rr-kicker">Garage</div>
                       <div class="mt-2 flex items-baseline gap-2">
-                        <div class="text-3xl font-black rr-value" id="stat-cars-count">0</div>
-                        <div style="color: var(--rr-muted); font-weight: 700;">cars</div>
+                        <div id="stat-cars-count" class="rr-statNum">0</div>
+                        <div style="color: var(--rr-muted); font-weight: 800;">cars</div>
                       </div>
-                      <div class="mt-1 text-xs" style="color: var(--rr-muted);">Your build list & photos.</div>
                     </div>
-                  </aside>
+                    <div class="rr-panel rounded-2xl p-4" style="background: var(--rr-bg-elev); border-color: var(--rr-border); box-shadow: none;">
+                      <div class="rr-kicker">Track</div>
+                      <div id="profile-favorite-track" class="mt-2 rr-statNum" style="font-size: 1rem;">—</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 flex flex-col gap-3">
+                    <button id="edit-profile-btn" class="rr-btn rr-btn--primary w-full">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                      Edit profile
+                    </button>
+                    <div class="grid grid-cols-2 gap-3">
+                      <a href="admin-console.html" class="rr-btn"><i class="fa-solid fa-gauge"></i>Dashboard</a>
+                      <a href="index.html" class="rr-btn"><i class="fa-solid fa-house"></i>Home</a>
+                    </div>
+                    <button id="logout-button" class="rr-btn rr-btn--danger w-full">
+                      <i class="fa-solid fa-right-from-bracket"></i>
+                      Sign out
+                    </button>
+                  </div>
                 </div>
+              </aside>
+
+              <!-- Right content panels -->
+              <div class="lg:col-span-8 space-y-5">
+                <!-- Fan Zone: makes the profile fun for fans -->
+                <section class="rr-panel rounded-3xl p-6">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <div class="rr-kicker">Fan zone</div>
+                      <h3 class="mt-2 text-xl font-bold rr-value">Badges & progress</h3>
+                      <p class="mt-2" style="color: var(--rr-muted);">Earn badges by completing your profile and staying active.</p>
+                    </div>
+                    <div class="text-right">
+                      <div class="rr-kicker">Completion</div>
+                      <div id="profile-completion" class="mt-2 rr-statNum">—%</div>
+                    </div>
+                  </div>
+                  <div class="mt-4 rr-panel rounded-2xl p-4" style="background: var(--rr-bg-elev); border-color: var(--rr-border); box-shadow: none;">
+                    <div class="h-2 rounded-full" style="background: rgba(148,163,184,0.16); overflow:hidden;">
+                      <div id="profile-completion-bar" style="height:100%; width:0%; background: linear-gradient(90deg, rgba(0,198,255,0.85), rgba(247,255,0,0.75)); border-radius:9999px;"></div>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2" id="profile-badges"></div>
+                  </div>
+                  <div class="mt-4 flex flex-wrap gap-3">
+                    <a href="recaps.html" class="rr-btn"><i class="fa-solid fa-clapperboard"></i>Recaps</a>
+                    <a href="fan-wall.html" class="rr-btn"><i class="fa-solid fa-comments"></i>Fan Wall</a>
+                    <a href="feedback.html" class="rr-btn"><i class="fa-solid fa-message"></i>Send a message</a>
+                  </div>
+                </section>
+
+                <section class="rr-panel rounded-3xl p-6">
+                  <div class="rr-kicker">About</div>
+                  <h3 class="mt-2 text-xl font-bold rr-value">Bio</h3>
+                  <p id="profile-bio" class="mt-3 leading-relaxed" style="color: var(--rr-muted);">No bio provided.</p>
+                </section>
+
+                <section id="profile-display" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <article class="rr-panel rounded-3xl p-6">
+                    <div class="rr-kicker">Favorites</div>
+                    <h3 class="mt-2 text-xl font-bold rr-value">Cars</h3>
+                    <p id="profile-favorite-cars" class="mt-3" style="color: var(--rr-muted);">—</p>
+                  </article>
+
+                  <article class="rr-panel rounded-3xl p-6">
+                    <div class="rr-kicker">Signature</div>
+                    <h3 class="mt-2 text-xl font-bold rr-value">Style</h3>
+                    <p class="mt-3" style="color: var(--rr-muted);">Your emoji + accent color are your signature.</p>
+                    <div class="mt-4 flex items-center gap-3">
+                      <span class="rr-signature-emoji text-2xl" aria-hidden="true"></span>
+                      <span class="rr-signature-dot color-dot" title="Theme color"></span>
+                      <span style="color: var(--rr-muted); font-weight: 800;">Theme accent</span>
+                    </div>
+                  </article>
+                </section>
+
+                <section id="social-section" class="hidden rr-panel rounded-3xl p-6">
+                  <div class="rr-kicker">Social</div>
+                  <h3 class="mt-2 text-xl font-bold rr-value">Links</h3>
+                  <div id="profile-social-links" class="mt-4 flex flex-wrap gap-3"></div>
+                </section>
+
+                <section class="rr-panel rounded-3xl p-6">
+                  <div class="flex items-center justify-between gap-4">
+                    <div>
+                      <div class="rr-kicker">Garage</div>
+                      <h3 class="mt-2 text-xl font-bold rr-value">Cars</h3>
+                    </div>
+                    <div id="garage-count" class="text-sm" style="color: var(--rr-muted);"></div>
+                  </div>
+                  <div id="profile-garage" class="mt-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+                </section>
               </div>
             </div>
-          </div>
-        </section>
-
-        <section class="container mx-auto px-6 pb-14">
-          <div class="max-w-6xl mx-auto">
-            <section id="profile-display" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <article class="rr-panel rounded-3xl p-6">
-                <div class="rr-kicker">Favorites</div>
-                <h3 class="mt-2 text-xl font-bold rr-value">Cars</h3>
-                <p id="profile-favorite-cars" class="mt-2" style="color: var(--rr-muted);">—</p>
-              </article>
-
-              <article class="rr-panel rounded-3xl p-6">
-                <div class="rr-kicker">Favorites</div>
-                <h3 class="mt-2 text-xl font-bold rr-value">Track</h3>
-                <p id="profile-favorite-track" class="mt-2" style="color: var(--rr-muted);">—</p>
-              </article>
-            </section>
-
-            <!-- Social (optional, shown when links exist) -->
-            <section id="social-section" class="hidden mt-6 rr-panel rounded-3xl p-6">
-              <div class="rr-kicker">Social</div>
-              <h3 class="mt-2 text-xl font-bold rr-value">Links</h3>
-              <div id="profile-social-links" class="mt-4 flex flex-wrap gap-3"></div>
-            </section>
-
-            <!-- Garage (optional) -->
-            <section class="mt-6 rr-panel rounded-3xl p-6">
-              <div class="flex items-center justify-between gap-4">
-                <div>
-                  <div class="rr-kicker">Garage</div>
-                  <h3 class="mt-2 text-xl font-bold rr-value">Cars</h3>
-                </div>
-                <div id="garage-count" class="text-sm" style="color: var(--rr-muted);"></div>
-              </div>
-              <div id="profile-garage" class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-            </section>
           </div>
         </section>
 
@@ -469,6 +573,11 @@
                   </div>
 
                   <div class="sm:col-span-2">
+                    <label class="rr-kicker block mb-2">Banner URL (optional)</label>
+                    <input id="edit-banner-url" class="rr-input" type="url" placeholder="https://..." />
+                  </div>
+
+                  <div class="sm:col-span-2">
                     <label class="rr-kicker block mb-2">Favorite cars</label>
                     <input id="edit-favorite-cars" class="rr-input" type="text" placeholder="Camaro, Mustang, ..." />
                   </div>
@@ -486,6 +595,41 @@
                   <div class="sm:col-span-2">
                     <label class="rr-kicker block mb-2">Favorite track</label>
                     <input id="edit-favorite-track" class="rr-input" type="text" placeholder="Your track" />
+                  </div>
+
+                  <div class="sm:col-span-2 rr-panel rounded-2xl p-4" style="background: var(--rr-bg-elev); border-color: var(--rr-border); box-shadow:none;">
+                    <div class="rr-kicker">Social links</div>
+                    <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label class="rr-kicker block mb-2">TikTok</label>
+                        <input id="edit-social-tiktok" class="rr-input" type="text" placeholder="@yourhandle" />
+                      </div>
+                      <div>
+                        <label class="rr-kicker block mb-2">YouTube</label>
+                        <input id="edit-social-youtube" class="rr-input" type="text" placeholder="@yourchannel or URL" />
+                      </div>
+                      <div>
+                        <label class="rr-kicker block mb-2">Twitch</label>
+                        <input id="edit-social-twitch" class="rr-input" type="text" placeholder="twitchname" />
+                      </div>
+                      <div>
+                        <label class="rr-kicker block mb-2">Discord</label>
+                        <input id="edit-social-discord" class="rr-input" type="text" placeholder="username#0000 or invite" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="sm:col-span-2 rr-panel rounded-2xl p-4" style="background: var(--rr-bg-elev); border-color: var(--rr-border); box-shadow:none;">
+                    <div class="rr-kicker">Fan badges</div>
+                    <p class="mt-2 text-sm" style="color: var(--rr-muted);">Pick a few badges to show off.</p>
+                    <div class="mt-3 flex flex-wrap gap-2" id="edit-badges">
+                      <button type="button" class="rr-btn rr-badge" data-badge="🏁 Racer">🏁 Racer</button>
+                      <button type="button" class="rr-btn rr-badge" data-badge="🔥 Superfan">🔥 Superfan</button>
+                      <button type="button" class="rr-btn rr-badge" data-badge="📸 Photo Hunter">📸 Photo Hunter</button>
+                      <button type="button" class="rr-btn rr-badge" data-badge="🎥 Highlight Addict">🎥 Highlight Addict</button>
+                      <button type="button" class="rr-btn rr-badge" data-badge="🛠️ Builder">🛠️ Builder</button>
+                      <button type="button" class="rr-btn rr-badge" data-badge="💬 Pit Crew">💬 Pit Crew</button>
+                    </div>
                   </div>
 
                   <div class="sm:col-span-2 flex flex-wrap gap-3 pt-2">
@@ -527,225 +671,13 @@
         </div>
       </div>
 
-      <div id="save-toast" class="toast">Profile saved! 🎉</div>
+      <div id="save-toast" class="toast">Profile saved.</div>
     </main>
-
-    <!-- Role-Based Profile Edit Modal -->
-    <div id="profile-edit-modal-container"></div>
-
-    <!-- Fallback (non-module) must load before the module script -->
 
     <script src="assets/js/profile-inline-fallback.js"></script>
     <script src="vendors.js"></script>
-    <script type="module" src="assets/js/navigation.js"></script>
+    <script type="module" src="navigation.js"></script>
     <script type="module" src="assets/js/auth-guard.js"></script>
     <script type="module" src="assets/js/profile.js"></script>
-    <script type="module" src="js/profile-edit-modal.js"></script>
-    <script>
-      (function(){
-        function forceShow(){
-          try {
-            var loader = document.getElementById('loading-state');
-            var content = document.getElementById('profile-content');
-            if (loader) {
-              // Complete removal of loading state
-              loader.remove();
-            }
-            if (content) {
-              // Force show content
-              content.classList.remove('hidden');
-              content.style.display = 'block';
-              content.style.visibility = 'visible';
-              content.style.opacity = '1';
-              if (!content.innerHTML || content.innerHTML.trim() === '') {
-                content.innerHTML = '<div class="text-center py-12 text-slate-400">Profile is loading slowly. Try again shortly.</div>';
-              }
-            }
-          } catch(e) { try { console.log('[Profile Fallback]', e); } catch(_){} }
-        }
-        // Immediate force reveal after 2 seconds
-        setTimeout(forceShow, 2000);
-        // Backup force reveal after 4.5 seconds
-        setTimeout(forceShow, 4500);
-        window.addEventListener('error', function(e){ try { console.log('[Profile Error]', e.message || e.error); } catch(_){} });
-        window.addEventListener('unhandledrejection', function(e){ try { console.log('[Profile Rejection]', e.reason); } catch(_){} });
-      })();
-      
-      // Racing Persona System
-      const personaData = {
-        veteran: {
-          icon: '🏁',
-          title: 'The Veteran',
-          description: 'You bring wisdom and strategic thinking to every race. Your experience shows in your calculated moves and consistent performance.',
-          traits: ['🧠 Strategic', '⚖️ Balanced', '🎯 Consistent']
-        },
-        speedster: {
-          icon: '⚡',
-          title: 'Speed Demon',
-          description: 'Raw speed and aggressive racing define your style. You push limits and aren\'t afraid to take risks for that perfect overtake.',
-          traits: ['⚡ Aggressive', '🚀 Fast', '🔥 Passionate']
-        },
-        precision: {
-          icon: '🎯',
-          title: 'Precision Pilot',
-          description: 'Technical perfection is your signature. Every move is calculated, every line optimized for maximum efficiency.',
-          traits: ['🔧 Technical', '📐 Precise', '🧮 Analytical']
-        },
-        wildcard: {
-          icon: '🃏',
-          title: 'Wild Card',
-          description: 'Unpredictability is your strength. You adapt to any situation and find creative solutions others miss.',
-          traits: ['🎲 Unpredictable', '🎨 Creative', '🦎 Adaptable']
-        }
-      };
-      
-      function updatePersonaDisplay(personaType) {
-        const persona = personaData[personaType];
-        if (!persona) return;
-        
-        const iconEl = document.getElementById('persona-icon');
-        const titleEl = document.getElementById('persona-title');
-        const descEl = document.getElementById('persona-description');
-        
-        if (iconEl) iconEl.textContent = persona.icon;
-        if (titleEl) titleEl.textContent = persona.title;
-        if (descEl) descEl.textContent = persona.description;
-        
-        const traitsContainer = document.querySelector('#persona-display .flex.flex-wrap');
-        if (traitsContainer) {
-          traitsContainer.innerHTML = persona.traits.map(trait => 
-            `<span class="bg-slate-700/80 backdrop-blur px-4 py-2 rounded-full text-sm font-medium border border-slate-600/50">${trait}</span>`
-          ).join('');
-        }
-      }
-      
-      function updatePersonaSelection(selectedLabel) {
-        // Remove selected styling from all persona options
-        document.querySelectorAll('.persona-option').forEach(label => {
-          label.classList.remove('selected');
-          const check = label.querySelector('.persona-check div');
-          if (check) check.classList.add('hidden');
-        });
-        
-        // Add selected styling to the chosen option
-        if (selectedLabel) {
-          selectedLabel.classList.add('selected');
-          const check = selectedLabel.querySelector('.persona-check div');
-          if (check) check.classList.remove('hidden');
-        }
-      }
-      
-      // Initialize persona system when DOM loads
-      document.addEventListener('DOMContentLoaded', function() {
-        // Load new profile edit modal HTML component
-        fetch('components/profile-edit-modal.html')
-          .then(res => res.text())
-          .then(html => {
-            document.getElementById('profile-edit-modal-container').innerHTML = html;
-          })
-          .catch(err => console.error('Failed to load profile edit modal:', err));
-        
-        // Edit Form Modal handling - using NEW modal
-        const editBtn = document.getElementById('edit-profile-btn');
-        
-        function openEditModal() {
-          if (typeof profileEditModal !== 'undefined' && profileEditModal) {
-            profileEditModal.openModal();
-          }
-        }
-        
-        if (editBtn) {
-          editBtn.addEventListener('click', openEditModal);
-        }
-        
-        // Handle persona selection
-        const personaRadios = document.querySelectorAll('input[name="racing-persona"]');
-        personaRadios.forEach(radio => {
-          radio.addEventListener('change', function() {
-            updatePersonaSelection(this.closest('label'));
-            updatePersonaDisplay(this.value);
-          });
-        });
-        
-        // Handle team role selection in edit form
-        const teamRoleRadios = document.querySelectorAll('input[name="profile-team-role"]');
-        teamRoleRadios.forEach(radio => {
-          radio.addEventListener('change', function() {
-            // Remove selected styling from all team role options
-            document.querySelectorAll('input[name="profile-team-role"]').forEach(r => {
-              r.closest('label').classList.remove('selected');
-            });
-            // Add selected styling to chosen option
-            if (this.checked) {
-              this.closest('label').classList.add('selected');
-            }
-          });
-        });
-        
-        // Save persona button
-        const savePersonaBtn = document.getElementById('save-persona-btn');
-        if (savePersonaBtn) {
-          savePersonaBtn.addEventListener('click', function() {
-            const selectedPersona = document.querySelector('input[name="racing-persona"]:checked');
-            if (selectedPersona) {
-              // Save to localStorage as fallback
-              localStorage.setItem('userPersona', selectedPersona.value);
-              
-              // Show success toast
-              const toast = document.getElementById('save-toast') || document.createElement('div');
-              if (!toast.id) {
-                toast.className = 'toast';
-                document.body.appendChild(toast);
-              }
-              toast.textContent = 'Racing persona saved! 🏁';
-              toast.style.display = 'block';
-              
-              setTimeout(() => {
-                toast.style.display = 'none';
-              }, 3000);
-            } else {
-              alert('Please select a racing persona first!');
-            }
-          });
-        }
-        
-        // Load saved persona
-        const savedPersona = localStorage.getItem('userPersona');
-        if (savedPersona) {
-          const radio = document.querySelector(`input[name="racing-persona"][value="${savedPersona}"]`);
-          if (radio) {
-            radio.checked = true;
-            updatePersonaSelection(radio.closest('label'));
-            updatePersonaDisplay(savedPersona);
-          }
-        } else {
-          // Default to veteran if no saved persona
-          const defaultRadio = document.querySelector('input[name="racing-persona"][value="veteran"]');
-          if (defaultRadio) {
-            defaultRadio.checked = true;
-            updatePersonaSelection(defaultRadio.closest('label'));
-            updatePersonaDisplay('veteran');
-          }
-        }
-        
-        // Avatar URL preview in edit form
-        const avatarUrlInput = document.getElementById('edit-avatar-url');
-        const avatarPreview = document.getElementById('edit-avatar-preview');
-        if (avatarUrlInput && avatarPreview) {
-          avatarUrlInput.addEventListener('input', function() {
-            const url = this.value.trim();
-            if (url) {
-              avatarPreview.src = url;
-              avatarPreview.classList.remove('hidden');
-              avatarPreview.onerror = function() {
-                this.classList.add('hidden');
-              };
-            } else {
-              avatarPreview.classList.add('hidden');
-            }
-          });
-        }
-      });
-    </script>
   </body>
 </html>

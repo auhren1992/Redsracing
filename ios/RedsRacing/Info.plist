@@ -32,9 +32,24 @@
         <key>UIColorName</key>
         <string>LaunchBackground</string>
     </dict>
-    <key>UIRequiredDeviceCapabilities</key>
+    <!--
+      Intentionally no UIRequiredDeviceCapabilities array.
+      Previously this listed `armv7`, which is rejected by App Store Connect
+      for any modern iOS app (no armv7 devices supported). The default empty
+      requirement set is correct for a 64-bit-only iOS 14+ build.
+    -->
+    <key>CFBundleURLTypes</key>
     <array>
-        <string>armv7</string>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>com.redsracing.app</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>redsracing</string>
+            </array>
+        </dict>
     </array>
     <key>UISupportedInterfaceOrientations</key>
     <array>

@@ -155,6 +155,69 @@
           "functionId": "fetchK1AddisonJonnyJunior",
           "region": "us-central1"
         }
+      },
+      {
+        "source": "/k1/addison/jonny",
+        "function": {
+          "functionId": "fetchK1AddisonJonny",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/k1/addison/2025/jon",
+        "function": {
+          "functionId": "fetchK1AddisonJon",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/k1/addison/jon/seasons",
+        "function": {
+          "functionId": "fetchK1AddisonJonSeasons",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/speedhive/2025",
+        "function": {
+          "functionId": "fetchSpeedhiveJon",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/process_queues",
+        "function": {
+          "functionId": "process_queues",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/add_subscriber",
+        "function": {
+          "functionId": "handleAddSubscriber",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/send_sponsorship_email",
+        "function": {
+          "functionId": "handleSendSponsorship",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/leaderboard",
+        "function": {
+          "functionId": "handleGetLeaderboard",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/auto_award_achievement",
+        "function": {
+          "functionId": "handleAutoAwardAchievement",
+          "region": "us-central1"
+        }
       }
     ]
   },

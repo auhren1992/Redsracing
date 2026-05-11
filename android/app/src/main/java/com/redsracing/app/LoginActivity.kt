@@ -42,7 +42,10 @@ class LoginActivity : AppCompatActivity() {
         }
         binding.guestButton.setOnClickListener {
             if (binding.rememberCheck.isChecked) remember("guest")
-            startMain("file:///android_asset/www/index.html", guest = true)
+            // Use the asset-loader origin (which MainActivity wires up) so guest browse
+            // works even when the WebView has allowFileAccess=false. The asset loader
+            // serves bundled web files from a real https:// scheme.
+            startMain("https://appassets.androidplatform.net/assets/www/index.html", guest = true)
         }
         binding.createAccountLink.setOnClickListener {
             // Do not remember yet; only after account creation + login is successful in the web app

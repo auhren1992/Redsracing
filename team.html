@@ -179,6 +179,9 @@
         height: 100%;
         background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
         transition: left 0.6s;
+        /* Critical: without this the pseudo-element covers the entire <a>
+           and swallows clicks, so "Full Profile" links don't navigate. */
+        pointer-events: none;
       }
       
       .cta-button:hover::before {

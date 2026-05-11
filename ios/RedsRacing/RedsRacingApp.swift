@@ -117,20 +117,58 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     }
 }
 
+/// Centralised broadcast bus for widget / notification deep-links.
+/// `ContentView` listens on `.deepLinkTarget` and navigates the WebView when
+/// a payload arrives.
+extension Notification.Name {
+    static let deepLinkTarget = Notification.Name("RR.DeepLinkTarget")
+}
+
 @main
 struct RedsRacingApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
+
     init() {
         // Configure Firebase for iOS app (only if not already configured)
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
         }
     }
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onOpenURL { url in
+                    handleDeepLink(url)
+                }
         }
+    }
+
+    /// Maps `redsracing://target/<page>` URLs (sent by the home-screen widget
+    /// via `.widgetURL`) into a WebView-page name and broadcasts it to
+    /// `ContentView`.
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme?.lowercased() == "redsracing" else { return }
+        let host = url.host?.lowercased() ?? ""
+        let path = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let target: String? = {
+            if host == "target" {
+                switch path.lowercased() {
+                case "schedule": return "schedule.html"
+                case "live":     return "live.html"
+                case "recaps":   return "recaps.html"
+                case "gallery":  return "gallery.html"
+                case "predictions": return "predictions.html"
+                default:         return nil
+                }
+            }
+            return nil
+        }()
+        guard let target else { return }
+        NotificationCenter.default.post(
+            name: .deepLinkTarget,
+            object: nil,
+            userInfo: ["page": target]
+        )
     }
 }

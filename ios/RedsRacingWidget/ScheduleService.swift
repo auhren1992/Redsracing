@@ -58,7 +58,9 @@ enum NextRaceCache {
 /// MARK: - Network + parsing
 
 enum ScheduleService {
-    static let scheduleURL = URL(string: "https://redsracing.org/data/schedule.json")!
+    // Optional + nil-coalesced rather than force-unwrapped so a typo in the
+    // URL literal can't crash the widget process at first use.
+    static let scheduleURL: URL? = URL(string: "https://redsracing.org/data/schedule.json")
 
     static func fetchNextRace() async -> CachedRace? {
         guard let data = await downloadSchedule() else { return nil }
@@ -69,7 +71,8 @@ enum ScheduleService {
     /// MARK: Network
 
     private static func downloadSchedule() async -> Data? {
-        var request = URLRequest(url: scheduleURL,
+        guard let url = scheduleURL else { return nil }
+        var request = URLRequest(url: url,
                                  cachePolicy: .reloadIgnoringLocalCacheData,
                                  timeoutInterval: 8)
         request.setValue("application/json", forHTTPHeaderField: "Accept")

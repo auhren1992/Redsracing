@@ -108,6 +108,9 @@ struct NextRaceWidgetView: View {
         .containerBackground(for: .widget) {
             backgroundGradient
         }
+        // Tapping the widget deep-links into the app's schedule page. The host
+        // app handles `redsracing://target/schedule` in `onOpenURL`.
+        .widgetURL(URL(string: "redsracing://target/schedule"))
     }
 
     private var backgroundGradient: some View {

@@ -967,10 +967,8 @@
                   <div>
                     <p class="text-slate-400 text-sm font-medium mb-1">Total Races</p>
                     <div class="flex items-center space-x-2">
-                      <span class="text-3xl font-bold text-white animated-counter" id="total-races">12</span>
-                      <div class="text-green-400 text-sm flex items-center">
-                        <i class="fas fa-arrow-up mr-1"></i>+2
-                      </div>
+                      <span class="text-3xl font-bold text-white animated-counter" id="total-races">0</span>
+                      <div class="text-slate-500 text-sm flex items-center" id="total-races-trend"></div>
                     </div>
                   </div>
                   <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
@@ -1019,12 +1017,10 @@
               <div class="stat-card rounded-xl p-6">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-slate-400 text-sm font-medium mb-1">Analytics</p>
+                    <p class="text-slate-400 text-sm font-medium mb-1">Visitors (7d)</p>
                     <div class="flex items-center space-x-2">
-                      <span class="text-2xl font-bold text-white" id="active-users">Live</span>
-                      <div class="text-green-400 text-xs flex items-center">
-                        <i class="fas fa-check-circle mr-1"></i>Tracking
-                      </div>
+                      <span class="text-2xl font-bold text-white" id="active-users">—</span>
+                      <div class="text-slate-500 text-xs flex items-center" id="active-users-trend"></div>
                     </div>
                   </div>
                   <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
@@ -1047,8 +1043,8 @@
                 </div>
                 
                 <div class="text-center mb-6">
-                  <p id="next-race-name" class="text-2xl font-bold text-yellow-400 mb-2">Loading...</p>
-                  <p class="text-slate-400 text-sm">Championship Round</p>
+                  <p id="next-race-name" class="text-2xl font-bold text-yellow-400 mb-2">Loading…</p>
+                  <p id="next-race-subtitle" class="text-slate-400 text-sm"></p>
                 </div>
                 
                 <div id="countdown-timer" class="grid grid-cols-4 gap-3">
@@ -1194,19 +1190,19 @@
                     <div class="grid grid-cols-2 gap-4">
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Racing Number</label>
-                        <input type="text" id="jon-number" value="8" class="modern-input w-full p-3 text-white" />
+                        <input type="text" id="jon-number" class="modern-input w-full p-3 text-white" placeholder="e.g. 8" />
                       </div>
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Years Racing</label>
-                        <input type="number" id="jon-years" value="2" class="modern-input w-full p-3 text-white" />
+                        <input type="number" id="jon-years" class="modern-input w-full p-3 text-white" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Wins</label>
-                        <input type="number" id="jon-wins" value="12" class="modern-input w-full p-3 text-white" />
+                        <input type="number" id="jon-wins" class="modern-input w-full p-3 text-white" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Podium Finishes</label>
-                        <input type="number" id="jon-podiums" value="11" class="modern-input w-full p-3 text-white" />
+                        <input type="number" id="jon-podiums" class="modern-input w-full p-3 text-white" placeholder="0" />
                       </div>
                     </div>
                     
@@ -1225,19 +1221,19 @@
                     <div class="grid grid-cols-2 gap-4">
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Racing Number</label>
-                        <input type="text" id="jonny-number" value="88" class="modern-input w-full p-3 text-white" />
+                        <input type="text" id="jonny-number" class="modern-input w-full p-3 text-white" placeholder="e.g. 88" />
                       </div>
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Years Racing</label>
-                        <input type="number" id="jonny-years" value="1" class="modern-input w-full p-3 text-white" />
+                        <input type="number" id="jonny-years" class="modern-input w-full p-3 text-white" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Wins</label>
-                        <input type="number" id="jonny-wins" value="8" class="modern-input w-full p-3 text-white" />
+                        <input type="number" id="jonny-wins" class="modern-input w-full p-3 text-white" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Championships</label>
-                        <input type="number" id="jonny-championships" value="1" class="modern-input w-full p-3 text-white" />
+                        <input type="number" id="jonny-championships" class="modern-input w-full p-3 text-white" placeholder="0" />
                       </div>
                     </div>
                     
@@ -1268,19 +1264,19 @@
                     <div class="grid grid-cols-2 gap-3">
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Years Racing</label>
-                        <input type="number" id="homepage-years" value="2" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="homepage-years" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Races Won</label>
-                        <input type="number" id="homepage-wins" value="12" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="homepage-wins" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Racing Numbers</label>
-                        <input type="text" id="homepage-numbers" value="#8 & #88" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="text" id="homepage-numbers" class="modern-input w-full p-2 text-white text-sm" placeholder="e.g. #8 &amp; #88" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Active Users</label>
-                        <input type="number" id="homepage-users" value="1234" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="homepage-users" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                     </div>
                   </div>
@@ -1290,19 +1286,19 @@
                     <div class="space-y-3">
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Action Shots Count</label>
-                        <input type="number" id="gallery-action" value="127" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="gallery-action" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Victory Moments</label>
-                        <input type="number" id="gallery-victory" value="45" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="gallery-victory" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Pit Crew Photos</label>
-                        <input type="number" id="gallery-pit" value="89" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="gallery-pit" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Championships</label>
-                        <input type="number" id="gallery-championships" value="23" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="gallery-championships" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                     </div>
                   </div>
@@ -1312,19 +1308,19 @@
                     <div class="space-y-3">
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Active Drivers</label>
-                        <input type="number" id="roster-drivers" value="2" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="roster-drivers" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Combined Experience</label>
-                        <input type="text" id="roster-experience" value="2 Years" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="text" id="roster-experience" class="modern-input w-full p-2 text-white text-sm" placeholder="e.g. 5 Years" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Team Legacy</label>
-                        <input type="text" id="roster-legacy" value="#8" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="text" id="roster-legacy" class="modern-input w-full p-2 text-white text-sm" placeholder="e.g. #8" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Racing Spirit</label>
-                        <input type="text" id="roster-spirit" value="Unlimited" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="text" id="roster-spirit" class="modern-input w-full p-2 text-white text-sm" placeholder="" />
                       </div>
                     </div>
                   </div>
@@ -1911,7 +1907,7 @@
                       <h4 class="text-white font-semibold flex items-center">
                         <i class="fab fa-android text-green-400 mr-2 text-xl"></i>Android App
                       </h4>
-                      <span class="px-2 py-1 bg-green-600 text-white text-xs rounded">Live</span>
+                      <span id="android-status-badge" class="px-2 py-1 bg-slate-600 text-white text-xs rounded">—</span>
                     </div>
                     <div class="space-y-2">
                       <div class="flex justify-between text-sm">
@@ -1939,7 +1935,7 @@
                       <h4 class="text-white font-semibold flex items-center">
                         <i class="fab fa-apple text-blue-400 mr-2 text-xl"></i>iOS App
                       </h4>
-                      <span class="px-2 py-1 bg-blue-600 text-white text-xs rounded">Live</span>
+                      <span id="ios-status-badge" class="px-2 py-1 bg-slate-600 text-white text-xs rounded">—</span>
                     </div>
                     <div class="space-y-2">
                       <div class="flex justify-between text-sm">
@@ -2163,13 +2159,15 @@
                   </div>
                 </div>
                 
-                <!-- Revenue Chart Placeholder -->
+                <!-- Revenue Trend (real chart, drawn from revenue_events) -->
                 <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 mb-4">
                   <h4 class="text-white font-semibold mb-3">Revenue Trend (30 Days)</h4>
-                  <div class="h-48 flex items-center justify-center text-slate-500">
-                    <i class="fas fa-chart-area text-4xl mr-3"></i>
-                    <span>Revenue chart will appear here</span>
-                  </div>
+                  <canvas id="revenue-trend-chart" width="800" height="160"
+                          style="width:100%;height:160px;display:block"></canvas>
+                  <p id="revenue-trend-empty"
+                     class="hidden text-slate-500 text-sm text-center mt-2">
+                    No revenue_events yet. Numbers above are estimates from page_views.
+                  </p>
                 </div>
                 
                 <div class="flex flex-wrap gap-3">
@@ -4441,6 +4439,20 @@
                 if (document.getElementById('homepage-numbers')) document.getElementById('homepage-numbers').value = v.homepage.numbers || '';
                 if (document.getElementById('homepage-users')) document.getElementById('homepage-users').value = v.homepage.users || '';
               }
+              // Gallery stats (new — was hardcoded in HTML before)
+              if (v.gallery) {
+                if (document.getElementById('gallery-action')) document.getElementById('gallery-action').value = v.gallery.action || '';
+                if (document.getElementById('gallery-victory')) document.getElementById('gallery-victory').value = v.gallery.victory || '';
+                if (document.getElementById('gallery-pit')) document.getElementById('gallery-pit').value = v.gallery.pit || '';
+                if (document.getElementById('gallery-championships')) document.getElementById('gallery-championships').value = v.gallery.championships || '';
+              }
+              // Roster meta (new — was hardcoded in HTML before)
+              if (v.rosterMeta) {
+                if (document.getElementById('roster-drivers')) document.getElementById('roster-drivers').value = v.rosterMeta.drivers || '';
+                if (document.getElementById('roster-experience')) document.getElementById('roster-experience').value = v.rosterMeta.experience || '';
+                if (document.getElementById('roster-legacy')) document.getElementById('roster-legacy').value = v.rosterMeta.legacy || '';
+                if (document.getElementById('roster-spirit')) document.getElementById('roster-spirit').value = v.rosterMeta.spirit || '';
+              }
               // Content
               if (v.content) {
                 if (document.getElementById('hero-title')) document.getElementById('hero-title').value = v.content.heroTitle || '';
@@ -4492,20 +4504,38 @@
             const { getFirestore, doc, setDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const db = getFirestore();
             const beforeSnap = await getDoc(doc(db, 'config', 'site'));
-            const beforeData = beforeSnap.exists() ? { homepage: beforeSnap.data()?.homepage } : null;
+            const before = beforeSnap.exists() ? beforeSnap.data() : null;
+            const beforeData = before ? { homepage: before.homepage, gallery: before.gallery, rosterMeta: before.rosterMeta } : null;
+            const num = (id) => Math.max(0, Number(document.getElementById(id)?.value || 0) || 0);
+            const txt = (id) => (document.getElementById(id)?.value || '').trim() || null;
             const payload = {
               homepage: {
-                years: Math.max(0, Number(document.getElementById('homepage-years')?.value || 0) || 0),
-                wins: Math.max(0, Number(document.getElementById('homepage-wins')?.value || 0) || 0),
+                years: num('homepage-years'),
+                wins: num('homepage-wins'),
                 numbers: document.getElementById('homepage-numbers')?.value || null,
-                users: Math.max(0, Number(document.getElementById('homepage-users')?.value || 0) || 0),
+                users: num('homepage-users'),
+              },
+              gallery: {
+                action: num('gallery-action'),
+                victory: num('gallery-victory'),
+                pit: num('gallery-pit'),
+                championships: num('gallery-championships'),
+              },
+              rosterMeta: {
+                drivers: num('roster-drivers'),
+                experience: txt('roster-experience'),
+                legacy: txt('roster-legacy'),
+                spirit: txt('roster-spirit'),
               },
             };
             await setDoc(doc(db, 'config', 'site'), payload, { merge: true });
             writeConfigHistoryClient('config/site:homepage', beforeData, payload);
             writeAdminLogClient({ action: 'settings_saved', configPath: 'config/site:homepage' });
-            showToast('Homepage stats saved');
-          } catch (e) { showToast('Failed to save homepage stats', 'error'); }
+            showToast('Homepage / gallery / roster stats saved');
+          } catch (e) {
+            console.error('[saveHomepageStats] failed:', e);
+            showToast('Failed to save homepage stats', 'error');
+          }
         }
 
         async function saveContentSettings() {
@@ -5560,6 +5590,95 @@
 
           const refreshInvBtn = document.getElementById('refresh-invites-btn');
           if (refreshInvBtn) refreshInvBtn.addEventListener('click', refreshInvitesUI);
+
+          // Site Settings save buttons — these were rendered but never wired.
+          // saveRosterSettings / saveHomepageStats / saveContentSettings exist below.
+          document.getElementById('save-roster-btn')?.addEventListener('click', () => saveRosterSettings());
+          document.getElementById('save-stats-btn')?.addEventListener('click', () => saveHomepageStats());
+          document.getElementById('save-content-btn')?.addEventListener('click', () => saveContentSettings());
+
+          // Revenue toolbar: Export and Ad Settings — were rendered but unwired.
+          document.getElementById('export-revenue-btn')?.addEventListener('click', async () => {
+            try {
+              const { getFirestore, collection, getDocs, query, orderBy, limit } =
+                await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const app = await ensureDefaultApp();
+              const db = getFirestore(app);
+              const snap = await getDocs(query(collection(db, 'revenue_events'), orderBy('timestamp', 'desc'), limit(5000)));
+              const safe = (s) => String(s ?? '').replace(/[\r\n,"]/g, ' ').trim();
+              const header = 'Timestamp,Source,EventType,Amount,Currency,Page,UserAgent';
+              const body = snap.docs.map(d => {
+                const v = d.data() || {};
+                const ts = v.timestamp?.toDate ? v.timestamp.toDate().toISOString() : (v.timestamp || '');
+                return [ts, v.source, v.eventType, v.amount, v.currency, v.page, v.userAgent].map(safe).join(',');
+              }).join('\n');
+              const blob = new Blob([`${header}\n${body}`], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `revenue-events-${new Date().toISOString().split('T')[0]}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+              showToast(`Exported ${snap.size} revenue events`);
+            } catch (e) {
+              console.error('[export-revenue-btn] failed:', e);
+              showToast('Revenue export failed', 'error');
+            }
+          });
+
+          document.getElementById('ad-settings-btn')?.addEventListener('click', async () => {
+            try {
+              const { getFirestore, doc, getDoc } =
+                await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const app = await ensureDefaultApp();
+              const db = getFirestore(app);
+              const snap = await getDoc(doc(db, 'config', 'ads'));
+              const out = document.getElementById('revenue-operation-result');
+              if (!out) return;
+              if (snap.exists()) {
+                const data = snap.data();
+                out.innerHTML = `
+                  <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3">
+                    <div class="text-white font-semibold mb-2"><i class="fas fa-cog mr-2 text-blue-400"></i>Current Ad Config (config/ads)</div>
+                    <pre class="text-xs text-slate-300 whitespace-pre-wrap">${
+                      JSON.stringify(data, (k, v) => v?.toDate ? v.toDate().toISOString() : v, 2)
+                    }</pre>
+                    <p class="text-slate-500 text-xs mt-2">Edit this document in the Firebase console to change publisher IDs or enable/disable individual ad units.</p>
+                  </div>`;
+              } else {
+                out.innerHTML = `
+                  <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3">
+                    <div class="text-yellow-400 font-semibold mb-2"><i class="fas fa-exclamation-triangle mr-2"></i>No <code>config/ads</code> document yet</div>
+                    <p class="text-slate-400 text-xs">Create one in Firestore with fields like <code>{ adsensePub: "...", adsenseEnabled: true, admobAppId: "...", admobEnabled: true }</code> to control ad units centrally.</p>
+                  </div>`;
+              }
+            } catch (e) {
+              console.error('[ad-settings-btn] failed:', e);
+              showToast('Failed to load ad settings', 'error');
+            }
+          });
+
+          // Auto-backup toggle: persist preference into config/backups.
+          // A scheduled Cloud Function (deploy separately) reads this flag.
+          const autoBackup = document.getElementById('auto-backup-toggle');
+          if (autoBackup) {
+            autoBackup.addEventListener('change', async () => {
+              try {
+                const { getFirestore, doc, setDoc } =
+                  await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+                const app = await ensureDefaultApp();
+                const db = getFirestore(app);
+                await setDoc(doc(db, 'config', 'backups'), {
+                  autoBackupEnabled: !!autoBackup.checked,
+                  updatedAt: new Date()
+                }, { merge: true });
+                showToast(autoBackup.checked ? 'Auto-backup enabled' : 'Auto-backup disabled');
+              } catch (e) {
+                console.error('[auto-backup-toggle] save failed:', e);
+                showToast('Failed to save auto-backup setting', 'error');
+              }
+            });
+          }
 
           const saveTikTokBtn = document.getElementById('save-tiktok-btn');
           if (saveTikTokBtn) saveTikTokBtn.addEventListener('click', async () => {
@@ -6726,15 +6845,76 @@
         }
         
         async function exportActivityCSV() {
-          const csv = 'Timestamp,Action,User\n2026-03-04 12:00,Signup,user@example.com\n2026-03-04 11:45,Upload,another@example.com';
-          const blob = new Blob([csv], { type: 'text/csv' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `activity-export-${new Date().toISOString().split('T')[0]}.csv`;
-          a.click();
-          URL.revokeObjectURL(url);
-          showToast('Activity exported');
+          // Real export from Firestore: combines recent users (signups), gallery uploads,
+          // and client_logs into a single chronological CSV. No mock rows.
+          try {
+            showToast('Building activity export…');
+            const { getFirestore, collection, getDocs, query, orderBy, limit } =
+              await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+
+            const rows = [];
+            const safe = (s) => String(s ?? '').replace(/[\r\n,"]/g, ' ').trim();
+            const tsToIso = (t) => {
+              try { return t?.toDate ? t.toDate().toISOString() : (t ? new Date(t).toISOString() : ''); }
+              catch (_) { return ''; }
+            };
+
+            try {
+              const us = await getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(500)));
+              us.forEach(d => {
+                const v = d.data();
+                rows.push({
+                  ts: tsToIso(v.createdAt),
+                  action: 'Signup',
+                  user: v.email || v.displayName || d.id
+                });
+              });
+            } catch (e) { console.warn('[exportActivityCSV] users query failed:', e); }
+
+            try {
+              const gs = await getDocs(query(collection(db, 'gallery_images'), orderBy('uploadedAt', 'desc'), limit(500)));
+              gs.forEach(d => {
+                const v = d.data();
+                rows.push({
+                  ts: tsToIso(v.uploadedAt),
+                  action: v.approved ? 'PhotoApproved' : 'PhotoUpload',
+                  user: v.uploadedByEmail || v.uploadedBy || ''
+                });
+              });
+            } catch (e) { console.warn('[exportActivityCSV] gallery_images query failed:', e); }
+
+            try {
+              const ls = await getDocs(query(collection(db, 'client_logs'), orderBy('createdAt', 'desc'), limit(500)));
+              ls.forEach(d => {
+                const v = d.data();
+                rows.push({
+                  ts: tsToIso(v.createdAt),
+                  action: v.type || v.level || 'Log',
+                  user: v.userEmail || v.userId || ''
+                });
+              });
+            } catch (e) { console.warn('[exportActivityCSV] client_logs query failed:', e); }
+
+            rows.sort((a, b) => (b.ts || '').localeCompare(a.ts || ''));
+
+            const header = 'Timestamp,Action,User';
+            const body = rows.map(r => `${safe(r.ts)},${safe(r.action)},${safe(r.user)}`).join('\n');
+            const csv = `${header}\n${body}`;
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `activity-export-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast(`Exported ${rows.length} activity rows`);
+          } catch (e) {
+            console.error('[exportActivityCSV] failed:', e);
+            showToast('Activity export failed', 'error');
+          }
         }
         
         // Cache Management Functions
@@ -6759,12 +6939,25 @@
           }
         }
         
-        function refreshImageCache() {
-          document.getElementById('cache-operation-result').innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Refreshing image cache...</div>';
-          setTimeout(() => {
-            document.getElementById('cache-operation-result').innerHTML = '<div class="text-green-400"><i class="fas fa-check mr-2"></i>Image cache refreshed</div>';
-            showToast('Image cache refreshed');
-          }, 1500);
+        async function refreshImageCache() {
+          // Real cache-bust: write a new timestamp to config/cdn.cacheBust.
+          // Public pages can append `?v=cacheBust` to image URLs. This
+          // function does something verifiable, never simulates work.
+          const out = document.getElementById('cache-operation-result');
+          if (out) out.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Stamping cache-bust token…</div>';
+          try {
+            const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const stamp = Date.now();
+            await setDoc(doc(db, 'config', 'cdn'), { cacheBust: stamp, updatedAt: stamp }, { merge: true });
+            if (out) out.innerHTML = `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Cache-bust token updated: ${stamp}</div>`;
+            showToast('Image cache-bust token updated');
+          } catch (e) {
+            console.error('[refreshImageCache] failed:', e);
+            if (out) out.innerHTML = `<div class="text-red-400"><i class="fas fa-exclamation-triangle mr-2"></i>${(e && e.message) || 'Failed to update cache-bust token'}</div>`;
+            showToast('Cache-bust update failed', 'error');
+          }
         }
         
         // Security Audit Functions
@@ -7103,37 +7296,94 @@
         }
         
         async function runSeoAudit() {
+          // Real on-page audit. Inspects the CURRENT page's DOM and reports actual
+          // counts (title length, meta description, image alts, h1 count, canonical
+          // link, viewport meta). No fake scores.
           const result = document.getElementById('seo-operation-result');
-          result.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Running SEO audit...</div>';
-          
-          setTimeout(() => {
-            document.getElementById('seo-score').textContent = '87';
-            document.getElementById('seo-traffic').textContent = '~2.5K';
-            document.getElementById('seo-keywords').textContent = '15';
-            document.getElementById('seo-speed').textContent = '92';
-            
-            result.innerHTML = `
-              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-1">
-                <div class="text-green-400"><i class="fas fa-check mr-2"></i>Page titles optimized</div>
-                <div class="text-green-400"><i class="fas fa-check mr-2"></i>Meta descriptions present</div>
-                <div class="text-yellow-400"><i class="fas fa-exclamation-triangle mr-2"></i>Some images missing alt tags</div>
-                <div class="text-green-400"><i class="fas fa-check mr-2"></i>Mobile-friendly design</div>
-              </div>
-            `;
-            showToast('SEO audit complete');
-          }, 2000);
+          if (!result) return;
+          result.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Running on-page SEO audit…</div>';
+
+          const checks = [];
+          const title = (document.title || '').trim();
+          if (title.length >= 30 && title.length <= 70) {
+            checks.push({ ok: true, msg: `Title length OK (${title.length} chars)` });
+          } else {
+            checks.push({ ok: false, msg: `Title length ${title.length} (target 30–70)` });
+          }
+          const md = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+          if (md.length >= 70 && md.length <= 160) {
+            checks.push({ ok: true, msg: `Meta description OK (${md.length} chars)` });
+          } else if (!md) {
+            checks.push({ ok: false, msg: 'Meta description missing' });
+          } else {
+            checks.push({ ok: false, msg: `Meta description ${md.length} (target 70–160)` });
+          }
+          const h1Count = document.querySelectorAll('h1').length;
+          checks.push({ ok: h1Count === 1, msg: `H1 count: ${h1Count}${h1Count === 1 ? '' : ' (should be 1)'}` });
+          const imgs = Array.from(document.querySelectorAll('img'));
+          const missingAlt = imgs.filter(i => !(i.getAttribute('alt') || '').trim()).length;
+          checks.push({ ok: missingAlt === 0, msg: `${missingAlt}/${imgs.length} images missing alt text` });
+          const hasCanonical = !!document.querySelector('link[rel="canonical"]');
+          checks.push({ ok: hasCanonical, msg: hasCanonical ? 'Canonical link present' : 'Canonical link missing' });
+          const hasViewport = !!document.querySelector('meta[name="viewport"]');
+          checks.push({ ok: hasViewport, msg: hasViewport ? 'Mobile viewport set' : 'Mobile viewport missing' });
+
+          // Real keyword count from page text (admin-only heuristic, no fake number).
+          const text = document.body ? document.body.innerText : '';
+          const words = text.split(/\s+/).filter(Boolean);
+          const keywordCount = new Set(words.filter(w => w.length >= 4)).size;
+          const score = Math.round((checks.filter(c => c.ok).length / checks.length) * 100);
+
+          document.getElementById('seo-score').textContent = String(score);
+          document.getElementById('seo-traffic').textContent = '—'; // Requires Search Console API integration
+          document.getElementById('seo-keywords').textContent = String(keywordCount);
+
+          // Page speed from real PerformanceNavigationTiming (not the fake formula).
+          try {
+            const nav = performance.getEntriesByType('navigation')[0];
+            if (nav) {
+              const ms = Math.round(nav.loadEventEnd - nav.startTime);
+              const speed = Math.max(1, Math.min(100, Math.round(100 - ms / 50)));
+              document.getElementById('seo-speed').textContent = String(speed);
+            } else {
+              document.getElementById('seo-speed').textContent = '—';
+            }
+          } catch (_) { document.getElementById('seo-speed').textContent = '—'; }
+
+          const rows = checks
+            .map(c => `<div class="${c.ok ? 'text-green-400' : 'text-yellow-400'}"><i class="fas ${c.ok ? 'fa-check' : 'fa-exclamation-triangle'} mr-2"></i>${c.msg}</div>`)
+            .join('');
+          result.innerHTML = `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-1">${rows}</div>`;
+          showToast('On-page SEO audit complete');
         }
-        
+
         function testPageSpeed() {
+          // Real PerformanceNavigationTiming reading — no fabricated score formula
+          // and no `setTimeout(spinner)` theater.
           const result = document.getElementById('seo-operation-result');
-          result.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Testing page speed...</div>';
-          
-          setTimeout(() => {
-            const loadTime = performance.timing ? Math.round(performance.timing.loadEventEnd - performance.timing.navigationStart) : 1200;
-            document.getElementById('seo-speed').textContent = Math.max(1, 100 - Math.floor(loadTime / 50));
-            result.innerHTML = `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Page load time: ${loadTime}ms</div>`;
-            showToast('Page speed test complete');
-          }, 1500);
+          if (!result) return;
+          try {
+            const nav = performance.getEntriesByType('navigation')[0];
+            if (!nav) {
+              result.innerHTML = '<div class="text-yellow-400"><i class="fas fa-exclamation-triangle mr-2"></i>PerformanceNavigationTiming unavailable in this browser.</div>';
+              return;
+            }
+            const ttfb = Math.round(nav.responseStart - nav.requestStart);
+            const dom = Math.round(nav.domContentLoadedEventEnd - nav.startTime);
+            const load = Math.round(nav.loadEventEnd - nav.startTime);
+            const speed = Math.max(1, Math.min(100, Math.round(100 - load / 50)));
+            document.getElementById('seo-speed').textContent = String(speed);
+            result.innerHTML = `
+              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-1 text-slate-300 text-sm">
+                <div><i class="fas fa-bolt mr-2 text-yellow-400"></i>TTFB: ${ttfb} ms</div>
+                <div><i class="fas fa-code mr-2 text-blue-400"></i>DOMContentLoaded: ${dom} ms</div>
+                <div><i class="fas fa-flag-checkered mr-2 text-green-400"></i>Load: ${load} ms</div>
+              </div>`;
+            showToast('Page speed measured (real PerformanceNavigationTiming)');
+          } catch (e) {
+            console.error('[testPageSpeed] failed:', e);
+            result.innerHTML = '<div class="text-red-400"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to read performance timing.</div>';
+          }
         }
         
         function showSocialPreview() {
@@ -7480,7 +7730,23 @@
               }
               document.getElementById('ios-version').textContent = label;
             }
-            
+
+            // Real status badges based on whether we've seen recent traffic
+            // from the platform (last 7 days of page_views with the matching
+            // user-agent). Replaces the always-on hardcoded "Live" labels.
+            const androidBadge = document.getElementById('android-status-badge');
+            const iosBadge = document.getElementById('ios-status-badge');
+            if (androidBadge) {
+              const seen = parseInt(document.getElementById('android-users')?.textContent || '0', 10) > 0;
+              androidBadge.textContent = seen ? 'Active' : 'No recent traffic';
+              androidBadge.className = `px-2 py-1 ${seen ? 'bg-green-600' : 'bg-slate-600'} text-white text-xs rounded`;
+            }
+            if (iosBadge) {
+              const seen = parseInt(document.getElementById('ios-users')?.textContent || '0', 10) > 0;
+              iosBadge.textContent = seen ? 'Active' : 'No recent traffic';
+              iosBadge.className = `px-2 py-1 ${seen ? 'bg-blue-600' : 'bg-slate-600'} text-white text-xs rounded`;
+            }
+
             document.getElementById('app-operation-result').innerHTML = 
               '<div class="text-green-400"><i class="fas fa-check mr-2"></i>App stats refreshed from <span class="text-slate-200">app_usage</span>, <span class="text-slate-200">page_views</span>, and <span class="text-slate-200">client_logs</span></div>';
             showToast('App stats refreshed');
@@ -8052,12 +8318,20 @@
               });
             }
 
-            const viewsToday = pageViews.filter(v => {
+            const isAndroidApp = (typeof __isAndroidAppUserAgent === 'function') ? __isAndroidAppUserAgent : () => false;
+            const isIosApp = (typeof __isIosAppUserAgent === 'function') ? __isIosAppUserAgent : () => false;
+            const viewsTodayRows = pageViews.filter(v => {
               const ts = toDate(v.timestamp || v.createdAt);
               return ts && ts >= startOfDay;
-            }).length;
-            const adsenseImpressions = viewsToday;
-            const admobImpressions = viewsToday;
+            });
+            // Split impressions correctly: web traffic counts toward AdSense,
+            // in-app WebView traffic counts toward AdMob. Previously both got
+            // the same count, which double-counted impressions.
+            const viewsToday = viewsTodayRows.length;
+            const admobImpressions = viewsTodayRows.filter(v =>
+              isAndroidApp(v.userAgent || v.ua || '') || isIosApp(v.userAgent || v.ua || '')
+            ).length;
+            const adsenseImpressions = Math.max(0, viewsToday - admobImpressions);
 
             const adsenseCtr = adsenseImpressions > 0 ? (adsenseClicks / adsenseImpressions) * 100 : 0;
             const admobEcpm = admobImpressions > 0 ? (admobToday / admobImpressions) * 1000 : 0;
@@ -8097,6 +8371,48 @@
               resultMsg = `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Revenue loaded from ${revenueEvents.length} revenue events + ${pageViews.length} page views</div>`;
             }
             document.getElementById('revenue-operation-result').innerHTML = resultMsg;
+
+            // Real 30-day revenue trend chart (replaces "Revenue chart will appear here" placeholder)
+            try {
+              const canvas = document.getElementById('revenue-trend-chart');
+              const emptyMsg = document.getElementById('revenue-trend-empty');
+              if (canvas) {
+                const ctx = canvas.getContext('2d');
+                const dayMs = 86400000;
+                const start30 = new Date(Date.now() - 30 * dayMs);
+                start30.setHours(0, 0, 0, 0);
+                const buckets = new Array(30).fill(0);
+                revenueEvents.forEach(e => {
+                  const ts = toDate(e.timestamp || e.createdAt);
+                  if (!ts || ts < start30) return;
+                  const idx = Math.min(29, Math.floor((ts.getTime() - start30.getTime()) / dayMs));
+                  buckets[idx] += Number(e.amount) || 0;
+                });
+                const cssW = canvas.clientWidth || 800;
+                if (canvas.width !== cssW) canvas.width = cssW;
+                const w = canvas.width;
+                const h = canvas.height;
+                ctx.clearRect(0, 0, w, h);
+                if (!hasRealRevenue) {
+                  if (emptyMsg) emptyMsg.classList.remove('hidden');
+                } else {
+                  if (emptyMsg) emptyMsg.classList.add('hidden');
+                  const max = Math.max(0.01, ...buckets);
+                  const barW = w / 30;
+                  const grad = ctx.createLinearGradient(0, 0, 0, h);
+                  grad.addColorStop(0, '#22c55e');
+                  grad.addColorStop(1, '#0f766e');
+                  ctx.fillStyle = grad;
+                  buckets.forEach((v, i) => {
+                    const barH = (v / max) * (h - 8);
+                    ctx.fillRect(i * barW + 1, h - barH - 2, Math.max(2, barW - 2), barH);
+                  });
+                }
+              }
+            } catch (chartErr) {
+              console.warn('[revenue-trend-chart] render failed:', chartErr);
+            }
+
             showToast('Revenue stats refreshed');
           } catch(e) {
             console.error('Failed to refresh revenue stats:', e);
@@ -8104,34 +8420,13 @@
           }
         }
         
+        // The dashboards live on Google's side. We don't fake an in-app
+        // "connection" anymore — these now open the real consoles in a new tab.
         function connectAdSense() {
-          const resultEl = document.getElementById('revenue-operation-result');
-          if (resultEl) {
-            resultEl.innerHTML = `
-              <div class="bg-slate-800/50 border border-blue-500/30 rounded-lg p-4 space-y-1">
-                <div class="text-white font-semibold"><i class="fas fa-link mr-2 text-blue-400"></i>AdSense Connection Steps</div>
-                <div class="text-slate-300 text-sm">1. Go to console.cloud.google.com</div>
-                <div class="text-slate-300 text-sm">2. Enable AdSense Management API</div>
-                <div class="text-slate-300 text-sm">3. Add credentials to Firebase</div>
-              </div>
-            `;
-          }
-          showToast('AdSense setup instructions shown', 'info');
+          window.open('https://www.google.com/adsense/start/', '_blank', 'noopener,noreferrer');
         }
-        
         function connectAdMob() {
-          const resultEl = document.getElementById('revenue-operation-result');
-          if (resultEl) {
-            resultEl.innerHTML = `
-              <div class="bg-slate-800/50 border border-purple-500/30 rounded-lg p-4 space-y-1">
-                <div class="text-white font-semibold"><i class="fas fa-link mr-2 text-purple-400"></i>AdMob Connection Steps</div>
-                <div class="text-slate-300 text-sm">1. Go to admob.google.com</div>
-                <div class="text-slate-300 text-sm">2. Link to Firebase project</div>
-                <div class="text-slate-300 text-sm">3. Configure ad units in app</div>
-              </div>
-            `;
-          }
-          showToast('AdMob setup instructions shown', 'info');
+          window.open('https://apps.admob.com/v2/home', '_blank', 'noopener,noreferrer');
         }
         
         // ===== END NEW ADMIN TOOLS =====
@@ -8333,7 +8628,7 @@
         // Load real Firebase data for all stats
         async function loadRealFirebaseData() {
           try {
-            const { getFirestore, collection, getDocs, query, where, orderBy } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getFirestore, collection, getDocs, query, where, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
             
@@ -8345,10 +8640,45 @@
             // Filter to 2026 season
             const currentSeasonRaces = allRaces.filter(r => r.season === 2026);
             
-            // Update total races count
+            // Update total races count + real season-over-season trend
             const totalRacesEl = document.getElementById('total-races');
             if (totalRacesEl) {
               totalRacesEl.textContent = currentSeasonRaces.length;
+            }
+            const trendEl = document.getElementById('total-races-trend');
+            if (trendEl) {
+              const prevSeasonRaces = allRaces.filter(r => r.season === 2025).length;
+              const delta = currentSeasonRaces.length - prevSeasonRaces;
+              if (delta > 0) {
+                trendEl.className = 'text-green-400 text-sm flex items-center';
+                trendEl.innerHTML = `<i class="fas fa-arrow-up mr-1"></i>+${delta} vs 2025`;
+              } else if (delta < 0) {
+                trendEl.className = 'text-red-400 text-sm flex items-center';
+                trendEl.innerHTML = `<i class="fas fa-arrow-down mr-1"></i>${delta} vs 2025`;
+              } else {
+                trendEl.className = 'text-slate-500 text-sm';
+                trendEl.textContent = 'no change vs 2025';
+              }
+            }
+
+            // Real "Visitors (7d)" count from page_views.
+            try {
+              const sevenDaysAgo = new Date(Date.now() - 7 * 86400000);
+              const pvSnap = await getDocs(query(
+                collection(db, 'page_views'),
+                where('timestamp', '>=', sevenDaysAgo)
+              ));
+              const visitors = new Set();
+              pvSnap.forEach(d => {
+                const v = d.data();
+                const id = v.userId || v.visitorId || v.sessionId;
+                if (id) visitors.add(id);
+              });
+              const usersEl = document.getElementById('active-users');
+              if (usersEl) usersEl.textContent = visitors.size.toLocaleString();
+            } catch (e) {
+              const usersEl = document.getElementById('active-users');
+              if (usersEl) usersEl.textContent = '—';
             }
             
             // Find next upcoming race
@@ -8363,12 +8693,19 @@
             });
             
             const nextRaceNameEl = document.getElementById('next-race-name');
+            const nextRaceSubtitleEl = document.getElementById('next-race-subtitle');
             const raceStatusEl = document.getElementById('race-status');
             
             if (upcomingRaces.length > 0) {
               const nextRace = upcomingRaces[0];
               if (nextRaceNameEl) {
-                nextRaceNameEl.textContent = nextRace.eventName || nextRace.name || 'Next Race';
+                nextRaceNameEl.textContent = nextRace.eventName || nextRace.name || nextRace.track || 'Next Race';
+              }
+              if (nextRaceSubtitleEl) {
+                // Real subtitle from the actual race doc — no more "Championship Round".
+                const sub = [nextRace.type, nextRace.track, nextRace.city, nextRace.state]
+                  .filter(Boolean).join(' • ');
+                nextRaceSubtitleEl.textContent = sub;
               }
               if (raceStatusEl) {
                 raceStatusEl.textContent = upcomingRaces.length + ' Upcoming';
@@ -8705,52 +9042,60 @@
         
         window.closeQueuedItemModal = closeQueuedItemModal;
         
-        // Export data functionality
-        function exportData() {
+        // Dashboard quick-action Export.
+        // The previous implementation exported only DOM text (one of which is
+        // the literal string "Live"). Now defers to the full exportAllData()
+        // function which dumps the actual Firestore collections.
+        async function exportData() {
           const button = document.getElementById('export-data-btn');
-          if (!button) return;
-          button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Exporting...';
-          button.disabled = true;
-          
-          setTimeout(() => {
-            const exportData = {
-              timestamp: new Date().toISOString(),
-              totalPhotos: document.getElementById('total-photos')?.textContent || '0',
-              pendingApprovals: document.getElementById('pending-approvals')?.textContent || '0',
-              totalRaces: document.getElementById('total-races')?.textContent || '0',
-              activeUsers: document.getElementById('active-users')?.textContent || '0'
-            };
-            
-            const dataStr = JSON.stringify(exportData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            const exportFileDefaultName = `redsracing-admin-data-${new Date().toISOString().split('T')[0]}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            button.innerHTML = '<i class="fas fa-download mr-1"></i>Export';
-            button.disabled = false;
-            showToast('Data exported successfully');
-          }, 2000);
+          if (button) {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Exporting…';
+            button.disabled = true;
+          }
+          try {
+            if (typeof exportAllData === 'function') {
+              await exportAllData();
+            } else {
+              throw new Error('exportAllData not loaded');
+            }
+          } catch (e) {
+            console.error('[exportData] failed:', e);
+            showToast('Export failed', 'error');
+          } finally {
+            if (button) {
+              button.innerHTML = '<i class="fas fa-download mr-1"></i>Export';
+              button.disabled = false;
+            }
+          }
         }
         
-        // Cleanup functionality
-        function performCleanup() {
-          if (!confirm('This will clean up old rejected photos and temporary data. Continue?')) return;
-          
+        // Dashboard quick-action Cleanup.
+        // Old implementation just ran a 3-second spinner and did nothing. Now
+        // delegates to the real cleanupOrphanedData() which scans Firestore for
+        // rejected gallery_images / abandoned uploads and reports actual counts.
+        async function performCleanup() {
+          if (!confirm('Clean up rejected gallery photos older than 30 days and orphaned uploads?')) return;
           const button = document.getElementById('cleanup-btn');
-          if (!button) return;
-          button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Cleaning...';
-          button.disabled = true;
-          
-          setTimeout(() => {
-            button.innerHTML = '<i class="fas fa-trash mr-1"></i>Cleanup';
-            button.disabled = false;
-            showToast('Cleanup completed');
-            loadRealFirebaseData();
-          }, 3000);
+          if (button) {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Cleaning…';
+            button.disabled = true;
+          }
+          try {
+            if (typeof cleanupOrphanedData === 'function') {
+              await cleanupOrphanedData();
+            } else {
+              throw new Error('cleanupOrphanedData not loaded');
+            }
+            if (typeof loadRealFirebaseData === 'function') await loadRealFirebaseData();
+          } catch (e) {
+            console.error('[performCleanup] failed:', e);
+            showToast('Cleanup failed', 'error');
+          } finally {
+            if (button) {
+              button.innerHTML = '<i class="fas fa-trash mr-1"></i>Cleanup';
+              button.disabled = false;
+            }
+          }
         }
         
         // ============================================================================
@@ -9153,9 +9498,50 @@
           }
         }
         
-        // View race details
-        window.viewRaceDetails = function(raceId) {
-          showToast('Race details view coming soon!', 'info');
+        // View race details — opens a real modal showing the Firestore document.
+        window.viewRaceDetails = async function(raceId) {
+          if (!raceId) return;
+          try {
+            const { getFirestore, doc, getDoc } =
+              await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const snap = await getDoc(doc(db, 'race_results', raceId));
+            const overlayId = 'rr-race-inspect-modal';
+            document.getElementById(overlayId)?.remove();
+            const overlay = document.createElement('div');
+            overlay.id = overlayId;
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;';
+            const data = snap.exists() ? snap.data() : null;
+            const json = data
+              ? JSON.stringify(data, (k, v) => (v && typeof v.toDate === 'function')
+                  ? v.toDate().toISOString() : v, 2)
+              : `No document at race_results/${raceId}`;
+            const panel = document.createElement('div');
+            panel.style.cssText = 'background:#0f172a;border:1px solid #334155;border-radius:12px;max-width:720px;width:100%;padding:20px;max-height:80vh;overflow:auto;';
+            const title = document.createElement('div');
+            title.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;';
+            const h = document.createElement('h4');
+            h.style.cssText = 'color:#fff;font-weight:600;margin:0;';
+            h.textContent = data ? `Race ${data.raceDate || ''} — ${data.track || ''}` : 'Race not found';
+            const close = document.createElement('button');
+            close.textContent = '×';
+            close.style.cssText = 'background:none;border:none;color:#94a3b8;font-size:24px;cursor:pointer;padding:0 8px;line-height:1;';
+            close.addEventListener('click', () => overlay.remove());
+            title.appendChild(h);
+            title.appendChild(close);
+            const pre = document.createElement('pre');
+            pre.style.cssText = 'color:#cbd5e1;font-size:12px;white-space:pre-wrap;word-break:break-word;margin:0;';
+            pre.textContent = json;
+            panel.appendChild(title);
+            panel.appendChild(pre);
+            overlay.appendChild(panel);
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+            document.body.appendChild(overlay);
+          } catch (e) {
+            console.error('[viewRaceDetails] failed:', e);
+            showToast('Failed to load race details', 'error');
+          }
         }
         
         // Refresh races button

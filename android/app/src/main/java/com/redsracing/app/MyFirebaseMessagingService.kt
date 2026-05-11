@@ -58,25 +58,32 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun sendNotification(title: String, messageBody: String, data: Map<String, String>) {
+        // One unique id per notification, reused for PendingIntent.requestCode and
+        // NotificationManager.notify() so each push has its own routing+extras.
+        val notificationId = (System.currentTimeMillis() and 0x7FFFFFFF).toInt()
+
+        // Restrict push-driven deep links to the asset-loader origin. The default
+        // landing is the home page (not the admin console — non-admin users were
+        // being dropped onto a page they can't use). The explicit allow-list
+        // prevents a malicious or compromised push from loading an arbitrary
+        // URL into a WebView that has JS bridges attached.
+        val safeUrl = pickSafeDeepLink(data["url"])
+
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            // Pass notification data to MainActivity
             putExtra("title", title)
             putExtra("body", messageBody)
-            // Add URL for deep linking - default to admin console
-            val url = data["url"] ?: "https://appassets.androidplatform.net/assets/www/admin-console.html"
-            putExtra("url", url)
-            // Pass any additional data
+            putExtra("url", safeUrl)
             data.forEach { (key, value) ->
                 if (key !in listOf("title", "body", "url")) {
                     putExtra(key, value)
                 }
             }
         }
-        
+
         val pendingIntent = PendingIntent.getActivity(
-            this, 
-            0, 
+            this,
+            notificationId,
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
@@ -106,8 +113,27 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        val notificationId = (System.currentTimeMillis() and 0x7FFFFFFF).toInt()
         notificationManager.notify(notificationId, notificationBuilder.build())
+    }
+
+    /**
+     * Returns a deep-link URL that is safe to load into the bridged WebView.
+     * Only the asset-loader host is honored. Everything else falls back to home.
+     */
+    private fun pickSafeDeepLink(raw: String?): String {
+        val home = "https://appassets.androidplatform.net/assets/www/index.html"
+        if (raw.isNullOrBlank()) return home
+        // Allow only http(s) URLs whose host is the bundled asset-loader.
+        return try {
+            val uri = android.net.Uri.parse(raw)
+            val scheme = uri.scheme?.lowercase()
+            val host = uri.host?.lowercase()
+            val allowed = (scheme == "https" || scheme == "http") &&
+                host == "appassets.androidplatform.net"
+            if (allowed) raw else home
+        } catch (_: Throwable) {
+            home
+        }
     }
 
     companion object {
