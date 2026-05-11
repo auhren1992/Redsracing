@@ -141,30 +141,44 @@
     return document.querySelector('main');
   }
 
-  function getContentSections(main) {
-    return main
-      ? main.querySelectorAll('section, article')
-      : document.querySelectorAll('section, article');
+  // Look for the most appropriate top anchor across a wide range of page shapes
+  // (some pages have no <main>, some only have <section>s under <body>, some
+  // use Tailwind container divs, etc.).
+  function findTopAnchor() {
+    var selectors = [
+      'main section, main article, main div.container, main div.section',
+      'body > section, body > article, body > div.container, body > div.section',
+      'section, article, div.container, div.section'
+    ];
+    for (var i = 0; i < selectors.length; i++) {
+      var el = document.querySelector(selectors[i]);
+      if (el && el.parentNode) return el;
+    }
+    return document.body.firstElementChild || document.body;
+  }
+
+  function getContentSections() {
+    var main = getMain();
+    var nodes = main
+      ? main.querySelectorAll('section, article, div.section, div.container')
+      : document.querySelectorAll('section, article, div.section, div.container');
+    return nodes;
   }
 
   function injectTop(slotId) {
-    var main = getMain();
-    var firstSection = main
-      ? main.querySelector('section, article, div.container, div.section')
-      : document.querySelector('section, article');
-    var anchor = firstSection || main || document.body;
+    var anchor = findTopAnchor();
     var wrapper = createAdBlock(slotId);
-    if (anchor.parentNode) {
+    if (anchor && anchor.parentNode) {
       anchor.parentNode.insertBefore(wrapper, anchor.nextSibling);
     } else {
-      anchor.appendChild(wrapper);
+      document.body.appendChild(wrapper);
     }
     return wrapper;
   }
 
   function injectMid(slotId) {
-    var sections = getContentSections(getMain());
-    if (!sections.length || sections.length < 3) return null;
+    var sections = getContentSections();
+    if (!sections.length || sections.length < 2) return null;
     var midIdx = Math.floor(sections.length / 2);
     var midAnchor = sections[midIdx];
     if (!midAnchor || !midAnchor.parentNode) return null;
@@ -176,7 +190,12 @@
   function injectBottom(slotId) {
     var main = getMain();
     var wrapper = createAdBlock(slotId);
-    (main || document.body).appendChild(wrapper);
+    var host = main || document.querySelector('footer') || document.body;
+    if (host === document.querySelector('footer') && host.parentNode) {
+      host.parentNode.insertBefore(wrapper, host);
+    } else {
+      host.appendChild(wrapper);
+    }
     return wrapper;
   }
 
