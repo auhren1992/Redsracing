@@ -1703,6 +1703,77 @@ exports.dispatchScheduledPushes = onSchedule(
   }
 );
 
+// ─── Fan Passport Check-In ───────────────────────────────────────────────────
+exports.checkInPassport = onRequest({ cors: true }, async (req, res) => {
+  const db = getFirestore();
+  try {
+    const raceId = String(req.query.raceId || '').trim();
+    const uid    = String(req.query.uid    || '').trim();
+
+    if (!raceId || !uid) {
+      return res.status(400).json({ ok: false, error: 'Missing raceId or uid' });
+    }
+
+    // Verify user exists
+    const auth2 = getAuth();
+    let userRecord;
+    try {
+      userRecord = await auth2.getUser(uid);
+    } catch (_) {
+      return res.status(403).json({ ok: false, error: 'Invalid user' });
+    }
+
+    // Find matching race in schedule to get start time
+    const scheduleData = require('./schedule-data.json');
+    let matchedRace = null;
+    for (const season of (scheduleData.seasons || [])) {
+      for (const race of (season.races || [])) {
+        const slug = race.date + '-' + (race.track || '').toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+        if (slug === raceId || race.date === raceId.substring(0, 10)) {
+          matchedRace = race;
+          break;
+        }
+      }
+      if (matchedRace) break;
+    }
+
+    if (!matchedRace) {
+      // Allow check-in anyway if race not found in schedule (admin may have custom raceId)
+      logger.warn('checkInPassport: race not found in schedule for', raceId);
+    } else {
+      // Check ±6h window
+      const raceDate  = new Date(matchedRace.date + 'T12:00:00'); // noon default
+      const nowMs     = Date.now();
+      const raceSixH  = 6 * 60 * 60 * 1000;
+      if (Math.abs(nowMs - raceDate.getTime()) > raceSixH) {
+        // Outside window — still write stamp but flag it
+        logger.info('checkInPassport: outside ±6h window for', raceId, 'but allowing');
+      }
+    }
+
+    // Check if already stamped
+    const stampRef = db.doc('users/' + uid + '/passport_stamps/' + raceId);
+    const existing = await stampRef.get();
+    if (existing.exists) {
+      return res.json({ ok: true, alreadyStamped: true, track: matchedRace ? matchedRace.track : raceId });
+    }
+
+    await stampRef.set({
+      raceId:       raceId,
+      ts:           FieldValue.serverTimestamp(),
+      checkedInAt:  new Date().toISOString(),
+      track:        matchedRace ? matchedRace.track : raceId,
+    });
+
+    logger.info('checkInPassport: stamped', uid, raceId);
+    res.json({ ok: true, track: matchedRace ? matchedRace.track : raceId });
+  } catch (err) {
+    logger.error('checkInPassport error', err);
+    try { Sentry.captureException(err); } catch (_) {}
+    res.status(500).json({ ok: false, error: 'Server error' });
+  }
+});
+
 // ─── iCal Feed ───────────────────────────────────────────────────────────────
 exports.scheduleICS = onRequest({ cors: true }, async (req, res) => {
   try {

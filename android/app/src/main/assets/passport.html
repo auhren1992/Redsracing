@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fan Passport Check-In — RedsRacing</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <style>
+    body{background:linear-gradient(135deg,#020306 0%,#0a1228 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;}
+    .card{background:rgba(10,18,40,.9);border:1px solid rgba(251,191,36,.3);border-radius:16px;padding:2rem;max-width:420px;width:90%;text-align:center;}
+    .stamp-icon{font-size:3.5rem;margin-bottom:1rem;}
+    h1{font-family:'Racing Sans One',sans-serif;color:#fbbf24;font-size:2rem;margin-bottom:.5rem;}
+    .sub{color:#94a3b8;margin-bottom:1.5rem;font-size:.9rem;}
+    .btn-check{background:#fbbf24;color:#000;font-weight:700;padding:.75rem 2rem;border:none;border-radius:10px;font-size:1rem;cursor:pointer;width:100%;transition:background .2s;}
+    .btn-check:hover{background:#facc15;}
+    .result{margin-top:1rem;font-size:.95rem;padding:.75rem;border-radius:8px;}
+    .result.success{background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);color:#4ade80;}
+    .result.error{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);color:#f87171;}
+    .result.info{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:#fbbf24;}
+    .stamp-count{margin-top:1.5rem;color:#64748b;font-size:.82rem;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="stamp-icon">🏁</div>
+    <h1>Fan Passport</h1>
+    <p class="sub" id="race-name">Loading race info…</p>
+    <div id="checkin-area" style="display:none;">
+      <button class="btn-check" id="checkin-btn"><i class="fas fa-passport mr-2"></i>Stamp My Passport!</button>
+    </div>
+    <div id="signin-prompt" style="display:none;">
+      <p class="sub">Sign in to collect your stamp.</p>
+      <a href="login.html?returnTo=passport.html" class="btn-check" style="display:inline-block;text-decoration:none;padding:.6rem 1.5rem;">Sign In</a>
+    </div>
+    <div id="result-area"></div>
+    <div class="stamp-count" id="stamp-count"></div>
+  </div>
+
+  <script>
+  if(!firebase.apps.length) firebase.initializeApp({
+    apiKey:"AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+    authDomain:"redsracing-a7f8b.firebaseapp.com",
+    projectId:"redsracing-a7f8b",
+    storageBucket:"redsracing-a7f8b.firebasestorage.app",
+    messagingSenderId:"517034606151",
+    appId:"1:517034606151:web:24cae262e1d98832757b62"
+  });
+  var db   = firebase.firestore();
+  var auth = firebase.auth();
+
+  // Extract raceId from URL path: /passport/<raceId>
+  var path   = window.location.pathname;
+  var raceId = path.replace(/^\/passport\/?/, '') || new URLSearchParams(window.location.search).get('raceId') || '';
+
+  if (raceId) {
+    document.getElementById('race-name').textContent = 'Race: ' + decodeURIComponent(raceId);
+    loadStampCount();
+  } else {
+    document.getElementById('race-name').textContent = 'Invalid check-in link.';
+  }
+
+  auth.onAuthStateChanged(function(user){
+    if (!user) {
+      document.getElementById('signin-prompt').style.display = 'block';
+      return;
+    }
+    if (!raceId) return;
+    // Check if already stamped
+    db.doc('users/' + user.uid + '/passport_stamps/' + raceId).get().then(function(snap){
+      if (snap.exists) {
+        showResult('success', '<i class="fas fa-check-circle mr-2"></i>Already stamped! Earned on ' + new Date(snap.data().ts ? snap.data().ts.toMillis() : Date.now()).toLocaleDateString());
+      } else {
+        document.getElementById('checkin-area').style.display = 'block';
+      }
+    }).catch(function(){ document.getElementById('checkin-area').style.display = 'block'; });
+  });
+
+  document.getElementById('checkin-btn').addEventListener('click', function(){
+    var user = auth.currentUser;
+    if (!user) { showResult('error', 'Please sign in first.'); return; }
+    var btn = document.getElementById('checkin-btn');
+    btn.disabled = true; btn.textContent = 'Checking in…';
+
+    // Call Cloud Function
+    fetch('/passport/checkin?raceId=' + encodeURIComponent(raceId) + '&uid=' + encodeURIComponent(user.uid), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    }).then(function(r){ return r.json(); }).then(function(data){
+      if (data.ok) {
+        showResult('success', '<i class="fas fa-stamp mr-2"></i>Passport stamped! Welcome to ' + escHtml(data.track || raceId));
+        document.getElementById('checkin-area').style.display = 'none';
+        loadStampCount();
+      } else {
+        showResult('error', data.error || 'Check-in failed. Try again.');
+        btn.disabled = false; btn.textContent = 'Stamp My Passport!';
+      }
+    }).catch(function(e){
+      // Fallback: write directly if function not reachable yet
+      var now = new Date();
+      db.doc('users/' + user.uid + '/passport_stamps/' + raceId).set({
+        raceId: raceId, ts: firebase.firestore.FieldValue.serverTimestamp(), checkedInAt: now.toISOString()
+      }).then(function(){
+        showResult('success', '<i class="fas fa-stamp mr-2"></i>Passport stamped!');
+        document.getElementById('checkin-area').style.display = 'none';
+        loadStampCount();
+      }).catch(function(e2){ showResult('error', 'Error: ' + e2.message); btn.disabled = false; });
+    });
+  });
+
+  function loadStampCount(){
+    if (!raceId) return;
+    // Count just the current user's stamps across all races
+    var user = auth.currentUser;
+    if (!user) return;
+    db.collection('users').doc(user.uid).collection('passport_stamps').get().then(function(snap){
+      var el = document.getElementById('stamp-count');
+      if (el) el.textContent = 'Your total stamps: ' + snap.size;
+    }).catch(function(){});
+  }
+
+  function showResult(type, html){
+    var el = document.getElementById('result-area');
+    if (el) el.innerHTML = '<div class="result ' + type + '">' + html + '</div>';
+  }
+
+  function escHtml(s){
+    return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+  }
+  </script>
+</body>
+</html>

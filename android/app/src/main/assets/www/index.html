@@ -1093,6 +1093,47 @@
         </div>
     </div>
 
+    <!-- Fan Passport top-fans widget (behind enable_fan_passport flag) -->
+    <div id="passport-widget" style="display:none;max-width:680px;margin:1rem auto;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:.75rem 1rem;text-align:center;">
+      <i class="fas fa-passport" style="color:#fbbf24;margin-right:.4rem;"></i>
+      <span style="color:#fbbf24;font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;">Fan Passport</span>
+      <span style="color:#94a3b8;font-size:.82rem;margin-left:.5rem;">— collect stamps at every race!</span>
+      <div id="passport-top-fans" style="margin-top:.4rem;font-size:.78rem;color:#64748b;"></div>
+      <a id="passport-link" href="passport.html" style="display:inline-block;margin-top:.4rem;font-size:.78rem;color:#fbbf24;text-decoration:none;">Get your stamp at the next race →</a>
+    </div>
+    <script>
+    (function(){
+      function tryPassportWidget(){
+        var rrf = window.RR && window.RR.flags;
+        var fp  = rrf ? rrf.get('enable_fan_passport', false) : Promise.resolve(false);
+        fp.then(function(en){
+          if (!en) return;
+          var widget = document.getElementById('passport-widget');
+          if (!widget) return;
+          widget.style.display = 'block';
+          var db2 = window.firebase && window.firebase.firestore && window.firebase.firestore();
+          if (!db2) return;
+          // Show top fans by stamp count — query users and count their stamps
+          db2.collection('users').orderBy('stampCount','desc').limit(3).get().then(function(snap){
+            if (snap.empty) return;
+            var names = [];
+            snap.forEach(function(doc){
+              var d = doc.data();
+              var name = d.displayName || d.email || 'Fan';
+              var cnt  = d.stampCount || 0;
+              names.push(escHtml(name) + ' (' + cnt + ' stamps)');
+            });
+            var el = document.getElementById('passport-top-fans');
+            if (el && names.length) el.textContent = 'Top fans: ' + names.join(' · ');
+          }).catch(function(){});
+        });
+      }
+      function escHtml(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+      if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',tryPassportWidget);}
+      else{tryPassportWidget();}
+    })();
+    </script>
+
     <!-- AdSense: home-top -->
     <div class="rr-ad-slot" style="position:relative;z-index:10;max-width:970px;margin:1.5rem auto;padding:0 1rem;min-height:120px;">
       <ins class="adsbygoogle"
