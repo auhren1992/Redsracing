@@ -23,6 +23,33 @@
     <!-- Global Error Tracking (MUST load before Firebase) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!--
+      Initialize the COMPAT default app immediately after the compat SDK is
+      loaded, before any admin-modules/*.js runs. The modular v9 init further
+      down the page (`import { initializeApp }`) writes into a *separate*
+      registry and does NOT satisfy the compat namespace; without this block,
+      the first `firebase.firestore()` call in any admin module throws
+      `app-compat/no-app` and propagates as an uncaught FirebaseError
+      ("No Firebase App '[DEFAULT]' has been created").
+    -->
+    <script>
+      (function initCompatDefaultApp() {
+        try {
+          if (typeof firebase === 'undefined' || !firebase.initializeApp) return;
+          if (firebase.apps && firebase.apps.length > 0) return;
+          firebase.initializeApp({
+            apiKey: 'AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg',
+            authDomain: 'redsracing-a7f8b.firebaseapp.com',
+            projectId: 'redsracing-a7f8b',
+            storageBucket: 'redsracing-a7f8b.firebasestorage.app',
+            messagingSenderId: '517034606151',
+            appId: '1:517034606151:web:24cae262e1d98832757b62'
+          });
+        } catch (e) {
+          console.warn('[admin-console] compat default-app init failed:', e);
+        }
+      })();
+    </script>
     <script src="assets/js/global-error-tracker.js?v=202605082"></script>
     
     <style>
