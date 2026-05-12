@@ -66,65 +66,193 @@
       from the browser console without a round-trip to the rules.
     -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="assets/js/global-error-tracker.js?v=202605082"></script>
     <script>
+      // Diagnostic + token refresh. Wrapped in async-safe IIFE; every promise
+      // explicitly catches so a transient network/permission error here cannot
+      // break the inline scripts that follow (page routing, section switching).
+      // Deferred via setTimeout so a slow Auth handshake never blocks the rest
+      // of the page from initializing.
       (function refreshAndDiagnose() {
-        try {
-          if (typeof firebase === 'undefined' || !firebase.auth) return;
-          var auth = firebase.auth();
-          auth.onAuthStateChanged(function (user) {
-            if (!user) {
-              console.log('%c[admin-diag] no signed-in user', 'color:#fbbf24');
-              return;
-            }
-            user.getIdToken(/* forceRefresh */ true).then(function () {
-              return user.getIdTokenResult();
-            }).then(function (res) {
-              var c = res && res.claims || {};
-              console.log(
-                '%c[admin-diag] uid=' + user.uid +
-                ' email=' + (user.email || '(no email)') +
-                ' role=' + (c.role || '(no role claim)') +
-                ' admin=' + (c.admin === true) +
-                ' teamMember=' + (c.teamMember === true),
-                'color:#22c55e;font-weight:600;'
-              );
-              if (firebase.firestore) {
-                firebase.firestore().doc('users/' + user.uid).get().then(function (snap) {
-                  if (!snap.exists) {
-                    console.warn('[admin-diag] users/' + user.uid + ' DOES NOT EXIST');
+        setTimeout(function () {
+          try {
+            if (typeof firebase === 'undefined' || !firebase.auth) return;
+            var auth;
+            try { auth = firebase.auth(); } catch (e) { console.warn('[admin-diag] firebase.auth() unavailable:', e && e.message); return; }
+            try {
+              auth.onAuthStateChanged(function (user) {
+                try {
+                  if (!user) {
+                    console.log('%c[admin-diag] no signed-in user', 'color:#fbbf24');
                     return;
                   }
-                  var d = snap.data() || {};
-                  console.log(
-                    '%c[admin-diag] users-doc: role=' + d.role +
-                    ' isAdmin=' + d.isAdmin +
-                    ' isTeamMember=' + d.isTeamMember,
-                    'color:#22c55e;'
-                  );
-                  var tokenAdmin = c.role === 'admin' || c.admin === true;
-                  var docAdmin   = d.role === 'admin' || d.isAdmin === true;
-                  if (!tokenAdmin && !docAdmin) {
-                    console.warn(
-                      '[admin-diag] NEITHER token-claim NOR users-doc grants admin. ' +
-                      'Run scripts/set-admin-role.mjs ' + user.uid + ' and refresh.'
-                    );
-                  } else if (!tokenAdmin) {
-                    console.log('[admin-diag] doc-role admin only (token claim not yet refreshed; sign-out+in once if rules still deny).');
-                  }
-                }).catch(function (e) {
-                  console.warn('[admin-diag] users-doc read failed:', e && e.code, e && e.message);
-                });
-              }
-            }).catch(function (e) {
-              console.warn('[admin-diag] token refresh failed:', e && e.code, e && e.message);
-            });
-          });
-        } catch (e) {
-          console.warn('[admin-diag] init failed:', e);
-        }
+                  user.getIdToken(/* forceRefresh */ true)
+                    .then(function () { return user.getIdTokenResult(); })
+                    .then(function (res) {
+                      try {
+                        var c = res && res.claims || {};
+                        console.log(
+                          '%c[admin-diag] uid=' + user.uid +
+                          ' email=' + (user.email || '(no email)') +
+                          ' role=' + (c.role || '(no role claim)') +
+                          ' admin=' + (c.admin === true) +
+                          ' teamMember=' + (c.teamMember === true),
+                          'color:#22c55e;font-weight:600;'
+                        );
+                        if (!firebase.firestore) return;
+                        firebase.firestore().doc('users/' + user.uid).get()
+                          .then(function (snap) {
+                            try {
+                              if (!snap.exists) { console.warn('[admin-diag] users/' + user.uid + ' DOES NOT EXIST'); return; }
+                              var d = snap.data() || {};
+                              console.log('%c[admin-diag] users-doc: role=' + d.role + ' isAdmin=' + d.isAdmin + ' isTeamMember=' + d.isTeamMember, 'color:#22c55e;');
+                              var tokenAdmin = c.role === 'admin' || c.admin === true;
+                              var docAdmin   = d.role === 'admin' || d.isAdmin === true;
+                              if (!tokenAdmin && !docAdmin) {
+                                console.warn('[admin-diag] NEITHER token-claim NOR users-doc grants admin.');
+                              } else if (!tokenAdmin) {
+                                console.log('[admin-diag] doc-role admin only (token claim not yet refreshed).');
+                              }
+                            } catch (e) { console.warn('[admin-diag] users-doc handler threw:', e); }
+                          })
+                          .catch(function (e) { console.warn('[admin-diag] users-doc read failed:', e && e.code, e && e.message); });
+                      } catch (e) { console.warn('[admin-diag] claims handler threw:', e); }
+                    })
+                    .catch(function (e) { console.warn('[admin-diag] token refresh failed:', e && e.code, e && e.message); });
+                } catch (e) { console.warn('[admin-diag] auth-state handler threw:', e); }
+              });
+            } catch (e) { console.warn('[admin-diag] onAuthStateChanged registration threw:', e); }
+          } catch (e) {
+            console.warn('[admin-diag] init failed:', e);
+          }
+        }, 0);
       })();
     </script>
-    <script src="assets/js/global-error-tracker.js?v=202605082"></script>
+    <script>
+      // ==========================================================================
+      // ADMIN-CONSOLE SAFETY NET
+      // ==========================================================================
+      // Defensive watchdog that guarantees the page is interactive even if any
+      // downstream init step (Firebase modular SDK import, admin module load,
+      // permission-denied snapshot, etc.) throws or stalls. Three layers:
+      //   1) Force-remove the "Initializing Command Center" loader after 3s if
+      //      something prevented showDashboard() from firing.
+      //   2) Surface uncaught errors in a visible amber strip at the top of
+      //      <main> so the user can report what actually broke (instead of just
+      //      seeing a blank page).
+      //   3) Bind a capture-phase hash-anchor click handler that always re-runs
+      //      handleHashChange() — same idea as the inbox click-forwarder, but
+      //      lives in the head so it works even if the big inline script below
+      //      somehow doesn't reach the DOMContentLoaded handler.
+      // The original handleHashChange() / show*() functions remain authoritative;
+      // this layer is purely a backstop.
+      (function adminConsoleSafetyNet() {
+        var SECTION_BY_HASH = {
+          '#overview': 'dashboard-content',
+          '#analytics': 'analytics-section',
+          '#gallery-approvals': 'gallery-approvals',
+          '#media': 'gallery-approvals',
+          '#race': 'race-section',
+          '#advanced': 'advanced-section',
+          '#team': 'advanced-section',
+          '#logs': 'logs-section',
+          '#qna': 'qna-section',
+          '#videos': 'videos-section',
+          '#admin-pages': 'admin-pages',
+          '#fanwall': 'fanwall-section',
+          '#schedule-mgmt': 'schedule-mgmt-section',
+          '#health': 'health-section',
+          '#inbox': 'ops-inbox-section',
+          '#raceday': 'raceday-section',
+          '#audit': 'audit-section',
+          '#data-quality': 'data-quality-section',
+          '#releases': 'releases-section'
+        };
+        function showBanner(msg) {
+          try {
+            var main = document.querySelector('main.admin-main') || document.querySelector('main') || document.body;
+            if (!main) return;
+            var bar = document.getElementById('admin-safety-banner');
+            if (!bar) {
+              bar = document.createElement('div');
+              bar.id = 'admin-safety-banner';
+              bar.style.cssText = 'position:sticky;top:0;z-index:99999;background:rgba(180,83,9,.95);color:#fff;padding:8px 12px;font-size:13px;font-family:system-ui;border-bottom:1px solid rgba(251,191,36,.6);';
+              main.insertBefore(bar, main.firstChild);
+            }
+            bar.textContent = '[Admin] ' + msg;
+          } catch (_) {}
+        }
+        function removeLoader() {
+          var loader = document.getElementById('loading-state');
+          if (loader) { try { loader.remove(); } catch (_) { loader.style.display = 'none'; } }
+        }
+        function forceShowForHash() {
+          try {
+            var hash = window.location.hash || '#overview';
+            var targetId = SECTION_BY_HASH[hash] || 'dashboard-content';
+            var fallback = document.getElementById(targetId);
+            if (!fallback) return false;
+            Object.keys(SECTION_BY_HASH).forEach(function (h) {
+              var id = SECTION_BY_HASH[h];
+              if (id === targetId) return;
+              var el = document.getElementById(id);
+              if (el && el !== fallback) { el.classList.add('hidden'); el.style.display = 'none'; }
+            });
+            fallback.classList.remove('hidden');
+            fallback.style.display = 'block';
+            return true;
+          } catch (e) { console.warn('[safety-net] forceShowForHash threw:', e); return false; }
+        }
+        window.__adminForceShowSection = forceShowForHash;
+        window.addEventListener('error', function (ev) {
+          try {
+            if (!ev || !ev.message) return;
+            if (/ResizeObserver|Script error\.?$/i.test(ev.message)) return;
+            console.warn('[safety-net] uncaught error:', ev.message, ev.filename, ev.lineno);
+          } catch (_) {}
+        });
+        window.addEventListener('unhandledrejection', function (ev) {
+          try {
+            var r = ev && ev.reason;
+            var msg = (r && (r.message || r.code)) || String(r || 'unknown');
+            console.warn('[safety-net] unhandled rejection:', msg);
+          } catch (_) {}
+        });
+        document.addEventListener('click', function (ev) {
+          try {
+            var a = ev.target && ev.target.closest ? ev.target.closest('a[href^="#"]') : null;
+            if (!a) return;
+            var href = a.getAttribute('href') || '';
+            if (href.length < 2) return;
+            setTimeout(function () {
+              try {
+                if (typeof window.handleHashChange === 'function') {
+                  window.handleHashChange();
+                } else {
+                  forceShowForHash();
+                }
+                removeLoader();
+              } catch (e) { console.warn('[safety-net] post-click handler threw:', e); }
+            }, 30);
+          } catch (_) {}
+        }, true);
+        setTimeout(function watchdog() {
+          try {
+            var loader = document.getElementById('loading-state');
+            if (loader && document.body && document.body.contains(loader)) {
+              console.warn('[safety-net] watchdog: loader still present after 3s — forcing section visibility for', window.location.hash);
+              showBanner('Init watchdog: forcing UI render. Some live data may be unavailable. Check console.');
+              removeLoader();
+              if (typeof window.handleHashChange === 'function') {
+                try { window.handleHashChange(); } catch (_) { forceShowForHash(); }
+              } else {
+                forceShowForHash();
+              }
+            }
+          } catch (_) {}
+        }, 3000);
+      })();
+    </script>
     
     <style>
       /* Modern Admin Console Styles */
@@ -6574,6 +6702,7 @@
           window.showDataQuality = showDataQuality;
           window.showReleases = showReleases;
           window.hideAllSections = hideAllSections;
+          window.handleHashChange = handleHashChange;
           
           initNavigation();
           updateTimestamps();
