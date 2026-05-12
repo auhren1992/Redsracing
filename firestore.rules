@@ -116,18 +116,38 @@ service cloud.firestore {
       // On create, validate uploader matches the auth user using request.resource.data
       allow create: if isAuthenticated() &&
         request.auth.uid == request.resource.data.uploaderUid;
-      // On update, allow uploader or team member
+      // On update, allow uploader (so they can edit own caption/altText/tags) or staff
       allow update: if hasRole('team-member') || hasProfileRole('team-member') || hasRole('admin') || hasProfileRole('admin') ||
         (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
       allow delete: if hasRole('team-member') || hasProfileRole('team-member') || hasRole('admin') || hasProfileRole('admin');
-      
-      // Comments subcollection
+
+      // Comments subcollection — moderated
       match /comments/{commentId} {
-        allow read: if true;
-        allow create: if isAuthenticated();
-        allow update, delete: if isAuthenticated() && 
-          request.auth.uid == resource.data.authorUid;
+        // Public read for approved comments; staff can read all
+        allow read: if (resource.data.approved == true)
+                    || isPrivilegedStaff();
+        // Signed-in users can create with approved=false; cannot self-approve
+        allow create: if isAuthenticated() &&
+          request.auth.uid == request.resource.data.authorUid &&
+          request.resource.data.approved == false &&
+          request.resource.data.body is string &&
+          request.resource.data.body.size() > 0 &&
+          request.resource.data.body.size() <= 2000;
+        // Only admins/team can update approved/flagged or delete
+        allow update, delete: if isPrivilegedStaff();
       }
+    }
+
+    // Per-page SEO meta (admin-edited, public read for runtime bootstrap)
+    match /page_meta/{slug} {
+      allow read: if true;
+      allow write: if isPrivilegedStaff();
+    }
+
+    // Crew profiles (public read, admin write)
+    match /crew_profiles/{slug} {
+      allow read: if true;
+      allow write: if isPrivilegedStaff();
     }
     
     // Race schedule (old)

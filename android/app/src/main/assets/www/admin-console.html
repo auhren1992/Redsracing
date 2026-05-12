@@ -1158,6 +1158,63 @@
               <div id="photo-approval-card" class="admin-card rounded-xl p-6 mt-6" style="display: none">
                 <div id="unapproved-photos-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
               </div>
+
+              <!-- Bulk-tag + missing alt-text helpers -->
+              <div class="admin-card rounded-xl p-6 mt-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                  <i class="fas fa-tags text-yellow-400 mr-2"></i>
+                  Photo Tagging Tools
+                </h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div class="bg-slate-800/40 border border-slate-700/50 rounded-lg p-4">
+                    <h4 class="text-white font-semibold mb-2 flex items-center">
+                      <i class="fas fa-layer-group text-blue-400 mr-2"></i>Bulk Tag
+                    </h4>
+                    <p class="text-slate-400 text-xs mb-3">Apply N tags to multiple photos (up to 100 per batch).</p>
+                    <input type="text" id="bulk-tag-input" class="modern-input w-full p-2 text-white text-sm mb-2" placeholder="Comma-separated tags e.g. #8, podium" />
+                    <div id="bulk-tag-photos" class="grid grid-cols-3 gap-2 mb-3 max-h-72 overflow-auto"></div>
+                    <div class="flex flex-wrap gap-2">
+                      <button id="bulk-tag-load-btn" class="modern-btn text-white px-3 py-2 rounded text-xs">
+                        <i class="fas fa-arrows-rotate mr-1"></i>Load latest 100
+                      </button>
+                      <button id="bulk-tag-apply-btn" class="success-btn text-white px-3 py-2 rounded text-xs">
+                        <i class="fas fa-check mr-1"></i>Apply tags to selected
+                      </button>
+                      <span id="bulk-tag-status" class="text-xs text-slate-400 self-center"></span>
+                    </div>
+                  </div>
+
+                  <div class="bg-slate-800/40 border border-slate-700/50 rounded-lg p-4">
+                    <h4 class="text-white font-semibold mb-2 flex items-center">
+                      <i class="fas fa-eye-slash text-orange-400 mr-2"></i>Photos missing alt text
+                    </h4>
+                    <p class="text-slate-400 text-xs mb-3">Pre-existing photos that have no <code>altText</code>. Click "Add alt" to backfill.</p>
+                    <div id="missing-alt-list" class="space-y-2 max-h-96 overflow-auto"></div>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                      <button id="missing-alt-refresh" class="modern-btn text-white px-3 py-2 rounded text-xs">
+                        <i class="fas fa-arrows-rotate mr-1"></i>Refresh
+                      </button>
+                      <span id="missing-alt-status" class="text-xs text-slate-400 self-center"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Comment Moderation -->
+              <div class="admin-card rounded-xl p-6 mt-6">
+                <h3 class="text-xl font-bold text-white mb-2">
+                  <i class="fas fa-comments text-blue-400 mr-2"></i>
+                  Comment Moderation
+                </h3>
+                <p class="text-slate-400 text-sm mb-4">Pending gallery comments awaiting approval.</p>
+                <div id="comment-moderation-list" class="space-y-3 max-h-[600px] overflow-auto"></div>
+                <div class="flex flex-wrap gap-2 mt-3">
+                  <button id="comment-moderation-refresh" class="modern-btn text-white px-3 py-2 rounded text-sm">
+                    <i class="fas fa-arrows-rotate mr-2"></i>Refresh
+                  </button>
+                  <span id="comment-moderation-status" class="text-xs text-slate-400 self-center"></span>
+                </div>
+              </div>
             </div>
             
             <!-- Settings Section -->
@@ -1172,7 +1229,87 @@
                   <span class="text-green-400 text-sm font-medium">Live Editing</span>
                 </div>
               </div>
-              
+
+              <!-- Crew Profiles Management -->
+              <div class="admin-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                  <i class="fas fa-helmet-safety text-yellow-400 mr-2"></i>
+                  Crew Profiles
+                </h3>
+                <p class="text-slate-400 text-sm mb-4">Create and edit crew member pages shown on <code>/team.html</code> and <code>/crew.html?id=…</code>. Pinned + lower <code>order</code> appears first.</p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div class="lg:col-span-1">
+                    <div class="flex items-center justify-between mb-2">
+                      <h4 class="text-white font-semibold">Profiles</h4>
+                      <button id="crew-new-btn" class="success-btn text-white px-3 py-1.5 rounded text-xs">
+                        <i class="fas fa-plus mr-1"></i>New
+                      </button>
+                    </div>
+                    <div id="crew-list" class="space-y-2 max-h-96 overflow-auto"></div>
+                  </div>
+                  <div class="lg:col-span-2 bg-slate-800/40 border border-slate-700/50 rounded-lg p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Slug (unique)</label>
+                        <input type="text" id="crew-slug" class="modern-input w-full p-2 text-white text-sm" placeholder="e.g. crew-member-1" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Name</label>
+                        <input type="text" id="crew-name" class="modern-input w-full p-2 text-white text-sm" placeholder="Display name" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Role</label>
+                        <select id="crew-role" class="modern-input w-full p-2 text-white text-sm">
+                          <option value="crew-chief">Crew Chief</option>
+                          <option value="mechanic">Mechanic</option>
+                          <option value="tire-tech">Tire Tech</option>
+                          <option value="pr">PR / Media</option>
+                          <option value="family">Family</option>
+                          <option value="photographer">Photographer</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Joined Year</label>
+                        <input type="number" id="crew-joined-year" class="modern-input w-full p-2 text-white text-sm" min="2000" max="2099" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Photo URL</label>
+                        <input type="text" id="crew-photo" class="modern-input w-full p-2 text-white text-sm" placeholder="https://… (optional)" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Order</label>
+                        <input type="number" id="crew-order" class="modern-input w-full p-2 text-white text-sm" value="100" />
+                      </div>
+                    </div>
+                    <label class="flex items-center gap-2 text-slate-300 text-sm mb-2">
+                      <input type="checkbox" id="crew-pinned" /> Pin to top of /team.html
+                    </label>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Bio (markdown OK)</label>
+                    <textarea id="crew-bio" rows="6" class="modern-input w-full p-2 text-white text-sm resize-y" placeholder="Profile coming soon."></textarea>
+                    <details class="mt-3">
+                      <summary class="text-slate-300 text-sm cursor-pointer">Social handles (optional)</summary>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                        <input type="text" id="crew-social-instagram" class="modern-input w-full p-2 text-white text-sm" placeholder="Instagram handle" />
+                        <input type="text" id="crew-social-tiktok" class="modern-input w-full p-2 text-white text-sm" placeholder="TikTok handle" />
+                        <input type="text" id="crew-social-x" class="modern-input w-full p-2 text-white text-sm" placeholder="X / Twitter handle" />
+                        <input type="text" id="crew-social-linkedin" class="modern-input w-full p-2 text-white text-sm" placeholder="LinkedIn slug" />
+                      </div>
+                    </details>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                      <button id="crew-save-btn" class="success-btn text-white px-4 py-2 rounded text-sm">
+                        <i class="fas fa-save mr-2"></i>Save Profile
+                      </button>
+                      <button id="crew-delete-btn" class="danger-btn text-white px-4 py-2 rounded text-sm">
+                        <i class="fas fa-trash mr-2"></i>Delete
+                      </button>
+                      <span id="crew-edit-status" class="text-xs text-slate-400 self-center"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Team Roster Settings -->
               <div class="admin-card rounded-xl p-6">
                 <h3 class="text-xl font-bold text-white mb-4">
@@ -1794,16 +1931,77 @@
                   </div>
                   <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
                     <h4 class="text-white font-semibold mb-2 flex items-center">
-                      <i class="fas fa-tags text-purple-400 mr-2"></i>Meta Tags Manager
+                      <i class="fas fa-tags text-purple-400 mr-2"></i>Per-Page Meta Tags
                     </h4>
-                    <div class="space-y-2 mb-3">
-                      <input type="text" id="meta-title" class="modern-input w-full p-2 text-white text-sm" placeholder="Site Title" />
-                      <textarea id="meta-description" rows="2" class="modern-input w-full p-2 text-white text-sm resize-none" placeholder="Site Description"></textarea>
-                      <input type="text" id="meta-keywords" class="modern-input w-full p-2 text-white text-sm" placeholder="Keywords (comma-separated)" />
+                    <p class="text-slate-400 text-xs mb-3">Edit SEO + OG/Twitter tags for any public page. Values are stored in <code>page_meta/&lt;slug&gt;</code> and applied at runtime by <code>page-meta.js</code>.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                      <select id="meta-page-select" class="modern-input w-full p-2 text-white text-sm">
+                        <option value="">Select a page…</option>
+                        <option value="index">index</option>
+                        <option value="team">team</option>
+                        <option value="driver">driver</option>
+                        <option value="gallery">gallery</option>
+                        <option value="schedule">schedule</option>
+                        <option value="fan-wall">fan-wall</option>
+                        <option value="predictions">predictions</option>
+                        <option value="jonny">jonny</option>
+                        <option value="jonny-gallery">jonny-gallery</option>
+                        <option value="jonny-results">jonny-results</option>
+                        <option value="live">live</option>
+                        <option value="racing-guide">racing-guide</option>
+                        <option value="sponsorship">sponsorship</option>
+                        <option value="tracks">tracks</option>
+                        <option value="recaps">recaps</option>
+                        <option value="videos">videos</option>
+                        <option value="contact">contact</option>
+                        <option value="privacy">privacy</option>
+                        <option value="terms">terms</option>
+                        <option value="qna">qna</option>
+                        <option value="leaderboard">leaderboard</option>
+                        <option value="profile">profile</option>
+                        <option value="dashboard">dashboard</option>
+                        <option value="crew">crew</option>
+                        <option value="about">about</option>
+                        <option value="blog">blog</option>
+                        <option value="stats">stats</option>
+                        <option value="legends">legends</option>
+                      </select>
+                      <div class="flex gap-2">
+                        <button id="meta-load-defaults-btn" type="button" class="modern-btn text-white px-3 py-2 rounded text-xs w-full">
+                          <i class="fas fa-wand-magic-sparkles mr-1"></i>Use defaults
+                        </button>
+                        <button id="meta-audit-btn" type="button" class="modern-btn text-white px-3 py-2 rounded text-xs w-full">
+                          <i class="fas fa-clipboard-check mr-1"></i>Run audit
+                        </button>
+                      </div>
                     </div>
-                    <button id="save-meta-tags-btn" class="success-btn text-white px-4 py-2 rounded text-sm">
-                      <i class="fas fa-save mr-2"></i>Save Meta Tags
-                    </button>
+                    <div class="space-y-2 mb-3">
+                      <input type="text" id="meta-title" class="modern-input w-full p-2 text-white text-sm" placeholder="Title (30–70 chars)" />
+                      <textarea id="meta-description" rows="2" class="modern-input w-full p-2 text-white text-sm resize-none" placeholder="Description (70–160 chars)"></textarea>
+                      <input type="text" id="meta-keywords" class="modern-input w-full p-2 text-white text-sm" placeholder="Keywords (comma-separated)" />
+                      <input type="text" id="meta-canonical" class="modern-input w-full p-2 text-white text-sm" placeholder="Canonical URL (https://…)" />
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="text" id="meta-og-title" class="modern-input w-full p-2 text-white text-sm" placeholder="OG Title (defaults to title)" />
+                        <input type="text" id="meta-og-image" class="modern-input w-full p-2 text-white text-sm" placeholder="OG Image URL" />
+                      </div>
+                      <textarea id="meta-og-description" rows="2" class="modern-input w-full p-2 text-white text-sm resize-none" placeholder="OG Description (defaults to description)"></textarea>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center">
+                        <select id="meta-twitter-card" class="modern-input w-full p-2 text-white text-sm">
+                          <option value="summary_large_image">summary_large_image</option>
+                          <option value="summary">summary</option>
+                        </select>
+                        <label class="flex items-center gap-2 text-slate-300 text-sm">
+                          <input type="checkbox" id="meta-noindex" class="form-checkbox" />
+                          <span>noindex / nofollow</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 items-center">
+                      <button id="save-meta-tags-btn" class="success-btn text-white px-4 py-2 rounded text-sm">
+                        <i class="fas fa-save mr-2"></i>Save Meta Tags
+                      </button>
+                      <span id="meta-audit-result" class="text-xs text-slate-400"></span>
+                    </div>
                   </div>
                 </div>
                 
@@ -6505,6 +6703,46 @@
           
           const saveMetaTagsBtn = document.getElementById('save-meta-tags-btn');
           if (saveMetaTagsBtn) saveMetaTagsBtn.addEventListener('click', saveMetaTags);
+
+          const metaPageSelect = document.getElementById('meta-page-select');
+          if (metaPageSelect) metaPageSelect.addEventListener('change', () => loadPageMeta(metaPageSelect.value));
+
+          const metaLoadDefaultsBtn = document.getElementById('meta-load-defaults-btn');
+          if (metaLoadDefaultsBtn) metaLoadDefaultsBtn.addEventListener('click', () => fillPageMetaDefaults(metaPageSelect ? metaPageSelect.value : ''));
+
+          const metaAuditBtn = document.getElementById('meta-audit-btn');
+          if (metaAuditBtn) metaAuditBtn.addEventListener('click', () => runPageMetaAudit(metaPageSelect ? metaPageSelect.value : ''));
+
+          // Crew Profiles
+          const crewNewBtn = document.getElementById('crew-new-btn');
+          if (crewNewBtn) crewNewBtn.addEventListener('click', () => { _crewEditingSlug = null; _crewFillForm({ pinned: false, order: 100, role: 'mechanic' }); });
+          const crewSaveBtn = document.getElementById('crew-save-btn');
+          if (crewSaveBtn) crewSaveBtn.addEventListener('click', saveCrewProfile);
+          const crewDeleteBtn = document.getElementById('crew-delete-btn');
+          if (crewDeleteBtn) crewDeleteBtn.addEventListener('click', deleteCrewProfile);
+          // Load crew profiles when settings section becomes visible (lazy)
+          try {
+            const settingsBtn = document.querySelector('[data-section="settings"]');
+            if (settingsBtn) settingsBtn.addEventListener('click', () => { setTimeout(() => loadCrewProfiles(), 200); });
+            else loadCrewProfiles();
+          } catch (_) { loadCrewProfiles(); }
+
+          // Bulk-tag + missing alt
+          const bulkLoadBtn = document.getElementById('bulk-tag-load-btn');
+          if (bulkLoadBtn) bulkLoadBtn.addEventListener('click', loadBulkTagPhotos);
+          const bulkApplyBtn = document.getElementById('bulk-tag-apply-btn');
+          if (bulkApplyBtn) bulkApplyBtn.addEventListener('click', applyBulkTags);
+          const missingAltBtn = document.getElementById('missing-alt-refresh');
+          if (missingAltBtn) missingAltBtn.addEventListener('click', loadMissingAltText);
+
+          // Comment moderation
+          const commentRefreshBtn = document.getElementById('comment-moderation-refresh');
+          if (commentRefreshBtn) commentRefreshBtn.addEventListener('click', loadCommentModeration);
+          // Lazy load on first reveal of gallery-approvals section
+          try {
+            const galleryBtn = document.querySelector('[data-section="gallery"]') || document.querySelector('[data-section="gallery-approvals"]');
+            if (galleryBtn) galleryBtn.addEventListener('click', () => { setTimeout(() => { loadCommentModeration(); loadMissingAltText(); loadBulkTagPhotos(); }, 200); });
+          } catch (_) {}
           
           const runSeoAuditBtn = document.getElementById('run-seo-audit-btn');
           if (runSeoAuditBtn) runSeoAuditBtn.addEventListener('click', runSeoAudit);
@@ -7255,43 +7493,162 @@
           }
         }
         
-        async function saveMetaTags() {
+        function _getMetaFormSlug() {
+          const el = document.getElementById('meta-page-select');
+          return el && el.value ? String(el.value).trim() : '';
+        }
+
+        function _setMetaForm(data) {
+          data = data || {};
+          const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? '' : String(v); };
+          set('meta-title', data.title);
+          set('meta-description', data.description);
+          set('meta-keywords', data.keywords);
+          set('meta-canonical', data.canonical);
+          set('meta-og-title', data.ogTitle);
+          set('meta-og-description', data.ogDescription);
+          set('meta-og-image', data.ogImage);
+          const twitter = document.getElementById('meta-twitter-card');
+          if (twitter) twitter.value = data.twitterCard || 'summary_large_image';
+          const noindex = document.getElementById('meta-noindex');
+          if (noindex) noindex.checked = !!data.noindex;
+        }
+
+        function _readMetaForm() {
+          const get = (id) => { const el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; };
+          const noindex = document.getElementById('meta-noindex');
+          return {
+            title: get('meta-title'),
+            description: get('meta-description'),
+            keywords: get('meta-keywords'),
+            canonical: get('meta-canonical'),
+            ogTitle: get('meta-og-title'),
+            ogDescription: get('meta-og-description'),
+            ogImage: get('meta-og-image'),
+            twitterCard: get('meta-twitter-card') || 'summary_large_image',
+            noindex: !!(noindex && noindex.checked),
+          };
+        }
+
+        function _slugTitle(slug) {
+          if (!slug) return 'RedsRacing';
+          return slug.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+        }
+
+        function fillPageMetaDefaults(slug) {
+          if (!slug) { showToast('Pick a page first', 'error'); return; }
+          const pretty = _slugTitle(slug);
+          const isHome = slug === 'index';
+          const data = {
+            title: isHome ? 'RedsRacing #8 & #88 — Dirt Track Racing' : (pretty + ' — RedsRacing #8 & #88'),
+            description: isHome
+              ? 'Follow the RedsRacing journey: schedule, race recaps, photos, and live updates from Jon (#8) and Jonny (#88).'
+              : (pretty + ' on RedsRacing — schedule, results, photos, and behind-the-scenes for #8 and #88.'),
+            keywords: 'RedsRacing, dirt track racing, Jon Kirsch, Jonny Kirsch, #8, #88, ' + slug,
+            canonical: 'https://www.redsracing.org/' + (slug === 'index' ? '' : slug + '.html'),
+            ogTitle: '',
+            ogDescription: '',
+            ogImage: 'https://redsracing.org/assets/img/og-default.jpg',
+            twitterCard: 'summary_large_image',
+            noindex: false,
+          };
+          _setMetaForm(data);
+          showToast('Defaults filled for "' + slug + '"');
+        }
+
+        async function loadPageMeta(slug) {
+          const result = document.getElementById('meta-audit-result');
+          if (result) result.textContent = '';
+          if (!slug) { _setMetaForm({}); return; }
           try {
-            const title = (document.getElementById('meta-title').value || '').trim();
-            const description = (document.getElementById('meta-description').value || '').trim();
-            const keywords = (document.getElementById('meta-keywords').value || '').trim();
-            
-            if (!title || !description) {
-              showToast('Please fill in title and description', 'error');
-              return;
+            const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const snap = await getDoc(doc(db, 'page_meta', slug));
+            if (snap.exists()) {
+              _setMetaForm(snap.data() || {});
+              showToast('Loaded page_meta/' + slug);
+            } else {
+              _setMetaForm({});
+              showToast('No saved meta for "' + slug + '" yet — try defaults');
             }
-            if (title.length > 70) { showToast('Title too long (max 70 chars for SEO)', 'error'); return; }
-            if (description.length > 160) { showToast('Description too long (max 160 chars for SEO)', 'error'); return; }
-            
-            const btn = document.getElementById('save-meta-tags-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
-            
+          } catch (e) {
+            console.error('Failed to load page meta:', e);
+            showToast('Failed to load page meta', 'error');
+          }
+        }
+
+        async function saveMetaTags() {
+          const slug = _getMetaFormSlug();
+          if (!slug) { showToast('Pick a page first', 'error'); return; }
+          const form = _readMetaForm();
+          if (!form.title || !form.description) {
+            showToast('Title and description are required', 'error');
+            return;
+          }
+          if (form.title.length > 70) { showToast('Title too long (max 70 chars for SEO)', 'error'); return; }
+          if (form.description.length > 160) { showToast('Description too long (max 160 chars for SEO)', 'error'); return; }
+          const btn = document.getElementById('save-meta-tags-btn');
+          if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...'; }
+          try {
             const { getFirestore, doc, setDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
-            
-            const beforeSnap = await getDoc(doc(db, 'config', 'seo'));
+            const ref = doc(db, 'page_meta', slug);
+            const beforeSnap = await getDoc(ref);
             const beforeData = beforeSnap.exists() ? beforeSnap.data() : null;
-            const payload = { title, description, keywords, updatedAt: new Date() };
-            await setDoc(doc(db, 'config', 'seo'), payload);
-            writeConfigHistoryClient('config/seo', beforeData, { title, description, keywords });
-            writeAdminLogClient({ action: 'settings_saved', configPath: 'config/seo' });
-            
-            showToast('Meta tags saved successfully');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Meta Tags';
-          } catch(e) {
+            const me = (window.firebase && window.firebase.auth && window.firebase.auth().currentUser) || null;
+            const payload = Object.assign({}, form, {
+              updatedAt: new Date(),
+              updatedBy: me ? (me.email || me.uid || 'admin') : 'admin',
+            });
+            await setDoc(ref, payload, { merge: true });
+            try { writeConfigHistoryClient('page_meta/' + slug, beforeData, payload); } catch(_) {}
+            try { writeAdminLogClient({ action: 'page_meta_saved', configPath: 'page_meta/' + slug }); } catch(_) {}
+            showToast('Saved page_meta/' + slug);
+          } catch (e) {
             console.error('Failed to save meta tags:', e);
             showToast('Failed to save meta tags', 'error');
-            const btn = document.getElementById('save-meta-tags-btn');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Meta Tags';
+          } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Meta Tags'; }
+          }
+        }
+
+        function runPageMetaAudit(slug) {
+          if (!slug) { showToast('Pick a page first', 'error'); return; }
+          const target = '/' + slug + '.html?seo_audit=1';
+          try {
+            window.open(target, '_blank');
+            showToast('Audit launched for ' + slug + ' — polling for results…');
+            const key = 'rr_seo_audit_' + slug;
+            const resultEl = document.getElementById('meta-audit-result');
+            let tries = 0;
+            const start = Date.now();
+            const timer = setInterval(() => {
+              tries++;
+              try {
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                  const data = JSON.parse(raw);
+                  if (data && data.ts && data.ts >= start) {
+                    clearInterval(timer);
+                    if (resultEl) {
+                      const score = data.score || 0;
+                      const summary = (data.checks || []).map(c => (c.ok ? '\u2713 ' : '\u26a0 ') + c.msg).join(' \u2022 ');
+                      resultEl.innerHTML = '<span class="' + (score >= 80 ? 'text-green-400' : score >= 60 ? 'text-yellow-400' : 'text-red-400') + '">Score ' + score + '/100</span> &middot; ' + summary;
+                    }
+                    return;
+                  }
+                }
+              } catch(_) {}
+              if (tries > 30) {
+                clearInterval(timer);
+                if (resultEl) resultEl.textContent = 'No audit result received (timed out).';
+              }
+            }, 1000);
+          } catch (e) {
+            console.error('Audit launch failed', e);
+            showToast('Failed to launch audit', 'error');
           }
         }
         
@@ -7405,6 +7762,329 @@
           showToast('Social preview generated');
         }
         
+        // ============================================================
+        // CREW PROFILES MANAGEMENT (crew_profiles)
+        // ============================================================
+        let _crewCache = [];
+        let _crewEditingSlug = null;
+
+        async function _crewDb() {
+          const { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, getDoc, orderBy, query } =
+            await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+          const app = await ensureDefaultApp();
+          return { db: getFirestore(app), collection, doc, getDocs, setDoc, deleteDoc, getDoc, orderBy, query };
+        }
+
+        function _crewReadForm() {
+          const get = (id) => document.getElementById(id)?.value || '';
+          const num = (id) => Number(document.getElementById(id)?.value || 0) || 0;
+          return {
+            slug: String(get('crew-slug')).trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-'),
+            name: String(get('crew-name')).trim(),
+            role: get('crew-role'),
+            joinedYear: num('crew-joined-year'),
+            photoUrl: String(get('crew-photo')).trim(),
+            order: num('crew-order') || 100,
+            pinned: !!document.getElementById('crew-pinned')?.checked,
+            bio: String(get('crew-bio')).trim() || 'Profile coming soon.',
+            social: {
+              instagram: String(get('crew-social-instagram')).trim() || undefined,
+              tiktok: String(get('crew-social-tiktok')).trim() || undefined,
+              x: String(get('crew-social-x')).trim() || undefined,
+              linkedin: String(get('crew-social-linkedin')).trim() || undefined,
+            }
+          };
+        }
+
+        function _crewFillForm(data) {
+          const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? '' : String(v); };
+          data = data || {};
+          set('crew-slug', data.slug || '');
+          set('crew-name', data.name);
+          const role = document.getElementById('crew-role'); if (role) role.value = data.role || 'mechanic';
+          set('crew-joined-year', data.joinedYear);
+          set('crew-photo', data.photoUrl);
+          set('crew-order', data.order != null ? data.order : 100);
+          const pinned = document.getElementById('crew-pinned'); if (pinned) pinned.checked = !!data.pinned;
+          set('crew-bio', data.bio || '');
+          const s = data.social || {};
+          set('crew-social-instagram', s.instagram);
+          set('crew-social-tiktok', s.tiktok);
+          set('crew-social-x', s.x);
+          set('crew-social-linkedin', s.linkedin);
+        }
+
+        async function loadCrewProfiles() {
+          try {
+            const { db, collection, getDocs } = await _crewDb();
+            const snap = await getDocs(collection(db, 'crew_profiles'));
+            _crewCache = [];
+            snap.forEach(d => _crewCache.push({ slug: d.id, ...(d.data() || {}) }));
+            _crewCache.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || ((a.order || 100) - (b.order || 100)));
+            const host = document.getElementById('crew-list');
+            if (!host) return;
+            host.innerHTML = _crewCache.length ? '' : '<p class="text-slate-500 text-sm">No crew profiles yet — click <strong>New</strong>.</p>';
+            _crewCache.forEach(c => {
+              const row = document.createElement('button');
+              row.type = 'button';
+              row.className = 'w-full text-left bg-slate-800/40 border border-slate-700/50 hover:border-yellow-400/40 rounded-lg p-3 flex items-center gap-3';
+              row.innerHTML = `
+                <div class="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">${c.photoUrl ? `<img src="${c.photoUrl}" class="w-full h-full object-cover" alt="" />` : '<i class="fas fa-user text-slate-400"></i>'}</div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-white font-semibold text-sm truncate">${c.name || c.slug}</div>
+                  <div class="text-xs text-slate-400 truncate">${(c.role || '').replace(/-/g, ' ')} ${c.pinned ? '&middot; <span class="text-yellow-400">pinned</span>' : ''}</div>
+                </div>`;
+              row.addEventListener('click', () => { _crewEditingSlug = c.slug; _crewFillForm(c); });
+              host.appendChild(row);
+            });
+          } catch (e) {
+            console.error('Failed to load crew profiles', e);
+            showToast('Failed to load crew profiles', 'error');
+          }
+        }
+
+        async function saveCrewProfile() {
+          const form = _crewReadForm();
+          if (!form.slug || !form.name) { showToast('Slug and name required', 'error'); return; }
+          const btn = document.getElementById('crew-save-btn');
+          const statusEl = document.getElementById('crew-edit-status');
+          if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...'; }
+          try {
+            const { db, doc, setDoc } = await _crewDb();
+            const payload = Object.assign({}, form, { updatedAt: new Date() });
+            // Strip empty social keys
+            Object.keys(payload.social || {}).forEach(k => { if (!payload.social[k]) delete payload.social[k]; });
+            await setDoc(doc(db, 'crew_profiles', form.slug), payload, { merge: true });
+            try { writeAdminLogClient({ action: 'crew_profile_saved', configPath: 'crew_profiles/' + form.slug }); } catch(_) {}
+            if (statusEl) statusEl.textContent = 'Saved ' + form.slug;
+            _crewEditingSlug = form.slug;
+            showToast('Saved crew_profiles/' + form.slug);
+            await loadCrewProfiles();
+          } catch (e) {
+            console.error('Save crew failed', e);
+            showToast('Save failed', 'error');
+          } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Profile'; }
+          }
+        }
+
+        async function deleteCrewProfile() {
+          if (!_crewEditingSlug) { showToast('Select a profile first', 'error'); return; }
+          if (!confirm('Delete crew profile "' + _crewEditingSlug + '"? This cannot be undone.')) return;
+          try {
+            const { db, doc, deleteDoc } = await _crewDb();
+            await deleteDoc(doc(db, 'crew_profiles', _crewEditingSlug));
+            try { writeAdminLogClient({ action: 'crew_profile_deleted', configPath: 'crew_profiles/' + _crewEditingSlug }); } catch(_) {}
+            showToast('Deleted ' + _crewEditingSlug);
+            _crewEditingSlug = null;
+            _crewFillForm({});
+            await loadCrewProfiles();
+          } catch (e) {
+            console.error('Delete crew failed', e);
+            showToast('Delete failed', 'error');
+          }
+        }
+
+        // ============================================================
+        // BULK TAG PHOTOS + MISSING ALT TEXT
+        // ============================================================
+        let _bulkTagPhotos = [];
+        const _bulkTagSelected = new Set();
+
+        async function loadBulkTagPhotos() {
+          const host = document.getElementById('bulk-tag-photos');
+          if (!host) return;
+          host.innerHTML = '<p class="text-slate-400 text-sm col-span-3">Loading…</p>';
+          try {
+            const { getFirestore, collection, query, orderBy, limit, getDocs, where } =
+              await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const q = query(collection(db, 'gallery_images'), where('approved', '==', true), orderBy('createdAt', 'desc'), limit(100));
+            const snap = await getDocs(q);
+            _bulkTagPhotos = [];
+            snap.forEach(d => _bulkTagPhotos.push({ id: d.id, ...(d.data() || {}) }));
+            _renderBulkTagPhotos();
+          } catch (e) {
+            console.error('Load bulk photos failed', e);
+            host.innerHTML = '<p class="text-red-400 text-sm col-span-3">Failed to load photos.</p>';
+          }
+        }
+
+        function _renderBulkTagPhotos() {
+          const host = document.getElementById('bulk-tag-photos');
+          if (!host) return;
+          if (!_bulkTagPhotos.length) {
+            host.innerHTML = '<p class="text-slate-400 text-sm col-span-3">No photos to show.</p>';
+            return;
+          }
+          host.innerHTML = '';
+          _bulkTagPhotos.forEach(p => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            const selected = _bulkTagSelected.has(p.id);
+            card.className = 'relative aspect-square rounded overflow-hidden border ' + (selected ? 'border-yellow-400 ring-2 ring-yellow-400/40' : 'border-slate-700');
+            card.innerHTML = '<img src="' + (p.imageUrl || '') + '" alt="" class="w-full h-full object-cover" />';
+            card.addEventListener('click', () => {
+              if (_bulkTagSelected.has(p.id)) _bulkTagSelected.delete(p.id);
+              else _bulkTagSelected.add(p.id);
+              _renderBulkTagPhotos();
+            });
+            host.appendChild(card);
+          });
+        }
+
+        async function applyBulkTags() {
+          const tagsRaw = document.getElementById('bulk-tag-input')?.value || '';
+          const tags = tagsRaw.split(',').map(t => t.trim().toLowerCase()).filter(Boolean).slice(0, 8);
+          if (!tags.length) { showToast('Enter at least one tag', 'error'); return; }
+          if (!_bulkTagSelected.size) { showToast('Select photos to tag', 'error'); return; }
+          const status = document.getElementById('bulk-tag-status');
+          try {
+            const { getFirestore, doc, writeBatch, arrayUnion } =
+              await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const ids = Array.from(_bulkTagSelected).slice(0, 100);
+            const batch = writeBatch(db);
+            ids.forEach(id => {
+              const ref = doc(db, 'gallery_images', id);
+              batch.update(ref, { tags: arrayUnion(...tags) });
+            });
+            await batch.commit();
+            try { writeAdminLogClient({ action: 'bulk_tag_applied', count: ids.length, tags }); } catch(_) {}
+            if (status) status.textContent = 'Tagged ' + ids.length + ' photo(s)';
+            showToast('Applied tags to ' + ids.length + ' photos');
+            _bulkTagSelected.clear();
+            _renderBulkTagPhotos();
+          } catch (e) {
+            console.error('Bulk tag failed', e);
+            showToast('Bulk tag failed', 'error');
+          }
+        }
+
+        async function loadMissingAltText() {
+          const host = document.getElementById('missing-alt-list');
+          if (!host) return;
+          host.innerHTML = '<p class="text-slate-400 text-sm">Loading…</p>';
+          try {
+            const { getFirestore, collection, query, orderBy, limit, getDocs, where, doc, updateDoc } =
+              await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const q = query(collection(db, 'gallery_images'), where('approved', '==', true), orderBy('createdAt', 'desc'), limit(200));
+            const snap = await getDocs(q);
+            const missing = [];
+            snap.forEach(d => {
+              const data = d.data() || {};
+              if (!data.altText || !String(data.altText).trim()) missing.push({ id: d.id, ...data });
+            });
+            const status = document.getElementById('missing-alt-status');
+            if (status) status.textContent = missing.length + ' missing';
+            if (!missing.length) {
+              host.innerHTML = '<p class="text-green-400 text-sm">Every recent photo has alt text. ✓</p>';
+              return;
+            }
+            host.innerHTML = '';
+            missing.forEach(p => {
+              const row = document.createElement('div');
+              row.className = 'flex items-center gap-3 bg-slate-800/40 border border-slate-700/50 rounded-md p-2';
+              row.innerHTML =
+                '<img src="' + (p.imageUrl || '') + '" alt="" class="w-12 h-12 rounded object-cover flex-shrink-0" />' +
+                '<input type="text" maxlength="120" placeholder="Describe this photo…" class="flex-1 modern-input text-white text-sm p-1" />' +
+                '<button class="success-btn text-white px-2 py-1 rounded text-xs">Save</button>';
+              const input = row.querySelector('input');
+              const btn = row.querySelector('button');
+              btn.addEventListener('click', async () => {
+                const v = input.value.trim();
+                if (!v) { input.focus(); return; }
+                try {
+                  await updateDoc(doc(db, 'gallery_images', p.id), { altText: v.slice(0, 120) });
+                  row.style.opacity = '0.5';
+                  btn.disabled = true;
+                  btn.textContent = 'Saved';
+                } catch (e) {
+                  console.error(e);
+                  showToast('Save failed', 'error');
+                }
+              });
+              host.appendChild(row);
+            });
+          } catch (e) {
+            console.error('Load missing alt failed', e);
+            host.innerHTML = '<p class="text-red-400 text-sm">Failed to load.</p>';
+          }
+        }
+
+        // ============================================================
+        // COMMENT MODERATION
+        // ============================================================
+        async function loadCommentModeration() {
+          const host = document.getElementById('comment-moderation-list');
+          if (!host) return;
+          host.innerHTML = '<p class="text-slate-400 text-sm">Loading…</p>';
+          try {
+            const { getFirestore, collectionGroup, query, where, orderBy, limit, getDocs, doc, updateDoc, deleteDoc, getDoc, collection } =
+              await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const q = query(collectionGroup(db, 'comments'), where('approved', '==', false), orderBy('createdAt', 'desc'), limit(100));
+            const snap = await getDocs(q);
+            const status = document.getElementById('comment-moderation-status');
+            if (status) status.textContent = snap.size + ' pending';
+            if (snap.empty) {
+              host.innerHTML = '<p class="text-green-400 text-sm">No pending comments. ✓</p>';
+              return;
+            }
+            host.innerHTML = '';
+            for (const dSnap of snap.docs) {
+              const c = dSnap.data() || {};
+              const parent = dSnap.ref.parent.parent;
+              let thumb = '';
+              if (parent) {
+                try {
+                  const p = await getDoc(parent);
+                  thumb = (p.data() || {}).imageUrl || '';
+                } catch (_) {}
+              }
+              const row = document.createElement('div');
+              row.className = 'flex items-start gap-3 bg-slate-800/40 border border-slate-700/50 rounded-lg p-3';
+              row.innerHTML = `
+                <img src="${thumb}" alt="" class="w-14 h-14 rounded object-cover flex-shrink-0 bg-slate-700" />
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-white font-semibold text-sm">${(c.authorName || 'Anonymous').replace(/[<>]/g,'')}</span>
+                    <span class="text-slate-500 text-xs">${c.createdAt && c.createdAt.toDate ? c.createdAt.toDate().toLocaleString() : 'pending'}</span>
+                  </div>
+                  <p class="text-slate-200 text-sm whitespace-pre-wrap break-words">${(c.body || c.text || '').replace(/[<>]/g,'')}</p>
+                </div>
+                <div class="flex flex-col gap-1 flex-shrink-0">
+                  <button class="success-btn text-white px-2 py-1 rounded text-xs" data-act="approve">Approve</button>
+                  <button class="modern-btn text-white px-2 py-1 rounded text-xs" data-act="reject">Reject</button>
+                  <button class="danger-btn text-white px-2 py-1 rounded text-xs" data-act="delete">Delete</button>
+                </div>`;
+              const ref = dSnap.ref;
+              row.querySelector('[data-act="approve"]').addEventListener('click', async () => {
+                try { await updateDoc(ref, { approved: true }); row.remove(); }
+                catch (e) { console.error(e); showToast('Approve failed', 'error'); }
+              });
+              row.querySelector('[data-act="reject"]').addEventListener('click', async () => {
+                try { await updateDoc(ref, { approved: false, flagged: true }); row.remove(); }
+                catch (e) { console.error(e); showToast('Reject failed', 'error'); }
+              });
+              row.querySelector('[data-act="delete"]').addEventListener('click', async () => {
+                if (!confirm('Delete this comment?')) return;
+                try { await deleteDoc(ref); row.remove(); }
+                catch (e) { console.error(e); showToast('Delete failed', 'error'); }
+              });
+              host.appendChild(row);
+            }
+          } catch (e) {
+            console.error('Load comment moderation failed', e);
+            host.innerHTML = '<p class="text-red-400 text-sm">Failed to load. Ensure Firestore collectionGroup index for "comments" is created.</p>';
+          }
+        }
+
         // ===== BACKUP & RECOVERY =====
         
         async function createBackup() {

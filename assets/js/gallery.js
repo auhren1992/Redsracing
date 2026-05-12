@@ -180,6 +180,12 @@ async function main() {
         if (uploadStatus)
           uploadStatus.textContent = `Selected: ${selectedFile.name}`;
         if (uploadStatus) uploadStatus.style.color = "";
+        // Pre-compute dimensions so the gallery can reserve space (anti-CLS)
+        try {
+          if (window.RR_Tagging && typeof window.RR_Tagging.computeImageDimensions === "function") {
+            window.RR_Tagging.computeImageDimensions(selectedFile);
+          }
+        } catch (_) {}
       } else {
         if (uploadBtn) uploadBtn.disabled = true;
       }
@@ -191,6 +197,19 @@ async function main() {
   if (uploadBtn) {
     uploadBtn.addEventListener("click", () => {
       if (!selectedFile || !auth.currentUser) return;
+      // Validate tagging panel (alt text required)
+      try {
+        if (window.RR_Tagging && typeof window.RR_Tagging.validate === "function") {
+          const v = window.RR_Tagging.validate();
+          if (!v.ok) {
+            if (uploadStatus) {
+              uploadStatus.textContent = v.error || "Please describe the photo for screen readers.";
+              uploadStatus.style.color = "#f87171";
+            }
+            return;
+          }
+        }
+      } catch (_) {}
       uploadBtn.disabled = true;
       if (uploadInput) uploadInput.disabled = true;
 
@@ -247,18 +266,30 @@ async function main() {
               return "Racing Fan";
             };
             
-            await addDoc(collection(db, "gallery_images"), {
+            const tagging = (window.RR_Tagging && typeof window.RR_Tagging.collect === 'function')
+              ? window.RR_Tagging.collect()
+              : { caption: "", altText: "", tags: [], width: null, height: null };
+            const categoryEl = document.getElementById('photo-category');
+            const raceEventEl = document.getElementById('race-event');
+            const docPayload = {
               imageUrl: downloadURL,
               uploaderUid: userId,
-              uploaderEmail: auth.currentUser.email, // Kept for internal reference
+              uploaderEmail: auth.currentUser.email,
               uploaderDisplayName: getDisplayName(),
               createdAt: serverTimestamp(),
-              tags: [],
+              tags: Array.isArray(tagging.tags) ? tagging.tags.slice(0, 8) : [],
+              caption: String(tagging.caption || "").slice(0, 240),
+              altText: String(tagging.altText || "").slice(0, 120),
+              category: categoryEl ? categoryEl.value : null,
+              raceEvent: raceEventEl ? String(raceEventEl.value || '').slice(0, 120) : null,
               approved: false,
               likes: [],
               likeCount: 0,
               storagePath: `gallery/${userId}/${timestamp}-${selectedFile.name}`,
-            });
+            };
+            if (tagging.width) docPayload.width = tagging.width;
+            if (tagging.height) docPayload.height = tagging.height;
+            await addDoc(collection(db, "gallery_images"), docPayload);
             if (uploadStatus) {
               uploadStatus.textContent =
                 "Upload complete! Waiting for approval.";
@@ -266,6 +297,7 @@ async function main() {
             }
             selectedFile = null;
             if (uploadInput) uploadInput.value = "";
+            try { if (window.RR_Tagging && window.RR_Tagging.reset) window.RR_Tagging.reset(); } catch (_) {}
           } catch (error) {
             if (uploadStatus) {
               uploadStatus.textContent = "Error saving file data.";
@@ -399,36 +431,119 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
 
   // --- Dynamic Gallery Rendering ---
   const galleryContainer = document.getElementById("dynamic-gallery-container");
-  const renderGallery = () => {
-    if (!galleryContainer) return;
-    const q = query(
-      collection(db, "gallery_images"),
-      where("approved", "==", true),
-      orderBy("createdAt", "desc"),
-    );
-    onSnapshot(q, (snapshot) => {
-      galleryContainer.innerHTML = "";
-      if (snapshot.empty) {
-        galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos yet. Be the first to upload one!</p>`;
-        return;
+
+  // Internal client-side filter state (populated by the search bar below)
+  let _galleryAll = [];
+  let _galleryFilterText = "";
+  let _galleryFilterTags = new Set();
+
+  function _filteredImages() {
+    const text = _galleryFilterText.trim().toLowerCase();
+    return _galleryAll.filter(({ image }) => {
+      if (_galleryFilterTags.size) {
+        const tagSet = new Set((image.tags || []).map((t) => String(t).toLowerCase()));
+        for (const t of _galleryFilterTags) if (!tagSet.has(t)) return false;
       }
-      snapshot.forEach((docSnapshot) => {
-        const image = docSnapshot.data();
-        const imageId = docSnapshot.id;
+      if (text) {
+        const hay = [
+          image.caption,
+          image.altText,
+          image.raceEvent,
+          (image.tags || []).join(" "),
+          image.uploaderDisplayName,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (hay.indexOf(text) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  function _ensureSearchBar() {
+    if (!galleryContainer) return;
+    if (document.getElementById("rr-gallery-search-bar")) return;
+    const bar = document.createElement("div");
+    bar.id = "rr-gallery-search-bar";
+    bar.className = "mb-6 max-w-3xl mx-auto col-span-full";
+    bar.innerHTML = `
+      <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+        <input id="rr-gallery-search" type="text" placeholder="Search captions, alt text, events…"
+               class="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-white placeholder-slate-400 focus:border-yellow-400 outline-none" />
+        <div id="rr-gallery-tag-pills" class="flex flex-wrap gap-2"></div>
+      </div>`;
+    galleryContainer.parentElement.insertBefore(bar, galleryContainer);
+    document.getElementById("rr-gallery-search").addEventListener("input", (e) => {
+      _galleryFilterText = e.target.value || "";
+      _renderGalleryItems();
+    });
+  }
+
+  function _renderTagPills() {
+    const host = document.getElementById("rr-gallery-tag-pills");
+    if (!host) return;
+    const allTags = new Map();
+    _galleryAll.forEach(({ image }) => {
+      (image.tags || []).forEach((t) => {
+        const k = String(t).toLowerCase();
+        allTags.set(k, (allTags.get(k) || 0) + 1);
+      });
+    });
+    const sorted = Array.from(allTags.entries()).sort((a, b) => b[1] - a[1]).slice(0, 12);
+    host.innerHTML = sorted
+      .map(([t, n]) => {
+        const on = _galleryFilterTags.has(t);
+        return `<button type="button" data-tag="${escapeHTML(t)}" class="rr-tag-pill text-xs font-semibold px-2.5 py-1 rounded-full border ${on ? "bg-yellow-400 text-slate-900 border-yellow-400" : "bg-slate-800 text-slate-200 border-slate-600 hover:border-yellow-400"}">${escapeHTML(t)} <span class="opacity-70">${n}</span></button>`;
+      })
+      .join("");
+    Array.from(host.querySelectorAll(".rr-tag-pill")).forEach((b) => {
+      b.addEventListener("click", () => {
+        const t = b.getAttribute("data-tag");
+        if (_galleryFilterTags.has(t)) _galleryFilterTags.delete(t);
+        else _galleryFilterTags.add(t);
+        _renderTagPills();
+        _renderGalleryItems();
+      });
+    });
+  }
+
+  function _renderGalleryItems() {
+    if (!galleryContainer) return;
+    // Clear all existing cards but preserve search bar (it lives in parent)
+    galleryContainer.innerHTML = "";
+    const items = _filteredImages();
+    if (!items.length) {
+      galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos match the current filter.</p>`;
+      return;
+    }
+    items.forEach(({ image, imageId }) => _renderOneItem(image, imageId));
+  }
+
+  function _renderOneItem(image, imageId) {
         const galleryItem = document.createElement("div");
         galleryItem.className =
           "gallery-item aspect-square reveal-up relative overflow-hidden rounded-lg group max-w-xs";
 
-        // Build tags safely
+        // Build tag-chip buttons (click-to-filter)
         const tagsContainer = document.createElement("div");
         if (image.tags && image.tags.length > 0) {
-          image.tags.slice(0, 3).forEach((tag) => {
-            const tagSpan = createSafeElement(
-              "span",
-              tag,
-              "bg-black/50 text-white text-xs font-bold mr-2 px-2.5 py-0.5 rounded-full",
-            );
-            tagsContainer.appendChild(tagSpan);
+          image.tags.slice(0, 4).forEach((tag) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className =
+              "bg-black/60 hover:bg-yellow-400/80 hover:text-slate-900 text-white text-xs font-bold px-2 py-0.5 rounded-full transition";
+            btn.dataset.tagFilter = String(tag).toLowerCase();
+            btn.textContent = tag;
+            btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const t = btn.dataset.tagFilter;
+              if (_galleryFilterTags.has(t)) _galleryFilterTags.delete(t);
+              else _galleryFilterTags.add(t);
+              _renderTagPills();
+              _renderGalleryItems();
+            });
+            tagsContainer.appendChild(btn);
           });
         }
 
@@ -462,20 +577,26 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
           return "Racing Fan";
         };
         
+        const altSafe = escapeHTML(image.altText || image.caption || 'RedsRacing photo');
+        const captionSafe = image.caption ? escapeHTML(image.caption) : '';
         // Create the main gallery HTML without admin buttons
         const baseHTML = `
           <img
             src="${escapeHTML(image.imageUrl)}"
-            alt="User uploaded race photo"
+            alt="${altSafe}"
             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            ${image.width ? `width="${parseInt(image.width,10)}"` : ''}
+            ${image.height ? `height="${parseInt(image.height,10)}"` : ''}
+            loading="lazy"
           />
           <div
             class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent"
           >
+            ${captionSafe ? `<p class="text-xs text-slate-200 mb-1 line-clamp-2">${captionSafe}</p>` : ''}
             <p class="text-sm text-slate-300">
               Uploaded by: ${escapeHTML(getExistingDisplayName(image))}
             </p>
-            <div class="mt-2" id="tags-container-${escapeHTML(imageId)}"></div>
+            <div class="mt-2 flex flex-wrap gap-1" id="tags-container-${escapeHTML(imageId)}"></div>
             <div class="mt-3 flex items-center justify-between">
               <div class="flex items-center space-x-2" id="action-buttons-${escapeHTML(imageId)}">
                 <button
@@ -602,7 +723,28 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
         }
         
         galleryContainer.appendChild(galleryItem);
+  }
+
+  const renderGallery = () => {
+    if (!galleryContainer) return;
+    _ensureSearchBar();
+    const q = query(
+      collection(db, "gallery_images"),
+      where("approved", "==", true),
+      orderBy("createdAt", "desc"),
+    );
+    onSnapshot(q, (snapshot) => {
+      _galleryAll = [];
+      if (snapshot.empty) {
+        galleryContainer.innerHTML = `<p class="text-slate-400 col-span-full text-center">No photos yet. Be the first to upload one!</p>`;
+        _renderTagPills();
+        return;
+      }
+      snapshot.forEach((docSnapshot) => {
+        _galleryAll.push({ image: docSnapshot.data(), imageId: docSnapshot.id });
       });
+      _renderTagPills();
+      _renderGalleryItems();
     });
   };
 
@@ -648,6 +790,7 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
     const modal = document.createElement("div");
     modal.className =
       "fixed inset-0 bg-black/50 flex items-center justify-center z-50";
+    const signedIn = !!auth.currentUser;
     modal.innerHTML = `
             <div class="bg-slate-800 rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
                 <div class="flex justify-between items-center mb-4">
@@ -657,11 +800,18 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
                 <div id="comments-list" class="space-y-3 mb-4 max-h-60 overflow-y-auto">
                     <p class="text-slate-400 text-sm">Loading comments...</p>
                 </div>
-                <div class="flex space-x-2">
-                    <input type="text" id="comment-input" placeholder="Add a comment..." 
-                           class="flex-1 bg-slate-700 text-white px-3 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button id="add-comment-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500">Post</button>
-                </div>
+                ${signedIn ? `
+                <div class="flex flex-col gap-2">
+                    <textarea id="comment-input" rows="2" placeholder="Add a comment…" maxlength="2000"
+                              class="bg-slate-700 text-white px-3 py-2 rounded-md border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                    <div class="flex justify-end">
+                      <button id="add-comment-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500">Post</button>
+                    </div>
+                    <p class="text-xs text-slate-400">Comments are reviewed by the team before appearing publicly.</p>
+                </div>` : `
+                <div class="bg-slate-900/50 border border-slate-700 rounded-md p-3 text-center">
+                  <a href="login.html" class="text-yellow-400 font-semibold hover:underline">Sign in to comment</a>
+                </div>`}
             </div>
         `;
     document.body.appendChild(modal);
@@ -674,12 +824,13 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
       document.body.removeChild(modal);
     });
 
-    modal.querySelector("#add-comment-btn").addEventListener("click", () => {
-      addComment(imageId);
-    });
+    const addBtn = modal.querySelector("#add-comment-btn");
+    if (addBtn) addBtn.addEventListener("click", () => addComment(imageId));
 
-    modal.querySelector("#comment-input").addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
+    const commentInputEl = modal.querySelector("#comment-input");
+    if (commentInputEl) commentInputEl.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault();
         addComment(imageId);
       }
     });
@@ -697,9 +848,11 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
     if (!commentsList) return;
 
     try {
+      // Only approved comments, oldest-first (per spec)
       const commentsQuery = query(
         collection(db, "gallery_images", imageId, "comments"),
-        orderBy("createdAt", "desc"),
+        where("approved", "==", true),
+        orderBy("createdAt", "asc"),
       );
 
       onSnapshot(commentsQuery, (snapshot) => {
@@ -710,13 +863,14 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
           return;
         }
 
-        snapshot.forEach((doc) => {
-          const comment = doc.data();
+        snapshot.forEach((docSnap) => {
+          const comment = docSnap.data();
           const commentEl = document.createElement("div");
           commentEl.className = "bg-slate-700 p-3 rounded-md";
+          const body = comment.body || comment.text || "";
           commentEl.innerHTML = `
-                        <p class="text-sm text-slate-300 font-semibold">${comment.authorDisplayName || "Anonymous"}</p>
-                        <p class="text-sm text-slate-100 mt-1">${comment.text}</p>
+                        <p class="text-sm text-slate-300 font-semibold">${escapeHTML(comment.authorName || comment.authorDisplayName || "Anonymous")}</p>
+                        <p class="text-sm text-slate-100 mt-1">${escapeHTML(body)}</p>
                         <p class="text-xs text-slate-400 mt-2">${comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : "Just now"}</p>
                     `;
           commentsList.appendChild(commentEl);
@@ -729,23 +883,40 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
   };
 
   const addComment = async (imageId) => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser) {
+      const inputCheck = document.getElementById("comment-input");
+      if (inputCheck) {
+        inputCheck.placeholder = "Sign in to comment…";
+        inputCheck.disabled = true;
+      }
+      return;
+    }
 
     const commentInput = document.getElementById("comment-input");
     const commentText = commentInput.value.trim();
 
     if (!commentText) return;
+    if (commentText.length > 2000) return;
 
     try {
       await addDoc(collection(db, "gallery_images", imageId, "comments"), {
-        text: commentText,
+        body: commentText,
         authorUid: auth.currentUser.uid,
-        authorDisplayName: auth.currentUser.displayName || "Anonymous",
+        authorName: auth.currentUser.displayName || auth.currentUser.email || "Racing Fan",
         createdAt: serverTimestamp(),
+        approved: false,
+        flagged: false,
       });
 
       commentInput.value = "";
-    } catch (error) {}
+      const note = document.createElement("p");
+      note.className = "text-xs text-yellow-400 mt-2";
+      note.textContent = "Thanks! Your comment is awaiting approval.";
+      const list = document.getElementById("comments-list");
+      if (list) list.appendChild(note);
+    } catch (error) {
+      console.error("Failed to post comment", error);
+    }
   };
 
   // Event delegation for like and comment buttons

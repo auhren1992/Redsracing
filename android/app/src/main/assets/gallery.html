@@ -6,11 +6,21 @@
          crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RedsRacing photo gallery: race-night action shots, victory lane moments, pit crew highlights, and behind-the-scenes photos from Jon (#8) and Jonny (#88)." />
+    <link rel="canonical" href="https://www.redsracing.org/gallery.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RedsRacing" />
+    <meta property="og:title" content="Gallery - RedsRacing #8 & #88" />
+    <meta property="og:description" content="Race-night action, victory lane, pit crew, and behind-the-scenes photos from RedsRacing." />
+    <meta property="og:url" content="https://www.redsracing.org/gallery.html" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Gallery - RedsRacing #8 & #88" />
+    <meta name="twitter:description" content="Race-night action, victory lane, pit crew, and behind-the-scenes photos from RedsRacing." />
     <title>Gallery - RedsRacing #8</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-    <link rel="manifest" href="site.webmanifest" />
+    <link rel="manifest" href="/manifest.json" />
     <link rel="stylesheet" href="styles/tailwind.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -33,7 +43,12 @@
     <script type="module" src="assets/js/analytics-tracker.js"></script>
     <!-- Google Analytics -->
     <script src="assets/js/google-analytics.js"></script>
-</head>
+    <meta name="theme-color" content="#fbbf24" />
+      <meta property="og:image" content="/assets/img/og-default.jpg" />
+      <meta name="twitter:image" content="/assets/img/og-default.jpg" />
+      <script src="assets/js/page-meta.js" defer></script>
+      <script src="assets/js/site-search.js" defer></script>
+  </head>
   <body class="bg-dark-blue">
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
       <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
@@ -250,10 +265,17 @@
         </div>
       </div>
     </header>
+    
+    <!-- Featured strip (live updates) -->
+    <div class="mt-6">
+      <div id="rr-feature-strip"></div>
+    </div>
+    <script type="module" src="assets/js/featured-strip.js"></script>
+    
     <main class="pt-20">
       <!-- Hero Gallery Section -->
-      <section class="racing-gallery-hero py-24 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
-        <div class="container mx-auto px-6 relative z-10">
+      <section class="rr-hero racing-gallery-hero py-24 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
+        <div class="rr-hero__inner container mx-auto px-6 relative z-10">
           <!-- Racing Track Title Design -->
           <div class="text-center mb-16">
             <div class="inline-flex items-center bg-red-600/20 backdrop-blur-sm px-6 py-3 rounded-full border border-red-400/30 mb-6">
@@ -403,6 +425,17 @@
             </button>
           </div>
           
+          <!-- AdSense: gallery-mid -->
+          <div class="rr-ad-slot max-w-6xl mx-auto" style="margin-bottom:2rem;min-height:120px;">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-8879853783053353"
+                 data-ad-slot="5582001910"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+          </div>
+
           <!-- Dynamic Racing Grid -->
           <div id="dynamic-gallery-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
             <!-- Photos will be dynamically inserted here -->
@@ -689,7 +722,7 @@
     import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
     // Initialize dedicated Firebase app for newsletter
-        const firebaseConfig = {
+    const firebaseConfig = {
         apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
         authDomain: "redsracing-a7f8b.firebaseapp.com",
         databaseURL: "https://redsracing-a7f8b-default-rtdb.firebaseio.com",
@@ -779,9 +812,11 @@
     <!-- Scripts -->
     <script type="module" src="navigation.js"></script>
     <script type="module" src="main.js"></script>
+    <script src="assets/js/gallery-tagging.js"></script>
     <script type="module" src="assets/js/gallery.js"></script>
     <script src="modern-effects.js"></script>
       <script src="assets/js/cookie-consent.js"></script>
-  </body>
+  <div style="text-align:center;padding:1.5rem 1rem;border-top:1px solid rgba(148,163,184,0.1);margin-top:2rem;font-size:0.75rem;color:#64748b;"><a href="privacy.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Privacy Policy</a> | <a href="terms.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Terms of Service</a> | <a href="contact.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Contact</a><div style="margin-top:4px;">&copy; 2026 RedsRacing #8 &amp; #88</div></div>
+</body>
 </html>
 

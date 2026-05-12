@@ -23,7 +23,7 @@
     <!-- Global Error Tracking (MUST load before Firebase) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="assets/js/global-error-tracker.js?v=202605061"></script>
+    <script src="assets/js/global-error-tracker.js?v=202605082"></script>
     
     <style>
       /* Modern Admin Console Styles */
@@ -967,10 +967,8 @@
                   <div>
                     <p class="text-slate-400 text-sm font-medium mb-1">Total Races</p>
                     <div class="flex items-center space-x-2">
-                      <span class="text-3xl font-bold text-white animated-counter" id="total-races">12</span>
-                      <div class="text-green-400 text-sm flex items-center">
-                        <i class="fas fa-arrow-up mr-1"></i>+2
-                      </div>
+                      <span class="text-3xl font-bold text-white animated-counter" id="total-races">0</span>
+                      <div class="text-slate-500 text-sm flex items-center" id="total-races-trend"></div>
                     </div>
                   </div>
                   <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
@@ -1019,12 +1017,10 @@
               <div class="stat-card rounded-xl p-6">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-slate-400 text-sm font-medium mb-1">Analytics</p>
+                    <p class="text-slate-400 text-sm font-medium mb-1">Visitors (7d)</p>
                     <div class="flex items-center space-x-2">
-                      <span class="text-2xl font-bold text-white" id="active-users">Live</span>
-                      <div class="text-green-400 text-xs flex items-center">
-                        <i class="fas fa-check-circle mr-1"></i>Tracking
-                      </div>
+                      <span class="text-2xl font-bold text-white" id="active-users">—</span>
+                      <div class="text-slate-500 text-xs flex items-center" id="active-users-trend"></div>
                     </div>
                   </div>
                   <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
@@ -1047,8 +1043,8 @@
                 </div>
                 
                 <div class="text-center mb-6">
-                  <p id="next-race-name" class="text-2xl font-bold text-yellow-400 mb-2">Loading...</p>
-                  <p class="text-slate-400 text-sm">Championship Round</p>
+                  <p id="next-race-name" class="text-2xl font-bold text-yellow-400 mb-2">Loading…</p>
+                  <p id="next-race-subtitle" class="text-slate-400 text-sm"></p>
                 </div>
                 
                 <div id="countdown-timer" class="grid grid-cols-4 gap-3">
@@ -1162,6 +1158,63 @@
               <div id="photo-approval-card" class="admin-card rounded-xl p-6 mt-6" style="display: none">
                 <div id="unapproved-photos-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
               </div>
+
+              <!-- Bulk-tag + missing alt-text helpers -->
+              <div class="admin-card rounded-xl p-6 mt-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                  <i class="fas fa-tags text-yellow-400 mr-2"></i>
+                  Photo Tagging Tools
+                </h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div class="bg-slate-800/40 border border-slate-700/50 rounded-lg p-4">
+                    <h4 class="text-white font-semibold mb-2 flex items-center">
+                      <i class="fas fa-layer-group text-blue-400 mr-2"></i>Bulk Tag
+                    </h4>
+                    <p class="text-slate-400 text-xs mb-3">Apply N tags to multiple photos (up to 100 per batch).</p>
+                    <input type="text" id="bulk-tag-input" class="modern-input w-full p-2 text-white text-sm mb-2" placeholder="Comma-separated tags e.g. #8, podium" />
+                    <div id="bulk-tag-photos" class="grid grid-cols-3 gap-2 mb-3 max-h-72 overflow-auto"></div>
+                    <div class="flex flex-wrap gap-2">
+                      <button id="bulk-tag-load-btn" class="modern-btn text-white px-3 py-2 rounded text-xs">
+                        <i class="fas fa-arrows-rotate mr-1"></i>Load latest 100
+                      </button>
+                      <button id="bulk-tag-apply-btn" class="success-btn text-white px-3 py-2 rounded text-xs">
+                        <i class="fas fa-check mr-1"></i>Apply tags to selected
+                      </button>
+                      <span id="bulk-tag-status" class="text-xs text-slate-400 self-center"></span>
+                    </div>
+                  </div>
+
+                  <div class="bg-slate-800/40 border border-slate-700/50 rounded-lg p-4">
+                    <h4 class="text-white font-semibold mb-2 flex items-center">
+                      <i class="fas fa-eye-slash text-orange-400 mr-2"></i>Photos missing alt text
+                    </h4>
+                    <p class="text-slate-400 text-xs mb-3">Pre-existing photos that have no <code>altText</code>. Click "Add alt" to backfill.</p>
+                    <div id="missing-alt-list" class="space-y-2 max-h-96 overflow-auto"></div>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                      <button id="missing-alt-refresh" class="modern-btn text-white px-3 py-2 rounded text-xs">
+                        <i class="fas fa-arrows-rotate mr-1"></i>Refresh
+                      </button>
+                      <span id="missing-alt-status" class="text-xs text-slate-400 self-center"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Comment Moderation -->
+              <div class="admin-card rounded-xl p-6 mt-6">
+                <h3 class="text-xl font-bold text-white mb-2">
+                  <i class="fas fa-comments text-blue-400 mr-2"></i>
+                  Comment Moderation
+                </h3>
+                <p class="text-slate-400 text-sm mb-4">Pending gallery comments awaiting approval.</p>
+                <div id="comment-moderation-list" class="space-y-3 max-h-[600px] overflow-auto"></div>
+                <div class="flex flex-wrap gap-2 mt-3">
+                  <button id="comment-moderation-refresh" class="modern-btn text-white px-3 py-2 rounded text-sm">
+                    <i class="fas fa-arrows-rotate mr-2"></i>Refresh
+                  </button>
+                  <span id="comment-moderation-status" class="text-xs text-slate-400 self-center"></span>
+                </div>
+              </div>
             </div>
             
             <!-- Settings Section -->
@@ -1176,7 +1229,87 @@
                   <span class="text-green-400 text-sm font-medium">Live Editing</span>
                 </div>
               </div>
-              
+
+              <!-- Crew Profiles Management -->
+              <div class="admin-card rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">
+                  <i class="fas fa-helmet-safety text-yellow-400 mr-2"></i>
+                  Crew Profiles
+                </h3>
+                <p class="text-slate-400 text-sm mb-4">Create and edit crew member pages shown on <code>/team.html</code> and <code>/crew.html?id=…</code>. Pinned + lower <code>order</code> appears first.</p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div class="lg:col-span-1">
+                    <div class="flex items-center justify-between mb-2">
+                      <h4 class="text-white font-semibold">Profiles</h4>
+                      <button id="crew-new-btn" class="success-btn text-white px-3 py-1.5 rounded text-xs">
+                        <i class="fas fa-plus mr-1"></i>New
+                      </button>
+                    </div>
+                    <div id="crew-list" class="space-y-2 max-h-96 overflow-auto"></div>
+                  </div>
+                  <div class="lg:col-span-2 bg-slate-800/40 border border-slate-700/50 rounded-lg p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Slug (unique)</label>
+                        <input type="text" id="crew-slug" class="modern-input w-full p-2 text-white text-sm" placeholder="e.g. crew-member-1" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Name</label>
+                        <input type="text" id="crew-name" class="modern-input w-full p-2 text-white text-sm" placeholder="Display name" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Role</label>
+                        <select id="crew-role" class="modern-input w-full p-2 text-white text-sm">
+                          <option value="crew-chief">Crew Chief</option>
+                          <option value="mechanic">Mechanic</option>
+                          <option value="tire-tech">Tire Tech</option>
+                          <option value="pr">PR / Media</option>
+                          <option value="family">Family</option>
+                          <option value="photographer">Photographer</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Joined Year</label>
+                        <input type="number" id="crew-joined-year" class="modern-input w-full p-2 text-white text-sm" min="2000" max="2099" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Photo URL</label>
+                        <input type="text" id="crew-photo" class="modern-input w-full p-2 text-white text-sm" placeholder="https://… (optional)" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Order</label>
+                        <input type="number" id="crew-order" class="modern-input w-full p-2 text-white text-sm" value="100" />
+                      </div>
+                    </div>
+                    <label class="flex items-center gap-2 text-slate-300 text-sm mb-2">
+                      <input type="checkbox" id="crew-pinned" /> Pin to top of /team.html
+                    </label>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Bio (markdown OK)</label>
+                    <textarea id="crew-bio" rows="6" class="modern-input w-full p-2 text-white text-sm resize-y" placeholder="Profile coming soon."></textarea>
+                    <details class="mt-3">
+                      <summary class="text-slate-300 text-sm cursor-pointer">Social handles (optional)</summary>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                        <input type="text" id="crew-social-instagram" class="modern-input w-full p-2 text-white text-sm" placeholder="Instagram handle" />
+                        <input type="text" id="crew-social-tiktok" class="modern-input w-full p-2 text-white text-sm" placeholder="TikTok handle" />
+                        <input type="text" id="crew-social-x" class="modern-input w-full p-2 text-white text-sm" placeholder="X / Twitter handle" />
+                        <input type="text" id="crew-social-linkedin" class="modern-input w-full p-2 text-white text-sm" placeholder="LinkedIn slug" />
+                      </div>
+                    </details>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                      <button id="crew-save-btn" class="success-btn text-white px-4 py-2 rounded text-sm">
+                        <i class="fas fa-save mr-2"></i>Save Profile
+                      </button>
+                      <button id="crew-delete-btn" class="danger-btn text-white px-4 py-2 rounded text-sm">
+                        <i class="fas fa-trash mr-2"></i>Delete
+                      </button>
+                      <span id="crew-edit-status" class="text-xs text-slate-400 self-center"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Team Roster Settings -->
               <div class="admin-card rounded-xl p-6">
                 <h3 class="text-xl font-bold text-white mb-4">
@@ -1194,19 +1327,19 @@
                     <div class="grid grid-cols-2 gap-4">
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Racing Number</label>
-                        <input type="text" id="jon-number" value="8" class="modern-input w-full p-3 text-white" />
+                        <input type="text" id="jon-number" class="modern-input w-full p-3 text-white" placeholder="e.g. 8" />
                       </div>
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Years Racing</label>
-                        <input type="number" id="jon-years" value="2" class="modern-input w-full p-3 text-white" />
+                        <input type="number" id="jon-years" class="modern-input w-full p-3 text-white" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Wins</label>
-                        <input type="number" id="jon-wins" value="12" class="modern-input w-full p-3 text-white" />
+                        <input type="number" id="jon-wins" class="modern-input w-full p-3 text-white" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Podium Finishes</label>
-                        <input type="number" id="jon-podiums" value="11" class="modern-input w-full p-3 text-white" />
+                        <input type="number" id="jon-podiums" class="modern-input w-full p-3 text-white" placeholder="0" />
                       </div>
                     </div>
                     
@@ -1225,19 +1358,19 @@
                     <div class="grid grid-cols-2 gap-4">
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Racing Number</label>
-                        <input type="text" id="jonny-number" value="88" class="modern-input w-full p-3 text-white" />
+                        <input type="text" id="jonny-number" class="modern-input w-full p-3 text-white" placeholder="e.g. 88" />
                       </div>
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Years Racing</label>
-                        <input type="number" id="jonny-years" value="1" class="modern-input w-full p-3 text-white" />
+                        <input type="number" id="jonny-years" class="modern-input w-full p-3 text-white" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Wins</label>
-                        <input type="number" id="jonny-wins" value="8" class="modern-input w-full p-3 text-white" />
+                        <input type="number" id="jonny-wins" class="modern-input w-full p-3 text-white" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-sm font-medium text-slate-300 mb-1">Championships</label>
-                        <input type="number" id="jonny-championships" value="1" class="modern-input w-full p-3 text-white" />
+                        <input type="number" id="jonny-championships" class="modern-input w-full p-3 text-white" placeholder="0" />
                       </div>
                     </div>
                     
@@ -1268,19 +1401,19 @@
                     <div class="grid grid-cols-2 gap-3">
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Years Racing</label>
-                        <input type="number" id="homepage-years" value="2" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="homepage-years" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Races Won</label>
-                        <input type="number" id="homepage-wins" value="12" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="homepage-wins" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Racing Numbers</label>
-                        <input type="text" id="homepage-numbers" value="#8 & #88" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="text" id="homepage-numbers" class="modern-input w-full p-2 text-white text-sm" placeholder="e.g. #8 &amp; #88" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Active Users</label>
-                        <input type="number" id="homepage-users" value="1234" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="homepage-users" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                     </div>
                   </div>
@@ -1290,19 +1423,19 @@
                     <div class="space-y-3">
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Action Shots Count</label>
-                        <input type="number" id="gallery-action" value="127" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="gallery-action" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Victory Moments</label>
-                        <input type="number" id="gallery-victory" value="45" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="gallery-victory" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Pit Crew Photos</label>
-                        <input type="number" id="gallery-pit" value="89" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="gallery-pit" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Championships</label>
-                        <input type="number" id="gallery-championships" value="23" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="gallery-championships" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                     </div>
                   </div>
@@ -1312,19 +1445,19 @@
                     <div class="space-y-3">
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Active Drivers</label>
-                        <input type="number" id="roster-drivers" value="2" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="number" id="roster-drivers" class="modern-input w-full p-2 text-white text-sm" placeholder="0" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Combined Experience</label>
-                        <input type="text" id="roster-experience" value="2 Years" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="text" id="roster-experience" class="modern-input w-full p-2 text-white text-sm" placeholder="e.g. 5 Years" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Team Legacy</label>
-                        <input type="text" id="roster-legacy" value="#8" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="text" id="roster-legacy" class="modern-input w-full p-2 text-white text-sm" placeholder="e.g. #8" />
                       </div>
                       <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Racing Spirit</label>
-                        <input type="text" id="roster-spirit" value="Unlimited" class="modern-input w-full p-2 text-white text-sm" />
+                        <input type="text" id="roster-spirit" class="modern-input w-full p-2 text-white text-sm" placeholder="" />
                       </div>
                     </div>
                   </div>
@@ -1798,16 +1931,77 @@
                   </div>
                   <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
                     <h4 class="text-white font-semibold mb-2 flex items-center">
-                      <i class="fas fa-tags text-purple-400 mr-2"></i>Meta Tags Manager
+                      <i class="fas fa-tags text-purple-400 mr-2"></i>Per-Page Meta Tags
                     </h4>
-                    <div class="space-y-2 mb-3">
-                      <input type="text" id="meta-title" class="modern-input w-full p-2 text-white text-sm" placeholder="Site Title" />
-                      <textarea id="meta-description" rows="2" class="modern-input w-full p-2 text-white text-sm resize-none" placeholder="Site Description"></textarea>
-                      <input type="text" id="meta-keywords" class="modern-input w-full p-2 text-white text-sm" placeholder="Keywords (comma-separated)" />
+                    <p class="text-slate-400 text-xs mb-3">Edit SEO + OG/Twitter tags for any public page. Values are stored in <code>page_meta/&lt;slug&gt;</code> and applied at runtime by <code>page-meta.js</code>.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                      <select id="meta-page-select" class="modern-input w-full p-2 text-white text-sm">
+                        <option value="">Select a page…</option>
+                        <option value="index">index</option>
+                        <option value="team">team</option>
+                        <option value="driver">driver</option>
+                        <option value="gallery">gallery</option>
+                        <option value="schedule">schedule</option>
+                        <option value="fan-wall">fan-wall</option>
+                        <option value="predictions">predictions</option>
+                        <option value="jonny">jonny</option>
+                        <option value="jonny-gallery">jonny-gallery</option>
+                        <option value="jonny-results">jonny-results</option>
+                        <option value="live">live</option>
+                        <option value="racing-guide">racing-guide</option>
+                        <option value="sponsorship">sponsorship</option>
+                        <option value="tracks">tracks</option>
+                        <option value="recaps">recaps</option>
+                        <option value="videos">videos</option>
+                        <option value="contact">contact</option>
+                        <option value="privacy">privacy</option>
+                        <option value="terms">terms</option>
+                        <option value="qna">qna</option>
+                        <option value="leaderboard">leaderboard</option>
+                        <option value="profile">profile</option>
+                        <option value="dashboard">dashboard</option>
+                        <option value="crew">crew</option>
+                        <option value="about">about</option>
+                        <option value="blog">blog</option>
+                        <option value="stats">stats</option>
+                        <option value="legends">legends</option>
+                      </select>
+                      <div class="flex gap-2">
+                        <button id="meta-load-defaults-btn" type="button" class="modern-btn text-white px-3 py-2 rounded text-xs w-full">
+                          <i class="fas fa-wand-magic-sparkles mr-1"></i>Use defaults
+                        </button>
+                        <button id="meta-audit-btn" type="button" class="modern-btn text-white px-3 py-2 rounded text-xs w-full">
+                          <i class="fas fa-clipboard-check mr-1"></i>Run audit
+                        </button>
+                      </div>
                     </div>
-                    <button id="save-meta-tags-btn" class="success-btn text-white px-4 py-2 rounded text-sm">
-                      <i class="fas fa-save mr-2"></i>Save Meta Tags
-                    </button>
+                    <div class="space-y-2 mb-3">
+                      <input type="text" id="meta-title" class="modern-input w-full p-2 text-white text-sm" placeholder="Title (30–70 chars)" />
+                      <textarea id="meta-description" rows="2" class="modern-input w-full p-2 text-white text-sm resize-none" placeholder="Description (70–160 chars)"></textarea>
+                      <input type="text" id="meta-keywords" class="modern-input w-full p-2 text-white text-sm" placeholder="Keywords (comma-separated)" />
+                      <input type="text" id="meta-canonical" class="modern-input w-full p-2 text-white text-sm" placeholder="Canonical URL (https://…)" />
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="text" id="meta-og-title" class="modern-input w-full p-2 text-white text-sm" placeholder="OG Title (defaults to title)" />
+                        <input type="text" id="meta-og-image" class="modern-input w-full p-2 text-white text-sm" placeholder="OG Image URL" />
+                      </div>
+                      <textarea id="meta-og-description" rows="2" class="modern-input w-full p-2 text-white text-sm resize-none" placeholder="OG Description (defaults to description)"></textarea>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center">
+                        <select id="meta-twitter-card" class="modern-input w-full p-2 text-white text-sm">
+                          <option value="summary_large_image">summary_large_image</option>
+                          <option value="summary">summary</option>
+                        </select>
+                        <label class="flex items-center gap-2 text-slate-300 text-sm">
+                          <input type="checkbox" id="meta-noindex" class="form-checkbox" />
+                          <span>noindex / nofollow</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 items-center">
+                      <button id="save-meta-tags-btn" class="success-btn text-white px-4 py-2 rounded text-sm">
+                        <i class="fas fa-save mr-2"></i>Save Meta Tags
+                      </button>
+                      <span id="meta-audit-result" class="text-xs text-slate-400"></span>
+                    </div>
                   </div>
                 </div>
                 
@@ -1911,7 +2105,7 @@
                       <h4 class="text-white font-semibold flex items-center">
                         <i class="fab fa-android text-green-400 mr-2 text-xl"></i>Android App
                       </h4>
-                      <span class="px-2 py-1 bg-green-600 text-white text-xs rounded">Live</span>
+                      <span id="android-status-badge" class="px-2 py-1 bg-slate-600 text-white text-xs rounded">—</span>
                     </div>
                     <div class="space-y-2">
                       <div class="flex justify-between text-sm">
@@ -1939,7 +2133,7 @@
                       <h4 class="text-white font-semibold flex items-center">
                         <i class="fab fa-apple text-blue-400 mr-2 text-xl"></i>iOS App
                       </h4>
-                      <span class="px-2 py-1 bg-blue-600 text-white text-xs rounded">Live</span>
+                      <span id="ios-status-badge" class="px-2 py-1 bg-slate-600 text-white text-xs rounded">—</span>
                     </div>
                     <div class="space-y-2">
                       <div class="flex justify-between text-sm">
@@ -2163,13 +2357,15 @@
                   </div>
                 </div>
                 
-                <!-- Revenue Chart Placeholder -->
+                <!-- Revenue Trend (real chart, drawn from revenue_events) -->
                 <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 mb-4">
                   <h4 class="text-white font-semibold mb-3">Revenue Trend (30 Days)</h4>
-                  <div class="h-48 flex items-center justify-center text-slate-500">
-                    <i class="fas fa-chart-area text-4xl mr-3"></i>
-                    <span>Revenue chart will appear here</span>
-                  </div>
+                  <canvas id="revenue-trend-chart" width="800" height="160"
+                          style="width:100%;height:160px;display:block"></canvas>
+                  <p id="revenue-trend-empty"
+                     class="hidden text-slate-500 text-sm text-center mt-2">
+                    No revenue_events yet. Numbers above are estimates from page_views.
+                  </p>
                 </div>
                 
                 <div class="flex flex-wrap gap-3">
@@ -3002,7 +3198,7 @@
     <script type="module" src="navigation.js"></script>
     <!-- redsracing-dashboard.js removed: admin console has its own countdown/data loading -->
     <script type="module" src="assets/js/cms-admin.js?v=20251006-2"></script>
-    <script type="module" src="assets/js/queue-admin.js?v=202605066"></script>
+    <script type="module" src="assets/js/queue-admin.js?v=202605082"></script>
     
     <script>
       // Modern Admin Console JavaScript
@@ -4441,6 +4637,20 @@
                 if (document.getElementById('homepage-numbers')) document.getElementById('homepage-numbers').value = v.homepage.numbers || '';
                 if (document.getElementById('homepage-users')) document.getElementById('homepage-users').value = v.homepage.users || '';
               }
+              // Gallery stats (new — was hardcoded in HTML before)
+              if (v.gallery) {
+                if (document.getElementById('gallery-action')) document.getElementById('gallery-action').value = v.gallery.action || '';
+                if (document.getElementById('gallery-victory')) document.getElementById('gallery-victory').value = v.gallery.victory || '';
+                if (document.getElementById('gallery-pit')) document.getElementById('gallery-pit').value = v.gallery.pit || '';
+                if (document.getElementById('gallery-championships')) document.getElementById('gallery-championships').value = v.gallery.championships || '';
+              }
+              // Roster meta (new — was hardcoded in HTML before)
+              if (v.rosterMeta) {
+                if (document.getElementById('roster-drivers')) document.getElementById('roster-drivers').value = v.rosterMeta.drivers || '';
+                if (document.getElementById('roster-experience')) document.getElementById('roster-experience').value = v.rosterMeta.experience || '';
+                if (document.getElementById('roster-legacy')) document.getElementById('roster-legacy').value = v.rosterMeta.legacy || '';
+                if (document.getElementById('roster-spirit')) document.getElementById('roster-spirit').value = v.rosterMeta.spirit || '';
+              }
               // Content
               if (v.content) {
                 if (document.getElementById('hero-title')) document.getElementById('hero-title').value = v.content.heroTitle || '';
@@ -4492,20 +4702,38 @@
             const { getFirestore, doc, setDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const db = getFirestore();
             const beforeSnap = await getDoc(doc(db, 'config', 'site'));
-            const beforeData = beforeSnap.exists() ? { homepage: beforeSnap.data()?.homepage } : null;
+            const before = beforeSnap.exists() ? beforeSnap.data() : null;
+            const beforeData = before ? { homepage: before.homepage, gallery: before.gallery, rosterMeta: before.rosterMeta } : null;
+            const num = (id) => Math.max(0, Number(document.getElementById(id)?.value || 0) || 0);
+            const txt = (id) => (document.getElementById(id)?.value || '').trim() || null;
             const payload = {
               homepage: {
-                years: Math.max(0, Number(document.getElementById('homepage-years')?.value || 0) || 0),
-                wins: Math.max(0, Number(document.getElementById('homepage-wins')?.value || 0) || 0),
+                years: num('homepage-years'),
+                wins: num('homepage-wins'),
                 numbers: document.getElementById('homepage-numbers')?.value || null,
-                users: Math.max(0, Number(document.getElementById('homepage-users')?.value || 0) || 0),
+                users: num('homepage-users'),
+              },
+              gallery: {
+                action: num('gallery-action'),
+                victory: num('gallery-victory'),
+                pit: num('gallery-pit'),
+                championships: num('gallery-championships'),
+              },
+              rosterMeta: {
+                drivers: num('roster-drivers'),
+                experience: txt('roster-experience'),
+                legacy: txt('roster-legacy'),
+                spirit: txt('roster-spirit'),
               },
             };
             await setDoc(doc(db, 'config', 'site'), payload, { merge: true });
             writeConfigHistoryClient('config/site:homepage', beforeData, payload);
             writeAdminLogClient({ action: 'settings_saved', configPath: 'config/site:homepage' });
-            showToast('Homepage stats saved');
-          } catch (e) { showToast('Failed to save homepage stats', 'error'); }
+            showToast('Homepage / gallery / roster stats saved');
+          } catch (e) {
+            console.error('[saveHomepageStats] failed:', e);
+            showToast('Failed to save homepage stats', 'error');
+          }
         }
 
         async function saveContentSettings() {
@@ -5561,6 +5789,95 @@
           const refreshInvBtn = document.getElementById('refresh-invites-btn');
           if (refreshInvBtn) refreshInvBtn.addEventListener('click', refreshInvitesUI);
 
+          // Site Settings save buttons — these were rendered but never wired.
+          // saveRosterSettings / saveHomepageStats / saveContentSettings exist below.
+          document.getElementById('save-roster-btn')?.addEventListener('click', () => saveRosterSettings());
+          document.getElementById('save-stats-btn')?.addEventListener('click', () => saveHomepageStats());
+          document.getElementById('save-content-btn')?.addEventListener('click', () => saveContentSettings());
+
+          // Revenue toolbar: Export and Ad Settings — were rendered but unwired.
+          document.getElementById('export-revenue-btn')?.addEventListener('click', async () => {
+            try {
+              const { getFirestore, collection, getDocs, query, orderBy, limit } =
+                await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const app = await ensureDefaultApp();
+              const db = getFirestore(app);
+              const snap = await getDocs(query(collection(db, 'revenue_events'), orderBy('timestamp', 'desc'), limit(5000)));
+              const safe = (s) => String(s ?? '').replace(/[\r\n,"]/g, ' ').trim();
+              const header = 'Timestamp,Source,EventType,Amount,Currency,Page,UserAgent';
+              const body = snap.docs.map(d => {
+                const v = d.data() || {};
+                const ts = v.timestamp?.toDate ? v.timestamp.toDate().toISOString() : (v.timestamp || '');
+                return [ts, v.source, v.eventType, v.amount, v.currency, v.page, v.userAgent].map(safe).join(',');
+              }).join('\n');
+              const blob = new Blob([`${header}\n${body}`], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `revenue-events-${new Date().toISOString().split('T')[0]}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+              showToast(`Exported ${snap.size} revenue events`);
+            } catch (e) {
+              console.error('[export-revenue-btn] failed:', e);
+              showToast('Revenue export failed', 'error');
+            }
+          });
+
+          document.getElementById('ad-settings-btn')?.addEventListener('click', async () => {
+            try {
+              const { getFirestore, doc, getDoc } =
+                await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+              const app = await ensureDefaultApp();
+              const db = getFirestore(app);
+              const snap = await getDoc(doc(db, 'config', 'ads'));
+              const out = document.getElementById('revenue-operation-result');
+              if (!out) return;
+              if (snap.exists()) {
+                const data = snap.data();
+                out.innerHTML = `
+                  <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3">
+                    <div class="text-white font-semibold mb-2"><i class="fas fa-cog mr-2 text-blue-400"></i>Current Ad Config (config/ads)</div>
+                    <pre class="text-xs text-slate-300 whitespace-pre-wrap">${
+                      JSON.stringify(data, (k, v) => v?.toDate ? v.toDate().toISOString() : v, 2)
+                    }</pre>
+                    <p class="text-slate-500 text-xs mt-2">Edit this document in the Firebase console to change publisher IDs or enable/disable individual ad units.</p>
+                  </div>`;
+              } else {
+                out.innerHTML = `
+                  <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3">
+                    <div class="text-yellow-400 font-semibold mb-2"><i class="fas fa-exclamation-triangle mr-2"></i>No <code>config/ads</code> document yet</div>
+                    <p class="text-slate-400 text-xs">Create one in Firestore with fields like <code>{ adsensePub: "...", adsenseEnabled: true, admobAppId: "...", admobEnabled: true }</code> to control ad units centrally.</p>
+                  </div>`;
+              }
+            } catch (e) {
+              console.error('[ad-settings-btn] failed:', e);
+              showToast('Failed to load ad settings', 'error');
+            }
+          });
+
+          // Auto-backup toggle: persist preference into config/backups.
+          // A scheduled Cloud Function (deploy separately) reads this flag.
+          const autoBackup = document.getElementById('auto-backup-toggle');
+          if (autoBackup) {
+            autoBackup.addEventListener('change', async () => {
+              try {
+                const { getFirestore, doc, setDoc } =
+                  await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+                const app = await ensureDefaultApp();
+                const db = getFirestore(app);
+                await setDoc(doc(db, 'config', 'backups'), {
+                  autoBackupEnabled: !!autoBackup.checked,
+                  updatedAt: new Date()
+                }, { merge: true });
+                showToast(autoBackup.checked ? 'Auto-backup enabled' : 'Auto-backup disabled');
+              } catch (e) {
+                console.error('[auto-backup-toggle] save failed:', e);
+                showToast('Failed to save auto-backup setting', 'error');
+              }
+            });
+          }
+
           const saveTikTokBtn = document.getElementById('save-tiktok-btn');
           if (saveTikTokBtn) saveTikTokBtn.addEventListener('click', async () => {
             try {
@@ -6386,6 +6703,46 @@
           
           const saveMetaTagsBtn = document.getElementById('save-meta-tags-btn');
           if (saveMetaTagsBtn) saveMetaTagsBtn.addEventListener('click', saveMetaTags);
+
+          const metaPageSelect = document.getElementById('meta-page-select');
+          if (metaPageSelect) metaPageSelect.addEventListener('change', () => loadPageMeta(metaPageSelect.value));
+
+          const metaLoadDefaultsBtn = document.getElementById('meta-load-defaults-btn');
+          if (metaLoadDefaultsBtn) metaLoadDefaultsBtn.addEventListener('click', () => fillPageMetaDefaults(metaPageSelect ? metaPageSelect.value : ''));
+
+          const metaAuditBtn = document.getElementById('meta-audit-btn');
+          if (metaAuditBtn) metaAuditBtn.addEventListener('click', () => runPageMetaAudit(metaPageSelect ? metaPageSelect.value : ''));
+
+          // Crew Profiles
+          const crewNewBtn = document.getElementById('crew-new-btn');
+          if (crewNewBtn) crewNewBtn.addEventListener('click', () => { _crewEditingSlug = null; _crewFillForm({ pinned: false, order: 100, role: 'mechanic' }); });
+          const crewSaveBtn = document.getElementById('crew-save-btn');
+          if (crewSaveBtn) crewSaveBtn.addEventListener('click', saveCrewProfile);
+          const crewDeleteBtn = document.getElementById('crew-delete-btn');
+          if (crewDeleteBtn) crewDeleteBtn.addEventListener('click', deleteCrewProfile);
+          // Load crew profiles when settings section becomes visible (lazy)
+          try {
+            const settingsBtn = document.querySelector('[data-section="settings"]');
+            if (settingsBtn) settingsBtn.addEventListener('click', () => { setTimeout(() => loadCrewProfiles(), 200); });
+            else loadCrewProfiles();
+          } catch (_) { loadCrewProfiles(); }
+
+          // Bulk-tag + missing alt
+          const bulkLoadBtn = document.getElementById('bulk-tag-load-btn');
+          if (bulkLoadBtn) bulkLoadBtn.addEventListener('click', loadBulkTagPhotos);
+          const bulkApplyBtn = document.getElementById('bulk-tag-apply-btn');
+          if (bulkApplyBtn) bulkApplyBtn.addEventListener('click', applyBulkTags);
+          const missingAltBtn = document.getElementById('missing-alt-refresh');
+          if (missingAltBtn) missingAltBtn.addEventListener('click', loadMissingAltText);
+
+          // Comment moderation
+          const commentRefreshBtn = document.getElementById('comment-moderation-refresh');
+          if (commentRefreshBtn) commentRefreshBtn.addEventListener('click', loadCommentModeration);
+          // Lazy load on first reveal of gallery-approvals section
+          try {
+            const galleryBtn = document.querySelector('[data-section="gallery"]') || document.querySelector('[data-section="gallery-approvals"]');
+            if (galleryBtn) galleryBtn.addEventListener('click', () => { setTimeout(() => { loadCommentModeration(); loadMissingAltText(); loadBulkTagPhotos(); }, 200); });
+          } catch (_) {}
           
           const runSeoAuditBtn = document.getElementById('run-seo-audit-btn');
           if (runSeoAuditBtn) runSeoAuditBtn.addEventListener('click', runSeoAudit);
@@ -6726,15 +7083,76 @@
         }
         
         async function exportActivityCSV() {
-          const csv = 'Timestamp,Action,User\n2026-03-04 12:00,Signup,user@example.com\n2026-03-04 11:45,Upload,another@example.com';
-          const blob = new Blob([csv], { type: 'text/csv' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `activity-export-${new Date().toISOString().split('T')[0]}.csv`;
-          a.click();
-          URL.revokeObjectURL(url);
-          showToast('Activity exported');
+          // Real export from Firestore: combines recent users (signups), gallery uploads,
+          // and client_logs into a single chronological CSV. No mock rows.
+          try {
+            showToast('Building activity export…');
+            const { getFirestore, collection, getDocs, query, orderBy, limit } =
+              await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+
+            const rows = [];
+            const safe = (s) => String(s ?? '').replace(/[\r\n,"]/g, ' ').trim();
+            const tsToIso = (t) => {
+              try { return t?.toDate ? t.toDate().toISOString() : (t ? new Date(t).toISOString() : ''); }
+              catch (_) { return ''; }
+            };
+
+            try {
+              const us = await getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(500)));
+              us.forEach(d => {
+                const v = d.data();
+                rows.push({
+                  ts: tsToIso(v.createdAt),
+                  action: 'Signup',
+                  user: v.email || v.displayName || d.id
+                });
+              });
+            } catch (e) { console.warn('[exportActivityCSV] users query failed:', e); }
+
+            try {
+              const gs = await getDocs(query(collection(db, 'gallery_images'), orderBy('uploadedAt', 'desc'), limit(500)));
+              gs.forEach(d => {
+                const v = d.data();
+                rows.push({
+                  ts: tsToIso(v.uploadedAt),
+                  action: v.approved ? 'PhotoApproved' : 'PhotoUpload',
+                  user: v.uploadedByEmail || v.uploadedBy || ''
+                });
+              });
+            } catch (e) { console.warn('[exportActivityCSV] gallery_images query failed:', e); }
+
+            try {
+              const ls = await getDocs(query(collection(db, 'client_logs'), orderBy('createdAt', 'desc'), limit(500)));
+              ls.forEach(d => {
+                const v = d.data();
+                rows.push({
+                  ts: tsToIso(v.createdAt),
+                  action: v.type || v.level || 'Log',
+                  user: v.userEmail || v.userId || ''
+                });
+              });
+            } catch (e) { console.warn('[exportActivityCSV] client_logs query failed:', e); }
+
+            rows.sort((a, b) => (b.ts || '').localeCompare(a.ts || ''));
+
+            const header = 'Timestamp,Action,User';
+            const body = rows.map(r => `${safe(r.ts)},${safe(r.action)},${safe(r.user)}`).join('\n');
+            const csv = `${header}\n${body}`;
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `activity-export-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast(`Exported ${rows.length} activity rows`);
+          } catch (e) {
+            console.error('[exportActivityCSV] failed:', e);
+            showToast('Activity export failed', 'error');
+          }
         }
         
         // Cache Management Functions
@@ -6759,12 +7177,25 @@
           }
         }
         
-        function refreshImageCache() {
-          document.getElementById('cache-operation-result').innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Refreshing image cache...</div>';
-          setTimeout(() => {
-            document.getElementById('cache-operation-result').innerHTML = '<div class="text-green-400"><i class="fas fa-check mr-2"></i>Image cache refreshed</div>';
-            showToast('Image cache refreshed');
-          }, 1500);
+        async function refreshImageCache() {
+          // Real cache-bust: write a new timestamp to config/cdn.cacheBust.
+          // Public pages can append `?v=cacheBust` to image URLs. This
+          // function does something verifiable, never simulates work.
+          const out = document.getElementById('cache-operation-result');
+          if (out) out.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Stamping cache-bust token…</div>';
+          try {
+            const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const stamp = Date.now();
+            await setDoc(doc(db, 'config', 'cdn'), { cacheBust: stamp, updatedAt: stamp }, { merge: true });
+            if (out) out.innerHTML = `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Cache-bust token updated: ${stamp}</div>`;
+            showToast('Image cache-bust token updated');
+          } catch (e) {
+            console.error('[refreshImageCache] failed:', e);
+            if (out) out.innerHTML = `<div class="text-red-400"><i class="fas fa-exclamation-triangle mr-2"></i>${(e && e.message) || 'Failed to update cache-bust token'}</div>`;
+            showToast('Cache-bust update failed', 'error');
+          }
         }
         
         // Security Audit Functions
@@ -7062,78 +7493,254 @@
           }
         }
         
-        async function saveMetaTags() {
+        function _getMetaFormSlug() {
+          const el = document.getElementById('meta-page-select');
+          return el && el.value ? String(el.value).trim() : '';
+        }
+
+        function _setMetaForm(data) {
+          data = data || {};
+          const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? '' : String(v); };
+          set('meta-title', data.title);
+          set('meta-description', data.description);
+          set('meta-keywords', data.keywords);
+          set('meta-canonical', data.canonical);
+          set('meta-og-title', data.ogTitle);
+          set('meta-og-description', data.ogDescription);
+          set('meta-og-image', data.ogImage);
+          const twitter = document.getElementById('meta-twitter-card');
+          if (twitter) twitter.value = data.twitterCard || 'summary_large_image';
+          const noindex = document.getElementById('meta-noindex');
+          if (noindex) noindex.checked = !!data.noindex;
+        }
+
+        function _readMetaForm() {
+          const get = (id) => { const el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; };
+          const noindex = document.getElementById('meta-noindex');
+          return {
+            title: get('meta-title'),
+            description: get('meta-description'),
+            keywords: get('meta-keywords'),
+            canonical: get('meta-canonical'),
+            ogTitle: get('meta-og-title'),
+            ogDescription: get('meta-og-description'),
+            ogImage: get('meta-og-image'),
+            twitterCard: get('meta-twitter-card') || 'summary_large_image',
+            noindex: !!(noindex && noindex.checked),
+          };
+        }
+
+        function _slugTitle(slug) {
+          if (!slug) return 'RedsRacing';
+          return slug.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+        }
+
+        function fillPageMetaDefaults(slug) {
+          if (!slug) { showToast('Pick a page first', 'error'); return; }
+          const pretty = _slugTitle(slug);
+          const isHome = slug === 'index';
+          const data = {
+            title: isHome ? 'RedsRacing #8 & #88 — Dirt Track Racing' : (pretty + ' — RedsRacing #8 & #88'),
+            description: isHome
+              ? 'Follow the RedsRacing journey: schedule, race recaps, photos, and live updates from Jon (#8) and Jonny (#88).'
+              : (pretty + ' on RedsRacing — schedule, results, photos, and behind-the-scenes for #8 and #88.'),
+            keywords: 'RedsRacing, dirt track racing, Jon Kirsch, Jonny Kirsch, #8, #88, ' + slug,
+            canonical: 'https://www.redsracing.org/' + (slug === 'index' ? '' : slug + '.html'),
+            ogTitle: '',
+            ogDescription: '',
+            ogImage: 'https://redsracing.org/assets/img/og-default.jpg',
+            twitterCard: 'summary_large_image',
+            noindex: false,
+          };
+          _setMetaForm(data);
+          showToast('Defaults filled for "' + slug + '"');
+        }
+
+        async function loadPageMeta(slug) {
+          const result = document.getElementById('meta-audit-result');
+          if (result) result.textContent = '';
+          if (!slug) { _setMetaForm({}); return; }
           try {
-            const title = (document.getElementById('meta-title').value || '').trim();
-            const description = (document.getElementById('meta-description').value || '').trim();
-            const keywords = (document.getElementById('meta-keywords').value || '').trim();
-            
-            if (!title || !description) {
-              showToast('Please fill in title and description', 'error');
-              return;
+            const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const snap = await getDoc(doc(db, 'page_meta', slug));
+            if (snap.exists()) {
+              _setMetaForm(snap.data() || {});
+              showToast('Loaded page_meta/' + slug);
+            } else {
+              _setMetaForm({});
+              showToast('No saved meta for "' + slug + '" yet — try defaults');
             }
-            if (title.length > 70) { showToast('Title too long (max 70 chars for SEO)', 'error'); return; }
-            if (description.length > 160) { showToast('Description too long (max 160 chars for SEO)', 'error'); return; }
-            
-            const btn = document.getElementById('save-meta-tags-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
-            
+          } catch (e) {
+            console.error('Failed to load page meta:', e);
+            showToast('Failed to load page meta', 'error');
+          }
+        }
+
+        async function saveMetaTags() {
+          const slug = _getMetaFormSlug();
+          if (!slug) { showToast('Pick a page first', 'error'); return; }
+          const form = _readMetaForm();
+          if (!form.title || !form.description) {
+            showToast('Title and description are required', 'error');
+            return;
+          }
+          if (form.title.length > 70) { showToast('Title too long (max 70 chars for SEO)', 'error'); return; }
+          if (form.description.length > 160) { showToast('Description too long (max 160 chars for SEO)', 'error'); return; }
+          const btn = document.getElementById('save-meta-tags-btn');
+          if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...'; }
+          try {
             const { getFirestore, doc, setDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
-            
-            const beforeSnap = await getDoc(doc(db, 'config', 'seo'));
+            const ref = doc(db, 'page_meta', slug);
+            const beforeSnap = await getDoc(ref);
             const beforeData = beforeSnap.exists() ? beforeSnap.data() : null;
-            const payload = { title, description, keywords, updatedAt: new Date() };
-            await setDoc(doc(db, 'config', 'seo'), payload);
-            writeConfigHistoryClient('config/seo', beforeData, { title, description, keywords });
-            writeAdminLogClient({ action: 'settings_saved', configPath: 'config/seo' });
-            
-            showToast('Meta tags saved successfully');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Meta Tags';
-          } catch(e) {
+            const me = (window.firebase && window.firebase.auth && window.firebase.auth().currentUser) || null;
+            const payload = Object.assign({}, form, {
+              updatedAt: new Date(),
+              updatedBy: me ? (me.email || me.uid || 'admin') : 'admin',
+            });
+            await setDoc(ref, payload, { merge: true });
+            try { writeConfigHistoryClient('page_meta/' + slug, beforeData, payload); } catch(_) {}
+            try { writeAdminLogClient({ action: 'page_meta_saved', configPath: 'page_meta/' + slug }); } catch(_) {}
+            showToast('Saved page_meta/' + slug);
+          } catch (e) {
             console.error('Failed to save meta tags:', e);
             showToast('Failed to save meta tags', 'error');
-            const btn = document.getElementById('save-meta-tags-btn');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Meta Tags';
+          } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Meta Tags'; }
+          }
+        }
+
+        function runPageMetaAudit(slug) {
+          if (!slug) { showToast('Pick a page first', 'error'); return; }
+          const target = '/' + slug + '.html?seo_audit=1';
+          try {
+            window.open(target, '_blank');
+            showToast('Audit launched for ' + slug + ' — polling for results…');
+            const key = 'rr_seo_audit_' + slug;
+            const resultEl = document.getElementById('meta-audit-result');
+            let tries = 0;
+            const start = Date.now();
+            const timer = setInterval(() => {
+              tries++;
+              try {
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                  const data = JSON.parse(raw);
+                  if (data && data.ts && data.ts >= start) {
+                    clearInterval(timer);
+                    if (resultEl) {
+                      const score = data.score || 0;
+                      const summary = (data.checks || []).map(c => (c.ok ? '\u2713 ' : '\u26a0 ') + c.msg).join(' \u2022 ');
+                      resultEl.innerHTML = '<span class="' + (score >= 80 ? 'text-green-400' : score >= 60 ? 'text-yellow-400' : 'text-red-400') + '">Score ' + score + '/100</span> &middot; ' + summary;
+                    }
+                    return;
+                  }
+                }
+              } catch(_) {}
+              if (tries > 30) {
+                clearInterval(timer);
+                if (resultEl) resultEl.textContent = 'No audit result received (timed out).';
+              }
+            }, 1000);
+          } catch (e) {
+            console.error('Audit launch failed', e);
+            showToast('Failed to launch audit', 'error');
           }
         }
         
         async function runSeoAudit() {
+          // Real on-page audit. Inspects the CURRENT page's DOM and reports actual
+          // counts (title length, meta description, image alts, h1 count, canonical
+          // link, viewport meta). No fake scores.
           const result = document.getElementById('seo-operation-result');
-          result.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Running SEO audit...</div>';
-          
-          setTimeout(() => {
-            document.getElementById('seo-score').textContent = '87';
-            document.getElementById('seo-traffic').textContent = '~2.5K';
-            document.getElementById('seo-keywords').textContent = '15';
-            document.getElementById('seo-speed').textContent = '92';
-            
-            result.innerHTML = `
-              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-1">
-                <div class="text-green-400"><i class="fas fa-check mr-2"></i>Page titles optimized</div>
-                <div class="text-green-400"><i class="fas fa-check mr-2"></i>Meta descriptions present</div>
-                <div class="text-yellow-400"><i class="fas fa-exclamation-triangle mr-2"></i>Some images missing alt tags</div>
-                <div class="text-green-400"><i class="fas fa-check mr-2"></i>Mobile-friendly design</div>
-              </div>
-            `;
-            showToast('SEO audit complete');
-          }, 2000);
+          if (!result) return;
+          result.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Running on-page SEO audit…</div>';
+
+          const checks = [];
+          const title = (document.title || '').trim();
+          if (title.length >= 30 && title.length <= 70) {
+            checks.push({ ok: true, msg: `Title length OK (${title.length} chars)` });
+          } else {
+            checks.push({ ok: false, msg: `Title length ${title.length} (target 30–70)` });
+          }
+          const md = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+          if (md.length >= 70 && md.length <= 160) {
+            checks.push({ ok: true, msg: `Meta description OK (${md.length} chars)` });
+          } else if (!md) {
+            checks.push({ ok: false, msg: 'Meta description missing' });
+          } else {
+            checks.push({ ok: false, msg: `Meta description ${md.length} (target 70–160)` });
+          }
+          const h1Count = document.querySelectorAll('h1').length;
+          checks.push({ ok: h1Count === 1, msg: `H1 count: ${h1Count}${h1Count === 1 ? '' : ' (should be 1)'}` });
+          const imgs = Array.from(document.querySelectorAll('img'));
+          const missingAlt = imgs.filter(i => !(i.getAttribute('alt') || '').trim()).length;
+          checks.push({ ok: missingAlt === 0, msg: `${missingAlt}/${imgs.length} images missing alt text` });
+          const hasCanonical = !!document.querySelector('link[rel="canonical"]');
+          checks.push({ ok: hasCanonical, msg: hasCanonical ? 'Canonical link present' : 'Canonical link missing' });
+          const hasViewport = !!document.querySelector('meta[name="viewport"]');
+          checks.push({ ok: hasViewport, msg: hasViewport ? 'Mobile viewport set' : 'Mobile viewport missing' });
+
+          // Real keyword count from page text (admin-only heuristic, no fake number).
+          const text = document.body ? document.body.innerText : '';
+          const words = text.split(/\s+/).filter(Boolean);
+          const keywordCount = new Set(words.filter(w => w.length >= 4)).size;
+          const score = Math.round((checks.filter(c => c.ok).length / checks.length) * 100);
+
+          document.getElementById('seo-score').textContent = String(score);
+          document.getElementById('seo-traffic').textContent = '—'; // Requires Search Console API integration
+          document.getElementById('seo-keywords').textContent = String(keywordCount);
+
+          // Page speed from real PerformanceNavigationTiming (not the fake formula).
+          try {
+            const nav = performance.getEntriesByType('navigation')[0];
+            if (nav) {
+              const ms = Math.round(nav.loadEventEnd - nav.startTime);
+              const speed = Math.max(1, Math.min(100, Math.round(100 - ms / 50)));
+              document.getElementById('seo-speed').textContent = String(speed);
+            } else {
+              document.getElementById('seo-speed').textContent = '—';
+            }
+          } catch (_) { document.getElementById('seo-speed').textContent = '—'; }
+
+          const rows = checks
+            .map(c => `<div class="${c.ok ? 'text-green-400' : 'text-yellow-400'}"><i class="fas ${c.ok ? 'fa-check' : 'fa-exclamation-triangle'} mr-2"></i>${c.msg}</div>`)
+            .join('');
+          result.innerHTML = `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-1">${rows}</div>`;
+          showToast('On-page SEO audit complete');
         }
-        
+
         function testPageSpeed() {
+          // Real PerformanceNavigationTiming reading — no fabricated score formula
+          // and no `setTimeout(spinner)` theater.
           const result = document.getElementById('seo-operation-result');
-          result.innerHTML = '<div class="text-blue-400"><i class="fas fa-spinner fa-spin mr-2"></i>Testing page speed...</div>';
-          
-          setTimeout(() => {
-            const loadTime = performance.timing ? Math.round(performance.timing.loadEventEnd - performance.timing.navigationStart) : 1200;
-            document.getElementById('seo-speed').textContent = Math.max(1, 100 - Math.floor(loadTime / 50));
-            result.innerHTML = `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Page load time: ${loadTime}ms</div>`;
-            showToast('Page speed test complete');
-          }, 1500);
+          if (!result) return;
+          try {
+            const nav = performance.getEntriesByType('navigation')[0];
+            if (!nav) {
+              result.innerHTML = '<div class="text-yellow-400"><i class="fas fa-exclamation-triangle mr-2"></i>PerformanceNavigationTiming unavailable in this browser.</div>';
+              return;
+            }
+            const ttfb = Math.round(nav.responseStart - nav.requestStart);
+            const dom = Math.round(nav.domContentLoadedEventEnd - nav.startTime);
+            const load = Math.round(nav.loadEventEnd - nav.startTime);
+            const speed = Math.max(1, Math.min(100, Math.round(100 - load / 50)));
+            document.getElementById('seo-speed').textContent = String(speed);
+            result.innerHTML = `
+              <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 space-y-1 text-slate-300 text-sm">
+                <div><i class="fas fa-bolt mr-2 text-yellow-400"></i>TTFB: ${ttfb} ms</div>
+                <div><i class="fas fa-code mr-2 text-blue-400"></i>DOMContentLoaded: ${dom} ms</div>
+                <div><i class="fas fa-flag-checkered mr-2 text-green-400"></i>Load: ${load} ms</div>
+              </div>`;
+            showToast('Page speed measured (real PerformanceNavigationTiming)');
+          } catch (e) {
+            console.error('[testPageSpeed] failed:', e);
+            result.innerHTML = '<div class="text-red-400"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to read performance timing.</div>';
+          }
         }
         
         function showSocialPreview() {
@@ -7155,6 +7762,329 @@
           showToast('Social preview generated');
         }
         
+        // ============================================================
+        // CREW PROFILES MANAGEMENT (crew_profiles)
+        // ============================================================
+        let _crewCache = [];
+        let _crewEditingSlug = null;
+
+        async function _crewDb() {
+          const { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, getDoc, orderBy, query } =
+            await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+          const app = await ensureDefaultApp();
+          return { db: getFirestore(app), collection, doc, getDocs, setDoc, deleteDoc, getDoc, orderBy, query };
+        }
+
+        function _crewReadForm() {
+          const get = (id) => document.getElementById(id)?.value || '';
+          const num = (id) => Number(document.getElementById(id)?.value || 0) || 0;
+          return {
+            slug: String(get('crew-slug')).trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-'),
+            name: String(get('crew-name')).trim(),
+            role: get('crew-role'),
+            joinedYear: num('crew-joined-year'),
+            photoUrl: String(get('crew-photo')).trim(),
+            order: num('crew-order') || 100,
+            pinned: !!document.getElementById('crew-pinned')?.checked,
+            bio: String(get('crew-bio')).trim() || 'Profile coming soon.',
+            social: {
+              instagram: String(get('crew-social-instagram')).trim() || undefined,
+              tiktok: String(get('crew-social-tiktok')).trim() || undefined,
+              x: String(get('crew-social-x')).trim() || undefined,
+              linkedin: String(get('crew-social-linkedin')).trim() || undefined,
+            }
+          };
+        }
+
+        function _crewFillForm(data) {
+          const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? '' : String(v); };
+          data = data || {};
+          set('crew-slug', data.slug || '');
+          set('crew-name', data.name);
+          const role = document.getElementById('crew-role'); if (role) role.value = data.role || 'mechanic';
+          set('crew-joined-year', data.joinedYear);
+          set('crew-photo', data.photoUrl);
+          set('crew-order', data.order != null ? data.order : 100);
+          const pinned = document.getElementById('crew-pinned'); if (pinned) pinned.checked = !!data.pinned;
+          set('crew-bio', data.bio || '');
+          const s = data.social || {};
+          set('crew-social-instagram', s.instagram);
+          set('crew-social-tiktok', s.tiktok);
+          set('crew-social-x', s.x);
+          set('crew-social-linkedin', s.linkedin);
+        }
+
+        async function loadCrewProfiles() {
+          try {
+            const { db, collection, getDocs } = await _crewDb();
+            const snap = await getDocs(collection(db, 'crew_profiles'));
+            _crewCache = [];
+            snap.forEach(d => _crewCache.push({ slug: d.id, ...(d.data() || {}) }));
+            _crewCache.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || ((a.order || 100) - (b.order || 100)));
+            const host = document.getElementById('crew-list');
+            if (!host) return;
+            host.innerHTML = _crewCache.length ? '' : '<p class="text-slate-500 text-sm">No crew profiles yet — click <strong>New</strong>.</p>';
+            _crewCache.forEach(c => {
+              const row = document.createElement('button');
+              row.type = 'button';
+              row.className = 'w-full text-left bg-slate-800/40 border border-slate-700/50 hover:border-yellow-400/40 rounded-lg p-3 flex items-center gap-3';
+              row.innerHTML = `
+                <div class="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center overflow-hidden">${c.photoUrl ? `<img src="${c.photoUrl}" class="w-full h-full object-cover" alt="" />` : '<i class="fas fa-user text-slate-400"></i>'}</div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-white font-semibold text-sm truncate">${c.name || c.slug}</div>
+                  <div class="text-xs text-slate-400 truncate">${(c.role || '').replace(/-/g, ' ')} ${c.pinned ? '&middot; <span class="text-yellow-400">pinned</span>' : ''}</div>
+                </div>`;
+              row.addEventListener('click', () => { _crewEditingSlug = c.slug; _crewFillForm(c); });
+              host.appendChild(row);
+            });
+          } catch (e) {
+            console.error('Failed to load crew profiles', e);
+            showToast('Failed to load crew profiles', 'error');
+          }
+        }
+
+        async function saveCrewProfile() {
+          const form = _crewReadForm();
+          if (!form.slug || !form.name) { showToast('Slug and name required', 'error'); return; }
+          const btn = document.getElementById('crew-save-btn');
+          const statusEl = document.getElementById('crew-edit-status');
+          if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...'; }
+          try {
+            const { db, doc, setDoc } = await _crewDb();
+            const payload = Object.assign({}, form, { updatedAt: new Date() });
+            // Strip empty social keys
+            Object.keys(payload.social || {}).forEach(k => { if (!payload.social[k]) delete payload.social[k]; });
+            await setDoc(doc(db, 'crew_profiles', form.slug), payload, { merge: true });
+            try { writeAdminLogClient({ action: 'crew_profile_saved', configPath: 'crew_profiles/' + form.slug }); } catch(_) {}
+            if (statusEl) statusEl.textContent = 'Saved ' + form.slug;
+            _crewEditingSlug = form.slug;
+            showToast('Saved crew_profiles/' + form.slug);
+            await loadCrewProfiles();
+          } catch (e) {
+            console.error('Save crew failed', e);
+            showToast('Save failed', 'error');
+          } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Profile'; }
+          }
+        }
+
+        async function deleteCrewProfile() {
+          if (!_crewEditingSlug) { showToast('Select a profile first', 'error'); return; }
+          if (!confirm('Delete crew profile "' + _crewEditingSlug + '"? This cannot be undone.')) return;
+          try {
+            const { db, doc, deleteDoc } = await _crewDb();
+            await deleteDoc(doc(db, 'crew_profiles', _crewEditingSlug));
+            try { writeAdminLogClient({ action: 'crew_profile_deleted', configPath: 'crew_profiles/' + _crewEditingSlug }); } catch(_) {}
+            showToast('Deleted ' + _crewEditingSlug);
+            _crewEditingSlug = null;
+            _crewFillForm({});
+            await loadCrewProfiles();
+          } catch (e) {
+            console.error('Delete crew failed', e);
+            showToast('Delete failed', 'error');
+          }
+        }
+
+        // ============================================================
+        // BULK TAG PHOTOS + MISSING ALT TEXT
+        // ============================================================
+        let _bulkTagPhotos = [];
+        const _bulkTagSelected = new Set();
+
+        async function loadBulkTagPhotos() {
+          const host = document.getElementById('bulk-tag-photos');
+          if (!host) return;
+          host.innerHTML = '<p class="text-slate-400 text-sm col-span-3">Loading…</p>';
+          try {
+            const { getFirestore, collection, query, orderBy, limit, getDocs, where } =
+              await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const q = query(collection(db, 'gallery_images'), where('approved', '==', true), orderBy('createdAt', 'desc'), limit(100));
+            const snap = await getDocs(q);
+            _bulkTagPhotos = [];
+            snap.forEach(d => _bulkTagPhotos.push({ id: d.id, ...(d.data() || {}) }));
+            _renderBulkTagPhotos();
+          } catch (e) {
+            console.error('Load bulk photos failed', e);
+            host.innerHTML = '<p class="text-red-400 text-sm col-span-3">Failed to load photos.</p>';
+          }
+        }
+
+        function _renderBulkTagPhotos() {
+          const host = document.getElementById('bulk-tag-photos');
+          if (!host) return;
+          if (!_bulkTagPhotos.length) {
+            host.innerHTML = '<p class="text-slate-400 text-sm col-span-3">No photos to show.</p>';
+            return;
+          }
+          host.innerHTML = '';
+          _bulkTagPhotos.forEach(p => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            const selected = _bulkTagSelected.has(p.id);
+            card.className = 'relative aspect-square rounded overflow-hidden border ' + (selected ? 'border-yellow-400 ring-2 ring-yellow-400/40' : 'border-slate-700');
+            card.innerHTML = '<img src="' + (p.imageUrl || '') + '" alt="" class="w-full h-full object-cover" />';
+            card.addEventListener('click', () => {
+              if (_bulkTagSelected.has(p.id)) _bulkTagSelected.delete(p.id);
+              else _bulkTagSelected.add(p.id);
+              _renderBulkTagPhotos();
+            });
+            host.appendChild(card);
+          });
+        }
+
+        async function applyBulkTags() {
+          const tagsRaw = document.getElementById('bulk-tag-input')?.value || '';
+          const tags = tagsRaw.split(',').map(t => t.trim().toLowerCase()).filter(Boolean).slice(0, 8);
+          if (!tags.length) { showToast('Enter at least one tag', 'error'); return; }
+          if (!_bulkTagSelected.size) { showToast('Select photos to tag', 'error'); return; }
+          const status = document.getElementById('bulk-tag-status');
+          try {
+            const { getFirestore, doc, writeBatch, arrayUnion } =
+              await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const ids = Array.from(_bulkTagSelected).slice(0, 100);
+            const batch = writeBatch(db);
+            ids.forEach(id => {
+              const ref = doc(db, 'gallery_images', id);
+              batch.update(ref, { tags: arrayUnion(...tags) });
+            });
+            await batch.commit();
+            try { writeAdminLogClient({ action: 'bulk_tag_applied', count: ids.length, tags }); } catch(_) {}
+            if (status) status.textContent = 'Tagged ' + ids.length + ' photo(s)';
+            showToast('Applied tags to ' + ids.length + ' photos');
+            _bulkTagSelected.clear();
+            _renderBulkTagPhotos();
+          } catch (e) {
+            console.error('Bulk tag failed', e);
+            showToast('Bulk tag failed', 'error');
+          }
+        }
+
+        async function loadMissingAltText() {
+          const host = document.getElementById('missing-alt-list');
+          if (!host) return;
+          host.innerHTML = '<p class="text-slate-400 text-sm">Loading…</p>';
+          try {
+            const { getFirestore, collection, query, orderBy, limit, getDocs, where, doc, updateDoc } =
+              await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const q = query(collection(db, 'gallery_images'), where('approved', '==', true), orderBy('createdAt', 'desc'), limit(200));
+            const snap = await getDocs(q);
+            const missing = [];
+            snap.forEach(d => {
+              const data = d.data() || {};
+              if (!data.altText || !String(data.altText).trim()) missing.push({ id: d.id, ...data });
+            });
+            const status = document.getElementById('missing-alt-status');
+            if (status) status.textContent = missing.length + ' missing';
+            if (!missing.length) {
+              host.innerHTML = '<p class="text-green-400 text-sm">Every recent photo has alt text. ✓</p>';
+              return;
+            }
+            host.innerHTML = '';
+            missing.forEach(p => {
+              const row = document.createElement('div');
+              row.className = 'flex items-center gap-3 bg-slate-800/40 border border-slate-700/50 rounded-md p-2';
+              row.innerHTML =
+                '<img src="' + (p.imageUrl || '') + '" alt="" class="w-12 h-12 rounded object-cover flex-shrink-0" />' +
+                '<input type="text" maxlength="120" placeholder="Describe this photo…" class="flex-1 modern-input text-white text-sm p-1" />' +
+                '<button class="success-btn text-white px-2 py-1 rounded text-xs">Save</button>';
+              const input = row.querySelector('input');
+              const btn = row.querySelector('button');
+              btn.addEventListener('click', async () => {
+                const v = input.value.trim();
+                if (!v) { input.focus(); return; }
+                try {
+                  await updateDoc(doc(db, 'gallery_images', p.id), { altText: v.slice(0, 120) });
+                  row.style.opacity = '0.5';
+                  btn.disabled = true;
+                  btn.textContent = 'Saved';
+                } catch (e) {
+                  console.error(e);
+                  showToast('Save failed', 'error');
+                }
+              });
+              host.appendChild(row);
+            });
+          } catch (e) {
+            console.error('Load missing alt failed', e);
+            host.innerHTML = '<p class="text-red-400 text-sm">Failed to load.</p>';
+          }
+        }
+
+        // ============================================================
+        // COMMENT MODERATION
+        // ============================================================
+        async function loadCommentModeration() {
+          const host = document.getElementById('comment-moderation-list');
+          if (!host) return;
+          host.innerHTML = '<p class="text-slate-400 text-sm">Loading…</p>';
+          try {
+            const { getFirestore, collectionGroup, query, where, orderBy, limit, getDocs, doc, updateDoc, deleteDoc, getDoc, collection } =
+              await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const q = query(collectionGroup(db, 'comments'), where('approved', '==', false), orderBy('createdAt', 'desc'), limit(100));
+            const snap = await getDocs(q);
+            const status = document.getElementById('comment-moderation-status');
+            if (status) status.textContent = snap.size + ' pending';
+            if (snap.empty) {
+              host.innerHTML = '<p class="text-green-400 text-sm">No pending comments. ✓</p>';
+              return;
+            }
+            host.innerHTML = '';
+            for (const dSnap of snap.docs) {
+              const c = dSnap.data() || {};
+              const parent = dSnap.ref.parent.parent;
+              let thumb = '';
+              if (parent) {
+                try {
+                  const p = await getDoc(parent);
+                  thumb = (p.data() || {}).imageUrl || '';
+                } catch (_) {}
+              }
+              const row = document.createElement('div');
+              row.className = 'flex items-start gap-3 bg-slate-800/40 border border-slate-700/50 rounded-lg p-3';
+              row.innerHTML = `
+                <img src="${thumb}" alt="" class="w-14 h-14 rounded object-cover flex-shrink-0 bg-slate-700" />
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-white font-semibold text-sm">${(c.authorName || 'Anonymous').replace(/[<>]/g,'')}</span>
+                    <span class="text-slate-500 text-xs">${c.createdAt && c.createdAt.toDate ? c.createdAt.toDate().toLocaleString() : 'pending'}</span>
+                  </div>
+                  <p class="text-slate-200 text-sm whitespace-pre-wrap break-words">${(c.body || c.text || '').replace(/[<>]/g,'')}</p>
+                </div>
+                <div class="flex flex-col gap-1 flex-shrink-0">
+                  <button class="success-btn text-white px-2 py-1 rounded text-xs" data-act="approve">Approve</button>
+                  <button class="modern-btn text-white px-2 py-1 rounded text-xs" data-act="reject">Reject</button>
+                  <button class="danger-btn text-white px-2 py-1 rounded text-xs" data-act="delete">Delete</button>
+                </div>`;
+              const ref = dSnap.ref;
+              row.querySelector('[data-act="approve"]').addEventListener('click', async () => {
+                try { await updateDoc(ref, { approved: true }); row.remove(); }
+                catch (e) { console.error(e); showToast('Approve failed', 'error'); }
+              });
+              row.querySelector('[data-act="reject"]').addEventListener('click', async () => {
+                try { await updateDoc(ref, { approved: false, flagged: true }); row.remove(); }
+                catch (e) { console.error(e); showToast('Reject failed', 'error'); }
+              });
+              row.querySelector('[data-act="delete"]').addEventListener('click', async () => {
+                if (!confirm('Delete this comment?')) return;
+                try { await deleteDoc(ref); row.remove(); }
+                catch (e) { console.error(e); showToast('Delete failed', 'error'); }
+              });
+              host.appendChild(row);
+            }
+          } catch (e) {
+            console.error('Load comment moderation failed', e);
+            host.innerHTML = '<p class="text-red-400 text-sm">Failed to load. Ensure Firestore collectionGroup index for "comments" is created.</p>';
+          }
+        }
+
         // ===== BACKUP & RECOVERY =====
         
         async function createBackup() {
@@ -7480,7 +8410,23 @@
               }
               document.getElementById('ios-version').textContent = label;
             }
-            
+
+            // Real status badges based on whether we've seen recent traffic
+            // from the platform (last 7 days of page_views with the matching
+            // user-agent). Replaces the always-on hardcoded "Live" labels.
+            const androidBadge = document.getElementById('android-status-badge');
+            const iosBadge = document.getElementById('ios-status-badge');
+            if (androidBadge) {
+              const seen = parseInt(document.getElementById('android-users')?.textContent || '0', 10) > 0;
+              androidBadge.textContent = seen ? 'Active' : 'No recent traffic';
+              androidBadge.className = `px-2 py-1 ${seen ? 'bg-green-600' : 'bg-slate-600'} text-white text-xs rounded`;
+            }
+            if (iosBadge) {
+              const seen = parseInt(document.getElementById('ios-users')?.textContent || '0', 10) > 0;
+              iosBadge.textContent = seen ? 'Active' : 'No recent traffic';
+              iosBadge.className = `px-2 py-1 ${seen ? 'bg-blue-600' : 'bg-slate-600'} text-white text-xs rounded`;
+            }
+
             document.getElementById('app-operation-result').innerHTML = 
               '<div class="text-green-400"><i class="fas fa-check mr-2"></i>App stats refreshed from <span class="text-slate-200">app_usage</span>, <span class="text-slate-200">page_views</span>, and <span class="text-slate-200">client_logs</span></div>';
             showToast('App stats refreshed');
@@ -8052,12 +8998,20 @@
               });
             }
 
-            const viewsToday = pageViews.filter(v => {
+            const isAndroidApp = (typeof __isAndroidAppUserAgent === 'function') ? __isAndroidAppUserAgent : () => false;
+            const isIosApp = (typeof __isIosAppUserAgent === 'function') ? __isIosAppUserAgent : () => false;
+            const viewsTodayRows = pageViews.filter(v => {
               const ts = toDate(v.timestamp || v.createdAt);
               return ts && ts >= startOfDay;
-            }).length;
-            const adsenseImpressions = viewsToday;
-            const admobImpressions = viewsToday;
+            });
+            // Split impressions correctly: web traffic counts toward AdSense,
+            // in-app WebView traffic counts toward AdMob. Previously both got
+            // the same count, which double-counted impressions.
+            const viewsToday = viewsTodayRows.length;
+            const admobImpressions = viewsTodayRows.filter(v =>
+              isAndroidApp(v.userAgent || v.ua || '') || isIosApp(v.userAgent || v.ua || '')
+            ).length;
+            const adsenseImpressions = Math.max(0, viewsToday - admobImpressions);
 
             const adsenseCtr = adsenseImpressions > 0 ? (adsenseClicks / adsenseImpressions) * 100 : 0;
             const admobEcpm = admobImpressions > 0 ? (admobToday / admobImpressions) * 1000 : 0;
@@ -8097,6 +9051,48 @@
               resultMsg = `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Revenue loaded from ${revenueEvents.length} revenue events + ${pageViews.length} page views</div>`;
             }
             document.getElementById('revenue-operation-result').innerHTML = resultMsg;
+
+            // Real 30-day revenue trend chart (replaces "Revenue chart will appear here" placeholder)
+            try {
+              const canvas = document.getElementById('revenue-trend-chart');
+              const emptyMsg = document.getElementById('revenue-trend-empty');
+              if (canvas) {
+                const ctx = canvas.getContext('2d');
+                const dayMs = 86400000;
+                const start30 = new Date(Date.now() - 30 * dayMs);
+                start30.setHours(0, 0, 0, 0);
+                const buckets = new Array(30).fill(0);
+                revenueEvents.forEach(e => {
+                  const ts = toDate(e.timestamp || e.createdAt);
+                  if (!ts || ts < start30) return;
+                  const idx = Math.min(29, Math.floor((ts.getTime() - start30.getTime()) / dayMs));
+                  buckets[idx] += Number(e.amount) || 0;
+                });
+                const cssW = canvas.clientWidth || 800;
+                if (canvas.width !== cssW) canvas.width = cssW;
+                const w = canvas.width;
+                const h = canvas.height;
+                ctx.clearRect(0, 0, w, h);
+                if (!hasRealRevenue) {
+                  if (emptyMsg) emptyMsg.classList.remove('hidden');
+                } else {
+                  if (emptyMsg) emptyMsg.classList.add('hidden');
+                  const max = Math.max(0.01, ...buckets);
+                  const barW = w / 30;
+                  const grad = ctx.createLinearGradient(0, 0, 0, h);
+                  grad.addColorStop(0, '#22c55e');
+                  grad.addColorStop(1, '#0f766e');
+                  ctx.fillStyle = grad;
+                  buckets.forEach((v, i) => {
+                    const barH = (v / max) * (h - 8);
+                    ctx.fillRect(i * barW + 1, h - barH - 2, Math.max(2, barW - 2), barH);
+                  });
+                }
+              }
+            } catch (chartErr) {
+              console.warn('[revenue-trend-chart] render failed:', chartErr);
+            }
+
             showToast('Revenue stats refreshed');
           } catch(e) {
             console.error('Failed to refresh revenue stats:', e);
@@ -8104,34 +9100,13 @@
           }
         }
         
+        // The dashboards live on Google's side. We don't fake an in-app
+        // "connection" anymore — these now open the real consoles in a new tab.
         function connectAdSense() {
-          const resultEl = document.getElementById('revenue-operation-result');
-          if (resultEl) {
-            resultEl.innerHTML = `
-              <div class="bg-slate-800/50 border border-blue-500/30 rounded-lg p-4 space-y-1">
-                <div class="text-white font-semibold"><i class="fas fa-link mr-2 text-blue-400"></i>AdSense Connection Steps</div>
-                <div class="text-slate-300 text-sm">1. Go to console.cloud.google.com</div>
-                <div class="text-slate-300 text-sm">2. Enable AdSense Management API</div>
-                <div class="text-slate-300 text-sm">3. Add credentials to Firebase</div>
-              </div>
-            `;
-          }
-          showToast('AdSense setup instructions shown', 'info');
+          window.open('https://www.google.com/adsense/start/', '_blank', 'noopener,noreferrer');
         }
-        
         function connectAdMob() {
-          const resultEl = document.getElementById('revenue-operation-result');
-          if (resultEl) {
-            resultEl.innerHTML = `
-              <div class="bg-slate-800/50 border border-purple-500/30 rounded-lg p-4 space-y-1">
-                <div class="text-white font-semibold"><i class="fas fa-link mr-2 text-purple-400"></i>AdMob Connection Steps</div>
-                <div class="text-slate-300 text-sm">1. Go to admob.google.com</div>
-                <div class="text-slate-300 text-sm">2. Link to Firebase project</div>
-                <div class="text-slate-300 text-sm">3. Configure ad units in app</div>
-              </div>
-            `;
-          }
-          showToast('AdMob setup instructions shown', 'info');
+          window.open('https://apps.admob.com/v2/home', '_blank', 'noopener,noreferrer');
         }
         
         // ===== END NEW ADMIN TOOLS =====
@@ -8333,7 +9308,7 @@
         // Load real Firebase data for all stats
         async function loadRealFirebaseData() {
           try {
-            const { getFirestore, collection, getDocs, query, where, orderBy } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getFirestore, collection, getDocs, query, where, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
             
@@ -8345,10 +9320,45 @@
             // Filter to 2026 season
             const currentSeasonRaces = allRaces.filter(r => r.season === 2026);
             
-            // Update total races count
+            // Update total races count + real season-over-season trend
             const totalRacesEl = document.getElementById('total-races');
             if (totalRacesEl) {
               totalRacesEl.textContent = currentSeasonRaces.length;
+            }
+            const trendEl = document.getElementById('total-races-trend');
+            if (trendEl) {
+              const prevSeasonRaces = allRaces.filter(r => r.season === 2025).length;
+              const delta = currentSeasonRaces.length - prevSeasonRaces;
+              if (delta > 0) {
+                trendEl.className = 'text-green-400 text-sm flex items-center';
+                trendEl.innerHTML = `<i class="fas fa-arrow-up mr-1"></i>+${delta} vs 2025`;
+              } else if (delta < 0) {
+                trendEl.className = 'text-red-400 text-sm flex items-center';
+                trendEl.innerHTML = `<i class="fas fa-arrow-down mr-1"></i>${delta} vs 2025`;
+              } else {
+                trendEl.className = 'text-slate-500 text-sm';
+                trendEl.textContent = 'no change vs 2025';
+              }
+            }
+
+            // Real "Visitors (7d)" count from page_views.
+            try {
+              const sevenDaysAgo = new Date(Date.now() - 7 * 86400000);
+              const pvSnap = await getDocs(query(
+                collection(db, 'page_views'),
+                where('timestamp', '>=', sevenDaysAgo)
+              ));
+              const visitors = new Set();
+              pvSnap.forEach(d => {
+                const v = d.data();
+                const id = v.userId || v.visitorId || v.sessionId;
+                if (id) visitors.add(id);
+              });
+              const usersEl = document.getElementById('active-users');
+              if (usersEl) usersEl.textContent = visitors.size.toLocaleString();
+            } catch (e) {
+              const usersEl = document.getElementById('active-users');
+              if (usersEl) usersEl.textContent = '—';
             }
             
             // Find next upcoming race
@@ -8363,12 +9373,19 @@
             });
             
             const nextRaceNameEl = document.getElementById('next-race-name');
+            const nextRaceSubtitleEl = document.getElementById('next-race-subtitle');
             const raceStatusEl = document.getElementById('race-status');
             
             if (upcomingRaces.length > 0) {
               const nextRace = upcomingRaces[0];
               if (nextRaceNameEl) {
-                nextRaceNameEl.textContent = nextRace.eventName || nextRace.name || 'Next Race';
+                nextRaceNameEl.textContent = nextRace.eventName || nextRace.name || nextRace.track || 'Next Race';
+              }
+              if (nextRaceSubtitleEl) {
+                // Real subtitle from the actual race doc — no more "Championship Round".
+                const sub = [nextRace.type, nextRace.track, nextRace.city, nextRace.state]
+                  .filter(Boolean).join(' • ');
+                nextRaceSubtitleEl.textContent = sub;
               }
               if (raceStatusEl) {
                 raceStatusEl.textContent = upcomingRaces.length + ' Upcoming';
@@ -8705,52 +9722,60 @@
         
         window.closeQueuedItemModal = closeQueuedItemModal;
         
-        // Export data functionality
-        function exportData() {
+        // Dashboard quick-action Export.
+        // The previous implementation exported only DOM text (one of which is
+        // the literal string "Live"). Now defers to the full exportAllData()
+        // function which dumps the actual Firestore collections.
+        async function exportData() {
           const button = document.getElementById('export-data-btn');
-          if (!button) return;
-          button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Exporting...';
-          button.disabled = true;
-          
-          setTimeout(() => {
-            const exportData = {
-              timestamp: new Date().toISOString(),
-              totalPhotos: document.getElementById('total-photos')?.textContent || '0',
-              pendingApprovals: document.getElementById('pending-approvals')?.textContent || '0',
-              totalRaces: document.getElementById('total-races')?.textContent || '0',
-              activeUsers: document.getElementById('active-users')?.textContent || '0'
-            };
-            
-            const dataStr = JSON.stringify(exportData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            const exportFileDefaultName = `redsracing-admin-data-${new Date().toISOString().split('T')[0]}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            button.innerHTML = '<i class="fas fa-download mr-1"></i>Export';
-            button.disabled = false;
-            showToast('Data exported successfully');
-          }, 2000);
+          if (button) {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Exporting…';
+            button.disabled = true;
+          }
+          try {
+            if (typeof exportAllData === 'function') {
+              await exportAllData();
+            } else {
+              throw new Error('exportAllData not loaded');
+            }
+          } catch (e) {
+            console.error('[exportData] failed:', e);
+            showToast('Export failed', 'error');
+          } finally {
+            if (button) {
+              button.innerHTML = '<i class="fas fa-download mr-1"></i>Export';
+              button.disabled = false;
+            }
+          }
         }
         
-        // Cleanup functionality
-        function performCleanup() {
-          if (!confirm('This will clean up old rejected photos and temporary data. Continue?')) return;
-          
+        // Dashboard quick-action Cleanup.
+        // Old implementation just ran a 3-second spinner and did nothing. Now
+        // delegates to the real cleanupOrphanedData() which scans Firestore for
+        // rejected gallery_images / abandoned uploads and reports actual counts.
+        async function performCleanup() {
+          if (!confirm('Clean up rejected gallery photos older than 30 days and orphaned uploads?')) return;
           const button = document.getElementById('cleanup-btn');
-          if (!button) return;
-          button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Cleaning...';
-          button.disabled = true;
-          
-          setTimeout(() => {
-            button.innerHTML = '<i class="fas fa-trash mr-1"></i>Cleanup';
-            button.disabled = false;
-            showToast('Cleanup completed');
-            loadRealFirebaseData();
-          }, 3000);
+          if (button) {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Cleaning…';
+            button.disabled = true;
+          }
+          try {
+            if (typeof cleanupOrphanedData === 'function') {
+              await cleanupOrphanedData();
+            } else {
+              throw new Error('cleanupOrphanedData not loaded');
+            }
+            if (typeof loadRealFirebaseData === 'function') await loadRealFirebaseData();
+          } catch (e) {
+            console.error('[performCleanup] failed:', e);
+            showToast('Cleanup failed', 'error');
+          } finally {
+            if (button) {
+              button.innerHTML = '<i class="fas fa-trash mr-1"></i>Cleanup';
+              button.disabled = false;
+            }
+          }
         }
         
         // ============================================================================
@@ -9153,9 +10178,50 @@
           }
         }
         
-        // View race details
-        window.viewRaceDetails = function(raceId) {
-          showToast('Race details view coming soon!', 'info');
+        // View race details — opens a real modal showing the Firestore document.
+        window.viewRaceDetails = async function(raceId) {
+          if (!raceId) return;
+          try {
+            const { getFirestore, doc, getDoc } =
+              await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const snap = await getDoc(doc(db, 'race_results', raceId));
+            const overlayId = 'rr-race-inspect-modal';
+            document.getElementById(overlayId)?.remove();
+            const overlay = document.createElement('div');
+            overlay.id = overlayId;
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;';
+            const data = snap.exists() ? snap.data() : null;
+            const json = data
+              ? JSON.stringify(data, (k, v) => (v && typeof v.toDate === 'function')
+                  ? v.toDate().toISOString() : v, 2)
+              : `No document at race_results/${raceId}`;
+            const panel = document.createElement('div');
+            panel.style.cssText = 'background:#0f172a;border:1px solid #334155;border-radius:12px;max-width:720px;width:100%;padding:20px;max-height:80vh;overflow:auto;';
+            const title = document.createElement('div');
+            title.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;';
+            const h = document.createElement('h4');
+            h.style.cssText = 'color:#fff;font-weight:600;margin:0;';
+            h.textContent = data ? `Race ${data.raceDate || ''} — ${data.track || ''}` : 'Race not found';
+            const close = document.createElement('button');
+            close.textContent = '×';
+            close.style.cssText = 'background:none;border:none;color:#94a3b8;font-size:24px;cursor:pointer;padding:0 8px;line-height:1;';
+            close.addEventListener('click', () => overlay.remove());
+            title.appendChild(h);
+            title.appendChild(close);
+            const pre = document.createElement('pre');
+            pre.style.cssText = 'color:#cbd5e1;font-size:12px;white-space:pre-wrap;word-break:break-word;margin:0;';
+            pre.textContent = json;
+            panel.appendChild(title);
+            panel.appendChild(pre);
+            overlay.appendChild(panel);
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+            document.body.appendChild(overlay);
+          } catch (e) {
+            console.error('[viewRaceDetails] failed:', e);
+            showToast('Failed to load race details', 'error');
+          }
         }
         
         // Refresh races button

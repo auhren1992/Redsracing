@@ -119,6 +119,11 @@ async function main() {
   if (uploadInput) {
     uploadInput.addEventListener("change", (e) => {
       selectedFile = e.target.files[0];
+      try {
+        if (selectedFile && window.RR_Tagging && typeof window.RR_Tagging.computeImageDimensions === "function") {
+          window.RR_Tagging.computeImageDimensions(selectedFile);
+        }
+      } catch (_) {}
       if (selectedFile) {
         if (uploadBtn) uploadBtn.disabled = false;
         if (uploadStatus)
@@ -134,6 +139,18 @@ async function main() {
   if (uploadBtn) {
     uploadBtn.addEventListener("click", () => {
       if (!selectedFile || !auth.currentUser) return;
+      try {
+        if (window.RR_Tagging && typeof window.RR_Tagging.validate === "function") {
+          const v = window.RR_Tagging.validate();
+          if (!v.ok) {
+            if (uploadStatus) {
+              uploadStatus.textContent = v.error || "Please describe the photo for screen readers.";
+              uploadStatus.style.color = "#f87171";
+            }
+            return;
+          }
+        }
+      } catch (_) {}
       uploadBtn.disabled = true;
       if (uploadInput) uploadInput.disabled = true;
 
@@ -166,19 +183,28 @@ async function main() {
           if (uploadStatus) uploadStatus.textContent = "Processing...";
           try {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            await addDoc(collection(db, "gallery_images"), {
+            const tagging = (window.RR_Tagging && typeof window.RR_Tagging.collect === 'function')
+              ? window.RR_Tagging.collect()
+              : { caption: "", altText: "", tags: [], width: null, height: null };
+            const docPayload = {
               imageUrl: downloadURL,
               uploaderUid: userId,
               uploaderEmail: auth.currentUser.email,
               uploaderDisplayName: auth.currentUser.displayName || "Anonymous",
               createdAt: serverTimestamp(),
-              tags: [],
+              tags: Array.isArray(tagging.tags) ? tagging.tags.slice(0, 8) : [],
+              caption: String(tagging.caption || "").slice(0, 240),
+              altText: String(tagging.altText || "").slice(0, 120),
               approved: false,
               category: "jonny",
               likes: [],
               likeCount: 0,
               storagePath: `gallery/jonny/${timestamp}-${selectedFile.name}`,
-            });
+            };
+            if (tagging.width) docPayload.width = tagging.width;
+            if (tagging.height) docPayload.height = tagging.height;
+            await addDoc(collection(db, "gallery_images"), docPayload);
+            try { if (window.RR_Tagging && window.RR_Tagging.reset) window.RR_Tagging.reset(); } catch (_) {}
 
             if (uploadStatus) {
               uploadStatus.textContent =
@@ -253,15 +279,18 @@ async function main() {
         const fillValue = isLiked ? "currentColor" : "none";
         const disabledAttr = !currentUser ? "disabled" : "";
 
+        const altText = image.altText || image.caption || "User uploaded photo of Jonny Kirsch";
         const galleryHTML = html`
           <img
             src="${image.imageUrl}"
-            alt="User uploaded photo of Jonny Kirsch"
+            alt="${altText}"
             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            loading="lazy"
           />
           <div
             class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent"
           >
+            ${image.caption ? html`<p class="text-xs text-slate-200 mb-1">${image.caption}</p>` : ""}
             <p class="text-sm text-slate-300">
               Uploaded by: ${image.uploaderDisplayName || "Anonymous"}
             </p>

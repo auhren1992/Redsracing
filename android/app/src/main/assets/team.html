@@ -20,7 +20,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-    <link rel="manifest" href="site.webmanifest" />
+    <link rel="manifest" href="/manifest.json" />
     <link rel="stylesheet" href="styles/tailwind.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -480,7 +480,12 @@
     <script type="module" src="assets/js/analytics-tracker.js"></script>
     <!-- Google Analytics -->
     <script src="assets/js/google-analytics.js"></script>
-</head>
+    <meta name="theme-color" content="#fbbf24" />
+      <meta property="og:image" content="/assets/img/og-default.jpg" />
+      <meta name="twitter:image" content="/assets/img/og-default.jpg" />
+      <script src="assets/js/page-meta.js" defer></script>
+      <script src="assets/js/site-search.js" defer></script>
+  </head>
   <body>
     <!-- Clean Modern Header -->
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
@@ -1276,6 +1281,22 @@
           </div>
         </div>
       </section>
+
+      <!-- ============ CREW SECTION ============ -->
+      <section id="crew-section" class="py-20 bg-gradient-to-b from-slate-950 to-slate-900 border-t border-slate-800">
+        <div class="container mx-auto px-6">
+          <div class="text-center mb-12">
+            <div class="inline-flex items-center bg-yellow-400/15 text-yellow-300 px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider mb-3">
+              <i class="fas fa-helmet-safety mr-2"></i>The Crew
+            </div>
+            <h2 class="font-racing text-4xl md:text-5xl uppercase text-white">Behind the wheel</h2>
+            <p class="text-slate-400 mt-3 max-w-2xl mx-auto">The team that keeps both cars at the front of the field.</p>
+          </div>
+          <div id="crew-cards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <p class="text-slate-500 text-center col-span-full" id="crew-cards-empty">Loading crew…</p>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer class="bg-gradient-to-b from-slate-900 via-slate-900 to-black border-t border-slate-800 py-20 relative overflow-hidden">
@@ -1790,6 +1811,58 @@
       })();
     </script>
       <script src="assets/js/cookie-consent.js"></script>
+    <script>
+      // Crew section loader — reads crew_profiles via Firestore REST so we
+      // don't need to pull in the SDK on every page.
+      (function () {
+        try {
+          var host = document.getElementById('crew-cards');
+          var empty = document.getElementById('crew-cards-empty');
+          if (!host) return;
+          var url = 'https://firestore.googleapis.com/v1/projects/redsracing-a7f8b/databases/(default)/documents/crew_profiles?pageSize=100';
+          fetch(url, { credentials: 'omit', cache: 'no-store' })
+            .then(function (r) { return r && r.ok ? r.json() : null; })
+            .then(function (json) {
+              if (!json || !Array.isArray(json.documents) || !json.documents.length) {
+                if (empty) empty.textContent = 'Crew roster coming soon.';
+                return;
+              }
+              function flat(doc) {
+                var out = { slug: (doc.name || '').split('/').pop() };
+                var f = doc.fields || {};
+                Object.keys(f).forEach(function (k) {
+                  var v = f[k];
+                  if (!v) return;
+                  if (typeof v.stringValue === 'string') out[k] = v.stringValue;
+                  else if (typeof v.booleanValue === 'boolean') out[k] = v.booleanValue;
+                  else if (typeof v.integerValue !== 'undefined') out[k] = Number(v.integerValue);
+                  else if (typeof v.doubleValue === 'number') out[k] = v.doubleValue;
+                });
+                return out;
+              }
+              var rows = json.documents.map(flat);
+              rows.sort(function (a, b) { return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || ((a.order || 100) - (b.order || 100)); });
+              host.innerHTML = '';
+              rows.forEach(function (c) {
+                var roleMap = { 'crew-chief': 'Crew Chief', 'mechanic': 'Mechanic', 'tire-tech': 'Tire Tech', 'pr': 'PR / Media', 'family': 'Family', 'photographer': 'Photographer' };
+                var role = roleMap[c.role] || (c.role || 'Crew');
+                var photo = c.photoUrl || '/assets/img/og-default.jpg';
+                var card = document.createElement('a');
+                card.href = '/crew.html?id=' + encodeURIComponent(c.slug);
+                card.className = 'group bg-slate-800/60 border border-slate-700 hover:border-yellow-400/40 rounded-2xl p-5 flex flex-col items-center text-center transition transform hover:-translate-y-1';
+                card.innerHTML =
+                  '<div class="w-24 h-24 rounded-full overflow-hidden border-2 border-yellow-400/30 bg-slate-700 mb-4">' +
+                  '<img src="' + photo + '" alt="" loading="lazy" class="w-full h-full object-cover" /></div>' +
+                  '<div class="text-white font-bold text-lg group-hover:text-yellow-300 transition">' + (c.name || c.slug) + '</div>' +
+                  '<div class="text-xs uppercase tracking-wider text-slate-400 mt-1">' + role + '</div>' +
+                  (c.pinned ? '<div class="mt-2 text-yellow-400 text-xs"><i class="fas fa-thumbtack"></i> Featured</div>' : '');
+                host.appendChild(card);
+              });
+            })
+            .catch(function () { if (empty) empty.textContent = 'Crew roster coming soon.'; });
+        } catch (_) {}
+      })();
+    </script>
   <div style="text-align:center;padding:1.5rem 1rem;border-top:1px solid rgba(148,163,184,0.1);margin-top:2rem;font-size:0.75rem;color:#64748b;"><a href="privacy.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Privacy Policy</a> | <a href="terms.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Terms of Service</a> | <a href="contact.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Contact</a><div style="margin-top:4px;">&copy; 2026 RedsRacing #8 &amp; #88</div></div>
 </body>
 </html>

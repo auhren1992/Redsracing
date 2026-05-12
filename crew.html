@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fbbf24" />
+    <meta name="description" content="RedsRacing crew profile — meet the team behind the wheel: crew chief, mechanics, tire techs, and the family who make race day happen." />
+    <link rel="canonical" href="https://www.redsracing.org/crew.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RedsRacing" />
+    <meta property="og:title" content="Crew Profile — RedsRacing" />
+    <meta property="og:description" content="Meet the RedsRacing crew — mechanics, tire techs, family, and the team behind the wheel." />
+    <meta property="og:image" content="/assets/img/og-default.jpg" />
+    <meta property="og:url" content="https://www.redsracing.org/crew.html" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Crew Profile — RedsRacing" />
+    <meta name="twitter:description" content="Meet the RedsRacing crew — mechanics, tire techs, family, and the team behind the wheel." />
+    <meta name="twitter:image" content="/assets/img/og-default.jpg" />
+    <title>Crew Profile — RedsRacing</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="styles/tailwind.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="stylesheet" href="styles/modern-effects.css" />
+    <script src="assets/js/page-meta.js" defer></script>
+    <script src="assets/js/site-search.js" defer></script>
+    <script src="assets/js/google-analytics.js"></script>
+  </head>
+  <body class="bg-dark-blue">
+    <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
+      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+        <a href="index.html" class="text-3xl font-racing uppercase tracking-wider">
+          <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-6 font-bold">
+          <a href="index.html" class="nav-link">🏠 Home</a>
+          <a href="team.html" class="nav-link">👥 Team</a>
+          <a href="schedule.html" class="nav-link">🏁 Schedule</a>
+          <a href="gallery.html" class="nav-link">📸 Gallery</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="pt-20">
+      <section class="py-16 bg-gradient-to-br from-slate-900 via-slate-800 to-black">
+        <div class="container mx-auto px-6 max-w-4xl">
+          <a href="team.html" class="inline-flex items-center text-yellow-400 hover:text-yellow-300 mb-6">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Team
+          </a>
+
+          <div id="crew-loading" class="text-center py-16">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+            <p class="text-slate-400 mt-4">Loading profile…</p>
+          </div>
+
+          <article id="crew-profile" class="hidden bg-gradient-to-br from-slate-800/80 to-slate-900/90 border border-yellow-400/20 rounded-2xl p-8 md:p-12 shadow-2xl">
+            <div class="flex flex-col md:flex-row gap-8 items-start">
+              <div class="flex-shrink-0">
+                <img id="crew-photo" src="" alt="" class="w-40 h-40 md:w-56 md:h-56 rounded-2xl object-cover border-2 border-yellow-400/30 bg-slate-800" />
+              </div>
+              <div class="flex-1">
+                <div id="crew-role-chip" class="inline-flex items-center bg-yellow-400/15 text-yellow-300 px-3 py-1 rounded-full text-sm font-bold uppercase tracking-wider mb-3"></div>
+                <h1 id="crew-name" class="font-racing text-4xl md:text-5xl text-white uppercase mb-2">&nbsp;</h1>
+                <p id="crew-joined" class="text-slate-400 mb-6"></p>
+                <div id="crew-bio" class="prose prose-invert max-w-none text-slate-200 leading-relaxed"></div>
+                <div id="crew-social" class="mt-6 flex flex-wrap gap-3"></div>
+              </div>
+            </div>
+          </article>
+
+          <div id="crew-missing" class="hidden text-center py-16 bg-slate-800/40 border border-slate-700 rounded-2xl">
+            <i class="fas fa-user-helmet-safety text-yellow-400 text-5xl mb-4"></i>
+            <h2 class="text-2xl font-racing text-white mb-2">Profile Coming Soon</h2>
+            <p class="text-slate-400 mb-6">This crew member's profile hasn't been published yet. Check back soon.</p>
+            <a href="team.html" class="inline-block bg-yellow-400 text-slate-900 font-bold px-6 py-3 rounded-lg hover:bg-yellow-300 transition">Back to Team</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bg-slate-950 border-t border-slate-800 py-6 text-center text-slate-500 text-sm">
+      &copy; 2026 RedsRacing #8 &amp; #88
+    </footer>
+
+    <script type="module">
+      import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+      import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+      const cfg = {
+        apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+        authDomain: "redsracing-a7f8b.firebaseapp.com",
+        projectId: "redsracing-a7f8b",
+        appId: "1:517034606151:web:24cae262e1d98832757b62"
+      };
+      const app = getApps().length ? getApp() : initializeApp(cfg);
+      const db = getFirestore(app);
+
+      const params = new URLSearchParams(location.search);
+      const slug = (params.get("id") || "").trim().toLowerCase();
+      const loading = document.getElementById("crew-loading");
+      const profile = document.getElementById("crew-profile");
+      const missing = document.getElementById("crew-missing");
+
+      function escape(s) { return String(s || "").replace(/[&<>\"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c])); }
+      function roleLabel(r) {
+        return ({"crew-chief":"Crew Chief","mechanic":"Mechanic","tire-tech":"Tire Tech","pr":"PR / Media","family":"Family","photographer":"Photographer"}[r] || (r || "Crew"));
+      }
+
+      function showMissing() { loading.classList.add("hidden"); missing.classList.remove("hidden"); }
+      function showProfile(data) {
+        loading.classList.add("hidden");
+        profile.classList.remove("hidden");
+        document.getElementById("crew-name").textContent = data.name || "Unnamed";
+        document.getElementById("crew-role-chip").textContent = roleLabel(data.role);
+        const joined = data.joinedYear ? `Crew since ${data.joinedYear}` : "";
+        document.getElementById("crew-joined").textContent = joined;
+        const photo = document.getElementById("crew-photo");
+        photo.alt = data.name || "Crew member";
+        photo.src = data.photoUrl || "/assets/img/og-default.jpg";
+        const bio = document.getElementById("crew-bio");
+        // Render bio markdown lightly: paragraphs + bold/italic
+        const md = String(data.bio || "Profile coming soon.").replace(/\r\n/g, "\n");
+        const html = md.split(/\n{2,}/).map(p => `<p>${escape(p).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/\*([^*]+)\*/g, "<em>$1</em>")}</p>`).join("");
+        bio.innerHTML = html;
+        const socialEl = document.getElementById("crew-social");
+        socialEl.innerHTML = "";
+        const social = data.social || {};
+        const links = [
+          ["instagram", "fa-instagram", "https://instagram.com/"],
+          ["tiktok", "fa-tiktok", "https://tiktok.com/@"],
+          ["x", "fa-x-twitter", "https://x.com/"],
+          ["linkedin", "fa-linkedin", "https://www.linkedin.com/in/"]
+        ];
+        links.forEach(([k, icon, prefix]) => {
+          if (social[k]) {
+            const a = document.createElement("a");
+            a.href = String(social[k]).startsWith("http") ? social[k] : (prefix + social[k]);
+            a.target = "_blank";
+            a.rel = "noopener";
+            a.className = "inline-flex items-center gap-2 bg-slate-800/60 border border-slate-700 hover:border-yellow-400/40 text-slate-200 px-3 py-2 rounded-lg text-sm";
+            a.innerHTML = `<i class="fab ${icon}"></i> <span>${k}</span>`;
+            socialEl.appendChild(a);
+          }
+        });
+        document.title = `${data.name || "Crew Member"} — RedsRacing Crew`;
+      }
+
+      (async () => {
+        if (!slug) { showMissing(); return; }
+        try {
+          const snap = await getDoc(doc(db, "crew_profiles", slug));
+          if (!snap.exists()) { showMissing(); return; }
+          showProfile(snap.data() || {});
+        } catch (e) {
+          console.warn("[crew] load failed", e);
+          showMissing();
+        }
+      })();
+    </script>
+  </body>
+</html>

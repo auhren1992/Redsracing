@@ -107,6 +107,11 @@ async function main() {
         if (uploadBtn) uploadBtn.disabled = false;
         if (uploadStatus) uploadStatus.textContent = `Selected: ${selectedFile.name}`;
         if (uploadStatus) uploadStatus.style.color = "";
+        try {
+          if (window.RR_Tagging && typeof window.RR_Tagging.computeImageDimensions === "function") {
+            window.RR_Tagging.computeImageDimensions(selectedFile);
+          }
+        } catch (_) {}
       } else {
         if (uploadBtn) uploadBtn.disabled = true;
       }
@@ -117,6 +122,18 @@ async function main() {
   if (uploadBtn) {
     uploadBtn.addEventListener("click", () => {
       if (!selectedFile || !auth.currentUser) return;
+      try {
+        if (window.RR_Tagging && typeof window.RR_Tagging.validate === "function") {
+          const v = window.RR_Tagging.validate();
+          if (!v.ok) {
+            if (uploadStatus) {
+              uploadStatus.textContent = v.error || "Please describe the photo for screen readers.";
+              uploadStatus.style.color = "#f87171";
+            }
+            return;
+          }
+        }
+      } catch (_) {}
       uploadBtn.disabled = true;
       if (uploadInput) uploadInput.disabled = true;
 
@@ -144,19 +161,28 @@ async function main() {
           if (uploadStatus) uploadStatus.textContent = "Processing...";
           try {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            await addDoc(collection(db, "gallery_images"), {
+            const tagging = (window.RR_Tagging && typeof window.RR_Tagging.collect === 'function')
+              ? window.RR_Tagging.collect()
+              : { caption: "", altText: "", tags: [], width: null, height: null };
+            const docPayload = {
               imageUrl: downloadURL,
               uploaderUid: userId,
               uploaderEmail: auth.currentUser.email,
               uploaderDisplayName: auth.currentUser.displayName || "Anonymous",
               createdAt: serverTimestamp(),
-              tags: [],
+              tags: Array.isArray(tagging.tags) ? tagging.tags.slice(0, 8) : [],
+              caption: String(tagging.caption || "").slice(0, 240),
+              altText: String(tagging.altText || "").slice(0, 120),
               approved: false,
               category: "jon",
               likes: [],
               likeCount: 0,
               storagePath: `gallery/${userId}/${timestamp}-${selectedFile.name}`,
-            });
+            };
+            if (tagging.width) docPayload.width = tagging.width;
+            if (tagging.height) docPayload.height = tagging.height;
+            await addDoc(collection(db, "gallery_images"), docPayload);
+            try { if (window.RR_Tagging && window.RR_Tagging.reset) window.RR_Tagging.reset(); } catch (_) {}
             if (uploadStatus) {
               uploadStatus.textContent = "Upload complete! Waiting for approval.";
               uploadStatus.style.color = "#22c55e";
@@ -231,7 +257,7 @@ async function main() {
         
         // Build gallery HTML with conditional admin delete button
         const galleryHTML = html`
-          <img src="${image.imageUrl}" alt="User uploaded photo of Jon Kirsch" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+          <img src="${image.imageUrl}" alt="${image.altText || image.caption || 'User uploaded photo of Jon Kirsch'}" loading="lazy" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
           ${isAdmin ? `
             <button 
               class="admin-delete-btn absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"

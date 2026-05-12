@@ -20,7 +20,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-    <link rel="manifest" href="site.webmanifest" />
+    <link rel="manifest" href="/manifest.json" />
     <link rel="stylesheet" href="styles/tailwind.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -368,7 +368,12 @@
     </style>
       <!-- Analytics Tracker -->
     <script type="module" src="assets/js/analytics-tracker.js"></script>
-</head>
+    <meta name="theme-color" content="#fbbf24" />
+      <meta property="og:image" content="/assets/img/og-default.jpg" />
+      <meta name="twitter:image" content="/assets/img/og-default.jpg" />
+      <script src="assets/js/page-meta.js" defer></script>
+      <script src="assets/js/site-search.js" defer></script>
+  </head>
   <body>
     <!-- Clean Modern Header -->
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
@@ -1284,6 +1289,7 @@
     <script type="module" src="navigation.js"></script>
     <script type="module" src="main.js"></script>
     <script type="module" src="assets/js/racer-schedule.js"></script>
+    <script src="assets/js/gallery-tagging.js"></script>
     <script type="module" src="assets/js/driver.js"></script>
     <script src="assets/js/k1-archive.js?v=20260512"></script>
     <script>

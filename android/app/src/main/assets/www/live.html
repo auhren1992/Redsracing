@@ -11,7 +11,7 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-  <link rel="manifest" href="site.webmanifest" />
+  <link rel="manifest" href="/manifest.json" />
   <link rel="stylesheet" href="styles/tailwind.css" />
   <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles/main.css" />
@@ -39,7 +39,12 @@
     .glass-card { background:rgba(30,41,59,0.4); backdrop-filter:blur(16px); border:1px solid rgba(148,163,184,0.1); border-radius:1rem; }
   </style>
   <script src="assets/js/guest-gate.js"></script>
-</head>
+    <meta name="theme-color" content="#fbbf24" />
+      <meta property="og:image" content="/assets/img/og-default.jpg" />
+      <meta name="twitter:image" content="/assets/img/og-default.jpg" />
+      <script src="assets/js/page-meta.js" defer></script>
+      <script src="assets/js/site-search.js" defer></script>
+  </head>
 <body class="flex flex-col min-h-screen">
   <div id="navigation-placeholder"></div>
 
