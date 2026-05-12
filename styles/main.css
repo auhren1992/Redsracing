@@ -873,10 +873,33 @@ input.bg-white::placeholder, textarea.bg-white::placeholder { color: #6b7280 !im
   }
 }
 
-/* CSS-only fallback to ensure dropdowns open even if JS fails */
-.dropdown:hover .dropdown-menu,
-.dropdown:focus-within .dropdown-menu {
-  display: block !important; /* override hidden */
+/* CSS-only desktop hover fallback (kept so the menu still works if JS fails).
+ *
+ * NOTE: we intentionally do NOT use `:focus-within` here. The dropdown toggle
+ * is a <button>; clicking it gives the button focus, which keeps
+ * `.dropdown:focus-within` true even after the user clicks somewhere else on
+ * the page (because <body> isn't focusable and so clicking blank space doesn't
+ * blur the button). Combined with `display: block !important`, that prevented
+ * JS from ever closing the menu — symptom: "I click Drivers, click away, it
+ * stays open." JS handles open/close on click; CSS only needs to cover the
+ * mouse-hover case.
+ *
+ * Hover only applies on devices with a real pointer to avoid sticky open
+ * states on touch devices where :hover can be "latched" by a tap.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .dropdown:hover .dropdown-menu {
+    display: block !important;
+  }
+}
+
+/* Defense-in-depth: when JS adds the `hidden` class to a dropdown menu, it
+ * MUST stay hidden regardless of any other rule (including the hover one
+ * above, which could otherwise compete during a hover-out race). */
+.dropdown-menu.hidden,
+.modern-dropdown.hidden,
+.dropdown-menu-nested.hidden {
+  display: none !important;
 }
 
 /* High contrast mode support */

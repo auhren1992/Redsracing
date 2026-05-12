@@ -1,11 +1,48 @@
+:root {
+  --rr-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --rr-font-display: "Racing Sans One", "Inter", system-ui, sans-serif;
+
+  /* Luxury palette (default: dark) */
+  --rr-bg: #05080f;
+  --rr-bg-elev: rgba(2, 6, 23, 0.55);
+  --rr-surface: rgba(15, 23, 42, 0.55);
+  --rr-surface-strong: rgba(15, 23, 42, 0.72);
+  --rr-text: rgba(226, 232, 240, 0.95);
+  --rr-muted: rgba(148, 163, 184, 0.85);
+  --rr-border: rgba(148, 163, 184, 0.18);
+  --rr-border-strong: rgba(148, 163, 184, 0.28);
+  --rr-accent: #d6b15e; /* muted gold */
+  --rr-accent-2: #f0c75e;
+  --rr-shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
+}
+
+html {
+  color-scheme: dark light;
+}
+
+html[data-theme="light"] {
+  --rr-bg: #f6f4ef;
+  --rr-bg-elev: rgba(255, 255, 255, 0.9);
+  --rr-surface: rgba(255, 255, 255, 0.78);
+  --rr-surface-strong: rgba(255, 255, 255, 0.92);
+  --rr-text: rgba(15, 23, 42, 0.94);
+  --rr-muted: rgba(51, 65, 85, 0.78);
+  --rr-border: rgba(15, 23, 42, 0.14);
+  --rr-border-strong: rgba(15, 23, 42, 0.22);
+  --rr-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
+}
+
 body {
-  font-family: "Inter", sans-serif;
-  background-color: #05080f; /* Even darker blue */
-  color: #e2e8f0; /* Lighter gray for better contrast */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 100 100'%3E%3Cstyle%3E.logo { font-family: 'Racing Sans One', sans-serif; font-size: 40px; opacity: 0.02; } %3C/style%3E%3Ctext x='50' y='65' fill='%2300c6ff' class='logo' text-anchor='end' transform='rotate(-20 50 50)'%3E#%3C/text%3E%3Ctext x='52' y='65' fill='%23f7ff00' class='logo' text-anchor='start' transform='rotate(-20 50 50)'%3E8%3C/text%3E%3C/svg%3E");
+  font-family: var(--rr-font-sans);
+  background-color: var(--rr-bg);
+  color: var(--rr-text);
+}
+
+html:not([data-theme="light"]) body {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 100 100'%3E%3Cstyle%3E.logo { font-family: 'Racing Sans One', sans-serif; font-size: 40px; opacity: 0.02; } %3C/style%3E%3Ctext x='50' y='65' fill='%23d6b15e' class='logo' text-anchor='end' transform='rotate(-20 50 50)'%3E#%3C/text%3E%3Ctext x='52' y='65' fill='%23d6b15e' class='logo' text-anchor='start' transform='rotate(-20 50 50)'%3E8%3C/text%3E%3C/svg%3E");
 }
 .font-racing {
-  font-family: "Racing Sans One", sans-serif;
+  font-family: var(--rr-font-display);
 }
 .hero-video-bg {
   position: absolute;
@@ -61,8 +98,8 @@ body {
 .gallery-item,
 .sponsor-logo,
 .form-container {
-  background: rgba(15, 23, 42, 0.5); /* slate-900/50 */
-  border: 1px solid rgba(51, 65, 85, 0.5); /* slate-700/50 */
+  background: var(--rr-surface);
+  border: 1px solid var(--rr-border);
   backdrop-filter: blur(10px);
   transition:
     transform 0.3s ease,
@@ -73,11 +110,274 @@ body {
 .video-item:hover,
 .gallery-item:hover,
 .sponsor-logo:hover {
-  transform: translateY(-10px);
+  transform: translateY(-6px);
   box-shadow:
-    0 0 30px rgba(247, 255, 0, 0.2),
-    0 0 12px rgba(247, 255, 0, 0.15);
-  border-color: rgba(247, 255, 0, 0.4);
+    0 0 26px rgba(214, 177, 94, 0.16),
+    0 10px 36px rgba(0, 0, 0, 0.30);
+  border-color: rgba(214, 177, 94, 0.45);
+}
+
+/* Theme toggle (nav) */
+.rr-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 44px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--rr-border);
+  background: var(--rr-bg-elev);
+  color: var(--rr-text);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+.rr-theme-toggle:hover {
+  transform: translateY(-1px);
+  border-color: rgba(214, 177, 94, 0.40);
+  background: var(--rr-surface-strong);
+}
+.rr-theme-toggle:active {
+  transform: translateY(0px);
+}
+
+/* ============================================
+   Premium Page Heroes (reusable)
+   ============================================ */
+.rr-hero {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+.rr-hero::before {
+  content: "";
+  position: absolute;
+  inset: -120px;
+  background:
+    radial-gradient(700px circle at 15% 25%, rgba(59, 130, 246, 0.16), transparent 55%),
+    radial-gradient(700px circle at 85% 35%, rgba(239, 68, 68, 0.12), transparent 55%),
+    radial-gradient(700px circle at 55% 15%, rgba(251, 191, 36, 0.12), transparent 60%),
+    repeating-linear-gradient(115deg, rgba(148, 163, 184, 0.10) 0px, rgba(148, 163, 184, 0.10) 1px, transparent 1px, transparent 18px);
+  opacity: 0.95;
+  transform: rotate(-2deg);
+  pointer-events: none;
+}
+.rr-hero__inner {
+  position: relative;
+  z-index: 1;
+}
+.rr-hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  background: rgba(251, 191, 36, 0.08);
+  color: rgba(251, 191, 36, 0.95);
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+.rr-hero-title {
+  font-family: "Racing Sans One", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.02;
+}
+.rr-hero-sub {
+  color: rgba(226, 232, 240, 0.82);
+  font-weight: 650;
+  max-width: 62ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+.rr-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+.rr-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 9999px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(2, 6, 23, 0.28);
+  color: rgba(226, 232, 240, 0.92);
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.rr-pill:hover {
+  transform: translateY(-1px);
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(2, 6, 23, 0.40);
+}
+.rr-pill--primary {
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
+  color: #0b1220;
+  border-color: rgba(251, 191, 36, 0.30);
+}
+.rr-pill--primary:hover {
+  border-color: rgba(251, 191, 36, 0.45);
+}
+
+/* ============================================
+   Featured Strip (reusable "always fresh" row)
+   ============================================ */
+.rr-feature-strip {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.rr-feature-shell {
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+.rr-feature-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  background: linear-gradient(90deg, rgba(59,130,246,0.10), rgba(251,191,36,0.08), rgba(239,68,68,0.08));
+}
+
+.rr-feature-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: rgba(251, 191, 36, 0.95);
+}
+
+.rr-feature-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #fbbf24;
+  box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55);
+  animation: rr-livePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes rr-livePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55); transform: scale(1); }
+  50% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0.0); transform: scale(1.05); }
+}
+
+.rr-feature-actions a {
+  color: rgba(226, 232, 240, 0.85);
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(2, 6, 23, 0.22);
+  transition: all 0.2s ease;
+}
+.rr-feature-actions a:hover {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.4);
+  transform: translateY(-1px);
+}
+
+.rr-feature-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 0;
+}
+
+.rr-feature-card {
+  position: relative;
+  padding: 16px 16px 14px;
+  border-right: 1px solid rgba(148, 163, 184, 0.10);
+}
+.rr-feature-card:last-child { border-right: 0; }
+
+.rr-feature-label {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.75);
+  margin-bottom: 6px;
+}
+
+.rr-feature-title {
+  font-family: "Racing Sans One", sans-serif;
+  font-size: 1.55rem;
+  line-height: 1.05;
+  color: #fff;
+  margin: 0 0 6px;
+}
+
+.rr-feature-sub {
+  color: rgba(226, 232, 240, 0.80);
+  font-weight: 650;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  margin: 0 0 10px;
+}
+
+.rr-feature-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0b1220;
+  font-weight: 900;
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 26px rgba(251, 191, 36, 0.14);
+}
+.rr-feature-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(251, 191, 36, 0.22);
+}
+
+.rr-feature-card.rr-accent-blue::before,
+.rr-feature-card.rr-accent-red::before,
+.rr-feature-card.rr-accent-amber::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.7;
+}
+.rr-feature-card.rr-accent-blue::before {
+  background: radial-gradient(700px circle at 10% 20%, rgba(59, 130, 246, 0.12), transparent 50%);
+}
+.rr-feature-card.rr-accent-red::before {
+  background: radial-gradient(700px circle at 10% 20%, rgba(239, 68, 68, 0.10), transparent 50%);
+}
+.rr-feature-card.rr-accent-amber::before {
+  background: radial-gradient(700px circle at 10% 20%, rgba(251, 191, 36, 0.12), transparent 50%);
+}
+
+@media (max-width: 900px) {
+  .rr-feature-grid { grid-template-columns: 1fr; }
+  .rr-feature-card { border-right: 0; border-bottom: 1px solid rgba(148, 163, 184, 0.10); }
+  .rr-feature-card:last-child { border-bottom: 0; }
 }
 .textarea-notes,
 .form-input {
@@ -573,10 +873,33 @@ input.bg-white::placeholder, textarea.bg-white::placeholder { color: #6b7280 !im
   }
 }
 
-/* CSS-only fallback to ensure dropdowns open even if JS fails */
-.dropdown:hover .dropdown-menu,
-.dropdown:focus-within .dropdown-menu {
-  display: block !important; /* override hidden */
+/* CSS-only desktop hover fallback (kept so the menu still works if JS fails).
+ *
+ * NOTE: we intentionally do NOT use `:focus-within` here. The dropdown toggle
+ * is a <button>; clicking it gives the button focus, which keeps
+ * `.dropdown:focus-within` true even after the user clicks somewhere else on
+ * the page (because <body> isn't focusable and so clicking blank space doesn't
+ * blur the button). Combined with `display: block !important`, that prevented
+ * JS from ever closing the menu — symptom: "I click Drivers, click away, it
+ * stays open." JS handles open/close on click; CSS only needs to cover the
+ * mouse-hover case.
+ *
+ * Hover only applies on devices with a real pointer to avoid sticky open
+ * states on touch devices where :hover can be "latched" by a tap.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .dropdown:hover .dropdown-menu {
+    display: block !important;
+  }
+}
+
+/* Defense-in-depth: when JS adds the `hidden` class to a dropdown menu, it
+ * MUST stay hidden regardless of any other rule (including the hover one
+ * above, which could otherwise compete during a hover-out race). */
+.dropdown-menu.hidden,
+.modern-dropdown.hidden,
+.dropdown-menu-nested.hidden {
+  display: none !important;
 }
 
 /* High contrast mode support */
@@ -901,7 +1224,70 @@ input[type="file"]:not(:disabled)::-webkit-file-upload-button {
   cursor: pointer !important;
 }
 
-/* Polish: focus, selection, reduced motion (WebView + site) */
+/* ============================================
+   ROLE-AWARE THEME OVERRIDES
+   Applied via --rr-accent CSS vars from role-theme.js
+   ============================================ */
+
+/* Nav link hover uses role accent */
+.nav-link:hover,
+.dropdown-item:hover,
+.mobile-nav-item:hover,
+.mobile-nav-subitem:hover {
+  color: var(--rr-accent, #f7ff00) !important;
+}
+
+/* Card hover glow uses role accent */
+.card:hover,
+.stat-card:hover,
+.video-item:hover,
+.gallery-item:hover {
+  box-shadow: 0 0 30px color-mix(in srgb, var(--rr-accent, #f7ff00) 20%, transparent),
+              0 0 12px color-mix(in srgb, var(--rr-accent, #f7ff00) 15%, transparent);
+  border-color: color-mix(in srgb, var(--rr-accent, #f7ff00) 40%, transparent);
+}
+
+/* Buttons use role accent */
+body.theme-racer .bg-neon-yellow,
+body.theme-racer .bg-gradient-to-r.from-yellow-400 { background: linear-gradient(45deg, #f97316, #fb923c) !important; }
+body.theme-crew .bg-neon-yellow,
+body.theme-crew .bg-gradient-to-r.from-yellow-400 { background: linear-gradient(45deg, #06b6d4, #22d3ee) !important; }
+
+/* Neon yellow text adapts to role */
+body.theme-racer .neon-yellow { color: #f97316 !important; }
+body.theme-crew .neon-yellow { color: #06b6d4 !important; }
+
+/* Schedule card border */
+body.theme-racer .schedule-card.upcoming { border-left-color: #f97316; }
+body.theme-crew .schedule-card.upcoming { border-left-color: #06b6d4; }
+
+/* Form input focus */
+body.theme-racer .form-input:focus { border-color: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,0.3); }
+body.theme-crew .form-input:focus { border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6,182,212,0.3); }
+
+/* Swiper pagination */
+body.theme-racer .swiper-pagination-bullet-active { background: #f97316 !important; }
+body.theme-crew .swiper-pagination-bullet-active { background: #06b6d4 !important; }
+
+/* Swiper nav arrows */
+body.theme-racer .swiper-button-next, body.theme-racer .swiper-button-prev { color: #f97316 !important; }
+body.theme-crew .swiper-button-next, body.theme-crew .swiper-button-prev { color: #06b6d4 !important; }
+
+/* Text gradient */
+body.theme-racer .text-gradient { background-image: linear-gradient(to right, #ef4444, #f97316); }
+body.theme-crew .text-gradient { background-image: linear-gradient(to right, #0ea5e9, #06b6d4); }
+
+/* Mobile accordion active state */
+body.theme-racer .mobile-accordion.active { background: rgba(249,115,22,0.15); color: #f97316; border-left-color: #f97316; }
+body.theme-racer .mobile-accordion:hover { background: rgba(249,115,22,0.1); color: #f97316; }
+body.theme-crew .mobile-accordion.active { background: rgba(6,182,212,0.15); color: #06b6d4; border-left-color: #06b6d4; }
+body.theme-crew .mobile-accordion:hover { background: rgba(6,182,212,0.1); color: #06b6d4; }
+
+/* ============================================
+   Polish: cleaner keyboard focus, selection,
+   and calmer motion when users prefer it
+   (applies to hosted site and bundled WebView)
+   ============================================ */
 ::selection {
   background: rgba(0, 198, 255, 0.35);
   color: #fff;
@@ -940,4 +1326,47 @@ input[type="file"]:not(:disabled)::-webkit-file-upload-button {
   .hotspot-pulse {
     animation: none;
   }
+}
+
+/* ===== AdSense visibility hardening =====
+ * Forces every AdSense slot (manual <ins.adsbygoogle> and Auto Ads injected
+ * containers) to render above decorative full-viewport overlays so the
+ * AdSense overlap/visibility checks don't pull the ad ("flashes then gone"
+ * at normal zoom). Z-index uses the documented INT max so nothing on the
+ * page can outrank an ad. Also guarantees a usable minimum width to avoid
+ * the "ad container too small" pull.
+ */
+ins.adsbygoogle,
+ins.adsbygoogle > iframe,
+iframe[id^="google_ads_iframe_"],
+iframe[src*="googleads.g.doubleclick.net"],
+iframe[src*="googlesyndication.com"],
+.google-auto-placed,
+.google-auto-placed > iframe,
+[data-google-query-id],
+[data-anchor-shown],
+[data-anchor-status] {
+  position: relative;
+  z-index: 2147483646 !important;
+  isolation: isolate;
+  background: transparent !important;
+}
+
+/* Anchor & vignette overlays from Auto Ads must be above everything. */
+ins.adsbygoogle[data-anchor-status],
+ins.adsbygoogle[data-vignette-loaded],
+div[id^="google_anchor_"],
+div[id^="google_vignette_"] {
+  z-index: 2147483647 !important;
+}
+
+/* Avoid pages clipping ads via x-overflow + fixed decorative overlays.
+ * Keep clip behavior on root for the spotlight/grid, but never clip on ad
+ * iframes themselves. */
+ins.adsbygoogle,
+ins.adsbygoogle iframe {
+  overflow: visible !important;
+  clip: auto !important;
+  clip-path: none !important;
+  filter: none !important;
 }
