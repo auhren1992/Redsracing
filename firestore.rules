@@ -426,15 +426,28 @@ service cloud.firestore {
       allow write: if isAdminOnly();
     }
 
-    // Race-day fan updates feed
-    match /race_updates/{raceId}/{postId} {
+    // Race-day fan updates feed.
+    // Code writes/reads at `race_updates/<raceId>/posts/<autoId>` — a real
+    // 4-segment subcollection path. The prior 3-segment rule
+    // (`/race_updates/{raceId}/{postId}`) pattern-matched a *subcollection
+    // name*, never an actual doc, so every read/write fell through to the
+    // default-deny block. This is what blocked the Race-Day Hub admin posts.
+    match /race_updates/{raceId}/posts/{postId} {
       allow read: if true;
       allow create: if isAdminOnly();
       allow update, delete: if isAdminOnly();
     }
 
-    // Driver-of-Day votes
-    match /votes/{raceId}/{uid} {
+    // Driver-of-Day votes — code stores at `votes/<raceId>/votes/<uid>`
+    // (subcollection literally named "votes" inside each race-day doc).
+    // Same 3-segment rule bug as race_updates; corrected to 4 segments.
+    // The parent doc rule below permits leaderboard's
+    // `db.collection('votes').get()` listing.
+    match /votes/{raceId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /votes/{raceId}/votes/{uid} {
       allow read: if true;
       allow create: if isAuthenticated() && request.auth.uid == uid;
       allow update, delete: if false;
