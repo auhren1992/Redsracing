@@ -12,7 +12,7 @@
  */
 /* eslint-disable no-restricted-globals */
 
-const CACHE_VERSION = "redsracing-v2-2026051202";
+const CACHE_VERSION = "redsracing-v2-2026051203";
 const STATIC_CACHE = CACHE_VERSION + "-static";
 const HTML_CACHE = CACHE_VERSION + "-html";
 

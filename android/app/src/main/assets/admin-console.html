@@ -10620,30 +10620,85 @@
       <div id="admin-extensions" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.25rem;"></div>
     </section>
 
-    <!-- Audit helper (must load before feature panels) -->
-    <script src="assets/js/admin-modules/_audit.js"></script>
-    <!-- Feature flag module -->
-    <script src="assets/js/admin-modules/feature-flags.js"></script>
-    <!-- Audit log panel -->
-    <script src="assets/js/admin-modules/audit-log.js"></script>
-    <!-- Photo of the Week panel -->
-    <script src="assets/js/admin-modules/photo-of-week.js"></script>
-    <!-- Race-Day Hub admin panel -->
-    <script src="assets/js/admin-modules/race-day-hub.js"></script>
-    <!-- Push Notification Scheduler panel -->
-    <script src="assets/js/admin-modules/push-scheduler.js"></script>
-    <!-- Race Recap Auto-Draft panel -->
-    <script src="assets/js/admin-modules/race-recap.js"></script>
-    <!-- Sponsor Mini-CRM panel (Phase 3) -->
-    <script src="assets/js/admin-modules/sponsor-crm.js"></script>
-    <!-- Car Hotspots admin panel (Phase 3) -->
-    <script src="assets/js/admin-modules/car-hotspots.js"></script>
-    <!-- Bulk Photo Importer panel (Phase 3, behind flag) -->
-    <script src="assets/js/feature-flags.js"></script>
-    <script src="assets/js/admin-modules/bulk-photo-import.js"></script>
-    <!-- Fan Passport admin panel (Phase 4) -->
-    <script src="assets/js/admin-modules/fan-passport.js"></script>
-    <!-- Quick Post Composer FAB (Phase 4, behind enable_quick_composer flag) -->
-    <script src="assets/js/admin-modules/quick-composer.js"></script>
+    <!--
+      ═══════════════════════════════════════════════════════════════════════
+      ADMIN-MODULE AUTH GATE
+      ═══════════════════════════════════════════════════════════════════════
+      Every panel under assets/js/admin-modules/*.js uses the *compat* Firebase
+      SDK and calls `firebase.firestore()` immediately on DOMContentLoaded.
+      The compat Auth hydrates from IndexedDB persistence asynchronously — if
+      a Firestore call fires before that hydration completes, the request
+      goes out with no ID token and the rules engine evaluates `request.auth`
+      as null. For `admin_audit` and `sponsors` (which require isAdminOnly()),
+      that means permission-denied even for a fully-granted admin.
+
+      Fix: hold every admin module behind one promise that resolves only
+      after compat Auth has either: (a) reported a signed-in user AND we have
+      successfully force-refreshed that user's ID token, or (b) reported no
+      user. Modules then load with `appendChild` after the gate resolves.
+      A 4 s watchdog also resolves the gate to guarantee modules eventually
+      run even if Auth never reports state (e.g. dev environments).
+    -->
+    <script>
+      window.RR = window.RR || {};
+      window.RR.adminAuthReady = (function () {
+        return new Promise(function (resolve) {
+          var resolved = false;
+          function done(label) {
+            if (resolved) return;
+            resolved = true;
+            try { console.log('%c[admin-auth-gate] ready (' + label + ')', 'color:#22c55e'); } catch (_) {}
+            resolve();
+          }
+          // Watchdog — never hang the page forever.
+          setTimeout(function () { done('watchdog-4s'); }, 4000);
+          try {
+            if (typeof firebase === 'undefined' || !firebase.auth) {
+              return done('compat-auth-unavailable');
+            }
+            var auth = firebase.auth();
+            var unsub = auth.onAuthStateChanged(function (user) {
+              try { if (unsub) unsub(); } catch (_) {}
+              if (!user) { return done('no-user'); }
+              user.getIdToken(/* forceRefresh */ true)
+                .then(function () { done('user+token-refreshed'); })
+                .catch(function () { done('token-refresh-failed'); });
+            }, function () { done('auth-listener-error'); });
+          } catch (_) {
+            done('exception');
+          }
+        });
+      })();
+
+      (function loadAdminModulesAfterAuthGate() {
+        var MODULES = [
+          'assets/js/admin-modules/_audit.js',
+          'assets/js/admin-modules/feature-flags.js',
+          'assets/js/admin-modules/audit-log.js',
+          'assets/js/admin-modules/photo-of-week.js',
+          'assets/js/admin-modules/race-day-hub.js',
+          'assets/js/admin-modules/push-scheduler.js',
+          'assets/js/admin-modules/race-recap.js',
+          'assets/js/admin-modules/sponsor-crm.js',
+          'assets/js/admin-modules/car-hotspots.js',
+          'assets/js/feature-flags.js',
+          'assets/js/admin-modules/bulk-photo-import.js',
+          'assets/js/admin-modules/fan-passport.js',
+          'assets/js/admin-modules/quick-composer.js'
+        ];
+        window.RR.adminAuthReady.then(function () {
+          function loadNext(i) {
+            if (i >= MODULES.length) return;
+            var s = document.createElement('script');
+            s.src = MODULES[i] + (MODULES[i].indexOf('?') === -1 ? '?v=ag1' : '');
+            s.async = false; // preserve load order
+            s.onload  = function () { loadNext(i + 1); };
+            s.onerror = function () { console.warn('[admin-modules] failed to load', MODULES[i]); loadNext(i + 1); };
+            document.body.appendChild(s);
+          }
+          loadNext(0);
+        });
+      })();
+    </script>
   </body>
 </html>
