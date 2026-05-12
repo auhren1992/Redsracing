@@ -3014,8 +3014,12 @@
                   <h2 class="text-2xl font-bold text-white flex items-center"><i class="fas fa-inbox text-cyan-400 mr-3"></i>Admin Inbox</h2>
                   <p class="text-slate-400 text-sm mt-1">Pending approvals, alerts, and action items in one place</p>
                 </div>
-                <button id="refresh-inbox-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center"><i class="fas fa-sync mr-2"></i>Refresh</button>
+                <div class="flex items-center gap-2">
+                  <button id="clear-inbox-btn" class="danger-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center" disabled style="opacity:.55;cursor:not-allowed;" title="Dismiss visible admin alerts"><i class="fas fa-broom mr-2"></i>Clear alerts</button>
+                  <button id="refresh-inbox-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center"><i class="fas fa-sync mr-2"></i>Refresh</button>
+                </div>
               </div>
+              <div id="inbox-status" class="text-xs text-slate-400 mb-3 min-h-[1em]"></div>
               <div id="inbox-items" class="space-y-3"><div class="text-slate-500 text-center py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Loading inbox...</div></div>
             </div>
           </div>
@@ -3384,39 +3388,135 @@
         // ===== END PHASE 1 HELPERS =====
 
         // ===== PHASE 3: OPERATIONS DATA LOADERS =====
+        // Snapshot of admin_alerts doc IDs currently displayed; the Clear button uses this
+        // to soft-archive only what the user actually saw (audit-trail-safe).
+        window.__inboxVisibleAlertIds = window.__inboxVisibleAlertIds || [];
         async function loadOpsInbox() {
           const container = document.getElementById('inbox-items');
           if (!container) return;
           container.innerHTML = '<div class="text-slate-500 text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</div>';
+          const statusEl = document.getElementById('inbox-status');
+          if (statusEl) statusEl.textContent = '';
+          const clearBtn = document.getElementById('clear-inbox-btn');
+          if (clearBtn) { clearBtn.disabled = true; clearBtn.style.opacity = '.55'; clearBtn.style.cursor = 'not-allowed'; }
+          window.__inboxVisibleAlertIds = [];
+          let app, db, fs;
           try {
-            const { getFirestore, collection, getDocs, query, where, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            fs = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            app = await ensureDefaultApp();
+            db = fs.getFirestore(app);
+          } catch (e) {
+            console.error('loadOpsInbox: failed to init Firestore', e);
+            container.innerHTML = '<div class="text-red-400 text-center py-4">Could not connect to Firestore: ' + (e && e.message ? e.message : String(e)) + '</div>';
+            return;
+          }
+          const { collection, getDocs, query, where, orderBy, limit } = fs;
+          const items = [];
+          const errors = [];
+          async function runQuery(label, fn, mapper) {
+            try {
+              const s = await fn();
+              try { mapper(s); } catch(me) { console.warn('inbox mapper error', label, me); }
+            } catch (e) {
+              console.warn('[inbox] ' + label + ' query failed:', e);
+              errors.push(label + ' (' + (e && e.code ? e.code : (e && e.message ? e.message : 'error')) + ')');
+            }
+          }
+          await runQuery('gallery photos',
+            () => getDocs(query(collection(db, 'gallery_images'), where('approved','==',false))),
+            s => { if (s.size) items.push({ icon: 'fa-images', color: 'text-purple-400', label: s.size + ' photo(s) awaiting approval', action: '#media', priority: 2 }); }
+          );
+          await runQuery('fan wall',
+            () => getDocs(query(collection(db, 'fan_wall'), where('approved','==',false))),
+            s => { if (s.size) items.push({ icon: 'fa-bullhorn', color: 'text-orange-400', label: s.size + ' fan wall shoutout(s) pending', action: '#fanwall', priority: 2 }); }
+          );
+          await runQuery('Q&A',
+            () => getDocs(query(collection(db, 'qna_submissions'), where('status','==','pending'))),
+            s => { if (s.size) items.push({ icon: 'fa-comments', color: 'text-cyan-400', label: s.size + ' Q&A submission(s) pending', action: '#qna', priority: 1 }); }
+          );
+          await runQuery('videos',
+            () => getDocs(query(collection(db, 'jonny_videos'), where('approved','==',false))),
+            s => { if (s.size) items.push({ icon: 'fa-video', color: 'text-pink-400', label: s.size + ' video(s) awaiting approval', action: '#videos', priority: 2 }); }
+          );
+          await runQuery('admin alerts',
+            () => getDocs(query(collection(db, 'admin_alerts'), orderBy('timestamp','desc'), limit(20))),
+            s => {
+              let shown = 0;
+              s.forEach(d => {
+                const v = d.data() || {};
+                if (v.archived === true) return; // skip soft-archived
+                if (shown >= 5) return;
+                shown++;
+                window.__inboxVisibleAlertIds.push(d.id);
+                items.push({ icon: 'fa-bell', color: 'text-red-400', label: v.message || 'Alert', action: '#health', priority: 3, _alertId: d.id });
+              });
+            }
+          );
+          await runQuery('failed push',
+            () => getDocs(query(collection(db, 'push_notifications'), where('status','==','failed'))),
+            s => { if (s.size) items.push({ icon: 'fa-exclamation-circle', color: 'text-red-500', label: s.size + ' failed push notification(s)', action: '#advanced', priority: 3 }); }
+          );
+          items.sort((a,b) => b.priority - a.priority);
+          const badge = document.getElementById('inbox-badge');
+          if (badge) { badge.textContent = items.length; badge.style.display = items.length > 0 ? '' : 'none'; }
+          if (items.length === 0) {
+            container.innerHTML = '<div class="text-center py-8"><i class="fas fa-check-circle text-green-400 text-3xl mb-3"></i><div class="text-green-400 font-semibold">All clear!</div><div class="text-slate-500 text-sm">No pending items</div></div>';
+          } else {
+            container.innerHTML = items.map(it => '<a href="' + it.action + '" class="block bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 hover:border-yellow-400/30 transition flex items-center space-x-3"><i class="fas ' + it.icon + ' ' + it.color + ' text-lg w-6"></i><span class="text-slate-200 text-sm flex-1">' + escHtmlInbox(it.label) + '</span><i class="fas fa-chevron-right text-slate-600 text-xs"></i></a>').join('');
+          }
+          if (statusEl) {
+            const parts = [];
+            parts.push(items.length + ' item(s)');
+            if (window.__inboxVisibleAlertIds.length) parts.push(window.__inboxVisibleAlertIds.length + ' clearable alert(s)');
+            if (errors.length) parts.push('errors: ' + errors.join(', '));
+            statusEl.textContent = parts.join(' • ');
+            statusEl.style.color = errors.length ? '#fbbf24' : '#94a3b8';
+          }
+          if (clearBtn) {
+            const enabled = window.__inboxVisibleAlertIds.length > 0;
+            clearBtn.disabled = !enabled;
+            clearBtn.style.opacity = enabled ? '1' : '.55';
+            clearBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+          }
+          showToast('Inbox: ' + items.length + ' item(s)' + (errors.length ? ' (' + errors.length + ' query error(s))' : ''));
+        }
+
+        function escHtmlInbox(s) {
+          return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+        }
+
+        async function clearInboxAlerts() {
+          const ids = (window.__inboxVisibleAlertIds || []).slice();
+          if (!ids.length) { showToast('No alerts to clear', 'info'); return; }
+          if (!window.confirm('Dismiss ' + ids.length + ' admin alert(s)? They will be soft-archived (recoverable from Firestore).')) return;
+          const btn = document.getElementById('clear-inbox-btn');
+          if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Clearing...'; }
+          try {
+            const { getFirestore, doc, writeBatch, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
-            const items = [];
-            // Pending gallery photos
-            try { const s = await getDocs(query(collection(db, 'gallery_images'), where('approved','==',false))); if (s.size) items.push({ icon: 'fa-images', color: 'text-purple-400', label: `${s.size} photo(s) awaiting approval`, action: '#media', priority: 2 }); } catch(_){}
-            // Pending fan wall
-            try { const s = await getDocs(query(collection(db, 'fan_wall'), where('approved','==',false))); if (s.size) items.push({ icon: 'fa-bullhorn', color: 'text-orange-400', label: `${s.size} fan wall shoutout(s) pending`, action: '#fanwall', priority: 2 }); } catch(_){}
-            // Pending Q&A
-            try { const s = await getDocs(query(collection(db, 'qna_submissions'), where('status','==','pending'))); if (s.size) items.push({ icon: 'fa-comments', color: 'text-cyan-400', label: `${s.size} Q&A submission(s) pending`, action: '#qna', priority: 1 }); } catch(_){}
-            // Pending videos
-            try { const s = await getDocs(query(collection(db, 'jonny_videos'), where('approved','==',false))); if (s.size) items.push({ icon: 'fa-video', color: 'text-pink-400', label: `${s.size} video(s) awaiting approval`, action: '#videos', priority: 2 }); } catch(_){}
-            // Recent admin alerts
-            try { const s = await getDocs(query(collection(db, 'admin_alerts'), orderBy('timestamp','desc'), limit(5))); s.forEach(d => { const v = d.data(); items.push({ icon: 'fa-bell', color: 'text-red-400', label: v.message || 'Alert', action: '#health', priority: 3 }); }); } catch(_){}
-            // Failed push notifications
-            try { const s = await getDocs(query(collection(db, 'push_notifications'), where('status','==','failed'))); if (s.size) items.push({ icon: 'fa-exclamation-circle', color: 'text-red-500', label: `${s.size} failed push notification(s)`, action: '#advanced', priority: 3 }); } catch(_){}
-            // Sort by priority
-            items.sort((a,b) => b.priority - a.priority);
-            // Update badge
-            const badge = document.getElementById('inbox-badge');
-            if (badge) { badge.textContent = items.length; badge.style.display = items.length > 0 ? '' : 'none'; }
-            if (items.length === 0) {
-              container.innerHTML = '<div class="text-center py-8"><i class="fas fa-check-circle text-green-400 text-3xl mb-3"></i><div class="text-green-400 font-semibold">All clear!</div><div class="text-slate-500 text-sm">No pending items</div></div>';
-            } else {
-              container.innerHTML = items.map(it => `<a href="${it.action}" class="block bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 hover:border-yellow-400/30 transition flex items-center space-x-3"><i class="fas ${it.icon} ${it.color} text-lg w-6"></i><span class="text-slate-200 text-sm flex-1">${it.label}</span><i class="fas fa-chevron-right text-slate-600 text-xs"></i></a>`).join('');
-            }
-            showToast(`Inbox: ${items.length} item(s)`);
-          } catch(e) { console.error('loadOpsInbox error:', e); container.innerHTML = '<div class="text-red-400 text-center py-4">Failed to load inbox</div>'; }
+            const actor = await _getActorInfo();
+            // Firestore batch limit is 500; we cap at 5 visible per load anyway.
+            const batch = writeBatch(db);
+            ids.forEach(id => {
+              batch.update(doc(db, 'admin_alerts', id), {
+                archived: true,
+                archivedAt: serverTimestamp(),
+                archivedBy: actor.email || actor.uid || 'unknown'
+              });
+            });
+            await batch.commit();
+            try { writeAdminLogClient({ action: 'inbox.clear', count: ids.length, ids }); } catch (_) {}
+            try { if (window.logAdminAction) window.logAdminAction('inbox.clear', 'admin_alerts', { count: ids.length, ids }); } catch (_) {}
+            showToast('Cleared ' + ids.length + ' alert(s)');
+            window.__inboxVisibleAlertIds = [];
+            await loadOpsInbox();
+          } catch (e) {
+            console.error('clearInboxAlerts failed:', e);
+            const msg = (e && e.code) ? e.code : (e && e.message ? e.message : String(e));
+            showToast('Clear failed: ' + msg, 'error');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-broom mr-2"></i>Clear alerts'; }
+          }
         }
 
         async function loadRaceDay() {
@@ -6413,6 +6513,21 @@
           }, 500);
           
           window.addEventListener('hashchange', handleHashChange);
+
+          // Defensive: drawer / non-nav-item anchors with hash hrefs (e.g. class="a-link")
+          // don't fire hashchange when the hash is already current, which used to leave the
+          // Admin Inbox section hidden when the user clicked its drawer link a second time.
+          // Force a re-run of handleHashChange on any in-page hash anchor click.
+          document.addEventListener('click', (ev) => {
+            try {
+              const a = ev.target && ev.target.closest ? ev.target.closest('a[href^="#"]') : null;
+              if (!a) return;
+              const href = a.getAttribute('href') || '';
+              if (href.length < 2) return;
+              // Defer so the browser updates location.hash first (and any inline onclick like closeDrawer() runs).
+              setTimeout(() => { try { handleHashChange(); } catch (e) { console.error('forced handleHashChange failed', e); } }, 30);
+            } catch (_) {}
+          }, true);
           
           // Setup logout button
           const logoutButton = document.getElementById('logout-button');
@@ -6494,6 +6609,8 @@
           // Phase 3 buttons
           const refreshInboxBtn = document.getElementById('refresh-inbox-btn');
           if (refreshInboxBtn) refreshInboxBtn.addEventListener('click', () => loadOpsInbox());
+          const clearInboxBtn = document.getElementById('clear-inbox-btn');
+          if (clearInboxBtn) clearInboxBtn.addEventListener('click', () => { try { clearInboxAlerts(); } catch (e) { console.error('clearInboxAlerts threw', e); } });
           const refreshAuditBtn = document.getElementById('refresh-audit-btn');
           if (refreshAuditBtn) refreshAuditBtn.addEventListener('click', () => loadAuditTrail());
           const runQualityBtn = document.getElementById('run-quality-btn');
