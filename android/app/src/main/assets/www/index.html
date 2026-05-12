@@ -22,8 +22,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" crossorigin="anonymous"></script>
     
     <!-- Global Error Tracking -->
     <script src="assets/js/global-error-tracker.js?v=202605061"></script>
@@ -1046,7 +1046,7 @@
            data-ad-slot="5606437088"
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      <script>try{(window.adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){console.warn('[ads] push failed:',e);}</script>
     </div>
 
     <!-- Follow Section -->
@@ -1081,9 +1081,19 @@
         measurementId: "G-YD3ZWC13SR"
       };
 
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
+      // Initialize Firebase (guarded so a blocked/missing compat SDK on mobile
+      // cannot throw an uncaught ReferenceError on page load).
+      let db = null;
+      try {
+        if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+          if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
+          if (firebase.firestore) db = firebase.firestore();
+        } else {
+          console.warn('[home] Firebase compat SDK unavailable; analytics writes disabled.');
+        }
+      } catch (e) {
+        console.warn('[home] Firebase init failed:', e);
+      }
 
       function rrEscapeHtml(value) {
         return String(value)

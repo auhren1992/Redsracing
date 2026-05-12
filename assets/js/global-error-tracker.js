@@ -85,7 +85,6 @@
       try {
         fsdb = isLikelyWebView
           ? initializeFirestore(app, {
-              experimentalForceLongPolling: true,
               experimentalAutoDetectLongPolling: true,
               useFetchStreams: false,
             })
@@ -156,8 +155,29 @@
   function formatError(error, source, lineno, colno, errorObj) {
     const deviceInfo = getDeviceInfo();
 
+    // Build a helpful message when the raw message is missing/empty so the
+    // admin dashboard never logs a bare "Unknown error" row.
+    let message = error;
+    if (!message || (typeof message === 'string' && !message.trim())) {
+      if (errorObj && (errorObj.message || errorObj.stack || errorObj.name)) {
+        message =
+          (errorObj.name ? errorObj.name + ': ' : '') +
+          (errorObj.message || errorObj.stack || 'thrown value');
+      } else if (source || lineno || colno) {
+        message =
+          'ErrorEvent: ' +
+          (source || window.location.href) +
+          ':' +
+          (lineno || 0) +
+          ':' +
+          (colno || 0);
+      } else {
+        message = 'Unknown error';
+      }
+    }
+
     return {
-      message: error || 'Unknown error',
+      message: String(message),
       source: source || window.location.href,
       lineno: lineno || 0,
       colno: colno || 0,
@@ -216,6 +236,18 @@
       if (!ERROR_TRACKING_ENABLED) return;
       if (errorCount >= MAX_ERRORS_PER_SESSION) return;
 
+      // CORS-stripped errors from third-party scripts show up as the literal
+      // string "Script error." with no filename/line/col and no error object.
+      // They are duplicates of whatever the third-party script logged on its
+      // own origin and just clutter the dashboard, so drop them here.
+      const isCorsStripped =
+        (event && typeof event.message === 'string' &&
+          event.message.trim() === 'Script error.') &&
+        !event.filename &&
+        !event.lineno &&
+        !event.error;
+      if (isCorsStripped) return;
+
       errorCount++;
 
       const errorData = formatError(
@@ -242,12 +274,22 @@
 
     errorCount++;
 
+    const reason = event && event.reason;
+    let reasonMessage;
+    if (reason && typeof reason === 'object') {
+      reasonMessage =
+        (reason.name ? reason.name + ': ' : '') +
+        (reason.message || reason.stack || JSON.stringify(reason));
+    } else {
+      reasonMessage = String(reason);
+    }
+
     const errorData = formatError(
-      'Unhandled Promise Rejection: ' + event.reason,
+      'Unhandled Promise Rejection: ' + reasonMessage,
       window.location.href,
       0,
       0,
-      event.reason instanceof Error ? event.reason : null
+      reason instanceof Error ? reason : null
     );
 
     if (DEBUG) console.error('[Error Tracker] Caught unhandled promise rejection:', errorData);

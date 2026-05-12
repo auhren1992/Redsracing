@@ -58,37 +58,40 @@
     initAttempts++;
 
     try {
-      if (typeof firebase !== 'undefined' && typeof firebase.firestore === 'function') {
-        if (!firebase.apps || firebase.apps.length === 0) {
-          firebase.initializeApp(FIREBASE_CFG);
-        }
-        const fs = firebase.firestore();
-        writeClientLog = function (errorData) {
-          return fs.collection('client_logs').add({
-            ...errorData,
-            serverTimestamp: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        };
-        firestoreReady = true;
-        logDebug('Using Firebase compat Firestore');
-        initStarted = false;
-        setTimeout(processErrorQueue, 0);
-        return;
-      }
-
+      // Always prefer modular SDK. Pages that load firebase-*-compat.js for legacy reasons would
+      // otherwise call firebase.firestore() here and spin up a second Firestore runtime, which breaks
+      // modular APIs (collection() / query() rejecting the shared app’s db instance — invalid-argument).
       const { initializeApp, getApps } = await import(
         'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js'
       );
-      const { getFirestore, collection, addDoc, serverTimestamp } = await import(
-        'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js'
-      );
+      const {
+        getFirestore,
+        initializeFirestore,
+        collection,
+        addDoc,
+        serverTimestamp,
+      } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
 
       const apps = getApps();
       const defaultApp = apps.find(function (a) {
         return a.name === '[DEFAULT]';
       });
       const app = defaultApp || initializeApp(FIREBASE_CFG);
-      const fsdb = getFirestore(app);
+
+      let fsdb = null;
+      const isLikelyWebView =
+        (typeof navigator !== 'undefined' && /wv|Android/i.test(navigator.userAgent || '')) ||
+        (typeof location !== 'undefined' && location.protocol === 'file:');
+      try {
+        fsdb = isLikelyWebView
+          ? initializeFirestore(app, {
+              experimentalAutoDetectLongPolling: true,
+              useFetchStreams: false,
+            })
+          : getFirestore(app);
+      } catch (_) {
+        fsdb = getFirestore(app);
+      }
 
       writeClientLog = function (errorData) {
         return addDoc(collection(fsdb, 'client_logs'), {
@@ -97,7 +100,7 @@
         });
       };
       firestoreReady = true;
-      logDebug('Using modular Firestore');
+      logDebug('Using modular Firestore (error tracker)');
       setTimeout(processErrorQueue, 0);
     } catch (error) {
       writeClientLog = null;
@@ -152,8 +155,29 @@
   function formatError(error, source, lineno, colno, errorObj) {
     const deviceInfo = getDeviceInfo();
 
+    // Build a helpful message when the raw message is missing/empty so the
+    // admin dashboard never logs a bare "Unknown error" row.
+    let message = error;
+    if (!message || (typeof message === 'string' && !message.trim())) {
+      if (errorObj && (errorObj.message || errorObj.stack || errorObj.name)) {
+        message =
+          (errorObj.name ? errorObj.name + ': ' : '') +
+          (errorObj.message || errorObj.stack || 'thrown value');
+      } else if (source || lineno || colno) {
+        message =
+          'ErrorEvent: ' +
+          (source || window.location.href) +
+          ':' +
+          (lineno || 0) +
+          ':' +
+          (colno || 0);
+      } else {
+        message = 'Unknown error';
+      }
+    }
+
     return {
-      message: error || 'Unknown error',
+      message: String(message),
       source: source || window.location.href,
       lineno: lineno || 0,
       colno: colno || 0,
@@ -212,6 +236,18 @@
       if (!ERROR_TRACKING_ENABLED) return;
       if (errorCount >= MAX_ERRORS_PER_SESSION) return;
 
+      // CORS-stripped errors from third-party scripts show up as the literal
+      // string "Script error." with no filename/line/col and no error object.
+      // They are duplicates of whatever the third-party script logged on its
+      // own origin and just clutter the dashboard, so drop them here.
+      const isCorsStripped =
+        (event && typeof event.message === 'string' &&
+          event.message.trim() === 'Script error.') &&
+        !event.filename &&
+        !event.lineno &&
+        !event.error;
+      if (isCorsStripped) return;
+
       errorCount++;
 
       const errorData = formatError(
@@ -238,12 +274,22 @@
 
     errorCount++;
 
+    const reason = event && event.reason;
+    let reasonMessage;
+    if (reason && typeof reason === 'object') {
+      reasonMessage =
+        (reason.name ? reason.name + ': ' : '') +
+        (reason.message || reason.stack || JSON.stringify(reason));
+    } else {
+      reasonMessage = String(reason);
+    }
+
     const errorData = formatError(
-      'Unhandled Promise Rejection: ' + event.reason,
+      'Unhandled Promise Rejection: ' + reasonMessage,
       window.location.href,
       0,
       0,
-      event.reason instanceof Error ? event.reason : null
+      reason instanceof Error ? reason : null
     );
 
     if (DEBUG) console.error('[Error Tracker] Caught unhandled promise rejection:', errorData);

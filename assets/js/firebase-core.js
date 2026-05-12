@@ -33,7 +33,6 @@ function initializeFirebaseIfNeeded() {
     try {
       db = isLikelyWebView
         ? initializeFirestore(app, {
-            experimentalForceLongPolling: true,
             experimentalAutoDetectLongPolling: true,
             useFetchStreams: false,
           })
