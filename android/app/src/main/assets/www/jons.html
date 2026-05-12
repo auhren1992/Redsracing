@@ -7,7 +7,12 @@
          crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jon Kirsch - RedsRacing #8</title>
+    <title>Jon Kirsch — K1 Karting Archive (2024-2025) — RedsRacing #8</title>
+    <meta name="description" content="Historical K1 indoor karting results for Jon Kirsch at K1 Speed Addison from 2024-2025. Archive only — Jon now competes in real-track racing." />
+    <meta property="og:title" content="Jon Kirsch — K1 Karting Archive (2024-2025) — RedsRacing #8" />
+    <meta property="og:description" content="Historical K1 indoor karting results for Jon Kirsch at K1 Speed Addison from 2024-2025. Archive only — Jon now competes in real-track racing." />
+    <meta name="twitter:title" content="Jon Kirsch — K1 Karting Archive (2024-2025) — RedsRacing #8" />
+    <meta name="twitter:description" content="Historical K1 indoor karting results for Jon Kirsch at K1 Speed Addison from 2024-2025. Archive only — Jon now competes in real-track racing." />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -784,6 +789,26 @@
     </header>
 
     <main class="pt-20">
+
+      <!-- K1 Karting Archive Notice — page is a frozen 2024-2025 record. -->
+      <section class="py-8 md:py-12 bg-gradient-to-b from-black/40 to-transparent">
+        <div class="container mx-auto px-6">
+          <div class="max-w-5xl mx-auto bg-slate-800/60 backdrop-blur-md rounded-2xl border border-yellow-400/30 shadow-2xl overflow-hidden">
+            <div class="px-6 py-5 md:px-8 md:py-6 flex items-start gap-4">
+              <div class="flex-shrink-0 mt-1">
+                <i class="fas fa-archive text-yellow-400 text-2xl md:text-3xl"></i>
+              </div>
+              <div>
+                <div class="text-xs uppercase tracking-[0.25em] text-yellow-400 font-bold mb-2">Archive Notice</div>
+                <h2 class="font-racing text-2xl md:text-3xl text-white uppercase leading-tight mb-2">K1 Karting Archive — 2024–2025</h2>
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed">
+                  This page is a <span class="text-yellow-400 font-semibold">frozen historical record</span> of Jon Kirsch's K1 indoor karting results at K1 Speed Addison from 2024–2025. Jon has retired from indoor karting and now competes exclusively in real-track racing — see the rest of <a class="text-yellow-400 underline hover:text-yellow-300" href="driver.html">his driver page</a> and <a class="text-yellow-400 underline hover:text-yellow-300" href="stats.html">season stats</a> for current results. Nothing on this page auto-updates.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <!-- On Track Autograph Night Results -->
       <section class="py-16 md:py-24 bg-black/5">
@@ -2433,27 +2458,30 @@
 
 
 
-      <!-- K1 Speed Racing Results Section -->
+      <!-- K1 Speed Racing Results Section (read-only archive, 2024-2025) -->
       <section class="py-16 md:py-24 bg-black/20">
         <div class="container mx-auto px-6">
-          <h2 class="heading-premium text-5xl md:text-6xl mb-12 text-center reveal-fade">
-            K1 Speed <span class="accent">Racing</span> Results
+          <h2 class="heading-premium text-5xl md:text-6xl mb-4 text-center reveal-fade">
+            K1 Speed <span class="accent">Racing</span> Archive
           </h2>
-          
-          <!-- Dynamic container for K1 stats rendered by assets/js/jons-k1-stats.js -->
-          <div id="jons-k1-stats" class="max-w-6xl mx-auto space-y-8 mb-12"></div>
+          <p class="text-center text-slate-400 max-w-2xl mx-auto mb-12 text-sm md:text-base">
+            Frozen 2024–2025 record from K1 Speed Addison. Jon has retired from K1 karting and these tables no longer auto-update.
+          </p>
+
+          <!-- Read-only archive table populated from data/k1_jon_addison_history.json by assets/js/k1-archive.js -->
+          <div id="jons-k1-archive" class="max-w-6xl mx-auto space-y-8 mb-12"></div>
           
           <!-- K1 Speed Addison Adult League Multi-Season Results -->
           <div class="max-w-6xl mx-auto space-y-8">
             
-            <!-- 2025 Season - Current -->
+            <!-- 2025 Season (final / archived) -->
             <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 overflow-hidden">
               <div class="bg-gradient-to-r from-yellow-600 to-yellow-500 px-6 py-4">
                 <div class="flex items-center justify-between">
                   <h3 class="text-white font-racing text-xl uppercase font-bold">K1 Speed Addison Adult League - 2025 Season</h3>
                   <div class="text-white font-bold text-sm flex items-center">
-                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
-                    ACTIVE SEASON
+                    <i class="fas fa-archive mr-2 text-white/80"></i>
+                    FINAL — ARCHIVED
                   </div>
                 </div>
               </div>
@@ -2661,7 +2689,7 @@
                       <div class="text-xs text-slate-400 mt-1">2024</div>
                     </div>
                     <div class="flex flex-col items-center">
-                      <div class="bg-yellow-500 w-8 h-20 rounded-t flex items-end justify-center text-white text-xs font-bold animate-pulse">2</div>
+                      <div class="bg-yellow-500 w-8 h-20 rounded-t flex items-end justify-center text-white text-xs font-bold">2</div>
                       <div class="text-xs text-yellow-400 mt-1">2025</div>
                     </div>
                   </div>
@@ -2976,7 +3004,22 @@ ewsletter-message ${type}`;
     <script src="assets/js/hotspot-mobile.js"></script>
     <script src="assets/js/jons-2024.js?v=20251008"></script>
     <script src="assets/js/jons-2025.js?v=20251008"></script>
-    <script src="assets/js/jons-k1-stats.js?v=20251008"></script>
+    <script src="assets/js/k1-archive.js?v=20260512"></script>
+    <script>
+      (function () {
+        function init() {
+          var target = document.getElementById('jons-k1-archive');
+          if (target && window.K1Archive && typeof window.K1Archive.renderJon === 'function') {
+            window.K1Archive.renderJon(target);
+          }
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+      })();
+    </script>
       <script src="assets/js/cookie-consent.js"></script>
   <div style="text-align:center;padding:1.5rem 1rem;border-top:1px solid rgba(148,163,184,0.1);margin-top:2rem;font-size:0.75rem;color:#64748b;"><a href="privacy.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Privacy Policy</a> | <a href="terms.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Terms of Service</a> | <a href="contact.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Contact</a><div style="margin-top:4px;">&copy; 2026 RedsRacing #8 &amp; #88</div></div>
 </body>

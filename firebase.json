@@ -150,34 +150,6 @@
         }
       },
       {
-        "source": "/k1/addison/junior/jonny",
-        "function": {
-          "functionId": "fetchK1AddisonJonnyJunior",
-          "region": "us-central1"
-        }
-      },
-      {
-        "source": "/k1/addison/jonny",
-        "function": {
-          "functionId": "fetchK1AddisonJonny",
-          "region": "us-central1"
-        }
-      },
-      {
-        "source": "/k1/addison/2025/jon",
-        "function": {
-          "functionId": "fetchK1AddisonJon",
-          "region": "us-central1"
-        }
-      },
-      {
-        "source": "/k1/addison/jon/seasons",
-        "function": {
-          "functionId": "fetchK1AddisonJonSeasons",
-          "region": "us-central1"
-        }
-      },
-      {
         "source": "/speedhive/2025",
         "function": {
           "functionId": "fetchSpeedhiveJon",

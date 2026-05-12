@@ -23,8 +23,6 @@ module.exports = {
     "profile-inline-fallback": "./assets/js/profile-inline-fallback.js",
     loading: "./assets/js/loading.js",
     "stats-2025": "./assets/js/stats-2025.js",
-    "k1-stats": "./assets/js/k1-stats.js",
-    "k1-history": "./assets/js/k1-history.js",
     qna: "./assets/js/qna.js",
     schedule: "./assets/js/schedule.js",
     "signup-page": "./assets/js/signup-page.js",

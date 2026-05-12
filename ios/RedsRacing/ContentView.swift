@@ -139,7 +139,7 @@ struct ContentView: View {
         overlayItems = [
             .init(icon: "🏎️", title: "Jon Kirsch #8 - Profile", url: "https://redsracing.org/driver.html"),
             .init(icon: "📸", title: "Jon Kirsch #8 - Gallery", url: "https://redsracing.org/gallery.html"),
-            .init(icon: "📊", title: "Jon Kirsch #8 - Race Results", url: "https://redsracing.org/jons.html"),
+            .init(icon: "📊", title: "Jon Kirsch #8 - K1 Karting Archive", url: "https://redsracing.org/jons.html"),
             .init(icon: "🏎️", title: "Jonny Kirsch #88 - Profile", url: "https://redsracing.org/jonny.html"),
             .init(icon: "📸", title: "Jonny Kirsch #88 - Gallery", url: "https://redsracing.org/jonny-gallery.html"),
             .init(icon: "📊", title: "Jonny Kirsch #88 - Results", url: "https://redsracing.org/jonny-results.html"),

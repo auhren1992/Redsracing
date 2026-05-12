@@ -179,6 +179,9 @@
         height: 100%;
         background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
         transition: left 0.6s;
+        /* Critical: without this the pseudo-element covers the entire <a>
+           and swallows clicks, so "Full Profile" links don't navigate. */
+        pointer-events: none;
       }
       
       .cta-button:hover::before {
@@ -512,7 +515,7 @@
                 <div class="dropdown-menu-nested modern-dropdown">
                   <a href="driver.html" class="dropdown-item">👤 Profile</a>
                   <a href="gallery.html" class="dropdown-item">📸 Gallery</a>
-                  <a href="jons.html" class="dropdown-item">📊 Racing Stats</a>
+                  <a href="jons.html" class="dropdown-item">📊 K1 Karting Archive</a>
                 </div>
               </div>
               
@@ -634,7 +637,7 @@
           <div class="mobile-accordion-content mobile-accordion-content-nested">
             <a href="driver.html" class="mobile-nav-subitem mobile-nav-subitem-nested">👤 Profile</a>
             <a href="gallery.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📸 Gallery</a>
-            <a href="jons.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📊 Racing Stats</a>
+            <a href="jons.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📊 K1 Karting Archive</a>
           </div>
           
           <!-- Jonny Kirsch Nested -->

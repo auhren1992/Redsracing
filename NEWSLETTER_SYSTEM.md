@@ -26,7 +26,7 @@ Modern, gradient-styled footer with:
 - gallery.html
 - jonny-gallery.html
 - jonny.html
-- jons.html
+- jons.html (K1 Karting Archive)
 - legends.html
 - qna.html
 - sponsorship.html

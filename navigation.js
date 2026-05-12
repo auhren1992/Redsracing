@@ -794,7 +794,7 @@ const core = await import('./assets/js/firebase-core.js');
                 <div class="dropdown-menu-nested modern-dropdown hidden">
                   <a href="driver.html" class="dropdown-item">👤 Profile</a>
                   <a href="gallery.html" class="dropdown-item">📸 Gallery</a>
-                  <a href="jons.html" class="dropdown-item">📊 Racing Stats</a>
+                  <a href="jons.html" class="dropdown-item">📊 K1 Karting Archive</a>
                 </div>
               </div>
               <div class="relative dropdown-nested">
@@ -858,7 +858,7 @@ const core = await import('./assets/js/firebase-core.js');
               <div class="mobile-accordion-content mobile-accordion-content-nested">
                 <a href="driver.html" class="mobile-nav-subitem mobile-nav-subitem-nested">👤 Profile</a>
                 <a href="gallery.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📸 Gallery</a>
-                <a href="jons.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📊 Racing Stats</a>
+                <a href="jons.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📊 K1 Karting Archive</a>
               </div>
               <button class="mobile-accordion mobile-accordion-nested">
                 <span>Jonny Kirsch #88</span><i class="fas fa-chevron-down accordion-icon"></i>

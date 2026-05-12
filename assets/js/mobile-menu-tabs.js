@@ -95,7 +95,7 @@
               </a>
               <a href="jons.html" class="driver-link">
                 <span class="driver-link-icon">📊</span>
-                <span class="driver-link-text">Stats</span>
+                <span class="driver-link-text">K1 Archive</span>
               </a>
             </div>
           </div>
