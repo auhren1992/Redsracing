@@ -1543,6 +1543,166 @@ exports.notifyNewRace = newsletter.notifyNewRace;
 exports.sendUpcomingRaceReminders = newsletter.sendUpcomingRaceReminders;
 exports.sendAdminBroadcast = newsletter.sendAdminBroadcast;
 
+// ─── Predictions Scoring ─────────────────────────────────────────────────────
+/**
+ * Triggered when a race_results doc is created.
+ * Scores all predictions for the matching raceId.
+ * Scoring: exact finish = 10pts, ±1 = 5pts, podium-correct = 3pts, winner-correct = 5pts
+ */
+exports.scorePredictions = onDocumentCreated(
+  'race_results/{resultId}',
+  async (event) => {
+    const db = getFirestore();
+    const resultData = event.data.data();
+    const raceId = resultData.raceId;
+    if (!raceId) {
+      logger.warn('scorePredictions: no raceId on result doc', event.data.id);
+      return;
+    }
+
+    const jonActual   = resultData.driverId === 'jon_kirsch'   ? (resultData.finishPosition || null) : null;
+    const jonnyActual = resultData.driverId === 'jonny_kirsch' ? (resultData.finishPosition || null) : null;
+
+    // Aggregate all results for this raceId
+    const allResults = await db.collection('race_results').where('raceId', '==', raceId).get();
+    const resultsByDriver = {};
+    allResults.forEach((d) => {
+      resultsByDriver[d.data().driverId] = d.data();
+    });
+
+    const jonPos   = resultsByDriver['jon_kirsch']   ? resultsByDriver['jon_kirsch'].finishPosition   : null;
+    const jonnyPos = resultsByDriver['jonny_kirsch'] ? resultsByDriver['jonny_kirsch'].finishPosition : null;
+
+    // Determine winner (lowest finish position)
+    let winnerDriver = null;
+    if (jonPos !== null && jonnyPos !== null) {
+      winnerDriver = jonPos < jonnyPos ? 8 : 88;
+    } else if (jonPos !== null) {
+      winnerDriver = jonPos === 1 ? 8 : null;
+    } else if (jonnyPos !== null) {
+      winnerDriver = jonnyPos === 1 ? 88 : null;
+    }
+
+    // Fetch all predictions for this race
+    const predsSnap = await db.collection('predictions').where('raceId', '==', raceId).get();
+    if (predsSnap.empty) {
+      logger.info('scorePredictions: no predictions found for race', raceId);
+      return;
+    }
+
+    const batch = db.batch();
+    const userScoreUpdates = {};
+
+    predsSnap.forEach((predDoc) => {
+      const pred = predDoc.data();
+      let points = 0;
+
+      // Score Jon #8 finish prediction
+      if (jonPos !== null && pred.jonFinish !== undefined) {
+        const diff = Math.abs(Number(pred.jonFinish) - jonPos);
+        if (diff === 0) points += 10;
+        else if (diff === 1) points += 5;
+        else if (jonPos <= 3 && Number(pred.jonFinish) <= 3) points += 3;
+      }
+
+      // Score Jonny #88 finish prediction
+      if (jonnyPos !== null && pred.jonnyFinish !== undefined) {
+        const diff = Math.abs(Number(pred.jonnyFinish) - jonnyPos);
+        if (diff === 0) points += 10;
+        else if (diff === 1) points += 5;
+        else if (jonnyPos <= 3 && Number(pred.jonnyFinish) <= 3) points += 3;
+      }
+
+      // Score winner pick
+      if (winnerDriver !== null && pred.winnerPick !== undefined) {
+        if (Number(pred.winnerPick) === winnerDriver) points += 5;
+      }
+
+      batch.update(predDoc.ref, {
+        pointsEarned: points,
+        scored: true,
+        scoredAt: FieldValue.serverTimestamp(),
+      });
+
+      if (pred.uid) {
+        userScoreUpdates[pred.uid] = (userScoreUpdates[pred.uid] || 0) + points;
+      }
+    });
+
+    await batch.commit();
+
+    // Update cumulative user scores
+    for (const [uid, pts] of Object.entries(userScoreUpdates)) {
+      if (pts > 0) {
+        await db.doc('users/' + uid).set(
+          { prediction_score: FieldValue.increment(pts) },
+          { merge: true }
+        );
+      }
+    }
+
+    logger.info('scorePredictions: scored', predsSnap.size, 'predictions for race', raceId);
+  }
+);
+
+// ─── Scheduled Push Dispatcher ───────────────────────────────────────────────
+/**
+ * Every 5 minutes: find due scheduled_pushes docs and dispatch via FCM.
+ */
+exports.dispatchScheduledPushes = onSchedule(
+  { schedule: 'every 5 minutes', secrets: ['SENTRY_DSN'] },
+  async () => {
+    const db = getFirestore();
+    const { getMessaging } = require('firebase-admin/messaging');
+    const messaging = getMessaging();
+
+    const now = new Date();
+    const snap = await db.collection('scheduled_pushes')
+      .where('status', '==', 'pending')
+      .get();
+
+    if (snap.empty) return;
+
+    for (const doc of snap.docs) {
+      const d = doc.data();
+      // Check if scheduled time has passed (or null = send immediately)
+      const scheduledFor = d.scheduledFor ? d.scheduledFor.toDate() : null;
+      if (scheduledFor && scheduledFor > now) continue;
+
+      try {
+        const topic   = d.topic || 'all';
+        const message = {
+          notification: {
+            title: d.title || 'RedsRacing Update',
+            body:  d.body  || '',
+          },
+          data: {
+            deeplink: d.deeplink || '/',
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
+          },
+          topic: topic,
+        };
+
+        await messaging.sendToTopic(topic, {
+          notification: { title: message.notification.title, body: message.notification.body },
+          data: message.data,
+        });
+
+        await doc.ref.update({
+          status:     'sent',
+          sentAt:     FieldValue.serverTimestamp(),
+        });
+
+        logger.info('dispatchScheduledPushes: sent push to topic', topic, d.title);
+      } catch (err) {
+        logger.error('dispatchScheduledPushes: failed to send', doc.id, err);
+        await doc.ref.update({ status: 'failed', error: String(err) });
+        try { Sentry.captureException(err); } catch (_) {}
+      }
+    }
+  }
+);
+
 // ─── iCal Feed ───────────────────────────────────────────────────────────────
 exports.scheduleICS = onRequest({ cors: true }, async (req, res) => {
   try {

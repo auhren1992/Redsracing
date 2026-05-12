@@ -616,6 +616,55 @@
                   </div>
                   <div id="profile-garage" class="mt-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
                 </section>
+
+                <!-- Fan Notifications Subscription -->
+                <section class="rr-panel rounded-3xl p-6" id="fan-subscription-section" style="display:none;">
+                  <div class="rr-kicker">Notifications</div>
+                  <h3 class="mt-2 text-xl font-bold rr-value">Fan Push Subscriptions</h3>
+                  <p class="text-sm mt-2" style="color:var(--rr-muted);">Subscribe to push topics to get race-day alerts for your favourite car.</p>
+                  <div class="mt-4 flex flex-col gap-3">
+                    <label style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);padding:.6rem .9rem;border-radius:.5rem;">
+                      <span style="font-size:.9rem;">Jon #8 Fan Alerts</span>
+                      <input type="checkbox" id="sub-fan-8" style="width:1.1rem;height:1.1rem;accent-color:#fbbf24;" />
+                    </label>
+                    <label style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);padding:.6rem .9rem;border-radius:.5rem;">
+                      <span style="font-size:.9rem;">Jonny #88 Fan Alerts</span>
+                      <input type="checkbox" id="sub-fan-88" style="width:1.1rem;height:1.1rem;accent-color:#fbbf24;" />
+                    </label>
+                  </div>
+                  <button id="sub-save-btn" class="mt-4 w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 rounded-xl text-sm transition">Save Subscriptions</button>
+                  <div id="sub-status" style="font-size:.8rem;min-height:1.2em;margin-top:.4rem;"></div>
+                  <script>
+                  (function(){
+                    var sec = document.getElementById('fan-subscription-section');
+                    var db2 = window.firebase && window.firebase.firestore && window.firebase.firestore();
+                    var auth2 = window.firebase && window.firebase.auth && window.firebase.auth();
+                    if (!db2 || !auth2) return;
+                    auth2.onAuthStateChanged(function(user){
+                      if (!user) return;
+                      sec.style.display = 'block';
+                      db2.doc('users/' + user.uid).get().then(function(snap){
+                        if (!snap.exists) return;
+                        var d = snap.data();
+                        document.getElementById('sub-fan-8').checked  = !!(d.subscriptions && d.subscriptions['fan-8']);
+                        document.getElementById('sub-fan-88').checked = !!(d.subscriptions && d.subscriptions['fan-88']);
+                      });
+                    });
+                    document.getElementById('sub-save-btn').addEventListener('click', function(){
+                      var user = auth2.currentUser;
+                      if (!user) return;
+                      var s8  = document.getElementById('sub-fan-8').checked;
+                      var s88 = document.getElementById('sub-fan-88').checked;
+                      db2.doc('users/' + user.uid).set({ subscriptions: { 'fan-8': s8, 'fan-88': s88 } }, { merge: true })
+                        .then(function(){
+                          var st = document.getElementById('sub-status');
+                          st.style.color = '#4ade80'; st.textContent = '✓ Saved';
+                        })
+                        .catch(function(e){ document.getElementById('sub-status').textContent = '✗ ' + e.message; });
+                    });
+                  })();
+                  </script>
+                </section>
               </div>
             </div>
           </div>

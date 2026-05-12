@@ -137,14 +137,30 @@
             </div>
           </div>
 
+          <!-- Race Winner Pick (v2) -->
+          <div>
+            <label class="block text-sm font-semibold text-yellow-400 mb-3">Pick the race winner (overall)</label>
+            <div class="grid grid-cols-2 gap-4">
+              <button type="button" class="winner-btn bg-slate-800/50 border-2 border-slate-700 rounded-xl p-3 text-center" data-winner="8">
+                <div class="text-blue-400 font-racing text-2xl">#8</div>
+                <div class="text-white text-sm">Jon Kirsch</div>
+              </button>
+              <button type="button" class="winner-btn bg-slate-800/50 border-2 border-slate-700 rounded-xl p-3 text-center" data-winner="88">
+                <div class="text-red-400 font-racing text-2xl">#88</div>
+                <div class="text-white text-sm">Jonny Kirsch</div>
+              </button>
+            </div>
+            <input type="hidden" id="winner-pick" value="" />
+          </div>
+
           <button type="submit" id="submit-pred-btn" class="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-black font-bold py-4 rounded-xl text-lg transition">
             <i class="fas fa-paper-plane mr-2"></i>Submit Prediction
           </button>
         </form>
 
-        <!-- Scoring Info -->
+        <!-- Scoring Info (v2) -->
         <div class="mt-4 bg-slate-800/30 rounded-lg p-3 text-xs text-slate-500">
-          <strong class="text-slate-400">Scoring:</strong> Exact position = 3pts · Within 1 = 2pts · Within 2 = 1pt · Correct higher-finisher = 2pts · Max 10pts per race
+          <strong class="text-slate-400">Scoring v2:</strong> Exact position = 10pts · ±1 = 5pts · Podium-correct = 3pts · Race winner correct = 5pts
         </div>
       </div>
     </div>
@@ -209,6 +225,19 @@
       });
     });
 
+    // Winner pick buttons
+    document.querySelectorAll('.winner-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.winner-btn').forEach(b => {
+          b.classList.remove('selected');
+          b.style.borderColor = '';
+        });
+        btn.classList.add('selected');
+        btn.style.borderColor = '#fbbf24';
+        document.getElementById('winner-pick').value = btn.dataset.winner;
+      });
+    });
+
     // Auth state
     auth.onAuthStateChanged(async user => {
       currentUser = user;
@@ -264,6 +293,7 @@
       const picked = document.getElementById('picked-driver').value;
       const jonFinish = parseInt(document.getElementById('pred-jon-finish').value);
       const jonnyFinish = parseInt(document.getElementById('pred-jonny-finish').value);
+      const winnerPick = parseInt(document.getElementById('winner-pick').value) || null;
       if (!picked) { showToast('Pick who finishes higher!', true); return; }
       if (!jonFinish || !jonnyFinish) { showToast('Select finish positions for both drivers', true); return; }
 
@@ -271,6 +301,7 @@
       btn.disabled = true; btn.textContent = 'Submitting...';
       try {
         await db.collection('predictions').add({
+          uid: currentUser.uid,
           userId: currentUser.uid,
           userEmail: currentUser.email || 'Anonymous',
           userName: currentUser.displayName || currentUser.email?.split('@')[0] || 'Fan',
@@ -279,6 +310,7 @@
           pickedDriver: picked,
           jonFinish: jonFinish,
           jonnyFinish: jonnyFinish,
+          winnerPick: winnerPick,
           score: null,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -286,7 +318,8 @@
         document.getElementById('prediction-form').classList.add('hidden');
         document.getElementById('already-predicted').classList.remove('hidden');
         const driverLabel = picked === 'jon' ? 'Jon #8' : 'Jonny #88';
-        document.getElementById('your-pick-summary').textContent = `${driverLabel} finishes higher · Jon P${jonFinish} · Jonny P${jonnyFinish}`;
+        const winnerLabel = winnerPick ? ' · Winner: #' + winnerPick : '';
+        document.getElementById('your-pick-summary').textContent = `${driverLabel} finishes higher · Jon P${jonFinish} · Jonny P${jonnyFinish}${winnerLabel}`;
         loadLeaderboard();
       } catch(e) {
         console.error('Submit error:', e);

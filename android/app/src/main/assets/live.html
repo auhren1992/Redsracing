@@ -1,8 +1,11 @@
 <!doctype html>
 <html lang="en" class="scroll-smooth">
 <head>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353" crossorigin="anonymous"></script>
-  <meta charset="UTF-8" />
+<!-- Google AdSense -->
+<meta name="google-adsense-account" content="ca-pub-8879853783053353" />
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353"
+     crossorigin="anonymous"></script>
+<meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🔴 LIVE Race Updates - RedsRacing #8 & #88</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
@@ -304,6 +307,152 @@
       } catch(e) { console.error('loadNextRace error:', e); }
     }
   </script>
+  <!-- Race-Day Hub Enhancements (behind enable_race_day_hub flag) -->
+  <script src="assets/js/feature-flags.js"></script>
+  <script>
+  (function(){
+    function initRaceDayHub(){
+      var rrf = window.RR && window.RR.flags;
+      var flagP = rrf ? rrf.get('enable_race_day_hub', false) : Promise.resolve(false);
+      flagP.then(function(enabled){
+        if (!enabled) return;
+
+        // Inject "What to Watch For" + "Fan Updates" sections
+        var notLive = document.getElementById('not-live-state');
+        if (!notLive) return;
+
+        // What to Watch section
+        var watchSection = document.createElement('div');
+        watchSection.className = 'container mx-auto px-4 pb-4';
+        watchSection.innerHTML = '<div id="rdh-watch-card" class="glass-card p-6 mb-6" style="display:none;">' +
+          '<h2 class="text-xl font-bold text-white mb-3"><i class="fas fa-binoculars text-yellow-400 mr-3"></i>What to Watch For</h2>' +
+          '<div id="rdh-watch-notes" class="text-slate-300 text-sm leading-relaxed whitespace-pre-line"></div></div>';
+
+        // Fan Updates section
+        var updatesSection = document.createElement('div');
+        updatesSection.className = 'container mx-auto px-4 pb-8';
+        updatesSection.innerHTML = '<div class="glass-card p-6">' +
+          '<h2 class="text-xl font-bold text-white mb-3 flex items-center">' +
+          '<i class="fas fa-satellite-dish text-yellow-400 mr-3"></i>Live Updates' +
+          '<span class="ml-2 w-2 h-2 bg-green-400 rounded-full animate-pulse inline-block"></span></h2>' +
+          '<div id="rdh-fan-feed" class="space-y-2 max-h-64 overflow-y-auto">' +
+          '<p class="text-slate-500 text-center py-4 text-sm">No updates yet.</p></div></div>';
+
+        // Driver of Day section
+        var dotdSection = document.createElement('div');
+        dotdSection.id = 'dotd-section';
+        dotdSection.className = 'container mx-auto px-4 pb-8';
+        dotdSection.style.display = 'none';
+        dotdSection.innerHTML = '<div class="glass-card p-6">' +
+          '<h2 class="text-xl font-bold text-white mb-4"><i class="fas fa-star text-yellow-400 mr-3"></i>Driver of the Day Vote</h2>' +
+          '<p class="text-slate-400 text-sm mb-4">Vote for your Driver of the Day (open 24h after race results post).</p>' +
+          '<div style="display:flex;gap:1rem;">' +
+          '<button id="dotd-vote-8" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition">Jon #8</button>' +
+          '<button id="dotd-vote-88" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition">Jonny #88</button>' +
+          '</div>' +
+          '<div id="dotd-result" class="mt-4 text-center text-slate-400 text-sm"></div>' +
+          '</div>';
+
+        notLive.appendChild(watchSection);
+        notLive.appendChild(updatesSection);
+        notLive.appendChild(dotdSection);
+
+        // Wire DOTD votes
+        var db2 = window.firebase && window.firebase.firestore && window.firebase.firestore();
+        if (db2) {
+          // Determine current race from schedule
+          fetch('/data/schedule.json').then(function(r){ return r.json(); }).then(function(sched){
+            var today = new Date().toISOString().split('T')[0];
+            var nextRace = null;
+            for (var s of sched.seasons || []) {
+              for (var race of s.races || []) {
+                if (race.date >= today) { nextRace = race; break; }
+              }
+              if (nextRace) break;
+            }
+            if (!nextRace) return;
+            var raceId = nextRace.date + '-' + (nextRace.track || '').toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+
+            // Load what-to-watch notes
+            db2.doc('race_notes/' + raceId).get().then(function(snap){
+              if (snap.exists && snap.data().notes) {
+                document.getElementById('rdh-watch-notes').textContent = snap.data().notes;
+                document.getElementById('rdh-watch-card').style.display = 'block';
+              }
+            }).catch(function(){});
+
+            // Live fan updates feed
+            db2.collection('race_updates').doc(raceId).collection('posts')
+              .orderBy('createdAt', 'desc').limit(30)
+              .onSnapshot(function(snap){
+                var feed = document.getElementById('rdh-fan-feed');
+                if (!feed) return;
+                if (snap.empty) return;
+                feed.innerHTML = '';
+                snap.forEach(function(d2){
+                  var dv = d2.data();
+                  var ts = dv.createdAt ? new Date(dv.createdAt.toMillis()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
+                  var item = document.createElement('div');
+                  item.className = 'commentary-item bg-slate-800/40 rounded-lg p-3 pl-4';
+                  item.innerHTML = '<div class="flex justify-between"><span class="text-white text-sm">' + escHtml(dv.text||'') + '</span><span class="text-slate-600 text-xs ml-2">' + escHtml(ts) + '</span></div>';
+                  feed.appendChild(item);
+                });
+              });
+
+            // DOTD voting — check if vote open (results exist + within 24h)
+            var rrf2 = window.RR && window.RR.flags;
+            var dotdFlagP = rrf2 ? rrf2.get('enable_driver_of_day', false) : Promise.resolve(false);
+            dotdFlagP.then(function(dotdEnabled){
+              if (!dotdEnabled) return;
+              db2.collection('race_results').where('raceId','==',raceId).limit(1).get().then(function(rs){
+                if (rs.empty) return;
+                var resultDoc = rs.docs[0].data();
+                var resultTs = resultDoc.createdAt ? resultDoc.createdAt.toMillis() : Date.now() - 1;
+                var voteOpen = (Date.now() - resultTs) < 24 * 60 * 60 * 1000;
+                if (!voteOpen) return;
+                document.getElementById('dotd-section').style.display = 'block';
+                var auth2 = window.firebase && window.firebase.auth && window.firebase.auth();
+                var uid = auth2 && auth2.currentUser ? auth2.currentUser.uid : null;
+
+                // Check if already voted
+                if (uid) {
+                  db2.collection('votes').doc(raceId).collection('votes').doc(uid).get().then(function(vs){
+                    if (vs.exists) {
+                      document.getElementById('dotd-result').textContent = 'You voted: #' + (vs.data().driver || '?');
+                      document.getElementById('dotd-vote-8').disabled = true;
+                      document.getElementById('dotd-vote-88').disabled = true;
+                    }
+                  }).catch(function(){});
+                }
+
+                function castVote(driver) {
+                  if (!uid) { alert('Sign in to vote!'); return; }
+                  db2.collection('votes').doc(raceId).collection('votes').doc(uid).set({
+                    driver: driver, ts: window.firebase.firestore.FieldValue.serverTimestamp()
+                  }).then(function(){
+                    document.getElementById('dotd-result').textContent = 'Voted! #' + driver + ' ✓';
+                    document.getElementById('dotd-vote-8').disabled = true;
+                    document.getElementById('dotd-vote-88').disabled = true;
+                  }).catch(function(e){ document.getElementById('dotd-result').textContent = 'Error: ' + e.message; });
+                }
+                document.getElementById('dotd-vote-8').addEventListener('click', function(){ castVote(8); });
+                document.getElementById('dotd-vote-88').addEventListener('click', function(){ castVote(88); });
+              }).catch(function(){});
+            });
+          }).catch(function(){});
+        }
+      });
+    }
+
+    function escHtml(s){
+      return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+    }
+
+    if (document.readyState==='loading') { document.addEventListener('DOMContentLoaded', initRaceDayHub); }
+    else { initRaceDayHub(); }
+  })();
+  </script>
+
   <script src="assets/js/cookie-consent.js"></script>
 </body>
 </html>
