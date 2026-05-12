@@ -127,13 +127,6 @@
       "collectionGroup": "admin_audit",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "ts", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "admin_audit",
-      "queryScope": "COLLECTION",
-      "fields": [
         { "fieldPath": "action", "order": "ASCENDING" },
         { "fieldPath": "ts",     "order": "DESCENDING" }
       ]
