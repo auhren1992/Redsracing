@@ -88,26 +88,29 @@ service cloud.firestore {
         (!('source' in request.resource.data) || (request.resource.data.source is string && request.resource.data.source.size() <= 50)) &&
         true; // Anyone can subscribe
       allow read: if true; // Allow checking for duplicates
-      allow update, delete: if hasRole('team-member') || hasRole('admin');
+      // Use isPrivilegedStaff() so doc-role admins (no custom claim) can manage too.
+      allow update, delete: if isPrivilegedStaff();
     }
     
     // Users collection - profiles
     match /users/{userId} {
       // Allow public read if user has enabled publicProfile; otherwise require auth
       allow read: if (resource.data.publicProfile == true) || isAuthenticated();
-      allow write: if isOwner(userId) || hasRole('team-member');
+      // Owner can write own profile; any privileged staff (admin or team-member, via
+      // claim OR users-doc role) can write to any profile (e.g., role grants).
+      allow write: if isOwner(userId) || isPrivilegedStaff();
     }
-    
+
     // User achievements
     match /user_achievements/{achievementId} {
       allow read: if isAuthenticated();
-      allow write: if hasRole('team-member'); // Only admins can assign achievements
+      allow write: if isPrivilegedStaff();
     }
-    
+
     // Available achievements
     match /achievements/{achievementId} {
       allow read: if isAuthenticated();
-      allow write: if hasRole('team-member');
+      allow write: if isPrivilegedStaff();
     }
     
     // Gallery images
@@ -207,11 +210,15 @@ service cloud.firestore {
       allow delete: if hasRole('admin') || hasProfileRole('admin');
     }
 
-    // Site configuration (e.g., config/tiktok, config/photo_of_week)
+    // Site configuration (e.g., config/tiktok, config/photo_of_week, config/flags,
+    // config/car_hotspots, config/photo_tags). Public read for runtime bootstrap.
+    // Write goes through isPrivilegedStaff() so doc-role admins (users/{uid}.role ==
+    // 'admin' or isAdmin: true) can save without needing a custom claim — this is
+    // what unblocks the Feature Flags panel, Photo of the Week pick, and car
+    // hotspots editor for the admin user.
     match /config/{docId} {
-      // Public read for photo_of_week on team page; auth read for other config
       allow read: if true;
-      allow write: if hasRole('team-member') || hasRole('admin');
+      allow write: if isPrivilegedStaff();
     }
     
     // App configuration (version management, push notification settings)
@@ -264,7 +271,7 @@ service cloud.firestore {
     // Jonny-specific videos
     match /jonny_videos/{videoId} {
       allow read: if true;
-      allow write: if hasRole('team-member');
+      allow write: if isPrivilegedStaff();
     }
     
     // Client error logs (frontend)
