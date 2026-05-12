@@ -12,7 +12,7 @@
  */
 /* eslint-disable no-restricted-globals */
 
-const CACHE_VERSION = "redsracing-v1-2026051200";
+const CACHE_VERSION = "redsracing-v2-2026051201";
 const STATIC_CACHE = CACHE_VERSION + "-static";
 const HTML_CACHE = CACHE_VERSION + "-html";
 
@@ -107,10 +107,16 @@ self.addEventListener("fetch", (event) => {
   }
   if (shouldBypass(url)) return;
   if (url.origin !== self.location.origin) {
-    // Allow cache for cross-origin static (fonts etc.) but never put POSTs in
-    event.respondWith(
-      caches.match(req).then((hit) => hit || fetch(req).catch(() => hit)),
-    );
+    // Do NOT intercept cross-origin requests. If we call fetch(req) from
+    // inside the SW, the browser checks that fetch against the document's
+    // connect-src CSP directive — which legitimately doesn't list every
+    // CDN we use for images (imgur, placehold.co) and stylesheets
+    // (cdnjs). The original <img>/<link> request would have been governed
+    // by img-src / style-src and would have succeeded; intercepting it
+    // here just upgrades it into a CSP violation that returns undefined
+    // and trips "Failed to convert value to 'Response'". Cross-origin
+    // assets are also cached by the CDN's own headers, so SW caching adds
+    // little value here. Just let the browser handle it natively.
     return;
   }
 
