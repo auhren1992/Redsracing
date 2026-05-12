@@ -6,6 +6,16 @@
          crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RedsRacing race schedule and countdown for upcoming events. Browse season dates, tracks, and special events, and keep up with Jon (#8) and Jonny (#88) all year long." />
+    <link rel="canonical" href="https://www.redsracing.org/schedule.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RedsRacing" />
+    <meta property="og:title" content="Schedule - RedsRacing #8 & #88" />
+    <meta property="og:description" content="Race schedule and countdown for RedsRacing. See season dates, tracks, and special events." />
+    <meta property="og:url" content="https://www.redsracing.org/schedule.html" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Schedule - RedsRacing #8 & #88" />
+    <meta name="twitter:description" content="Race schedule and countdown: season dates, tracks, and special events." />
     <title>Schedule - RedsRacing #8</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -259,6 +269,13 @@
         </div>
       </div>
     </header>
+    
+    <!-- Featured strip (live updates) -->
+    <div class="mt-6">
+      <div id="rr-feature-strip"></div>
+    </div>
+    <script type="module" src="assets/js/featured-strip.js"></script>
+    
     <main>
       <!-- Modern Hero Section -->
       <section class="py-20 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
@@ -335,6 +352,21 @@
         </div>
       </section>
 
+      <!-- AdSense: schedule-sidebar (placed inline between countdown and content) -->
+      <section class="py-6 bg-slate-900">
+        <div class="container mx-auto px-6">
+          <div class="rr-ad-slot max-w-4xl mx-auto" style="min-height:120px;">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-8879853783053353"
+                 data-ad-slot="5559775012"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+          </div>
+        </div>
+      </section>
+
       <!-- Schedule Content -->
       <section class="py-20 md:py-32 bg-gradient-to-b from-slate-900 to-black">
         <div class="container mx-auto px-6">
@@ -386,6 +418,15 @@
           </div>
         </div>
       </section>
+
+      <!-- iCal Subscribe Strip -->
+      <section style="padding:1.25rem 1rem;text-align:center;background:rgba(251,191,36,.06);border-top:1px solid rgba(251,191,36,.15);border-bottom:1px solid rgba(251,191,36,.15);">
+        <span style="color:#94a3b8;font-size:.9rem;margin-right:.75rem;"><i class="fas fa-calendar-check" style="color:#fbbf24;margin-right:.4rem;"></i>Never miss a race —</span>
+        <a href="/data/schedule.ics" class="btn btn-sm btn-secondary" style="font-size:.82rem;padding:.35rem .8rem;">
+          <i class="fas fa-calendar-plus" style="margin-right:.35rem;"></i>Subscribe in your calendar
+        </a>
+      </section>
+
     </main>
     <!-- Modern Newsletter Footer -->
     <footer class="newsletter-footer">
@@ -597,7 +638,7 @@
     import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
     // Initialize dedicated Firebase app for newsletter
-        const firebaseConfig = {
+    const firebaseConfig = {
         apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
         authDomain: "redsracing-a7f8b.firebaseapp.com",
         databaseURL: "https://redsracing-a7f8b-default-rtdb.firebaseio.com",
@@ -688,7 +729,7 @@
     <script>
     // Initialize Firebase for countdown (same config as index.html)
     (function() {
-            var countdownConfig = {
+      var countdownConfig = {
         apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
         authDomain: "redsracing-a7f8b.firebaseapp.com",
         databaseURL: "https://redsracing-a7f8b-default-rtdb.firebaseio.com",
@@ -705,6 +746,7 @@
     <script src="assets/js/schedule-handler.js?v=20260506"></script>
     <script type="module" src="modern-effects.js"></script>
       <script src="assets/js/cookie-consent.js"></script>
-  </body>
+  <div style="text-align:center;padding:1.5rem 1rem;border-top:1px solid rgba(148,163,184,0.1);margin-top:2rem;font-size:0.75rem;color:#64748b;"><a href="privacy.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Privacy Policy</a> | <a href="terms.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Terms of Service</a> | <a href="contact.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Contact</a><div style="margin-top:4px;">&copy; 2026 RedsRacing #8 &amp; #88</div></div>
+</body>
 </html>
 

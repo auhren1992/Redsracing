@@ -2,7 +2,10 @@
 <html lang="en" class="scroll-smooth">
   <head>
     <!-- Google AdSense -->
-<meta charset="UTF-8" />
+    <meta name="google-adsense-account" content="ca-pub-8879853783053353" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8879853783053353"
+         crossorigin="anonymous"></script>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="RedsRacing Team #8 and #88 — race schedule, season countdown, stats, recaps, and behind-the-scenes updates from asphalt oval racing." />
     <title>2026 Season Countdown - RedsRacing #8</title>
@@ -19,8 +22,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" crossorigin="anonymous"></script>
     
     <!-- Global Error Tracking -->
     <script src="assets/js/global-error-tracker.js?v=202605061"></script>
@@ -48,6 +51,35 @@
         overflow-x: hidden;
         min-height: 100vh;
         position: relative;
+      }
+
+      /* ===== AdSense visibility hardening (inline – page does not load main.css) =====
+       * Promotes any AdSense slot above the page's fixed decorative overlays so
+       * AdSense's overlap/viewability check does not pull the ad at 100% zoom. */
+      ins.adsbygoogle,
+      ins.adsbygoogle > iframe,
+      iframe[id^="google_ads_iframe_"],
+      iframe[src*="googleads.g.doubleclick.net"],
+      iframe[src*="googlesyndication.com"],
+      .google-auto-placed,
+      .google-auto-placed > iframe,
+      [data-google-query-id],
+      [data-anchor-shown],
+      [data-anchor-status] {
+        position: relative;
+        z-index: 2147483646 !important;
+        isolation: isolate;
+        background: transparent !important;
+        overflow: visible !important;
+        clip: auto !important;
+        clip-path: none !important;
+        filter: none !important;
+      }
+      ins.adsbygoogle[data-anchor-status],
+      ins.adsbygoogle[data-vignette-loaded],
+      div[id^="google_anchor_"],
+      div[id^="google_vignette_"] {
+        z-index: 2147483647 !important;
       }
 
       /* Animated Background */
@@ -475,7 +507,10 @@
         position: fixed;
         inset: 0;
         pointer-events: none;
-        z-index: 2;
+        /* Keep below ad iframes/Auto Ads containers (which we elevate in main.css)
+           so AdSense doesn't detect this overlay as covering an ad slot at
+           normal zoom and pull the ad. */
+        z-index: 0;
         opacity: 0.9;
         background:
           radial-gradient(650px circle at var(--spot-x, 50%) var(--spot-y, 35%),
@@ -969,6 +1004,56 @@
         </div>
       </div>
 
+      <!-- Photo of the Week strip (hidden until flag + data ready) -->
+      <div id="potw-strip" style="display:none;width:100%;max-width:680px;margin:1.25rem auto 0;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);border-radius:12px;overflow:hidden;cursor:pointer;" onclick="document.getElementById('potw-strip').querySelector('a').click()">
+        <div style="display:flex;align-items:center;gap:.6rem;padding:.45rem .9rem;background:rgba(251,191,36,.12);">
+          <i class="fas fa-star" style="color:#fbbf24;font-size:.85rem;"></i>
+          <span style="font-size:.75rem;font-weight:700;letter-spacing:.08em;color:#fbbf24;text-transform:uppercase;">Driver's Favorite · Photo of the Week</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem;padding:.75rem .9rem;">
+          <img id="potw-img" src="" alt="Photo of the Week" style="width:90px;height:65px;object-fit:cover;border-radius:7px;border:1px solid rgba(251,191,36,.3);flex-shrink:0;" />
+          <div>
+            <p id="potw-caption-text" style="margin:0;font-size:.88rem;color:#e2e8f0;line-height:1.45;"></p>
+            <a href="driver.html#gallery" style="font-size:.78rem;color:#fbbf24;text-decoration:none;margin-top:.35rem;display:inline-block;">View gallery →</a>
+          </div>
+        </div>
+      </div>
+      <script>
+      (function(){
+        function tryLoadPOTW(){
+          var db = window.firebase && window.firebase.firestore && window.firebase.firestore();
+          if(!db){ setTimeout(tryLoadPOTW,400); return; }
+          // Check feature flag first
+          var rrf = window.RR && window.RR.flags;
+          var flagP = rrf ? rrf.get('enable_photo_of_week', false) : Promise.resolve(false);
+          flagP.then(function(enabled){
+            if(!enabled) return;
+            db.doc('config/photo_of_the_week').get().then(function(snap){
+              if(!snap.exists) return;
+              var d = snap.data();
+              if(!d.imageId) return;
+              db.doc('gallery_images/'+d.imageId).get().then(function(imgSnap){
+                if(!imgSnap.exists) return;
+                var imgData = imgSnap.data();
+                var url = imgData.url || imgData.downloadURL || imgData.imageUrl || '';
+                if(!url) return;
+                var strip = document.getElementById('potw-strip');
+                var img   = document.getElementById('potw-img');
+                var cap   = document.getElementById('potw-caption-text');
+                if(strip && img && cap){
+                  img.src = url;
+                  cap.textContent = d.caption || '';
+                  strip.style.display = 'block';
+                }
+              }).catch(function(){});
+            }).catch(function(){});
+          });
+        }
+        if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',tryLoadPOTW); }
+        else{ tryLoadPOTW(); }
+      })();
+      </script>
+
       <!-- CTA Buttons - Premium Upgrade -->
       <div class="cta-container" style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center; max-width: 600px; margin: 0 auto;">
         <!-- Primary CTAs -->
@@ -1007,7 +1092,18 @@
         </a>
         </div>
     </div>
-    
+
+    <!-- AdSense: home-top -->
+    <div class="rr-ad-slot" style="position:relative;z-index:10;max-width:970px;margin:1.5rem auto;padding:0 1rem;min-height:120px;">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-8879853783053353"
+           data-ad-slot="5606437088"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>try{(window.adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){console.warn('[ads] push failed:',e);}</script>
+    </div>
+
     <!-- Follow Section -->
     <div id="follow-section" style="position: relative; z-index: 10; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); padding: 3rem 2rem; text-align: center; border-top: 1px solid rgba(251, 191, 36, 0.2);">
       <div style="max-width: 600px; margin: 0 auto;">
@@ -1040,9 +1136,19 @@
         measurementId: "G-YD3ZWC13SR"
       };
 
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
+      // Initialize Firebase (guarded so a blocked/missing compat SDK on mobile
+      // cannot throw an uncaught ReferenceError on page load).
+      let db = null;
+      try {
+        if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+          if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
+          if (firebase.firestore) db = firebase.firestore();
+        } else {
+          console.warn('[home] Firebase compat SDK unavailable; analytics writes disabled.');
+        }
+      } catch (e) {
+        console.warn('[home] Firebase init failed:', e);
+      }
 
       function rrEscapeHtml(value) {
         return String(value)

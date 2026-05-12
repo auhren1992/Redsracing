@@ -10262,5 +10262,24 @@
         
       })();
     </script>
+
+    <!-- ═══ Admin Extensions mount point ═══════════════════════════════════
+         New feature panels inject themselves here via admin-modules/*.js.
+         Do not move or rename this div. -->
+    <section style="padding:1.5rem;max-width:1400px;margin:0 auto;">
+      <h2 style="font-size:1.1rem;font-weight:700;color:#fbbf24;margin-bottom:1rem;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid rgba(251,191,36,.2);padding-bottom:.5rem;">
+        <i class="fas fa-puzzle-piece" style="margin-right:.5rem;"></i>Extensions
+      </h2>
+      <div id="admin-extensions" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.25rem;"></div>
+    </section>
+
+    <!-- Audit helper (must load before feature panels) -->
+    <script src="assets/js/admin-modules/_audit.js"></script>
+    <!-- Feature flag module -->
+    <script src="assets/js/admin-modules/feature-flags.js"></script>
+    <!-- Audit log panel -->
+    <script src="assets/js/admin-modules/audit-log.js"></script>
+    <!-- Photo of the Week panel -->
+    <script src="assets/js/admin-modules/photo-of-week.js"></script>
   </body>
 </html>

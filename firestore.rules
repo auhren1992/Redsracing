@@ -402,6 +402,71 @@ service cloud.firestore {
       allow update: if hasRole('admin') || hasProfileRole('admin') || hasRole('team-member') || hasProfileRole('team-member');
     }
     
+    // Admin Audit Log — admin read; authenticated admin write only
+    match /admin_audit/{entryId} {
+      allow read: if isAdminOnly();
+      allow create: if isAuthenticated() && isAdminOnly();
+      allow update, delete: if false;
+    }
+
+    // Feature flags config (uses existing config/{docId} rule above — public read, admin write)
+    // Explicit alias for clarity — redundant with /config/{docId} but kept for documentation
+    // match /config/flags { ... } — covered by /config/{docId}
+
+    // Per-race admin notes for Race-Day Hub
+    match /race_notes/{raceId} {
+      allow read: if true;
+      allow write: if isAdminOnly();
+    }
+
+    // Race-day fan updates feed
+    match /race_updates/{raceId}/{postId} {
+      allow read: if true;
+      allow create: if isAdminOnly();
+      allow update, delete: if isAdminOnly();
+    }
+
+    // Driver-of-Day votes
+    match /votes/{raceId}/{uid} {
+      allow read: if true;
+      allow create: if isAuthenticated() && request.auth.uid == uid;
+      allow update, delete: if false;
+    }
+
+    // Prediction scores on user profiles (sub-collection handled via users rule)
+    // Scheduled push notifications
+    match /scheduled_pushes/{id} {
+      allow read:   if isAdminOnly();
+      allow create: if isAdminOnly();
+      allow update: if true; // Cloud Functions update status
+      allow delete: if isAdminOnly();
+    }
+
+    // Race recaps (admin write, published ones public read)
+    match /race_recaps/{raceId} {
+      allow read: if resource.data.published == true || isAdminOnly();
+      allow write: if isAdminOnly();
+    }
+
+    // Sponsors CRM — admin only
+    match /sponsors/{slug} {
+      allow read:  if isAdminOnly();
+      allow write: if isAdminOnly();
+    }
+
+    // Car hotspots config — public read, admin write
+    match /config/car_hotspots/{driver} {
+      allow read: if true;
+      allow write: if isAdminOnly();
+    }
+
+    // Fan passport stamps
+    match /users/{uid}/passport_stamps/{raceId} {
+      allow read:   if isOwner(uid) || isAdminOnly();
+      allow create: if isAuthenticated() && request.auth.uid == uid;
+      allow update, delete: if false;
+    }
+
     // Default deny - catches everything not explicitly allowed above
     match /{document=**} {
       allow read, write: if false;

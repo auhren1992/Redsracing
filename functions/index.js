@@ -1542,3 +1542,69 @@ exports.sendWelcomeEmail = newsletter.sendWelcomeEmail;
 exports.notifyNewRace = newsletter.notifyNewRace;
 exports.sendUpcomingRaceReminders = newsletter.sendUpcomingRaceReminders;
 exports.sendAdminBroadcast = newsletter.sendAdminBroadcast;
+
+// ─── iCal Feed ───────────────────────────────────────────────────────────────
+exports.scheduleICS = onRequest({ cors: true }, async (req, res) => {
+  try {
+    const scheduleData = require('./schedule-data.json');
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//RedsRacing//Schedule//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'X-WR-CALNAME:RedsRacing 2026 Schedule',
+      'X-WR-TIMEZONE:America/Chicago',
+    ];
+
+    const allRaces = [];
+    for (const season of (scheduleData.seasons || [])) {
+      for (const race of (season.races || [])) {
+        allRaces.push({ ...race, year: season.year });
+      }
+    }
+
+    for (const race of allRaces) {
+      const dateParts = String(race.date || '').split('-');
+      if (dateParts.length < 3) continue;
+      const dtStart = dateParts.join('');  // YYYYMMDD
+      // Add 1 day for DTEND
+      const d = new Date(race.date + 'T12:00:00');
+      d.setDate(d.getDate() + 1);
+      const dtEnd = [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0'),
+      ].join('');
+
+      const uid = `rr-${race.date}-${(race.track || 'race').replace(/\s+/g, '-').toLowerCase()}@redsracing.org`;
+      const summary = `RedsRacing: ${race.eventName || race.track}`;
+      const location = [race.track, race.city, race.state].filter(Boolean).join(', ');
+
+      lines.push('BEGIN:VEVENT');
+      lines.push('DTSTART;VALUE=DATE:' + dtStart);
+      lines.push('DTEND;VALUE=DATE:'   + dtEnd);
+      lines.push('SUMMARY:'   + icsEscape(summary));
+      lines.push('LOCATION:'  + icsEscape(location));
+      lines.push('UID:'       + uid);
+      lines.push('URL:https://www.redsracing.org/schedule.html');
+      lines.push('END:VEVENT');
+    }
+
+    lines.push('END:VCALENDAR');
+    const body = lines.join('\r\n') + '\r\n';
+
+    res.set('Content-Type',  'text/calendar; charset=utf-8');
+    res.set('Content-Disposition', 'attachment; filename="redsracing-schedule.ics"');
+    res.set('Cache-Control', 'public, max-age=3600');
+    res.status(200).send(body);
+  } catch (err) {
+    logger.error('scheduleICS error', err);
+    try { Sentry.captureException(err); } catch (_) {}
+    res.status(500).send('Error generating calendar');
+  }
+});
+
+function icsEscape(s) {
+  return String(s || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+}
