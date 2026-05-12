@@ -50,6 +50,80 @@
         }
       })();
     </script>
+    <!--
+      Force-refresh the Firebase Auth ID token AND log a permissions diagnostic
+      as soon as the user is known. The auto-resume path that Firebase uses on
+      a returning session reuses the cached ID token, which can predate any
+      custom-claim grant we did server-side ("admin: true"). Calling
+      getIdToken(true) fetches a fresh token from the Auth server that bakes
+      in the latest claims. Even though our Firestore rules already use a
+      users-doc fallback for admin checks, refreshing the token closes the
+      remaining "I keep getting permission-denied right after being granted
+      admin" gap without making the user sign out and back in.
+
+      The diagnostic logs the live uid + email + claims + users-doc admin
+      fields so any future "missing permissions" report can be pinpointed
+      from the browser console without a round-trip to the rules.
+    -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script>
+      (function refreshAndDiagnose() {
+        try {
+          if (typeof firebase === 'undefined' || !firebase.auth) return;
+          var auth = firebase.auth();
+          auth.onAuthStateChanged(function (user) {
+            if (!user) {
+              console.log('%c[admin-diag] no signed-in user', 'color:#fbbf24');
+              return;
+            }
+            user.getIdToken(/* forceRefresh */ true).then(function () {
+              return user.getIdTokenResult();
+            }).then(function (res) {
+              var c = res && res.claims || {};
+              console.log(
+                '%c[admin-diag] uid=' + user.uid +
+                ' email=' + (user.email || '(no email)') +
+                ' role=' + (c.role || '(no role claim)') +
+                ' admin=' + (c.admin === true) +
+                ' teamMember=' + (c.teamMember === true),
+                'color:#22c55e;font-weight:600;'
+              );
+              if (firebase.firestore) {
+                firebase.firestore().doc('users/' + user.uid).get().then(function (snap) {
+                  if (!snap.exists) {
+                    console.warn('[admin-diag] users/' + user.uid + ' DOES NOT EXIST');
+                    return;
+                  }
+                  var d = snap.data() || {};
+                  console.log(
+                    '%c[admin-diag] users-doc: role=' + d.role +
+                    ' isAdmin=' + d.isAdmin +
+                    ' isTeamMember=' + d.isTeamMember,
+                    'color:#22c55e;'
+                  );
+                  var tokenAdmin = c.role === 'admin' || c.admin === true;
+                  var docAdmin   = d.role === 'admin' || d.isAdmin === true;
+                  if (!tokenAdmin && !docAdmin) {
+                    console.warn(
+                      '[admin-diag] NEITHER token-claim NOR users-doc grants admin. ' +
+                      'Run scripts/set-admin-role.mjs ' + user.uid + ' and refresh.'
+                    );
+                  } else if (!tokenAdmin) {
+                    console.log('[admin-diag] doc-role admin only (token claim not yet refreshed; sign-out+in once if rules still deny).');
+                  }
+                }).catch(function (e) {
+                  console.warn('[admin-diag] users-doc read failed:', e && e.code, e && e.message);
+                });
+              }
+            }).catch(function (e) {
+              console.warn('[admin-diag] token refresh failed:', e && e.code, e && e.message);
+            });
+          });
+        } catch (e) {
+          console.warn('[admin-diag] init failed:', e);
+        }
+      })();
+    </script>
     <script src="assets/js/global-error-tracker.js?v=202605082"></script>
     
     <style>
