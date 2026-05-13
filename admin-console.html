@@ -3510,7 +3510,9 @@
         }
         
         function isModeratorRole(role) {
-          return role === 'team-member' || role === 'admin';
+          if (!role) return false;
+          const r = String(role).trim().toLowerCase().replace(/[\s_]+/g, '-');
+          return r === 'team-member' || r === 'admin' || r === 'owner';
         }
         
         // ===== PHASE 1: CLIENT TELEMETRY HELPERS =====

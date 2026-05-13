@@ -37,7 +37,7 @@ class ProfileEditModal {
   }
 
   getUserRole(claims) {
-    if (claims.admin || claims.role === 'admin') return 'admin';
+    if (claims.admin || claims.role === 'admin' || claims.role === 'owner') return 'admin';
     if (claims['team-member'] || claims.teamMember || claims.role === 'team-member') return 'team-member';
     if (claims.role === 'public-fan') return 'public-fan';
     return 'public-fan'; // default

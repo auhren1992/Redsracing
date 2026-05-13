@@ -7,6 +7,7 @@ import "./app.js";
 
 import { getFriendlyAuthError } from "./auth-errors.js";
 import { navigateToInternal, validateRedirectUrl } from "./navigation-helpers.js";
+import { resolveAppRoleForUser, defaultDashboardPath } from "./roles.js";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
@@ -91,8 +92,15 @@ class LoginPageController {
           this.setAuthMarker(result.user);
           this.showMessage("Sign-in successful! Redirecting...", false);
           const returnTo = this.getReturnTo();
-          setTimeout(() => {
-            navigateToInternal(returnTo || "/follower-dashboard.html");
+          setTimeout(async () => {
+            if (returnTo) {
+              navigateToInternal(returnTo);
+              return;
+            }
+            const role = await resolveAppRoleForUser(result.user, {
+              forceTokenRefresh: true,
+            });
+            navigateToInternal(defaultDashboardPath(role));
           }, 800);
           return; // Don't initialize rest of UI — we're redirecting
         }
@@ -450,11 +458,9 @@ class LoginPageController {
       // Force refresh to get latest custom claims
       const user = this.auth.currentUser;
       this.setAuthMarker(user);
-      let role = null;
       try {
         const tokenResult = await user.getIdTokenResult(true);
-        role = tokenResult?.claims?.role || null;
-        console.info("[Login] Claims role:", role);
+        console.info("[Login] Claims role:", tokenResult?.claims?.role || null);
       } catch (e) {
         console.warn("[Login] Failed to refresh token for claims:", e);
       }
@@ -466,13 +472,8 @@ class LoginPageController {
         navigateToInternal(returnTo);
         return;
       }
-      // Route based on role
-      if (role === 'admin') {
-        navigateToInternal('/admin-console.html');
-        return;
-      }
-      // All other roles go to role-aware dashboard
-      navigateToInternal('/follower-dashboard.html');
+      const appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: true });
+      navigateToInternal(defaultDashboardPath(appRole));
     } catch (error) {
       console.error("[Login] Email sign-in failed:", error);
       this.showMessage(getFriendlyAuthError(error));
@@ -585,8 +586,18 @@ class LoginPageController {
    */
   handleSuccess() {
     const returnTo = this.getReturnTo();
-    setTimeout(() => {
-      navigateToInternal(returnTo || "/follower-dashboard.html");
+    const user = this.auth?.currentUser;
+    setTimeout(async () => {
+      if (returnTo) {
+        navigateToInternal(returnTo);
+        return;
+      }
+      if (!user) {
+        navigateToInternal("/follower-dashboard.html");
+        return;
+      }
+      const appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: true });
+      navigateToInternal(defaultDashboardPath(appRole));
     }, 800);
   }
 

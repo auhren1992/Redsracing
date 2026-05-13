@@ -16,6 +16,7 @@
       const initial = stored === 'light' || stored === 'dark' ? stored : (systemPrefersLight ? 'light' : 'dark');
       root.dataset.theme = initial;
 
+      // Expose a tiny API for other scripts/pages if needed
       window.__rrTheme = {
         get: () => root.dataset.theme || 'dark',
         set: (next) => {
@@ -59,6 +60,7 @@
           updateIcon();
         });
 
+        // Keep it on the far right of the nav auth area
         authSection.appendChild(btn);
       };
 
@@ -67,6 +69,25 @@
       } else {
         mount();
       }
+    } catch (_) {}
+  })();
+
+  // Site-wide helpers: always load app detector + error tracker once.
+  // This keeps native-app UX consistent across ALL pages without adding per-page scripts.
+  (function ensureGlobalHelpers() {
+    try {
+      const scripts = Array.from(document.scripts || []);
+      const has = (needle) => scripts.some(s => (s.getAttribute && (s.getAttribute('src') || '')).includes(needle));
+
+      function inject(src) {
+        const s = document.createElement('script');
+        s.src = src;
+        s.defer = true;
+        document.head.appendChild(s);
+      }
+
+      if (!has('assets/js/mobile-app-detector.js')) inject('assets/js/mobile-app-detector.js');
+      if (!has('global-error-tracker.js')) inject('assets/js/global-error-tracker.js?v=202605061');
     } catch (_) {}
   })();
 
@@ -441,27 +462,21 @@ const core = await import('./assets/js/firebase-core.js');
     });
   }
 
-  // Check user role in Firestore; only show admin-console links for admin role
+  // Check user role; show admin-console links only for admin/owner (canonical admin)
   async function checkAdminRole(user) {
     if (!user) { hideAdminConsoleLinks(); return; }
     if (window.location.pathname.includes('admin-console')) return;
     try {
-      const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-      const db = getFirestore();
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      let role = null;
-      if (userDoc.exists()) {
-        role = userDoc.data()?.role || null;
-      }
-      if (!role) {
-        try {
-          const token = await user.getIdTokenResult(false);
-          role = token?.claims?.role || null;
-        } catch (_) {}
-      }
-      // Cache role for native app menu checks
-      try { localStorage.setItem('rr_user_role', role || ''); } catch(_) {}
-      if (role === 'admin') {
+      const { resolveAppRoleForUser, isAdminAppRole, APP_ROLE } = await import('./assets/js/roles.js');
+      const appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: false });
+      try { localStorage.setItem('rr_user_role', appRole); } catch (_) {}
+      try {
+        if (window._rrApplyRoleTheme) {
+          var themeKey = appRole === APP_ROLE.ADMIN ? 'admin' : appRole === APP_ROLE.CREW ? 'crew' : 'fan';
+          window._rrApplyRoleTheme(themeKey);
+        }
+      } catch (_) {}
+      if (isAdminAppRole(appRole)) {
         document.querySelectorAll('a[href*="admin-console"]').forEach(function(link) {
           link.style.display = '';
         });
@@ -991,6 +1006,27 @@ const core = await import('./assets/js/firebase-core.js');
     try {
       window.addEventListener('error', logClientError);
       window.addEventListener('unhandledrejection', logClientError);
+    } catch (_) {}
+    // Load role theme system on every page
+    try {
+      if (!document.getElementById('rr-theme-script')) {
+        var s = document.createElement('script');
+        s.id = 'rr-theme-script';
+        s.src = 'assets/js/role-theme.js';
+        document.head.appendChild(s);
+      }
+    } catch (_) {}
+
+    // Load the site-wide AdSense auto-injection once. It self-skips on
+    // auth/admin/dashboard paths via its internal deny-list.
+    try {
+      if (!document.getElementById('rr-ads-inject-script')) {
+        var ads = document.createElement('script');
+        ads.id = 'rr-ads-inject-script';
+        ads.src = 'assets/js/ads-inject.js';
+        ads.defer = true;
+        document.head.appendChild(ads);
+      }
     } catch (_) {}
   }
 

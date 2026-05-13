@@ -15,7 +15,7 @@ import {
   signInWithPopup,
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import { navigateToInternal } from "./navigation-helpers.js";
-import { validateUserClaims } from "./auth-utils.js";
+import { APP_ROLE, resolveAppRoleForUser } from "./roles.js";
 
 class FollowerLoginController {
   constructor() {
@@ -323,43 +323,40 @@ class FollowerLoginController {
    */
   async checkUserRoleAndRedirect(user) {
     try {
-      // Wait a moment for the token to be ready
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Validate user claims
-      const claimsResult = await validateUserClaims();
-      let userRole = claimsResult.success ? claimsResult.claims.role : null;
+      const appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: true });
+      console.log("Resolved app role:", appRole);
 
-      console.log("User role detected:", userRole);
-
-      if (userRole === "team-member") {
-        this.showMessage(
-          "Team member detected. Redirecting to team dashboard...",
-          false,
-        );
+      if (appRole === APP_ROLE.ADMIN) {
+        this.showMessage("Admin — opening command center...", false);
         setTimeout(() => {
-          navigateToInternal("/redsracing-dashboard.html");
-        }, 800);
+          navigateToInternal("/admin-console.html");
+        }, 600);
         return;
       }
 
-      // Followers: if role missing or public, automatically assign follower role
-      if (userRole !== "TeamRedFollower") {
-        try {
-          const functions = getFunctions(getFirebaseApp());
-          const setFollowerRole = httpsCallable(functions, "setFollowerRole");
-          const result = await setFollowerRole();
-          if (
-            result?.data?.status === "success" ||
-            result?.data?.status === "noop"
-          ) {
-            // Force token refresh to get new claims
-            await user.getIdToken(true);
-            userRole = "TeamRedFollower";
-          }
-        } catch (e) {
-          console.warn("Failed to assign follower role automatically:", e);
+      if (appRole === APP_ROLE.CREW) {
+        this.showMessage("Crew — opening team dashboard...", false);
+        setTimeout(() => {
+          navigateToInternal("/redsracing-dashboard.html");
+        }, 600);
+        return;
+      }
+
+      // Fans only: best-effort follower claim (Cloud Function)
+      try {
+        const functions = getFunctions(getFirebaseApp());
+        const setFollowerRole = httpsCallable(functions, "setFollowerRole");
+        const result = await setFollowerRole();
+        if (
+          result?.data?.status === "success" ||
+          result?.data?.status === "noop"
+        ) {
+          await user.getIdToken(true);
         }
+      } catch (e) {
+        console.warn("Failed to assign follower role automatically:", e);
       }
 
       this.showMessage(

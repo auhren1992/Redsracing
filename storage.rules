@@ -10,6 +10,15 @@ service firebase.storage {
     function hasRole(role) {
       return isAuthenticated() && request.auth.token.role == role;
     }
+
+    /** Admin and legacy owner tokens (product: same access as admin) */
+    function isAdminToken() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'owner' ||
+        request.auth.token.admin == true
+      );
+    }
     
     function isValidImage() {
       return request.resource.contentType.matches('image/.*');
@@ -19,8 +28,8 @@ service firebase.storage {
       return request.resource.size < 10 * 1024 * 1024; // 10MB limit
     }
     
-    // Admins can read and write anything in Storage
-    allow read, write: if hasRole('admin');
+    // Admins (and owner tokens) can read and write anything in Storage
+    allow read, write: if isAdminToken();
     
     // Gallery images - user uploads
     match /gallery/{userId}/{fileName} {
@@ -53,7 +62,7 @@ service firebase.storage {
     // Public data files (JSON) for race results
     match /public/data/{path=**} {
       allow read: if true; // public read for JSON data
-      allow write: if hasRole('admin');
+      allow write: if isAdminToken();
     }
     
     // Team member uploads (broader access)

@@ -30,6 +30,7 @@ service cloud.firestore {
     function isPrivilegedStaff() {
       return isAuthenticated() && (
         request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'owner' ||
         request.auth.token.role == 'team-member' ||
         request.auth.token.admin == true ||
         request.auth.token.teamMember == true ||
@@ -50,12 +51,15 @@ service cloud.firestore {
     function isAdminOnly() {
       return isAuthenticated() && (
         request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'owner' ||
         request.auth.token.admin == true ||
         (
           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
           (
             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner' ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isOwner', false) == true
           )
         )
       );

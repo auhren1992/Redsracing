@@ -373,27 +373,21 @@ const core = await import('./assets/js/firebase-core.js');
     });
   }
 
-  // Check user role in Firestore; only show admin-console links for admin role
+  // Canonical app role: show admin-console links only for admin/owner
   async function checkAdminRole(user) {
     if (!user) { hideAdminConsoleLinks(); return; }
     if (window.location.pathname.includes('admin-console')) return;
     try {
-      const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-      const db = getFirestore();
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      let role = null;
-      if (userDoc.exists()) {
-        role = userDoc.data()?.role || null;
-      }
-      if (!role) {
-        try {
-          const token = await user.getIdTokenResult(false);
-          role = token?.claims?.role || null;
-        } catch (_) {}
-      }
-      // Cache role for native app menu checks
-      try { localStorage.setItem('rr_user_role', role || ''); } catch(_) {}
-      if (role === 'admin') {
+      const { resolveAppRoleForUser, isAdminAppRole, APP_ROLE } = await import('./assets/js/roles.js');
+      const appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: false });
+      try { localStorage.setItem('rr_user_role', appRole); } catch (_) {}
+      try {
+        if (window._rrApplyRoleTheme) {
+          var themeKey = appRole === APP_ROLE.ADMIN ? 'admin' : appRole === APP_ROLE.CREW ? 'crew' : 'fan';
+          window._rrApplyRoleTheme(themeKey);
+        }
+      } catch (_) {}
+      if (isAdminAppRole(appRole)) {
         document.querySelectorAll('a[href*="admin-console"]').forEach(function(link) {
           link.style.display = '';
         });

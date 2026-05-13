@@ -18,6 +18,17 @@
       gradient2: '#3b82f6',
       bodyClass: 'theme-fan',
     },
+    admin: {
+      label: 'Site Admin',
+      icon: '👑',
+      faIcon: 'fa-user-shield',
+      accent: '#a855f7',
+      accentLight: '#c084fc',
+      accentDark: '#7e22ce',
+      gradient1: '#a855f7',
+      gradient2: '#fbbf24',
+      bodyClass: 'theme-admin',
+    },
     racer: {
       label: 'Racer',
       icon: '🏎️',
@@ -43,6 +54,12 @@
   };
 
   function getStoredRole() {
+    try {
+      var ur = localStorage.getItem('rr_user_role');
+      if (ur === 'admin') return 'admin';
+      if (ur === 'crew') return 'crew';
+      if (ur === 'follower') return 'fan';
+    } catch (_) {}
     try { return localStorage.getItem('rr_signup_role') || 'fan'; } catch(_) { return 'fan'; }
   }
 
@@ -55,7 +72,7 @@
     root.style.setProperty('--rr-accent-dim', t.accent + '26'); // ~15% opacity
     root.style.setProperty('--rr-accent-mid', t.accent + '66'); // ~40% opacity
     root.style.setProperty('--rr-accent-bg', t.accent + '0d'); // ~5% opacity
-    document.body.classList.remove('theme-fan', 'theme-racer', 'theme-crew');
+    document.body.classList.remove('theme-fan', 'theme-racer', 'theme-crew', 'theme-admin');
     document.body.classList.add(t.bodyClass);
     // Update any role badge on the page
     document.querySelectorAll('.rr-role-badge').forEach(function(el) {

@@ -37,7 +37,7 @@ class ProfileEditModal {
   }
 
   getUserRole(claims) {
-    if (claims.admin || claims.role === 'admin') return 'admin';
+    if (claims.admin || claims.role === 'admin' || claims.role === 'owner') return 'admin';
     if (claims['team-member'] || claims.teamMember || claims.role === 'team-member') return 'team-member';
     if (claims.role === 'public-fan') return 'public-fan';
     return 'public-fan'; // default
@@ -275,6 +275,15 @@ class ProfileEditModal {
       document.getElementById('edit-youtube').value = social.youtube || '';
       document.getElementById('edit-discord').value = social.discord || '';
       document.getElementById('edit-twitch').value = social.twitch || '';
+      
+      // Load racing stats (Phase 2)
+      const racing = userData.racingStats || {};
+      document.getElementById('edit-favorite-track').value = racing.favoriteTrack || '';
+      document.getElementById('edit-racing-class').value = racing.racingClass || '';
+      document.getElementById('edit-best-lap').value = racing.bestLap || '';
+      document.getElementById('edit-wins').value = racing.wins || '';
+      document.getElementById('edit-second').value = racing.second || '';
+      document.getElementById('edit-third').value = racing.third || '';
 
       // Load cars
       this.cars = userData.cars || [];
@@ -465,6 +474,14 @@ class ProfileEditModal {
           youtube: document.getElementById('edit-youtube')?.value.trim() || '',
           discord: document.getElementById('edit-discord')?.value.trim() || '',
           twitch: document.getElementById('edit-twitch')?.value.trim() || ''
+        },
+        racingStats: {
+          favoriteTrack: document.getElementById('edit-favorite-track')?.value.trim() || '',
+          racingClass: document.getElementById('edit-racing-class')?.value.trim() || '',
+          bestLap: document.getElementById('edit-best-lap')?.value.trim() || '',
+          wins: parseInt(document.getElementById('edit-wins')?.value) || 0,
+          second: parseInt(document.getElementById('edit-second')?.value) || 0,
+          third: parseInt(document.getElementById('edit-third')?.value) || 0
         },
         cars: this.cars,
         updatedAt: serverTimestamp()
