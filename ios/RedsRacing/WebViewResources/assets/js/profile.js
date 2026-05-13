@@ -185,6 +185,12 @@ import { LoadingService } from "./loading.js";
   const editStatusEmoji = document.getElementById("edit-status-emoji");
   const editFavoriteTrack = document.getElementById("edit-favorite-track");
   const editThemeColor = document.getElementById("edit-theme-color");
+  const editBannerUrl = document.getElementById("edit-banner-url");
+  const editSocialTikTok = document.getElementById("edit-social-tiktok");
+  const editSocialYouTube = document.getElementById("edit-social-youtube");
+  const editSocialTwitch = document.getElementById("edit-social-twitch");
+  const editSocialDiscord = document.getElementById("edit-social-discord");
+  const editBadgesWrap = document.getElementById("edit-badges");
   const surpriseMeBtn = document.getElementById("surprise-me-btn");
   const saveProfileBtn = document.getElementById("save-profile-btn");
   const cancelEditBtn = document.getElementById("cancel-edit-btn");
@@ -193,6 +199,53 @@ import { LoadingService } from "./loading.js";
   let currentUser = null;
   let isEditing = false;
   let isCurrentUserProfile = false;
+
+  function setEditOpen(open) {
+    if (!profileEditForm) return;
+    isEditing = !!open;
+    if (open) {
+      profileEditForm.classList.remove("hidden");
+      try { document.body.style.overflow = "hidden"; } catch {}
+      // focus first input for a responsive feel
+      try {
+        const el = editUsername || editDisplayName || editBio || editAvatarUrl;
+        if (el && typeof el.focus === "function") setTimeout(() => el.focus(), 50);
+      } catch {}
+    } else {
+      profileEditForm.classList.add("hidden");
+      try { document.body.style.overflow = ""; } catch {}
+    }
+  }
+
+  async function toggleEditMode(force) {
+    const next = typeof force === "boolean" ? force : !isEditing;
+    setEditOpen(next);
+  }
+
+  if (editProfileBtn) {
+    editProfileBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!isCurrentUserProfile) return;
+      void toggleEditMode(true);
+    });
+  }
+
+  if (cancelEditBtn) {
+    cancelEditBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      void toggleEditMode(false);
+    });
+  }
+
+  // Click on drawer backdrop closes it (but not clicks inside the panel)
+  if (profileEditForm) {
+    profileEditForm.addEventListener("click", (e) => {
+      if (e.target === profileEditForm) void toggleEditMode(false);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e && e.key === "Escape" && isEditing) void toggleEditMode(false);
+    }, true);
+  }
 
   async function updateRolePill(user) {
     const roleTextEl = document.getElementById("role-text");
@@ -206,7 +259,7 @@ import { LoadingService } from "./loading.js";
       const token = await user.getIdTokenResult();
       const claims = token?.claims || {};
 
-      if (claims.admin || claims.role === "admin") {
+      if (claims.admin || claims.role === "admin" || claims.role === "owner") {
         roleText = "Admin";
         roleEmoji = "👑";
       } else if (
@@ -214,8 +267,8 @@ import { LoadingService } from "./loading.js";
         claims.teamMember ||
         claims.role === "team-member"
       ) {
-        roleText = "Team Member";
-        roleEmoji = "⭐";
+        roleText = "Crew";
+        roleEmoji = "🔧";
       } else {
         roleText = "Fan";
         roleEmoji = "🏎️";
@@ -649,11 +702,59 @@ import { LoadingService } from "./loading.js";
     }
     if (profileFavoriteTrack) setSafeText(profileFavoriteTrack, profileData.favoriteTrack || "Add one in edit mode.");
 
+    // Mirror the signature bits into non-ID elements (avoids duplicate IDs in markup)
+    try {
+      const sigEmoji = document.querySelector('.rr-signature-emoji');
+      if (sigEmoji) sigEmoji.textContent = profileData.funStatusEmoji || '';
+      const sigDot = document.querySelector('.rr-signature-dot');
+      if (sigDot) sigDot.style.backgroundColor = profileData.themeColor || "#f7ff00";
+    } catch {}
+
     // Display garage cars
     displayGarageCars(profileData.cars || []);
 
     // Display social links
     displaySocialLinks(profileData.socialLinks || {});
+
+    // Fan zone: completion + badges
+    try {
+      const completionEl = document.getElementById('profile-completion');
+      const completionBar = document.getElementById('profile-completion-bar');
+      const badgesEl = document.getElementById('profile-badges');
+      const checks = [
+        !!(profileData.displayName && String(profileData.displayName).trim()),
+        !!(profileData.bio && String(profileData.bio).trim()),
+        !!(profileData.avatarUrl && String(profileData.avatarUrl).trim()),
+        !!(profileData.favoriteTrack && String(profileData.favoriteTrack).trim()),
+        !!(profileData.favoriteCars && profileData.favoriteCars.length),
+        !!(profileData.socialLinks && Object.values(profileData.socialLinks).some(v => String(v || '').trim())),
+        !!(profileData.bannerUrl && String(profileData.bannerUrl).trim()),
+      ];
+      const pct = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+      if (completionEl) completionEl.textContent = `${pct}%`;
+      if (completionBar) completionBar.style.width = `${pct}%`;
+
+      // Render badges: user-selected first, then earned badges from completion
+      if (badgesEl) {
+        badgesEl.innerHTML = '';
+        const selected = Array.isArray(profileData.badges) ? profileData.badges : [];
+        const earned = [];
+        if (pct >= 30) earned.push('✨ Starter');
+        if (pct >= 60) earned.push('⚡ Regular');
+        if (pct >= 90) earned.push('👑 Legend');
+        const all = [...new Set([...selected, ...earned])].slice(0, 10);
+        if (!all.length) {
+          badgesEl.innerHTML = '<span style="color: var(--rr-muted); font-weight: 800;">No badges yet — hit Edit to pick some.</span>';
+        } else {
+          all.forEach((b) => {
+            const span = document.createElement('span');
+            span.className = 'rr-chip';
+            span.textContent = b;
+            badgesEl.appendChild(span);
+          });
+        }
+      }
+    } catch {}
 
     // Update stats
     const statsCarsCount = document.getElementById('stat-cars-count');
@@ -669,10 +770,30 @@ import { LoadingService } from "./loading.js";
     if (editDisplayName) editDisplayName.value = profileData.displayName || "";
     if (editBio) editBio.value = profileData.bio || "";
     if (editAvatarUrl) editAvatarUrl.value = profileData.avatarUrl || "";
+    if (editBannerUrl) editBannerUrl.value = profileData.bannerUrl || "";
     if (editFavoriteCars)
       editFavoriteCars.value = profileData.favoriteCars
         ? profileData.favoriteCars.join(", ")
         : "";
+    try {
+      const sl = profileData.socialLinks || {};
+      if (editSocialTikTok) editSocialTikTok.value = sl.tiktok || "";
+      if (editSocialYouTube) editSocialYouTube.value = sl.youtube || "";
+      if (editSocialTwitch) editSocialTwitch.value = sl.twitch || "";
+      if (editSocialDiscord) editSocialDiscord.value = sl.discord || "";
+    } catch {}
+
+    // Badges picker highlight
+    try {
+      const selected = new Set(Array.isArray(profileData.badges) ? profileData.badges : []);
+      if (editBadgesWrap) {
+        editBadgesWrap.querySelectorAll('[data-badge]').forEach((btn) => {
+          const key = btn.getAttribute('data-badge');
+          if (selected.has(key)) btn.classList.add('rr-btn--primary');
+          else btn.classList.remove('rr-btn--primary');
+        });
+      }
+    } catch {}
 
     // Show edit button only for current user's profile
     if (editProfileBtn) {
@@ -728,6 +849,7 @@ import { LoadingService } from "./loading.js";
           displayName: (editDisplayName?.value || '').trim(),
           bio: (editBio?.value || '').trim(),
           avatarUrl: (editAvatarUrl?.value || '').trim(),
+          bannerUrl: (editBannerUrl?.value || '').trim(),
           favoriteCars: (editFavoriteCars?.value || '')
             .split(',')
             .map((s)=>s.trim())
@@ -737,6 +859,23 @@ import { LoadingService } from "./loading.js";
           funStatusEmoji: (editStatusEmoji?.value || '').trim(),
           favoriteTrack: (editFavoriteTrack?.value || '').trim(),
           themeColor: (editThemeColor?.value || '#f7ff00'),
+          socialLinks: {
+            tiktok: (editSocialTikTok?.value || '').trim(),
+            youtube: (editSocialYouTube?.value || '').trim(),
+            twitch: (editSocialTwitch?.value || '').trim(),
+            discord: (editSocialDiscord?.value || '').trim(),
+          },
+          badges: (() => {
+            try {
+              const picked = [];
+              if (editBadgesWrap) {
+                editBadgesWrap.querySelectorAll('[data-badge].rr-btn--primary').forEach((b) => {
+                  picked.push(b.getAttribute('data-badge'));
+                });
+              }
+              return picked.slice(0, 8);
+            } catch { return []; }
+          })(),
         };
 const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
         const app = getFirebaseApp();
@@ -751,6 +890,9 @@ const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/
             funStatusEmoji: payload.funStatusEmoji,
             favoriteTrack: payload.favoriteTrack,
             themeColor: payload.themeColor,
+            bannerUrl: payload.bannerUrl,
+            socialLinks: payload.socialLinks,
+            badges: payload.badges,
           }, { merge: true });
         } catch {}
         // Reload
@@ -776,6 +918,16 @@ const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/
       const randColor = colors[Math.floor(Math.random()*colors.length)];
       if (editThemeColor) editThemeColor.value = randColor;
       showToast('Feeling lucky! 🎲');
+    });
+  }
+
+  // Badge picker behavior (toggle)
+  if (editBadgesWrap) {
+    editBadgesWrap.addEventListener('click', (e) => {
+      const btn = e.target && e.target.closest ? e.target.closest('[data-badge]') : null;
+      if (!btn) return;
+      e.preventDefault();
+      btn.classList.toggle('rr-btn--primary');
     });
   }
 

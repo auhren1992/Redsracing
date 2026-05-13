@@ -259,7 +259,7 @@ import { LoadingService } from "./loading.js";
       const token = await user.getIdTokenResult();
       const claims = token?.claims || {};
 
-      if (claims.admin || claims.role === "admin") {
+      if (claims.admin || claims.role === "admin" || claims.role === "owner") {
         roleText = "Admin";
         roleEmoji = "👑";
       } else if (
@@ -267,8 +267,8 @@ import { LoadingService } from "./loading.js";
         claims.teamMember ||
         claims.role === "team-member"
       ) {
-        roleText = "Team Member";
-        roleEmoji = "⭐";
+        roleText = "Crew";
+        roleEmoji = "🔧";
       } else {
         roleText = "Fan";
         roleEmoji = "🏎️";
