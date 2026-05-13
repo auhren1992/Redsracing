@@ -4100,6 +4100,23 @@
           });
         }
         
+        // Keep location.hash in sync when we programmatically switch sections.
+        // Desktop .nav-item handlers use preventDefault(), which blocks the browser
+        // from updating the hash. The document-level capture listener then runs
+        // handleHashChange() ~30ms later with the *stale* hash (#overview) and
+        // resets the visible section — looks like "nothing works / snaps back".
+        function syncAdminUrlHash(href) {
+          if (!href || !href.startsWith('#')) return;
+          try {
+            const u = new URL(window.location.href);
+            u.hash = href;
+            const next = u.toString();
+            if (window.location.href !== next) {
+              history.replaceState(null, '', next);
+            }
+          } catch (_) {}
+        }
+
         // Initialize sidebar navigation with section switching
         function initNavigation() {
           const navItems = document.querySelectorAll('.nav-item');
@@ -4179,6 +4196,7 @@
               } catch (error) {
                 console.error('[NAV] Error switching sections:', error);
               }
+              syncAdminUrlHash(href);
             });
           });
         }
@@ -10644,9 +10662,11 @@
       window.RR.adminAuthReady = (function () {
         return new Promise(function (resolve) {
           var resolved = false;
+          var nullDebounce = null;
           function done(label) {
             if (resolved) return;
             resolved = true;
+            if (nullDebounce) { try { clearTimeout(nullDebounce); } catch (_) {} nullDebounce = null; }
             try { console.log('%c[admin-auth-gate] ready (' + label + ')', 'color:#22c55e'); } catch (_) {}
             resolve();
           }
@@ -10658,11 +10678,29 @@
             }
             var auth = firebase.auth();
             var unsub = auth.onAuthStateChanged(function (user) {
-              try { if (unsub) unsub(); } catch (_) {}
-              if (!user) { return done('no-user'); }
-              user.getIdToken(/* forceRefresh */ true)
-                .then(function () { done('user+token-refreshed'); })
-                .catch(function () { done('token-refresh-failed'); });
+              if (user) {
+                if (nullDebounce) { try { clearTimeout(nullDebounce); } catch (_) {} nullDebounce = null; }
+                try { if (unsub) { unsub(); unsub = null; } } catch (_) {}
+                user.getIdToken(/* forceRefresh */ true)
+                  .then(function () { done('user+token-refreshed'); })
+                  .catch(function () { done('token-refresh-failed'); });
+                return;
+              }
+              // Compat Auth often emits null once while IndexedDB persistence hydrates.
+              // Do not treat the first null as "signed out" or we load extension modules
+              // before a token exists and/or race the modular auth-guard grace timer.
+              if (nullDebounce) { try { clearTimeout(nullDebounce); } catch (_) {} }
+              nullDebounce = setTimeout(function () {
+                nullDebounce = null;
+                try { if (unsub) { unsub(); unsub = null; } } catch (_) {}
+                if (!auth.currentUser) {
+                  done('no-user');
+                  return;
+                }
+                auth.currentUser.getIdToken(true)
+                  .then(function () { done('user+token-after-null-debounce'); })
+                  .catch(function () { done('token-refresh-failed'); });
+              }, 700);
             }, function () { done('auth-listener-error'); });
           } catch (_) {
             done('exception');

@@ -102,11 +102,23 @@ export function monitorAuthState(onAuthChange, onError) {
     async (user) => {
       try {
         if (user) {
-          // Simple token check without forced refresh
-          const tokenResult = await user.getIdTokenResult(false);
-          onAuthChange(user, tokenResult.token);
+          let token = null;
+          try {
+            const tokenResult = await user.getIdTokenResult(false);
+            token = tokenResult.token;
+          } catch (tokenErr) {
+            // Still notify listeners: auth-guard clears its grace timer only when
+            // it sees a signed-in user. If getIdTokenResult throws (network,
+            // clock skew, transient SDK error), skipping onAuthChange leaves the
+            // timer running and the admin console redirects to login after 3–4s.
+            onError({
+              message: tokenErr?.message || "Token read failed",
+              recoverable: true,
+            });
+          }
+          await onAuthChange(user, token);
         } else {
-          onAuthChange(null, null);
+          await onAuthChange(null, null);
         }
       } catch (error) {
         onError({ message: error.message || "Authentication error" });
