@@ -66,26 +66,15 @@ jobs:
       - name: Upload to Google Play (Internal Testing)
         continue-on-error: true
         env:
-          PLAYSTORE_DEPLOY_KEY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          # Triple-T gradle-play-publisher 3.x reads this env var (full JSON), not -Pplay.* alone.
+          ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         working-directory: android
         run: |
-          if [ -z "$PLAYSTORE_DEPLOY_KEY" ]; then
-            echo "⚠️ Google Play service account credentials not configured, skipping upload"
+          if [ -z "${ANDROID_PUBLISHER_CREDENTIALS:-}" ]; then
+            echo "⚠️ Google Play service account credentials not configured (add Actions secret GOOGLE_PLAY_SERVICE_ACCOUNT_JSON), skipping upload"
             exit 0
           fi
-          
-          # Create service account JSON file with absolute path
-          SERVICE_ACCOUNT_FILE="$PWD/service-account.json"
-          echo "$PLAYSTORE_DEPLOY_KEY" > "$SERVICE_ACCOUNT_FILE"
-          
-          # Upload to Google Play using Gradle Play Publisher plugin
-          ./gradlew publishBundle \
-            -Pplay.serviceAccountCredentials="$SERVICE_ACCOUNT_FILE" \
-            --no-daemon \
-            --stacktrace
-          
-          # Clean up service account file
-          rm -f "$SERVICE_ACCOUNT_FILE"
+          ./gradlew publishBundle --no-daemon --stacktrace
 
       - name: Upload Bundle Artifact
         uses: actions/upload-artifact@v4

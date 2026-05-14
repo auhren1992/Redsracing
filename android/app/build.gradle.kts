@@ -74,7 +74,12 @@ play {
     // Use Internal testing track by default
     track.set("internal")
     defaultToAppBundles.set(true)
-    // Credentials are provided at execution time via -Pplay.serviceAccountCredentials or env var
+    // CI/local: JSON file path (Gradle -Pplay.serviceAccountCredentials=/abs/path.json)
+    val credPath = (project.findProperty("play.serviceAccountCredentials") as? String)?.trim()
+    if (!credPath.isNullOrBlank()) {
+        serviceAccountCredentials.set(file(credPath))
+    }
+    // Otherwise GPP reads ANDROID_PUBLISHER_CREDENTIALS (full JSON string). See README § Authenticating.
 }
 
 dependencies {

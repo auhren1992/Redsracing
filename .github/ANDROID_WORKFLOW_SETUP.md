@@ -75,6 +75,8 @@ A Google Play service account JSON key for uploading to Google Play Console.
    - Copy the ENTIRE content (all the JSON)
    - Paste it as the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` secret
 
+   The **Android Build** workflow maps that secret to the environment variable **`ANDROID_PUBLISHER_CREDENTIALS`**, which is what **Gradle Play Publisher 3.x** reads. (The old `-Pplay.serviceAccountCredentials=...` flag alone did not configure the plugin.)
+
 ## How the Workflow Works
 
 The workflow automatically:
