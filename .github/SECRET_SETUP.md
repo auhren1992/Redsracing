@@ -12,6 +12,16 @@ Keep this repo **private**. Names below are **references only** (never paste sec
 | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | **Not listed** — add if you use the Play upload step | Play Console service account JSON (full text). Step skips upload if unset. |
 | `GOOGLE_SERVICES_JSON` | **Optional** — add when ready | Full JSON → overwrites `android/app/google-services.json` before Gradle. If unset, CI uses the file from Git. |
 
+#### Play Console — permissions for that service account (`Users and permissions`)
+
+Scope the user to **this app** (`com.redsracing.app`), then turn on **App permissions** in this order (Play’s own banner asks for the read-only line first):
+
+1. **View app information and download in bulk reports (read-only)** — enable **before** stronger permissions if the console shows the warning you saw (“not able to edit… select read-only first”).
+2. **Release apps to testing tracks** — required for CI to upload AABs and manage **testing tracks** (Internal, **Closed** / API `alpha`, Open / `beta`). CI uses **`track = alpha`** (Play Console default **Closed testing**). It does **not** grant production rollout.
+3. Leave **Release to production…** off unless you explicitly want this identity able to ship to production.
+
+Optional: **Manage testing tracks and edit tester lists** only if you need that account to change tester lists or closed/open track settings; not required for a straight `publishBundle` upload.
+
 ### Download the signed Android bundle (.aab)
 
 Every successful **Android Build** run uploads a downloadable artifact:

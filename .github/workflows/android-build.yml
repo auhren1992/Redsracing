@@ -63,8 +63,7 @@ jobs:
         working-directory: android
         run: ./gradlew bundleRelease --no-daemon --stacktrace -PREDSRACING_KEYSTORE_PASSWORD=$REDSRACING_KEYSTORE_PASSWORD -PREDSRACING_KEY_PASSWORD=$REDSRACING_KEY_PASSWORD
 
-      - name: Upload to Google Play (Internal Testing)
-        continue-on-error: true
+      - name: Upload to Google Play (closed testing / alpha track)
         env:
           # Triple-T gradle-play-publisher 3.x reads this env var (full JSON), not -Pplay.* alone.
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
@@ -73,6 +72,13 @@ jobs:
           if [ -z "${ANDROID_PUBLISHER_CREDENTIALS:-}" ]; then
             echo "⚠️ Google Play service account credentials not configured (add Actions secret GOOGLE_PLAY_SERVICE_ACCOUNT_JSON), skipping upload"
             exit 0
+          fi
+          # Safe debug: principal only (never log the private key).
+          PRINCIPAL="$(printf '%s' "$ANDROID_PUBLISHER_CREDENTIALS" | jq -r '.client_email // empty' 2>/dev/null || true)"
+          if [ -n "$PRINCIPAL" ]; then
+            echo "Play Publisher principal: $PRINCIPAL (must have app-level release access for com.redsracing.app in Play Console)"
+          else
+            echo "⚠️ Could not read client_email from GOOGLE_PLAY_SERVICE_ACCOUNT_JSON — check JSON is valid."
           fi
           ./gradlew publishBundle --no-daemon --stacktrace
 
@@ -99,7 +105,9 @@ jobs:
             echo "### How to download"
             echo "1. Open this workflow run in the **Actions** tab."
             echo "2. Scroll to **Artifacts** at the bottom of the page."
-            echo "3. Download the artifact zip, extract it, and use \`app-release.aab\` in [Google Play Console](https://play.google.com/console)."
+            echo "3. Download the artifact zip, extract it, and use \`app-release.aab\` in [Google Play Console](https://play.google.com/console) if you need a manual upload."
+            echo ""
+            echo "When Play credentials are configured, CI also runs \`publishBundle\` to the **closed testing** track (API track \`alpha\`)."
             echo ""
             echo "To trigger a fresh build manually: **Actions → Android Build → Run workflow**."
             echo ""

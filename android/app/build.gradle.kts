@@ -15,8 +15,8 @@ android {
         applicationId = "com.redsracing.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 192
-        versionName = "11.2.6"
+        versionCode = 193
+        versionName = "11.2.7"
 
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
@@ -71,8 +71,8 @@ kotlin {
 }
 
 play {
-    // Use Internal testing track by default
-    track.set("internal")
+    // Play Developer API track id (Play Console "Closed testing" default track is `alpha`).
+    track.set("alpha")
     defaultToAppBundles.set(true)
     // CI/local: JSON file path (Gradle -Pplay.serviceAccountCredentials=/abs/path.json)
     val credPath = (project.findProperty("play.serviceAccountCredentials") as? String)?.trim()
