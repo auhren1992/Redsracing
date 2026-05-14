@@ -591,15 +591,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (savedVersion != currentVersion && currentVersion > 0) {
-            // Force clear cache ONCE to flush stale admin-console.html
-            // This will sign the user out this one time, but fixes the stuck cache
-            if (savedVersion < 147) {
+            // Flush WebView disk/HTTP cache whenever the APK version changes. Hosted
+            // pages (admin-console.html, mobile-app.css, etc.) otherwise stay stale
+            // until the user clears app data. Does not clear localStorage or cookies.
+            try {
                 binding.webview.clearCache(true)
-                android.util.Log.d("MainActivity", "One-time cache clear for build 147+ transition")
+                binding.webview.clearHistory()
+            } catch (e: Exception) {
+                android.util.Log.w("MainActivity", "WebView cache clear failed", e)
             }
-            binding.webview.clearHistory()
             prefs.edit().putInt("app_version_code", currentVersion).apply()
-            android.util.Log.d("MainActivity", "Version changed from $savedVersion to $currentVersion")
+            android.util.Log.d("MainActivity", "Version changed $savedVersion -> $currentVersion; WebView cache cleared")
         }
     }
 
