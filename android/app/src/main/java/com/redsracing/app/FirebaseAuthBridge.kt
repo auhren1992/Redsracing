@@ -172,6 +172,7 @@ class FirebaseAuthBridge(private val context: Context) {
                 .remove(KEY_UID)
                 .remove(KEY_EMAIL)
                 .apply()
+            AppLockBridge.clear(context)
             android.util.Log.d(TAG, "All auth data cleared")
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Failed to clear auth data", e)

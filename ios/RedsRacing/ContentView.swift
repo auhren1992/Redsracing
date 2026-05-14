@@ -1,14 +1,22 @@
 import SwiftUI
 import WebKit
 import UIKit
+import LocalAuthentication
+
+private enum AppLockUserDefaultsKeys {
+    static let biometricEnabled = "app_biometric_unlock"
+    static let lockAuthUid = "app_lock_auth_uid"
+}
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var isLoading = true
     @State private var showSplash = true
+    @State private var appAuthenticationRequired = false
     @State private var showMenuOverlay = false
     @State private var overlayTitle = ""
     @State private var overlayItems: [MenuItem] = []
-    @State private var currentURL: URL = URL(string: "https://redsracing.org/") ?? URL(fileURLWithPath: "/")
+    @State private var currentURL: URL = URL(string: "https://www.redsracing.org/") ?? URL(fileURLWithPath: "/")
     @State private var webViewRef: WKWebView? = nil
     private let deepLinkPublisher = NotificationCenter.default.publisher(for: .deepLinkTarget)
 
@@ -63,17 +71,93 @@ struct ContentView: View {
                 }
                 .transition(.opacity)
             }
+
+            if appAuthenticationRequired {
+                appLockOverlay
+            }
         }
         .preferredColorScheme(.dark)
         .onReceive(deepLinkPublisher) { notification in
             guard let page = notification.userInfo?["page"] as? String,
-                  let target = URL(string: "https://redsracing.org/" + page) else { return }
+                  let target = URL(string: "https://www.redsracing.org/" + page) else { return }
             // Reset the splash/overlay state so the deep-link page is visible
             // immediately when the user opens the app via the widget.
             withAnimation { showSplash = false }
             showMenuOverlay = false
             currentURL = target
             webViewRef?.load(URLRequest(url: target))
+        }
+        .onChange(of: showSplash) { _, stillShowing in
+            if !stillShowing {
+                evaluateStartupAppLockIfNeeded()
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active, appAuthenticationRequired {
+                runDeviceOwnerAuthGate()
+            }
+        }
+    }
+
+    private var appLockOverlay: some View {
+        ZStack {
+            Color(red: 0.02, green: 0.03, blue: 0.06).opacity(0.98).ignoresSafeArea()
+            VStack(spacing: 20) {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(Color(red: 0.97, green: 1, blue: 0))
+                Text("Unlock Reds Racing")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+                Text("Use Face ID, Touch ID, fingerprint, or your device passcode.")
+                    .font(.system(size: 15))
+                    .foregroundColor(Color(white: 0.7))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+                Button(action: { runDeviceOwnerAuthGate() }) {
+                    Text("Try again")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(Color(red: 0.02, green: 0.03, blue: 0.06))
+                        .padding(.horizontal, 28)
+                        .padding(.vertical, 12)
+                        .background(Color(red: 0.97, green: 1, blue: 0))
+                        .cornerRadius(12)
+                }
+                .padding(.top, 8)
+            }
+        }
+    }
+
+    private func evaluateStartupAppLockIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard defaults.bool(forKey: AppLockUserDefaultsKeys.biometricEnabled) else { return }
+        let uid = defaults.string(forKey: AppLockUserDefaultsKeys.lockAuthUid) ?? ""
+        guard !uid.isEmpty else { return }
+        let context = LAContext()
+        var error: NSError?
+        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else { return }
+        appAuthenticationRequired = true
+        runDeviceOwnerAuthGate()
+    }
+
+    private func runDeviceOwnerAuthGate() {
+        let context = LAContext()
+        context.localizedCancelTitle = "Cancel"
+        context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Unlock to open Reds Racing.") { success, err in
+            DispatchQueue.main.async {
+                if success {
+                    self.appAuthenticationRequired = false
+                    return
+                }
+                if let laError = err as? LAError {
+                    switch laError.code {
+                    case .userCancel, .appCancel, .systemCancel:
+                        UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
+                    default:
+                        break
+                    }
+                }
+            }
         }
     }
 
@@ -107,7 +191,7 @@ struct ContentView: View {
         HStack {
             navButton(symbol: "house.fill", title: "Home") {
                 hideMenu()
-                load(urlString: "https://redsracing.org/")
+                load(urlString: "https://www.redsracing.org/")
             }
             navButton(symbol: "person.2.fill", title: "Drivers") { showDriversMenu() }
             navButton(symbol: "flag.checkered.2.crossed", title: "Racing") { showRacingMenu() }
@@ -137,13 +221,13 @@ struct ContentView: View {
     private func showDriversMenu() {
         overlayTitle = "Drivers"
         overlayItems = [
-            .init(icon: "🏎️", title: "Jon Kirsch #8 - Profile", url: "https://redsracing.org/driver.html"),
-            .init(icon: "📸", title: "Jon Kirsch #8 - Gallery", url: "https://redsracing.org/gallery.html"),
-            .init(icon: "📊", title: "Jon Kirsch #8 - K1 Karting Archive", url: "https://redsracing.org/jons.html"),
-            .init(icon: "🏎️", title: "Jonny Kirsch #88 - Profile", url: "https://redsracing.org/jonny.html"),
-            .init(icon: "📸", title: "Jonny Kirsch #88 - Gallery", url: "https://redsracing.org/jonny-gallery.html"),
-            .init(icon: "📊", title: "Jonny Kirsch #88 - Results", url: "https://redsracing.org/jonny-results.html"),
-            .init(icon: "🏆", title: "Team Legends", url: "https://redsracing.org/legends.html")
+            .init(icon: "🏎️", title: "Jon Kirsch #8 - Profile", url: "https://www.redsracing.org/driver.html"),
+            .init(icon: "📸", title: "Jon Kirsch #8 - Gallery", url: "https://www.redsracing.org/gallery.html"),
+            .init(icon: "📊", title: "Jon Kirsch #8 - K1 Karting Archive", url: "https://www.redsracing.org/jons.html"),
+            .init(icon: "🏎️", title: "Jonny Kirsch #88 - Profile", url: "https://www.redsracing.org/jonny.html"),
+            .init(icon: "📸", title: "Jonny Kirsch #88 - Gallery", url: "https://www.redsracing.org/jonny-gallery.html"),
+            .init(icon: "📊", title: "Jonny Kirsch #88 - Results", url: "https://www.redsracing.org/jonny-results.html"),
+            .init(icon: "🏆", title: "Team Legends", url: "https://www.redsracing.org/legends.html")
         ]
         withAnimation { showMenuOverlay = true }
     }
@@ -151,13 +235,13 @@ struct ContentView: View {
     private func showRacingMenu() {
         overlayTitle = "Racing"
         overlayItems = [
-            .init(icon: "🔴", title: "Live Race", url: "https://redsracing.org/live.html"),
-            .init(icon: "📅", title: "Schedule", url: "https://redsracing.org/schedule.html"),
-            .init(icon: "📊", title: "Season Stats", url: "https://redsracing.org/stats.html"),
-            .init(icon: "🏁", title: "Race Recaps", url: "https://redsracing.org/recaps.html"),
-            .init(icon: "🏆", title: "Leaderboard", url: "https://redsracing.org/leaderboard.html"),
-            .init(icon: "🗺️", title: "Track Guides", url: "https://redsracing.org/tracks.html"),
-            .init(icon: "🎥", title: "Videos", url: "https://redsracing.org/videos.html")
+            .init(icon: "🔴", title: "Live Race", url: "https://www.redsracing.org/live.html"),
+            .init(icon: "📅", title: "Schedule", url: "https://www.redsracing.org/schedule.html"),
+            .init(icon: "📊", title: "Season Stats", url: "https://www.redsracing.org/stats.html"),
+            .init(icon: "🏁", title: "Race Recaps", url: "https://www.redsracing.org/recaps.html"),
+            .init(icon: "🏆", title: "Leaderboard", url: "https://www.redsracing.org/leaderboard.html"),
+            .init(icon: "🗺️", title: "Track Guides", url: "https://www.redsracing.org/tracks.html"),
+            .init(icon: "🎥", title: "Videos", url: "https://www.redsracing.org/videos.html")
         ]
         withAnimation { showMenuOverlay = true }
     }
@@ -165,14 +249,14 @@ struct ContentView: View {
     private func showCommunityMenu() {
         overlayTitle = "Community"
         overlayItems = [
-            .init(icon: "🏆", title: "Predictions", url: "https://redsracing.org/predictions.html"),
-            .init(icon: "📣", title: "Fan Wall", url: "https://redsracing.org/fan-wall.html"),
-            .init(icon: "❓", title: "Q&A", url: "https://redsracing.org/qna.html"),
-            .init(icon: "💬", title: "Feedback", url: "https://redsracing.org/feedback.html"),
-            .init(icon: "ℹ️", title: "About Us", url: "https://redsracing.org/about.html"),
-            .init(icon: "📞", title: "Contact", url: "https://redsracing.org/contact.html"),
-            .init(icon: "📖", title: "Racing Guide", url: "https://redsracing.org/racing-guide.html"),
-            .init(icon: "💰", title: "Sponsorship", url: "https://redsracing.org/sponsorship.html")
+            .init(icon: "🏆", title: "Predictions", url: "https://www.redsracing.org/predictions.html"),
+            .init(icon: "📣", title: "Fan Wall", url: "https://www.redsracing.org/fan-wall.html"),
+            .init(icon: "❓", title: "Q&A", url: "https://www.redsracing.org/qna.html"),
+            .init(icon: "💬", title: "Feedback", url: "https://www.redsracing.org/feedback.html"),
+            .init(icon: "ℹ️", title: "About Us", url: "https://www.redsracing.org/about.html"),
+            .init(icon: "📞", title: "Contact", url: "https://www.redsracing.org/contact.html"),
+            .init(icon: "📖", title: "Racing Guide", url: "https://www.redsracing.org/racing-guide.html"),
+            .init(icon: "💰", title: "Sponsorship", url: "https://www.redsracing.org/sponsorship.html")
         ]
         withAnimation { showMenuOverlay = true }
     }
@@ -187,18 +271,18 @@ struct ContentView: View {
                 let isAdmin = resultStr.contains("\"r\":\"admin\"") || resultStr.contains("\"r\": \"admin\"")
                 
                 var items: [MenuItem] = []
-                items.append(.init(icon: "👤", title: "My Profile", url: "https://redsracing.org/profile.html"))
+                items.append(.init(icon: "👤", title: "My Profile", url: "https://www.redsracing.org/profile.html"))
                 
                 if isLoggedIn {
                     if isAdmin {
-                        items.append(.init(icon: "📊", title: "Admin Console", url: "https://redsracing.org/admin-console.html"))
+                        items.append(.init(icon: "📊", title: "Admin Console", url: "https://www.redsracing.org/admin-console.html"))
                     }
-                    items.append(.init(icon: "⚙️", title: "Settings", url: "https://redsracing.org/settings.html"))
+                    items.append(.init(icon: "⚙️", title: "Settings", url: "https://www.redsracing.org/settings.html"))
                     items.append(.init(icon: "🚪", title: "Sign Out", url: "javascript:logout"))
                 } else {
-                    items.append(.init(icon: "🔐", title: "Sign In", url: "https://redsracing.org/login.html"))
+                    items.append(.init(icon: "🔐", title: "Sign In", url: "https://www.redsracing.org/login.html"))
                     items.append(.init(icon: "✏️", title: "Create Account", url: "https://www.redsracing.org/signup.html"))
-                    items.append(.init(icon: "⚙️", title: "Settings", url: "https://redsracing.org/settings.html"))
+                    items.append(.init(icon: "⚙️", title: "Settings", url: "https://www.redsracing.org/settings.html"))
                 }
                 
                 self.overlayItems = items
@@ -206,10 +290,10 @@ struct ContentView: View {
             }
         } else {
             overlayItems = [
-                .init(icon: "👤", title: "My Profile", url: "https://redsracing.org/profile.html"),
-                .init(icon: "🔐", title: "Sign In", url: "https://redsracing.org/login.html"),
+                .init(icon: "👤", title: "My Profile", url: "https://www.redsracing.org/profile.html"),
+                .init(icon: "🔐", title: "Sign In", url: "https://www.redsracing.org/login.html"),
                 .init(icon: "✏️", title: "Create Account", url: "https://www.redsracing.org/signup.html"),
-                .init(icon: "⚙️", title: "Settings", url: "https://redsracing.org/settings.html")
+                .init(icon: "⚙️", title: "Settings", url: "https://www.redsracing.org/settings.html")
             ]
             withAnimation { showMenuOverlay = true }
         }
@@ -386,6 +470,8 @@ struct WebView: UIViewRepresentable {
         // appends to the default product line.
         configuration.applicationNameForUserAgent = "RedsRacingApp/1.0 iOS"
 
+        configuration.userContentController.add(context.coordinator, name: "redsRacingAppLock")
+
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
@@ -446,21 +532,11 @@ struct WebView: UIViewRepresentable {
                     });
                     // Show admin sidebar on mobile for admin-console page
                     if (window.location.href.indexOf('admin-console') !== -1) {
-                        function applyAdminMobileLayout() {
-                            var sidebar = document.querySelector('.sidebar-nav');
-                            if (sidebar) {
-                                sidebar.classList.remove('hidden', 'lg:block');
-                                sidebar.style.cssText = 'display:block !important;position:relative !important;width:100% !important;';
-                            }
-                            var flexContainer = document.querySelector('.flex.min-h-screen');
-                            if (flexContainer) {
-                                flexContainer.style.cssText += 'flex-direction:column !important;';
-                            }
+                        var adminBar = document.getElementById('admin-menu-bar');
+                        if (adminBar) {
+                            adminBar.style.display = 'flex';
+                            adminBar.style.visibility = 'visible';
                         }
-                        applyAdminMobileLayout();
-                        // Re-apply after page JS runs to prevent layout fights
-                        setTimeout(applyAdminMobileLayout, 600);
-                        setTimeout(applyAdminMobileLayout, 2500);
                     }
                   }, 100);
                 })();
@@ -557,6 +633,23 @@ struct WebView: UIViewRepresentable {
                 }
             }
             return nil
+        }
+    }
+}
+
+extension WebView.Coordinator: WKScriptMessageHandler {
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.name == "redsRacingAppLock" else { return }
+        let defaults = UserDefaults.standard
+        guard let dict = message.body as? [String: Any] else { return }
+        let enabled = dict["enabled"] as? Bool ?? false
+        defaults.set(enabled, forKey: AppLockUserDefaultsKeys.biometricEnabled)
+        if enabled, let uid = dict["authUid"] as? String, !uid.isEmpty {
+            defaults.set(uid, forKey: AppLockUserDefaultsKeys.lockAuthUid)
+        }
+        if !enabled {
+            defaults.removeObject(forKey: AppLockUserDefaultsKeys.lockAuthUid)
+            defaults.set(false, forKey: AppLockUserDefaultsKeys.biometricEnabled)
         }
     }
 }

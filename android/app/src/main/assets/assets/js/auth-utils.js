@@ -32,6 +32,17 @@ export async function safeSignOut() {
     try {
       if (window.FirebaseAuthBridge) window.FirebaseAuthBridge.clearAllAuth();
     } catch (_) {}
+    try {
+      if (typeof AppLockBridge !== "undefined" && AppLockBridge?.setBiometricUnlockEnabled) {
+        AppLockBridge.setBiometricUnlockEnabled(false);
+      }
+    } catch (_) {}
+    try {
+      const h = window.webkit?.messageHandlers?.redsRacingAppLock;
+      if (h && typeof h.postMessage === "function") {
+        h.postMessage({ enabled: false });
+      }
+    } catch (_) {}
     
     await auth.signOut();
     return true;
@@ -44,6 +55,17 @@ export async function safeSignOut() {
     } catch (_) {}
     try {
       if (window.FirebaseAuthBridge) window.FirebaseAuthBridge.clearAllAuth();
+    } catch (_) {}
+    try {
+      if (typeof AppLockBridge !== "undefined" && AppLockBridge?.setBiometricUnlockEnabled) {
+        AppLockBridge.setBiometricUnlockEnabled(false);
+      }
+    } catch (_) {}
+    try {
+      const h = window.webkit?.messageHandlers?.redsRacingAppLock;
+      if (h && typeof h.postMessage === "function") {
+        h.postMessage({ enabled: false });
+      }
     } catch (_) {}
     return false;
   }

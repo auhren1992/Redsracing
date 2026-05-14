@@ -173,6 +173,8 @@
             </dict>
         </dict>
     </dict>
+    <key>NSFaceIDUsageDescription</key>
+    <string>Reds Racing uses Face ID or Touch ID to confirm it is you before opening the app when you opt in on the login screen.</string>
     <key>NSCameraUsageDescription</key>
     <string>Allow RedsRacing to use the camera to capture photos and videos for upload.</string>
     <key>NSMicrophoneUsageDescription</key>

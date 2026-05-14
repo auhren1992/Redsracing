@@ -30,7 +30,10 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.core.content.FileProvider
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -58,6 +61,21 @@ class MainActivity : AppCompatActivity() {
     private var lastFcmToken: String? = null
     private var initialUrl: String? = null
     private var isGuest: Boolean = false
+
+    /**
+     * All in-app WebView navigations must stay on this origin so Firebase Auth
+     * (IndexedDB / local persistence) and PasswordCredential / localStorage
+     * match the same host used by LoginActivity (www), instead of mixing
+     * https://appassets.androidplatform.net (separate storage → sudden sign-out).
+     */
+    companion object {
+        private const val SITE_ORIGIN = "https://www.redsracing.org"
+
+        fun siteUrl(path: String): String {
+            val p = path.trim().removePrefix("/")
+            return "$SITE_ORIGIN/$p"
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -143,8 +161,58 @@ class MainActivity : AppCompatActivity() {
         // has no routing extras, the WebView already restored its state — don't
         // clobber the page the user was on.
         if (savedInstanceState == null || hasRoutingExtras(intent)) {
-            handleNotificationIntent(intent)
+            if (shouldRunAppBiometricGate()) {
+                runAppBiometricGate { handleNotificationIntent(intent) }
+            } else {
+                handleNotificationIntent(intent)
+            }
         }
+    }
+
+    private fun shouldRunAppBiometricGate(): Boolean {
+        if (isGuest) return false
+        if (!AppLockBridge.isEnabled(this)) return false
+        if (!firebaseAuthBridge.hasAuthUid()) return false
+        val bm = BiometricManager.from(this)
+        val authenticators =
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        return bm.canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
+    }
+
+    private fun runAppBiometricGate(onSuccess: () -> Unit) {
+        val authenticators =
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        val executor = ContextCompat.getMainExecutor(this)
+        val callback = object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                onSuccess()
+            }
+
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                if (errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
+                    errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON ||
+                    errorCode == BiometricPrompt.ERROR_CANCELED
+                ) {
+                    finish()
+                    return
+                }
+                Toast.makeText(this@MainActivity, errString, Toast.LENGTH_LONG).show()
+                finish()
+            }
+
+            override fun onAuthenticationFailed() {
+                Toast.makeText(this@MainActivity, "Not recognized. Try again.", Toast.LENGTH_SHORT).show()
+            }
+        }
+        val prompt = BiometricPrompt(this as FragmentActivity, executor, callback)
+        val info = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Unlock Reds Racing")
+            .setSubtitle("Use your fingerprint, face, or screen lock")
+            .setAllowedAuthenticators(authenticators)
+            .build()
+        prompt.authenticate(info)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -169,8 +237,8 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Returns a deep-link URL safe to load into the JS-bridged WebView.
-     * Only the asset-loader host is allowed. Bare html filenames are resolved
-     * against the asset-loader. Anything else falls back to home.
+     * Only reds racing site hosts are allowed (same origin as the rest of the app).
+     * Bare html filenames resolve against [SITE_ORIGIN]. Anything else falls back to home.
      *
      * This prevents an FCM `url` payload (which is trivially attacker-controllable
      * if the server key is ever leaked) from loading an arbitrary URL into a
@@ -178,19 +246,28 @@ class MainActivity : AppCompatActivity() {
      * to JavaScript.
      */
     private fun sanitizeNotificationUrl(raw: String?): String {
-        val home = "https://appassets.androidplatform.net/assets/www/index.html"
+        val home = siteUrl("index.html")
         if (raw.isNullOrBlank()) return home
-        // Bare html filename -> resolve against asset-loader.
+        // Bare html filename -> same origin as the rest of the app WebView.
         if (!raw.contains("://") && raw.endsWith(".html")) {
-            return "https://appassets.androidplatform.net/assets/www/$raw"
+            return siteUrl(raw.removePrefix("/"))
         }
         return try {
             val uri = android.net.Uri.parse(raw)
             val scheme = uri.scheme?.lowercase()
-            val host = uri.host?.lowercase()
-            val allowed = (scheme == "https" || scheme == "http") &&
-                host == "appassets.androidplatform.net"
-            if (allowed) raw else home
+            val host = uri.host?.lowercase() ?: ""
+            val path = uri.path ?: "/"
+            val allowedHost = host == "www.redsracing.org" || host == "redsracing.org"
+            val allowedPath = path.endsWith(".html", ignoreCase = true) ||
+                path == "/" || path.isEmpty()
+            val allowed = (scheme == "https" || scheme == "http") && allowedHost && allowedPath
+            if (!allowed) return home
+            if (host == "redsracing.org") {
+                val tail = path.removePrefix("/").trim()
+                siteUrl(if (tail.isEmpty()) "index.html" else tail)
+            } else {
+                raw
+            }
         } catch (_: Throwable) {
             home
         }
@@ -198,6 +275,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        try {
+            binding.webview.onPause()
+        } catch (_: Throwable) {}
+        try {
+            binding.adView.pause()
+        } catch (_: Throwable) {}
         // Force WebView to flush localStorage/cookies to disk so auth persists across app restarts
         try {
             CookieManager.getInstance().flush()
@@ -248,7 +331,7 @@ class MainActivity : AppCompatActivity() {
                 else -> null
             }
             if (page != null) {
-                val url = "https://appassets.androidplatform.net/assets/www/$page"
+                val url = siteUrl(page)
                 android.util.Log.d("MainActivity", "Opening from widget: $url")
                 binding.webview.loadUrl(url)
                 return
@@ -282,7 +365,7 @@ class MainActivity : AppCompatActivity() {
 
         // Otherwise route based on saved auth / guest mode
         if (guest) {
-            binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
+            binding.webview.loadUrl(siteUrl("index.html"))
             return
         }
         checkAuthAndRoute()
@@ -316,7 +399,7 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> {
-                    binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
+                    binding.webview.loadUrl(siteUrl("index.html"))
                     hideMenuOverlay()
                     true
                 }
@@ -476,7 +559,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 hideMenuOverlay()
             } else {
-                binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/${item.url}")
+                binding.webview.loadUrl(siteUrl(item.url))
                 hideMenuOverlay()
             }
         }
@@ -530,7 +613,7 @@ class MainActivity : AppCompatActivity() {
             javaScriptEnabled = true
             domStorageEnabled = true
             @Suppress("DEPRECATION")
-            databaseEnabled = true
+            databaseEnabled = false
             allowFileAccess = false
             allowContentAccess = true
             mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
@@ -540,14 +623,35 @@ class MainActivity : AppCompatActivity() {
             cacheMode = WebSettings.LOAD_DEFAULT
             setSupportMultipleWindows(true)
             javaScriptCanOpenWindowsAutomatically = true
+            // Safe browsing adds latency on navigations; content is mostly same-origin / asset-pack.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                safeBrowsingEnabled = true
+                safeBrowsingEnabled = false
+            }
+        }
+
+        // Opaque backing + HW layer reduces "white horizontal scan lines" during scroll (GPU tile seams).
+        val bg = ContextCompat.getColor(this, R.color.website_background)
+        webView.setBackgroundColor(bg)
+        webView.overScrollMode = View.OVER_SCROLL_NEVER
+        binding.webviewContainer.setBackgroundColor(bg)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                webView.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
+            } catch (_: Throwable) {
             }
         }
 
         CookieManager.getInstance().setAcceptCookie(true)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
+        }
+
+        // Match iOS: append app id so login-page.js treats this as in-app WebView
+        // (Google redirect flow, device credential hints) without replacing Chrome's UA.
+        try {
+            val base = WebSettings.getDefaultUserAgent(this)
+            webView.settings.userAgentString = "$base RedsRacingApp/1.0 Android"
+        } catch (_: Throwable) {
         }
 
         webView.webViewClient = object : WebViewClient() {
@@ -600,7 +704,7 @@ class MainActivity : AppCompatActivity() {
                     (urlStr.endsWith(".html") || urlStr.contains(".html"))) {
                     // Extract just the filename from the URL
                     val fileName = url.path?.split("/")?.lastOrNull() ?: urlStr
-                    view?.loadUrl("https://appassets.androidplatform.net/assets/www/$fileName")
+                    view?.loadUrl(siteUrl(fileName))
                     return true
                 }
 
@@ -620,7 +724,7 @@ class MainActivity : AppCompatActivity() {
                 // Hide website navigation and add bottom padding for bottom nav
                 val hideNavJS = """
                     (function(){
-                        setTimeout(function() {
+                        requestAnimationFrame(function() {
                             var isAdmin = window.location.href.indexOf('admin-console') !== -1;
                             var header = document.querySelector('header');
                             if (header) {
@@ -636,9 +740,6 @@ class MainActivity : AppCompatActivity() {
                                     adminBar.style.display = 'flex';
                                     adminBar.style.visibility = 'visible';
                                 }
-                                // Hide desktop sidebar on app
-                                var sidebar = document.querySelector('.sidebar-nav');
-                                if (sidebar) sidebar.style.display = 'none';
                             }
                             document.body.style.paddingTop = '0';
                             document.body.style.marginTop = '0';
@@ -656,7 +757,7 @@ class MainActivity : AppCompatActivity() {
                                 label.style.opacity = '1';
                                 label.style.color = '#ffffff';
                             });
-                        }, 100);
+                        });
                     })();
                 """.trimIndent()
                 view?.evaluateJavascript(hideNavJS, null)
@@ -728,6 +829,7 @@ class MainActivity : AppCompatActivity() {
         webView.addJavascriptInterface(firebaseAuthBridge, "FirebaseAuthBridge")
         webView.addJavascriptInterface(NotificationsBridge(this), "AndroidNotifications")
         webView.addJavascriptInterface(AuthBridge(this), "AndroidAuth")
+        webView.addJavascriptInterface(AppLockBridge(this), "AppLockBridge")
     }
 
     private fun ensureMediaAndCameraPermissions() {
@@ -886,6 +988,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        try {
+            binding.webview.onResume()
+        } catch (_: Throwable) {}
+        try {
+            binding.adView.resume()
+        } catch (_: Throwable) {}
         // Refresh app_usage on resume so "who updated / last seen" stays current after login/navigation.
         try {
             val token = lastFcmToken
@@ -936,11 +1044,11 @@ class MainActivity : AppCompatActivity() {
         if (firebaseAuthBridge.hasAuthUid()) {
             // User was previously authenticated — go to home page
             android.util.Log.d("MainActivity", "Saved auth UID found, loading home page")
-            binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
+            binding.webview.loadUrl(siteUrl("index.html"))
         } else {
             // No saved auth — show signup/login
             android.util.Log.d("MainActivity", "No saved auth, loading signup")
-            binding.webview.loadUrl("https://appassets.androidplatform.net/assets/www/signup.html")
+            binding.webview.loadUrl(siteUrl("signup.html"))
         }
     }
     
@@ -1060,6 +1168,7 @@ class AuthBridge(private val context: Context) {
     @android.webkit.JavascriptInterface
     fun onLogout() {
         prefs.edit().remove("remember_choice").remove("mode").apply()
+        AppLockBridge.clear(context)
     }
 }
 

@@ -649,27 +649,37 @@
       }
 
       .sidebar-nav.admin-sidebar {
-        background: rgba(7, 11, 20, 0.92);
-        border-right: 1px solid rgba(148, 163, 184, 0.12);
-        box-shadow: 12px 0 48px rgba(0, 0, 0, 0.28);
+        background: linear-gradient(180deg, #050a14 0%, #030712 50%, #020617 100%);
+        border-right: 1px solid rgba(51, 65, 85, 0.45);
+        box-shadow: 12px 0 48px rgba(0, 0, 0, 0.45);
       }
       .sidebar-nav.admin-sidebar .nav-item {
-        border-radius: 10px;
+        border-radius: 12px;
         border: 1px solid transparent;
+        margin: 3px 0;
       }
+      /* Reference UX: hover = subtle row + thin gold edge */
       .sidebar-nav.admin-sidebar .nav-item:hover {
-        background: rgba(59, 130, 246, 0.12);
-        border-color: rgba(59, 130, 246, 0.18);
-        transform: translateX(3px);
+        background: rgba(15, 23, 42, 0.85);
+        border-color: rgba(251, 191, 36, 0.42);
+        box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.12);
+        transform: translateX(2px);
       }
+      /* Selected row = dark blue pill (not gold gradient) */
       .sidebar-nav.admin-sidebar .nav-item.active {
-        background: linear-gradient(
-          105deg,
-          rgba(251, 191, 36, 0.2) 0%,
-          rgba(59, 130, 246, 0.12) 100%
-        );
-        border-color: rgba(251, 191, 36, 0.35);
-        box-shadow: 0 0 28px rgba(251, 191, 36, 0.12);
+        background: rgba(30, 64, 175, 0.5);
+        border: 1px solid rgba(59, 130, 246, 0.4);
+        border-left: 1px solid rgba(59, 130, 246, 0.4);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        color: #f8fafc !important;
+      }
+      .sidebar-nav.admin-sidebar .nav-item.active i {
+        opacity: 1;
+      }
+      .sidebar-nav.admin-sidebar .nav-item[href="#logs"]:focus-visible {
+        outline: none;
+        border-color: rgba(250, 204, 21, 0.65);
+        box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.35);
       }
 
       .admin-hero {
@@ -774,13 +784,49 @@
       */
       #admin-menu-bar {
         display: none;
-        background: linear-gradient(92deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.96) 55%, rgba(15, 23, 42, 0.98) 100%);
-        padding: 12px 16px;
+        background: linear-gradient(
+          95deg,
+          rgba(7, 11, 20, 0.98) 0%,
+          rgba(15, 23, 42, 0.97) 45%,
+          rgba(30, 41, 59, 0.95) 100%
+        );
+        padding: 10px 14px 10px calc(12px + env(safe-area-inset-left, 0px));
         align-items: center;
-        gap: 12px;
+        gap: 14px;
         justify-content: flex-start;
-        border-bottom: 1px solid rgba(251, 191, 36, 0.35);
-        box-shadow: 0 10px 36px rgba(0, 0, 0, 0.4);
+        border-bottom: 1px solid rgba(251, 191, 36, 0.28);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+      }
+      #admin-menu-bar .admin-app-hamburger {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(251, 191, 36, 0.35);
+        background: linear-gradient(145deg, rgba(59, 130, 246, 0.15), rgba(15, 23, 42, 0.85));
+        color: #fbbf24;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+      #admin-menu-bar .admin-app-hamburger:active {
+        transform: scale(0.96);
+      }
+      #admin-menu-bar .admin-app-bar-title {
+        color: #fbbf24;
+        font-weight: 800;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      #admin-menu-bar .admin-app-bar-sub {
+        color: #94a3b8;
+        font-weight: 600;
+        font-size: 11px;
+        letter-spacing: 0.06em;
       }
       body.mobile-app #admin-menu-bar {
         display: flex !important;
@@ -788,23 +834,135 @@
       body.mobile-app header {
         display: none !important;
       }
-      body.mobile-app .sidebar-nav {
+
+      /* In-app: use the same <aside> Command Center nav as a left sheet (matches desktop sidebar styling). */
+      #admin-sidebar-overlay {
+        display: none;
+      }
+      body.mobile-app #admin-sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 10040;
+        background: rgba(2, 6, 23, 0.52);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.28s ease, visibility 0.28s ease;
+      }
+      body.mobile-app.drawer-sidebar-open #admin-sidebar-overlay {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      body.mobile-app #admin-sidebar.admin-sidebar {
+        display: flex !important;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        height: 100dvh;
+        width: min(20.5rem, 90vw);
+        max-width: 22rem;
+        z-index: 10050;
+        margin: 0;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        transform: translate3d(-105%, 0, 0);
+        transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+        box-shadow: 20px 0 80px rgba(0, 0, 0, 0.55);
+        border-right: 1px solid rgba(251, 191, 36, 0.12);
+        -webkit-overflow-scrolling: touch;
+      }
+      body.mobile-app.drawer-sidebar-open #admin-sidebar.admin-sidebar {
+        transform: translate3d(0, 0, 0);
+      }
+
+      body.mobile-app #admin-sidebar-app-footer {
+        display: block !important;
+      }
+      #admin-sidebar-app-footer {
+        display: none;
+      }
+
+      .admin-sidebar-close {
         display: none !important;
+      }
+      body.mobile-app .admin-sidebar-close {
+        display: inline-flex !important;
+      }
+
+      body.mobile-app #admin-menu-bar {
+        position: sticky;
+        top: 0;
+        z-index: 10060;
+        flex-shrink: 0;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        body.mobile-app #admin-sidebar.admin-sidebar {
+          transition: none !important;
+        }
+        body.mobile-app #admin-sidebar-overlay {
+          transition: none !important;
+        }
       }
     </style>
   <script src="assets/js/guest-gate.js"></script>
   </head>
   <body class="admin-console-page min-h-screen">
-    <!-- ANDROID APP: top-left hamburger + tucked sidebar drawer -->
+    <!-- In native app WebView: compact top bar; real nav lives in #admin-sidebar sheet -->
     <div id="admin-menu-bar">
-      <button id="android-hamburger" onclick="openDrawer()" aria-label="Open admin menu" style="background:rgba(2,6,23,0.35);border:1px solid rgba(251,191,36,0.25);color:#fbbf24;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.35);">
-        <i class="fas fa-bars"></i>
+      <button type="button" id="android-hamburger" class="admin-app-hamburger" onclick="toggleAdminDrawer()" aria-label="Open admin menu" aria-expanded="false" aria-controls="admin-sidebar">
+        <i class="fas fa-bars" aria-hidden="true"></i>
       </button>
-      <div style="display:flex;flex-direction:column;line-height:1.1">
-        <span style="color:#fbbf24;font-weight:800;font-size:13px;letter-spacing:0.5px">Admin Console</span>
-        <span style="color:#94a3b8;font-weight:600;font-size:10px">Command Center</span>
+      <div class="flex flex-col leading-tight min-w-0">
+        <span class="admin-app-bar-title truncate">Command Center</span>
+        <span class="admin-app-bar-sub truncate">RedsRacing Admin</span>
       </div>
     </div>
+    <div id="admin-sidebar-overlay" onclick="closeAdminDrawer()" aria-hidden="true"></div>
+
+    <script>
+      function toggleAdminDrawer() {
+        if (document.body.classList.contains("drawer-sidebar-open")) closeAdminDrawer();
+        else openAdminDrawer();
+      }
+      function openAdminDrawer() {
+        document.body.classList.add("drawer-sidebar-open");
+        var btn = document.getElementById("android-hamburger");
+        if (btn) btn.setAttribute("aria-expanded", "true");
+        document.body.style.overflow = "hidden";
+      }
+      function closeAdminDrawer() {
+        document.body.classList.remove("drawer-sidebar-open");
+        var btn = document.getElementById("android-hamburger");
+        if (btn) btn.setAttribute("aria-expanded", "false");
+        document.body.style.overflow = "";
+      }
+      /* Back-compat for any remaining onclick="closeDrawer()" */
+      function closeDrawer() { closeAdminDrawer(); }
+      function openDrawer() { openAdminDrawer(); }
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && document.body.classList.contains("drawer-sidebar-open")) {
+          closeAdminDrawer();
+        }
+      });
+      document.addEventListener("DOMContentLoaded", function () {
+        var side = document.getElementById("admin-sidebar");
+        if (side) {
+          side.addEventListener("click", function (e) {
+            var a = e.target.closest && e.target.closest("a");
+            if (a && a.getAttribute("href")) closeAdminDrawer();
+            var b = e.target.closest && e.target.closest("button");
+            if (b && b.id === "mobile-logout-button") closeAdminDrawer();
+          });
+        }
+      });
+    </script>
+
     <!-- Clean Modern Header -->
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
       <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
@@ -886,144 +1044,32 @@
       </nav>
     </header>
 
-    <div id="android-menu-drawer" style="position:fixed;top:0;left:0;width:308px;height:100vh;z-index:10000;background:linear-gradient(180deg,#0b1220 0%,#0f172a 45%,#0a0f18 100%);border-right:1px solid rgba(148,163,184,0.14);overflow-y:auto;transform:translateX(-100%);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1);-webkit-overflow-scrolling:touch;box-shadow:12px 0 48px rgba(0,0,0,0.55),4px 0 24px rgba(251,191,36,0.06);">
-        <div class="p-4 border-b border-slate-600">
-          <div class="flex items-center justify-between">
-           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-red-500 rounded-lg flex items-center justify-center">
-              <i class="fas fa-crown text-white text-lg"></i>
-            </div>
-            <div>
-              <h4 class="text-white font-bold">Admin Console</h4>
-              <p class="text-slate-400 text-sm">Command Center</p>
-            </div>
-           </div>
-           <button onclick="closeDrawer()" aria-label="Close menu" style="color:#94a3b8;padding:8px;font-size:20px"><i class="fas fa-times"></i></button>
-          </div>
-        </div>
-        
-        <div class="p-4">
-          <style>
-            /* Android drawer: mimic website sidebar (clean + calm) */
-            #android-menu-drawer .a-section { margin-bottom: 14px; }
-            #android-menu-drawer .a-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: #64748b; font-weight: 800; padding: 0 10px 6px; }
-            #android-menu-drawer .a-link { display:flex; align-items:center; gap:12px; padding: 10px 12px; border-radius: 12px; text-decoration:none; color:#cbd5e1; font-size: 14px; font-weight: 600; border: 1px solid transparent; }
-            #android-menu-drawer .a-link:hover { background: rgba(148,163,184,0.10); border-color: rgba(148,163,184,0.12); color: #fff; }
-            #android-menu-drawer .a-link i { width: 18px; text-align:center; font-size: 13px; }
-            #android-menu-drawer .a-link.is-active {
-              background: linear-gradient(105deg, rgba(251,191,36,0.22) 0%, rgba(59,130,246,0.14) 100%);
-              border-color: rgba(251,191,36,0.35);
-              color: #fff;
-              box-shadow: 0 0 22px rgba(251,191,36,0.12);
-            }
-            #android-menu-drawer .a-divider { height:1px; background: rgba(148,163,184,0.14); margin: 10px 0; }
-            #android-menu-drawer .a-badge { margin-left:auto; background:#ef4444; color:#fff; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 800; }
-          </style>
-
-          <div class="a-section">
-            <div class="a-title">Dashboard</div>
-            <a href="#overview" onclick="closeDrawer()" class="a-link is-active"><i class="fas fa-tachometer-alt" style="color:#3b82f6"></i><span>Overview</span></a>
-            <a href="#analytics" onclick="closeDrawer()" class="a-link"><i class="fas fa-chart-line" style="color:#10b981"></i><span>Analytics</span></a>
-            <a href="#health" onclick="closeDrawer()" class="a-link"><i class="fas fa-heartbeat" style="color:#10b981"></i><span>Site Health</span></a>
-          </div>
-
-          <div class="a-section">
-            <div class="a-title">Racing</div>
-            <a href="#schedule-mgmt" onclick="closeDrawer()" class="a-link"><i class="fas fa-calendar-alt" style="color:#22c55e"></i><span>Schedule</span></a>
-            <a href="#race" onclick="closeDrawer()" class="a-link"><i class="fas fa-flag-checkered" style="color:#eab308"></i><span>Race Results</span></a>
-            <a href="live-race-admin.html" onclick="closeDrawer()" class="a-link"><i class="fas fa-broadcast-tower" style="color:#ef4444"></i><span>Live Updates</span></a>
-            <a href="push-notifications.html" onclick="closeDrawer()" class="a-link"><i class="fas fa-bell" style="color:#f97316"></i><span>Notifications</span></a>
-          </div>
-
-          <div class="a-section">
-            <div class="a-title">Content</div>
-            <a href="#media" onclick="closeDrawer()" class="a-link"><i class="fas fa-photo-video" style="color:#a855f7"></i><span>Media Gallery</span><span id="gallery-pending-count-drawer" class="a-badge">0</span></a>
-            <a href="#videos" onclick="closeDrawer()" class="a-link"><i class="fas fa-video" style="color:#ec4899"></i><span>Videos</span></a>
-            <a href="#qna" onclick="closeDrawer()" class="a-link"><i class="fas fa-comments" style="color:#06b6d4"></i><span>Q&A</span></a>
-            <a href="#fanwall" onclick="closeDrawer()" class="a-link"><i class="fas fa-bullhorn" style="color:#f97316"></i><span>Fan Wall</span></a>
-          </div>
-
-          <div class="a-section">
-            <div class="a-title">Operations</div>
-            <a href="#inbox" onclick="closeDrawer()" class="a-link"><i class="fas fa-inbox" style="color:#06b6d4"></i><span>Admin Inbox</span><span id="inbox-badge-drawer" class="a-badge" style="display:none">0</span></a>
-            <a href="#raceday" onclick="closeDrawer()" class="a-link"><i class="fas fa-flag" style="color:#ef4444"></i><span>Race Day</span></a>
-            <a href="#audit" onclick="closeDrawer()" class="a-link"><i class="fas fa-history" style="color:#f59e0b"></i><span>Audit Trail</span></a>
-            <a href="#data-quality" onclick="closeDrawer()" class="a-link"><i class="fas fa-check-double" style="color:#14b8a6"></i><span>Data Quality</span></a>
-            <a href="#releases" onclick="closeDrawer()" class="a-link"><i class="fas fa-rocket" style="color:#6366f1"></i><span>Releases</span></a>
-          </div>
-
-          <div class="a-section">
-            <div class="a-title">Admin</div>
-            <a href="#advanced" onclick="closeDrawer()" class="a-link"><i class="fas fa-user-shield" style="color:#facc15"></i><span>Team & Roles</span></a>
-            <a href="#logs" onclick="closeDrawer()" class="a-link"><i class="fas fa-bug" style="color:#ef4444"></i><span>Error Logs</span></a>
-            <a href="settings.html" onclick="closeDrawer()" class="a-link"><i class="fas fa-cog" style="color:#94a3b8"></i><span>Settings</span></a>
-          </div>
-        </div>
-        
-        <div class="border-t border-slate-600 mt-4 p-4">
-          <button id="mobile-logout-button" class="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg font-semibold transition-colors flex items-center justify-center">
-            <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
-          </button>
-        </div>
-        <script>
-          // Copy badge counts from desktop sidebar if present
-          (function syncDrawerBadges(){
-            try {
-              const srcGallery = document.getElementById('gallery-pending-count');
-              const dstGallery = document.getElementById('gallery-pending-count-drawer');
-              if (srcGallery && dstGallery) dstGallery.textContent = (srcGallery.textContent || '0').trim();
-
-              const srcInbox = document.getElementById('inbox-badge');
-              const dstInbox = document.getElementById('inbox-badge-drawer');
-              if (srcInbox && dstInbox) {
-                dstInbox.textContent = (srcInbox.textContent || '0').trim();
-                dstInbox.style.display = srcInbox.style.display === 'none' ? 'none' : '';
-              }
-            } catch (_) {}
-          })();
-        </script>
-      </div>
-    </div>
-    <div id="android-menu-overlay" onclick="closeDrawer()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:9999;"></div>
-
-    <script>
-      function openDrawer(){
-        var d = document.getElementById('android-menu-drawer');
-        var o = document.getElementById('android-menu-overlay');
-        if (d) d.style.transform = 'translateX(0)';
-        if (o) o.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-      }
-      function closeDrawer(){
-        var d = document.getElementById('android-menu-drawer');
-        var o = document.getElementById('android-menu-overlay');
-        if (d) d.style.transform = 'translateX(-100%)';
-        if (o) o.style.display = 'none';
-        document.body.style.overflow = '';
-      }
-    </script>
-
     <!-- Main Dashboard Layout -->
     <div class="flex min-h-screen">
-      <!-- Modern Sidebar -->
-      <aside class="sidebar-nav admin-sidebar w-64 lg:w-72 flex-shrink-0 hidden md:block">
-        <div class="p-6">
-          <div class="mb-6">
-            <div class="flex items-center space-x-3 mb-1">
-              <div class="w-9 h-9 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center shadow-lg">
-                <i class="fas fa-crown text-white text-sm"></i>
+      <!-- Modern Sidebar (desktop: in flow; in-app WebView: same markup slides in from left) -->
+      <aside id="admin-sidebar" class="sidebar-nav admin-sidebar w-64 lg:w-72 flex-shrink-0 hidden md:block">
+        <div class="p-6 flex flex-col h-full min-h-0 max-h-full">
+          <div class="mb-5 shrink-0">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center space-x-3 min-w-0">
+                <div class="w-9 h-9 bg-gradient-to-br from-amber-700/40 to-slate-900 rounded-lg flex items-center justify-center shadow-lg shrink-0 border border-amber-400/40">
+                  <i class="fas fa-crown text-amber-300 text-sm" aria-hidden="true"></i>
+                </div>
+                <div class="min-w-0">
+                  <h2 class="text-base font-bold text-white leading-tight tracking-tight">Command Center</h2>
+                  <p class="text-[11px] text-slate-500 font-medium">RedsRacing Admin</p>
+                </div>
               </div>
-              <div>
-                <h2 class="text-sm font-bold text-white leading-tight">Command Center</h2>
-                <p class="text-[10px] text-slate-500">RedsRacing Admin</p>
-              </div>
+              <button type="button" class="admin-sidebar-close text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800/80 transition items-center justify-center" onclick="closeAdminDrawer()" aria-label="Close menu">
+                <i class="fas fa-times text-lg" aria-hidden="true"></i>
+              </button>
             </div>
           </div>
           
-          <nav class="space-y-1">
+          <nav class="space-y-1 flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-2">
             <!-- Dashboard -->
             <div class="mb-3">
-              <h3 class="text-[10px] uppercase tracking-widest text-slate-500 px-3 mb-1.5 font-bold">Dashboard</h3>
+              <h3 class="text-[10px] uppercase tracking-[0.2em] text-slate-500 px-3 mb-2 font-bold">Dashboard</h3>
               <a href="#overview" class="nav-item active flex items-center px-3 py-2 text-sm font-medium text-white">
                 <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
                 <span>Overview</span>
@@ -1034,14 +1080,14 @@
                 <span>Analytics</span>
               </a>
               <a href="#health" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
-                <i class="fas fa-heartbeat w-5 mr-3 text-emerald-400"></i>
+                <i class="fas fa-heartbeat w-5 mr-3 text-teal-400"></i>
                 <span>Site Health</span>
               </a>
             </div>
             
             <!-- Racing -->
             <div class="mb-3">
-              <h3 class="text-[10px] uppercase tracking-widest text-slate-500 px-3 mb-1.5 font-bold">Racing</h3>
+              <h3 class="text-[10px] uppercase tracking-[0.2em] text-slate-500 px-3 mb-2 font-bold">Racing</h3>
               <a href="#schedule-mgmt" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
                 <i class="fas fa-calendar-alt w-5 mr-3 text-green-400"></i>
                 <span>Schedule</span>
@@ -1062,7 +1108,7 @@
             
             <!-- Content -->
             <div class="mb-3">
-              <h3 class="text-[10px] uppercase tracking-widest text-slate-500 px-3 mb-1.5 font-bold">Content</h3>
+              <h3 class="text-[10px] uppercase tracking-[0.2em] text-slate-500 px-3 mb-2 font-bold">Content</h3>
               <a href="#media" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
                 <i class="fas fa-photo-video w-5 mr-3 text-purple-400"></i>
                 <span>Media Gallery</span>
@@ -1084,7 +1130,7 @@
             
             <!-- Operations -->
             <div class="mb-3">
-              <h3 class="text-[10px] uppercase tracking-widest text-slate-500 px-3 mb-1.5 font-bold">Operations</h3>
+              <h3 class="text-[10px] uppercase tracking-[0.2em] text-slate-500 px-3 mb-2 font-bold">Operations</h3>
               <a href="#inbox" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
                 <i class="fas fa-inbox w-5 mr-3 text-cyan-400"></i>
                 <span>Admin Inbox</span>
@@ -1095,11 +1141,11 @@
                 <span>Race Day</span>
               </a>
               <a href="#audit" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
-                <i class="fas fa-history w-5 mr-3 text-amber-400"></i>
+                <i class="fas fa-history w-5 mr-3 text-slate-400"></i>
                 <span>Audit Trail</span>
               </a>
               <a href="#data-quality" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
-                <i class="fas fa-check-double w-5 mr-3 text-teal-400"></i>
+                <i class="fas fa-shield-alt w-5 mr-3 text-slate-300"></i>
                 <span>Data Quality</span>
               </a>
               <a href="#releases" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
@@ -1110,9 +1156,9 @@
 
             <!-- Admin -->
             <div class="mb-3">
-              <h3 class="text-[10px] uppercase tracking-widest text-slate-500 px-3 mb-1.5 font-bold">Admin</h3>
+              <h3 class="text-[10px] uppercase tracking-[0.2em] text-slate-500 px-3 mb-2 font-bold">Admin</h3>
               <a href="#advanced" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
-                <i class="fas fa-user-shield w-5 mr-3 text-yellow-300"></i>
+                <i class="fas fa-user-cog w-5 mr-3 text-slate-300"></i>
                 <span>Team & Roles</span>
               </a>
               <a href="#logs" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
@@ -1125,6 +1171,13 @@
               </a>
             </div>
           </nav>
+
+          <div id="admin-sidebar-app-footer" class="shrink-0 pt-4 mt-1 border-t border-slate-700/50">
+            <button type="button" id="mobile-logout-button" class="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-900/25">
+              <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+              <span>Sign Out</span>
+            </button>
+          </div>
         </div>
       </aside>
       
@@ -3438,7 +3491,7 @@
       (function() {
         'use strict';
 
-        // Android drawer no longer uses nested accordions; keep it simple like the website sidebar.
+        // In-app WebView: admin nav is the real sidebar (#admin-sidebar) as a left sheet.
         
         // --- Firebase initialization helpers (single source of truth) ---
         const FIREBASE_CONFIG = {
@@ -3595,6 +3648,7 @@
         // Snapshot of admin_alerts doc IDs currently displayed; the Clear button uses this
         // to soft-archive only what the user actually saw (audit-trail-safe).
         window.__inboxVisibleAlertIds = window.__inboxVisibleAlertIds || [];
+        window.__inboxVisibleFailedPushIds = window.__inboxVisibleFailedPushIds || [];
         async function loadOpsInbox() {
           const container = document.getElementById('inbox-items');
           if (!container) return;
@@ -3602,8 +3656,14 @@
           const statusEl = document.getElementById('inbox-status');
           if (statusEl) statusEl.textContent = '';
           const clearBtn = document.getElementById('clear-inbox-btn');
-          if (clearBtn) { clearBtn.disabled = true; clearBtn.style.opacity = '.55'; clearBtn.style.cursor = 'not-allowed'; }
+          if (clearBtn) {
+            clearBtn.disabled = true;
+            clearBtn.style.opacity = '.55';
+            clearBtn.style.cursor = 'not-allowed';
+            clearBtn.innerHTML = '<i class="fas fa-broom mr-2"></i>Clear alerts';
+          }
           window.__inboxVisibleAlertIds = [];
+          window.__inboxVisibleFailedPushIds = [];
           let app, db, fs;
           try {
             fs = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
@@ -3658,7 +3718,19 @@
           );
           await runQuery('failed push',
             () => getDocs(query(collection(db, 'push_notifications'), where('status','==','failed'))),
-            s => { if (s.size) items.push({ icon: 'fa-exclamation-circle', color: 'text-red-500', label: s.size + ' failed push notification(s)', action: '#advanced', priority: 3 }); }
+            s => {
+              if (!s.size) return;
+              s.forEach(function (d) {
+                if (window.__inboxVisibleFailedPushIds.length < 40) window.__inboxVisibleFailedPushIds.push(d.id);
+              });
+              items.push({
+                icon: 'fa-exclamation-circle',
+                color: 'text-red-500',
+                label: s.size + ' failed push notification(s)',
+                action: 'push-notifications.html',
+                priority: 3,
+              });
+            }
           );
           items.sort((a,b) => b.priority - a.priority);
           const badge = document.getElementById('inbox-badge');
@@ -3666,23 +3738,45 @@
           if (items.length === 0) {
             container.innerHTML = '<div class="text-center py-8"><i class="fas fa-check-circle text-green-400 text-3xl mb-3"></i><div class="text-green-400 font-semibold">All clear!</div><div class="text-slate-500 text-sm">No pending items</div></div>';
           } else {
-            container.innerHTML = items.map(it => '<a href="' + it.action + '" class="block bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 hover:border-yellow-400/30 transition flex items-center space-x-3"><i class="fas ' + it.icon + ' ' + it.color + ' text-lg w-6"></i><span class="text-slate-200 text-sm flex-1">' + escHtmlInbox(it.label) + '</span><i class="fas fa-chevron-right text-slate-600 text-xs"></i></a>').join('');
+            container.innerHTML = items
+              .map(function (it) {
+                var href = it.action || '#overview';
+                var safeHref = href.indexOf('#') === 0 ? href : escHtmlInbox(href);
+                return (
+                  '<a href="' +
+                  safeHref +
+                  '" class="inbox-action-row block bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 hover:border-yellow-400/30 transition flex items-center space-x-3 cursor-pointer">' +
+                  '<i class="fas ' +
+                  it.icon +
+                  ' ' +
+                  it.color +
+                  ' text-lg w-6"></i>' +
+                  '<span class="text-slate-200 text-sm flex-1">' +
+                  escHtmlInbox(it.label) +
+                  '</span>' +
+                  '<i class="fas fa-chevron-right text-slate-600 text-xs"></i></a>'
+                );
+              })
+              .join('');
           }
           if (statusEl) {
             const parts = [];
             parts.push(items.length + ' item(s)');
             if (window.__inboxVisibleAlertIds.length) parts.push(window.__inboxVisibleAlertIds.length + ' clearable alert(s)');
+            if (window.__inboxVisibleFailedPushIds.length) parts.push(window.__inboxVisibleFailedPushIds.length + ' failed push row(s) you can dismiss');
             if (errors.length) parts.push('errors: ' + errors.join(', '));
             statusEl.textContent = parts.join(' • ');
             statusEl.style.color = errors.length ? '#fbbf24' : '#94a3b8';
           }
           if (clearBtn) {
-            const enabled = window.__inboxVisibleAlertIds.length > 0;
+            const enabled =
+              (window.__inboxVisibleAlertIds && window.__inboxVisibleAlertIds.length > 0) ||
+              (window.__inboxVisibleFailedPushIds && window.__inboxVisibleFailedPushIds.length > 0);
             clearBtn.disabled = !enabled;
             clearBtn.style.opacity = enabled ? '1' : '.55';
             clearBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+            clearBtn.innerHTML = '<i class="fas fa-broom mr-2"></i>Clear alerts';
           }
-          showToast('Inbox: ' + items.length + ' item(s)' + (errors.length ? ' (' + errors.length + ' query error(s))' : ''));
         }
 
         function escHtmlInbox(s) {
@@ -3690,36 +3784,72 @@
         }
 
         async function clearInboxAlerts() {
-          const ids = (window.__inboxVisibleAlertIds || []).slice();
-          if (!ids.length) { showToast('No alerts to clear', 'info'); return; }
-          if (!window.confirm('Dismiss ' + ids.length + ' admin alert(s)? They will be soft-archived (recoverable from Firestore).')) return;
+          const alertIds = (window.__inboxVisibleAlertIds || []).slice();
+          const pushIds = (window.__inboxVisibleFailedPushIds || []).slice();
+          if (!alertIds.length && !pushIds.length) {
+            showToast('Nothing to clear — inbox has no dismissible rows.', 'info');
+            return;
+          }
+          var msg =
+            'Dismiss inbox items?\n\n' +
+            (alertIds.length ? '• ' + alertIds.length + ' admin alert(s) → soft-archived\n' : '') +
+            (pushIds.length ? '• ' + pushIds.length + ' failed push record(s) → marked dismissed\n' : '');
+          if (!window.confirm(msg)) return;
           const btn = document.getElementById('clear-inbox-btn');
-          if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Clearing...'; }
+          if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Clearing...';
+          }
           try {
             const { getFirestore, doc, writeBatch, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
             const actor = await _getActorInfo();
-            // Firestore batch limit is 500; we cap at 5 visible per load anyway.
+            const actorLabel = actor.email || actor.uid || 'unknown';
             const batch = writeBatch(db);
-            ids.forEach(id => {
+            alertIds.forEach(function (id) {
               batch.update(doc(db, 'admin_alerts', id), {
                 archived: true,
                 archivedAt: serverTimestamp(),
-                archivedBy: actor.email || actor.uid || 'unknown'
+                archivedBy: actorLabel,
+              });
+            });
+            pushIds.forEach(function (id) {
+              batch.update(doc(db, 'push_notifications', id), {
+                status: 'dismissed',
+                dismissedAt: serverTimestamp(),
+                dismissedBy: actorLabel,
               });
             });
             await batch.commit();
-            try { writeAdminLogClient({ action: 'inbox.clear', count: ids.length, ids }); } catch (_) {}
-            try { if (window.logAdminAction) window.logAdminAction('inbox.clear', 'admin_alerts', { count: ids.length, ids }); } catch (_) {}
-            showToast('Cleared ' + ids.length + ' alert(s)');
+            try {
+              writeAdminLogClient({
+                action: 'inbox.clear',
+                alertCount: alertIds.length,
+                pushCount: pushIds.length,
+                alertIds: alertIds,
+                pushIds: pushIds,
+              });
+            } catch (_) {}
+            try {
+              if (window.logAdminAction)
+                window.logAdminAction('inbox.clear', 'admin_inbox', {
+                  alertCount: alertIds.length,
+                  pushCount: pushIds.length,
+                });
+            } catch (_) {}
+            showToast('Cleared ' + alertIds.length + ' alert(s) and ' + pushIds.length + ' push row(s).');
             window.__inboxVisibleAlertIds = [];
+            window.__inboxVisibleFailedPushIds = [];
             await loadOpsInbox();
           } catch (e) {
             console.error('clearInboxAlerts failed:', e);
-            const msg = (e && e.code) ? e.code : (e && e.message ? e.message : String(e));
-            showToast('Clear failed: ' + msg, 'error');
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-broom mr-2"></i>Clear alerts'; }
+            const errMsg = (e && e.code) ? e.code : e && e.message ? e.message : String(e);
+            showToast('Clear failed: ' + errMsg, 'error');
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-broom mr-2"></i>Clear alerts';
+            }
           }
         }
 
@@ -6834,6 +6964,26 @@
           if (refreshInboxBtn) refreshInboxBtn.addEventListener('click', () => loadOpsInbox());
           const clearInboxBtn = document.getElementById('clear-inbox-btn');
           if (clearInboxBtn) clearInboxBtn.addEventListener('click', () => { try { clearInboxAlerts(); } catch (e) { console.error('clearInboxAlerts threw', e); } });
+          const inboxItemsHost = document.getElementById('inbox-items');
+          if (inboxItemsHost) {
+            inboxItemsHost.addEventListener('click', function (e) {
+              var row = e.target && e.target.closest ? e.target.closest('a.inbox-action-row') : null;
+              if (!row) return;
+              var h = row.getAttribute('href') || '';
+              if (!h || h.charAt(0) !== '#') return;
+              e.preventDefault();
+              e.stopPropagation();
+              try {
+                if (typeof syncAdminUrlHash === 'function') syncAdminUrlHash(h);
+              } catch (_) {}
+              try {
+                if (window.location.hash !== h) window.location.hash = h;
+                else if (typeof handleHashChange === 'function') handleHashChange();
+              } catch (err) {
+                console.error('[inbox] hash nav failed', err);
+              }
+            });
+          }
           const refreshAuditBtn = document.getElementById('refresh-audit-btn');
           if (refreshAuditBtn) refreshAuditBtn.addEventListener('click', () => loadAuditTrail());
           const runQualityBtn = document.getElementById('run-quality-btn');

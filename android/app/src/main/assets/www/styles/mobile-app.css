@@ -69,8 +69,9 @@ body {
   transform: scale(0.98);
 }
 
-/* Hide desktop navigation - app uses native drawer */
-header, nav, .navbar, .navigation, .header-nav {
+/* Hide site chrome. Do NOT target bare `nav` — admin-console (and other pages) use <nav>
+   inside <aside id="admin-sidebar"> or <main> for Command Center / tabs; those must stay visible. */
+header, .navbar, .navigation, .header-nav {
   display: none !important;
 }
 
