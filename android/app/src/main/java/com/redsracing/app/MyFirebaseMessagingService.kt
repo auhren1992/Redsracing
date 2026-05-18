@@ -62,9 +62,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // NotificationManager.notify() so each push has its own routing+extras.
         val notificationId = (System.currentTimeMillis() and 0x7FFFFFFF).toInt()
 
-        // Restrict push-driven deep links to the asset-loader origin. The default
-        // landing is the home page (not the admin console — non-admin users were
-        // being dropped onto a page they can't use). The explicit allow-list
+        // Restrict push-driven deep links to the same site origin as MainActivity.
+        // The default landing is the home page (not the admin console — non-admin users were
+        // being dropped onto a page they cannot use). The explicit allow-list
         // prevents a malicious or compromised push from loading an arbitrary
         // URL into a WebView that has JS bridges attached.
         val safeUrl = pickSafeDeepLink(data["url"])
@@ -118,19 +118,30 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     /**
      * Returns a deep-link URL that is safe to load into the bridged WebView.
-     * Only the asset-loader host is honored. Everything else falls back to home.
+     * Same host policy as [MainActivity.sanitizeNotificationUrl] (www / apex + .html paths).
      */
     private fun pickSafeDeepLink(raw: String?): String {
-        val home = "https://appassets.androidplatform.net/assets/www/index.html"
+        val home = MainActivity.siteUrl("index.html")
         if (raw.isNullOrBlank()) return home
-        // Allow only http(s) URLs whose host is the bundled asset-loader.
+        if (!raw.contains("://") && raw.endsWith(".html")) {
+            return MainActivity.siteUrl(raw.removePrefix("/"))
+        }
         return try {
             val uri = android.net.Uri.parse(raw)
             val scheme = uri.scheme?.lowercase()
-            val host = uri.host?.lowercase()
-            val allowed = (scheme == "https" || scheme == "http") &&
-                host == "appassets.androidplatform.net"
-            if (allowed) raw else home
+            val host = uri.host?.lowercase() ?: ""
+            val path = uri.path ?: "/"
+            val allowedHost = host == "www.redsracing.org" || host == "redsracing.org"
+            val allowedPath = path.endsWith(".html", ignoreCase = true) ||
+                path == "/" || path.isEmpty()
+            val allowed = (scheme == "https" || scheme == "http") && allowedHost && allowedPath
+            if (!allowed) return home
+            if (host == "redsracing.org") {
+                val tail = path.removePrefix("/").trim()
+                MainActivity.siteUrl(if (tail.isEmpty()) "index.html" else tail)
+            } else {
+                raw
+            }
         } catch (_: Throwable) {
             home
         }

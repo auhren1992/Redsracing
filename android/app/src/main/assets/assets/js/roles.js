@@ -6,6 +6,12 @@
  *
  * Storage may still use: admin | owner | team-member | public-fan | follower | …
  * Always resolve through this module for routing, nav visibility, and new profiles.
+ *
+ * Role-specific pages (edit these trees independently):
+ *   admin/          → admin/index.html (redirect) + admin-console.html (app)
+ *   crew/           → crew/dashboard.html (+ add more crew/*.html as needed)
+ *   follower/       → follower/index.html (redirect) + fan/dashboard.html (+ fan/* as needed)
+ *   racer/          → racer/dashboard.html (signup “racer” persona)
  */
 
 export const APP_ROLE = {
@@ -84,14 +90,21 @@ export async function resolveAppRoleForUser(user, options = {}) {
   return resolveCanonicalRoleFromSources({ tokenClaims: claims, userDoc });
 }
 
+/** Default landing URLs after login (role-specific namespaces). */
+export const ROLE_HUB_PATH = {
+  admin: "/admin/index.html",
+  crew: "/crew/dashboard.html",
+  follower: "/follower/index.html",
+};
+
 /**
  * Default home after login when no returnTo is present.
  * @param {"admin"|"crew"|"follower"} appRole
  */
 export function defaultDashboardPath(appRole) {
-  if (appRole === APP_ROLE.ADMIN) return "/admin-console.html";
-  if (appRole === APP_ROLE.CREW) return "/redsracing-dashboard.html";
-  return "/follower-dashboard.html";
+  if (appRole === APP_ROLE.ADMIN) return ROLE_HUB_PATH.admin;
+  if (appRole === APP_ROLE.CREW) return ROLE_HUB_PATH.crew;
+  return ROLE_HUB_PATH.follower;
 }
 
 /**

@@ -8,8 +8,28 @@ import "./app.js";
 import { getFriendlyAuthError } from "./auth-errors.js";
 import { navigateToInternal, validateRedirectUrl } from "./navigation-helpers.js";
 import { resolveAppRoleForUser, defaultDashboardPath } from "./roles.js";
+import {
+  applyNativeAppLock,
+  getNativeSession,
+  isNativeAppWebView,
+  nativeAppLockAvailable,
+  persistNativeAuth,
+  requestNativeBiometricUnlock,
+  restoreNativeAuthMarkers,
+} from "./native-app-auth.js";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 /**
  * Login Page Controller Class
@@ -31,71 +51,27 @@ class LoginPageController {
   }
 
   /**
-   * Persist auth marker for guest gate checks
+   * Persist auth marker for guest gate checks + native secure storage (Android/iOS apps).
    */
-  setAuthMarker(user) {
+  async setAuthMarker(user) {
+    if (!user?.uid) return;
+    await persistNativeAuth(user);
     try {
-      if (user?.uid) {
-        localStorage.setItem("rr_auth_uid", user.uid);
-        // Persist to Android native storage so auth survives app restart
-        if (window.FirebaseAuthBridge) {
-          window.FirebaseAuthBridge.storeAuthUid(user.uid);
-          if (user.email) window.FirebaseAuthBridge.storeAuthEmail(user.email);
-        }
+      if (window.AndroidAuth?.onLoginSuccess) {
+        window.AndroidAuth.onLoginSuccess();
       }
     } catch (_) {}
   }
 
-  /**
-   * Initialize the login controller
-   */
-  /**
-   * Detect if running inside a native app WebView
-   */
   isInAppWebView() {
-    const ua = navigator.userAgent || "";
-    return (
-      /RedsRacingApp/i.test(ua) ||
-      (typeof window.FirebaseAuthBridge !== "undefined" &&
-        window.FirebaseAuthBridge != null) ||
-      (typeof window.AndroidAuth !== "undefined" && window.AndroidAuth != null) ||
-      (typeof window.webkit !== "undefined" &&
-        window.webkit?.messageHandlers?.redsRacingAppLock != null)
-    );
-  }
-
-  /** Native app open lock (Android AppLockBridge or iOS WKScriptMessageHandler). */
-  nativeAppLockAvailable() {
-    try {
-      return !!(
-        (typeof AppLockBridge !== "undefined" &&
-          AppLockBridge != null &&
-          typeof AppLockBridge.setBiometricUnlockEnabled === "function") ||
-        (typeof window.webkit !== "undefined" &&
-          window.webkit?.messageHandlers?.redsRacingAppLock != null)
-      );
-    } catch (_) {
-      return false;
-    }
+    return isNativeAppWebView();
   }
 
   applyNativeAppLockFromCheckbox(user) {
-    if (!this.nativeAppLockAvailable()) return;
+    if (!nativeAppLockAvailable()) return;
     const cb = document.getElementById("enable-app-biometric");
     if (!cb?.checked) return;
-    const uid = user?.uid || this.auth?.currentUser?.uid;
-    if (!uid) return;
-    try {
-      if (typeof AppLockBridge !== "undefined" && AppLockBridge?.setBiometricUnlockEnabled) {
-        AppLockBridge.setBiometricUnlockEnabled(true);
-      }
-    } catch (_) {}
-    try {
-      const h = window.webkit?.messageHandlers?.redsRacingAppLock;
-      if (h && typeof h.postMessage === "function") {
-        h.postMessage({ enabled: true, authUid: uid });
-      }
-    } catch (_) {}
+    applyNativeAppLock(user || this.auth?.currentUser, true);
   }
 
   async initialize() {
@@ -130,7 +106,7 @@ class LoginPageController {
         const result = await getRedirectResult(this.auth);
         if (result?.user) {
           console.info("[Login] Redirect sign-in completed for:", result.user.email);
-          this.setAuthMarker(result.user);
+          await this.setAuthMarker(result.user);
           this.applyNativeAppLockFromCheckbox(result.user);
           this.showMessage("Sign-in successful! Redirecting...", false);
           const returnTo = this.getReturnTo();
@@ -160,6 +136,7 @@ class LoginPageController {
       // Enable UI after initialization
       this.enableUI();
       this.updateDeviceSignInVisibility();
+      await this.setupNativeAppLoginUI();
       this.isInitialized = true;
       console.info("[Login] UI enabled");
     } catch (error) {
@@ -240,6 +217,13 @@ class LoginPageController {
       this.handleDeviceCredentialSignIn();
     });
 
+    document.getElementById("app-native-unlock-button")?.addEventListener("click", () => {
+      this.handleNativeAppUnlock();
+    });
+    document.getElementById("app-use-password-button")?.addEventListener("click", () => {
+      this.showPasswordLoginForm();
+    });
+
     // Input validation and error clearing
     this.elements.emailInput?.addEventListener("input", () =>
       this.hideMessage(),
@@ -276,16 +260,21 @@ class LoginPageController {
     const deviceHint = document.getElementById("device-signin-hint");
     if (!wrap) return;
 
-    const useNativeAppLock = this.isInAppWebView() && this.nativeAppLockAvailable();
+    const useNativeAppLock = this.isInAppWebView() && nativeAppLockAvailable();
 
     if (useNativeAppLock) {
-      wrap.classList.remove("hidden");
-      wrap.classList.add("flex");
+      wrap.classList.add("hidden");
+      wrap.classList.remove("flex");
       browserRow?.classList.add("hidden");
       deviceBtn?.classList.add("hidden");
       deviceHint?.classList.add("hidden");
       appRow?.classList.remove("hidden");
       appRow?.classList.add("flex");
+      const bioCb = document.getElementById("enable-app-biometric");
+      if (bioCb && !bioCb.dataset.touched) {
+        bioCb.checked = true;
+        bioCb.dataset.touched = "1";
+      }
       return;
     }
 
@@ -358,6 +347,124 @@ class LoginPageController {
       this.showMessage(
         "Could not use device sign-in. Enter your email and password, or sign in with Google.",
       );
+    }
+  }
+
+  async setupNativeAppLoginUI() {
+    if (!this.isInAppWebView()) return;
+
+    document.body.classList.add("native-app-login");
+
+    const session = await getNativeSession();
+    const canUnlock =
+      session.hasSession &&
+      session.biometricEnabled &&
+      nativeAppLockAvailable();
+
+    if (!canUnlock) return;
+
+    const panel = document.getElementById("app-native-unlock-panel");
+    const form = document.getElementById("login-form");
+    const hint = document.getElementById("app-native-email-hint");
+    if (hint && session.email) {
+      hint.textContent = session.email;
+    } else if (hint && session.uid) {
+      hint.textContent = "Saved account on this device";
+    }
+
+    panel?.classList.remove("hidden");
+    panel?.classList.add("flex");
+    form?.classList.add("hidden");
+  }
+
+  showPasswordLoginForm() {
+    document.getElementById("app-native-unlock-panel")?.classList.add("hidden");
+    document.getElementById("app-native-unlock-panel")?.classList.remove("flex");
+    document.getElementById("login-form")?.classList.remove("hidden");
+  }
+
+  waitForAuthUser(timeoutMs = 6000) {
+    return new Promise((resolve) => {
+      if (!this.auth) {
+        resolve(null);
+        return;
+      }
+      if (this.auth.currentUser) {
+        resolve(this.auth.currentUser);
+        return;
+      }
+      let settled = false;
+      const done = (user) => {
+        if (settled) return;
+        settled = true;
+        try {
+          unsub();
+        } catch (_) {}
+        clearTimeout(timer);
+        resolve(user || null);
+      };
+      const unsub = onAuthStateChanged(this.auth, (user) => {
+        if (user) done(user);
+      });
+      const timer = setTimeout(() => done(this.auth.currentUser), timeoutMs);
+    });
+  }
+
+  async handleNativeAppUnlock() {
+    if (!this.isInitialized) {
+      this.showMessage("Please wait for the page to load completely.");
+      return;
+    }
+    this.hideMessage();
+    const session = await getNativeSession();
+    if (!session.hasSession) {
+      this.showMessage("No saved app session. Sign in with email or Google first.");
+      this.showPasswordLoginForm();
+      return;
+    }
+
+    const btn = document.getElementById("app-native-unlock-button");
+    const original = btn?.textContent;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Verifying…";
+    }
+
+    try {
+      const ok = await requestNativeBiometricUnlock();
+      if (!ok) {
+        this.showMessage("Unlock cancelled or failed. Try again or use your password.");
+        return;
+      }
+
+      restoreNativeAuthMarkers(session);
+      const user = await this.waitForAuthUser();
+      if (user) {
+        await this.setAuthMarker(user);
+      }
+
+      this.showMessage("Unlocked! Redirecting…", false);
+      const returnTo = this.getReturnTo();
+      if (returnTo) {
+        navigateToInternal(returnTo);
+        return;
+      }
+      if (user) {
+        const appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: true });
+        navigateToInternal(defaultDashboardPath(appRole));
+        return;
+      }
+      if (session.uid) {
+        navigateToInternal("/follower/index.html");
+        return;
+      }
+      this.showMessage("Session expired. Sign in again with your password.");
+      this.showPasswordLoginForm();
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = original || "Unlock with Face ID / Touch ID";
+      }
     }
   }
 
@@ -530,7 +637,7 @@ class LoginPageController {
       await this.maybeStoreDeviceCredential(email, password);
       // Force refresh to get latest custom claims
       const user = this.auth.currentUser;
-      this.setAuthMarker(user);
+      await this.setAuthMarker(user);
       this.applyNativeAppLockFromCheckbox(user);
       try {
         const tokenResult = await user.getIdTokenResult(true);
@@ -584,7 +691,7 @@ class LoginPageController {
       console.info("[Login] Using signInWithPopup (regular browser)");
       await signInWithPopup(this.auth, this.googleProvider);
       this.showMessage("Google sign-in successful! Redirecting...", false);
-      this.setAuthMarker(this.auth.currentUser);
+      await this.setAuthMarker(this.auth.currentUser);
       this.applyNativeAppLockFromCheckbox(this.auth.currentUser);
       const returnTo = this.getReturnTo();
       if (returnTo) {
@@ -691,22 +798,30 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.info("[Login] DOMContentLoaded");
   try {
     const params = new URLSearchParams(window.location.search);
-    const rt = params.get('returnTo');
+    const rt = params.get("returnTo");
     const safeReturnTo = rt ? validateRedirectUrl(rt, null) : null;
+    const inApp = isNativeAppWebView();
 
-    // Already logged in — skip login page entirely
-    if (localStorage.getItem('rr_auth_uid')) {
+    if (inApp) {
+      const session = await getNativeSession();
+      if (session.hasSession && session.biometricEnabled) {
+        console.info("[Login] Native app: show biometric unlock (skip auto-redirect)");
+      } else if (localStorage.getItem("rr_auth_uid")) {
+        console.info("[Login] Native app: auth marker present, redirecting");
+        navigateToInternal(safeReturnTo || "/follower/index.html");
+        return;
+      }
+    } else if (localStorage.getItem("rr_auth_uid")) {
       console.info("[Login] User already authenticated, redirecting...");
-      navigateToInternal(safeReturnTo || '/team.html');
+      navigateToInternal(safeReturnTo || "/team.html");
       return;
     }
 
-    // Guest flag set with a return target — go straight there
-    if (localStorage.getItem('rr_guest_ok') === '1' && safeReturnTo) {
+    if (localStorage.getItem("rr_guest_ok") === "1" && safeReturnTo) {
       navigateToInternal(safeReturnTo);
       return;
     }
-  } catch(_) {}
+  } catch (_) {}
   const loginController = new LoginPageController();
   await loginController.initialize();
 });

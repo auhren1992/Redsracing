@@ -14,7 +14,7 @@ import {
 
 async function loadPage(slug) {
   try {
-    const db = getFirebaseDb ? getFirebaseDb() : getFirestore();
+    const db = getFirebaseDb();
     const pageRef = doc(db, 'pages', slug);
     const pageSnap = await getDoc(pageRef);
     if (!pageSnap.exists()) return null;

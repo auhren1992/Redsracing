@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting — Fan hub</title>
+    <link rel="icon" type="image/x-icon" href="../favicon.ico" />
+    <meta http-equiv="refresh" content="0;url=/fan/dashboard.html" />
+    <script>
+      (function () {
+        var t = "/fan/dashboard.html";
+        try {
+          if (location.protocol === "file:") t = "../fan/dashboard.html";
+        } catch (_) {}
+        window.location.replace(t);
+      })();
+    </script>
+  </head>
+  <body style="font-family: system-ui; background: #0a0e17; color: #e2e8f0; padding: 2rem; text-align: center">
+    <p>Opening the <strong>follower / fan</strong> hub…</p>
+    <p><a href="../fan/dashboard.html" style="color: #fbbf24">Continue</a></p>
+  </body>
+</html>

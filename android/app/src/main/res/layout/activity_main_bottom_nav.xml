@@ -30,6 +30,9 @@
             android:id="@+id/webview_container"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:background="@color/website_background"
+            android:clipChildren="true"
+            android:clipToPadding="true"
             app:layout_constraintTop_toBottomOf="@id/toolbar"
             app:layout_constraintBottom_toTopOf="@id/ad_view"
             app:layout_constraintStart_toStartOf="parent"
@@ -39,6 +42,9 @@
                 android:id="@+id/webview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@color/website_background"
+                android:layerType="hardware"
+                android:overScrollMode="never"
                 android:paddingBottom="0dp" />
         </FrameLayout>
 

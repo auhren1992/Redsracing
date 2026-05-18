@@ -28,12 +28,10 @@ import "./app.js";
         accountDropdown.className = "dropdown relative";
         accountDropdown.id = "account-dropdown";
         accountDropdown.innerHTML = `
-          <button id=\"account-toggle\" class=\"dropdown-toggle bg-neon-yellow text-slate-900 py-2 px-4 rounded-md font-bold hover:bg-yellow-300 transition\" aria-haspopup=\"true\" aria-expanded=\"false\">
+          <button id="account-toggle" class="dropdown-toggle rr-pill rr-pill--primary" aria-haspopup="true" aria-expanded="false">
             Account
           </button>
-          <div id=\"account-menu\" class=\"dropdown-menu hidden\" role=\"menu\" aria-hidden=\"true\">
-            <!-- Items populated by JS -->
-          </div>
+          <div id="account-menu" class="dropdown-menu modern-dropdown hidden right-0 w-48" role="menu" aria-hidden="true"></div>
         `;
         desktopNav.appendChild(accountDropdown);
       }
@@ -44,8 +42,8 @@ import "./app.js";
         const container = document.createElement("div");
         container.id = "account-dropdown-mobile";
         container.innerHTML = `
-          <button id=\"account-toggle-mobile\" class=\"mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left\">Login</button>
-          <div id=\"account-menu-mobile\" class=\"mobile-accordion-content hidden pl-4\"></div>
+          <button id="account-toggle-mobile" class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Account</button>
+          <div id="account-menu-mobile" class="mobile-accordion-content hidden pl-4"></div>
         `;
         mobileMenu.appendChild(container);
       }
@@ -88,7 +86,10 @@ import "./app.js";
           'a[href="profile.html"]',
           'a[href="dashboard.html"]',
           'a[href="redsracing-dashboard.html"]',
-          'a[href="follower-dashboard.html"]'
+          'a[href="follower-dashboard.html"]',
+          'a[href="crew/dashboard.html"]',
+          'a[href="follower/index.html"]',
+          'a[href="fan/dashboard.html"]',
         ];
         selectors.forEach((sel) => {
           document.querySelectorAll(sel).forEach((el) => {
@@ -150,28 +151,26 @@ import "./app.js";
           if (mobileBtn) mobileBtn.textContent = "Login";
           return;
         }
-        // Ensure default role is set (admin vs public-fan), then read claims
-        let role = null;
+        let appRole = null;
+        let APP_ROLE = null;
         try {
-          // Call backend to enforce role
-          const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js");
-          try { await httpsCallable(getFunctions(), "ensureDefaultRole")({}); } catch (_) {}
-          // Force token refresh to pick up new claims
-          try { await user.getIdToken(true); } catch (_) {}
-          const claims = await validateUserClaims();
-          role = claims.success ? claims.claims.role : null;
-        } catch {}
+          const roles = await import("./roles.js");
+          APP_ROLE = roles.APP_ROLE;
+          appRole = await roles.resolveAppRoleForUser(user, { forceTokenRefresh: false });
+        } catch (_) {
+          appRole = null;
+        }
+        const isAdmin = APP_ROLE && appRole === APP_ROLE.ADMIN;
 
-        const isAdmin = role === "admin";
         const displayName = user.displayName || '';
         const email = user.email || '';
         setAvatarButtonContent(displayName, email, user.photoURL);
 
-        // Persist role into users/{uid}.role for visibility in Firestore (without changing security claims)
+        // Persist role into users/{uid}.role for visibility (best-effort; resolver is source of truth for UI)
         try {
-          const normalized = (role && typeof role === 'string') ? role : 'public-fan';
-          // Optional: map legacy 'follower' to 'public-fan'
-          const normRole = normalized === 'follower' ? 'public-fan' : normalized;
+          const { toStoredFirestoreRole } = await import("./roles.js");
+          const ar = appRole || (APP_ROLE && APP_ROLE.FOLLOWER) || "follower";
+          const normRole = toStoredFirestoreRole(ar);
           const [{ getFirebaseDb }, { doc, setDoc }] = await Promise.all([
             import("./firebase-core.js"),
             import("https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"),
@@ -188,11 +187,13 @@ import "./app.js";
         // Settings (was under crown menu; now under account dropdown for all users)
         items.push({ label: "Settings", href: "settings.html" });
 
-        // Role-specific main destination
+        // Role-specific main destination (separate page trees per tier)
         if (isAdmin) {
           items.push({ label: "Admin Console", href: "admin-console.html" });
+        } else if (APP_ROLE && appRole === APP_ROLE.CREW) {
+          items.push({ label: "Crew workspace", href: "crew/dashboard.html" });
         } else {
-          items.push({ label: "Follower Dashboard", href: "follower-dashboard.html" });
+          items.push({ label: "Fan hub", href: "follower/index.html" });
         }
 
         // Back to site (was under crown menu)
@@ -214,26 +215,7 @@ import "./app.js";
         if (mobileBtn) mobileBtn.textContent = "Account";
       }
 
-      // Wire dropdown toggle behavior (click to open/close)
-      function wireDropdown() {
-        const toggle = document.getElementById("account-toggle");
-        const menu = document.getElementById("account-menu");
-        if (!toggle || !menu) return;
-        // Remove existing listeners by replacing nodes
-        const newToggle = toggle.cloneNode(true);
-        toggle.parentNode.replaceChild(newToggle, toggle);
-        newToggle.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const hidden = menu.classList.contains("hidden");
-          document.querySelectorAll(".dropdown-menu").forEach((m) => m.classList.add("hidden"));
-          if (hidden) menu.classList.remove("hidden");
-          newToggle.setAttribute("aria-expanded", String(hidden));
-        });
-        document.addEventListener("click", () => menu.classList.add("hidden"));
-      }
-
-      wireDropdown();
+      // Dropdown behavior is handled by initNavigation() below (show/hide + inert + outside click).
 
       monitorAuthState(
         async (user) => {

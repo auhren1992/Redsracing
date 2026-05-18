@@ -4,20 +4,24 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🔧 Crew Member Dashboard - RedsRacing</title>
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/tailwind.css" />
+  <link rel="stylesheet" href="../styles/main.css" />
+  <link rel="stylesheet" href="../styles/input-fix.css" />
+  <link rel="stylesheet" href="../styles/modern-nav.css" />
+  <link rel="stylesheet" href="../styles/modern-effects.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="../assets/js/guest-gate.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
   <style>
     :root{--ac:#06b6d4;--ac2:#22d3ee;--ac3:#0891b2;--dim:#06b6d41f;--mid:#06b6d459;--bg:#06b6d40a}
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Inter',sans-serif;background:#0a0e17;color:#fff;min-height:100vh;display:flex;flex-direction:column}
-    header{background:rgba(10,14,23,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--dim);padding:.4rem 1rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
-    .logo{font-family:'Racing Sans One',cursive;font-size:1.2rem;text-decoration:none;letter-spacing:.08em}
-    .lb{color:#3b82f6}.ly{color:var(--ac)}
+    body{font-family:'Inter',sans-serif;color:#fff;min-height:100vh;display:flex;flex-direction:column}
     .badge{display:inline-flex;align-items:center;gap:.3rem;padding:.15rem .5rem;border-radius:2rem;font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--dim);background:var(--bg);color:var(--ac)}
-    .lo{background:#ef4444;color:#fff;padding:.25rem .6rem;border-radius:.4rem;border:none;font-weight:700;font-size:.7rem;cursor:pointer}
     .tabs{display:flex;overflow-x:auto;gap:.25rem;padding:.4rem .75rem;background:rgba(10,14,23,.8);border-bottom:1px solid rgba(255,255,255,.04);-webkit-overflow-scrolling:touch}
     .tabs::-webkit-scrollbar{display:none}
     .tb{display:flex;align-items:center;gap:.35rem;padding:.4rem .7rem;border-radius:2rem;border:1px solid transparent;background:transparent;color:rgba(255,255,255,.5);font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s}
@@ -66,14 +70,16 @@
     @media(max-width:640px){.cgrid{grid-template-columns:repeat(2,1fr)}.cn{font-size:1.2rem}.ggrid{grid-template-columns:repeat(2,1fr)}}
   </style>
 </head>
-<body>
-  <header>
-    <a href="dashboard.html" class="logo"><span class="lb">Reds</span><span class="ly">Racing</span></a>
-    <div style="display:flex;align-items:center;gap:.5rem">
-      <span class="badge"><i class="fas fa-wrench"></i> Crew Member</span>
-      <button id="lo" class="lo"><i class="fas fa-sign-out-alt"></i></button>
-    </div>
-  </header>
+<body class="bg-dark-blue">
+  <div id="rr-role-hub-nav-mount"></div>
+  <script src="../assets/js/role-hub-shell.js" data-hub="crew" data-root=".."></script>
+  <div class="sm:hidden px-3 py-2 border-b border-slate-800/80 bg-black/25 flex justify-center">
+    <span class="badge"><i class="fas fa-wrench"></i> Crew Member</span>
+  </div>
+  <div class="px-3 md:px-0 mt-2 mb-1 w-full max-w-[1100px] mx-auto">
+    <div id="rr-feature-strip"></div>
+  </div>
+  <script type="module" src="../assets/js/featured-strip.js"></script>
   <div class="tabs"><button onclick="showTab('home')" id="tb-home" class="tb act"><i class="fas fa-home"></i><span>Home</span></button><button onclick="showTab('schedule')" id="tb-schedule" class="tb"><i class="fas fa-calendar-alt"></i><span>Schedule</span></button><button onclick="showTab('gallery')" id="tb-gallery" class="tb"><i class="fas fa-camera"></i><span>Pit Photos</span></button><button onclick="showTab('videos')" id="tb-videos" class="tb"><i class="fas fa-video"></i><span>Videos</span></button><button onclick="showTab('drivers')" id="tb-drivers" class="tb"><i class="fas fa-users"></i><span>Team</span></button><button onclick="showTab('standings')" id="tb-standings" class="tb"><i class="fas fa-chart-line"></i><span>Standings</span></button><button onclick="showTab('profile')" id="tb-profile" class="tb"><i class="fas fa-id-card"></i><span>Profile</span></button></div>
   <main>
     <div id="ld" class="ldg"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
@@ -90,7 +96,6 @@
   <script>
     firebase.initializeApp({apiKey:"AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",authDomain:"redsracing-a7f8b.firebaseapp.com",projectId:"redsracing-a7f8b",storageBucket:"redsracing-a7f8b.firebasestorage.app",messagingSenderId:"517034606151",appId:"1:517034606151:web:24cae262e1d98832757b62"});
     var au=firebase.auth(),db=firebase.firestore();
-    document.getElementById('lo').onclick=async function(){try{localStorage.removeItem('rr_auth_uid');localStorage.removeItem('rr_signup_role');}catch(_){}try{await au.signOut();}catch(_){}window.location.href='../signup.html';};
 
     function showTab(id){
       document.querySelectorAll('.pn').forEach(function(p){p.classList.add('hid');});
@@ -217,5 +222,7 @@
       loadSection('home');
     });
   </script>
+  <script src="../main.js"></script>
+  <script type="module" src="../navigation.js"></script>
 </body>
 </html>

@@ -8,6 +8,12 @@ private enum AppLockUserDefaultsKeys {
     static let lockAuthUid = "app_lock_auth_uid"
 }
 
+private enum NativeAuthUserDefaultsKeys {
+    static let uid = "firebase_native_auth_uid"
+    static let email = "firebase_native_auth_email"
+    static let token = "firebase_native_auth_token"
+}
+
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var isLoading = true
@@ -131,7 +137,9 @@ struct ContentView: View {
     private func evaluateStartupAppLockIfNeeded() {
         let defaults = UserDefaults.standard
         guard defaults.bool(forKey: AppLockUserDefaultsKeys.biometricEnabled) else { return }
-        let uid = defaults.string(forKey: AppLockUserDefaultsKeys.lockAuthUid) ?? ""
+        let uid = defaults.string(forKey: NativeAuthUserDefaultsKeys.uid)
+            ?? defaults.string(forKey: AppLockUserDefaultsKeys.lockAuthUid)
+            ?? ""
         guard !uid.isEmpty else { return }
         let context = LAContext()
         var error: NSError?
@@ -471,8 +479,11 @@ struct WebView: UIViewRepresentable {
         configuration.applicationNameForUserAgent = "RedsRacingApp/1.0 iOS"
 
         configuration.userContentController.add(context.coordinator, name: "redsRacingAppLock")
+        configuration.userContentController.add(context.coordinator, name: "redsRacingAuth")
+        configuration.userContentController.add(context.coordinator, name: "redsRacingAppUnlock")
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
+        context.coordinator.webView = webView
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
         webView.scrollView.bounces = true
@@ -505,6 +516,7 @@ struct WebView: UIViewRepresentable {
 
     class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         var parent: WebView
+        weak var webView: WKWebView?
         init(_ parent: WebView) { self.parent = parent }
 
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
@@ -562,6 +574,43 @@ struct WebView: UIViewRepresentable {
                 })();
             """
             webView.evaluateJavaScript(authMonitorJS, completionHandler: nil)
+
+            let defaults = UserDefaults.standard
+            let uid = defaults.string(forKey: NativeAuthUserDefaultsKeys.uid) ?? ""
+            let email = defaults.string(forKey: NativeAuthUserDefaultsKeys.email) ?? ""
+            let uidJson = (try? JSONEncoder().encode(uid)).flatMap { String(data: $0, encoding: .utf8) } ?? "\"\""
+            let emailJson = (try? JSONEncoder().encode(email)).flatMap { String(data: $0, encoding: .utf8) } ?? "\"\""
+            let restoreAuthJS = """
+                (function() {
+                  try {
+                    var uid = \(uidJson);
+                    var email = \(emailJson);
+                    if (uid && uid.length > 0) {
+                      localStorage.setItem('rr_auth_uid', uid);
+                    }
+                    if (!window.FirebaseAuthBridge) {
+                      window.FirebaseAuthBridge = {
+                        getAuthUid: function() { return uid || ''; },
+                        getAuthEmail: function() { return email || ''; },
+                        storeAuthUid: function(u) {
+                          window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'storeSession', uid: u });
+                        },
+                        storeAuthEmail: function(e) {
+                          window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'storeSession', email: e });
+                        },
+                        storeAuthToken: function(t) {
+                          window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'storeSession', token: t });
+                        },
+                        clearAllAuth: function() {
+                          window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'clear' });
+                        },
+                        clearAuthToken: function() {}
+                      };
+                    }
+                  } catch (e) { console.warn('[iOS] Auth restore', e); }
+                })();
+            """
+            webView.evaluateJavaScript(restoreAuthJS, completionHandler: nil)
         }
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
             parent.isLoading = false
@@ -639,17 +688,77 @@ struct WebView: UIViewRepresentable {
 
 extension WebView.Coordinator: WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.name == "redsRacingAppLock" else { return }
         let defaults = UserDefaults.standard
-        guard let dict = message.body as? [String: Any] else { return }
-        let enabled = dict["enabled"] as? Bool ?? false
-        defaults.set(enabled, forKey: AppLockUserDefaultsKeys.biometricEnabled)
-        if enabled, let uid = dict["authUid"] as? String, !uid.isEmpty {
-            defaults.set(uid, forKey: AppLockUserDefaultsKeys.lockAuthUid)
+
+        if message.name == "redsRacingAppLock" {
+            guard let dict = message.body as? [String: Any] else { return }
+            let enabled = dict["enabled"] as? Bool ?? false
+            defaults.set(enabled, forKey: AppLockUserDefaultsKeys.biometricEnabled)
+            if enabled, let uid = dict["authUid"] as? String, !uid.isEmpty {
+                defaults.set(uid, forKey: AppLockUserDefaultsKeys.lockAuthUid)
+            }
+            if !enabled {
+                defaults.removeObject(forKey: AppLockUserDefaultsKeys.lockAuthUid)
+                defaults.set(false, forKey: AppLockUserDefaultsKeys.biometricEnabled)
+            }
+            return
         }
-        if !enabled {
-            defaults.removeObject(forKey: AppLockUserDefaultsKeys.lockAuthUid)
-            defaults.set(false, forKey: AppLockUserDefaultsKeys.biometricEnabled)
+
+        if message.name == "redsRacingAuth" {
+            guard let dict = message.body as? [String: Any] else { return }
+            let action = dict["action"] as? String ?? ""
+            if action == "clear" {
+                defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.uid)
+                defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.email)
+                defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.token)
+                defaults.removeObject(forKey: AppLockUserDefaultsKeys.lockAuthUid)
+                defaults.set(false, forKey: AppLockUserDefaultsKeys.biometricEnabled)
+                return
+            }
+            if action == "getSession" {
+                let uid = defaults.string(forKey: NativeAuthUserDefaultsKeys.uid)
+                    ?? defaults.string(forKey: AppLockUserDefaultsKeys.lockAuthUid)
+                    ?? ""
+                let email = defaults.string(forKey: NativeAuthUserDefaultsKeys.email) ?? ""
+                let biometricEnabled = defaults.bool(forKey: AppLockUserDefaultsKeys.biometricEnabled)
+                let hasSession = !uid.isEmpty
+                let payload: [String: Any] = [
+                    "uid": uid,
+                    "email": email,
+                    "biometricEnabled": biometricEnabled,
+                    "hasSession": hasSession,
+                ]
+                guard let data = try? JSONSerialization.data(withJSONObject: payload),
+                      let json = String(data: data, encoding: .utf8) else { return }
+                let js = "window.__rrAuthSessionCallback && window.__rrAuthSessionCallback(\(json))"
+                webView?.evaluateJavaScript(js, completionHandler: nil)
+                return
+            }
+            if action == "storeSession" {
+                if let uid = dict["uid"] as? String, !uid.isEmpty {
+                    defaults.set(uid, forKey: NativeAuthUserDefaultsKeys.uid)
+                }
+                if let email = dict["email"] as? String, !email.isEmpty {
+                    defaults.set(email, forKey: NativeAuthUserDefaultsKeys.email)
+                }
+                if let token = dict["token"] as? String, !token.isEmpty {
+                    defaults.set(token, forKey: NativeAuthUserDefaultsKeys.token)
+                }
+            }
+            return
+        }
+
+        if message.name == "redsRacingAppUnlock" {
+            guard let dict = message.body as? [String: Any] else { return }
+            guard dict["action"] as? String == "unlock" else { return }
+            let context = LAContext()
+            context.localizedCancelTitle = "Cancel"
+            context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Unlock to sign in to Reds Racing.") { success, _ in
+                DispatchQueue.main.async {
+                    let js = "window.__rrNativeUnlockResult && window.__rrNativeUnlockResult(\(success ? "true" : "false"))"
+                    self.webView?.evaluateJavaScript(js, completionHandler: nil)
+                }
+            }
         }
     }
 }

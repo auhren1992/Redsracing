@@ -2,6 +2,7 @@
 import { getFirebaseAuth } from "./firebase-core.js";
 import { getFriendlyAuthError } from "./auth-errors.js";
 import { html, safeSetHTML } from "./sanitize.js";
+import { clearNativeAppLock } from "./native-app-auth.js";
 
 // Simplified auth utilities without complex caching
 const auth = getFirebaseAuth();
@@ -56,16 +57,9 @@ export async function safeSignOut() {
     try {
       if (window.FirebaseAuthBridge) window.FirebaseAuthBridge.clearAllAuth();
     } catch (_) {}
+    clearNativeAppLock();
     try {
-      if (typeof AppLockBridge !== "undefined" && AppLockBridge?.setBiometricUnlockEnabled) {
-        AppLockBridge.setBiometricUnlockEnabled(false);
-      }
-    } catch (_) {}
-    try {
-      const h = window.webkit?.messageHandlers?.redsRacingAppLock;
-      if (h && typeof h.postMessage === "function") {
-        h.postMessage({ enabled: false });
-      }
+      window.webkit?.messageHandlers?.redsRacingAuth?.postMessage?.({ action: "clear" });
     } catch (_) {}
     return false;
   }

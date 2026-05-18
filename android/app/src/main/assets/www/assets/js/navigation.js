@@ -86,7 +86,10 @@ import "./app.js";
           'a[href="profile.html"]',
           'a[href="dashboard.html"]',
           'a[href="redsracing-dashboard.html"]',
-          'a[href="follower-dashboard.html"]'
+          'a[href="follower-dashboard.html"]',
+          'a[href="crew/dashboard.html"]',
+          'a[href="follower/index.html"]',
+          'a[href="fan/dashboard.html"]',
         ];
         selectors.forEach((sel) => {
           document.querySelectorAll(sel).forEach((el) => {
@@ -148,28 +151,26 @@ import "./app.js";
           if (mobileBtn) mobileBtn.textContent = "Login";
           return;
         }
-        // Ensure default role is set (admin vs public-fan), then read claims
-        let role = null;
+        let appRole = null;
+        let APP_ROLE = null;
         try {
-          // Call backend to enforce role
-          const { getFunctions, httpsCallable } = await import("https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js");
-          try { await httpsCallable(getFunctions(), "ensureDefaultRole")({}); } catch (_) {}
-          // Force token refresh to pick up new claims
-          try { await user.getIdToken(true); } catch (_) {}
-          const claims = await validateUserClaims();
-          role = claims.success ? claims.claims.role : null;
-        } catch {}
+          const roles = await import("./roles.js");
+          APP_ROLE = roles.APP_ROLE;
+          appRole = await roles.resolveAppRoleForUser(user, { forceTokenRefresh: false });
+        } catch (_) {
+          appRole = null;
+        }
+        const isAdmin = APP_ROLE && appRole === APP_ROLE.ADMIN;
 
-        const isAdmin = role === "admin";
         const displayName = user.displayName || '';
         const email = user.email || '';
         setAvatarButtonContent(displayName, email, user.photoURL);
 
-        // Persist role into users/{uid}.role for visibility in Firestore (without changing security claims)
+        // Persist role into users/{uid}.role for visibility (best-effort; resolver is source of truth for UI)
         try {
-          const normalized = (role && typeof role === 'string') ? role : 'public-fan';
-          // Optional: map legacy 'follower' to 'public-fan'
-          const normRole = normalized === 'follower' ? 'public-fan' : normalized;
+          const { toStoredFirestoreRole } = await import("./roles.js");
+          const ar = appRole || (APP_ROLE && APP_ROLE.FOLLOWER) || "follower";
+          const normRole = toStoredFirestoreRole(ar);
           const [{ getFirebaseDb }, { doc, setDoc }] = await Promise.all([
             import("./firebase-core.js"),
             import("https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"),
@@ -186,11 +187,13 @@ import "./app.js";
         // Settings (was under crown menu; now under account dropdown for all users)
         items.push({ label: "Settings", href: "settings.html" });
 
-        // Role-specific main destination
+        // Role-specific main destination (separate page trees per tier)
         if (isAdmin) {
           items.push({ label: "Admin Console", href: "admin-console.html" });
+        } else if (APP_ROLE && appRole === APP_ROLE.CREW) {
+          items.push({ label: "Crew workspace", href: "crew/dashboard.html" });
         } else {
-          items.push({ label: "Follower Dashboard", href: "follower-dashboard.html" });
+          items.push({ label: "Fan hub", href: "follower/index.html" });
         }
 
         // Back to site (was under crown menu)

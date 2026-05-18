@@ -35,9 +35,9 @@
         if (doc.exists()) role = doc.data().signupRole || 'fan';
       } catch(_) {}
       try { localStorage.setItem('rr_signup_role', role); } catch(_) {}
-      // Redirect to role-specific site
-      var folders = { fan: '/fan/', racer: '/racer/', crew: '/crew/' };
-      var dest = (folders[role] || '/fan/') + 'dashboard.html';
+      // Canonical role hubs (fan → follower namespace; crew/racer have own trees)
+      var hubByRole = { fan: '/follower/index.html', racer: '/racer/dashboard.html', crew: '/crew/dashboard.html' };
+      var dest = hubByRole[role] || '/follower/index.html';
       window.location.replace(dest);
     });
   </script>

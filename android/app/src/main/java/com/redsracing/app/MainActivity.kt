@@ -30,8 +30,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.core.content.FileProvider
@@ -40,6 +38,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.webkit.WebViewAssetLoader
 import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.MobileAds
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -58,6 +57,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var firebaseAuthBridge: FirebaseAuthBridge
+    private lateinit var appLockBridge: AppLockBridge
     private var lastFcmToken: String? = null
     private var initialUrl: String? = null
     private var isGuest: Boolean = false
@@ -137,9 +137,14 @@ class MainActivity : AppCompatActivity() {
         setupBottomNavigation()
         setupMenuOverlay()
         
-        // Initialize Mobile Ads SDK and load banner ad
+        // Initialize Mobile Ads SDK and load a compact anchored adaptive banner
+        // (avoids oversized creatives vs legacy BANNER + full-width scaling).
         try {
             MobileAds.initialize(this) {}
+            val dm = resources.displayMetrics
+            val widthDp = (dm.widthPixels / dm.density).toInt().coerceIn(320, 9999)
+            val adaptive = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, widthDp)
+            binding.adView.setAdSize(adaptive)
             val adRequest = AdRequest.Builder().build()
             binding.adView.loadAd(adRequest)
         } catch (e: Exception) {
@@ -171,48 +176,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun shouldRunAppBiometricGate(): Boolean {
         if (isGuest) return false
-        if (!AppLockBridge.isEnabled(this)) return false
-        if (!firebaseAuthBridge.hasAuthUid()) return false
-        val bm = BiometricManager.from(this)
-        val authenticators =
-            BiometricManager.Authenticators.BIOMETRIC_STRONG or
-                BiometricManager.Authenticators.DEVICE_CREDENTIAL
-        return bm.canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
+        return AppLockBridge.shouldGateOnLaunch(this, firebaseAuthBridge)
     }
 
     private fun runAppBiometricGate(onSuccess: () -> Unit) {
-        val authenticators =
-            BiometricManager.Authenticators.BIOMETRIC_STRONG or
-                BiometricManager.Authenticators.DEVICE_CREDENTIAL
-        val executor = ContextCompat.getMainExecutor(this)
-        val callback = object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                onSuccess()
-            }
-
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                if (errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
-                    errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON ||
-                    errorCode == BiometricPrompt.ERROR_CANCELED
-                ) {
-                    finish()
-                    return
-                }
-                Toast.makeText(this@MainActivity, errString, Toast.LENGTH_LONG).show()
-                finish()
-            }
-
-            override fun onAuthenticationFailed() {
-                Toast.makeText(this@MainActivity, "Not recognized. Try again.", Toast.LENGTH_SHORT).show()
-            }
-        }
-        val prompt = BiometricPrompt(this as FragmentActivity, executor, callback)
-        val info = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Unlock Reds Racing")
-            .setSubtitle("Use your fingerprint, face, or screen lock")
-            .setAllowedAuthenticators(authenticators)
-            .build()
-        prompt.authenticate(info)
+        AppLockBridge.runBiometricPrompt(
+            activity = this,
+            onSuccess = onSuccess,
+            onFailure = {
+                Toast.makeText(this, "Not recognized. Try again.", Toast.LENGTH_SHORT).show()
+            },
+            onCancel = { finish() },
+        )
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -828,10 +803,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         firebaseAuthBridge = FirebaseAuthBridge(this)
+        appLockBridge = AppLockBridge(this, firebaseAuthBridge)
+        appLockBridge.attachWebView(webView)
         webView.addJavascriptInterface(firebaseAuthBridge, "FirebaseAuthBridge")
         webView.addJavascriptInterface(NotificationsBridge(this), "AndroidNotifications")
         webView.addJavascriptInterface(AuthBridge(this), "AndroidAuth")
-        webView.addJavascriptInterface(AppLockBridge(this), "AppLockBridge")
+        webView.addJavascriptInterface(appLockBridge, "AppLockBridge")
     }
 
     private fun ensureMediaAndCameraPermissions() {
@@ -1050,7 +1027,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             // No saved auth — show signup/login
             android.util.Log.d("MainActivity", "No saved auth, loading signup")
-            binding.webview.loadUrl(siteUrl("signup.html"))
+            binding.webview.loadUrl(siteUrl("login.html"))
         }
     }
     

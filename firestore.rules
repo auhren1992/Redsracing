@@ -248,8 +248,8 @@ service cloud.firestore {
     match /push_notifications/{notificationId} {
       // Team members and admins can create notifications
       allow create: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
-      // Admins can read notification status
-      allow read: if hasRole('admin') || hasProfileRole('admin');
+      // Admins and team members can read queue status (admin inbox, ops)
+      allow read: if hasRole('admin') || hasProfileRole('admin') || hasRole('team-member') || hasProfileRole('team-member');
       // Cloud Functions can update status
       allow update: if true;
     }

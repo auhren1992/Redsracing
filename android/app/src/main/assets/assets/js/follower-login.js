@@ -15,7 +15,7 @@ import {
   signInWithPopup,
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import { navigateToInternal } from "./navigation-helpers.js";
-import { APP_ROLE, resolveAppRoleForUser } from "./roles.js";
+import { APP_ROLE, resolveAppRoleForUser, defaultDashboardPath } from "./roles.js";
 
 class FollowerLoginController {
   constructor() {
@@ -331,7 +331,7 @@ class FollowerLoginController {
       if (appRole === APP_ROLE.ADMIN) {
         this.showMessage("Admin — opening command center...", false);
         setTimeout(() => {
-          navigateToInternal("/admin-console.html");
+          navigateToInternal(defaultDashboardPath(APP_ROLE.ADMIN));
         }, 600);
         return;
       }
@@ -339,7 +339,7 @@ class FollowerLoginController {
       if (appRole === APP_ROLE.CREW) {
         this.showMessage("Crew — opening team dashboard...", false);
         setTimeout(() => {
-          navigateToInternal("/redsracing-dashboard.html");
+          navigateToInternal(defaultDashboardPath(APP_ROLE.CREW));
         }, 600);
         return;
       }
@@ -364,13 +364,13 @@ class FollowerLoginController {
         false,
       );
       setTimeout(() => {
-        navigateToInternal("/follower-dashboard.html");
+        navigateToInternal(defaultDashboardPath(APP_ROLE.FOLLOWER));
       }, 800);
     } catch (error) {
       console.error("Error checking user role:", error);
       this.showMessage("Login successful. Redirecting...", false);
       setTimeout(() => {
-        navigateToInternal("/follower-dashboard.html");
+        navigateToInternal(defaultDashboardPath(APP_ROLE.FOLLOWER));
       }, 800);
     }
   }

@@ -67,25 +67,19 @@ A Google Play service account JSON key for uploading to Google Play Console.
   - Choose "JSON" format
   - Click "Create" - this downloads the JSON file
 5. **Grant the service account access in Play Console**
-
-   Play Console no longer centers this under **Settings** for everyone. Use **Users and permissions**:
-
-   - Open [Google Play Console](https://play.google.com/console) → **Users and permissions** (from the left nav / account menu).
-   - **Invite new users** (or open the existing row if you already invited this email).
-   - Enter the **`client_email`** from your JSON (looks like `name@YOUR_PROJECT_ID.iam.gserviceaccount.com`).
-   - **Critical — app access:** the account must be allowed to change **this** app (`com.redsracing.app`). When you pick a role (e.g. **Release manager**), use **App permissions** / **Apps** and include your Reds Racing listing, not “no apps” or only another package.
-   - Permissions must include creating/editing releases on **testing tracks** (including **Closed testing**; the API track Gradle uses is `alpha`). **Release manager** or **Admin** on the app is typical. Exact labels vary by console version.
-   - Send the invite. Service accounts do not “accept” email; access applies once the user appears as **Active** in **Users and permissions**.
-
+  Play Console no longer centers this under **Settings** for everyone. Use **Users and permissions**:
+  - Open [Google Play Console](https://play.google.com/console) → **Users and permissions** (from the left nav / account menu).
+  - **Invite new users** (or open the existing row if you already invited this email).
+  - Enter the `**client_email`** from your JSON (looks like `name@YOUR_PROJECT_ID.iam.gserviceaccount.com`).
+  - **Critical — app access:** the account must be allowed to change **this** app (`com.redsracing.app`). When you pick a role (e.g. **Release manager**), use **App permissions** / **Apps** and include your Reds Racing listing, not “no apps” or only another package.
+  - Permissions must include creating/editing releases on **testing tracks** (including **Closed testing**; the API track Gradle uses is `alpha`). **Release manager** or **Admin** on the app is typical. Exact labels vary by console version.
+  - Send the invite. Service accounts do not “accept” email; access applies once the user appears as **Active** in **Users and permissions**.
    Optional: some accounts still have **Settings → Developer account → API access** to link a Cloud project; if you see it, link the **same** GCP project where you created the service account and where **Google Play Android Developer API** is enabled.
-
 6. **Add to GitHub Secrets**
-
-   - Open the downloaded JSON file.
-   - Copy the **entire** JSON.
-   - Paste it as the **`GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`** secret.
-
-   The **Android Build** workflow maps that secret to the environment variable **`ANDROID_PUBLISHER_CREDENTIALS`**, which is what **Gradle Play Publisher 3.x** reads. (The old `-Pplay.serviceAccountCredentials=...` path is optional; the env var is the primary CI path.)
+  - Open the downloaded JSON file.
+  - Copy the **entire** JSON.
+  - Paste it as the `**GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`** secret.
+   The **Android Build** workflow maps that secret to the environment variable `**ANDROID_PUBLISHER_CREDENTIALS`**, which is what **Gradle Play Publisher 3.x** reads. (The old `-Pplay.serviceAccountCredentials=...` path is optional; the env var is the primary CI path.)
 
 ## How the Workflow Works
 
@@ -100,7 +94,7 @@ The workflow automatically:
 
 The workflow runs automatically when:
 
-- You push changes to the `android/**` directory
+- You push changes to the `android/`** directory
 - You push changes to the workflow file itself
 
 You can also trigger it manually:
@@ -138,8 +132,8 @@ Gradle Play Publisher is **authenticated** (otherwise you would see credential e
 
 Fix in **Play Console** (not in Gradle):
 
-1. Open **Users and permissions** → find the user whose email matches the **`client_email`** in your JSON (the workflow log also prints `Play Publisher principal: …` for the same value).
-2. Open that user → **App permissions** (or **Account permissions** + per-app access, depending on UI). Ensure **`com.redsracing.app`** / your Reds Racing app is included with a role that can **manage releases** (e.g. **Release manager** on that app).
+1. Open **Users and permissions** → find the user whose email matches the `**client_email`** in your JSON (the workflow log also prints `Play Publisher principal: …` for the same value).
+2. Open that user → **App permissions** (or **Account permissions** + per-app access, depending on UI). Ensure `**com.redsracing.app`** / your Reds Racing app is included with a role that can **manage releases** (e.g. **Release manager** on that app).
 3. If you only granted **account-level** access with **no apps**, or a different app, you will get this `403` until you add this app.
 4. Confirm **Google Play Android Developer API** is enabled in the **same** Google Cloud project as the service account (`APIs & services → Library`).
 5. After changing permissions, wait a few minutes and re-run the workflow.
@@ -164,8 +158,8 @@ Monitor at: [https://github.com/auhren1992/Redsracing/actions](https://github.co
 
 - First app upload to Play Console MUST be done manually
 - Subsequent builds can be uploaded automatically
-- The workflow uploads to **closed testing** by default (API track **`alpha`** in `android/app/build.gradle.kts`; in Play Console this is the default **Closed testing** track).
-- If you use multiple closed tracks or renamed tracks, confirm in Play Console that **`alpha`** is the track you want; change `play { track.set("…") }` if your default closed track differs.
+- The workflow uploads to **closed testing** by default (API track `**alpha`** in `android/app/build.gradle.kts`; in Play Console this is the default **Closed testing** track).
+- If you use multiple closed tracks or renamed tracks, confirm in Play Console that `**alpha`** is the track you want; change `play { track.set("…") }` if your default closed track differs.
 - You can promote builds between testing tracks and production in Play Console.
 - Artifacts are kept for **90 days** (see `android-build.yml`) and can be downloaded from the Actions tab
 

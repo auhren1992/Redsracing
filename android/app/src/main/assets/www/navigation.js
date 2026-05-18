@@ -2,6 +2,17 @@
 (function () {
   'use strict';
 
+  /** Home link after sign-out from role hub pages under fan/, crew/, or racer/. */
+  function rrPostLogoutHome() {
+    try {
+      var p = (window.location.pathname || '').toLowerCase();
+      if (p.indexOf('/fan/') !== -1 || p.indexOf('/crew/') !== -1 || p.indexOf('/racer/') !== -1) {
+        return '../index.html';
+      }
+    } catch (_) {}
+    return 'index.html';
+  }
+
   // ============================================================
   // Theme (luxury dark / clean light)
   // - Persists in localStorage as 'rr_theme'
@@ -86,8 +97,11 @@
         document.head.appendChild(s);
       }
 
-      if (!has('assets/js/mobile-app-detector.js')) inject('assets/js/mobile-app-detector.js');
-      if (!has('global-error-tracker.js')) inject('assets/js/global-error-tracker.js?v=202605061');
+      var path = (window.location.pathname || '').replace(/\\/g, '/');
+      var assetRoot = /\/(fan|crew|racer)\//i.test(path) ? '../' : '';
+
+      if (!has('assets/js/mobile-app-detector.js')) inject(assetRoot + 'assets/js/mobile-app-detector.js');
+      if (!has('global-error-tracker.js')) inject(assetRoot + 'assets/js/global-error-tracker.js?v=202605061');
     } catch (_) {}
   })();
 
@@ -403,14 +417,14 @@ const core = await import('./assets/js/firebase-core.js');
               logoutBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 await multiSignOut();
-                window.location.href = 'index.html';
+                window.location.href = rrPostLogoutHome();
               });
             }
             if (mobileLogoutBtn) {
               mobileLogoutBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 await multiSignOut();
-                window.location.href = 'index.html';
+                window.location.href = rrPostLogoutHome();
               });
             }
           } else {

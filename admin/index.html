@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting — Admin</title>
+    <link rel="icon" type="image/x-icon" href="../favicon.ico" />
+    <meta http-equiv="refresh" content="0;url=/admin-console.html" />
+    <script>
+      (function () {
+        var t = "/admin-console.html";
+        try {
+          if (location.protocol === "file:") t = "../admin-console.html";
+        } catch (_) {}
+        window.location.replace(t);
+      })();
+    </script>
+  </head>
+  <body style="font-family: system-ui; background: #0a0e17; color: #e2e8f0; padding: 2rem; text-align: center">
+    <p>Opening the <strong>admin</strong> command center…</p>
+    <p><a href="../admin-console.html" style="color: #c084fc">Continue</a></p>
+  </body>
+</html>

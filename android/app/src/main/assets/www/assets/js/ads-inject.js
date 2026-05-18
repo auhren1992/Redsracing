@@ -50,6 +50,8 @@
     'simple-admin.html',
     'follower-dashboard.html',
     'redsracing-dashboard.html',
+    'follower/index.html',
+    'admin/index.html',
     'force-dashboard.html',
     'fan/dashboard.html',
     'crew/dashboard.html',
@@ -69,6 +71,14 @@
   function normalizePath(pathname) {
     var p = (pathname || '').toLowerCase();
     return p.split('?')[0].split('#')[0];
+  }
+
+  /** Native RedsRacing app WebView: native AdMob banner already shown — skip AdSense slots. */
+  function isRedsRacingNativeApp() {
+    try {
+      if (document.body && document.body.classList.contains('mobile-app')) return true;
+    } catch (_) {}
+    return /RedsRacingApp\//i.test(navigator.userAgent || '');
   }
 
   function pathMatchesDenied(p, denied) {
@@ -220,28 +230,41 @@
   }
 
   function shouldInjectMidAd() {
-    return getContentSections(getMain()).length >= 3;
+    return getContentSections().length >= 2;
+  }
+
+  function log() {
+    if (window.console && console.info) {
+      try { console.info.apply(console, arguments); } catch (e) {}
+    }
   }
 
   function init() {
-    if (isDeniedPath(location.pathname)) return;
+    if (isRedsRacingNativeApp()) {
+      log('[ads-inject] skipped (native app — use native banner only)');
+      return;
+    }
+    if (isDeniedPath(location.pathname)) {
+      log('[ads-inject] skipped (denied path):', location.pathname);
+      return;
+    }
 
     ensureAdSenseLoader();
 
-    // Defer slightly so DOM is ready and AdSense loader has time to register.
     var run = function () {
+      var results = { top: false, mid: false, bottom: false };
       try {
-        inject('top', SLOTS.top);
+        results.top = inject('top', SLOTS.top);
         if (shouldInjectMidAd()) {
-          inject('mid', SLOTS.mid);
+          results.mid = inject('mid', SLOTS.mid);
         }
-        inject('bottom', SLOTS.bottom);
+        results.bottom = inject('bottom', SLOTS.bottom);
       } catch (e) {
-        // Don't let ad injection break the page.
         if (window.console && console.warn) {
           console.warn('[ads-inject] failed:', e && e.message);
         }
       }
+      log('[ads-inject] placements:', results);
     };
 
     if (document.readyState === 'complete' || document.readyState === 'interactive') {

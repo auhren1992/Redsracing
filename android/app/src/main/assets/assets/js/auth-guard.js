@@ -7,22 +7,37 @@ import {
   toStoredFirestoreRole,
 } from "./roles.js";
 
-const protectedPages = [
-  "redsracing-dashboard.html",
-  "follower-dashboard.html",
-  "profile.html",
-  "admin-console.html",
-];
-const crewPages = ["redsracing-dashboard.html"];
-const adminOnlyPages = ["admin-console.html"];
-const followerPages = ["follower-dashboard.html"];
+/** Path under site root, no leading slash, lowercase (e.g. fan/dashboard.html). */
+function getPageKey() {
+  const raw = (window.location.pathname || "").replace(/^\/+|\/+$/g, "").toLowerCase();
+  return raw || "index.html";
+}
 
-const currentPage = window.location.pathname.split("/").pop();
+const pageKey = getPageKey();
+
+const protectedPaths = new Set([
+  "admin-console.html",
+  "profile.html",
+  "follower-dashboard.html",
+  "fan/dashboard.html",
+  "crew/dashboard.html",
+  "racer/dashboard.html",
+  "redsracing-dashboard.html",
+]);
+
+const crewPaths = new Set(["crew/dashboard.html", "redsracing-dashboard.html"]);
+const adminOnlyPaths = new Set(["admin-console.html"]);
+const followerPaths = new Set([
+  "follower-dashboard.html",
+  "follower/index.html",
+  "fan/dashboard.html",
+  "racer/dashboard.html",
+]);
 
 const hasAuthMarker = !!localStorage.getItem("rr_auth_uid");
 const REDIRECT_GRACE_MS = hasAuthMarker ? 4000 : 3000;
 
-if (protectedPages.includes(currentPage)) {
+if (protectedPaths.has(pageKey)) {
   let redirected = false;
   const safeRedirectToLogin = () => {
     if (redirected) return;
@@ -78,8 +93,8 @@ if (protectedPages.includes(currentPage)) {
         }
 
         if (
-          (adminOnlyPages.includes(currentPage) && appRole !== APP_ROLE.ADMIN) ||
-          (crewPages.includes(currentPage) && !isStaff(appRole))
+          (adminOnlyPaths.has(pageKey) && appRole !== APP_ROLE.ADMIN) ||
+          (crewPaths.has(pageKey) && !isStaff(appRole))
         ) {
           appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: true });
         }
@@ -88,25 +103,25 @@ if (protectedPages.includes(currentPage)) {
         const finalStaff = isStaff(appRole);
         const finalFollower = appRole === APP_ROLE.FOLLOWER;
 
-        if (adminOnlyPages.includes(currentPage) && !finalAdmin) {
+        if (adminOnlyPaths.has(pageKey) && !finalAdmin) {
           console.warn(
             "[AuthGuard] Admin-only page; user is not admin/owner. Role:",
             appRole,
           );
           navigateToInternal(defaultDashboardPath(appRole));
-        } else if (crewPages.includes(currentPage) && !finalStaff) {
+        } else if (crewPaths.has(pageKey) && !finalStaff) {
           console.warn(
-            "[AuthGuard] Crew dashboard requires staff role. Role:",
+            "[AuthGuard] Crew workspace requires staff role. Role:",
             appRole,
           );
-          navigateToInternal("/follower-dashboard.html");
-        } else if (followerPages.includes(currentPage) && !finalFollower) {
+          navigateToInternal(defaultDashboardPath(APP_ROLE.FOLLOWER));
+        } else if (followerPaths.has(pageKey) && !finalFollower) {
           console.warn(
-            "[AuthGuard] Follower hub is for fans only; redirecting staff.",
+            "[AuthGuard] Fan/follower hub only; redirecting staff.",
             appRole,
           );
-          if (finalAdmin) navigateToInternal("/admin-console.html");
-          else navigateToInternal("/redsracing-dashboard.html");
+          if (finalAdmin) navigateToInternal(defaultDashboardPath(APP_ROLE.ADMIN));
+          else navigateToInternal(defaultDashboardPath(APP_ROLE.CREW));
         }
       } catch (error) {
         console.error("[AuthGuard] Error resolving role:", error);

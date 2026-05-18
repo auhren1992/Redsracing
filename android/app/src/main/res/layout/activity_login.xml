@@ -25,6 +25,17 @@
             android:layout_marginTop="24dp" />
 
         <Button
+            android:id="@+id/unlockButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Unlock with biometrics"
+            android:textAllCaps="false"
+            android:textColor="@color/black"
+            android:backgroundTint="@color/accent_yellow"
+            android:layout_marginTop="32dp"
+            android:visibility="gone" />
+
+        <Button
             android:id="@+id/signInButton"
             android:layout_width="match_parent"
             android:layout_height="48dp"
@@ -32,7 +43,7 @@
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:backgroundTint="@color/accent_blue"
-            android:layout_marginTop="32dp" />
+            android:layout_marginTop="12dp" />
 
         <Button
             android:id="@+id/guestButton"

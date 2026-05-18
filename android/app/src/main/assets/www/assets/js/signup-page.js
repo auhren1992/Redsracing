@@ -170,17 +170,17 @@ document.addEventListener("DOMContentLoaded", () => {
           // Redirect based on assigned role from claims
           if (role === 'admin') {
             console.log('[SIGNUP] Redirecting to admin console...');
-            window.location.href = "/admin-console.html";
+            window.location.href = "/admin/index.html";
           } else if (role === 'team-member') {
-            console.log('[SIGNUP] Redirecting to dashboard...');
-            window.location.href = "/follower-dashboard.html";
+            console.log('[SIGNUP] Redirecting to crew workspace...');
+            window.location.href = "/crew/dashboard.html";
           } else {
-            console.log('[SIGNUP] Redirecting to dashboard...');
-            window.location.href = "/follower-dashboard.html";
+            console.log('[SIGNUP] Redirecting to fan hub...');
+            window.location.href = "/follower/index.html";
           }
         } catch (e) {
           console.warn('[SIGNUP] Could not fetch role claims, defaulting to follower dashboard:', e);
-          window.location.href = "/follower-dashboard.html";
+          window.location.href = "/follower/index.html";
         }
       } catch (error) {
         console.error('[SIGNUP] Signup failed:', error);

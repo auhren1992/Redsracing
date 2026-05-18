@@ -324,6 +324,28 @@
               <p id="error-text"></p>
             </div>
 
+            <div id="app-native-unlock-panel" class="hidden flex-col gap-4 mb-6 p-5 rounded-xl border border-yellow-400/30 bg-yellow-400/5">
+              <div class="text-center">
+                <p id="app-native-welcome" class="text-slate-300 text-sm mb-1">Welcome back</p>
+                <p id="app-native-email-hint" class="text-white font-semibold truncate"></p>
+              </div>
+              <button
+                type="button"
+                id="app-native-unlock-button"
+                class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-yellow-400 to-yellow-300 text-slate-900 font-bold py-3.5 px-6 rounded-lg shadow-lg"
+              >
+                <i class="fas fa-fingerprint text-lg" aria-hidden="true"></i>
+                Unlock with Face ID / Touch ID
+              </button>
+              <button
+                type="button"
+                id="app-use-password-button"
+                class="w-full text-sm text-slate-400 hover:text-yellow-400 transition-colors"
+              >
+                Sign in with password instead
+              </button>
+            </div>
+
             <form id="login-form" class="space-y-5 mt-5">
               <div class="input-group">
                 <label for="email" class="block text-sm font-semibold text-slate-300 mb-2">Email Address</label>
@@ -362,7 +384,7 @@
               <div id="app-biometric-row" class="hidden flex-col gap-2 text-sm text-slate-400 select-none">
                 <label class="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" id="enable-app-biometric" class="mt-1 rounded border-slate-600 bg-slate-900 text-yellow-400 focus:ring-yellow-400" />
-                  <span>In the <strong class="text-slate-300">Reds Racing app</strong>, require <strong class="text-slate-300">Face ID, Touch ID, fingerprint, or device passcode</strong> before opening the app (recommended on shared phones).</span>
+                  <span>Use <strong class="text-slate-300">Face ID, Touch ID, fingerprint, or device passcode</strong> to unlock the app after sign-in (recommended on shared phones). This is separate from the website in your browser.</span>
                 </label>
               </div>
 
