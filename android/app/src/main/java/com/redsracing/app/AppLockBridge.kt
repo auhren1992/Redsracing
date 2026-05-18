@@ -69,14 +69,14 @@ class AppLockBridge(
         activity.runOnUiThread {
             if (!canUseBiometric(activity)) {
                 notifyUnlockResult(false)
-                return
+            } else {
+                runBiometricPrompt(
+                    activity = activity,
+                    onSuccess = { notifyUnlockResult(true) },
+                    onFailure = { notifyUnlockResult(false) },
+                    onCancel = { notifyUnlockResult(false) },
+                )
             }
-            runBiometricPrompt(
-                activity = activity,
-                onSuccess = { notifyUnlockResult(true) },
-                onFailure = { notifyUnlockResult(false) },
-                onCancel = { notifyUnlockResult(false) },
-            )
         }
     }
 
