@@ -179,15 +179,28 @@ class FirebaseAuthBridge(private val context: Context) {
         }
     }
 
+    /** Native/Kotlin read of stored UID (avoid calling @JavascriptInterface from Kotlin). */
+    fun peekStoredUid(): String {
+        return try {
+            prefsState.prefs.getString(KEY_UID, null).orEmpty()
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
+    /** Native/Kotlin read of stored email. */
+    fun peekStoredEmail(): String {
+        return try {
+            prefsState.prefs.getString(KEY_EMAIL, null).orEmpty()
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
     /**
      * Check if a UID is stored (called natively on app launch).
      */
     fun hasAuthUid(): Boolean {
-        return try {
-            val uid = prefsState.prefs.getString(KEY_UID, null)
-            !uid.isNullOrEmpty()
-        } catch (e: Exception) {
-            false
-        }
+        return peekStoredUid().isNotBlank()
     }
 }

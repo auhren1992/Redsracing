@@ -11,12 +11,20 @@ android {
     namespace = "com.redsracing.app"
     compileSdk = 36
 
+    sourceSets {
+        getByName("main") {
+            // Python Cloud Functions copy is not used inside the WebView APK; excluding
+            // it avoids CI OOM/timeouts packaging thousands of venv files.
+            assets.exclude("functions_python/**")
+        }
+    }
+
     defaultConfig {
         applicationId = "com.redsracing.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 194
-        versionName = "11.2.8"
+        versionCode = 195
+        versionName = "11.2.9"
 
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")

@@ -7,7 +7,7 @@ import android.webkit.WebView
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
+import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 import java.lang.ref.WeakReference
 
@@ -16,7 +16,7 @@ import java.lang.ref.WeakReference
  * Also exposes session probe + in-login biometric unlock for the native app flow.
  */
 class AppLockBridge(
-    private val activity: FragmentActivity,
+    private val activity: AppCompatActivity,
     private val authBridge: FirebaseAuthBridge,
 ) {
 
@@ -52,8 +52,8 @@ class AppLockBridge(
 
     @JavascriptInterface
     fun getNativeSessionJson(): String {
-        val uid = authBridge.getAuthUid().ifBlank { prefs.getString(KEY_LOCK_UID, "") ?: "" }
-        val email = authBridge.getAuthEmail()
+        val uid = authBridge.peekStoredUid().ifBlank { prefs.getString(KEY_LOCK_UID, "") ?: "" }
+        val email = authBridge.peekStoredEmail()
         val biometricEnabled = isEnabled(activity)
         val hasSession = uid.isNotBlank()
         return JSONObject()
@@ -120,7 +120,7 @@ class AppLockBridge(
         }
 
         fun runBiometricPrompt(
-            activity: FragmentActivity,
+            activity: AppCompatActivity,
             onSuccess: () -> Unit,
             onFailure: () -> Unit = {},
             onCancel: () -> Unit = {},

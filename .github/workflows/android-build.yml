@@ -61,7 +61,8 @@ jobs:
           REDSRACING_KEYSTORE_PASSWORD: ${{ secrets.REDSRACING_KEYSTORE_PASSWORD }}
           REDSRACING_KEY_PASSWORD: ${{ secrets.REDSRACING_KEY_PASSWORD }}
         working-directory: android
-        run: ./gradlew bundleRelease --no-daemon --stacktrace -PREDSRACING_KEYSTORE_PASSWORD=$REDSRACING_KEYSTORE_PASSWORD -PREDSRACING_KEY_PASSWORD=$REDSRACING_KEY_PASSWORD
+        run: |
+          ./gradlew bundleRelease --no-daemon --stacktrace -PREDSRACING_KEYSTORE_PASSWORD=$REDSRACING_KEYSTORE_PASSWORD -PREDSRACING_KEY_PASSWORD=$REDSRACING_KEY_PASSWORD 2>&1 | tee bundle-release.log || (echo "--- Last 100 lines ---"; tail -n 100 bundle-release.log; exit 1)
 
       - name: Upload to Google Play (closed testing / alpha track)
         env:
