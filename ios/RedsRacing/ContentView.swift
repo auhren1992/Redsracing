@@ -93,12 +93,12 @@ struct ContentView: View {
             currentURL = target
             webViewRef?.load(URLRequest(url: target))
         }
-        .onChange(of: showSplash) { _, stillShowing in
+        .onChange(of: showSplash) { stillShowing in
             if !stillShowing {
                 evaluateStartupAppLockIfNeeded()
             }
         }
-        .onChange(of: scenePhase) { _, phase in
+        .onChange(of: scenePhase) { phase in
             if phase == .active, appAuthenticationRequired {
                 runDeviceOwnerAuthGate()
             }
