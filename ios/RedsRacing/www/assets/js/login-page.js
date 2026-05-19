@@ -10,6 +10,7 @@ import { navigateToInternal, validateRedirectUrl } from "./navigation-helpers.js
 import { resolveAppRoleForUser, defaultDashboardPath } from "./roles.js";
 import {
   applyNativeAppLock,
+  finishStandaloneAppLogin,
   getNativeSession,
   isNativeAppWebView,
   nativeAppLockAvailable,
@@ -74,6 +75,19 @@ class LoginPageController {
     applyNativeAppLock(user || this.auth?.currentUser, true);
   }
 
+  async routeAfterLogin(user, returnTo) {
+    if (finishStandaloneAppLogin()) {
+      this.showMessage("Login successful! Opening app…", false);
+      return;
+    }
+    if (returnTo) {
+      navigateToInternal(returnTo);
+      return;
+    }
+    const appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: true });
+    navigateToInternal(defaultDashboardPath(appRole));
+  }
+
   async initialize() {
     try {
       console.info("[Login] Initializing controller");
@@ -111,14 +125,7 @@ class LoginPageController {
           this.showMessage("Sign-in successful! Redirecting...", false);
           const returnTo = this.getReturnTo();
           setTimeout(async () => {
-            if (returnTo) {
-              navigateToInternal(returnTo);
-              return;
-            }
-            const role = await resolveAppRoleForUser(result.user, {
-              forceTokenRefresh: true,
-            });
-            navigateToInternal(defaultDashboardPath(role));
+            await this.routeAfterLogin(result.user, returnTo);
           }, 800);
           return; // Don't initialize rest of UI — we're redirecting
         }
@@ -214,6 +221,10 @@ class LoginPageController {
 
     this.elements.deviceSigninButton?.addEventListener("click", () => {
       console.info("[Login] Device / biometric sign-in clicked");
+      if (this.isInAppWebView()) {
+        this.handleNativeAppUnlock();
+        return;
+      }
       this.handleDeviceCredentialSignIn();
     });
 
@@ -260,7 +271,25 @@ class LoginPageController {
     const deviceHint = document.getElementById("device-signin-hint");
     if (!wrap) return;
 
-    const useNativeAppLock = this.isInAppWebView() && nativeAppLockAvailable();
+    const inApp = this.isInAppWebView();
+    const useNativeAppLock = inApp && nativeAppLockAvailable();
+
+    // In the Android/iOS app, never expose browser PasswordCredential (WebView cannot use it).
+    if (inApp) {
+      wrap.classList.add("hidden");
+      wrap.classList.remove("flex");
+      browserRow?.classList.add("hidden");
+      deviceBtn?.classList.add("hidden");
+      deviceHint?.classList.add("hidden");
+      appRow?.classList.remove("hidden");
+      appRow?.classList.add("flex");
+      const bioCb = document.getElementById("enable-app-biometric");
+      if (bioCb && !bioCb.dataset.touched) {
+        bioCb.checked = true;
+        bioCb.dataset.touched = "1";
+      }
+      return;
+    }
 
     if (useNativeAppLock) {
       wrap.classList.add("hidden");
@@ -319,6 +348,10 @@ class LoginPageController {
       return;
     }
     this.hideMessage();
+    if (this.isInAppWebView()) {
+      await this.handleNativeAppUnlock();
+      return;
+    }
     if (!this.supportsDeviceCredential()) {
       this.showMessage(
         "Device sign-in is not available in this browser or context. Use email and password, or open the site over HTTPS.",
@@ -444,6 +477,7 @@ class LoginPageController {
       }
 
       this.showMessage("Unlocked! Redirecting…", false);
+      if (finishStandaloneAppLogin()) return;
       const returnTo = this.getReturnTo();
       if (returnTo) {
         navigateToInternal(returnTo);
@@ -647,14 +681,7 @@ class LoginPageController {
       }
 
       this.showMessage("Login successful! Redirecting...", false);
-
-      const returnTo = this.getReturnTo();
-      if (returnTo) {
-        navigateToInternal(returnTo);
-        return;
-      }
-      const appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: true });
-      navigateToInternal(defaultDashboardPath(appRole));
+      await this.routeAfterLogin(user, this.getReturnTo());
     } catch (error) {
       console.error("[Login] Email sign-in failed:", error);
       this.showMessage(getFriendlyAuthError(error));

@@ -2,18 +2,68 @@
  * Native Android / iOS app authentication helpers (standalone from browser PasswordCredential).
  */
 
+function hasAndroidNativeBridge() {
+  try {
+    return !!(
+      window.__RR_NATIVE_APP__ === "android" ||
+      /RedsRacingApp\/1\.0 Android/i.test(navigator.userAgent || "") ||
+      (typeof window.FirebaseAuthBridge !== "undefined" &&
+        window.FirebaseAuthBridge != null) ||
+      (typeof window.AppLockBridge !== "undefined" && window.AppLockBridge != null) ||
+      (typeof window.AndroidAuth !== "undefined" && window.AndroidAuth != null) ||
+      (typeof window.AndroidNotifications !== "undefined" &&
+        window.AndroidNotifications != null)
+    );
+  } catch (_) {
+    return false;
+  }
+}
+
+function hasIOSNativeBridge() {
+  try {
+    return !!(
+      window.__RR_NATIVE_APP__ === "ios" ||
+      /RedsRacingApp\/1\.0 iOS/i.test(navigator.userAgent || "") ||
+      (typeof window.webkit !== "undefined" &&
+        (window.webkit?.messageHandlers?.redsRacingAppLock != null ||
+          window.webkit?.messageHandlers?.redsRacingAuth != null ||
+          window.webkit?.messageHandlers?.redsRacingAppUnlock != null))
+    );
+  } catch (_) {
+    return false;
+  }
+}
+
 export function isNativeAppWebView() {
-  const ua = navigator.userAgent || "";
-  return (
-    /RedsRacingApp/i.test(ua) ||
-    (typeof window.FirebaseAuthBridge !== "undefined" &&
-      window.FirebaseAuthBridge != null) ||
-    (typeof window.AndroidAuth !== "undefined" && window.AndroidAuth != null) ||
-    (typeof window.webkit !== "undefined" &&
-      (window.webkit?.messageHandlers?.redsRacingAppLock != null ||
-        window.webkit?.messageHandlers?.redsRacingAuth != null ||
-        window.webkit?.messageHandlers?.redsRacingAppUnlock != null))
-  );
+  return hasAndroidNativeBridge() || hasIOSNativeBridge();
+}
+
+/** Login UI is bundled in the APK/IPA (not loaded from Firebase Hosting). */
+export function isStandaloneAppLogin() {
+  try {
+    return window.__RR_STANDALONE_APP_LOGIN__ === true;
+  } catch (_) {
+    return false;
+  }
+}
+
+/** Tell native shell to open the main app WebView after auth (standalone login activity). */
+export function finishStandaloneAppLogin() {
+  if (!isStandaloneAppLogin() && !isNativeAppWebView()) return false;
+  try {
+    if (typeof window.AndroidAuth !== "undefined" && window.AndroidAuth?.onLoginSuccess) {
+      window.AndroidAuth.onLoginSuccess();
+      return true;
+    }
+  } catch (_) {}
+  try {
+    const h = window.webkit?.messageHandlers?.redsRacingAuth;
+    if (h && typeof h.postMessage === "function") {
+      h.postMessage({ action: "loginComplete" });
+      return true;
+    }
+  } catch (_) {}
+  return false;
 }
 
 export function nativeAppLockAvailable() {

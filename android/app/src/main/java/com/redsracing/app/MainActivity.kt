@@ -36,6 +36,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.webkit.WebViewAssetLoader
+import androidx.webkit.WebViewCompat
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.MobileAds
@@ -530,7 +531,13 @@ class MainActivity : AppCompatActivity() {
                         CookieManager.getInstance().flush()
                         android.webkit.WebStorage.getInstance().deleteAllData()
                     } catch (_: Throwable) {}
+                    firebaseAuthBridge.clearAllAuth()
+                    startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                    finish()
                 }
+                hideMenuOverlay()
+            } else if (item.url == "login.html") {
+                startActivity(Intent(this, LoginActivity::class.java))
                 hideMenuOverlay()
             } else {
                 binding.webview.loadUrl(siteUrl(item.url))
@@ -633,6 +640,9 @@ class MainActivity : AppCompatActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest): WebResourceResponse? {
                 val url = request.url
+                if (NativeAuthAssets.shouldServeFromBundle(url.host, url.path)) {
+                    NativeAuthAssets.load(this@MainActivity, url.path ?: "")?.let { return it }
+                }
                 if (url.host == "appassets.androidplatform.net") {
                     val path = url.encodedPath ?: "/"
                     if (path == "/favicon.ico") {
@@ -755,6 +765,10 @@ class MainActivity : AppCompatActivity() {
                     })();
                 """.trimIndent()
                 view?.evaluateJavascript(restoreAuthJS, null)
+                view?.evaluateJavascript(
+                    "try{window.__RR_NATIVE_APP__='android';}catch(e){}",
+                    null,
+                )
             }
         }
 
@@ -1020,13 +1034,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkAuthAndRoute() {
         if (firebaseAuthBridge.hasAuthUid()) {
-            // User was previously authenticated — go to home page
             android.util.Log.d("MainActivity", "Saved auth UID found, loading home page")
             binding.webview.loadUrl(siteUrl("index.html"))
         } else {
-            // No saved auth — show signup/login
-            android.util.Log.d("MainActivity", "No saved auth, loading signup")
-            binding.webview.loadUrl(siteUrl("login.html"))
+            android.util.Log.d("MainActivity", "No saved auth, opening standalone native login")
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
         }
     }
     
@@ -1135,12 +1148,16 @@ class MenuAdapter(
     override fun getItemCount() = items.size
 }
 
-class AuthBridge(private val context: Context) {
+class AuthBridge(
+    private val context: Context,
+    private val onLoginSuccessExtra: (() -> Unit)? = null,
+) {
     private val prefs by lazy { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
 
     @android.webkit.JavascriptInterface
     fun onLoginSuccess() {
         prefs.edit().putBoolean("remember_choice", true).putString("mode", "signin").apply()
+        onLoginSuccessExtra?.invoke()
     }
 
     @android.webkit.JavascriptInterface

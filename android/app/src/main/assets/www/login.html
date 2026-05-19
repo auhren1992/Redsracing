@@ -474,6 +474,24 @@
     <!-- Scripts -->
     <script type="module" src="navigation.js"></script>
     <script src="vendors.js"></script>
+    <script>
+      (function () {
+        var ua = navigator.userAgent || "";
+        if (/RedsRacingApp\/1\.0 iOS/i.test(ua)) {
+          window.__RR_NATIVE_APP__ = "ios";
+        } else if (
+          /RedsRacingApp/i.test(ua) ||
+          typeof window.AppLockBridge !== "undefined" ||
+          typeof window.FirebaseAuthBridge !== "undefined" ||
+          typeof window.AndroidAuth !== "undefined"
+        ) {
+          window.__RR_NATIVE_APP__ = "android";
+        }
+        if (window.__RR_NATIVE_APP__) {
+          window.__RR_STANDALONE_APP_LOGIN__ = true;
+        }
+      })();
+    </script>
     <script type="module" src="assets/js/login-page.js"></script>
     <script>
       // Force-show login card in case any CSS/JS delays hide it

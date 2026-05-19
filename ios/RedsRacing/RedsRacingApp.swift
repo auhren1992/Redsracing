@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
             }
         }
         requestPushPermissions(application)
+        URLProtocol.registerClass(BundledAuthURLProtocol.self)
         return true
     }
 
@@ -122,6 +123,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
 /// a payload arrives.
 extension Notification.Name {
     static let deepLinkTarget = Notification.Name("RR.DeepLinkTarget")
+    static let nativeLoginComplete = Notification.Name("RR.NativeLoginComplete")
 }
 
 @main

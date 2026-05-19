@@ -1,54 +1,139 @@
 package com.redsracing.app
 
+import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.webkit.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.webkit.WebViewCompat
 import com.redsracing.app.databinding.ActivityLoginBinding
 
+/**
+ * Standalone native-app login (bundled login.html + JS, not dependent on Firebase Hosting deploy).
+ * After sign-in, session is stored in [FirebaseAuthBridge] and the main app loads www.redsracing.org.
+ */
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var prefs: SharedPreferences
     private lateinit var firebaseAuthBridge: FirebaseAuthBridge
+    private lateinit var appLockBridge: AppLockBridge
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        firebaseAuthBridge = FirebaseAuthBridge(this)
 
-        if (prefs.getBoolean("remember_choice", false)) {
-            when (prefs.getString("mode", "")) {
-                "signin" -> {
-                    startMain("https://www.redsracing.org/", guest = false)
-                    return
-                }
-                "guest" -> {
-                    startMain("https://www.redsracing.org/index.html", guest = true)
-                    return
-                }
-            }
+        firebaseAuthBridge = FirebaseAuthBridge(this)
+        if (firebaseAuthBridge.hasAuthUid()) {
+            openMainApp()
+            return
         }
 
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         if (hasBiometricUnlockSession()) {
+            binding.loginFallbackPanel.visibility = View.VISIBLE
             binding.unlockButton.visibility = View.VISIBLE
             binding.unlockButton.setOnClickListener { runBiometricUnlockAndOpen() }
+        } else {
+            binding.loginFallbackPanel.visibility = View.GONE
         }
 
-        binding.signInButton.setOnClickListener {
-            startMain("https://www.redsracing.org/login.html", guest = false)
-        }
         binding.guestButton.setOnClickListener {
-            if (binding.rememberCheck.isChecked) remember("guest")
-            startMain("https://www.redsracing.org/index.html", guest = true)
+            openMainApp(guest = true)
         }
-        binding.createAccountLink.setOnClickListener {
-            startMain("https://www.redsracing.org/signup.html", guest = false)
+
+        setupLoginWebView(binding.loginWebView)
+        binding.loginWebView.loadUrl(MainActivity.siteUrl("login.html"))
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun setupLoginWebView(webView: WebView) {
+        with(webView.settings) {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            @Suppress("DEPRECATION")
+            databaseEnabled = false
+            allowFileAccess = false
+            allowContentAccess = true
+            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+            cacheMode = WebSettings.LOAD_DEFAULT
+            setSupportMultipleWindows(true)
+            javaScriptCanOpenWindowsAutomatically = true
+        }
+
+        val bg = ContextCompat.getColor(this, R.color.website_background)
+        webView.setBackgroundColor(bg)
+
+        try {
+            val base = WebSettings.getDefaultUserAgent(this)
+            webView.settings.userAgentString = "$base RedsRacingApp/1.0 Android"
+        } catch (_: Throwable) {
+        }
+
+        try {
+            WebViewCompat.addDocumentStartJavaScript(
+                webView,
+                "try{window.__RR_NATIVE_APP__='android';window.__RR_STANDALONE_APP_LOGIN__=true;}catch(e){}",
+                setOf("*"),
+            )
+        } catch (_: Throwable) {
+        }
+
+        appLockBridge = AppLockBridge(this, firebaseAuthBridge)
+        appLockBridge.attachWebView(webView)
+        webView.addJavascriptInterface(firebaseAuthBridge, "FirebaseAuthBridge")
+        webView.addJavascriptInterface(
+            AuthBridge(this) { openMainApp() },
+            "AndroidAuth",
+        )
+        webView.addJavascriptInterface(appLockBridge, "AppLockBridge")
+
+        webView.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: WebResourceRequest,
+            ): WebResourceResponse? {
+                val url = request.url
+                if (NativeAuthAssets.shouldServeFromBundle(url.host, url.path)) {
+                    NativeAuthAssets.load(this@LoginActivity, url.path ?: "")?.let { return it }
+                }
+                return super.shouldInterceptRequest(view, request)
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                view?.evaluateJavascript(
+                    "try{window.__RR_NATIVE_APP__='android';window.__RR_STANDALONE_APP_LOGIN__=true;}catch(e){}",
+                    null,
+                )
+            }
+        }
+
+        webView.webChromeClient = object : WebChromeClient() {
+            override fun onCreateWindow(
+                view: WebView?,
+                isDialog: Boolean,
+                isUserGesture: Boolean,
+                resultMsg: android.os.Message?,
+            ): Boolean {
+                val transport = resultMsg?.obj as? WebView.WebViewTransport ?: return false
+                val temp = WebView(this@LoginActivity)
+                temp.settings.javaScriptEnabled = true
+                temp.webViewClient = object : WebViewClient() {
+                    override fun shouldOverrideUrlLoading(v: WebView?, req: WebResourceRequest?): Boolean {
+                        val target = req?.url?.toString() ?: return false
+                        view?.loadUrl(target)
+                        return true
+                    }
+                }
+                transport.webView = temp
+                resultMsg.sendToTarget()
+                return true
+            }
         }
     }
 
@@ -61,34 +146,26 @@ class LoginActivity : AppCompatActivity() {
     private fun runBiometricUnlockAndOpen() {
         AppLockBridge.runBiometricPrompt(
             activity = this,
-            onSuccess = {
-                remember("signin")
-                startMain("https://www.redsracing.org/", guest = false)
-            },
+            onSuccess = { openMainApp() },
             onCancel = { },
         )
     }
 
-    private fun remember(mode: String) {
-        prefs.edit()
-            .putBoolean("remember_choice", true)
-            .putString("mode", mode)
-            .apply()
+    private fun openMainApp(guest: Boolean = false) {
+        val intent = Intent(this, MainActivity::class.java)
+            .putExtra("initialUrl", MainActivity.siteUrl(if (guest) "index.html" else "index.html"))
+            .putExtra("guest", guest)
+            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+        finish()
     }
 
-    private fun startMain(url: String, guest: Boolean) {
-        val base = "https://www.redsracing.org/"
-        val resolved = when {
-            url.startsWith("http://") || url.startsWith("https://") -> url
-            url.startsWith("file:///android_asset/www/") -> url
-            url.startsWith("file://") -> url
-            url.startsWith("/") -> base + url.removePrefix("/")
-            else -> base + url
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        if (binding.loginWebView.canGoBack()) {
+            binding.loginWebView.goBack()
+        } else {
+            super.onBackPressed()
         }
-        val i = Intent(this, MainActivity::class.java)
-            .putExtra("initialUrl", resolved)
-            .putExtra("guest", guest)
-        startActivity(i)
-        finish()
     }
 }

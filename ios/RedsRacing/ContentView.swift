@@ -95,8 +95,16 @@ struct ContentView: View {
         }
         .onChange(of: showSplash) { stillShowing in
             if !stillShowing {
+                routeToStandaloneLoginIfNeeded()
                 evaluateStartupAppLockIfNeeded()
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .nativeLoginComplete)) { _ in
+            withAnimation { showSplash = false }
+            showMenuOverlay = false
+            let home = URL(string: "https://www.redsracing.org/index.html") ?? currentURL
+            currentURL = home
+            webViewRef?.load(URLRequest(url: home))
         }
         .onChange(of: scenePhase) { phase in
             if phase == .active, appAuthenticationRequired {
@@ -131,6 +139,19 @@ struct ContentView: View {
                 }
                 .padding(.top, 8)
             }
+        }
+    }
+
+    private func routeToStandaloneLoginIfNeeded() {
+        let defaults = UserDefaults.standard
+        let uid = defaults.string(forKey: NativeAuthUserDefaultsKeys.uid)
+            ?? defaults.string(forKey: AppLockUserDefaultsKeys.lockAuthUid)
+            ?? ""
+        guard uid.isEmpty else { return }
+        let login = URL(string: "https://www.redsracing.org/login.html") ?? currentURL
+        if currentURL.absoluteString != login.absoluteString {
+            currentURL = login
+            webViewRef?.load(URLRequest(url: login))
         }
     }
 
@@ -478,6 +499,13 @@ struct WebView: UIViewRepresentable {
         // appends to the default product line.
         configuration.applicationNameForUserAgent = "RedsRacingApp/1.0 iOS"
 
+        let standaloneFlag = WKUserScript(
+            source: "try{window.__RR_NATIVE_APP__='ios';window.__RR_STANDALONE_APP_LOGIN__=true;}catch(e){}",
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: true
+        )
+        configuration.userContentController.addUserScript(standaloneFlag)
+
         configuration.userContentController.add(context.coordinator, name: "redsRacingAppLock")
         configuration.userContentController.add(context.coordinator, name: "redsRacingAuth")
         configuration.userContentController.add(context.coordinator, name: "redsRacingAppUnlock")
@@ -744,6 +772,13 @@ extension WebView.Coordinator: WKScriptMessageHandler {
                 if let token = dict["token"] as? String, !token.isEmpty {
                     defaults.set(token, forKey: NativeAuthUserDefaultsKeys.token)
                 }
+                return
+            }
+            if action == "loginComplete" {
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .nativeLoginComplete, object: nil)
+                }
+                return
             }
             return
         }

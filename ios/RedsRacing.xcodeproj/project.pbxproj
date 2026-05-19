@@ -11,6 +11,8 @@
 		A1000003234567890ABCDEF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004234567890ABCDEF /* ContentView.swift */; };
 		A1000005234567890ABCDEF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006234567890ABCDEF /* Assets.xcassets */; };
 		A1000018234567890ABCDEF /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A1000017234567890ABCDEF /* GoogleService-Info.plist */; };
+		A1000019234567890ABCDEF /* www in Resources */ = {isa = PBXBuildFile; fileRef = A100001A234567890ABCDEF /* www */; };
+		A100001B234567890ABCDEF /* BundledAuthURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001C234567890ABCDEF /* BundledAuthURLProtocol.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +22,8 @@
 		A1000006234567890ABCDEF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1000008234567890ABCDEF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A1000017234567890ABCDEF /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		A100001A234567890ABCDEF /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; path = www; sourceTree = "<group>"; };
+		A100001C234567890ABCDEF /* BundledAuthURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundledAuthURLProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +58,8 @@
 			children = (
 				A1000002234567890ABCDEF /* RedsRacingApp.swift */,
 				A1000004234567890ABCDEF /* ContentView.swift */,
+				A100001C234567890ABCDEF /* BundledAuthURLProtocol.swift */,
+				A100001A234567890ABCDEF /* www */,
 				A1000006234567890ABCDEF /* Assets.xcassets */,
 				A1000008234567890ABCDEF /* Info.plist */,
 				A1000017234567890ABCDEF /* GoogleService-Info.plist */,
@@ -121,6 +127,7 @@
 			files = (
 				A1000005234567890ABCDEF /* Assets.xcassets in Resources */,
 				A1000018234567890ABCDEF /* GoogleService-Info.plist in Resources */,
+				A1000019234567890ABCDEF /* www in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,6 +140,7 @@
 			files = (
 				A1000003234567890ABCDEF /* ContentView.swift in Sources */,
 				A1000001234567890ABCDEF /* RedsRacingApp.swift in Sources */,
+				A100001B234567890ABCDEF /* BundledAuthURLProtocol.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -265,7 +273,7 @@
 				CODE_SIGN_ENTITLEMENTS = RedsRacing/RedsRacing.entitlements;
 		ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 		CODE_SIGN_STYLE = Automatic;
-CURRENT_PROJECT_VERSION = 197;
+CURRENT_PROJECT_VERSION = 198;
 		DEVELOPMENT_TEAM = "";
 			ENABLE_PREVIEWS = YES;
 			GENERATE_INFOPLIST_FILE = YES;
@@ -279,7 +287,7 @@ CURRENT_PROJECT_VERSION = 197;
 				"$(inherited)",
 				"@executable_path/Frameworks",
 			);
-MARKETING_VERSION = 11.2.11;
+MARKETING_VERSION = 11.2.12;
 				PRODUCT_BUNDLE_IDENTIFIER = com.redsracing.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -296,7 +304,7 @@ MARKETING_VERSION = 11.2.11;
 		ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 		CODE_SIGN_IDENTITY = "iPhone Distribution";
 		CODE_SIGN_STYLE = Manual;
-CURRENT_PROJECT_VERSION = 197;
+CURRENT_PROJECT_VERSION = 198;
 		DEVELOPMENT_TEAM = "";
 			ENABLE_PREVIEWS = NO;
 			GENERATE_INFOPLIST_FILE = YES;
@@ -310,7 +318,7 @@ CURRENT_PROJECT_VERSION = 197;
 				"$(inherited)",
 				"@executable_path/Frameworks",
 			);
-MARKETING_VERSION = 11.2.11;
+MARKETING_VERSION = 11.2.12;
 				PRODUCT_BUNDLE_IDENTIFIER = com.redsracing.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
