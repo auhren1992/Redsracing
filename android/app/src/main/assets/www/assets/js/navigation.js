@@ -1,638 +1,1061 @@
-import "./app.js";
-
-// Enhanced Navigation functionality - independent of Firebase and ES6 modules
+// Root navigation.js: lightweight nav behavior without external deps
 (function () {
-  "use strict";
+  'use strict';
 
-  let navigationInitialized = false;
-  let retryCount = 0;
-  const maxRetries = 3;
-
-  // Lazy import auth utilities only when needed to keep navigation independent
-  let authNavInitialized = false;
-  async function initAuthNavigation() {
-    if (authNavInitialized) return;
-    authNavInitialized = true;
+  /** Home link after sign-out from role hub pages under fan/, crew/, or racer/. */
+  function rrPostLogoutHome() {
     try {
-      const { monitorAuthState, validateUserClaims, safeSignOut } = await import("./auth-utils.js");
-
-      // Locate the desktop nav container
-      const desktopNav = document.querySelector(
-        "nav .md\\:flex.items-center, nav .hidden.md\\:flex.items-center",
-      );
-
-      // Ensure a consistent Account dropdown exists (desktop)
-      let accountDropdown = document.getElementById("account-dropdown");
-      if (!accountDropdown && desktopNav) {
-        accountDropdown = document.createElement("div");
-        accountDropdown.className = "dropdown relative";
-        accountDropdown.id = "account-dropdown";
-        accountDropdown.innerHTML = `
-          <button id="account-toggle" class="dropdown-toggle rr-pill rr-pill--primary" aria-haspopup="true" aria-expanded="false">
-            Account
-          </button>
-          <div id="account-menu" class="dropdown-menu modern-dropdown hidden right-0 w-48" role="menu" aria-hidden="true"></div>
-        `;
-        desktopNav.appendChild(accountDropdown);
+      var p = (window.location.pathname || '').toLowerCase();
+      if (p.indexOf('/fan/') !== -1 || p.indexOf('/crew/') !== -1 || p.indexOf('/racer/') !== -1) {
+        return '../index.html';
       }
+    } catch (_) {}
+    return 'index.html';
+  }
 
-      // Ensure mobile Account section exists
-      const mobileMenu = document.getElementById("mobile-menu");
-      if (mobileMenu && !document.getElementById("account-dropdown-mobile")) {
-        const container = document.createElement("div");
-        container.id = "account-dropdown-mobile";
-        container.innerHTML = `
-          <button id="account-toggle-mobile" class="mobile-accordion text-sm px-6 pt-3 font-bold text-slate-400 w-full text-left">Account</button>
-          <div id="account-menu-mobile" class="mobile-accordion-content hidden pl-4"></div>
-        `;
-        mobileMenu.appendChild(container);
-      }
+  // ============================================================
+  // Theme (luxury dark / clean light)
+  // - Persists in localStorage as 'rr_theme'
+  // - Defaults to system preference when unset
+  // ============================================================
+  (function initTheme() {
+    try {
+      const root = document.documentElement;
+      const key = 'rr_theme';
+      const stored = localStorage.getItem(key);
+      const systemPrefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      const initial = stored === 'light' || stored === 'dark' ? stored : (systemPrefersLight ? 'light' : 'dark');
+      root.dataset.theme = initial;
 
-      function buildMenuInto(menuId, items, opts = {}) {
-        const menu = document.getElementById(menuId);
-        if (!menu) return;
-        menu.innerHTML = "";
-        for (const item of items) {
-          const a = document.createElement("a");
-          a.href = item.href || "#";
-          a.textContent = item.label;
-          if (opts.roleMenuItem) a.setAttribute("role", "menuitem");
-          if (opts.extraClasses) a.className = opts.extraClasses;
-          if (item.onClick) {
-            a.addEventListener("click", (e) => {
-              e.preventDefault();
-              item.onClick();
-            });
-          }
-          menu.appendChild(a);
+      // Expose a tiny API for other scripts/pages if needed
+      window.__rrTheme = {
+        get: () => root.dataset.theme || 'dark',
+        set: (next) => {
+          const t = next === 'light' ? 'light' : 'dark';
+          root.dataset.theme = t;
+          try { localStorage.setItem(key, t); } catch (_) {}
+        },
+        toggle: () => {
+          const next = (root.dataset.theme === 'light') ? 'dark' : 'light';
+          window.__rrTheme.set(next);
         }
-      }
+      };
+    } catch (_) {}
+  })();
 
-      function buildMenu(items) {
-        // Desktop dropdown
-        buildMenuInto("account-menu", items, { roleMenuItem: true });
-        // Mobile accordion menu
-        buildMenuInto(
-          "account-menu-mobile",
-          items,
-          { extraClasses: "block py-2 pl-6 text-sm hover:bg-slate-800" }
-        );
-      }
+  (function mountThemeToggle() {
+    try {
+      const mount = () => {
+        const authSection = document.getElementById('auth-section');
+        if (!authSection) return;
+        if (document.getElementById('rr-theme-toggle')) return;
 
-      function hideLegacyLinks() {
-        const selectors = [
-          'a[href="login.html"]',
-          'a[href="signup.html"]',
-          'a[href="profile.html"]',
-          'a[href="dashboard.html"]',
-          'a[href="redsracing-dashboard.html"]',
-          'a[href="follower-dashboard.html"]',
-          'a[href="crew/dashboard.html"]',
-          'a[href="follower/index.html"]',
-          'a[href="fan/dashboard.html"]',
-        ];
-        selectors.forEach((sel) => {
-          document.querySelectorAll(sel).forEach((el) => {
-            const parentDropdown = el.closest('.dropdown');
-            if (parentDropdown && parentDropdown.id === 'account-dropdown') return;
-            el.style.display = 'none';
-          });
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.id = 'rr-theme-toggle';
+        btn.className = 'rr-theme-toggle';
+        btn.setAttribute('aria-label', 'Toggle theme');
+        btn.title = 'Toggle theme';
+
+        const updateIcon = () => {
+          const theme = (document.documentElement.dataset.theme || 'dark');
+          btn.innerHTML = theme === 'light'
+            ? '<i class="fa-solid fa-moon"></i>'
+            : '<i class="fa-solid fa-sun"></i>';
+        };
+        updateIcon();
+
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (window.__rrTheme && typeof window.__rrTheme.toggle === 'function') window.__rrTheme.toggle();
+          updateIcon();
         });
+
+        // Keep it on the far right of the nav auth area
+        authSection.appendChild(btn);
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mount, { once: true });
+      } else {
+        mount();
+      }
+    } catch (_) {}
+  })();
+
+  // Site-wide helpers: always load app detector + error tracker once.
+  // This keeps native-app UX consistent across ALL pages without adding per-page scripts.
+  (function ensureGlobalHelpers() {
+    try {
+      const scripts = Array.from(document.scripts || []);
+      const has = (needle) => scripts.some(s => (s.getAttribute && (s.getAttribute('src') || '')).includes(needle));
+
+      function inject(src) {
+        const s = document.createElement('script');
+        s.src = src;
+        s.defer = true;
+        document.head.appendChild(s);
       }
 
-      function setAvatarButtonContent(name, email, photoURL) {
-        const btn = document.getElementById('account-toggle');
-        if (!btn) return;
-        const initials = (name || email || 'U')
-          .replace(/[^a-zA-Z ]/g, '')
-          .trim()
-          .split(' ')
-          .map((p) => p[0])
-          .join('')
-          .slice(0, 2)
-          .toUpperCase();
-        btn.innerHTML = '';
-        const wrap = document.createElement('span');
-        wrap.className = 'inline-flex items-center gap-2';
-        const avatar = document.createElement('span');
-        avatar.className = 'avatar-btn';
-        if (photoURL) {
-          const img = document.createElement('img');
-          img.src = photoURL;
-          img.alt = 'Profile';
-          img.className = 'avatar-img';
-          avatar.appendChild(img);
-        } else {
-          const i = document.createElement('span');
-          i.textContent = initials;
-          i.className = 'avatar-initials';
-          avatar.appendChild(i);
-        }
-        const label = document.createElement('span');
-        label.textContent = 'Account';
-        wrap.appendChild(avatar);
-        wrap.appendChild(label);
-        btn.appendChild(wrap);
-      }
+      var path = (window.location.pathname || '').replace(/\\/g, '/');
+      var assetRoot = /\/(fan|crew|racer)\//i.test(path) ? '../' : '';
 
-      async function renderForUser(user) {
-        hideLegacyLinks();
-        const menuBtn = document.getElementById("account-toggle");
-        if (!menuBtn) return;
-        if (!user) {
-          menuBtn.textContent = "Login";
-          const items = [
-            { label: "Team Member Login", href: "login.html" },
-            { label: "Follower Login", href: "follower-login.html" },
-            { label: "Sign Up", href: "signup.html" },
-          ];
-          buildMenu(items);
-          const mobileBtn = document.getElementById("account-toggle-mobile");
-          if (mobileBtn) mobileBtn.textContent = "Login";
+      if (!has('assets/js/mobile-app-detector.js')) inject(assetRoot + 'assets/js/mobile-app-detector.js');
+      if (!has('global-error-tracker.js')) inject(assetRoot + 'assets/js/global-error-tracker.js?v=202605061');
+    } catch (_) {}
+  })();
+
+  // Ensure a single Firebase app is initialized on every page and use LOCAL persistence
+  (async function initAuthPersistence() {
+    console.log('[RedsRacing Auth] ===== INIT STARTING =====');
+    try {
+      // Check if Firebase compat is already loaded (Android/iOS WebView)
+      const useCompat = typeof firebase !== 'undefined' && typeof firebase.auth === 'function';
+      console.log('[RedsRacing Auth] Using Firebase compat:', useCompat);
+      
+      let initializeApp, getApps, getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged;
+      
+      if (useCompat) {
+        // Use Firebase compat API
+        initializeApp = firebase.initializeApp.bind(firebase);
+        getApps = () => firebase.apps;
+        getAuth = () => firebase.auth();
+        setPersistence = (auth, persistence) => auth.setPersistence(persistence);
+        browserLocalPersistence = (firebase.auth && firebase.auth.Auth && firebase.auth.Auth.Persistence && firebase.auth.Auth.Persistence.LOCAL) || 'local';
+        onAuthStateChanged = (auth, callback, errorCallback) => auth.onAuthStateChanged(callback, errorCallback);
+      } else {
+        // Use modular Firebase (web browser)
+        const firebaseApp = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+        const firebaseAuth = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+        initializeApp = firebaseApp.initializeApp;
+        getApps = firebaseApp.getApps;
+        getAuth = firebaseAuth.getAuth;
+        setPersistence = firebaseAuth.setPersistence;
+        browserLocalPersistence = firebaseAuth.browserLocalPersistence;
+        onAuthStateChanged = firebaseAuth.onAuthStateChanged;
+      }
+      const cfg = {
+        apiKey: 'AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg',
+        authDomain: 'redsracing-a7f8b.firebaseapp.com',
+        projectId: 'redsracing-a7f8b',
+        storageBucket: 'redsracing-a7f8b.firebasestorage.app',
+        messagingSenderId: '517034606151',
+        appId: '1:517034606151:web:24cae262e1d98832757b62'
+      };
+      // Use the DEFAULT app (name '[DEFAULT]') to share auth state with firebase-core.js
+      // Named apps like 'newsletter-app' have separate auth state and should be ignored
+      const existingApps = getApps();
+      const defaultApp = existingApps.find(a => a.name === '[DEFAULT]');
+      let app;
+      if (defaultApp) {
+        app = defaultApp;
+        console.log('[RedsRacing Auth] Using existing DEFAULT app');
+      } else {
+        app = initializeApp(cfg);
+        console.log('[RedsRacing Auth] Created new DEFAULT app');
+      }
+      const auth = getAuth(app);
+      try { await setPersistence(auth, browserLocalPersistence); } catch (_) {}
+      
+      // CRITICAL FIX: Wait for auth to initialize before doing anything else
+      // Firebase needs time to validate stored tokens with the server
+      console.log('[RedsRacing Auth] Waiting for auth to initialize...');
+      
+      // Single initialization promise that resolves when auth is ready
+      await new Promise((resolve) => {
+        // Check if already initialized
+        if (auth.currentUser !== undefined) {
+          console.log('[RedsRacing Auth] Auth already initialized');
+          resolve();
           return;
         }
-        let appRole = null;
-        let APP_ROLE = null;
+        
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          console.log('[RedsRacing Auth] Initial auth state resolved:', user ? user.email : 'null');
+          unsubscribe();
+          resolve();
+        }, (error) => {
+          console.error('[RedsRacing Auth] Auth state change error:', error);
+          unsubscribe();
+          resolve(); // Resolve anyway to not block
+        });
+        
+        // Timeout after 5 seconds to prevent hanging
+        setTimeout(() => {
+          console.warn('[RedsRacing Auth] Auth initialization timeout');
+          unsubscribe();
+          resolve();
+        }, 5000);
+      });
+      console.log('[RedsRacing Auth] Auth initialized, setting up listeners');
+      
+      // Setup single auth state listener with error handling
+      let pendingSignOutTimer = null;
+      let authListenerSetup = false;
+      
+      // Prevent duplicate listener setup
+      if (!window.__redsracingAuthListenerActive) {
+        window.__redsracingAuthListenerActive = true;
+        
+        onAuthStateChanged(auth, (user) => {
+        // Wait for DOM to be ready before manipulating elements
+        const handleAuth = () => {
         try {
-          const roles = await import("./roles.js");
-          APP_ROLE = roles.APP_ROLE;
-          appRole = await roles.resolveAppRoleForUser(user, { forceTokenRefresh: false });
-        } catch (_) {
-          appRole = null;
-        }
-        const isAdmin = APP_ROLE && appRole === APP_ROLE.ADMIN;
+          const loginBtn = document.getElementById('login-btn');
+          const userProfile = document.getElementById('user-profile');
+          const mobileLoginBtn = document.getElementById('mobile-login-btn');
+          const mobileUserProfile = document.getElementById('mobile-user-profile');
+          const userNameEl = document.getElementById('user-name');
+          const mobileUserNameEl = document.getElementById('mobile-user-name');
+          const logoutBtn = document.getElementById('user-logout');
+          const mobileLogoutBtn = document.getElementById('mobile-user-logout');
+          const authSection = document.getElementById('auth-section');
 
-        const displayName = user.displayName || '';
-        const email = user.email || '';
-        setAvatarButtonContent(displayName, email, user.photoURL);
-
-        // Persist role into users/{uid}.role for visibility (best-effort; resolver is source of truth for UI)
-        try {
-          const { toStoredFirestoreRole } = await import("./roles.js");
-          const ar = appRole || (APP_ROLE && APP_ROLE.FOLLOWER) || "follower";
-          const normRole = toStoredFirestoreRole(ar);
-          const [{ getFirebaseDb }, { doc, setDoc }] = await Promise.all([
-            import("./firebase-core.js"),
-            import("https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"),
-          ]);
-          const db = getFirebaseDb();
-          await setDoc(doc(db, 'users', user.uid), { role: normRole }, { merge: true });
-        } catch (_) {}
-
-        const items = [];
-        // Header (not clickable)
-        items.push({ label: `${displayName || email}`, href: '#' });
-        items.push({ label: '—', href: '#' });
-
-        // Settings (was under crown menu; now under account dropdown for all users)
-        items.push({ label: "Settings", href: "settings.html" });
-
-        // Role-specific main destination (separate page trees per tier)
-        if (isAdmin) {
-          items.push({ label: "Admin Console", href: "admin-console.html" });
-        } else if (APP_ROLE && appRole === APP_ROLE.CREW) {
-          items.push({ label: "Crew workspace", href: "crew/dashboard.html" });
-        } else {
-          items.push({ label: "Fan hub", href: "follower/index.html" });
-        }
-
-        // Back to site (was under crown menu)
-        items.push({ label: "Back to Site", href: "index.html" });
-
-        // Sign out
-        items.push({
-          label: "Sign out",
-          onClick: async () => {
+          const hideLegacyLoginLinks = (hide) => {
             try {
-              await safeSignOut();
-            } finally {
-              window.location.href = "login.html";
-            }
-          },
-        });
-        buildMenu(items);
-        const mobileBtn = document.getElementById("account-toggle-mobile");
-        if (mobileBtn) mobileBtn.textContent = "Account";
-      }
+              // Always hide legacy login anchor in nav
+              document.querySelectorAll('#login-btn, nav a[href="login.html"]').forEach((a) => {
+                a.style.display = 'none';
+              });
+              // Hide any generic "Login" anchors that might exist without IDs
+              document.querySelectorAll('nav a').forEach((a) => {
+                const t = (a.textContent || '').trim().toLowerCase();
+                if (t === 'login' || t === 'driver login') {
+                  a.style.display = 'none';
+                }
+              });
+              const authLink = document.getElementById('auth-link');
+              const authLinkMobile = document.getElementById('auth-link-mobile');
+              if (authLink) authLink.style.display = 'none';
+              if (authLinkMobile) authLinkMobile.style.display = 'none';
+            } catch(_) {}
+          };
 
-      // Dropdown behavior is handled by initNavigation() below (show/hide + inert + outside click).
-
-      monitorAuthState(
-        async (user) => {
-          await renderForUser(user);
-        },
-        () => {
-          // On error, show logged-out menu
-          renderForUser(null);
-        },
-      );
-    } catch (e) {
-      // If auth utils fail to load, do nothing; nav remains static
-    }
-  }
-
-  // Lazy-load Sentry once per page if configured and in production
-  if (!window.__sentryLoaded && window.location.hostname !== 'localhost') {
-    window.__sentryLoaded = true;
-    setTimeout(() => {
-      import(/* webpackChunkName: "sentry" */ './sentry-init.js')
-        .then(({ initSentry }) => initSentry && initSentry())
-        .catch(() => {});
-    }, 0);
-  }
-
-  // Enhanced initialization with error handling and retry mechanism
-  function initNavigation() {
-    if (navigationInitialized) {
-      return;
-    }
-
-    try {
-      // Mobile menu toggle with enhanced error handling - support both IDs
-      const mobileMenuButton = document.getElementById("mobile-menu-button") || document.getElementById("mobile-menu-toggle");
-
-      // Initialize auth-aware nav once DOM is available
-      initAuthNavigation();
-      if (mobileMenuButton) {
-        // Remove any existing listeners to prevent duplicates
-        mobileMenuButton.replaceWith(mobileMenuButton.cloneNode(true));
-        const newMobileMenuButton =
-          document.getElementById("mobile-menu-button") || document.getElementById("mobile-menu-toggle");
-
-        newMobileMenuButton.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-
-          const mobileMenu = document.getElementById("mobile-menu");
-          if (mobileMenu) {
-            mobileMenu.classList.toggle("hidden");
-            const isHidden = mobileMenu.classList.contains("hidden");
-            
-            // Handle hamburger icon switching
-            const menuIcon = document.getElementById("menu-icon");
-            const closeIcon = document.getElementById("close-icon");
-            
-            if (menuIcon && closeIcon) {
-              if (isHidden) {
-                menuIcon.style.display = "block";
-                closeIcon.style.display = "none";
-              } else {
-                menuIcon.style.display = "none";
-                closeIcon.style.display = "block";
-              }
-            }
-
-            // Update aria attributes for accessibility
-            newMobileMenuButton.setAttribute("aria-expanded", !isHidden);
-            mobileMenu.setAttribute("aria-hidden", isHidden);
-          }
-        });
-
-        // Add keyboard support
-        newMobileMenuButton.addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            newMobileMenuButton.click();
-          } else if (event.key === "Escape") {
-            const mobileMenu = document.getElementById("mobile-menu");
-            if (mobileMenu && !mobileMenu.classList.contains("hidden")) {
-              // If focus is inside mobile menu, move it back to the button first
-              if (mobileMenu.contains(document.activeElement)) {
-                try { newMobileMenuButton.focus(); } catch (_) {}
-              }
-              mobileMenu.classList.add("hidden");
-              newMobileMenuButton.setAttribute("aria-expanded", "false");
-              mobileMenu.setAttribute("aria-hidden", "true");
-            }
-          }
-        });
-      }
-
-      // Mobile menu accordion with enhanced functionality
-      document
-        .querySelectorAll(".mobile-accordion")
-        .forEach((button, index) => {
-          // Remove existing listeners
-          const newButton = button.cloneNode(true);
-          button.parentNode.replaceChild(newButton, button);
-
-          newButton.addEventListener("click", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            const content = newButton.nextElementSibling;
-            if (
-              content &&
-              content.classList.contains("mobile-accordion-content")
-            ) {
-              // Check both hidden class and display style
-              const isCurrentlyHidden = content.classList.contains("hidden") || 
-                content.style.display === "none" || 
-                getComputedStyle(content).display === "none";
-
-              // Close other accordions (optional - remove if you want multiple open)
-              document
-                .querySelectorAll(".mobile-accordion-content")
-                .forEach((otherContent) => {
-                  if (otherContent !== content) {
-                    otherContent.classList.add("hidden");
-                    otherContent.style.display = "none";
-                  }
+          function mountLoggedOutButton() {
+            try {
+              if (!authSection) return;
+              let btn = document.getElementById('account-toggle-loggedout');
+              if (!btn) {
+                btn = document.createElement('button');
+                btn.id = 'account-toggle-loggedout';
+                btn.className = 'dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors';
+                btn.innerHTML = '<div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center"><i class="fas fa-user text-white text-xs"></i></div><div class="text-left hidden md:block"><div class="text-sm font-semibold text-white">Login</div><div class="text-xs text-slate-400">Team Member</div></div><i class="fas fa-chevron-down text-slate-400 text-xs"></i>';
+                btn.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  window.location.href = 'login.html';
                 });
-
-              // Toggle current accordion
-              if (isCurrentlyHidden) {
-                content.classList.remove("hidden");
-                content.style.display = "block";
-              } else {
-                content.classList.add("hidden");
-                content.style.display = "none";
+                // Insert before any existing profile dropdown
+                authSection.insertBefore(btn, authSection.firstChild);
               }
+            } catch(_) {}
+          }
 
-              // Update aria attributes
-              newButton.setAttribute("aria-expanded", !isCurrentlyHidden);
-              content.setAttribute("aria-hidden", isCurrentlyHidden);
+          function unmountLoggedOutButton() {
+            try {
+              const btn = document.getElementById('account-toggle-loggedout');
+              if (btn && btn.parentNode) btn.parentNode.removeChild(btn);
+            } catch(_) {}
+          }
+
+          const applySignedOutState = () => {
+            console.log('[RedsRacing Auth] User signed out');
+            document.body.setAttribute('data-auth', 'signed-out');
+            localStorage.removeItem('rr_auth_uid');
+            
+            // Add visible debug indicator
+            let debugDiv = document.getElementById('auth-debug-status');
+            if (!debugDiv) {
+              debugDiv = document.createElement('div');
+              debugDiv.id = 'auth-debug-status';
+              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#ef4444;color:#fff;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+              debugDiv.textContent = '✗ Not logged in';
+              document.body.appendChild(debugDiv);
+              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+            }
+            
+            // CRITICAL: Clear inline !important styles set during sign-in
+            // Otherwise they override .hidden class and dropdown stays visible
+            if (userProfile) {
+              userProfile.classList.add('hidden');
+              userProfile.removeAttribute('data-auth-visible');
+              // Remove all inline !important styles
+              userProfile.style.cssText = '';
+              // Force hide with new inline styles
+              userProfile.style.display = 'none';
+              userProfile.style.visibility = 'hidden';
+              userProfile.style.opacity = '0';
+              console.log('[RedsRacing Auth] Profile dropdown hidden on sign-out');
+            }
+            if (mobileUserProfile) {
+              mobileUserProfile.classList.add('hidden');
+              mobileUserProfile.removeAttribute('data-auth-visible');
+              // Remove all inline !important styles
+              mobileUserProfile.style.cssText = '';
+              mobileUserProfile.style.display = 'none';
+              mobileUserProfile.style.visibility = 'hidden';
+              mobileUserProfile.style.opacity = '0';
+            }
+            if (loginBtn) {
+              loginBtn.classList.remove('hidden');
+              loginBtn.style.display = '';
+            }
+            if (mobileLoginBtn) {
+              mobileLoginBtn.classList.remove('hidden');
+              mobileLoginBtn.style.display = '';
+            }
+            unmountLoggedOutButton();
+            hideAdminConsoleLinks();
+            try { localStorage.removeItem('rr_user_role'); } catch(_) {}
+          };
+
+          if (user) {
+            if (pendingSignOutTimer) {
+              clearTimeout(pendingSignOutTimer);
+              pendingSignOutTimer = null;
+            }
+            console.log('[RedsRacing Auth] User signed in:', user.email);
+            document.body.setAttribute('data-auth', 'signed-in');
+            localStorage.setItem('rr_auth_uid', user.uid);
+            
+            // Add visible debug indicator
+            let debugDiv = document.getElementById('auth-debug-status');
+            if (!debugDiv) {
+              debugDiv = document.createElement('div');
+              debugDiv.id = 'auth-debug-status';
+              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#22c55e;color:#000;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+              debugDiv.textContent = '✓ Logged in as ' + (user.email || 'User');
+              document.body.appendChild(debugDiv);
+              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+            }
+            
+            // CSS will handle visibility via body[data-auth="signed-in"] rules
+            // Just set attributes and let CSS take over
+            unmountLoggedOutButton();
+            
+            if (userProfile) {
+              userProfile.classList.remove('hidden');
+              userProfile.setAttribute('data-auth-visible', 'true');
+              // Force display with inline styles using setProperty with !important
+              userProfile.style.setProperty('display', 'flex', 'important');
+              userProfile.style.setProperty('visibility', 'visible', 'important');
+              userProfile.style.setProperty('opacity', '1', 'important');
+              userProfile.style.setProperty('pointer-events', 'auto', 'important');
+              userProfile.style.setProperty('position', 'relative', 'important');
+              console.log('[RedsRacing Auth] Profile dropdown enabled with !important styles');
+            } else {
+              // Only log warning if not on admin/dashboard pages (which have their own nav)
+              const isAdminPage = window.location.pathname.includes('admin') || 
+                                 window.location.pathname.includes('dashboard') ||
+                                 window.location.pathname.includes('login') ||
+                                 window.location.pathname.includes('signup');
+              if (!isAdminPage) {
+                console.warn('[RedsRacing Auth] #user-profile element not found on:', window.location.pathname);
+                console.warn('[RedsRacing Auth] This page may be missing the profile dropdown HTML');
+              }
+            }
+            
+            if (mobileUserProfile) {
+              mobileUserProfile.classList.remove('hidden');
+              mobileUserProfile.setAttribute('data-auth-visible', 'true');
+              // Force display with inline styles using setProperty with !important
+              mobileUserProfile.style.setProperty('display', 'block', 'important');
+              mobileUserProfile.style.setProperty('visibility', 'visible', 'important');
+              mobileUserProfile.style.setProperty('opacity', '1', 'important');
+              mobileUserProfile.style.setProperty('pointer-events', 'auto', 'important');
+            }
+            
+            if (loginBtn) {
+              loginBtn.classList.add('hidden');
+              loginBtn.style.display = 'none';
+            }
+            
+            if (mobileLoginBtn) {
+              mobileLoginBtn.classList.add('hidden');
+              mobileLoginBtn.style.display = 'none';
+            }
+            
+            // Ultra-aggressive retry to ensure visibility
+            setTimeout(() => {
+              if (userProfile) {
+                userProfile.style.setProperty('display', 'flex', 'important');
+                userProfile.style.setProperty('visibility', 'visible', 'important');
+                userProfile.style.setProperty('opacity', '1', 'important');
+                console.log('[RedsRacing Auth] Retry 1: Profile forced visible');
+              }
+              if (mobileUserProfile) {
+                mobileUserProfile.style.setProperty('display', 'block', 'important');
+                mobileUserProfile.style.setProperty('visibility', 'visible', 'important');
+                mobileUserProfile.style.setProperty('opacity', '1', 'important');
+              }
+            }, 100);
+            setTimeout(() => {
+              if (userProfile) {
+                userProfile.style.setProperty('display', 'flex', 'important');
+                userProfile.style.setProperty('visibility', 'visible', 'important');
+                userProfile.style.setProperty('opacity', '1', 'important');
+                console.log('[RedsRacing Auth] Retry 2: Profile forced visible');
+              }
+              if (mobileUserProfile) {
+                mobileUserProfile.style.setProperty('display', 'block', 'important');
+                mobileUserProfile.style.setProperty('visibility', 'visible', 'important');
+                mobileUserProfile.style.setProperty('opacity', '1', 'important');
+              }
+            }, 500);
+            const name = user.displayName || user.email || 'Driver';
+            if (userNameEl) userNameEl.textContent = name;
+            if (mobileUserNameEl) mobileUserNameEl.textContent = name;
+            // Check admin role and show/hide admin-console links accordingly
+            checkAdminRole(user);
+            async function multiSignOut() {
+              try { await auth.signOut(); } catch(_) {}
+              try {
+const core = await import('./assets/js/firebase-core.js');
+                try { await core.getFirebaseAuth().signOut(); } catch(_) {}
+              } catch(_) {}
+            }
+            if (logoutBtn) {
+              logoutBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await multiSignOut();
+                window.location.href = rrPostLogoutHome();
+              });
+            }
+            if (mobileLogoutBtn) {
+              mobileLogoutBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await multiSignOut();
+                window.location.href = rrPostLogoutHome();
+              });
+            }
+          } else {
+            const hasAuthMarker = !!localStorage.getItem('rr_auth_uid');
+            if (hasAuthMarker) {
+              if (!pendingSignOutTimer) {
+                console.log('[RedsRacing Auth] Auth marker present, delaying sign-out UI.');
+                pendingSignOutTimer = setTimeout(() => {
+                  if (!auth.currentUser) {
+                    applySignedOutState();
+                  }
+                  pendingSignOutTimer = null;
+                }, 3000);
+              }
+              return;
+            }
+
+            applySignedOutState();
+          }
+        } catch (err) {
+          console.error('[RedsRacing Auth] handleAuth error:', err);
+        }
+      };
+        
+        // Run immediately if DOM is ready, otherwise wait
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', handleAuth);
+        } else {
+        handleAuth();
+        }
+      }, (error) => {
+        console.error('[RedsRacing Auth] Auth listener error:', error);
+      });
+      } // Close the auth listener active check
+    } catch (err) {
+      console.error('[RedsRacing Auth] ===== INIT FAILED =====', err);
+      console.error('[RedsRacing Auth] Error stack:', err.stack);
+    }
+    console.log('[RedsRacing Auth] ===== INIT COMPLETE =====');
+  })();
+
+  // ===== Admin-console link visibility (admin-only) =====
+  // Hide all admin-console links on the page (called by default and on sign-out)
+  function hideAdminConsoleLinks() {
+    // Don't hide links if we're on the admin console page itself
+    if (window.location.pathname.includes('admin-console')) return;
+    document.querySelectorAll('a[href*="admin-console"]').forEach(function(link) {
+      link.style.display = 'none';
+    });
+  }
+
+  // Check user role; show admin-console links only for admin/owner (canonical admin)
+  async function checkAdminRole(user) {
+    if (!user) { hideAdminConsoleLinks(); return; }
+    if (window.location.pathname.includes('admin-console')) return;
+    try {
+      const { resolveAppRoleForUser, isAdminAppRole, APP_ROLE } = await import('./assets/js/roles.js');
+      const appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: false });
+      try { localStorage.setItem('rr_user_role', appRole); } catch (_) {}
+      try {
+        if (window._rrApplyRoleTheme) {
+          var themeKey = appRole === APP_ROLE.ADMIN ? 'admin' : appRole === APP_ROLE.CREW ? 'crew' : 'fan';
+          window._rrApplyRoleTheme(themeKey);
+        }
+      } catch (_) {}
+      if (isAdminAppRole(appRole)) {
+        document.querySelectorAll('a[href*="admin-console"]').forEach(function(link) {
+          link.style.display = '';
+        });
+        console.log('[RedsRacing Auth] Admin role confirmed — admin links visible');
+      } else {
+        hideAdminConsoleLinks();
+        console.log('[RedsRacing Auth] Non-admin role — admin links hidden');
+      }
+    } catch (err) {
+      console.warn('[RedsRacing Auth] Admin role check failed:', err);
+      hideAdminConsoleLinks();
+    }
+  }
+
+  function hideAllDropdowns() {
+    document.querySelectorAll('.dropdown-menu, .modern-dropdown').forEach((menu) => {
+      menu.classList.add('hidden');
+      menu.setAttribute('aria-hidden', 'true');
+      // Ensure it's not visually visible if CSS missing
+      try {
+        menu.style.display = 'none';
+        menu.style.visibility = 'hidden';
+        menu.style.opacity = '0';
+      } catch (_) {}
+    });
+  }
+
+  function showMenu(menu) {
+    if (!menu) return;
+    menu.classList.remove('hidden');
+    menu.removeAttribute('aria-hidden');
+    try {
+      menu.style.display = 'block';
+      menu.style.visibility = 'visible';
+      menu.style.opacity = '1';
+    } catch (_) {}
+  }
+
+  function toggleMenu(button, menu) {
+    if (!menu) return;
+    const hidden = menu.classList.contains('hidden');
+    hideAllDropdowns();
+    if (hidden) showMenu(menu);
+    if (button) button.setAttribute('aria-expanded', String(hidden));
+  }
+
+  function initDropdowns() {
+    // Hide all menus on load
+    hideAllDropdowns();
+
+    // Event delegation: toggle dropdown menus on click
+    // Use capture=true to ensure we get the event even if other handlers stopPropagation
+    document.addEventListener('click', (e) => {
+      const toggleBtn = e.target.closest('.dropdown-toggle');
+      const nestedToggleBtn = e.target.closest('.dropdown-nested-toggle');
+      const insideMenu = e.target.closest('.dropdown-menu');
+
+      // Handle nested dropdown toggle
+      if (nestedToggleBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const nestedMenu = nestedToggleBtn.nextElementSibling;
+        if (nestedMenu && nestedMenu.classList.contains('dropdown-menu-nested')) {
+          // Close all other nested menus
+          document.querySelectorAll('.dropdown-menu-nested').forEach((m) => {
+            if (m !== nestedMenu) {
+              m.classList.add('hidden');
+            }
+          });
+          
+          const isHidden = nestedMenu.classList.contains('hidden');
+          if (isHidden) {
+            nestedMenu.classList.remove('hidden');
+            nestedMenu.style.display = 'block';
+            nestedMenu.style.visibility = 'visible';
+            nestedMenu.style.opacity = '1';
+          } else {
+            nestedMenu.classList.add('hidden');
+          }
+        }
+        return;
+      }
+
+      if (toggleBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const menu = toggleBtn.nextElementSibling;
+        if (menu && menu.classList.contains('dropdown-menu')) {
+          // Close all other dropdowns first
+          document.querySelectorAll('.dropdown-menu').forEach((m) => {
+            if (m !== menu) {
+              m.classList.add('hidden');
+              m.setAttribute('aria-hidden', 'true');
+              const otherToggle = m.previousElementSibling;
+              if (otherToggle) otherToggle.setAttribute('aria-expanded', 'false');
             }
           });
 
-          // Add keyboard support
-          newButton.addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              newButton.click();
-            } else if (event.key === "Escape") {
-              const content = newButton.nextElementSibling;
-              if (content && content.classList.contains("mobile-accordion-content")) {
-                if (!content.classList.contains("hidden")) {
-                  // If focus is inside the content being hidden, move it out
-                  if (content.contains(document.activeElement)) {
-                    try { newButton.focus(); } catch (_) {}
-                  }
-                  content.classList.add("hidden");
-                  content.style.display = "none";
-                  newButton.setAttribute("aria-expanded", "false");
-                  content.setAttribute("aria-hidden", "true");
+          const isHidden = menu.classList.contains('hidden');
+          if (isHidden) {
+            showMenu(menu);
+            toggleBtn.setAttribute('aria-expanded', 'true');
+          } else {
+            menu.classList.add('hidden');
+            menu.setAttribute('aria-hidden', 'true');
+            toggleBtn.setAttribute('aria-expanded', 'false');
+          }
+        }
+        return;
+      }
+
+      // Outside click (not inside any dropdown) closes everything
+      if (!insideMenu) {
+        hideAllDropdowns();
+        // Also hide nested menus
+        document.querySelectorAll('.dropdown-menu-nested').forEach((m) => {
+          m.classList.add('hidden');
+        });
+      }
+    }, true);
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        hideAllDropdowns();
+      }
+    });
+  }
+
+  function initMobileMenu() {
+    const btn = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (!btn || !mobileMenu) return;
+
+    // Make mobile menu visible and functional
+    mobileMenu.classList.add('hidden'); // Start hidden
+    
+    // Mobile menu toggle functionality
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      mobileMenu.classList.toggle('hidden');
+    });
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!mobileMenu.contains(e.target) && !btn.contains(e.target)) {
+        mobileMenu.classList.add('hidden');
+      }
+    });
+    
+    // Initialize mobile accordion content
+    const accordionContents = mobileMenu.querySelectorAll('.mobile-accordion-content');
+    accordionContents.forEach(content => {
+      content.style.maxHeight = '0';
+      content.style.overflow = 'hidden';
+      content.style.transition = 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    });
+    
+    // Mobile accordion functionality
+    const accordions = mobileMenu.querySelectorAll('.mobile-accordion');
+    accordions.forEach(accordion => {
+      accordion.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const content = accordion.nextElementSibling;
+        const icon = accordion.querySelector('.accordion-icon');
+        
+        if (content && content.classList.contains('mobile-accordion-content')) {
+          // Initialize content for CSS transitions
+          content.style.overflow = 'hidden';
+          content.style.transition = 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+          
+          const isCurrentlyOpen = accordion.classList.contains('active');
+          const currentMaxHeight = content.style.maxHeight;
+          const isCurrentlyHidden = !isCurrentlyOpen || currentMaxHeight === '0px' || currentMaxHeight === '';
+            
+          // Close other accordions
+          accordions.forEach(otherAccordion => {
+            if (otherAccordion !== accordion) {
+              const otherContent = otherAccordion.nextElementSibling;
+              const otherIcon = otherAccordion.querySelector('.accordion-icon');
+              if (otherContent) {
+                otherContent.style.maxHeight = '0';
+                otherAccordion.classList.remove('active');
+                if (otherIcon) {
+                  otherIcon.style.transform = 'rotate(0deg)';
                 }
               }
             }
           });
-        });
-
-      // Helpers to manage dropdown visibility, focus, and accessibility state
-      function setInert(el, value) {
-        try {
-          if (!el) return;
-          if (value) el.setAttribute("inert", "");
-          else el.removeAttribute("inert");
-        } catch (_) {}
-      }
-      function hideDropdownMenu(menu) {
-        if (!menu) return;
-        const toggle = menu.previousElementSibling;
-        // If focus is inside the menu being hidden, move it back to the toggle first
-        if (menu.contains(document.activeElement) && toggle) {
-          try { toggle.focus(); } catch (_) {}
-        }
-        menu.classList.add("hidden");
-        menu.setAttribute("aria-hidden", "true");
-        setInert(menu, true);
-        if (toggle) toggle.setAttribute("aria-expanded", "false");
-      }
-      function showDropdownMenu(menu, toggle) {
-        if (!menu) return;
-        menu.classList.remove("hidden");
-        menu.setAttribute("aria-hidden", "false");
-        setInert(menu, false);
-        if (toggle) toggle.setAttribute("aria-expanded", "true");
-      }
-
-      // Enhanced desktop dropdowns
-      document.querySelectorAll(".dropdown-toggle").forEach((button, index) => {
-        // Remove existing listeners
-        const newButton = button.cloneNode(true);
-        button.parentNode.replaceChild(newButton, button);
-
-        newButton.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-
-          const dropdownMenu = newButton.nextElementSibling;
-          if (
-            !dropdownMenu ||
-            !dropdownMenu.classList.contains("dropdown-menu")
-          ) {
-            return;
-          }
-
-          const isCurrentlyHidden = dropdownMenu.classList.contains("hidden");
-
-          // Close all other dropdowns first
-          document.querySelectorAll(".dropdown-menu").forEach((menu) => {
-            if (menu !== dropdownMenu) {
-              hideDropdownMenu(menu);
-            }
-          });
-
-          // Update all other dropdown toggles
-          document
-            .querySelectorAll(".dropdown-toggle")
-            .forEach((otherButton) => {
-              if (otherButton !== newButton) {
-                otherButton.setAttribute("aria-expanded", "false");
-              }
-            });
-
-          // Toggle the current dropdown
+          
+          // Toggle current accordion
           if (isCurrentlyHidden) {
-            showDropdownMenu(dropdownMenu, newButton);
-
-            // Focus first menu item for accessibility
-            const firstMenuItem = dropdownMenu.querySelector("a");
-            if (firstMenuItem) {
-              setTimeout(() => firstMenuItem.focus(), 100);
+            accordion.classList.add('active');
+            content.style.maxHeight = content.scrollHeight + 'px';
+            if (icon) {
+              icon.style.transform = 'rotate(180deg)';
             }
           } else {
-            hideDropdownMenu(dropdownMenu);
-          }
-        });
-
-        // Add keyboard support for dropdown toggles
-        newButton.addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            newButton.click();
-          } else if (event.key === "Escape") {
-            // Close dropdown on Escape
-            const dropdownMenu = newButton.nextElementSibling;
-            if (dropdownMenu) {
-              dropdownMenu.classList.add("hidden");
-              dropdownMenu.setAttribute("aria-hidden", "true");
-              newButton.setAttribute("aria-expanded", "false");
-              newButton.focus();
+            accordion.classList.remove('active');
+            content.style.maxHeight = '0';
+            if (icon) {
+              icon.style.transform = 'rotate(0deg)';
             }
           }
-        });
-
-      });
-
-      // Enhanced outside click handling
-      const handleOutsideClick = (event) => {
-        // Don't close if clicking on a dropdown toggle or menu
-        if (
-          event.target.closest(".dropdown-toggle") ||
-          event.target.closest(".dropdown-menu")
-        ) {
-          return;
         }
-
-        // Close all dropdowns (move focus out if it was inside)
-        document.querySelectorAll(".dropdown-menu").forEach((menu) => {
-          hideDropdownMenu(menu);
-        });
-
-        // Update all toggle buttons
-        document.querySelectorAll(".dropdown-toggle").forEach((button) => {
-          button.setAttribute("aria-expanded", "false");
-        });
-      };
-
-      // Remove existing listener and add new one
-      document.removeEventListener(
-        "click",
-        window.navigationOutsideClickHandler,
-      );
-      document.addEventListener("click", handleOutsideClick);
-      window.navigationOutsideClickHandler = handleOutsideClick;
-
-      // Enhanced keyboard navigation for dropdown menus
-      document.querySelectorAll(".dropdown-menu").forEach((menu) => {
-        menu.addEventListener("keydown", (event) => {
-          const menuItems = Array.from(menu.querySelectorAll("a"));
-          const currentIndex = menuItems.indexOf(event.target);
-
-          switch (event.key) {
-            case "ArrowDown":
-              event.preventDefault();
-              const nextIndex = (currentIndex + 1) % menuItems.length;
-              menuItems[nextIndex]?.focus();
-              break;
-            case "ArrowUp":
-              event.preventDefault();
-              const prevIndex =
-                currentIndex === 0 ? menuItems.length - 1 : currentIndex - 1;
-              menuItems[prevIndex]?.focus();
-              break;
-            case "Escape":
-              event.preventDefault();
-              hideDropdownMenu(menu);
-              break;
-          }
-        });
       });
-
-      // Set current year in footer with error handling
-      const yearEl = document.getElementById("year");
-      if (yearEl) {
-        try {
-          yearEl.textContent = new Date().getFullYear().toString();
-        } catch (error) {
-          yearEl.textContent = "2025"; // Fallback year
-        }
-      }
-
-      // Initialize ARIA attributes
-      document.querySelectorAll(".dropdown-toggle").forEach((toggle) => {
-        toggle.setAttribute("aria-expanded", "false");
-        toggle.setAttribute("aria-haspopup", "true");
+    });
+    
+    // Close mobile menu when clicking on navigation links
+    const navLinks = mobileMenu.querySelectorAll('a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
       });
-
-      document.querySelectorAll(".dropdown-menu").forEach((menu) => {
-        menu.setAttribute("aria-hidden", "true");
-        menu.setAttribute("role", "menu");
-        try { menu.setAttribute("inert", ""); } catch (_) {}
-      });
-
-      document.querySelectorAll(".mobile-accordion").forEach((accordion) => {
-        accordion.setAttribute("aria-expanded", "false");
-      });
-
-      document
-        .querySelectorAll(".mobile-accordion-content")
-        .forEach((content) => {
-          content.setAttribute("aria-hidden", "true");
-        });
-
-      navigationInitialized = true;
-    } catch (error) {
-      retryCount++;
-
-      if (retryCount <= maxRetries) {
-        setTimeout(initNavigation, 1000);
-      } else {
-        // Try basic fallback initialization
-        initBasicNavigation();
-      }
-    }
-  }
-
-  // Basic fallback navigation for when main initialization fails
-  function initBasicNavigation() {
-    try {
-      // Basic mobile menu toggle
-      const mobileButton = document.getElementById("mobile-menu-button");
-      const mobileMenu = document.getElementById("mobile-menu");
-
-      if (mobileButton && mobileMenu) {
-        mobileButton.onclick = () => mobileMenu.classList.toggle("hidden");
-      }
-
-      // Basic dropdown functionality
-      document.querySelectorAll(".dropdown-toggle").forEach((button) => {
-        button.onclick = (event) => {
-          event.stopPropagation();
-          const menu = button.nextElementSibling;
-          if (menu) {
-            document
-              .querySelectorAll(".dropdown-menu")
-              .forEach((m) => m.classList.add("hidden"));
-            menu.classList.remove("hidden");
-          }
-        };
-      });
-
-      // Basic outside click
-      document.onclick = () => {
-        document
-          .querySelectorAll(".dropdown-menu")
-          .forEach((menu) => menu.classList.add("hidden"));
-      };
-    } catch (error) {}
-  }
-
-  // Initialize navigation when DOM is ready with multiple fallback attempts
-  function attemptInitialization() {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", initNavigation);
-      // Backup initialization after a delay
-      setTimeout(initNavigation, 2000);
-    } else {
-      initNavigation();
-    }
-  }
-
-  // Start initialization
-  attemptInitialization();
-
-  // Make functions available globally for debugging
-  window.initNavigation = initNavigation;
-  window.initBasicNavigation = initBasicNavigation;
-
-  // Re-initialize on page visibility change (handles cases where page was in background)
-  if (typeof document.visibilityState !== "undefined") {
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden && !navigationInitialized) {
-        setTimeout(initNavigation, 500);
-      }
     });
   }
+
+  // Add real-time clock for mobile app
+  function initClock() {
+    const clockElement = document.getElementById('mobile-clock');
+    if (clockElement) {
+      function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', {
+          hour12: true,
+          hour: 'numeric',
+          minute: '2-digit'
+        });
+        clockElement.textContent = timeString;
+      }
+      
+      // Update immediately and then every second
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+  }
+
+  async function initSentryGlobal() {
+    try {
+      const { initSentry } = await import('/assets/js/sentry-init.js');
+      await initSentry();
+    } catch (_) {}
+  }
+
+  async function logClientError(evt) {
+    try {
+      // Throttle to max 1 write per 8s to avoid floods
+      const now = Date.now();
+      const last = window.__rr_last_log_ts || 0;
+      if (now - last < 8000) return;
+      window.__rr_last_log_ts = now;
+
+      const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+      const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+      const auth = getAuth();
+      const db = getFirestore();
+
+      const isErrorEvent = evt instanceof ErrorEvent;
+      const isPromiseRejection = evt && evt.type === 'unhandledrejection';
+      const errorObj = isPromiseRejection ? (evt.reason || {}) : (isErrorEvent ? (evt.error || {}) : evt);
+      const message = (errorObj && (errorObj.message || String(errorObj))) || (evt && evt.message) || 'Unknown front-end error';
+      const stack = (errorObj && errorObj.stack) || null;
+
+      const payload = {
+        level: 'error',
+        message,
+        stack,
+        page: (location && location.href) || null,
+        userAgent: (navigator && navigator.userAgent) || null,
+        uid: auth?.currentUser?.uid || null,
+        email: auth?.currentUser?.email || null,
+        createdAt: serverTimestamp(),
+      };
+      await addDoc(collection(db, 'client_logs'), payload);
+    } catch (_) {}
+  }
+
+  function upgradeNavMenus() {
+    try {
+      console.log('[RedsRacing] Upgrading navigation menus...');
+      // Desktop: Drivers dropdown -> ensure nested structure
+      const dropdownToggles = document.querySelectorAll('nav .dropdown-toggle');
+      console.log('[RedsRacing] Found', dropdownToggles.length, 'dropdown toggles');
+      
+      dropdownToggles.forEach((btn) => {
+        const label = (btn.textContent || '').toLowerCase();
+        const menu = btn.nextElementSibling;
+        if (!menu) return;
+        
+        // Skip user profile dropdown - don't upgrade it
+        const isProfileDropdown = btn.closest('#user-profile') || btn.closest('#auth-section') || btn.id === 'account-toggle-loggedout';
+        if (isProfileDropdown) return;
+        
+        // Normalize menus to be visible only on toggle
+        menu.classList.add('dropdown-menu');
+        menu.classList.add('modern-dropdown');
+
+        if (label.includes('drivers')) {
+          console.log('[RedsRacing] Upgrading Drivers desktop menu');
+          menu.innerHTML = `
+              <div class="relative dropdown-nested">
+                <button class="dropdown-item dropdown-nested-toggle flex items-center justify-between w-full">
+                  <span>Jon Kirsch #8</span>
+                  <i class="fas fa-chevron-right ml-2 text-xs"></i>
+                </button>
+                <div class="dropdown-menu-nested modern-dropdown hidden">
+                  <a href="driver.html" class="dropdown-item">👤 Profile</a>
+                  <a href="gallery.html" class="dropdown-item">📸 Gallery</a>
+                  <a href="jons.html" class="dropdown-item">📊 K1 Karting Archive</a>
+                </div>
+              </div>
+              <div class="relative dropdown-nested">
+                <button class="dropdown-item dropdown-nested-toggle flex items-center justify-between w-full">
+                  <span>Jonny Kirsch #88</span>
+                  <i class="fas fa-chevron-right ml-2 text-xs"></i>
+                </button>
+                <div class="dropdown-menu-nested modern-dropdown hidden">
+                  <a href="jonny.html" class="dropdown-item">👤 Profile</a>
+                  <a href="jonny-gallery.html" class="dropdown-item">📸 Gallery</a>
+                  <a href="jonny-results.html" class="dropdown-item">📊 Race Results</a>
+                </div>
+              </div>
+              <a href="legends.html" class="dropdown-item">Team Legends</a>
+          `;
+          console.log('[RedsRacing] Drivers desktop menu upgraded successfully');
+        }
+        if (label.includes('racing')) {
+          console.log('[RedsRacing] Upgrading Racing desktop menu');
+          menu.innerHTML = `
+            <a href="live.html" class="dropdown-item">🔴 Live Race</a>
+            <a href="schedule.html" class="dropdown-item">📅 Schedule</a>
+            <a href="stats.html" class="dropdown-item">📊 Season Stats</a>
+            <a href="recaps.html" class="dropdown-item">🏁 Race Recaps</a>
+            <a href="leaderboard.html" class="dropdown-item">🏆 Leaderboard</a>
+            <a href="tracks.html" class="dropdown-item">🗺️ Track Guides</a>
+            <a href="videos.html" class="dropdown-item">🎥 Videos</a>
+          `;
+        }
+        if (label.includes('community')) {
+          console.log('[RedsRacing] Upgrading Community desktop menu');
+          menu.innerHTML = `
+            <a href="predictions.html" class="dropdown-item">🏆 Predictions</a>
+            <a href="fan-wall.html" class="dropdown-item">📣 Fan Wall</a>
+            <a href="qna.html" class="dropdown-item">❓ Q&A</a>
+            <a href="feedback.html" class="dropdown-item">💬 Feedback</a>
+            <a href="about.html" class="dropdown-item">ℹ️ About Us</a>
+            <a href="contact.html" class="dropdown-item">📞 Contact</a>
+            <a href="racing-guide.html" class="dropdown-item">📖 Racing Guide</a>
+            <a href="sponsorship.html" class="dropdown-item">💰 Sponsorship</a>
+          `;
+        }
+      });
+
+      // Mobile: Drivers accordion -> ensure nested structure
+      const mobileMenu = document.getElementById('mobile-menu');
+      console.log('[RedsRacing] Mobile menu found:', !!mobileMenu);
+      if (mobileMenu) {
+        const mobileAccordions = Array.from(mobileMenu.querySelectorAll('.mobile-accordion'));
+        console.log('[RedsRacing] Found', mobileAccordions.length, 'mobile accordions');
+        mobileAccordions.forEach(acc => {
+          const label = (acc.textContent || '').toLowerCase();
+          const content = acc.nextElementSibling;
+          if (!content || !content.classList.contains('mobile-accordion-content')) return;
+          if (label.includes('drivers')) {
+            console.log('[RedsRacing] Upgrading Drivers mobile menu');
+            content.innerHTML = `
+              <button class="mobile-accordion mobile-accordion-nested">
+                <span>Jon Kirsch #8</span><i class="fas fa-chevron-down accordion-icon"></i>
+              </button>
+              <div class="mobile-accordion-content mobile-accordion-content-nested">
+                <a href="driver.html" class="mobile-nav-subitem mobile-nav-subitem-nested">👤 Profile</a>
+                <a href="gallery.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📸 Gallery</a>
+                <a href="jons.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📊 K1 Karting Archive</a>
+              </div>
+              <button class="mobile-accordion mobile-accordion-nested">
+                <span>Jonny Kirsch #88</span><i class="fas fa-chevron-down accordion-icon"></i>
+              </button>
+              <div class="mobile-accordion-content mobile-accordion-content-nested">
+                <a href="jonny.html" class="mobile-nav-subitem mobile-nav-subitem-nested">👤 Profile</a>
+                <a href="jonny-gallery.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📸 Gallery</a>
+                <a href="jonny-results.html" class="mobile-nav-subitem mobile-nav-subitem-nested">📊 Race Results</a>
+              </div>
+              <a href="legends.html" class="mobile-nav-subitem">Team Legends</a>
+            `;
+            console.log('[RedsRacing] Drivers mobile menu upgraded successfully');
+          }
+          if (label.includes('racing')) {
+            console.log('[RedsRacing] Upgrading Racing mobile menu');
+            content.innerHTML = `
+              <a href="live.html" class="mobile-nav-subitem">🔴 Live Race</a>
+              <a href="schedule.html" class="mobile-nav-subitem">📅 Schedule</a>
+              <a href="stats.html" class="mobile-nav-subitem">📊 Season Stats</a>
+              <a href="recaps.html" class="mobile-nav-subitem">🏁 Race Recaps</a>
+              <a href="leaderboard.html" class="mobile-nav-subitem">🏆 Leaderboard</a>
+              <a href="tracks.html" class="mobile-nav-subitem">🗺️ Track Guides</a>
+              <a href="videos.html" class="mobile-nav-subitem">🎥 Videos</a>
+            `;
+          }
+          if (label.includes('community')) {
+            console.log('[RedsRacing] Upgrading Community mobile menu');
+            content.innerHTML = `
+              <a href="predictions.html" class="mobile-nav-subitem">🏆 Predictions</a>
+              <a href="fan-wall.html" class="mobile-nav-subitem">📣 Fan Wall</a>
+              <a href="qna.html" class="mobile-nav-subitem">❓ Q&A</a>
+              <a href="feedback.html" class="mobile-nav-subitem">💬 Feedback</a>
+              <a href="about.html" class="mobile-nav-subitem">ℹ️ About Us</a>
+              <a href="contact.html" class="mobile-nav-subitem">📞 Contact</a>
+              <a href="racing-guide.html" class="mobile-nav-subitem">📖 Racing Guide</a>
+              <a href="sponsorship.html" class="mobile-nav-subitem">💰 Sponsorship</a>
+            `;
+          }
+        });
+      }
+      console.log('[RedsRacing] Navigation upgrade complete');
+      
+      // Re-initialize mobile menu to handle dynamically added nested accordions
+      initMobileMenuNested();
+    } catch (err) {
+      console.error('[RedsRacing] Error upgrading navigation:', err);
+    }
+  }
+  
+  // Handle nested mobile accordions after dynamic menu upgrade
+  function initMobileMenuNested() {
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (!mobileMenu) return;
+    
+    // Initialize nested accordion content
+    const nestedContents = mobileMenu.querySelectorAll('.mobile-accordion-content-nested');
+    nestedContents.forEach(content => {
+      content.style.maxHeight = '0';
+      content.style.overflow = 'hidden';
+      content.style.transition = 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    });
+    
+    // Nested accordion functionality
+    const nestedAccordions = mobileMenu.querySelectorAll('.mobile-accordion-nested');
+    console.log('[RedsRacing] Found', nestedAccordions.length, 'nested mobile accordions');
+    
+    nestedAccordions.forEach(accordion => {
+      // Remove old listeners to avoid duplicates
+      const newAccordion = accordion.cloneNode(true);
+      accordion.parentNode.replaceChild(newAccordion, accordion);
+      
+      newAccordion.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const content = newAccordion.nextElementSibling;
+        const icon = newAccordion.querySelector('.accordion-icon');
+        
+        if (content && content.classList.contains('mobile-accordion-content-nested')) {
+          content.style.overflow = 'hidden';
+          content.style.transition = 'max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+          
+          const isCurrentlyOpen = newAccordion.classList.contains('active');
+          const currentMaxHeight = content.style.maxHeight;
+          const isCurrentlyHidden = !isCurrentlyOpen || currentMaxHeight === '0px' || currentMaxHeight === '';
+          
+          // Close other nested accordions
+          nestedAccordions.forEach(otherAccordion => {
+            if (otherAccordion !== newAccordion) {
+              const otherContent = otherAccordion.nextElementSibling;
+              const otherIcon = otherAccordion.querySelector('.accordion-icon');
+              if (otherContent && otherContent.classList.contains('mobile-accordion-content-nested')) {
+                otherContent.style.maxHeight = '0';
+                otherAccordion.classList.remove('active');
+                if (otherIcon) {
+                  otherIcon.style.transform = 'rotate(0deg)';
+                }
+              }
+            }
+          });
+          
+          // Toggle current nested accordion
+          if (isCurrentlyHidden) {
+            newAccordion.classList.add('active');
+            content.style.maxHeight = content.scrollHeight + 'px';
+            if (icon) {
+              icon.style.transform = 'rotate(180deg)';
+            }
+            
+            // Update parent accordion height to accommodate nested content
+            const parentContent = newAccordion.closest('.mobile-accordion-content');
+            if (parentContent) {
+              setTimeout(() => {
+                parentContent.style.maxHeight = parentContent.scrollHeight + 'px';
+              }, 50);
+            }
+          } else {
+            newAccordion.classList.remove('active');
+            content.style.maxHeight = '0';
+            if (icon) {
+              icon.style.transform = 'rotate(0deg)';
+            }
+            
+            // Update parent accordion height
+            const parentContent = newAccordion.closest('.mobile-accordion-content');
+            if (parentContent) {
+              setTimeout(() => {
+                parentContent.style.maxHeight = parentContent.scrollHeight + 'px';
+              }, 350);
+            }
+          }
+        }
+      });
+    });
+    
+    console.log('[RedsRacing] Nested mobile accordion initialization complete');
+  }
+  
+  // Make it globally available for debugging
+  window.upgradeNavMenus = upgradeNavMenus;
+
+  function ready() {
+    try { hideAdminConsoleLinks(); } catch (_) {} // Hide admin links by default until role verified
+    try { upgradeNavMenus(); } catch (_) {}
+    try { initDropdowns(); } catch (_) {}
+    try { initMobileMenu(); } catch (_) {}
+    try { initClock(); } catch (_) {}
+    // Initialize Sentry (error monitoring, tracing, profiling, replay) if DSN present
+    try { initSentryGlobal(); } catch (_) {}
+    // Global frontend error fallback to Firestore
+    try {
+      window.addEventListener('error', logClientError);
+      window.addEventListener('unhandledrejection', logClientError);
+    } catch (_) {}
+    // Load role theme system on every page
+    try {
+      if (!document.getElementById('rr-theme-script')) {
+        var s = document.createElement('script');
+        s.id = 'rr-theme-script';
+        s.src = 'assets/js/role-theme.js';
+        document.head.appendChild(s);
+      }
+    } catch (_) {}
+
+    // Load the site-wide AdSense auto-injection once. It self-skips on
+    // auth/admin/dashboard paths via its internal deny-list.
+    try {
+      if (!document.getElementById('rr-ads-inject-script')) {
+        var ads = document.createElement('script');
+        ads.id = 'rr-ads-inject-script';
+        ads.src = 'assets/js/ads-inject.js';
+        ads.defer = true;
+        document.head.appendChild(ads);
+      }
+    } catch (_) {}
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ready);
+  } else {
+    ready();
+  }
+  
+  // Android WebView sometimes needs extra time - retry upgrade after delay
+  setTimeout(() => {
+    try { upgradeNavMenus(); } catch (_) {}
+  }, 100);
+  
+  setTimeout(() => {
+    try { upgradeNavMenus(); } catch (_) {}
+  }, 500);
 })();
