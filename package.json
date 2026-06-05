@@ -30,5 +30,10 @@
     "@sentry/tracing": "^7.120.4",
     "firebase": "^12.3.0",
     "firebase-admin": "^13.5.0"
+  },
+  "overrides": {
+    "@google-cloud/storage": {
+      "uuid": "^11.1.1"
+    }
   }
 }
