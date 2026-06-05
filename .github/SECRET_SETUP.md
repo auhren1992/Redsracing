@@ -55,11 +55,25 @@ base64 -i ios/RedsRacing/GoogleService-Info.plist | tr -d '\n' | pbcopy
 
 Paste into the secret (single line).
 
+## Firebase Hosting (`firebase-hosting.yml`)
+
+| Secret | In your repo? | Purpose |
+|--------|----------------|--------|
+| `FIREBASE_SERVICE_ACCOUNT_REDSRACING_A7F8B` | Yes | Service account JSON for `firebase deploy --only hosting` on push to `main`. |
+
+Live site: https://redsracing-a7f8b.web.app
+
+Manual deploy from repo root:
+
+```bash
+npm run deploy:hosting
+```
+
 ## Other secrets (not wired in these workflows)
 
 | Secret | Notes |
 |--------|--------|
-| `FIREBASE_SERVICE_ACCOUNT_REDSRACING_A7F8B` | Likely for Firebase CLI / deploy elsewhere — **keep one** canonical name. |
+| `FIREBASE_SERVICE_ACCOUNT_REDSRACING_A7F8B` | Also used by **Firebase Hosting** workflow above — **keep one** canonical name. |
 | `FIREBASE_SERVICE_ACCOUNT_REDS_RACING_A7F8B` | Looks like a **duplicate / typo** vs the name above. Confirm only one is needed; delete the unused secret in GitHub. |
 | `SENDGRID_API_KEY` | For email — ensure no workflow logs it. |
 | `SENTRY_DSN` | Client DSN; also appears in some HTML meta tags in the repo. |

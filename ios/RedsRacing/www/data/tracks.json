@@ -1,0 +1,8 @@
+[
+  {"id":"grundy","name":"Grundy County Speedway","city":"Morris","state":"IL","mapQuery":"Grundy+County+Speedway+Morris+IL","tips":"Great bleacher seating on the main straightaway. Arrive early for pit passes. Concessions available on-site."},
+  {"id":"golden-sands","name":"Golden Sands Speedway","city":"Wisconsin Rapids","state":"WI","mapQuery":"Golden+Sands+Speedway+Wisconsin+Rapids+WI","tips":"Bring blankets for cooler evenings. Excellent views from Turn 1-2. Family-friendly atmosphere."},
+  {"id":"slinger","name":"Slinger Speedway","city":"Slinger","state":"WI","mapQuery":"Slinger+Speedway+Slinger+WI","tips":"High-banked quarter-mile oval — fast action! Best seats are in the upper grandstands. Beer garden available."},
+  {"id":"tomah","name":"Tomah Speedway","city":"Tomah","state":"WI","mapQuery":"Tomah+Speedway+Tomah+WI","tips":"Small-town racing atmosphere. Affordable gate prices. Pit area is close to the stands."},
+  {"id":"lacrosse","name":"La Crosse Speedway","city":"West Salem","state":"WI","mapQuery":"La+Crosse+Fairgrounds+Speedway+West+Salem+WI","tips":"Located at the fairgrounds. Plenty of parking. Covered grandstand seating available."},
+  {"id":"dells","name":"Dells Raceway Park","city":"Wisconsin Dells","state":"WI","mapQuery":"Dells+Raceway+Park+Wisconsin+Dells+WI","tips":"Great family destination — combine with a Dells vacation! Compact track means close racing. Bring lawn chairs for infield viewing."}
+]

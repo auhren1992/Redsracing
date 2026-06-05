@@ -129,6 +129,14 @@
                 <option value="Qualifying">Qualifying</option>
                 <option value="Practice">Practice</option>
             </select>
+
+            <label>Track flag</label>
+            <select id="trackFlag">
+                <option value="green" selected>Green</option>
+                <option value="yellow">Yellow / Caution</option>
+                <option value="red">Red</option>
+                <option value="checkered">Checkered</option>
+            </select>
         </div>
 
         <!-- Lap Counter -->
@@ -199,6 +207,16 @@
         </button>
     </div>
 
+    <!-- Live Commentary -->
+    <div class="control-panel">
+        <h3 class="text-xl font-bold text-white mb-4"><i class="fas fa-comment-dots mr-2 text-yellow-400"></i>Live Commentary</h3>
+        <label>Post an update for fans watching live</label>
+        <input type="text" id="commentaryText" placeholder="e.g., Jon passes for 2nd on the outside!" />
+        <button onclick="postCommentary()" class="big-button" style="background:linear-gradient(45deg,#f59e0b,#d97706);color:#000;">
+            <i class="fas fa-paper-plane mr-2"></i>POST COMMENTARY
+        </button>
+    </div>
+
     <!-- Quick Race Events -->
     <div class="control-panel">
         <h3 class="text-xl font-bold text-white mb-4">Quick Events</h3>
@@ -222,6 +240,8 @@
         <button onclick="deleteRace()" class="big-button" style="background: #ef4444; color: white; margin-top: 12px;">
             <i class="fas fa-trash mr-2"></i>Delete Race Data
         </button>
+    </div>
+
     <div class="control-panel">
         <h3 class="text-xl font-bold text-white mb-4">Recent Updates</h3>
         <div id="updateLog" class="text-slate-400 text-sm space-y-2">
@@ -323,6 +343,7 @@
             const jonGap = document.getElementById('jonGap').value;
             const jonnyPos = document.getElementById('jonnyPosition').value;
             const jonnyGap = document.getElementById('jonnyGap').value;
+            const trackFlag = (document.getElementById('trackFlag') && document.getElementById('trackFlag').value) || 'green';
 
             if (!currentLap || !totalLaps) {
                 alert('Please enter lap information!');
@@ -348,7 +369,8 @@
                     }
                 },
                 lastUpdate: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedBy: firebase.auth().currentUser?.email || 'admin'
+                updatedBy: firebase.auth().currentUser?.email || 'admin',
+                flag: trackFlag,
             };
 
             try {
@@ -371,12 +393,39 @@
             }
         }
 
+        async function postCommentary() {
+            const text = document.getElementById('commentaryText').value.trim();
+            if (!text) { alert('Please enter commentary text'); return; }
+            try {
+                await db.collection('live_race_updates').add({
+                    text: text,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    author: firebase.auth().currentUser?.email || 'admin'
+                });
+                document.getElementById('commentaryText').value = '';
+                addToLog('💬 Commentary: ' + text);
+                navigator.vibrate && navigator.vibrate(50);
+            } catch(e) {
+                console.error('Commentary error:', e);
+                alert('Failed to post: ' + e.message);
+            }
+        }
+
         async function postEvent(eventText) {
             try {
-                await db.collection('live_race').doc('current').update({
+                let flag = null;
+                if (eventText.indexOf('Green') !== -1) flag = 'green';
+                else if (eventText.indexOf('Caution') !== -1 || eventText.indexOf('Yellow') !== -1) flag = 'yellow';
+                else if (eventText.indexOf('Red Flag') !== -1) flag = 'red';
+                else if (eventText.indexOf('Checkered') !== -1) flag = 'checkered';
+
+                const patch = {
                     event: eventText,
-                    eventTimestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                    eventTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                };
+                if (flag) patch.flag = flag;
+
+                await db.collection('live_race').doc('current').update(patch);
                 
                 addToLog(`🚩 ${eventText}`);
                 navigator.vibrate && navigator.vibrate([50, 50, 50]);

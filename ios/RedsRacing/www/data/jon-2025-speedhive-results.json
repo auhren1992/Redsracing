@@ -1,0 +1,347 @@
+{
+  "driver": "Jon Kirsch",
+  "carNumber": "#8K",
+  "season": "2025",
+  "series": "American Super Cup Series",
+  "lastUpdated": "2025-10-07",
+  "championship": {
+    "dropPointStandings": 4,
+    "fullPointStandings": 6,
+    "totalPoints": 482,
+    "qualifyingPoints": 67,
+    "poleAwards": 0,
+    "heatWins": 3,
+    "featureWins": 1,
+    "podiumFinishes": 4
+  },
+  "events": [
+    {
+      "id": "grundy-county-may-25-2025",
+      "eventName": "Grundy County Speedway - May 25, 2025",
+      "date": "2025-05-25",
+      "track": "Grundy County Speedway, IL",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        {
+          "sessionType": "Practice",
+          "position": null,
+          "lapTime": null,
+          "speed": null,
+          "notes": "Practice session data"
+        },
+        {
+          "sessionType": "Qualifying",
+          "position": 4,
+          "lapTime": "14.625",
+          "speed": null,
+          "notes": "Front row start"
+        },
+        {
+          "sessionType": "Heat Race",
+          "position": 3,
+          "lapTime": "14.783",
+          "speed": null,
+          "notes": "Podium finish"
+        },
+        {
+          "sessionType": "Feature",
+          "position": 5,
+          "lapTime": "14.559",
+          "speed": null,
+          "notes": "Top 5 finish"
+        }
+      ]
+    },
+    {
+      "id": "slinger-speedway-jun-7-2025",
+      "eventName": "Slinger Speedway - Jun 7, 2025",
+      "date": "2025-06-07",
+      "track": "Slinger Speedway, WI",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        {
+          "sessionType": "Qualifying",
+          "position": 5,
+          "lapTime": "15.947",
+          "speed": null,
+          "notes": "Mid pack start"
+        },
+        {
+          "sessionType": "Heat Race",
+          "position": 6,
+          "lapTime": "15.444",
+          "speed": null,
+          "notes": "Solid run"
+        },
+        {
+          "sessionType": "Feature",
+          "position": 3,
+          "lapTime": "15.285",
+          "speed": null,
+          "notes": "🏆 PODIUM! Strong finish"
+        }
+      ]
+    },
+    {
+      "id": "dells-raceway-park-jul-25-2025",
+      "eventName": "Dells Raceway Park - Jul 25, 2025",
+      "date": "2025-07-25",
+      "track": "Dells Raceway Park, WI",
+      "trackLength": "0.3333 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        {
+          "sessionType": "Qualifying",
+          "position": 6,
+          "lapTime": "17.235",
+          "speed": null,
+          "notes": "Mid pack start"
+        },
+        {
+          "sessionType": "Heat Race",
+          "position": 1,
+          "lapTime": "17.619",
+          "speed": null,
+          "notes": "🏆 HEAT WIN! Dominant performance"
+        },
+        {
+          "sessionType": "Feature",
+          "position": 3,
+          "lapTime": "17.475",
+          "speed": null,
+          "notes": "🏆 PODIUM! Heat win to podium"
+        }
+      ]
+    },
+    {
+      "id": "rake-motorsports-night-jul-26-2025",
+      "eventName": "Rake Motorsports Night - Jul 26, 2025",
+      "date": "2025-07-26",
+      "track": "Dells Raceway Park, WI",
+      "trackLength": "0.3333 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        {
+          "sessionType": "Practice 1",
+          "position": 2,
+          "lapTime": "17.255",
+          "speed": null,
+          "notes": "Strong practice pace"
+        },
+        {
+          "sessionType": "Practice 2",
+          "position": 10,
+          "lapTime": "17.972",
+          "speed": null,
+          "notes": "Setup adjustments"
+        },
+        {
+          "sessionType": "Heat 1",
+          "position": 3,
+          "lapTime": "17.637",
+          "speed": null,
+          "notes": "Podium heat finish"
+        },
+        {
+          "sessionType": "Feature",
+          "position": 4,
+          "lapTime": "17.525",
+          "speed": null,
+          "notes": "Top 5 main event"
+        }
+      ]
+    },
+    {
+      "id": "on-track-autograph-night-aug-8-2025",
+      "eventName": "On Track Autograph Night - Aug 8, 2025",
+      "date": "2025-08-08",
+      "track": "Grundy County Speedway, IL",
+      "trackLength": "0.33 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        {
+          "sessionType": "Practice 1",
+          "position": 8,
+          "lapTime": "19.405",
+          "speed": null,
+          "notes": "Initial practice"
+        },
+        {
+          "sessionType": "Practice 2",
+          "position": 8,
+          "lapTime": "19.450",
+          "speed": null,
+          "notes": "Setup work"
+        },
+        {
+          "sessionType": "Heat 1",
+          "position": 3,
+          "lapTime": "19.361",
+          "speed": null,
+          "notes": "Heat podium"
+        },
+        {
+          "sessionType": "Feature",
+          "position": 7,
+          "lapTime": "19.221",
+          "speed": null,
+          "notes": "Top 10 finish"
+        }
+      ]
+    },
+    {
+      "id": "golden-sands-speedway-aug-31-2025",
+      "eventName": "Golden Sands Speedway - Aug 31, 2025",
+      "date": "2025-08-31",
+      "track": "Golden Sands Speedway, WI",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        {
+          "sessionType": "Qualifying",
+          "position": 3,
+          "lapTime": "14.412",
+          "speed": null,
+          "notes": "Front row start"
+        },
+        {
+          "sessionType": "Heat Race",
+          "position": 1,
+          "lapTime": "14.335",
+          "speed": null,
+          "notes": "🏆 HEAT WIN!"
+        },
+        {
+          "sessionType": "Feature",
+          "position": 1,
+          "lapTime": "14.198",
+          "speed": null,
+          "notes": "🏆 FEATURE WIN! Perfect weekend sweep!"
+        }
+      ]
+    },
+    {
+      "id": "labor-day-of-doom-aug-31-2025",
+      "eventName": "Labor Day of Doom - Aug 31, 2025",
+      "date": "2025-08-31",
+      "track": "Dells Raceway Park, WI",
+      "trackLength": "0.3333 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        {
+          "sessionType": "Practice 1",
+          "position": 9,
+          "lapTime": "17.845",
+          "speed": null,
+          "notes": "Initial practice run"
+        },
+        {
+          "sessionType": "Practice 2 (Qualifying)",
+          "position": 7,
+          "lapTime": "17.716",
+          "speed": "67.729",
+          "totalLaps": 6,
+          "gapToLeader": "+0.489s",
+          "notes": "Qualifying session"
+        },
+        {
+          "sessionType": "Heat 2",
+          "position": 1,
+          "lapTime": "17.619",
+          "speed": "68.101",
+          "totalTime": "2:25.948",
+          "totalLaps": 8,
+          "notes": "🏆 HEAT RACE WINNER! Dominant performance"
+        },
+        {
+          "sessionType": "Feature",
+          "position": 3,
+          "lapTime": "17.475",
+          "speed": "68.663",
+          "totalTime": "4:31.305",
+          "totalLaps": 15,
+          "gapToLeader": "+3.028s",
+          "notes": "🏆 PODIUM! Outstanding feature finish"
+        }
+      ],
+      "highlights": [
+        "🏆 Heat Race Victory",
+        "🥉 Feature Podium", 
+        "⏱️ 17.475s Best Lap"
+      ],
+      "summary": "Outstanding Labor Day Performance: Jon Kirsch delivered an exceptional performance at Dells Raceway Park, capturing a dominant heat race victory with a commanding performance over 8 laps. His consistency continued into the feature race where he secured a well-earned 3rd place podium finish, demonstrating the speed and racecraft that makes #8K a championship contender."
+    },
+    {
+      "id": "small-car-nationals-jul-13-2025",
+      "eventName": "Small Car Nationals - Jul 13, 2025",
+      "date": "2025-07-13",
+      "track": "Slinger Super Speedway, WI",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null, "speed": null }
+      ]
+    },
+    {
+      "id": "la-crosse-jun-28-2025",
+      "eventName": "La Crosse Fairgrounds Speedway - Jun 28, 2025",
+      "date": "2025-06-28",
+      "track": "La Crosse Fairgrounds Speedway, WI",
+      "trackLength": "0.33 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null, "speed": null }
+      ]
+    },
+    {
+      "id": "graduation-celebration-jun-8-2025",
+      "eventName": "Graduation Celebration - Jun 8, 2025",
+      "date": "2025-06-08",
+      "track": "Slinger Super Speedway, WI",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null, "speed": null }
+      ]
+    },
+    {
+      "id": "spring-classic-apr-26-2025",
+      "eventName": "48th Annual Spring Classic - Apr 26, 2025",
+      "date": "2025-04-26",
+      "track": "Grundy County Speedway, IL",
+      "trackLength": "0.25 mi",
+      "source": "MYLAPS Speedhive",
+      "sessions": [
+        { "sessionType": "Practice", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Qualifying", "position": null, "lapTime": null, "speed": null },
+        { "sessionType": "Feature", "position": null, "lapTime": null, "speed": null }
+      ]
+    }
+  ],
+  "seasonSummary": {
+    "totalEvents": 7,
+    "featureWins": 1,
+    "heatWins": 3,
+    "podiumFinishes": 4,
+    "top5Finishes": 6,
+    "bestLapTime": "14.198",
+    "bestTrack": "Golden Sands Speedway",
+    "averageFinishPosition": 4.0,
+    "perfectWeekends": 1,
+    "highlights": [
+      "Perfect weekend sweep at Golden Sands Speedway - Pole, Heat Win, Feature Win",
+      "3 Heat Race victories throughout the season",
+      "4 Feature podium finishes - excellent consistency",
+      "Strong 4th place championship finish with 482 points",
+      "Labor Day of Doom standout performance - Heat Win + Feature Podium"
+    ]
+  }
+}

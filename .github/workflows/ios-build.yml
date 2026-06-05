@@ -5,6 +5,16 @@ on:
     branches: [main]
     paths:
       - 'ios/**'
+      - 'assets/**'
+      - 'styles/**'
+      - 'data/**'
+      - 'components/**'
+      - '*.html'
+      - 'navigation.js'
+      - 'manifest.json'
+      - 'site.webmanifest'
+      - 'scripts/sync-mobile-www.mjs'
+      - 'package.json'
       - '.github/workflows/ios-build.yml'
   workflow_dispatch:
 
@@ -17,6 +27,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Sync website into iOS bundle
+        run: npm run sync:mobile
 
       # Optional: base64-encode GoogleService-Info.plist → IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64
       - name: Inject GoogleService-Info.plist from secret (optional)

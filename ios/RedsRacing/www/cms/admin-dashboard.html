@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RedsRacing CMS - Admin Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+        .content-transition { transition: margin-left 0.3s ease-in-out; }
+        .edit-button { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .cms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+        .hover-scale { transition: transform 0.2s; }
+        .hover-scale:hover { transform: scale(1.02); }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .neon-border {
+            box-shadow: 0 0 5px #3b82f6, 0 0 10px #3b82f6, 0 0 15px #3b82f6;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="h-full bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white">
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-40">
+        <div class="px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button id="sidebar-toggle" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-yellow-400 bg-clip-text text-transparent">
+                        RedsRacing CMS
+                    </h1>
+                    <span class="bg-green-500 text-white px-2 py-1 rounded-full text-xs">
+                        <i class="fas fa-circle animate-pulse"></i> Live
+                    </span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="preview-site" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-eye mr-2"></i>Preview Site
+                    </button>
+                    <button id="bulk-edit-toggle" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded-lg transition-colors edit-button">
+                        <i class="fas fa-magic mr-2"></i>Bulk Edit Mode
+                    </button>
+                    <button id="save-all" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-save mr-2"></i>Save All
+                    </button>
+                    <div class="relative">
+                        <button id="user-menu" class="flex items-center space-x-2 hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors">
+                            <img src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" class="w-8 h-8 rounded-full">
+                            <span>Admin</span>
+                            <i class="fas fa-chevron-down text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed left-0 top-0 w-64 h-full bg-gray-800 border-r border-gray-700 z-30 pt-20 sidebar-transition">
+        <div class="p-6">
+            <div class="space-y-6">
+                <!-- Quick Stats -->
+                <div class="bg-gray-700 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-3">Quick Stats</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span>Total Pages</span>
+                            <span class="text-blue-400" id="stats-pages">0</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Editable Elements</span>
+                            <span class="text-green-400" id="stats-elements">0</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Recent Changes</span>
+                            <span class="text-yellow-400" id="stats-changes">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Navigation -->
+                <nav class="space-y-2">
+                    <a href="#" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors" data-section="dashboard">
+                        <i class="fas fa-tachometer-alt text-blue-400"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors" data-section="content">
+                        <i class="fas fa-edit text-green-400"></i>
+                        <span>Content Editor</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors" data-section="pages">
+                        <i class="fas fa-file-alt text-purple-400"></i>
+                        <span>Pages</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors" data-section="media">
+                        <i class="fas fa-image text-yellow-400"></i>
+                        <span>Media Library</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors" data-section="design">
+                        <i class="fas fa-palette text-red-400"></i>
+                        <span>Design & Themes</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors" data-section="navigation">
+                        <i class="fas fa-bars text-indigo-400"></i>
+                        <span>Navigation</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors" data-section="bulk">
+                        <i class="fas fa-magic text-pink-400"></i>
+                        <span>Bulk Operations</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors" data-section="settings">
+                        <i class="fas fa-cog text-gray-400"></i>
+                        <span>Settings</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="content-transition ml-64 pt-20 min-h-screen">
+        <div class="p-6">
+            <!-- Dashboard Section -->
+            <section id="section-dashboard" class="cms-section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold mb-2">Welcome to RedsRacing CMS</h2>
+                    <p class="text-gray-400">Manage all your website content without touching code.</p>
+                </div>
+
+                <!-- Action Cards -->
+                <div class="cms-grid mb-8">
+                    <div class="glass-effect rounded-lg p-6 hover-scale cursor-pointer" onclick="loadSection('content')">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Quick Edit</h3>
+                            <i class="fas fa-edit text-2xl text-green-400"></i>
+                        </div>
+                        <p class="text-gray-300 mb-4">Start editing content immediately with our visual editor.</p>
+                        <button class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors w-full">
+                            <i class="fas fa-rocket mr-2"></i>Start Editing
+                        </button>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 hover-scale cursor-pointer" onclick="loadSection('media')">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Upload Media</h3>
+                            <i class="fas fa-cloud-upload-alt text-2xl text-blue-400"></i>
+                        </div>
+                        <p class="text-gray-300 mb-4">Upload and manage images, videos, and other media files.</p>
+                        <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors w-full">
+                            <i class="fas fa-plus mr-2"></i>Upload Files
+                        </button>
+                    </div>
+
+                    <div class="glass-effect rounded-lg p-6 hover-scale cursor-pointer" onclick="loadSection('bulk')">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold">Bulk Changes</h3>
+                            <i class="fas fa-magic text-2xl text-purple-400"></i>
+                        </div>
+                        <p class="text-gray-300 mb-4">Make changes across multiple pages and elements at once.</p>
+                        <button class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors w-full">
+                            <i class="fas fa-wand-magic mr-2"></i>Bulk Edit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4">Recent Activity</h3>
+                    <div id="recent-activity" class="space-y-4">
+                        <!-- Activity items will be loaded here -->
+                        <div class="flex items-center space-x-4 p-3 bg-gray-700 rounded-lg">
+                            <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <div class="flex-1">
+                                <p class="text-sm">Welcome! Start by exploring the content editor to make your first changes.</p>
+                                <p class="text-xs text-gray-400">Just now</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Content Editor Section -->
+            <section id="section-content" class="cms-section hidden">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold mb-2">Content Editor</h2>
+                    <p class="text-gray-400">Edit any text, image, or element on your website.</p>
+                </div>
+
+                <div class="flex flex-wrap gap-4 mb-6">
+                    <select id="page-selector" class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 min-w-48">
+                        <option value="">Select a page to edit...</option>
+                    </select>
+                    <select id="content-type-filter" class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
+                        <option value="">All content types</option>
+                        <option value="text">Text Content</option>
+                        <option value="image">Images</option>
+                        <option value="icon">Icons</option>
+                        <option value="link">Links</option>
+                        <option value="data">Data/Stats</option>
+                    </select>
+                    <input type="text" id="content-search" placeholder="Search content..." class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 min-w-64">
+                    <button id="visual-editor-btn" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg transition-colors neon-border">
+                        <i class="fas fa-eye mr-2"></i>Visual Editor
+                    </button>
+                </div>
+
+                <div id="content-list" class="bg-gray-800 rounded-lg p-6">
+                    <div class="text-center text-gray-400 py-8">
+                        <i class="fas fa-mouse-pointer text-4xl mb-4"></i>
+                        <p>Select a page above to start editing its content.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pages Section -->
+            <section id="section-pages" class="cms-section hidden">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold mb-2">Pages Management</h2>
+                    <p class="text-gray-400">Manage all website and mobile app pages.</p>
+                </div>
+
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <div id="pages-list" class="space-y-4">
+                        <!-- Pages will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Media Library Section -->
+            <section id="section-media" class="cms-section hidden">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold mb-2">Media Library</h2>
+                    <p class="text-gray-400">Upload and manage images, videos, and other media files.</p>
+                </div>
+
+                <div class="mb-6">
+                    <div id="media-upload-zone" class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                        <p class="text-lg mb-2">Drop files here or click to upload</p>
+                        <p class="text-gray-400 text-sm">Support for images, videos, and documents</p>
+                        <input type="file" id="media-upload-input" multiple class="hidden">
+                    </div>
+                </div>
+
+                <div id="media-gallery" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <!-- Media items will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Design & Themes Section -->
+            <section id="section-design" class="cms-section hidden">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold mb-2">Design & Themes</h2>
+                    <p class="text-gray-400">Customize colors, fonts, and overall design.</p>
+                </div>
+
+                <div class="cms-grid">
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">Color Scheme</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span>Primary Color</span>
+                                <input type="color" value="#3b82f6" class="w-12 h-8 rounded">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Accent Color</span>
+                                <input type="color" value="#fbbf24" class="w-12 h-8 rounded">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Background Color</span>
+                                <input type="color" value="#0f172a" class="w-12 h-8 rounded">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">Typography</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm mb-2">Heading Font</label>
+                                <select class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                                    <option>Racing Sans One</option>
+                                    <option>Inter</option>
+                                    <option>Roboto</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm mb-2">Body Font</label>
+                                <select class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                                    <option>Inter</option>
+                                    <option>Roboto</option>
+                                    <option>Open Sans</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation Section -->
+            <section id="section-navigation" class="cms-section hidden">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold mb-2">Navigation Management</h2>
+                    <p class="text-gray-400">Manage website navigation menus and links.</p>
+                </div>
+
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <div id="navigation-editor">
+                        <!-- Navigation editor will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bulk Operations Section -->
+            <section id="section-bulk" class="cms-section hidden">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold mb-2">Bulk Operations</h2>
+                    <p class="text-gray-400">Make changes across multiple pages and elements.</p>
+                </div>
+
+                <div class="cms-grid">
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">Find & Replace</h3>
+                        <div class="space-y-4">
+                            <input type="text" placeholder="Find text..." class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
+                            <input type="text" placeholder="Replace with..." class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2">
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-search-plus mr-2"></i>Find & Replace
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">Mass Update</h3>
+                        <div class="space-y-4">
+                            <select class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                                <option>Select content type...</option>
+                                <option>All Text</option>
+                                <option>All Images</option>
+                                <option>All Links</option>
+                            </select>
+                            <button class="w-full bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-magic mr-2"></i>Start Mass Update
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="section-settings" class="cms-section hidden">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold mb-2">CMS Settings</h2>
+                    <p class="text-gray-400">Configure system settings and preferences.</p>
+                </div>
+
+                <div class="cms-grid">
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">General Settings</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm mb-2">Site Title</label>
+                                <input type="text" value="RedsRacing #8" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm mb-2">Backup Frequency</label>
+                                <select class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2">
+                                    <option>Daily</option>
+                                    <option>Weekly</option>
+                                    <option>Monthly</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">User Management</h3>
+                        <div class="space-y-4">
+                            <button class="w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-user-plus mr-2"></i>Add Admin User
+                            </button>
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
+                                <i class="fas fa-key mr-2"></i>Change Password
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-3"></i>
+            <span id="toast-message">Success!</span>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 p-8 rounded-lg text-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-400 mb-4"></i>
+            <p class="text-xl">Processing changes...</p>
+        </div>
+    </div>
+
+    <script src="js/cms-core.js"></script>
+    <script src="js/cms-dashboard.js"></script>
+</body>
+</html>

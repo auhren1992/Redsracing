@@ -5,6 +5,16 @@ on:
     branches: [main]
     paths:
       - 'android/**'
+      - 'assets/**'
+      - 'styles/**'
+      - 'data/**'
+      - 'components/**'
+      - '*.html'
+      - 'navigation.js'
+      - 'manifest.json'
+      - 'site.webmanifest'
+      - 'scripts/sync-mobile-www.mjs'
+      - 'package.json'
       - '.github/workflows/android-build.yml'
   workflow_dispatch:
 
@@ -15,6 +25,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Sync website into Android assets
+        run: npm run sync:mobile
 
       - name: Read app version
         id: app_version

@@ -15,18 +15,13 @@ The Android app is standalone and includes all website files bundled locally. Wh
 cd C:\Users\Parts\Documents\Desktop\Redsracing
 ```
 
-### 2. Copy Latest Website Files to Android Assets
+### 2. Copy Latest Website Files to Android & iOS bundles
 
 ```powershell
-# Copy HTML, CSS, and JS files
-robocopy . "android\app\src\main\assets\www" *.html *.css *.js /S /XD android node_modules .firebase dist functions functions_python .git
-
-# Copy assets folder (images, fonts, etc.)
-robocopy "assets" "android\app\src\main\assets\www\assets" /S /XD node_modules
-
-# Copy styles folder
-robocopy "styles" "android\app\src\main\assets\www\styles" /S
+npm run sync:mobile
 ```
+
+This updates `android/app/src/main/assets/www` and `ios/RedsRacing/www` from the repo root.
 
 ### 3. Rebuild the App
 

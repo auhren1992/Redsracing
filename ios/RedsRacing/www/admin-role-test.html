@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Role Test - RedsRacing</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: #0f172a; 
+            color: white;
+        }
+        .test-result {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .success { border-color: #22c55e; background: #065f46; }
+        .error { border-color: #ef4444; background: #7f1d1d; }
+        .warning { border-color: #f59e0b; background: #78350f; }
+        .info { border-color: #3b82f6; background: #1e3a8a; }
+        pre { 
+            background: #1e293b; 
+            padding: 10px; 
+            border-radius: 5px; 
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #2563eb; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Admin Role Diagnostic Test</h1>
+    <p>This tool will help diagnose why the Page Management section isn't working.</p>
+    
+    <div id="results"></div>
+    
+    <button onclick="runTests()">Run All Tests</button>
+    <button onclick="testAuthState()">Test Auth State</button>
+    <button onclick="testClaims()">Test Claims</button>
+    <button onclick="testFirestore()">Test Firestore Access</button>
+
+    <script type="module">
+        import { initFirebase } from './assets/js/firebase-init.js';
+        import { validateUserClaims } from './assets/js/auth-utils.js';
+        
+        let auth, db;
+        
+        // Initialize Firebase
+        try {
+            const firebase = await initFirebase();
+            auth = firebase.auth;
+            db = firebase.db;
+            addResult('✅ Firebase initialized successfully', 'success');
+        } catch (error) {
+            addResult(`❌ Firebase initialization failed: ${error.message}`, 'error');
+        }
+
+        function addResult(message, type = 'info', details = null) {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `<strong>${message}</strong>`;
+            if (details) {
+                div.innerHTML += `<pre>${JSON.stringify(details, null, 2)}</pre>`;
+            }
+            results.appendChild(div);
+        }
+
+        window.testAuthState = async function() {
+            addResult('🔍 Testing authentication state...', 'info');
+            
+            if (!auth) {
+                addResult('❌ Firebase auth not available', 'error');
+                return;
+            }
+
+            const user = auth.currentUser;
+            if (!user) {
+                addResult('❌ No authenticated user', 'error');
+                return;
+            }
+
+            addResult('✅ User is authenticated', 'success', {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                emailVerified: user.emailVerified
+            });
+        }
+
+        window.testClaims = async function() {
+            addResult('🔍 Testing user claims...', 'info');
+            
+            if (!auth || !auth.currentUser) {
+                addResult('❌ No authenticated user', 'error');
+                return;
+            }
+
+            try {
+                // Test direct token claims
+                const tokenResult = await auth.currentUser.getIdTokenResult(true);
+                addResult('✅ Token claims retrieved', 'success', {
+                    claims: tokenResult.claims,
+                    role: tokenResult.claims.role || 'No role set'
+                });
+
+                // Test using auth-utils
+                const validationResult = await validateUserClaims(['admin', 'team-member']);
+                addResult('✅ Role validation result', validationResult.success ? 'success' : 'warning', validationResult);
+
+            } catch (error) {
+                addResult(`❌ Claims test failed: ${error.message}`, 'error');
+            }
+        }
+
+        window.testFirestore = async function() {
+            addResult('🔍 Testing Firestore access...', 'info');
+            
+            if (!db) {
+                addResult('❌ Firestore not available', 'error');
+                return;
+            }
+
+            try {
+                const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+                
+                // Test reading pages collection
+                const pagesSnap = await getDocs(collection(db, 'pages'));
+                addResult('✅ Firestore pages collection accessed', 'success', {
+                    pageCount: pagesSnap.size,
+                    pages: pagesSnap.docs.map(doc => doc.id)
+                });
+
+            } catch (error) {
+                addResult(`❌ Firestore test failed: ${error.message}`, 'error');
+            }
+        }
+
+        window.runTests = async function() {
+            document.getElementById('results').innerHTML = '';
+            addResult('🚀 Running comprehensive admin role tests...', 'info');
+            
+            await testAuthState();
+            await testClaims();
+            await testFirestore();
+            
+            addResult('🏁 Test suite complete! Check results above.', 'info');
+        }
+    </script>
+</body>
+</html>
