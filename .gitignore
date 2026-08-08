@@ -39,6 +39,8 @@ build
 __pycache__/
 *.py[cod]
 *$py.class
+functions_python/venv/
+functions_python/.venv/
 
 # Certificates and private keys
 certificates/
