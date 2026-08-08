@@ -142,6 +142,15 @@ struct ContentView: View {
         }
     }
 
+    private func clearNativeAuthSession() {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.uid)
+        defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.email)
+        defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.token)
+        defaults.removeObject(forKey: AppLockUserDefaultsKeys.lockAuthUid)
+        defaults.set(false, forKey: AppLockUserDefaultsKeys.biometricEnabled)
+    }
+
     private func routeToStandaloneLoginIfNeeded() {
         let defaults = UserDefaults.standard
         let uid = defaults.string(forKey: NativeAuthUserDefaultsKeys.uid)
@@ -330,14 +339,37 @@ struct ContentView: View {
 
     private func handleMenuItem(_ item: MenuItem) {
         if item.url == "javascript:logout" {
+            clearNativeAuthSession()
             let js = """
                 (async function() {
                     try {
-                        // Best-effort Firebase logout if site uses it
-                        if (window.firebase?.auth) { await window.firebase.auth().signOut(); }
-                        localStorage.removeItem('redsracing_user');
-                        window.location.href = 'index.html';
-                    } catch(e) { console.error('Logout error', e); }
+                        try { localStorage.removeItem('rr_auth_uid'); } catch(e) {}
+                        try { localStorage.removeItem('rr_user_name'); } catch(e) {}
+                        try { localStorage.removeItem('rr_user_role'); } catch(e) {}
+                        try { localStorage.removeItem('rr_guest_ok'); } catch(e) {}
+                        try { localStorage.removeItem('redsracing_user'); } catch(e) {}
+                        try {
+                          if (window.FirebaseAuthBridge && window.FirebaseAuthBridge.clearAllAuth) {
+                            window.FirebaseAuthBridge.clearAllAuth();
+                          }
+                        } catch(e) {}
+                        try {
+                          if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.redsRacingAuth) {
+                            window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'clear' });
+                          }
+                        } catch(e) {}
+                        try {
+                          if (window.firebase && window.firebase.auth) { await window.firebase.auth().signOut(); }
+                        } catch(e) {}
+                        try {
+                          var m = await import('/assets/js/auth-utils.js');
+                          if (m && m.safeSignOut) { await m.safeSignOut(); }
+                        } catch(e) {}
+                        window.location.href = 'https://www.redsracing.org/login.html';
+                    } catch(e) {
+                        console.error('Logout error', e);
+                        window.location.href = 'https://www.redsracing.org/login.html';
+                    }
                 })();
             """
             webViewRef?.evaluateJavaScript(js, completionHandler: nil)
@@ -499,12 +531,14 @@ struct WebView: UIViewRepresentable {
         // appends to the default product line.
         configuration.applicationNameForUserAgent = "RedsRacingApp/1.0 iOS"
 
-        let standaloneFlag = WKUserScript(
-            source: "try{window.__RR_NATIVE_APP__='ios';window.__RR_STANDALONE_APP_LOGIN__=true;}catch(e){}",
+        // Native marker on every page; standalone-login flag is set only on login.html
+        // (see decidePolicy / didFinish) so finishStandaloneAppLogin() cannot fire elsewhere.
+        let nativeAppFlag = WKUserScript(
+            source: "try{window.__RR_NATIVE_APP__='ios';}catch(e){}",
             injectionTime: .atDocumentStart,
             forMainFrameOnly: true
         )
-        configuration.userContentController.addUserScript(standaloneFlag)
+        configuration.userContentController.addUserScript(nativeAppFlag)
 
         configuration.userContentController.add(context.coordinator, name: "redsRacingAppLock")
         configuration.userContentController.add(context.coordinator, name: "redsRacingAuth")
@@ -552,6 +586,18 @@ struct WebView: UIViewRepresentable {
         }
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             parent.isLoading = false
+            // Standalone login flag only on login page (matches Android LoginActivity behavior)
+            if let url = webView.url?.absoluteString, url.contains("login.html") {
+                webView.evaluateJavaScript(
+                    "try{window.__RR_STANDALONE_APP_LOGIN__=true;}catch(e){}",
+                    completionHandler: nil
+                )
+            } else {
+                webView.evaluateJavaScript(
+                    "try{window.__RR_STANDALONE_APP_LOGIN__=false;}catch(e){}",
+                    completionHandler: nil
+                )
+            }
             // Inject layout adjustments (hide site header etc.) similar to Android
             let js = """
                 (function(){

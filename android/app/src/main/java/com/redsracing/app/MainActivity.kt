@@ -499,29 +499,32 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = MenuAdapter(items) { item ->
             if (item.url == "javascript:logout") {
-                // Handle logout — also nuke cookies and WebStorage so HttpOnly
-                // auth cookies don't survive the sign-out and silently re-auth
-                // the previous user on the next session.
+                // Full logout — Firebase + markers + native bridge, then clear
+                // WebView cookies/storage so the next session cannot revive auth.
                 binding.webview.evaluateJavascript(
                     """
                     (async function() {
                         try {
-                            const { getAuth, signOut } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
-                            const auth = getAuth();
-                            await signOut(auth);
-                            localStorage.removeItem('redsracing_user');
-                            localStorage.removeItem('rr_auth_uid');
-                            localStorage.removeItem('rr_user_name');
-                            localStorage.removeItem('rr_guest_ok');
-                            if (window.AndroidAuth) {
-                                window.AndroidAuth.onLogout();
+                            try {
+                              const m = await import('/assets/js/auth-utils.js');
+                              if (m && m.safeSignOut) { await m.safeSignOut(); }
+                            } catch (e1) {
+                              try {
+                                const { getAuth, signOut } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+                                await signOut(getAuth());
+                              } catch (e2) {}
+                              try { localStorage.removeItem('redsracing_user'); } catch (e3) {}
+                              try { localStorage.removeItem('rr_auth_uid'); } catch (e3) {}
+                              try { localStorage.removeItem('rr_user_name'); } catch (e3) {}
+                              try { localStorage.removeItem('rr_user_role'); } catch (e3) {}
+                              try { localStorage.removeItem('rr_guest_ok'); } catch (e3) {}
+                              try { if (window.FirebaseAuthBridge) window.FirebaseAuthBridge.clearAllAuth(); } catch (e3) {}
                             }
-                            if (window.FirebaseAuthBridge) {
-                                window.FirebaseAuthBridge.clearAllAuth();
-                            }
-                            window.location.href = 'index.html';
+                            try { if (window.AndroidAuth) window.AndroidAuth.onLogout(); } catch (e4) {}
+                            window.location.href = 'https://www.redsracing.org/login.html';
                         } catch(e) {
                             console.error('Logout error:', e);
+                            window.location.href = 'https://www.redsracing.org/login.html';
                         }
                     })();
                     """.trimIndent()

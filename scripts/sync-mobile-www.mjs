@@ -48,6 +48,8 @@ const SKIP_DIRS = new Set([
   "venv",
   ".venv",
   "__pycache__",
+  "Redsracing", // nested accidental duplicate — never bundle
+  "cms",
 ]);
 
 const SKIP_FILES = new Set([

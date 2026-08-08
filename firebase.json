@@ -10,10 +10,13 @@
       "ios/**",
       "functions/**",
       "functions_python/**",
+      "Redsracing/**",
+      "cms/**",
       "**/venv/**",
       "**/.venv/**",
       "tools/**",
       "temp/**",
+      "node_modules/**",
       "**/*.aab",
       "**/*.apk"
     ],

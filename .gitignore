@@ -74,3 +74,7 @@ android/app/src/main/assets/www/tools/
 android/app/src/main/assets/www/_*.js
 deploy-log.txt
 
+.aider*
+
+# Accidental nested full-repo duplicate (do not commit)
+/Redsracing/

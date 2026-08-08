@@ -21,46 +21,49 @@ export function getCurrentUser() {
 /**
  * Safe sign out - clears all auth state including localStorage markers
  */
-export async function safeSignOut() {
+function clearLocalAuthMarkers() {
   try {
-    // Clear all auth-related localStorage items first
-    try {
-      localStorage.removeItem('rr_auth_uid');
-      localStorage.removeItem('rr_user_name');
-      localStorage.removeItem('rr_guest_ok');
-    } catch (_) {}
-    // Clear Android native auth storage
-    try {
-      if (window.FirebaseAuthBridge) window.FirebaseAuthBridge.clearAllAuth();
-    } catch (_) {}
-    try {
-      if (typeof AppLockBridge !== "undefined" && AppLockBridge?.setBiometricUnlockEnabled) {
-        AppLockBridge.setBiometricUnlockEnabled(false);
-      }
-    } catch (_) {}
-    try {
-      const h = window.webkit?.messageHandlers?.redsRacingAppLock;
-      if (h && typeof h.postMessage === "function") {
-        h.postMessage({ enabled: false });
-      }
-    } catch (_) {}
-    
+    localStorage.removeItem('rr_auth_uid');
+    localStorage.removeItem('rr_user_name');
+    localStorage.removeItem('rr_user_role');
+    localStorage.removeItem('rr_guest_ok');
+    localStorage.removeItem('redsracing_user');
+  } catch (_) {}
+}
+
+function clearNativeAuthBridges() {
+  try {
+    if (window.FirebaseAuthBridge) window.FirebaseAuthBridge.clearAllAuth();
+  } catch (_) {}
+  try {
+    clearNativeAppLock();
+  } catch (_) {}
+  try {
+    if (typeof AppLockBridge !== "undefined" && AppLockBridge?.setBiometricUnlockEnabled) {
+      AppLockBridge.setBiometricUnlockEnabled(false);
+    }
+  } catch (_) {}
+  try {
+    const h = window.webkit?.messageHandlers?.redsRacingAppLock;
+    if (h && typeof h.postMessage === "function") {
+      h.postMessage({ enabled: false });
+    }
+  } catch (_) {}
+  try {
+    window.webkit?.messageHandlers?.redsRacingAuth?.postMessage?.({ action: "clear" });
+  } catch (_) {}
+}
+
+export async function safeSignOut() {
+  clearLocalAuthMarkers();
+  clearNativeAuthBridges();
+  try {
     await auth.signOut();
     return true;
   } catch (error) {
-    // Even if signOut fails, ensure localStorage is cleared
-    try {
-      localStorage.removeItem('rr_auth_uid');
-      localStorage.removeItem('rr_user_name');
-      localStorage.removeItem('rr_guest_ok');
-    } catch (_) {}
-    try {
-      if (window.FirebaseAuthBridge) window.FirebaseAuthBridge.clearAllAuth();
-    } catch (_) {}
-    clearNativeAppLock();
-    try {
-      window.webkit?.messageHandlers?.redsRacingAuth?.postMessage?.({ action: "clear" });
-    } catch (_) {}
+    // Markers/bridges already cleared above — keep signed-out state consistent
+    clearLocalAuthMarkers();
+    clearNativeAuthBridges();
     return false;
   }
 }

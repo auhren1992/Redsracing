@@ -1839,3 +1839,7 @@ exports.scheduleICS = onRequest({ cors: true }, async (req, res) => {
 function icsEscape(s) {
   return String(s || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
 }
+
+// Google Analytics 4 reports for admin console
+const { getGoogleAnalyticsReport } = require("./ga-analytics");
+exports.getGoogleAnalyticsReport = getGoogleAnalyticsReport;

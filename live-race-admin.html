@@ -301,12 +301,36 @@
         });
         
         function showAuthenticated(user) {
-            console.log('✅ Authenticated as:', user.email);
-            statusEl.innerHTML = '✅ Ready - ' + user.email.split('@')[0];
-            statusEl.className = 'status-indicator status-inactive';
-            document.getElementById('quickLogin').style.display = 'none';
-            // Enable all controls
-            document.querySelectorAll('button, input, select').forEach(el => el.disabled = false);
+            // Admin / crew only — followers must not post live race updates
+            user.getIdTokenResult(true).then((token) => {
+                const claims = token.claims || {};
+                const role = String(claims.role || '').toLowerCase();
+                const allowed = claims.admin === true
+                    || role === 'admin'
+                    || role === 'owner'
+                    || claims.teamMember === true
+                    || role === 'team-member'
+                    || role === 'crew'
+                    || role === 'team';
+                if (!allowed) {
+                    statusEl.className = 'status-indicator';
+                    statusEl.style.background = 'rgba(239, 68, 68, 0.2)';
+                    statusEl.style.color = '#f87171';
+                    statusEl.style.border = '1px solid #f87171';
+                    statusEl.innerHTML = '⛔ Admin/crew access required';
+                    document.getElementById('quickLogin').style.display = 'none';
+                    document.querySelectorAll('button:not([onclick*="quickLogin"]), input:not([id*="login"]), select').forEach(el => el.disabled = true);
+                    return;
+                }
+                console.log('✅ Authenticated as:', user.email);
+                statusEl.innerHTML = '✅ Ready - ' + user.email.split('@')[0];
+                statusEl.className = 'status-indicator status-inactive';
+                document.getElementById('quickLogin').style.display = 'none';
+                document.querySelectorAll('button, input, select').forEach(el => el.disabled = false);
+            }).catch(() => {
+                statusEl.innerHTML = '⚠️ Could not verify admin role';
+                document.querySelectorAll('button:not([onclick*="quickLogin"]), input:not([id*="login"]), select').forEach(el => el.disabled = true);
+            });
         }
         
         async function quickLogin() {

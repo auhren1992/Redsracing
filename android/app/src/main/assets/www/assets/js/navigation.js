@@ -407,11 +407,25 @@
             // Check admin role and show/hide admin-console links accordingly
             checkAdminRole(user);
             async function multiSignOut() {
-              try { await auth.signOut(); } catch(_) {}
               try {
-const core = await import('./assets/js/firebase-core.js');
-                try { await core.getFirebaseAuth().signOut(); } catch(_) {}
-              } catch(_) {}
+                const { safeSignOut } = await import('./auth-utils.js');
+                await safeSignOut();
+                return;
+              } catch (_) {}
+              try {
+                localStorage.removeItem('rr_auth_uid');
+                localStorage.removeItem('rr_user_name');
+                localStorage.removeItem('rr_user_role');
+                localStorage.removeItem('rr_guest_ok');
+                localStorage.removeItem('redsracing_user');
+              } catch (_) {}
+              try { if (window.FirebaseAuthBridge) window.FirebaseAuthBridge.clearAllAuth(); } catch (_) {}
+              try { window.webkit?.messageHandlers?.redsRacingAuth?.postMessage?.({ action: "clear" }); } catch (_) {}
+              try { await auth.signOut(); } catch (_) {}
+              try {
+                const core = await import('./firebase-core.js');
+                try { await core.getFirebaseAuth().signOut(); } catch (_) {}
+              } catch (_) {}
             }
             if (logoutBtn) {
               logoutBtn.addEventListener('click', async (e) => {
