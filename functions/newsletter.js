@@ -1,3 +1,4 @@
+/* eslint-env node */
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
@@ -7,7 +8,6 @@ const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
 const nodemailer = require("nodemailer");
 
 const htmlEscape = require("./escape-html");
-
 // Initialize MailerSend client
 const getMailerSend = () => {
   const apiKey = process.env.MAILERSEND_API_KEY;
