@@ -1057,6 +1057,17 @@
         document.head.appendChild(ads);
       }
     } catch (_) {}
+
+    // Public site banner / maintenance strip from config/site_banner
+    try {
+      if (!document.getElementById('rr-site-banner-script')) {
+        var banner = document.createElement('script');
+        banner.id = 'rr-site-banner-script';
+        banner.src = 'assets/js/site-banner.js';
+        banner.defer = true;
+        document.head.appendChild(banner);
+      }
+    } catch (_) {}
   }
 
   if (document.readyState === 'loading') {
