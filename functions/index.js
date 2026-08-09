@@ -731,7 +731,7 @@ exports.setAdminRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
   }
 
   // Allow initial admin setup for your email specifically
-  const isInitialSetup = targetEmail === 'partspimp75@gmail.com' && !currentUserRole;
+  const isInitialSetup = targetEmail === 'auhren1992@gmail.com' && !currentUserRole;
   const isCurrentAdmin = currentUserRole === 'admin';
 
   if (!isInitialSetup && !isCurrentAdmin) {
