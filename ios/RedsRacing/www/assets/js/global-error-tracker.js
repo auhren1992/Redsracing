@@ -10,7 +10,7 @@
   const MAX_ERRORS_PER_SESSION = 50;
   const BATCH_SEND_DELAY = 2000;
   const DEBUG = false;
-  const TRACKER_VERSION = '2026080912';
+  const TRACKER_VERSION = '2026080913';
 
   const FIREBASE_CFG = {
     apiKey: 'AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg',
@@ -74,24 +74,63 @@
     const lines = stack.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-      if (!line) continue;
+      if (!line || /^error\b/i.test(line)) continue;
 
-      // Chrome: at fn (https://host/path/file.js:12:34)
-      // Chrome: at https://host/path/file.js:12:34
-      let m = line.match(/at\s+(?:(.+?)\s+\()?((?:https?:|file:|\/)[^)\s]+):(\d+):(\d+)\)?$/i);
-      if (!m) {
-        // Firefox: fn@https://host/path/file.js:12:34
-        m = line.match(/^(?:(.*?)@)?((?:https?:|file:|\/)[^\s]+):(\d+):(\d+)$/i);
+      let fn = '';
+      let file = '';
+      let lineNo = 0;
+      let colNo = 0;
+      let m = null;
+
+      // Chrome: at fn (https://host/path/file.js:12:34) OR at https://...:12:34
+      m = line.match(/at\s+(?:(.+?)\s+\()?((?:https?:|file:|blob:|\/)[^)\s]+):(\d+):(\d+)\)?$/i);
+      if (m) {
+        fn = (m[1] || '').trim();
+        file = m[2];
+        lineNo = parseInt(m[3], 10) || 0;
+        colNo = parseInt(m[4], 10) || 0;
       }
-      if (!m) continue;
 
-      const fn = (m[1] || '').trim();
-      const file = m[2];
-      const lineNo = parseInt(m[3], 10) || 0;
-      const colNo = parseInt(m[4], 10) || 0;
+      // Anonymous / eval: at foo (<anonymous>:1:13)
+      if (!m) {
+        m = line.match(/at\s+(?:(.+?)\s+\()?<?anonymous>?[^:]*:(\d+):(\d+)\)?$/i);
+        if (m) {
+          fn = (m[1] || 'anonymous').trim();
+          file = (typeof location !== 'undefined' ? location.href : 'anonymous');
+          lineNo = parseInt(m[2], 10) || 0;
+          colNo = parseInt(m[3], 10) || 0;
+        }
+      }
+
+      // Relative: at assets/js/foo.js:12:34
+      if (!m) {
+        m = line.match(/at\s+(?:(.+?)\s+\()?((?:[\w./-]+\.(?:js|mjs|ts|html))):(\d+):(\d+)\)?$/i);
+        if (m) {
+          fn = (m[1] || '').trim();
+          file = m[2];
+          lineNo = parseInt(m[3], 10) || 0;
+          colNo = parseInt(m[4], 10) || 0;
+        }
+      }
+
+      // Firefox: fn@url:12:34
+      if (!m) {
+        m = line.match(/^(?:(.*?)@)?((?:https?:|file:|\/)[^\s]+):(\d+):(\d+)$/i);
+        if (m) {
+          fn = (m[1] || '').trim();
+          file = m[2];
+          lineNo = parseInt(m[3], 10) || 0;
+          colNo = parseInt(m[4], 10) || 0;
+        }
+      }
+
+      if (!file || !lineNo) continue;
+
       const isApp =
-        /redsracing\.(org|web\.app)|localhost|127\.0\.0\.1|\/assets\/|\/styles\//i.test(file) &&
-        !/gstatic\.com|googletagmanager|google-analytics|doubleclick|sentry\.io/i.test(file);
+        (/redsracing\.(org|web\.app)|localhost|127\.0\.0\.1|\/assets\/|\/styles\//i.test(file) ||
+          /\.(js|html)$/i.test(file) ||
+          (typeof location !== 'undefined' && file.indexOf(location.origin) === 0)) &&
+        !/gstatic\.com|googletagmanager|google-analytics|doubleclick|sentry\.io|devtools:\/\//i.test(file);
 
       frames.push({
         functionName: fn || '(anonymous)',
@@ -147,15 +186,16 @@
       };
     }
 
+    const fallbackFile = src || (typeof location !== 'undefined' ? location.href : '');
     return {
-      file: src || (typeof location !== 'undefined' ? location.href : ''),
-      fileShort: fileShortName(src) || 'unknown',
+      file: fallbackFile,
+      fileShort: fileShortName(fallbackFile) || 'unknown',
       line: lineno || 0,
       column: colno || 0,
       functionName: '',
       display: lineno > 0
-        ? fileShortName(src || 'page') + ':' + lineno + (colno ? ':' + colno : '')
-        : 'Location unknown',
+        ? fileShortName(fallbackFile || 'page') + ':' + lineno + (colno ? ':' + colno : '')
+        : (frames[0] ? frames[0].display : 'Location unknown'),
       frames: frames,
       resolvedFrom: 'fallback'
     };
