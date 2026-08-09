@@ -1,12 +1,34 @@
 // Cookie Consent Banner for AdSense & GDPR Compliance
 (function() {
-  // Skip if already consented
-  if (localStorage.getItem('cookie_consent') === 'accepted') return;
+  function hideAds() {
+    try {
+      document.querySelectorAll('.rr-ad-slot, .google-auto-placed').forEach(function (el) {
+        el.classList.add('rr-ad-empty');
+        el.style.display = 'none';
+      });
+    } catch (_) {}
+  }
+
+  var consent = null;
+  try { consent = localStorage.getItem('cookie_consent'); } catch (_) {}
+
+  // Prior reject: keep ad rails hidden and do not show banner again
+  if (consent === 'rejected') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', hideAds);
+    } else {
+      hideAds();
+    }
+    return;
+  }
+
+  // Already accepted — no banner
+  if (consent === 'accepted') return;
 
   // Create banner
   var banner = document.createElement('div');
   banner.id = 'cookie-consent-banner';
-  banner.innerHTML = 
+  banner.innerHTML =
     '<div style="max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">' +
       '<p style="margin:0;flex:1;min-width:250px;font-size:14px;line-height:1.5;">' +
         'We use cookies and third-party services (including Google AdSense and Google Analytics) to serve ads, ' +
@@ -20,30 +42,40 @@
       '</div>' +
     '</div>';
 
-  // Style the banner
-  banner.style.cssText = 
+  banner.style.cssText =
     'position:fixed;bottom:0;left:0;right:0;z-index:99999;' +
     'background:rgba(15,23,42,0.97);backdrop-filter:blur(10px);' +
     'border-top:2px solid rgba(251,191,36,0.3);' +
     'padding:16px 20px;color:#e2e8f0;font-family:Inter,sans-serif;';
 
-  document.body.appendChild(banner);
+  function mount() {
+    if (!document.body) return;
+    document.body.appendChild(banner);
 
-  // Accept handler
-  document.getElementById('cookie-accept').addEventListener('click', function() {
-    localStorage.setItem('cookie_consent', 'accepted');
-    localStorage.setItem('cookie_consent_date', new Date().toISOString());
-    banner.style.transition = 'transform 0.3s ease';
-    banner.style.transform = 'translateY(100%)';
-    setTimeout(function() { banner.remove(); }, 300);
-  });
+    document.getElementById('cookie-accept').addEventListener('click', function() {
+      localStorage.setItem('cookie_consent', 'accepted');
+      localStorage.setItem('cookie_consent_date', new Date().toISOString());
+      banner.style.transition = 'transform 0.3s ease';
+      banner.style.transform = 'translateY(100%)';
+      setTimeout(function() { banner.remove(); }, 300);
+      try {
+        if (window.RR && typeof window.RR.refreshAds === 'function') window.RR.refreshAds();
+      } catch (_) {}
+    });
 
-  // Reject handler — essential cookies only
-  document.getElementById('cookie-reject').addEventListener('click', function() {
-    localStorage.setItem('cookie_consent', 'rejected');
-    localStorage.setItem('cookie_consent_date', new Date().toISOString());
-    banner.style.transition = 'transform 0.3s ease';
-    banner.style.transform = 'translateY(100%)';
-    setTimeout(function() { banner.remove(); }, 300);
-  });
+    document.getElementById('cookie-reject').addEventListener('click', function() {
+      localStorage.setItem('cookie_consent', 'rejected');
+      localStorage.setItem('cookie_consent_date', new Date().toISOString());
+      hideAds();
+      banner.style.transition = 'transform 0.3s ease';
+      banner.style.transform = 'translateY(100%)';
+      setTimeout(function() { banner.remove(); }, 300);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
 })();
