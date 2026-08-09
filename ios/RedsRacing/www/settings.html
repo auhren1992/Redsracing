@@ -62,9 +62,23 @@
       .settings-site-header #mobile-menu-button {
         box-shadow: none !important;
       }
+      /* Don't rely on Tailwind lg:* utilities (not all are in committed tailwind.css) */
+      .settings-desktop-nav {
+        display: none;
+        align-items: center;
+        gap: 1.5rem;
+        margin-left: auto;
+        font-weight: 700;
+      }
       @media (min-width: 1024px) {
         .settings-site-header #mobile-menu-button {
           display: none !important;
+        }
+        .settings-desktop-nav {
+          display: flex !important;
+        }
+        .settings-console-wrap {
+          margin-left: 0 !important;
         }
       }
       
@@ -569,7 +583,7 @@
           <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
         </a>
 
-        <div class="hidden lg:flex items-center space-x-6 font-bold ml-auto">
+        <div class="settings-desktop-nav">
           <a href="index.html" class="nav-link">Home</a>
           <div class="relative dropdown">
             <button type="button" class="dropdown-toggle nav-link">
@@ -595,7 +609,7 @@
           <a href="settings.html" class="nav-link text-yellow-400" aria-current="page">Settings</a>
         </div>
 
-        <div class="ml-auto lg:ml-0 flex items-center gap-2 shrink-0">
+        <div class="settings-console-wrap ml-auto flex items-center gap-2 shrink-0">
           <a
             href="admin-console.html"
             class="settings-console-link inline-flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg transition-colors"
