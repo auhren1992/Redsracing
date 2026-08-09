@@ -6,6 +6,7 @@ from mailersend import MailerSendClient, EmailBuilder, EmailContact
 import os
 import json
 import random
+import hashlib
 from datetime import datetime, timedelta
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_requests
@@ -116,6 +117,61 @@ def get_user_agent(req):
     return req.headers.get("User-Agent", "unknown")
 
 
+def enforce_ip_rate_limit(req, bucket: str, max_requests: int = 8, window_seconds: int = 3600):
+    """Firestore-backed IP rate limit for public form endpoints.
+
+    Returns (True, None) when allowed, or (False, https_fn.Response) when blocked.
+    Fails open if the rate-limit store is unavailable so legitimate mail is not lost.
+    """
+    try:
+        db = firestore.client()
+        ip = get_client_ip(req) or "unknown"
+        doc_id = hashlib.sha256(f"{bucket}:{ip}".encode("utf-8")).hexdigest()[:48]
+        ref = db.collection("_rate_limits").document(doc_id)
+        now = datetime.utcnow()
+        snap = ref.get()
+        if snap.exists:
+            data = snap.to_dict() or {}
+            ws = data.get("windowStart")
+            count = int(data.get("count") or 0)
+            elapsed = window_seconds + 1
+            if ws is not None:
+                try:
+                    ws_naive = ws.replace(tzinfo=None) if getattr(ws, "tzinfo", None) else ws
+                    elapsed = (now - ws_naive).total_seconds()
+                except Exception:
+                    elapsed = window_seconds + 1
+            if elapsed < window_seconds:
+                if count >= max_requests:
+                    return False, https_fn.Response(
+                        json.dumps(
+                            {"message": "Too many requests. Please try again later."}
+                        ),
+                        status=429,
+                        headers={"Content-Type": "application/json"},
+                    )
+                ref.set(
+                    {"count": count + 1, "updatedAt": firestore.SERVER_TIMESTAMP},
+                    merge=True,
+                )
+                return True, None
+        ref.set(
+            {
+                "bucket": bucket,
+                "count": 1,
+                "windowStart": now,
+                "updatedAt": firestore.SERVER_TIMESTAMP,
+            }
+        )
+        return True, None
+    except Exception as e:
+        try:
+            sentry_sdk.capture_exception(e)
+        except Exception:
+            pass
+        return True, None
+
+
 def queue_fallback(collection_name: str, payload: dict, req: https_fn.Request):
     """Queue the payload to Firestore so it is not lost if email fails.
     Returns (True, doc_ref_id) on success, (False, error_message) on failure.
@@ -167,6 +223,10 @@ def handleAddSubscriber(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response("", status=204)
     if req.method != "POST":
         return https_fn.Response("Method not allowed", status=405)
+
+    ok, limited = enforce_ip_rate_limit(req, "subscribe", max_requests=10, window_seconds=3600)
+    if not ok:
+        return limited
 
     data = req.get_json(silent=True)
     if not data or not data.get("email"):
@@ -228,6 +288,10 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
     if req.method != "POST":
         return https_fn.Response("Method not allowed", status=405)
 
+    ok, limited = enforce_ip_rate_limit(req, "feedback", max_requests=8, window_seconds=3600)
+    if not ok:
+        return limited
+
     data = req.get_json(silent=True)
     if not data:
         return https_fn.Response("Invalid request body", status=400)
@@ -241,10 +305,25 @@ def handleSendFeedback(req: https_fn.Request) -> https_fn.Response:
             "Missing required fields: name, email, message", status=400
         )
 
+    def _esc(value):
+        return (
+            str("" if value is None else value)
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+        )
+
     try:
-        email_subject = f"New Feedback from {name}"
+        email_subject = f"New Feedback from {name}".replace("\r", " ").replace("\n", " ")
         text_body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message_content}"
-        html_body = f"<h2>New Feedback</h2><p><strong>Name:</strong> {name}</p><p><strong>Email:</strong> {email}</p><p><strong>Message:</strong></p><p>{message_content}</p>"
+        html_body = (
+            f"<h2>New Feedback</h2>"
+            f"<p><strong>Name:</strong> {_esc(name)}</p>"
+            f"<p><strong>Email:</strong> {_esc(email)}</p>"
+            f"<p><strong>Message:</strong></p>"
+            f"<p>{_esc(message_content)}</p>"
+        )
 
         response = send_email_via_mailersend(
             to_email="aaron@redsracing.org",
@@ -344,6 +423,10 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response("", status=204)
     if req.method != "POST":
         return https_fn.Response("Method not allowed", status=405)
+
+    ok, limited = enforce_ip_rate_limit(req, "sponsorship", max_requests=6, window_seconds=3600)
+    if not ok:
+        return limited
 
     data = req.get_json(silent=True)
     if not data:

@@ -17,6 +17,7 @@ async function createDefaultProfile(user, signupRole = 'fan') {
     const db = getFirebaseDb();
     const profileRef = doc(db, "users", user.uid);
     const roleLabels = { fan: 'Racing Fan', racer: 'Racer', crew: 'Crew Member' };
+    // Do not write privilege fields (role/isAdmin) — Auth claims are the source of truth.
     const defaultProfile = {
       username: user.email.split("@")[0],
       displayName: user.displayName || user.email.split("@")[0],
@@ -27,7 +28,6 @@ async function createDefaultProfile(user, signupRole = 'fan') {
       createdAt: new Date(),
       totalPoints: 0,
       achievementCount: 0,
-      role: "public-fan",
       signupRole: signupRole,
       signupRoleLabel: roleLabels[signupRole] || 'Racing Fan',
     };

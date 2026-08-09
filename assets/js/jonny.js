@@ -474,15 +474,25 @@ await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js').
           return;
         }
 
-        snapshot.forEach((doc) => {
-          const comment = doc.data();
+        snapshot.forEach((docSnap) => {
+          const comment = docSnap.data();
+          if (comment.approved === false) return;
           const commentEl = document.createElement("div");
           commentEl.className = "bg-slate-700 p-3 rounded-md";
-          commentEl.innerHTML = `
-                        <p class="text-sm text-slate-300 font-semibold">${comment.authorDisplayName || "Anonymous"}</p>
-                        <p class="text-sm text-slate-100 mt-1">${comment.text}</p>
-                        <p class="text-xs text-slate-400 mt-2">${comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleString() : "Just now"}</p>
-                    `;
+          const author = document.createElement("p");
+          author.className = "text-sm text-slate-300 font-semibold";
+          author.textContent = comment.authorDisplayName || "Anonymous";
+          const body = document.createElement("p");
+          body.className = "text-sm text-slate-100 mt-1";
+          body.textContent = comment.body || comment.text || "";
+          const meta = document.createElement("p");
+          meta.className = "text-xs text-slate-400 mt-2";
+          meta.textContent = comment.createdAt
+            ? new Date(comment.createdAt.toDate()).toLocaleString()
+            : "Just now";
+          commentEl.appendChild(author);
+          commentEl.appendChild(body);
+          commentEl.appendChild(meta);
           commentsList.appendChild(commentEl);
         });
       });
@@ -502,7 +512,9 @@ await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js').
 
     try {
       await addDoc(collection(db, "gallery_images", imageId, "comments"), {
+        body: commentText,
         text: commentText,
+        approved: false,
         authorUid: auth.currentUser.uid,
         authorDisplayName: auth.currentUser.displayName || "Anonymous",
         createdAt: serverTimestamp(),

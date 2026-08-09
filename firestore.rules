@@ -89,8 +89,9 @@ service cloud.firestore {
     
     // Users collection - profiles
     match /users/{userId} {
-      // Allow public read if user has enabled publicProfile; otherwise require auth
-      allow read: if (resource.data.publicProfile == true) || isAuthenticated();
+      // Public profiles are world-readable; otherwise owner or staff only (no full-user harvest).
+      allow get: if (resource.data.publicProfile == true) || isOwner(userId) || isPrivilegedStaff();
+      allow list: if isPrivilegedStaff();
       // Owners may create/update their own profile but cannot set privilege fields.
       // Staff with Auth custom claims may write any profile (role grants via Admin SDK preferred).
       allow create: if (isOwner(userId) && ownerProfileCreateSafe()) || isPrivilegedStaff();
@@ -113,9 +114,10 @@ service cloud.firestore {
     // Gallery images
     match /gallery_images/{imageId} {
       allow read: if true; // Public read for gallery
-      // On create, validate uploader matches the auth user using request.resource.data
+      // On create, validate uploader matches auth user and cannot self-approve
       allow create: if isAuthenticated() &&
-        request.auth.uid == request.resource.data.uploaderUid;
+        request.auth.uid == request.resource.data.uploaderUid &&
+        request.resource.data.approved == false;
       // On update, allow uploader (caption/altText/tags only — cannot self-approve) or staff
       allow update: if isPrivilegedStaff() ||
         (isAuthenticated() &&
@@ -257,8 +259,10 @@ service cloud.firestore {
                   || hasRole('admin')
                   || hasProfileRole('team-member')
                   || hasProfileRole('admin');
-      // Uploader can create; team members/admins can update/approve or delete
-      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.uploaderUid;
+      // Uploader can create unapproved only; team members/admins can update/approve or delete
+      allow create: if isAuthenticated() &&
+        request.auth.uid == request.resource.data.uploaderUid &&
+        request.resource.data.approved == false;
       allow update: if isPrivilegedStaff() ||
         (isAuthenticated() &&
          request.auth.uid == resource.data.uploaderUid &&
@@ -405,9 +409,13 @@ service cloud.firestore {
     // Fan predictions
     match /predictions/{predictionId} {
       allow read: if true; // Public leaderboard
-      allow create: if isAuthenticated();
+      // Authenticated users can create their own prediction; cannot set score/points.
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid &&
+        (!('score' in request.resource.data) || request.resource.data.score == null) &&
+        (!('points' in request.resource.data) || request.resource.data.points == null || request.resource.data.points == 0);
       // Admin can score predictions
-      allow update: if hasRole('admin') || hasProfileRole('admin') || hasRole('team-member') || hasProfileRole('team-member');
+      allow update: if isPrivilegedStaff();
     }
     
     // Admin Audit Log — admin read; authenticated admin write only

@@ -4977,15 +4977,17 @@
               card.className = 'bg-slate-800/50 border border-slate-700/50 rounded-lg p-4';
               const elId = d.id.replace(/[^a-zA-Z0-9_-]/g,'');
               card.innerHTML = `
-                <div class="text-slate-300 text-sm mb-2">Submitted by ${v.submitterName || 'Anonymous'}</div>
-                <div class="text-white font-medium mb-3">${(v.question||'').replace(/</g,'&lt;')}</div>
+                <div class="text-slate-300 text-sm mb-2">Submitted by ${escHtmlInbox(v.submitterName || 'Anonymous')}</div>
+                <div class="text-white font-medium mb-3">${escHtmlInbox(v.question || '')}</div>
                 <label class="block text-xs text-slate-400 mb-1">Answer</label>
                 <textarea id="answer-${elId}" rows="3" class="modern-input w-full p-2 text-white resize-none" placeholder="Write your answer..."></textarea>
                 <div class="mt-3 flex items-center justify-end space-x-2">
-                  <button class="danger-btn px-3 py-1.5 rounded text-sm" onclick="window.rejectQna('${d.id}')"><i class='fas fa-times mr-1'></i>Reject</button>
-                  <button class="success-btn px-3 py-1.5 rounded text-sm" onclick="window.publishQna('${d.id}')"><i class='fas fa-check mr-1'></i>Publish</button>
+                  <button type="button" class="danger-btn px-3 py-1.5 rounded text-sm" data-qna-reject="1"><i class='fas fa-times mr-1'></i>Reject</button>
+                  <button type="button" class="success-btn px-3 py-1.5 rounded text-sm" data-qna-publish="1"><i class='fas fa-check mr-1'></i>Publish</button>
                 </div>
               `;
+              card.querySelector('[data-qna-reject]')?.addEventListener('click', () => window.rejectQna(d.id));
+              card.querySelector('[data-qna-publish]')?.addEventListener('click', () => window.publishQna(d.id));
               list.appendChild(card);
             });
           } catch(e) { console.error('Failed to load Q&A', e); }
@@ -5037,7 +5039,7 @@
               const v = d.data() || {};
               const card = document.createElement('div');
               card.className = 'bg-slate-800/40 border border-slate-700/40 rounded p-3';
-              card.innerHTML = `<div class="text-slate-300">Q: ${(v.question||'').replace(/</g,'&lt;')}</div><div class="text-white mt-1">A: ${(v.answer||'').replace(/</g,'&lt;')}</div>`;
+              card.innerHTML = `<div class="text-slate-300">Q: ${escHtmlInbox(v.question||'')}</div><div class="text-white mt-1">A: ${escHtmlInbox(v.answer||'')}</div>`;
               wrap.appendChild(card);
             });
           } catch(_) {}
@@ -5704,10 +5706,11 @@
               const tagLabel = v.tag === 'jon' ? 'Jon #8' : v.tag === 'jonny' ? 'Jonny #88' : 'Team';
               const row = document.createElement('div');
               row.className = 'bg-slate-800/50 rounded-lg p-4 flex items-start justify-between';
-              row.innerHTML = `<div class="flex-1"><div class="flex items-center space-x-2 mb-1"><span class="text-white font-semibold text-sm">${v.userName||'Fan'}</span><span class="text-slate-600 text-xs">${time}</span><span class="bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded text-[10px] font-bold">${tagLabel}</span></div><p class="text-slate-300 text-sm">${v.text||''}</p></div><div class="flex space-x-2 ml-3"><button class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs font-semibold" data-action="approve" data-id="${d.id}"><i class="fas fa-check mr-1"></i>Approve</button><button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-semibold" data-action="reject" data-id="${d.id}"><i class="fas fa-trash mr-1"></i>Reject</button></div>`;
+              row.innerHTML = `<div class="flex-1"><div class="flex items-center space-x-2 mb-1"><span class="text-white font-semibold text-sm">${escHtmlInbox(v.userName||'Fan')}</span><span class="text-slate-600 text-xs">${escHtmlInbox(time)}</span><span class="bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded text-[10px] font-bold">${tagLabel}</span></div><p class="text-slate-300 text-sm">${escHtmlInbox(v.text||'')}</p></div><div class="flex space-x-2 ml-3"><button type="button" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-xs font-semibold" data-action="approve" data-id="${escHtmlInbox(d.id)}"><i class="fas fa-check mr-1"></i>Approve</button><button type="button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-xs font-semibold" data-action="reject" data-id="${escHtmlInbox(d.id)}"><i class="fas fa-trash mr-1"></i>Reject</button></div>`;
               container.appendChild(row);
             });
-            container.addEventListener('click', async e => {
+            // Single delegated handler (replace prior to avoid stacking listeners on refresh)
+            container.onclick = async e => {
               const btn = e.target.closest('[data-action]');
               if (!btn) return;
               const id = btn.dataset.id;
@@ -5716,8 +5719,8 @@
                 if (action === 'approve') { await updateDoc(doc(db, 'fan_wall', id), { approved: true }); showToast('Shoutout approved!'); }
                 else { await deleteDoc(doc(db, 'fan_wall', id)); showToast('Shoutout rejected'); }
                 loadFanWallPending();
-              } catch(e) { showToast('Failed: ' + e.message, 'error'); }
-            });
+              } catch(err) { showToast('Failed: ' + (err && err.message ? err.message : String(err)), 'error'); }
+            };
           } catch(e) { console.error('Fan wall load error:', e); container.innerHTML = '<p class="text-red-400 text-center py-4">Failed to load</p>'; }
         }
 

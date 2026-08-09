@@ -574,110 +574,115 @@ exports.ensureDefaultRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) 
 // The historical K1 Firestore documents (k1_stats/*) are preserved as a
 // read-only archive; static snapshots live under data/k1_*_addison_history.json.
 
-// Speedhive: scrape profile page for Jonathan Kirsch and persist basic race data
+// Speedhive scrape shared by HTTP (staff) and the daily scheduler (no public call).
+async function scrapeSpeedhiveJon() {
+  const PROFILE_URL = 'https://speedhive.mylaps.com/profile/MYLAPS-GA-3a22ae250e154baf8f798908b7e3599e';
+  const r = await fetch(PROFILE_URL, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });
+  const html = await r.text();
+  const text = html.replace(/\s+/g, ' ');
+
+  const events = [];
+  try {
+    const scriptBlocks = Array.from(html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)).map(m=>m[1]);
+    for (const block of scriptBlocks) {
+      if (/"@type"\s*:\s*"Event"/i.test(block)) {
+        const objMatches = block.match(/\{[\s\S]*?\}/g) || [];
+        for (const raw of objMatches) {
+          try {
+            const obj = JSON.parse(raw);
+            if (obj['@type']==='Event') {
+              events.push({
+                name: obj.name || null,
+                startDate: obj.startDate || null,
+                location: obj?.location?.name || null,
+              });
+            }
+          } catch {}
+        }
+      }
+    }
+  } catch {}
+
+  if (!events.length) {
+    const linkRx = /<a[^>]+href=\"([^\"]+)\"[^>]*>(.*?)<\/a>/gi;
+    let m;
+    while ((m = linkRx.exec(html)) !== null) {
+      const href = m[1];
+      const label = m[2].replace(/<[^>]+>/g,'').trim();
+      if (/event|result|race/i.test(href) && label && label.length > 3) {
+        const around = text.slice(Math.max(0, m.index - 120), Math.min(text.length, m.index + 200));
+        const dateMatch = around.match(/\b(\d{1,2}\s+[A-Z][a-z]+\s+\d{4}|\d{4}-\d{2}-\d{2})\b/);
+        events.push({ name: label, date: dateMatch ? dateMatch[0] : null, link: href });
+      }
+    }
+  }
+
+  if (!events.length) {
+    try {
+      const puppeteer = require('puppeteer');
+      const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: 'new',
+      });
+      const page = await browser.newPage();
+      const RACES_URL = PROFILE_URL.replace(/\/profile\/.+$/, 'profile/MYLAPS-GA-3a22ae250e154baf8f798908b7e3599e/races');
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36');
+      await page.goto(RACES_URL, { waitUntil: 'networkidle2', timeout: 90000 });
+      await page.waitForSelector('a', { timeout: 30000 }).catch(() => {});
+
+      const rendered = await page.evaluate(() => {
+        const anchors = Array.from(document.querySelectorAll('a'));
+        const items = [];
+        for (const a of anchors) {
+          const href = a.getAttribute('href') || '';
+          const label = (a.textContent || '').trim();
+          if (/result|event|race/i.test(href) || /Jonathan\s+Kirsch/i.test(label)) {
+            let date = '';
+            try {
+              const parentText = (a.closest('div,li,section,article') || document.body).innerText || '';
+              const dm = parentText.match(/\b(\d{1,2}\s+[A-Z][a-z]+\s+\d{4}|\d{4}-\d{2}-\d{2})\b/);
+              date = dm ? dm[0] : '';
+            } catch (e) {}
+            items.push({ name: label || 'Race', link: href, date });
+          }
+        }
+        return items.slice(0, 50);
+      });
+      await browser.close();
+      if (Array.isArray(rendered) && rendered.length) {
+        rendered.forEach((ev) => events.push(ev));
+      }
+    } catch (e) {
+      logger.warn('Puppeteer render failed for Speedhive races', e?.message || e);
+    }
+  }
+
+  try {
+    const db = getFirestore();
+    await db.collection('speedhive_profiles').doc('jon_kirsch').set({
+      profileUrl: PROFILE_URL,
+      lastFetchedAt: FieldValue.serverTimestamp(),
+      eventCount: events.length,
+      events: events.slice(0, 100),
+    }, { merge: true });
+  } catch {}
+
+  return events;
+}
+
+// Speedhive: staff-only HTTP trigger (prevents public DoS/cost abuse)
 exports.fetchSpeedhiveJon = onRequest({ secrets: ["SENTRY_DSN"], timeoutSeconds: 120, memory: "1GiB" }, async (req, res) => {
   try {
-    const PROFILE_URL = 'https://speedhive.mylaps.com/profile/MYLAPS-GA-3a22ae250e154baf8f798908b7e3599e';
-    const r = await fetch(PROFILE_URL, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } });
-    const html = await r.text();
-    const text = html.replace(/\s+/g, ' ');
-
-    // Attempt to find structured data blocks first
-    const events = [];
     try {
-      const scriptBlocks = Array.from(html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)).map(m=>m[1]);
-      for (const block of scriptBlocks) {
-        if (/"@type"\s*:\s*"Event"/i.test(block)) {
-          // Extract loose JSON objects with @type Event
-          const objMatches = block.match(/\{[\s\S]*?\}/g) || [];
-          for (const raw of objMatches) {
-            try {
-              const obj = JSON.parse(raw);
-              if (obj['@type']==='Event') {
-                events.push({
-                  name: obj.name || null,
-                  startDate: obj.startDate || null,
-                  location: obj?.location?.name || null,
-                });
-              }
-            } catch {}
-          }
-        }
+      const decoded = await requireAuthFromRequest(req);
+      if (!tokenHasStaffRole(decoded)) {
+        return res.status(403).json({ ok: false, message: 'Admin or team member only' });
       }
-    } catch {}
-
-    // Heuristic fallback: links that look like events with dates nearby
-    if (!events.length) {
-      const linkRx = /<a[^>]+href=\"([^\"]+)\"[^>]*>(.*?)<\/a>/gi;
-      let m;
-      while ((m = linkRx.exec(html)) !== null) {
-        const href = m[1];
-        const label = m[2].replace(/<[^>]+>/g,'').trim();
-        if (/event|result|race/i.test(href) && label && label.length > 3) {
-          // Try to find a nearby date
-          const around = text.slice(Math.max(0, m.index - 120), Math.min(text.length, m.index + 200));
-          const dateMatch = around.match(/\b(\d{1,2}\s+[A-Z][a-z]+\s+\d{4}|\d{4}-\d{2}-\d{2})\b/);
-          events.push({ name: label, date: dateMatch ? dateMatch[0] : null, link: href });
-        }
-      }
+    } catch (authErr) {
+      return res.status(authErr.status || 401).json({ ok: false, message: authErr.message || 'Unauthorized' });
     }
 
-    // If still no events, render the JS-powered races page via headless browser
-    if (!events.length) {
-      try {
-        const puppeteer = require('puppeteer');
-        const browser = await puppeteer.launch({
-          args: ['--no-sandbox', '--disable-setuid-sandbox'],
-          headless: 'new',
-        });
-        const page = await browser.newPage();
-        const RACES_URL = PROFILE_URL.replace(/\/profile\/.+$/, 'profile/MYLAPS-GA-3a22ae250e154baf8f798908b7e3599e/races');
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36');
-        await page.goto(RACES_URL, { waitUntil: 'networkidle2', timeout: 90000 });
-
-        // Wait for anchor tags to render; adjust selector as needed
-        await page.waitForSelector('a', { timeout: 30000 }).catch(() => {});
-
-        const rendered = await page.evaluate(() => {
-          const anchors = Array.from(document.querySelectorAll('a'));
-          const items = [];
-          for (const a of anchors) {
-            const href = a.getAttribute('href') || '';
-            const label = (a.textContent || '').trim();
-            // Look for race/result links mentioning Jonathan or generic race labels
-            if (/result|event|race/i.test(href) || /Jonathan\s+Kirsch/i.test(label)) {
-              // Try to find a nearby date text in parent containers
-              let date = '';
-              try {
-                const parentText = (a.closest('div,li,section,article') || document.body).innerText || '';
-                const m = parentText.match(/\b(\d{1,2}\s+[A-Z][a-z]+\s+\d{4}|\d{4}-\d{2}-\d{2})\b/);
-                date = m ? m[0] : '';
-              } catch (e) {}
-              items.push({ name: label || 'Race', link: href, date });
-            }
-          }
-          return items.slice(0, 50);
-        });
-        await browser.close();
-        if (Array.isArray(rendered) && rendered.length) {
-          rendered.forEach(r => events.push(r));
-        }
-      } catch (e) {
-        logger.warn('Puppeteer render failed for Speedhive races', e?.message || e);
-      }
-    }
-
-    // Persist snapshot to Firestore for audit and client rendering
-    try {
-      const db = getFirestore();
-      await db.collection('speedhive_profiles').doc('jon_kirsch').set({
-        profileUrl: PROFILE_URL,
-        lastFetchedAt: FieldValue.serverTimestamp(),
-        eventCount: events.length,
-        events: events.slice(0, 100),
-      }, { merge: true });
-    } catch {}
-
+    const events = await scrapeSpeedhiveJon();
     res.status(200).json({ ok: true, events });
   } catch (error) {
     try { Sentry.captureException(error); } catch (_) {}
@@ -685,11 +690,10 @@ exports.fetchSpeedhiveJon = onRequest({ secrets: ["SENTRY_DSN"], timeoutSeconds:
   }
 });
 
-// Schedule: refresh Speedhive daily
-exports.speedhiveAutoRefreshJon = onSchedule({ schedule: 'every 24 hours', timeZone: 'America/Chicago', secrets: ["SENTRY_DSN"] }, async (event) => {
+// Schedule: refresh Speedhive daily via shared scrape (no unauthenticated HTTP hop)
+exports.speedhiveAutoRefreshJon = onSchedule({ schedule: 'every 24 hours', timeZone: 'America/Chicago', secrets: ["SENTRY_DSN"], timeoutSeconds: 120, memory: "1GiB" }, async () => {
   try {
-    const url = 'https://us-central1-redsracing-a7f8b.cloudfunctions.net/fetchSpeedhiveJon';
-    await fetch(url, { method: 'GET' });
+    await scrapeSpeedhiveJon();
   } catch (e) {
     try { Sentry.captureException(e); } catch (_) {}
   }

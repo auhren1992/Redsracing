@@ -14,6 +14,15 @@ import {
   where,
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
+function escHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 /** Opens the staff’s email app to reply to the address the visitor provided (feedback / queue items). */
 function buildFeedbackReplyMailto(email, name, message, kindLabel) {
   const to = String(email || "").trim();
@@ -186,14 +195,14 @@ async function main() {
             ? v.createdAt.toDate().toLocaleString()
             : "—";
         tr.innerHTML = `
-          <td class="p-2 whitespace-nowrap">${ts}</td>
-          <td class="p-2">${(v.name || "").toString().slice(0, 40)}</td>
-          <td class="p-2">${(v.email || "").toString().slice(0, 40)}</td>
-          <td class="p-2">${(v.message || "").toString().slice(0, 80)}</td>
-          <td class="p-2">${(v.page || "").toString().slice(0, 40)}</td>
+          <td class="p-2 whitespace-nowrap">${escHtml(ts)}</td>
+          <td class="p-2">${escHtml((v.name || "").toString().slice(0, 40))}</td>
+          <td class="p-2">${escHtml((v.email || "").toString().slice(0, 40))}</td>
+          <td class="p-2">${escHtml((v.message || "").toString().slice(0, 80))}</td>
+          <td class="p-2">${escHtml((v.page || "").toString().slice(0, 40))}</td>
           <td class="p-2" data-reply-cell="1"></td>
           <td class="p-2">
-            <button type="button" data-id="${d.id}" data-col="feedback" class="inspect-btn modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
+            <button type="button" data-id="${escHtml(d.id)}" data-col="feedback" class="inspect-btn modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
           </td>`;
         tbody.appendChild(tr);
         appendReplyEmailLink(tr.querySelector("[data-reply-cell]"), v.email, v.name, v.message, "feedback");
@@ -253,16 +262,16 @@ async function main() {
         tr.className = 'table-row';
         const nextAttempt = v.nextAttemptAt && v.nextAttemptAt.toDate ? v.nextAttemptAt.toDate() : null;
         tr.innerHTML = `
-          <td class="p-2">${(v.name||'').toString().slice(0,40)}</td>
-          <td class="p-2">${(v.email||'').toString().slice(0,40)}</td>
-          <td class="p-2">${(v.message||'').toString().slice(0,60)}</td>
-          <td class="p-2"><span class="status-badge ${v.status==='retry'?'status-pending':'status-approved'}">${v.status||'queued'}</span></td>
-          <td class="p-2">${nextAttempt ? nextAttempt.toLocaleString() : '-'}</td>
+          <td class="p-2">${escHtml((v.name||'').toString().slice(0,40))}</td>
+          <td class="p-2">${escHtml((v.email||'').toString().slice(0,40))}</td>
+          <td class="p-2">${escHtml((v.message||'').toString().slice(0,60))}</td>
+          <td class="p-2"><span class="status-badge ${v.status==='retry'?'status-pending':'status-approved'}">${escHtml(v.status||'queued')}</span></td>
+          <td class="p-2">${nextAttempt ? escHtml(nextAttempt.toLocaleString()) : '-'}</td>
           <td class="p-2" data-reply-cell="1"></td>
           <td class="p-2">
-            <button type="button" data-id="${d.id}" data-col="feedback_queue" class="inspect-btn modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
-            <button type="button" data-id="${d.id}" data-col="feedback_queue" class="retry-btn modern-btn text-white px-2 py-1 rounded text-xs">Retry</button>
-            <button type="button" data-id="${d.id}" data-col="feedback_queue" class="resolve-btn success-btn text-white px-2 py-1 rounded text-xs">Resolve</button>
+            <button type="button" data-id="${escHtml(d.id)}" data-col="feedback_queue" class="inspect-btn modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
+            <button type="button" data-id="${escHtml(d.id)}" data-col="feedback_queue" class="retry-btn modern-btn text-white px-2 py-1 rounded text-xs">Retry</button>
+            <button type="button" data-id="${escHtml(d.id)}" data-col="feedback_queue" class="resolve-btn success-btn text-white px-2 py-1 rounded text-xs">Resolve</button>
           </td>`;
         fbRows.appendChild(tr);
         appendReplyEmailLink(tr.querySelector("[data-reply-cell]"), v.email, v.name, v.message, "feedback");
@@ -287,16 +296,16 @@ async function main() {
         tr.className = 'table-row';
         const nextAttempt = v.nextAttemptAt && v.nextAttemptAt.toDate ? v.nextAttemptAt.toDate() : null;
         tr.innerHTML = `
-          <td class="p-2">${(v.company||'').toString().slice(0,40)}</td>
-          <td class="p-2">${(v.name||'').toString().slice(0,40)}</td>
-          <td class="p-2">${(v.email||'').toString().slice(0,40)}</td>
-          <td class="p-2"><span class="status-badge ${v.status==='retry'?'status-pending':'status-approved'}">${v.status||'queued'}</span></td>
-          <td class="p-2">${nextAttempt ? nextAttempt.toLocaleString() : '-'}</td>
+          <td class="p-2">${escHtml((v.company||'').toString().slice(0,40))}</td>
+          <td class="p-2">${escHtml((v.name||'').toString().slice(0,40))}</td>
+          <td class="p-2">${escHtml((v.email||'').toString().slice(0,40))}</td>
+          <td class="p-2"><span class="status-badge ${v.status==='retry'?'status-pending':'status-approved'}">${escHtml(v.status||'queued')}</span></td>
+          <td class="p-2">${nextAttempt ? escHtml(nextAttempt.toLocaleString()) : '-'}</td>
           <td class="p-2" data-reply-cell="1"></td>
           <td class="p-2">
-            <button type="button" data-id="${d.id}" data-col="sponsorship_queue" class="inspect-btn modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
-            <button type="button" data-id="${d.id}" data-col="sponsorship_queue" class="retry-btn modern-btn text-white px-2 py-1 rounded text-xs">Retry</button>
-            <button type="button" data-id="${d.id}" data-col="sponsorship_queue" class="resolve-btn success-btn text-white px-2 py-1 rounded text-xs">Resolve</button>
+            <button type="button" data-id="${escHtml(d.id)}" data-col="sponsorship_queue" class="inspect-btn modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
+            <button type="button" data-id="${escHtml(d.id)}" data-col="sponsorship_queue" class="retry-btn modern-btn text-white px-2 py-1 rounded text-xs">Retry</button>
+            <button type="button" data-id="${escHtml(d.id)}" data-col="sponsorship_queue" class="resolve-btn success-btn text-white px-2 py-1 rounded text-xs">Resolve</button>
           </td>`;
         spRows.appendChild(tr);
         appendReplyEmailLink(tr.querySelector("[data-reply-cell]"), v.email, v.name || v.company, v.message, "sponsorship inquiry");
@@ -363,14 +372,14 @@ async function main() {
         const tr = document.createElement('tr');
         tr.className = 'table-row';
         tr.innerHTML = `
-          <td class="p-2">${(v.originalCollection||'').toString()}</td>
-          <td class="p-2">${(v.company||v.name||'').toString().slice(0,40)}</td>
-          <td class="p-2">${(v.email||'').toString().slice(0,40)}</td>
-          <td class="p-2">${(v.lastError||'').toString().slice(0,60)}</td>
+          <td class="p-2">${escHtml((v.originalCollection||'').toString())}</td>
+          <td class="p-2">${escHtml((v.company||v.name||'').toString().slice(0,40))}</td>
+          <td class="p-2">${escHtml((v.email||'').toString().slice(0,40))}</td>
+          <td class="p-2">${escHtml((v.lastError||'').toString().slice(0,60))}</td>
           <td class="p-2">
-            <button data-id="${d.id}" class="dlq-inspect modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
-            <button data-id="${d.id}" class="dlq-requeue success-btn text-white px-2 py-1 rounded text-xs">Requeue</button>
-            <button data-id="${d.id}" class="dlq-delete danger-btn text-white px-2 py-1 rounded text-xs">Delete</button>
+            <button data-id="${escHtml(d.id)}" class="dlq-inspect modern-btn text-white px-2 py-1 rounded text-xs">Inspect</button>
+            <button data-id="${escHtml(d.id)}" class="dlq-requeue success-btn text-white px-2 py-1 rounded text-xs">Requeue</button>
+            <button data-id="${escHtml(d.id)}" class="dlq-delete danger-btn text-white px-2 py-1 rounded text-xs">Delete</button>
           </td>`;
         dlqRows.appendChild(tr);
       });
