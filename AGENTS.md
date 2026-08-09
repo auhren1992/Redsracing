@@ -9,5 +9,10 @@
 - Desktop `.dropdown-menu` panels are forced hidden under `styles/mobile-web.css` at mobile widths; do not “fix” by toggling inline `display:block` on phones.
 - Auth debug toast `#auth-debug-status` is opt-in only (`?rr_debug=1` or `localStorage.rr_debug=1`). It overlaps the tab row if re-enabled unconditionally.
 - Open menu sets `html.rr-mobile-menu-open` so cookie/lang/ad overlays stay hidden while the drawer is open.
-- After web nav/CSS/JS changes: `npm run sync:mobile`, then typically `npm run deploy:hosting`.
+
+### Admin console (mobile web)
+
+- Section chips live in `#admin-mobile-section-nav` (md:hidden). Native app hides that strip and uses `#admin-menu-bar` + `#admin-sidebar` drawer instead.
+- On phone browsers, `#mobile-menu-button` opens the Command Center `#admin-sidebar` drawer (`toggleAdminDrawer`), not a site nav menu.
+- After admin-console / nav CSS/JS changes: `npm run sync:mobile`, then typically `npm run deploy:hosting`.
 - Standard commands: see root `package.json` scripts (`sync:mobile`, `deploy:hosting`).
