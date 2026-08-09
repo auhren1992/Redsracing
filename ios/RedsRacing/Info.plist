@@ -36,7 +36,7 @@
       Intentionally no UIRequiredDeviceCapabilities array.
       Previously this listed `armv7`, which is rejected by App Store Connect
       for any modern iOS app (no armv7 devices supported). The default empty
-      requirement set is correct for a 64-bit-only iOS 14+ build.
+      requirement set is correct for a 64-bit-only iOS 15+ build.
     -->
     <key>CFBundleURLTypes</key>
     <array>
