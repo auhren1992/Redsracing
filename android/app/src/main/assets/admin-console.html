@@ -616,6 +616,8 @@
           radial-gradient(ellipse 90% 55% at 100% 15%, rgba(251, 191, 36, 0.09), transparent 50%),
           radial-gradient(ellipse 70% 45% at 0% 85%, rgba(239, 68, 68, 0.07), transparent 50%),
           linear-gradient(180deg, #0f172a 0%, #0a0f1a 45%, #070b14 100%);
+        overflow-x: hidden;
+        max-width: 100vw;
       }
 
       .admin-main {
@@ -3561,25 +3563,13 @@
           if (headerMenuBtn) headerMenuBtn.addEventListener('click', toggleMobileMenu);
           if (mainMenuBtn) mainMenuBtn.addEventListener('click', toggleMobileMenu);
 
-          // Admin Menu sidebar toggle (the yellow button in main content area)
+          // Admin Menu sidebar toggle (yellow button) → Command Center drawer
           const sidebarToggle = document.getElementById('sidebar-toggle');
-          if (sidebarToggle && mobileMenu) {
+          if (sidebarToggle) {
             sidebarToggle.addEventListener('click', function(e) {
               e.preventDefault();
               e.stopPropagation();
-              const isHidden = mobileMenu.classList.contains('hidden');
-              console.log('[ADMIN] Sidebar toggle clicked, isHidden:', isHidden);
-              if (isHidden) {
-                mobileMenu.classList.remove('hidden');
-                mobileMenu.style.cssText = 'position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;z-index:9999 !important;background:rgba(15,23,42,0.98) !important;overflow-y:auto !important;display:flex !important;flex-direction:column !important;';
-                document.body.style.overflow = 'hidden';
-                console.log('[ADMIN] Mobile menu shown');
-              } else {
-                mobileMenu.classList.add('hidden');
-                mobileMenu.style.cssText = 'display:none !important;';
-                document.body.style.overflow = '';
-                console.log('[ADMIN] Mobile menu hidden');
-              }
+              if (typeof toggleAdminDrawer === 'function') toggleAdminDrawer();
             });
           }
           
@@ -3610,7 +3600,7 @@
             });
           });
           
-          // Close dropdowns when clicking outside
+          // Close dropdowns / admin drawer when clicking outside
           document.addEventListener('click', function(e) {
             if (!e.target.closest('.dropdown')) {
               document.querySelectorAll('header .dropdown-menu').forEach(function(m) {
@@ -3618,13 +3608,13 @@
                 m.style.cssText = '';
               });
             }
-            if (!e.target.closest('#mobile-menu') && !e.target.closest('#mobile-menu-button') && !e.target.closest('#mobile-menu-button-main')) {
-              if (mobileMenu && !mobileMenu.classList.contains('-translate-x-full')) {
-                mobileMenu.classList.add('-translate-x-full');
-                if (mobileOverlay) mobileOverlay.classList.add('hidden');
-                document.body.style.overflow = '';
-              }
-            }
+            if (!document.body.classList.contains('drawer-sidebar-open')) return;
+            const inDrawer = e.target.closest('#admin-sidebar')
+              || e.target.closest('#mobile-menu-button')
+              || e.target.closest('#mobile-menu-button-main')
+              || e.target.closest('#android-hamburger')
+              || e.target.closest('#sidebar-toggle');
+            if (!inDrawer && typeof closeAdminDrawer === 'function') closeAdminDrawer();
           });
         } catch(err) { console.error('Dropdown init error:', err); }
       });
