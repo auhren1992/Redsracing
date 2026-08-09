@@ -5466,9 +5466,14 @@
           };
         }
 
+        let refreshLogsGeneration = 0;
+        const REFRESH_LOGS_BTN_HTML = '<i class="fas fa-sync mr-2"></i>Refresh';
+
         async function refreshLogsUI() {
           const button = document.getElementById('refresh-logs-btn');
-          const originalHtml = button?.innerHTML;
+          // Guard against overlapping calls (nav hash + click, or duplicate listeners).
+          // Restoring captured originalHtml races and can leave the button stuck on "Loading...".
+          const generation = ++refreshLogsGeneration;
           
           try {
             if (button) {
@@ -5486,6 +5491,7 @@
               console.warn('[logs] serverTimestamp query failed, trying createdAt', qErr);
               snap = await getDocs(query(collection(db, 'client_logs'), orderBy('createdAt','desc'), limit(100)));
             }
+            if (generation !== refreshLogsGeneration) return;
             const tbody = document.getElementById('logs-table-body');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -5493,6 +5499,8 @@
               const tr = document.createElement('tr');
               tr.innerHTML = '<td class="p-2 text-slate-400" colspan="7">No errors logged yet</td>';
               tbody.appendChild(tr);
+              const countEl = document.getElementById('logs-count');
+              if (countEl) countEl.textContent = '0 errors logged';
               return;
             }
             snap.forEach(d => {
@@ -5548,16 +5556,16 @@
               };
               
               tr.innerHTML = `
-                <td class="p-2 whitespace-nowrap text-xs">${escapeHtml(when)}</td>
+                <td class="p-2 whitespace-nowrap text-xs text-slate-200">${escapeHtml(when)}</td>
                 <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${errorType.toLowerCase().includes('promise') ? 'bg-orange-600/20 text-orange-400' : 'bg-red-600/20 text-red-400'}">${escapeHtml(errorType)}</span></td>
-                <td class="p-2 text-xs" style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(message)}">${escapeHtml(message)}</td>
+                <td class="p-2 text-xs text-slate-200" style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(message)}">${escapeHtml(message)}</td>
                 <td class="p-2 text-xs"><span class="font-semibold text-yellow-300">${escapeHtml(pageName)}</span>${docTitle ? '<br><span class="text-slate-500 text-[10px]">' + escapeHtml(docTitle) + '</span>' : ''}</td>
                 <td class="p-2 text-xs font-mono">
                   <div class="text-cyan-300 font-semibold">${escapeHtml(loc.display)}</div>
                   ${loc.line > 0 ? `<div class="text-slate-500 text-[10px]">line ${loc.line}${loc.column ? ', col ' + loc.column : ''}</div>` : '<div class="text-slate-600 text-[10px]">no line info</div>'}
                 </td>
                 <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${device === 'mobile' ? 'bg-blue-600/20 text-blue-400' : device === 'desktop' ? 'bg-purple-600/20 text-purple-400' : 'bg-gray-600/20 text-gray-400'}">${escapeHtml(device)}${isAndroidApp}${isIosApp}</span></td>
-                <td class="p-2 text-xs truncate">${escapeHtml(userId)}</td>
+                <td class="p-2 text-xs text-slate-300 truncate">${escapeHtml(userId)}</td>
               `;
               
               tr.addEventListener('click', () => {
@@ -5573,12 +5581,14 @@
             showToast(`Loaded ${snap.size} error logs`, 'info');
           } catch (e) {
             console.error('Failed to load logs:', e);
-            showToast('Failed to load error logs', 'error');
-            const countEl = document.getElementById('logs-count');
-            if (countEl) countEl.textContent = 'Error loading';
+            if (generation === refreshLogsGeneration) {
+              showToast('Failed to load error logs', 'error');
+              const countEl = document.getElementById('logs-count');
+              if (countEl) countEl.textContent = 'Error loading';
+            }
           } finally {
-            if (button) {
-              button.innerHTML = originalHtml || '<i class="fas fa-sync mr-2"></i>Refresh';
+            if (button && generation === refreshLogsGeneration) {
+              button.innerHTML = REFRESH_LOGS_BTN_HTML;
               button.disabled = false;
             }
           }
@@ -7157,13 +7167,8 @@
             });
           }
           
-          // Setup refresh logs button
-          const refreshLogsBtn = document.getElementById('refresh-logs-btn');
-          if (refreshLogsBtn) {
-            refreshLogsBtn.addEventListener('click', () => {
-              try { refreshLogsUI(); } catch(e) { console.error('Failed to refresh logs:', e); }
-            });
-          }
+          // Refresh logs button is wired once in the primary admin init block
+          // (duplicate listeners raced refreshLogsUI and stuck the button on Loading...).
           
           // Setup refresh Q&A button
           const refreshQnaBtn = document.getElementById('refresh-qna-btn');
