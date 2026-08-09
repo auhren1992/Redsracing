@@ -11,16 +11,25 @@ Python 3.12 (`functions_python/`). Mobile apps (`android/`, `ios/`), the Go stub
 
 The startup update script already installs deps: root `npm install`, `functions/` `npm install`,
 and a Python venv at `functions_python/venv` with `functions_python/requirements.txt`.
-The `python3.12-venv` system package is provided by the VM snapshot (not the update script).
+Prefer `npm install` over `npm ci` — the root lockfile can disagree with the `uuid` override in
+`package.json`, so `npm ci` may fail. The `python3.12-venv` system package is provided by the
+VM snapshot (not the update script).
+
+### Node version gotcha (Cloud Agent VMs)
+- Cloud Functions declare Node **20** (`functions/package.json` engines). Prefer Node 20 via nvm.
+- On Cloud Agent VMs, `/exec-daemon/node` (often Node 22) can shadow nvm on `PATH`. Before
+  functions work or version-sensitive installs, run:
+  `export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"; nvm use 20; export PATH="$(dirname "$(nvm which 20)"):$PATH"`.
 
 ### Running the website (the core product)
 - `npx firebase emulators:start --only hosting` serves the site at `http://127.0.0.1:5000`.
   `firebase-tools` is a root devDependency, so no global install is needed.
 - Expected/harmless on startup: `You are not currently authenticated`, a `MetadataLookupWarning`
   (GCE metadata probe), and `Could not fetch web app configuration`. Hosting-only serving does
-  not need `firebase login` or Java, and the client uses hardcoded config in
-  `assets/js/firebase-config.js`. Live Firestore/Auth-backed data won't populate without cloud
-  credentials, but pages render and client JS runs.
+  not need `firebase login` or Java.
+- The browser client uses hardcoded config in `assets/js/firebase-config.js`, so **Auth/Firestore
+  against the live project work from localhost** when the user signs in (no Hosting emulator
+  auth mock required). Admin deploy / Admin SDK scripts still need a valid service-account JSON.
 
 ### Build caveat (important, non-obvious)
 - `npm run build` (webpack) and `npm run build-css` / `build-css-prod` (Tailwind) CANNOT complete
