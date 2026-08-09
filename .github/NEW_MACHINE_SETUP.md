@@ -11,7 +11,7 @@ git checkout main
 git pull origin main
 ```
 
-Latest mobile release on `main` (when this doc was added): **11.2.16 (202)** — mobile web hamburger/layout fixes + admin console UX.
+Latest mobile release on `main` (when this doc was added): **11.2.17 (203)** — settings.html header/hamburger fix + mobile web sync.
 
 ## Already in Git (you get everything below with `git pull`)
 
