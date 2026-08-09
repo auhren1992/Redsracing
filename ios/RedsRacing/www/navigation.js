@@ -101,7 +101,17 @@
       var assetRoot = /\/(fan|crew|racer)\//i.test(path) ? '../' : '';
 
       if (!has('assets/js/mobile-app-detector.js')) inject(assetRoot + 'assets/js/mobile-app-detector.js');
-      if (!has('global-error-tracker.js')) inject(assetRoot + 'assets/js/global-error-tracker.js?v=202605061');
+      if (!has('global-error-tracker.js')) inject(assetRoot + 'assets/js/global-error-tracker.js?v=2026080913');
+
+      // Mobile browser UX stylesheet (skipped for native app class if detector adds it later)
+      try {
+        if (!document.querySelector('link[href*="mobile-web.css"]')) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = assetRoot + 'styles/mobile-web.css?v=2026080914';
+          document.head.appendChild(link);
+        }
+      } catch (_) {}
     } catch (_) {}
   })();
 
@@ -261,17 +271,26 @@
             console.log('[RedsRacing Auth] User signed out');
             document.body.setAttribute('data-auth', 'signed-out');
             localStorage.removeItem('rr_auth_uid');
-            
-            // Add visible debug indicator
-            let debugDiv = document.getElementById('auth-debug-status');
-            if (!debugDiv) {
-              debugDiv = document.createElement('div');
-              debugDiv.id = 'auth-debug-status';
-              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#ef4444;color:#fff;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
-              debugDiv.textContent = '✗ Not logged in';
-              document.body.appendChild(debugDiv);
-              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
-            }
+
+            // Optional debug toast only (never on mobile menu / production UX)
+            try {
+              const dbg = new URLSearchParams(window.location.search).has('rr_debug')
+                || localStorage.getItem('rr_debug') === '1';
+              if (dbg) {
+                let debugDiv = document.getElementById('auth-debug-status');
+                if (!debugDiv) {
+                  debugDiv = document.createElement('div');
+                  debugDiv.id = 'auth-debug-status';
+                  debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#ef4444;color:#fff;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+                  debugDiv.textContent = '✗ Not logged in';
+                  document.body.appendChild(debugDiv);
+                  setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+                }
+              } else {
+                const stale = document.getElementById('auth-debug-status');
+                if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
+              }
+            } catch (_) {}
             
             // CRITICAL: Clear inline !important styles set during sign-in
             // Otherwise they override .hidden class and dropdown stays visible
@@ -317,16 +336,25 @@
             document.body.setAttribute('data-auth', 'signed-in');
             localStorage.setItem('rr_auth_uid', user.uid);
             
-            // Add visible debug indicator
-            let debugDiv = document.getElementById('auth-debug-status');
-            if (!debugDiv) {
-              debugDiv = document.createElement('div');
-              debugDiv.id = 'auth-debug-status';
-              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#22c55e;color:#000;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
-              debugDiv.textContent = '✓ Logged in as ' + (user.email || 'User');
-              document.body.appendChild(debugDiv);
-              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
-            }
+            // Optional auth debug toast (opt-in only — overlaps mobile menu tabs otherwise)
+            try {
+              const dbg = new URLSearchParams(window.location.search).has('rr_debug')
+                || localStorage.getItem('rr_debug') === '1';
+              if (dbg) {
+                let debugDiv = document.getElementById('auth-debug-status');
+                if (!debugDiv) {
+                  debugDiv = document.createElement('div');
+                  debugDiv.id = 'auth-debug-status';
+                  debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#22c55e;color:#000;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+                  debugDiv.textContent = '✓ Logged in as ' + (user.email || 'User');
+                  document.body.appendChild(debugDiv);
+                  setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+                }
+              } else {
+                const stale = document.getElementById('auth-debug-status');
+                if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
+              }
+            } catch (_) {}
             
             // CSS will handle visibility via body[data-auth="signed-in"] rules
             // Just set attributes and let CSS take over
@@ -636,24 +664,66 @@
   }
 
   function initMobileMenu() {
+    // Tabbed mobile menu owns the hamburger on pages that load it.
+    if (window.__rrMobileTabsMenu || document.getElementById('mobile-menu-tabs') || document.querySelector('script[src*="mobile-menu-tabs"]')) {
+      const classic = document.getElementById('mobile-menu');
+      if (classic) {
+        classic.classList.add('hidden');
+        classic.setAttribute('hidden', 'true');
+        classic.style.display = 'none';
+      }
+      try { document.documentElement.classList.add('rr-has-mobile-tabs'); } catch (_) {}
+      return;
+    }
+
     const btn = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
     if (!btn || !mobileMenu) return;
 
     // Make mobile menu visible and functional
     mobileMenu.classList.add('hidden'); // Start hidden
+
+    function openMenu() {
+      mobileMenu.classList.remove('hidden');
+      try { document.body.style.overflow = 'hidden'; } catch (_) {}
+      try { document.documentElement.classList.add('rr-mobile-menu-open'); } catch (_) {}
+      btn.setAttribute('aria-expanded', 'true');
+    }
+    function closeMenu() {
+      mobileMenu.classList.add('hidden');
+      try { document.body.style.overflow = ''; } catch (_) {}
+      try { document.documentElement.classList.remove('rr-mobile-menu-open'); } catch (_) {}
+      btn.setAttribute('aria-expanded', 'false');
+    }
+
+    // Inject a close control once for full-screen drawer UX
+    if (!mobileMenu.querySelector('[data-rr-mobile-close]')) {
+      const closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.setAttribute('data-rr-mobile-close', '1');
+      closeBtn.setAttribute('aria-label', 'Close menu');
+      closeBtn.innerHTML = '&times;';
+      closeBtn.style.cssText = 'position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:14px;z-index:10060;width:44px;height:44px;border-radius:9999px;border:1px solid rgba(239,68,68,0.45);background:rgba(127,29,29,0.55);color:#fecaca;font-size:1.6rem;line-height:1;display:flex;align-items:center;justify-content:center;';
+      closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMenu();
+      });
+      mobileMenu.appendChild(closeBtn);
+    }
     
     // Mobile menu toggle functionality
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      mobileMenu.classList.toggle('hidden');
+      if (mobileMenu.classList.contains('hidden')) openMenu();
+      else closeMenu();
     });
     
     // Close mobile menu when clicking outside
     document.addEventListener('click', (e) => {
       if (!mobileMenu.contains(e.target) && !btn.contains(e.target)) {
-        mobileMenu.classList.add('hidden');
+        closeMenu();
       }
     });
     
@@ -702,13 +772,15 @@
           // Toggle current accordion
           if (isCurrentlyHidden) {
             accordion.classList.add('active');
-            content.style.maxHeight = content.scrollHeight + 'px';
+            content.style.maxHeight = Math.max(content.scrollHeight, 2000) + 'px';
+            content.style.overflow = 'visible';
             if (icon) {
               icon.style.transform = 'rotate(180deg)';
             }
           } else {
             accordion.classList.remove('active');
             content.style.maxHeight = '0';
+            content.style.overflow = 'hidden';
             if (icon) {
               icon.style.transform = 'rotate(0deg)';
             }
@@ -721,7 +793,7 @@
     const navLinks = mobileMenu.querySelectorAll('a');
     navLinks.forEach(link => {
       link.addEventListener('click', () => {
-        mobileMenu.classList.add('hidden');
+        closeMenu();
       });
     });
   }
@@ -754,6 +826,8 @@
   }
 
   async function logClientError(evt) {
+    // Rich tracker owns client_logs writes (file/line/stack). Skip thin duplicate.
+    if (window.__rrErrorTrackerActive || window.logError) return;
     try {
       // Throttle to max 1 write per 8s to avoid floods
       const now = Date.now();
@@ -771,16 +845,27 @@
       const errorObj = isPromiseRejection ? (evt.reason || {}) : (isErrorEvent ? (evt.error || {}) : evt);
       const message = (errorObj && (errorObj.message || String(errorObj))) || (evt && evt.message) || 'Unknown front-end error';
       const stack = (errorObj && errorObj.stack) || null;
+      const filename = isErrorEvent ? (evt.filename || null) : null;
+      const lineno = isErrorEvent ? (evt.lineno || 0) : 0;
+      const colno = isErrorEvent ? (evt.colno || 0) : 0;
 
       const payload = {
         level: 'error',
+        errorType: (errorObj && errorObj.name) || 'Error',
         message,
         stack,
-        page: (location && location.href) || null,
+        source: filename || ((location && location.href) || null),
+        lineno,
+        colno,
+        location: filename && lineno ? String(filename).split('/').pop() + ':' + lineno + (colno ? ':' + colno : '') : 'Location unknown',
+        page: (location && location.pathname) || null,
+        fullUrl: (location && location.href) || null,
         userAgent: (navigator && navigator.userAgent) || null,
         uid: auth?.currentUser?.uid || null,
         email: auth?.currentUser?.email || null,
+        userId: auth?.currentUser?.uid || localStorage.getItem('rr_auth_uid') || 'anonymous',
         createdAt: serverTimestamp(),
+        serverTimestamp: serverTimestamp(),
       };
       await addDoc(collection(db, 'client_logs'), payload);
     } catch (_) {}

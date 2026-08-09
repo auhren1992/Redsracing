@@ -129,6 +129,14 @@
                 <option value="Qualifying">Qualifying</option>
                 <option value="Practice">Practice</option>
             </select>
+
+            <label>Track flag</label>
+            <select id="trackFlag">
+                <option value="green" selected>Green</option>
+                <option value="yellow">Yellow / Caution</option>
+                <option value="red">Red</option>
+                <option value="checkered">Checkered</option>
+            </select>
         </div>
 
         <!-- Lap Counter -->
@@ -232,6 +240,8 @@
         <button onclick="deleteRace()" class="big-button" style="background: #ef4444; color: white; margin-top: 12px;">
             <i class="fas fa-trash mr-2"></i>Delete Race Data
         </button>
+    </div>
+
     <div class="control-panel">
         <h3 class="text-xl font-bold text-white mb-4">Recent Updates</h3>
         <div id="updateLog" class="text-slate-400 text-sm space-y-2">
@@ -291,12 +301,36 @@
         });
         
         function showAuthenticated(user) {
-            console.log('✅ Authenticated as:', user.email);
-            statusEl.innerHTML = '✅ Ready - ' + user.email.split('@')[0];
-            statusEl.className = 'status-indicator status-inactive';
-            document.getElementById('quickLogin').style.display = 'none';
-            // Enable all controls
-            document.querySelectorAll('button, input, select').forEach(el => el.disabled = false);
+            // Admin / crew only — followers must not post live race updates
+            user.getIdTokenResult(true).then((token) => {
+                const claims = token.claims || {};
+                const role = String(claims.role || '').toLowerCase();
+                const allowed = claims.admin === true
+                    || role === 'admin'
+                    || role === 'owner'
+                    || claims.teamMember === true
+                    || role === 'team-member'
+                    || role === 'crew'
+                    || role === 'team';
+                if (!allowed) {
+                    statusEl.className = 'status-indicator';
+                    statusEl.style.background = 'rgba(239, 68, 68, 0.2)';
+                    statusEl.style.color = '#f87171';
+                    statusEl.style.border = '1px solid #f87171';
+                    statusEl.innerHTML = '⛔ Admin/crew access required';
+                    document.getElementById('quickLogin').style.display = 'none';
+                    document.querySelectorAll('button:not([onclick*="quickLogin"]), input:not([id*="login"]), select').forEach(el => el.disabled = true);
+                    return;
+                }
+                console.log('✅ Authenticated as:', user.email);
+                statusEl.innerHTML = '✅ Ready - ' + user.email.split('@')[0];
+                statusEl.className = 'status-indicator status-inactive';
+                document.getElementById('quickLogin').style.display = 'none';
+                document.querySelectorAll('button, input, select').forEach(el => el.disabled = false);
+            }).catch(() => {
+                statusEl.innerHTML = '⚠️ Could not verify admin role';
+                document.querySelectorAll('button:not([onclick*="quickLogin"]), input:not([id*="login"]), select').forEach(el => el.disabled = true);
+            });
         }
         
         async function quickLogin() {
@@ -333,6 +367,7 @@
             const jonGap = document.getElementById('jonGap').value;
             const jonnyPos = document.getElementById('jonnyPosition').value;
             const jonnyGap = document.getElementById('jonnyGap').value;
+            const trackFlag = (document.getElementById('trackFlag') && document.getElementById('trackFlag').value) || 'green';
 
             if (!currentLap || !totalLaps) {
                 alert('Please enter lap information!');
@@ -358,7 +393,8 @@
                     }
                 },
                 lastUpdate: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedBy: firebase.auth().currentUser?.email || 'admin'
+                updatedBy: firebase.auth().currentUser?.email || 'admin',
+                flag: trackFlag,
             };
 
             try {
@@ -401,10 +437,19 @@
 
         async function postEvent(eventText) {
             try {
-                await db.collection('live_race').doc('current').update({
+                let flag = null;
+                if (eventText.indexOf('Green') !== -1) flag = 'green';
+                else if (eventText.indexOf('Caution') !== -1 || eventText.indexOf('Yellow') !== -1) flag = 'yellow';
+                else if (eventText.indexOf('Red Flag') !== -1) flag = 'red';
+                else if (eventText.indexOf('Checkered') !== -1) flag = 'checkered';
+
+                const patch = {
                     event: eventText,
-                    eventTimestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                    eventTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                };
+                if (flag) patch.flag = flag;
+
+                await db.collection('live_race').doc('current').update(patch);
                 
                 addToLog(`🚩 ${eventText}`);
                 navigator.vibrate && navigator.vibrate([50, 50, 50]);

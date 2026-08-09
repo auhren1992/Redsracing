@@ -28,6 +28,16 @@ const TARGETS = [
   join(ROOT, "ios", "RedsRacing", "www"),
 ];
 
+/** Legacy Android WebView root (non-www) — overlay only, never wipe. */
+const LEGACY_ANDROID_ASSETS = join(
+  ROOT,
+  "android",
+  "app",
+  "src",
+  "main",
+  "assets",
+);
+
 const SKIP_DIRS = new Set([
   "android",
   "ios",
@@ -161,4 +171,26 @@ for (const target of TARGETS) {
   countFiles(target);
   console.log(`  ${relative(ROOT, target)} — ${files} files`);
 }
+
+// Keep legacy Android asset mirrors current (Capacitor-era flat paths).
+function overlayLegacyAndroid() {
+  if (!existsSync(LEGACY_ANDROID_ASSETS)) return;
+  const overlayDirs = ["assets", "styles", "data", "components"];
+  for (const dir of overlayDirs) {
+    const src = join(ROOT, dir);
+    const dest = join(LEGACY_ANDROID_ASSETS, dir);
+    if (!existsSync(src)) continue;
+    mkdirSync(dest, { recursive: true });
+    copyTree(src, dest);
+  }
+  // Root web files commonly duplicated under assets/
+  for (const entry of readdirSync(ROOT, { withFileTypes: true })) {
+    if (!entry.isFile()) continue;
+    if (!shouldCopyFile(entry.name)) continue;
+    cpSync(join(ROOT, entry.name), join(LEGACY_ANDROID_ASSETS, entry.name));
+  }
+  console.log(`  ${relative(ROOT, LEGACY_ANDROID_ASSETS)} — legacy overlay updated`);
+}
+
+overlayLegacyAndroid();
 console.log("Done.");

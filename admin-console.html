@@ -66,7 +66,7 @@
       from the browser console without a round-trip to the rules.
     -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="assets/js/global-error-tracker.js?v=202605082"></script>
+    <script src="assets/js/global-error-tracker.js?v=2026080913"></script>
     <script>
       // Diagnostic + token refresh. Wrapped in async-safe IIFE; every promise
       // explicitly catches so a transient network/permission error here cannot
@@ -3107,7 +3107,7 @@
                       <th class="p-3 font-semibold">Type</th>
                       <th class="p-3 font-semibold">Message</th>
                       <th class="p-3 font-semibold">Page</th>
-                      <th class="p-3 font-semibold">Source File</th>
+                      <th class="p-3 font-semibold">Location</th>
                       <th class="p-3 font-semibold">Device</th>
                       <th class="p-3 font-semibold">User</th>
                     </tr>
@@ -5314,12 +5314,64 @@
         }
 
         // Logs: functions
+        function escapeHtml(str) {
+          return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        }
+
+        function resolveLogLocation(v) {
+          // Prefer stored rich fields
+          if (v.location && v.location !== 'Location unknown') {
+            return {
+              display: v.location,
+              file: v.physicalLocation?.file || v.source || '',
+              fileShort: v.physicalLocation?.fileShort || (v.source ? String(v.source).split('/').pop().split('?')[0] : '—'),
+              line: v.lineno || v.physicalLocation?.line || 0,
+              column: v.colno || v.physicalLocation?.column || 0,
+              functionName: v.physicalLocation?.functionName || '',
+              frames: v.stackFrames || v.physicalLocation?.frames || []
+            };
+          }
+          // Re-parse from stack for legacy thin logs
+          try {
+            if (typeof window.__rrParseErrorLocation === 'function') {
+              const phys = window.__rrParseErrorLocation(v.source || '', v.lineno || 0, v.colno || 0, v.stack || '');
+              return {
+                display: phys.display,
+                file: phys.file,
+                fileShort: phys.fileShort,
+                line: phys.line,
+                column: phys.column,
+                functionName: phys.functionName || '',
+                frames: phys.frames || []
+              };
+            }
+          } catch (_) {}
+
+          const src = v.source || '';
+          const short = src ? String(src).split('/').pop().split('?')[0] : '—';
+          const line = v.lineno || 0;
+          const col = v.colno || 0;
+          return {
+            display: line > 0 ? `${short}:${line}${col ? ':' + col : ''}` : (short !== '—' ? short : 'Location unknown'),
+            file: src,
+            fileShort: short,
+            line,
+            column: col,
+            functionName: '',
+            frames: []
+          };
+        }
+
         async function refreshLogsUI() {
           const button = document.getElementById('refresh-logs-btn');
           const originalHtml = button?.innerHTML;
           
           try {
-            // Show loading state
             if (button) {
               button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
               button.disabled = true;
@@ -5327,21 +5379,26 @@
             
             const { getFirestore, collection, getDocs, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const db = getFirestore();
-            const q = query(collection(db, 'client_logs'), orderBy('serverTimestamp','desc'), limit(100));
-            const snap = await getDocs(q);
+            let snap;
+            try {
+              snap = await getDocs(query(collection(db, 'client_logs'), orderBy('serverTimestamp','desc'), limit(100)));
+            } catch (qErr) {
+              // Fallback for legacy docs that only have createdAt
+              console.warn('[logs] serverTimestamp query failed, trying createdAt', qErr);
+              snap = await getDocs(query(collection(db, 'client_logs'), orderBy('createdAt','desc'), limit(100)));
+            }
             const tbody = document.getElementById('logs-table-body');
             if (!tbody) return;
             tbody.innerHTML = '';
             if (snap.empty) {
               const tr = document.createElement('tr');
-              tr.innerHTML = '<td class="p-2 text-slate-400" colspan="6">No errors logged yet</td>';
+              tr.innerHTML = '<td class="p-2 text-slate-400" colspan="7">No errors logged yet</td>';
               tbody.appendChild(tr);
               return;
             }
             snap.forEach(d => {
               const v = d.data() || {};
               
-              // Handle both old format (createdAt) and new format (timestamp + serverTimestamp)
               let ts;
               if (v.serverTimestamp?.seconds) {
                 ts = new Date(v.serverTimestamp.seconds * 1000);
@@ -5359,18 +5416,16 @@
               const page = v.page || '';
               const pageName = v.pageName || (page === '/' || page === '/index.html' ? 'Homepage (index)' : page.replace(/^\//, '').replace(/\.html$/i, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())) || '—';
               const docTitle = v.documentTitle || '';
-              const sourceFile = v.source || '';
-              const sourceShort = sourceFile ? sourceFile.split('/').pop().split('?')[0] : '—';
-              const lineInfo = v.lineno ? `:${v.lineno}${v.colno ? ':' + v.colno : ''}` : '';
+              const loc = resolveLogLocation(v);
               const device = v.device?.deviceType || 'unknown';
               const isAndroidApp = v.device?.isAndroidApp ? ' (Android App)' : '';
+              const isIosApp = v.device?.isIosApp ? ' (iOS App)' : '';
               const userId = v.userId || v.uid || v.email || 'anonymous';
               
               const tr = document.createElement('tr');
               tr.className = 'table-row cursor-pointer hover:bg-slate-700/30';
               tr.title = 'Click to view details';
               
-              // Create detail view
               const detailData = {
                 message: message,
                 errorType: errorType,
@@ -5378,25 +5433,32 @@
                 pageName: pageName,
                 documentTitle: docTitle,
                 fullUrl: v.fullUrl || '',
-                source: v.source || '',
-                lineno: v.lineno || 0,
-                colno: v.colno || 0,
+                source: loc.file || v.source || '',
+                lineno: loc.line || 0,
+                colno: loc.column || 0,
+                location: loc.display,
+                functionName: loc.functionName || '',
+                stackFrames: loc.frames || [],
                 stack: v.stack || 'No stack trace available',
                 timestamp: when,
                 sessionId: v.sessionId || '',
                 userId: userId,
                 device: v.device || {},
-                referrer: v.referrer || 'direct'
+                referrer: v.referrer || 'direct',
+                trackerVersion: v.trackerVersion || ''
               };
               
               tr.innerHTML = `
-                <td class="p-2 whitespace-nowrap text-xs">${when}</td>
-                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${errorType.toLowerCase().includes('promise') ? 'bg-orange-600/20 text-orange-400' : 'bg-red-600/20 text-red-400'}">${errorType}</span></td>
-                <td class="p-2 text-xs" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${message.replace(/"/g, '&quot;')}">${message}</td>
-                <td class="p-2 text-xs"><span class="font-semibold text-yellow-300">${pageName}</span>${docTitle ? '<br><span class="text-slate-500 text-[10px]">' + docTitle + '</span>' : ''}</td>
-                <td class="p-2 text-xs font-mono" title="${sourceFile.replace(/"/g, '&quot;')}"><span class="text-cyan-400">${sourceShort}${lineInfo}</span></td>
-                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${device === 'mobile' ? 'bg-blue-600/20 text-blue-400' : device === 'desktop' ? 'bg-purple-600/20 text-purple-400' : 'bg-gray-600/20 text-gray-400'}">${device}${isAndroidApp}</span></td>
-                <td class="p-2 text-xs truncate">${userId}</td>
+                <td class="p-2 whitespace-nowrap text-xs">${escapeHtml(when)}</td>
+                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${errorType.toLowerCase().includes('promise') ? 'bg-orange-600/20 text-orange-400' : 'bg-red-600/20 text-red-400'}">${escapeHtml(errorType)}</span></td>
+                <td class="p-2 text-xs" style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(message)}">${escapeHtml(message)}</td>
+                <td class="p-2 text-xs"><span class="font-semibold text-yellow-300">${escapeHtml(pageName)}</span>${docTitle ? '<br><span class="text-slate-500 text-[10px]">' + escapeHtml(docTitle) + '</span>' : ''}</td>
+                <td class="p-2 text-xs font-mono">
+                  <div class="text-cyan-300 font-semibold">${escapeHtml(loc.display)}</div>
+                  ${loc.line > 0 ? `<div class="text-slate-500 text-[10px]">line ${loc.line}${loc.column ? ', col ' + loc.column : ''}</div>` : '<div class="text-slate-600 text-[10px]">no line info</div>'}
+                </td>
+                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${device === 'mobile' ? 'bg-blue-600/20 text-blue-400' : device === 'desktop' ? 'bg-purple-600/20 text-purple-400' : 'bg-gray-600/20 text-gray-400'}">${escapeHtml(device)}${isAndroidApp}${isIosApp}</span></td>
+                <td class="p-2 text-xs truncate">${escapeHtml(userId)}</td>
               `;
               
               tr.addEventListener('click', () => {
@@ -5406,7 +5468,6 @@
               tbody.appendChild(tr);
             });
             
-            // Update count
             const countEl = document.getElementById('logs-count');
             if (countEl) countEl.textContent = `${snap.size} errors logged`;
             
@@ -5417,7 +5478,6 @@
             const countEl = document.getElementById('logs-count');
             if (countEl) countEl.textContent = 'Error loading';
           } finally {
-            // Restore button state
             if (button) {
               button.innerHTML = originalHtml || '<i class="fas fa-sync mr-2"></i>Refresh';
               button.disabled = false;
@@ -5879,95 +5939,112 @@
         function showErrorDetails(data) {
           const modal = document.createElement('div');
           modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4';
+          const frames = Array.isArray(data.stackFrames) ? data.stackFrames : [];
+          const framesHtml = frames.length
+            ? frames.slice(0, 12).map((f, i) => `
+                <div class="flex gap-3 py-2 border-b border-slate-700/50 ${f.isApp ? 'bg-cyan-950/30' : ''}">
+                  <div class="text-slate-500 w-6 text-right">${i + 1}</div>
+                  <div class="min-w-0 flex-1">
+                    <div class="text-cyan-300 font-mono text-xs font-semibold">${escapeHtml(f.display || (f.fileShort + ':' + f.line))}</div>
+                    <div class="text-slate-400 text-[11px] truncate">${escapeHtml(f.functionName || '(anonymous)')}</div>
+                    <div class="text-slate-600 text-[10px] break-all">${escapeHtml(f.file || '')}</div>
+                  </div>
+                </div>`).join('')
+            : '<div class="text-slate-500 text-xs">No parsed stack frames</div>';
+
           modal.innerHTML = `
             <div class="bg-slate-900 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-slate-700">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-white"><i class="fas fa-bug text-red-400 mr-2"></i>Error Details</h3>
-                <button class="text-slate-400 hover:text-white" onclick="this.closest('.fixed').remove()">
+                <button type="button" class="text-slate-400 hover:text-white" data-close-error-modal>
                   <i class="fas fa-times text-xl"></i>
                 </button>
               </div>
               
               <div class="space-y-4 text-sm">
+                <div class="bg-gradient-to-r from-cyan-950/60 to-slate-800/50 rounded-lg p-4 border border-cyan-500/30">
+                  <div class="text-cyan-400 text-xs mb-1 uppercase tracking-wider font-bold">Physical Location</div>
+                  <div class="text-white font-mono text-lg font-bold break-all">${escapeHtml(data.location || 'Location unknown')}</div>
+                  <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div><span class="text-slate-400">File:</span> <span class="text-cyan-200 break-all">${escapeHtml(data.source || '—')}</span></div>
+                    <div><span class="text-slate-400">Line:</span> <span class="text-white font-semibold">${data.lineno || '—'}</span></div>
+                    <div><span class="text-slate-400">Column:</span> <span class="text-white font-semibold">${data.colno || '—'}</span></div>
+                  </div>
+                  ${data.functionName ? `<div class="mt-2 text-xs"><span class="text-slate-400">Function:</span> <span class="text-yellow-300 font-mono">${escapeHtml(data.functionName)}</span></div>` : ''}
+                </div>
+
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-1">Error Type</div>
-                  <div class="text-red-400 font-semibold">${data.errorType}</div>
+                  <div class="text-red-400 font-semibold">${escapeHtml(data.errorType)}</div>
                 </div>
                 
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-1">Message</div>
-                  <div class="text-white font-mono break-words">${data.message}</div>
+                  <div class="text-white font-mono break-words whitespace-pre-wrap">${escapeHtml(data.message)}</div>
                 </div>
                 
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Page</div>
-                    <div class="text-yellow-300 font-semibold">${data.pageName || data.page}</div>
-                    <div class="text-slate-500 text-xs mt-1 font-mono">${data.page}</div>
-                    ${data.documentTitle ? '<div class="text-slate-400 text-xs mt-1">' + data.documentTitle + '</div>' : ''}
-                  </div>
-                  <div class="bg-slate-800/50 rounded-lg p-4">
-                    <div class="text-slate-400 text-xs mb-1">Source File</div>
-                    <div class="text-cyan-400 font-mono text-xs break-all">${data.source || '—'}</div>
-                    ${data.lineno ? '<div class="text-slate-400 mt-1">Line ' + data.lineno + ', Column ' + data.colno + '</div>' : ''}
+                    <div class="text-yellow-300 font-semibold">${escapeHtml(data.pageName || data.page)}</div>
+                    <div class="text-slate-500 text-xs mt-1 font-mono">${escapeHtml(data.page || '')}</div>
+                    ${data.documentTitle ? '<div class="text-slate-400 text-xs mt-1">' + escapeHtml(data.documentTitle) + '</div>' : ''}
                   </div>
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Timestamp</div>
-                    <div class="text-white">${data.timestamp}</div>
+                    <div class="text-white">${escapeHtml(data.timestamp)}</div>
+                    ${data.trackerVersion ? '<div class="text-slate-500 text-[10px] mt-1">tracker ' + escapeHtml(data.trackerVersion) + '</div>' : ''}
                   </div>
                 </div>
                 
                 ${data.fullUrl ? `
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-1">Full URL</div>
-                  <div class="text-white font-mono text-xs break-all">${data.fullUrl}</div>
+                  <div class="text-white font-mono text-xs break-all">${escapeHtml(data.fullUrl)}</div>
                 </div>
                 ` : ''}
-                
-                ${data.source && data.source !== data.fullUrl ? `
+
                 <div class="bg-slate-800/50 rounded-lg p-4">
-                  <div class="text-slate-400 text-xs mb-1">Source</div>
-                  <div class="text-white font-mono text-xs break-all">${data.source}</div>
-                  ${data.lineno ? `<div class="text-slate-400 mt-1">Line ${data.lineno}, Column ${data.colno}</div>` : ''}
+                  <div class="text-slate-400 text-xs mb-2">Stack Frames (app frames highlighted)</div>
+                  ${framesHtml}
                 </div>
-                ` : ''}
                 
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-2">Device Information</div>
                   <div class="grid grid-cols-2 gap-2 text-xs">
-                    <div><span class="text-slate-400">Type:</span> <span class="text-white">${data.device.deviceType || 'unknown'}${data.device.isAndroidApp ? ' (Android App)' : ''}</span></div>
-                    <div><span class="text-slate-400">Platform:</span> <span class="text-white">${data.device.platform || 'unknown'}</span></div>
-                    <div><span class="text-slate-400">Viewport:</span> <span class="text-white">${data.device.viewport || 'unknown'}</span></div>
+                    <div><span class="text-slate-400">Type:</span> <span class="text-white">${escapeHtml(data.device.deviceType || 'unknown')}${data.device.isAndroidApp ? ' (Android App)' : ''}${data.device.isIosApp ? ' (iOS App)' : ''}</span></div>
+                    <div><span class="text-slate-400">Platform:</span> <span class="text-white">${escapeHtml(data.device.platform || 'unknown')}</span></div>
+                    <div><span class="text-slate-400">Viewport:</span> <span class="text-white">${escapeHtml(data.device.viewport || 'unknown')}</span></div>
                     <div><span class="text-slate-400">Online:</span> <span class="text-white">${data.device.online !== undefined ? (data.device.online ? 'Yes' : 'No') : 'unknown'}</span></div>
                   </div>
                 </div>
                 
                 ${data.stack && data.stack !== 'No stack trace available' ? `
                 <div class="bg-slate-800/50 rounded-lg p-4">
-                  <div class="text-slate-400 text-xs mb-2">Stack Trace</div>
-                  <pre class="text-white font-mono text-xs overflow-x-auto whitespace-pre-wrap break-words">${data.stack}</pre>
+                  <div class="text-slate-400 text-xs mb-2">Raw Stack Trace</div>
+                  <pre class="text-white font-mono text-xs overflow-x-auto whitespace-pre-wrap break-words">${escapeHtml(data.stack)}</pre>
                 </div>
                 ` : ''}
                 
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">User ID</div>
-                    <div class="text-white text-xs break-all">${data.userId}</div>
+                    <div class="text-white text-xs break-all">${escapeHtml(data.userId)}</div>
                   </div>
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Session ID</div>
-                    <div class="text-white text-xs break-all">${data.sessionId || '—'}</div>
+                    <div class="text-white text-xs break-all">${escapeHtml(data.sessionId || '—')}</div>
                   </div>
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Referrer</div>
-                    <div class="text-white text-xs break-all">${data.referrer}</div>
+                    <div class="text-white text-xs break-all">${escapeHtml(data.referrer)}</div>
                   </div>
                 </div>
               </div>
             </div>
           `;
           document.body.appendChild(modal);
-          
+          modal.querySelector('[data-close-error-modal]')?.addEventListener('click', () => modal.remove());
           modal.addEventListener('click', (e) => {
             if (e.target === modal) {
               modal.remove();
@@ -6600,10 +6677,38 @@
             const db = getFirestore(app);
             await addDoc(collection(db, 'client_logs'), {
               level: 'info',
+              errorType: 'TestLog',
               message: 'Admin test log entry',
-              page: 'admin-console.html',
+              page: '/admin-console.html',
+              pageName: 'Admin Console',
+              fullUrl: location.href,
+              source: location.origin + '/admin-console.html',
+              lineno: 1,
+              colno: 1,
+              location: 'admin-console.html:1:1',
+              physicalLocation: {
+                file: location.origin + '/admin-console.html',
+                fileShort: 'admin-console.html',
+                line: 1,
+                column: 1,
+                display: 'admin-console.html:1:1',
+                functionName: 'generateTestLog',
+                resolvedFrom: 'manual'
+              },
+              stack: 'Error: Admin test log entry\n    at generateTestLog (' + location.origin + '/admin-console.html:1:1)',
+              stackFrames: [{
+                functionName: 'generateTestLog',
+                file: location.origin + '/admin-console.html',
+                fileShort: 'admin-console.html',
+                line: 1,
+                column: 1,
+                isApp: true,
+                display: 'admin-console.html:1:1'
+              }],
               createdAt: serverTimestamp(),
+              serverTimestamp: serverTimestamp(),
               uid: (await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js')).getAuth().currentUser?.uid || null,
+              userId: (await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js')).getAuth().currentUser?.uid || 'admin',
             });
             showToast('Test log added');
             await refreshLogsUI();

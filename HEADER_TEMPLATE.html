@@ -995,11 +995,17 @@
             }
           });
           
-          // Mobile menu - using correct ID from HTML
+          // Mobile menu - skip classic drawer when tabbed menu owns hamburger
           var mobileButton = document.getElementById("mobile-menu-button");
           var mobileMenu = document.getElementById("mobile-menu");
-          
-          if (mobileButton && mobileMenu) {
+          var usesTabsMenu = !!(window.__rrMobileTabsMenu || document.getElementById('mobile-menu-tabs') || document.querySelector('script[src*="mobile-menu-tabs"]'));
+
+          if (usesTabsMenu && mobileMenu) {
+            mobileMenu.classList.add('hidden');
+            mobileMenu.style.display = 'none';
+            mobileMenu.setAttribute('aria-hidden', 'true');
+            console.log('🔧 Classic mobile menu skipped (tabbed menu active)');
+          } else if (mobileButton && mobileMenu) {
             console.log('🔧 Mobile menu elements found, setting up...');
             
             mobileButton.addEventListener("click", function (e) {

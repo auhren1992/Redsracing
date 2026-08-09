@@ -1,0 +1,307 @@
+/**
+ * RedsRacing Mobile Web (browser) UX
+ * Applies to phones/tablets in a regular browser — NOT the native app WebView.
+ * Native app keeps using mobile-app.css / app detectors.
+ */
+
+/* Only apply when NOT inside the native shell */
+html:not(.rr-native-app) {
+  /* ---- Base mobile hygiene ---- */
+}
+
+@media (max-width: 767.98px) {
+  html:not(.rr-native-app) {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  html:not(.rr-native-app) body {
+    overflow-x: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Prevent horizontal bleed from wide grids/tables */
+  html:not(.rr-native-app) .container,
+  html:not(.rr-native-app) main,
+  html:not(.rr-native-app) section {
+    max-width: 100%;
+  }
+
+  /* Sticky header: safe-area + solid mobile chrome */
+  html:not(.rr-native-app) header.sticky,
+  html:not(.rr-native-app) header[class*="sticky"] {
+    padding-top: env(safe-area-inset-top, 0px);
+    background: rgba(2, 6, 23, 0.92) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  }
+
+  /* Hamburger: big tap target, flex-centered (fixes md:hidden block bug) */
+  html:not(.rr-native-app) #mobile-menu-button,
+  html:not(.rr-native-app) #mobile-menu-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(15, 23, 42, 0.65);
+    color: #fbbf24;
+  }
+
+  /* Full-screen mobile drawer instead of cramped dropdown under header */
+  html:not(.rr-native-app) #mobile-menu {
+    position: fixed !important;
+    inset: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-height: none !important;
+    height: 100dvh !important;
+    height: 100vh !important;
+    z-index: 10050 !important;
+    background: linear-gradient(165deg, #020617 0%, #0f172a 45%, #111827 100%) !important;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-top: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding: calc(0.75rem + env(safe-area-inset-top, 0px)) 1rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* When tabbed menu is present, never show the classic drawer */
+  html:not(.rr-native-app):has(#mobile-menu-tabs) #mobile-menu,
+  html:not(.rr-native-app).rr-has-mobile-tabs #mobile-menu {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  /* Desktop dropdown panels must not appear on phones (beat inline style.display=block) */
+  html:not(.rr-native-app) nav .dropdown-menu,
+  html:not(.rr-native-app) nav .dropdown-menu-nested,
+  html:not(.rr-native-app) .dropdown .dropdown-menu,
+  html:not(.rr-native-app) .modern-dropdown,
+  html:not(.rr-native-app) .dropdown-menu[style],
+  html:not(.rr-native-app) .dropdown-menu-nested[style] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Tabbed menu always wins stacking while open */
+  html:not(.rr-native-app) #mobile-menu-tabs {
+    z-index: 10060 !important;
+  }
+  html:not(.rr-native-app) #mobile-menu-tabs.active {
+    transform: translateX(0) !important;
+  }
+
+  /* Keep cookie/language widgets under open mobile menus */
+  html.rr-mobile-menu-open #cookie-consent-banner,
+  html.rr-mobile-menu-open #rr-lang-widget,
+  html.rr-mobile-menu-open .language-resources,
+  html.rr-mobile-menu-open [id*="google_ads"],
+  html.rr-mobile-menu-open ins.adsbygoogle,
+  html.rr-mobile-menu-open #auth-debug-status {
+    display: none !important;
+  }
+
+  html:not(.rr-native-app) #mobile-menu.hidden {
+    display: none !important;
+  }
+
+  html:not(.rr-native-app):not(.rr-has-mobile-tabs):not(:has(#mobile-menu-tabs)) #mobile-menu:not(.hidden) {
+    display: block !important;
+  }
+
+  /* Drawer header row */
+  html:not(.rr-native-app) #mobile-menu::before {
+    content: "Menu";
+    display: block;
+    font-family: "Racing Sans One", cursive;
+    font-size: 1.35rem;
+    letter-spacing: 0.04em;
+    color: #fbbf24;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  /* Accordion: no hard 300px clip */
+  html:not(.rr-native-app) .mobile-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.28s ease;
+  }
+
+  html:not(.rr-native-app) .mobile-accordion.active + .mobile-accordion-content {
+    max-height: none !important;
+    overflow: visible;
+  }
+
+  html:not(.rr-native-app) .mobile-accordion,
+  html:not(.rr-native-app) #mobile-menu a {
+    min-height: 48px;
+    font-size: 1rem;
+    border-radius: 12px;
+  }
+
+  html:not(.rr-native-app) #mobile-menu a,
+  html:not(.rr-native-app) #mobile-menu button.mobile-accordion {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    margin: 0.25rem 0;
+    background: rgba(30, 41, 59, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    color: #e2e8f0;
+    text-decoration: none;
+  }
+
+  html:not(.rr-native-app) #mobile-menu a:active,
+  html:not(.rr-native-app) #mobile-menu button.mobile-accordion:active {
+    background: rgba(251, 191, 36, 0.12);
+    border-color: rgba(251, 191, 36, 0.35);
+  }
+
+  /* Nested accordion links slightly indented */
+  html:not(.rr-native-app) .mobile-accordion-content a {
+    margin-left: 0.35rem;
+    background: rgba(15, 23, 42, 0.55);
+    font-size: 0.95rem;
+  }
+
+  /* Tabbed overlay menu: safe area + dvh */
+  html:not(.rr-native-app) .mobile-menu-tabs {
+    height: 100dvh !important;
+    height: 100vh !important;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html:not(.rr-native-app) .mobile-menu-tabs-nav {
+    top: 0 !important;
+    position: sticky;
+  }
+
+  /* Hero / section spacing — less cramped */
+  html:not(.rr-native-app) .rr-heroShell,
+  html:not(.rr-native-app) .settings-hero,
+  html:not(.rr-native-app) section.container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  html:not(.rr-native-app) h1 {
+    font-size: clamp(1.75rem, 8vw, 2.4rem) !important;
+    line-height: 1.15 !important;
+    word-break: break-word;
+  }
+
+  html:not(.rr-native-app) h2 {
+    font-size: clamp(1.25rem, 5.5vw, 1.75rem) !important;
+  }
+
+  /* Buttons / CTAs — thumb friendly */
+  html:not(.rr-native-app) .rr-btn,
+  html:not(.rr-native-app) .signup-btn,
+  html:not(.rr-native-app) button[type="submit"],
+  html:not(.rr-native-app) a.bg-gradient-to-r {
+    min-height: 48px;
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+  }
+
+  /* Forms */
+  html:not(.rr-native-app) input,
+  html:not(.rr-native-app) select,
+  html:not(.rr-native-app) textarea {
+    font-size: 16px !important; /* prevents iOS zoom on focus */
+    min-height: 48px;
+    border-radius: 12px;
+  }
+
+  /* Cards / panels breathe */
+  html:not(.rr-native-app) .rr-panel,
+  html:not(.rr-native-app) .card,
+  html:not(.rr-native-app) .admin-card,
+  html:not(.rr-native-app) .settings-card {
+    border-radius: 1rem;
+  }
+
+  /* Dense 12-col / leaderboard grids → stack */
+  html:not(.rr-native-app) .grid.grid-cols-12,
+  html:not(.rr-native-app) [class*="grid-cols-12"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  html:not(.rr-native-app) .profile-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Tables scroll inside a card instead of stretching the page */
+  html:not(.rr-native-app) .overflow-x-auto,
+  html:not(.rr-native-app) table.w-full,
+  html:not(.rr-native-app) .modern-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Footer less tall on phones */
+  html:not(.rr-native-app) footer {
+    padding: 2rem 1rem !important;
+  }
+
+  /* Homepage: keep first viewport readable */
+  html:not(.rr-native-app) #home {
+    min-height: auto !important;
+    padding-bottom: 2rem;
+  }
+
+  /* Floating widgets don't cover CTAs */
+  html:not(.rr-native-app) #rr-chat-fab,
+  html:not(.rr-native-app) .rr-app-auth-fab {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Reduce site-flash z-index fight on mobile overlays */
+  html:not(.rr-native-app) body > header {
+    z-index: 60 !important;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 379.98px) {
+  html:not(.rr-native-app) .rr-brand,
+  html:not(.rr-native-app) header .font-racing {
+    font-size: 1.65rem !important;
+  }
+
+  html:not(.rr-native-app) .profile-stat-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Landscape phones: don't force full-screen hero waste */
+@media (max-width: 900px) and (max-height: 500px) and (orientation: landscape) {
+  html:not(.rr-native-app) #home,
+  html:not(.rr-native-app) .rr-heroShell {
+    min-height: auto !important;
+  }
+}

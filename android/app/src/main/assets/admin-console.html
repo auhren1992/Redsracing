@@ -66,7 +66,7 @@
       from the browser console without a round-trip to the rules.
     -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="assets/js/global-error-tracker.js?v=202605082"></script>
+    <script src="assets/js/global-error-tracker.js?v=2026080913"></script>
     <script>
       // Diagnostic + token refresh. Wrapped in async-safe IIFE; every promise
       // explicitly catches so a transient network/permission error here cannot
@@ -1126,6 +1126,10 @@
                 <i class="fas fa-bullhorn w-5 mr-3 text-orange-400"></i>
                 <span>Fan Wall</span>
               </a>
+              <a href="#admin-pages" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+                <i class="fas fa-file-alt w-5 mr-3 text-lime-400"></i>
+                <span>Site Editor</span>
+              </a>
             </div>
             
             <!-- Operations -->
@@ -1361,11 +1365,76 @@
                     <i class="fas fa-chart-line text-emerald-400 mr-2"></i>
                     Analytics Dashboard
                   </h2>
-                  <p class="text-slate-400 text-sm mt-1">Real-time data from page_views + analytics_events (last 30 days)</p>
+                  <p class="text-slate-400 text-sm mt-1">Google Analytics 4 (<code class="text-slate-300">G-YD3ZWC13SR</code>) + site Firestore trackers (last 30 days)</p>
                 </div>
-                <button id="refresh-analytics-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
-                  <i class="fas fa-sync mr-2"></i>Refresh
-                </button>
+                <div class="flex items-center gap-2">
+                  <a href="https://analytics.google.com/" target="_blank" rel="noopener noreferrer" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                    <i class="fab fa-google mr-2"></i>Open GA4
+                  </a>
+                  <button id="refresh-analytics-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                    <i class="fas fa-sync mr-2"></i>Refresh
+                  </button>
+                </div>
+              </div>
+
+              <!-- Google Analytics 4 -->
+              <div class="mb-8">
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="text-white font-semibold flex items-center">
+                    <i class="fab fa-google text-yellow-400 mr-2"></i>Google Analytics 4
+                    <span id="ga-source-badge" class="ml-2 px-2 py-0.5 text-[10px] rounded bg-slate-600 text-white">Loading</span>
+                  </h3>
+                  <p id="ga-status-msg" class="text-slate-400 text-xs max-w-md text-right"></p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div class="stat-card rounded-xl p-4">
+                    <div class="text-slate-400 text-xs mb-1">GA4 Users</div>
+                    <div class="text-2xl font-bold text-yellow-300" id="ga-users">--</div>
+                  </div>
+                  <div class="stat-card rounded-xl p-4">
+                    <div class="text-slate-400 text-xs mb-1">GA4 Sessions</div>
+                    <div class="text-2xl font-bold text-white" id="ga-sessions">--</div>
+                  </div>
+                  <div class="stat-card rounded-xl p-4">
+                    <div class="text-slate-400 text-xs mb-1">GA4 Page Views</div>
+                    <div class="text-2xl font-bold text-blue-300" id="ga-pageviews">--</div>
+                  </div>
+                  <div class="stat-card rounded-xl p-4">
+                    <div class="text-slate-400 text-xs mb-1">Bounce Rate</div>
+                    <div class="text-2xl font-bold text-emerald-300" id="ga-bounce">--</div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                    <h4 class="text-white font-semibold text-sm mb-3"><i class="fas fa-file text-yellow-400 mr-2"></i>GA4 Top Pages</h4>
+                    <div id="ga-top-pages" class="space-y-2 text-sm"><div class="text-slate-500">Loading...</div></div>
+                  </div>
+                  <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                    <h4 class="text-white font-semibold text-sm mb-3"><i class="fas fa-random text-green-400 mr-2"></i>GA4 Channels</h4>
+                    <div id="ga-channels" class="space-y-2 text-sm"><div class="text-slate-500">Loading...</div></div>
+                  </div>
+                  <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                    <h4 class="text-white font-semibold text-sm mb-3"><i class="fas fa-mobile-alt text-cyan-400 mr-2"></i>GA4 Devices</h4>
+                    <div id="ga-devices" class="space-y-2 text-sm"><div class="text-slate-500">Loading...</div></div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                    <h4 class="text-white font-semibold text-sm mb-3"><i class="fas fa-bolt text-purple-400 mr-2"></i>GA4 Top Events</h4>
+                    <div id="ga-top-events" class="space-y-2 text-sm"><div class="text-slate-500">Loading...</div></div>
+                  </div>
+                  <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                    <h4 class="text-white font-semibold text-sm mb-3"><i class="fas fa-chart-area text-cyan-400 mr-2"></i>GA4 Daily Users (30d)</h4>
+                    <div id="ga-daily-trend" class="flex items-end space-x-1 h-32"><div class="text-slate-500 text-sm">Loading...</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="border-t border-slate-700/60 pt-6 mb-4">
+                <h3 class="text-white font-semibold mb-1 flex items-center">
+                  <i class="fas fa-fire text-orange-400 mr-2"></i>Site Tracker (Firestore)
+                </h3>
+                <p class="text-slate-400 text-xs mb-4">Direct <code class="text-slate-300">page_views</code> + <code class="text-slate-300">analytics_events</code> written by the website</p>
               </div>
               
               <!-- Top Stats -->
@@ -1421,7 +1490,7 @@
             </div>
           </div>
 
-            <div id="gallery-approvals" class="space-y-6">
+            <div id="gallery-approvals" class="space-y-6 hidden">
               <div class="admin-card rounded-xl p-6">
                 <div class="flex items-center justify-between mb-4">
                   <div>
@@ -1432,7 +1501,7 @@
                     <p class="text-slate-400 text-sm mt-1">Review and approve photos before they appear in the public gallery</p>
                   </div>
                   <div class="flex items-center space-x-2">
-                    <span class="status-badge status-pending">3 Pending</span>
+                    <span class="status-badge status-pending" id="gallery-pending-badge">0 Pending</span>
                   </div>
                 </div>
               </div>
@@ -2588,7 +2657,7 @@
                       <h4 class="text-white font-semibold flex items-center">
                         <i class="fab fa-google text-red-400 mr-2"></i>Google AdSense
                       </h4>
-                    <span class="px-2 py-1 text-white text-xs rounded" id="adsense-badge">Estimated</span>
+                    <span class="px-2 py-1 text-white text-xs rounded bg-slate-600" id="adsense-badge">No data</span>
                     </div>
                     <div class="space-y-2">
                       <div class="flex justify-between text-sm">
@@ -2616,7 +2685,7 @@
                       <h4 class="text-white font-semibold flex items-center">
                         <i class="fas fa-mobile-alt text-blue-400 mr-2"></i>Google AdMob
                       </h4>
-                      <span class="px-2 py-1 text-white text-xs rounded" id="admob-badge">Estimated</span>
+                      <span class="px-2 py-1 text-white text-xs rounded bg-slate-600" id="admob-badge">No data</span>
                     </div>
                     <div class="space-y-2">
                       <div class="flex justify-between text-sm">
@@ -2646,7 +2715,7 @@
                           style="width:100%;height:160px;display:block"></canvas>
                   <p id="revenue-trend-empty"
                      class="hidden text-slate-500 text-sm text-center mt-2">
-                    No revenue_events yet. Numbers above are estimates from page_views.
+                    No revenue_events in Firestore yet. Open AdSense/AdMob dashboards for official numbers, or log real revenue_events to show them here.
                   </p>
                 </div>
                 
@@ -3038,7 +3107,7 @@
                       <th class="p-3 font-semibold">Type</th>
                       <th class="p-3 font-semibold">Message</th>
                       <th class="p-3 font-semibold">Page</th>
-                      <th class="p-3 font-semibold">Source File</th>
+                      <th class="p-3 font-semibold">Location</th>
                       <th class="p-3 font-semibold">Device</th>
                       <th class="p-3 font-semibold">User</th>
                     </tr>
@@ -5245,12 +5314,64 @@
         }
 
         // Logs: functions
+        function escapeHtml(str) {
+          return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        }
+
+        function resolveLogLocation(v) {
+          // Prefer stored rich fields
+          if (v.location && v.location !== 'Location unknown') {
+            return {
+              display: v.location,
+              file: v.physicalLocation?.file || v.source || '',
+              fileShort: v.physicalLocation?.fileShort || (v.source ? String(v.source).split('/').pop().split('?')[0] : '—'),
+              line: v.lineno || v.physicalLocation?.line || 0,
+              column: v.colno || v.physicalLocation?.column || 0,
+              functionName: v.physicalLocation?.functionName || '',
+              frames: v.stackFrames || v.physicalLocation?.frames || []
+            };
+          }
+          // Re-parse from stack for legacy thin logs
+          try {
+            if (typeof window.__rrParseErrorLocation === 'function') {
+              const phys = window.__rrParseErrorLocation(v.source || '', v.lineno || 0, v.colno || 0, v.stack || '');
+              return {
+                display: phys.display,
+                file: phys.file,
+                fileShort: phys.fileShort,
+                line: phys.line,
+                column: phys.column,
+                functionName: phys.functionName || '',
+                frames: phys.frames || []
+              };
+            }
+          } catch (_) {}
+
+          const src = v.source || '';
+          const short = src ? String(src).split('/').pop().split('?')[0] : '—';
+          const line = v.lineno || 0;
+          const col = v.colno || 0;
+          return {
+            display: line > 0 ? `${short}:${line}${col ? ':' + col : ''}` : (short !== '—' ? short : 'Location unknown'),
+            file: src,
+            fileShort: short,
+            line,
+            column: col,
+            functionName: '',
+            frames: []
+          };
+        }
+
         async function refreshLogsUI() {
           const button = document.getElementById('refresh-logs-btn');
           const originalHtml = button?.innerHTML;
           
           try {
-            // Show loading state
             if (button) {
               button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
               button.disabled = true;
@@ -5258,21 +5379,26 @@
             
             const { getFirestore, collection, getDocs, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const db = getFirestore();
-            const q = query(collection(db, 'client_logs'), orderBy('serverTimestamp','desc'), limit(100));
-            const snap = await getDocs(q);
+            let snap;
+            try {
+              snap = await getDocs(query(collection(db, 'client_logs'), orderBy('serverTimestamp','desc'), limit(100)));
+            } catch (qErr) {
+              // Fallback for legacy docs that only have createdAt
+              console.warn('[logs] serverTimestamp query failed, trying createdAt', qErr);
+              snap = await getDocs(query(collection(db, 'client_logs'), orderBy('createdAt','desc'), limit(100)));
+            }
             const tbody = document.getElementById('logs-table-body');
             if (!tbody) return;
             tbody.innerHTML = '';
             if (snap.empty) {
               const tr = document.createElement('tr');
-              tr.innerHTML = '<td class="p-2 text-slate-400" colspan="6">No errors logged yet</td>';
+              tr.innerHTML = '<td class="p-2 text-slate-400" colspan="7">No errors logged yet</td>';
               tbody.appendChild(tr);
               return;
             }
             snap.forEach(d => {
               const v = d.data() || {};
               
-              // Handle both old format (createdAt) and new format (timestamp + serverTimestamp)
               let ts;
               if (v.serverTimestamp?.seconds) {
                 ts = new Date(v.serverTimestamp.seconds * 1000);
@@ -5290,18 +5416,16 @@
               const page = v.page || '';
               const pageName = v.pageName || (page === '/' || page === '/index.html' ? 'Homepage (index)' : page.replace(/^\//, '').replace(/\.html$/i, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())) || '—';
               const docTitle = v.documentTitle || '';
-              const sourceFile = v.source || '';
-              const sourceShort = sourceFile ? sourceFile.split('/').pop().split('?')[0] : '—';
-              const lineInfo = v.lineno ? `:${v.lineno}${v.colno ? ':' + v.colno : ''}` : '';
+              const loc = resolveLogLocation(v);
               const device = v.device?.deviceType || 'unknown';
               const isAndroidApp = v.device?.isAndroidApp ? ' (Android App)' : '';
+              const isIosApp = v.device?.isIosApp ? ' (iOS App)' : '';
               const userId = v.userId || v.uid || v.email || 'anonymous';
               
               const tr = document.createElement('tr');
               tr.className = 'table-row cursor-pointer hover:bg-slate-700/30';
               tr.title = 'Click to view details';
               
-              // Create detail view
               const detailData = {
                 message: message,
                 errorType: errorType,
@@ -5309,25 +5433,32 @@
                 pageName: pageName,
                 documentTitle: docTitle,
                 fullUrl: v.fullUrl || '',
-                source: v.source || '',
-                lineno: v.lineno || 0,
-                colno: v.colno || 0,
+                source: loc.file || v.source || '',
+                lineno: loc.line || 0,
+                colno: loc.column || 0,
+                location: loc.display,
+                functionName: loc.functionName || '',
+                stackFrames: loc.frames || [],
                 stack: v.stack || 'No stack trace available',
                 timestamp: when,
                 sessionId: v.sessionId || '',
                 userId: userId,
                 device: v.device || {},
-                referrer: v.referrer || 'direct'
+                referrer: v.referrer || 'direct',
+                trackerVersion: v.trackerVersion || ''
               };
               
               tr.innerHTML = `
-                <td class="p-2 whitespace-nowrap text-xs">${when}</td>
-                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${errorType.toLowerCase().includes('promise') ? 'bg-orange-600/20 text-orange-400' : 'bg-red-600/20 text-red-400'}">${errorType}</span></td>
-                <td class="p-2 text-xs" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${message.replace(/"/g, '&quot;')}">${message}</td>
-                <td class="p-2 text-xs"><span class="font-semibold text-yellow-300">${pageName}</span>${docTitle ? '<br><span class="text-slate-500 text-[10px]">' + docTitle + '</span>' : ''}</td>
-                <td class="p-2 text-xs font-mono" title="${sourceFile.replace(/"/g, '&quot;')}"><span class="text-cyan-400">${sourceShort}${lineInfo}</span></td>
-                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${device === 'mobile' ? 'bg-blue-600/20 text-blue-400' : device === 'desktop' ? 'bg-purple-600/20 text-purple-400' : 'bg-gray-600/20 text-gray-400'}">${device}${isAndroidApp}</span></td>
-                <td class="p-2 text-xs truncate">${userId}</td>
+                <td class="p-2 whitespace-nowrap text-xs">${escapeHtml(when)}</td>
+                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${errorType.toLowerCase().includes('promise') ? 'bg-orange-600/20 text-orange-400' : 'bg-red-600/20 text-red-400'}">${escapeHtml(errorType)}</span></td>
+                <td class="p-2 text-xs" style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(message)}">${escapeHtml(message)}</td>
+                <td class="p-2 text-xs"><span class="font-semibold text-yellow-300">${escapeHtml(pageName)}</span>${docTitle ? '<br><span class="text-slate-500 text-[10px]">' + escapeHtml(docTitle) + '</span>' : ''}</td>
+                <td class="p-2 text-xs font-mono">
+                  <div class="text-cyan-300 font-semibold">${escapeHtml(loc.display)}</div>
+                  ${loc.line > 0 ? `<div class="text-slate-500 text-[10px]">line ${loc.line}${loc.column ? ', col ' + loc.column : ''}</div>` : '<div class="text-slate-600 text-[10px]">no line info</div>'}
+                </td>
+                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${device === 'mobile' ? 'bg-blue-600/20 text-blue-400' : device === 'desktop' ? 'bg-purple-600/20 text-purple-400' : 'bg-gray-600/20 text-gray-400'}">${escapeHtml(device)}${isAndroidApp}${isIosApp}</span></td>
+                <td class="p-2 text-xs truncate">${escapeHtml(userId)}</td>
               `;
               
               tr.addEventListener('click', () => {
@@ -5337,7 +5468,6 @@
               tbody.appendChild(tr);
             });
             
-            // Update count
             const countEl = document.getElementById('logs-count');
             if (countEl) countEl.textContent = `${snap.size} errors logged`;
             
@@ -5348,7 +5478,6 @@
             const countEl = document.getElementById('logs-count');
             if (countEl) countEl.textContent = 'Error loading';
           } finally {
-            // Restore button state
             if (button) {
               button.innerHTML = originalHtml || '<i class="fas fa-sync mr-2"></i>Refresh';
               button.disabled = false;
@@ -5810,95 +5939,112 @@
         function showErrorDetails(data) {
           const modal = document.createElement('div');
           modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4';
+          const frames = Array.isArray(data.stackFrames) ? data.stackFrames : [];
+          const framesHtml = frames.length
+            ? frames.slice(0, 12).map((f, i) => `
+                <div class="flex gap-3 py-2 border-b border-slate-700/50 ${f.isApp ? 'bg-cyan-950/30' : ''}">
+                  <div class="text-slate-500 w-6 text-right">${i + 1}</div>
+                  <div class="min-w-0 flex-1">
+                    <div class="text-cyan-300 font-mono text-xs font-semibold">${escapeHtml(f.display || (f.fileShort + ':' + f.line))}</div>
+                    <div class="text-slate-400 text-[11px] truncate">${escapeHtml(f.functionName || '(anonymous)')}</div>
+                    <div class="text-slate-600 text-[10px] break-all">${escapeHtml(f.file || '')}</div>
+                  </div>
+                </div>`).join('')
+            : '<div class="text-slate-500 text-xs">No parsed stack frames</div>';
+
           modal.innerHTML = `
             <div class="bg-slate-900 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-slate-700">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold text-white"><i class="fas fa-bug text-red-400 mr-2"></i>Error Details</h3>
-                <button class="text-slate-400 hover:text-white" onclick="this.closest('.fixed').remove()">
+                <button type="button" class="text-slate-400 hover:text-white" data-close-error-modal>
                   <i class="fas fa-times text-xl"></i>
                 </button>
               </div>
               
               <div class="space-y-4 text-sm">
+                <div class="bg-gradient-to-r from-cyan-950/60 to-slate-800/50 rounded-lg p-4 border border-cyan-500/30">
+                  <div class="text-cyan-400 text-xs mb-1 uppercase tracking-wider font-bold">Physical Location</div>
+                  <div class="text-white font-mono text-lg font-bold break-all">${escapeHtml(data.location || 'Location unknown')}</div>
+                  <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div><span class="text-slate-400">File:</span> <span class="text-cyan-200 break-all">${escapeHtml(data.source || '—')}</span></div>
+                    <div><span class="text-slate-400">Line:</span> <span class="text-white font-semibold">${data.lineno || '—'}</span></div>
+                    <div><span class="text-slate-400">Column:</span> <span class="text-white font-semibold">${data.colno || '—'}</span></div>
+                  </div>
+                  ${data.functionName ? `<div class="mt-2 text-xs"><span class="text-slate-400">Function:</span> <span class="text-yellow-300 font-mono">${escapeHtml(data.functionName)}</span></div>` : ''}
+                </div>
+
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-1">Error Type</div>
-                  <div class="text-red-400 font-semibold">${data.errorType}</div>
+                  <div class="text-red-400 font-semibold">${escapeHtml(data.errorType)}</div>
                 </div>
                 
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-1">Message</div>
-                  <div class="text-white font-mono break-words">${data.message}</div>
+                  <div class="text-white font-mono break-words whitespace-pre-wrap">${escapeHtml(data.message)}</div>
                 </div>
                 
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Page</div>
-                    <div class="text-yellow-300 font-semibold">${data.pageName || data.page}</div>
-                    <div class="text-slate-500 text-xs mt-1 font-mono">${data.page}</div>
-                    ${data.documentTitle ? '<div class="text-slate-400 text-xs mt-1">' + data.documentTitle + '</div>' : ''}
-                  </div>
-                  <div class="bg-slate-800/50 rounded-lg p-4">
-                    <div class="text-slate-400 text-xs mb-1">Source File</div>
-                    <div class="text-cyan-400 font-mono text-xs break-all">${data.source || '—'}</div>
-                    ${data.lineno ? '<div class="text-slate-400 mt-1">Line ' + data.lineno + ', Column ' + data.colno + '</div>' : ''}
+                    <div class="text-yellow-300 font-semibold">${escapeHtml(data.pageName || data.page)}</div>
+                    <div class="text-slate-500 text-xs mt-1 font-mono">${escapeHtml(data.page || '')}</div>
+                    ${data.documentTitle ? '<div class="text-slate-400 text-xs mt-1">' + escapeHtml(data.documentTitle) + '</div>' : ''}
                   </div>
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Timestamp</div>
-                    <div class="text-white">${data.timestamp}</div>
+                    <div class="text-white">${escapeHtml(data.timestamp)}</div>
+                    ${data.trackerVersion ? '<div class="text-slate-500 text-[10px] mt-1">tracker ' + escapeHtml(data.trackerVersion) + '</div>' : ''}
                   </div>
                 </div>
                 
                 ${data.fullUrl ? `
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-1">Full URL</div>
-                  <div class="text-white font-mono text-xs break-all">${data.fullUrl}</div>
+                  <div class="text-white font-mono text-xs break-all">${escapeHtml(data.fullUrl)}</div>
                 </div>
                 ` : ''}
-                
-                ${data.source && data.source !== data.fullUrl ? `
+
                 <div class="bg-slate-800/50 rounded-lg p-4">
-                  <div class="text-slate-400 text-xs mb-1">Source</div>
-                  <div class="text-white font-mono text-xs break-all">${data.source}</div>
-                  ${data.lineno ? `<div class="text-slate-400 mt-1">Line ${data.lineno}, Column ${data.colno}</div>` : ''}
+                  <div class="text-slate-400 text-xs mb-2">Stack Frames (app frames highlighted)</div>
+                  ${framesHtml}
                 </div>
-                ` : ''}
                 
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-2">Device Information</div>
                   <div class="grid grid-cols-2 gap-2 text-xs">
-                    <div><span class="text-slate-400">Type:</span> <span class="text-white">${data.device.deviceType || 'unknown'}${data.device.isAndroidApp ? ' (Android App)' : ''}</span></div>
-                    <div><span class="text-slate-400">Platform:</span> <span class="text-white">${data.device.platform || 'unknown'}</span></div>
-                    <div><span class="text-slate-400">Viewport:</span> <span class="text-white">${data.device.viewport || 'unknown'}</span></div>
+                    <div><span class="text-slate-400">Type:</span> <span class="text-white">${escapeHtml(data.device.deviceType || 'unknown')}${data.device.isAndroidApp ? ' (Android App)' : ''}${data.device.isIosApp ? ' (iOS App)' : ''}</span></div>
+                    <div><span class="text-slate-400">Platform:</span> <span class="text-white">${escapeHtml(data.device.platform || 'unknown')}</span></div>
+                    <div><span class="text-slate-400">Viewport:</span> <span class="text-white">${escapeHtml(data.device.viewport || 'unknown')}</span></div>
                     <div><span class="text-slate-400">Online:</span> <span class="text-white">${data.device.online !== undefined ? (data.device.online ? 'Yes' : 'No') : 'unknown'}</span></div>
                   </div>
                 </div>
                 
                 ${data.stack && data.stack !== 'No stack trace available' ? `
                 <div class="bg-slate-800/50 rounded-lg p-4">
-                  <div class="text-slate-400 text-xs mb-2">Stack Trace</div>
-                  <pre class="text-white font-mono text-xs overflow-x-auto whitespace-pre-wrap break-words">${data.stack}</pre>
+                  <div class="text-slate-400 text-xs mb-2">Raw Stack Trace</div>
+                  <pre class="text-white font-mono text-xs overflow-x-auto whitespace-pre-wrap break-words">${escapeHtml(data.stack)}</pre>
                 </div>
                 ` : ''}
                 
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">User ID</div>
-                    <div class="text-white text-xs break-all">${data.userId}</div>
+                    <div class="text-white text-xs break-all">${escapeHtml(data.userId)}</div>
                   </div>
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Session ID</div>
-                    <div class="text-white text-xs break-all">${data.sessionId || '—'}</div>
+                    <div class="text-white text-xs break-all">${escapeHtml(data.sessionId || '—')}</div>
                   </div>
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Referrer</div>
-                    <div class="text-white text-xs break-all">${data.referrer}</div>
+                    <div class="text-white text-xs break-all">${escapeHtml(data.referrer)}</div>
                   </div>
                 </div>
               </div>
             </div>
           `;
           document.body.appendChild(modal);
-          
+          modal.querySelector('[data-close-error-modal]')?.addEventListener('click', () => modal.remove());
           modal.addEventListener('click', (e) => {
             if (e.target === modal) {
               modal.remove();
@@ -6192,11 +6338,14 @@
             if (unapprovedPhotosList) {
               unapprovedPhotosList.innerHTML = '';
               
+              const galleryPendingBadge = document.getElementById('gallery-pending-badge');
               if (querySnapshot.empty) {
                 unapprovedPhotosList.innerHTML = '<p class="text-slate-400 col-span-full text-center">No photos pending approval</p>';
                 if (galleryPendingCount) galleryPendingCount.textContent = '0';
+                if (galleryPendingBadge) galleryPendingBadge.textContent = '0 Pending';
               } else {
                 if (galleryPendingCount) galleryPendingCount.textContent = querySnapshot.size;
+                if (galleryPendingBadge) galleryPendingBadge.textContent = `${querySnapshot.size} Pending`;
                 
                 querySnapshot.forEach((docSnapshot) => {
                   const photo = docSnapshot.data();
@@ -6528,10 +6677,38 @@
             const db = getFirestore(app);
             await addDoc(collection(db, 'client_logs'), {
               level: 'info',
+              errorType: 'TestLog',
               message: 'Admin test log entry',
-              page: 'admin-console.html',
+              page: '/admin-console.html',
+              pageName: 'Admin Console',
+              fullUrl: location.href,
+              source: location.origin + '/admin-console.html',
+              lineno: 1,
+              colno: 1,
+              location: 'admin-console.html:1:1',
+              physicalLocation: {
+                file: location.origin + '/admin-console.html',
+                fileShort: 'admin-console.html',
+                line: 1,
+                column: 1,
+                display: 'admin-console.html:1:1',
+                functionName: 'generateTestLog',
+                resolvedFrom: 'manual'
+              },
+              stack: 'Error: Admin test log entry\n    at generateTestLog (' + location.origin + '/admin-console.html:1:1)',
+              stackFrames: [{
+                functionName: 'generateTestLog',
+                file: location.origin + '/admin-console.html',
+                fileShort: 'admin-console.html',
+                line: 1,
+                column: 1,
+                isApp: true,
+                display: 'admin-console.html:1:1'
+              }],
               createdAt: serverTimestamp(),
+              serverTimestamp: serverTimestamp(),
               uid: (await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js')).getAuth().currentUser?.uid || null,
+              userId: (await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js')).getAuth().currentUser?.uid || 'admin',
             });
             showToast('Test log added');
             await refreshLogsUI();
@@ -9462,16 +9639,7 @@
             const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-            // Pull tracked page views (proxy for impressions)
-            let pageViews = [];
-            try {
-              const pvSnap = await getDocs(query(collection(db, 'page_views'), orderBy('timestamp', 'desc'), limit(5000)));
-              pageViews = pvSnap.docs.map(d => d.data() || {});
-            } catch (_) {
-              pageViews = [];
-            }
-
-            // Pull explicit monetization events if present (preferred source)
+            // Only real monetization events — never estimate from page_views
             let revenueEvents = [];
             try {
               const revSnap = await getDocs(query(collection(db, 'revenue_events'), orderBy('timestamp', 'desc'), limit(5000)));
@@ -9490,6 +9658,9 @@
               }
             };
 
+            const isSource = (e, name) => String(e.source || '').toLowerCase() === name;
+            const eventType = (e) => String(e.eventType || e.type || '').toLowerCase();
+
             let todayRevenue = 0;
             let monthRevenue = 0;
             let totalRevenue = 0;
@@ -9497,79 +9668,93 @@
             let admobToday = 0;
             let adsenseClicks = 0;
             let admobClicks = 0;
+            let adsenseImpressions = 0;
+            let admobImpressions = 0;
+            let adsenseClicksToday = 0;
+            let admobClicksToday = 0;
+            let adsenseImpressionsToday = 0;
+            let admobImpressionsToday = 0;
 
-            if (revenueEvents.length > 0) {
-              revenueEvents.forEach((e) => {
-                const ts = toDate(e.timestamp || e.createdAt);
-                const amount = Number(e.amount || 0);
-                if (Number.isNaN(amount)) return;
+            revenueEvents.forEach((e) => {
+              const ts = toDate(e.timestamp || e.createdAt);
+              const amount = Number(e.amount || 0);
+              const imp = Number(e.impressions || 0);
+              const clicks = Number(e.clicks || 0);
+              const type = eventType(e);
+              const today = !!(ts && ts >= startOfDay);
+              const thisMonth = !!(ts && ts >= startOfMonth);
+
+              if (!Number.isNaN(amount) && amount !== 0) {
                 totalRevenue += amount;
-                if (ts && ts >= startOfMonth) monthRevenue += amount;
-                if (ts && ts >= startOfDay) {
+                if (thisMonth) monthRevenue += amount;
+                if (today) {
                   todayRevenue += amount;
-                  if ((e.source || '').toLowerCase() === 'adsense') adsenseToday += amount;
-                  if ((e.source || '').toLowerCase() === 'admob') admobToday += amount;
+                  if (isSource(e, 'adsense')) adsenseToday += amount;
+                  if (isSource(e, 'admob')) admobToday += amount;
                 }
-                if ((e.source || '').toLowerCase() === 'adsense' && (e.eventType || '').toLowerCase() === 'click') adsenseClicks++;
-                if ((e.source || '').toLowerCase() === 'admob' && (e.eventType || '').toLowerCase() === 'click') admobClicks++;
-              });
-            }
+              }
 
-            const isAndroidApp = (typeof __isAndroidAppUserAgent === 'function') ? __isAndroidAppUserAgent : () => false;
-            const isIosApp = (typeof __isIosAppUserAgent === 'function') ? __isIosAppUserAgent : () => false;
-            const viewsTodayRows = pageViews.filter(v => {
-              const ts = toDate(v.timestamp || v.createdAt);
-              return ts && ts >= startOfDay;
+              if (imp > 0) {
+                if (isSource(e, 'adsense')) { adsenseImpressions += imp; if (today) adsenseImpressionsToday += imp; }
+                if (isSource(e, 'admob')) { admobImpressions += imp; if (today) admobImpressionsToday += imp; }
+              } else if (type === 'impression') {
+                if (isSource(e, 'adsense')) { adsenseImpressions += 1; if (today) adsenseImpressionsToday += 1; }
+                if (isSource(e, 'admob')) { admobImpressions += 1; if (today) admobImpressionsToday += 1; }
+              }
+
+              if (clicks > 0) {
+                if (isSource(e, 'adsense')) { adsenseClicks += clicks; if (today) adsenseClicksToday += clicks; }
+                if (isSource(e, 'admob')) { admobClicks += clicks; if (today) admobClicksToday += clicks; }
+              } else if (type === 'click') {
+                if (isSource(e, 'adsense')) { adsenseClicks += 1; if (today) adsenseClicksToday += 1; }
+                if (isSource(e, 'admob')) { admobClicks += 1; if (today) admobClicksToday += 1; }
+              }
             });
-            // Split impressions correctly: web traffic counts toward AdSense,
-            // in-app WebView traffic counts toward AdMob. Previously both got
-            // the same count, which double-counted impressions.
-            const viewsToday = viewsTodayRows.length;
-            const admobImpressions = viewsTodayRows.filter(v =>
-              isAndroidApp(v.userAgent || v.ua || '') || isIosApp(v.userAgent || v.ua || '')
-            ).length;
-            const adsenseImpressions = Math.max(0, viewsToday - admobImpressions);
 
-            const adsenseCtr = adsenseImpressions > 0 ? (adsenseClicks / adsenseImpressions) * 100 : 0;
-            const admobEcpm = admobImpressions > 0 ? (admobToday / admobImpressions) * 1000 : 0;
-            const rpm = viewsToday > 0 ? (todayRevenue / viewsToday) * 1000 : 0;
+            const adsenseImpBase = adsenseImpressionsToday || adsenseImpressions;
+            const admobImpBase = admobImpressionsToday || admobImpressions;
+            const adsenseClickBase = adsenseClicksToday || adsenseClicks;
+            const admobClickBase = admobClicksToday || admobClicks;
+            const adsenseCtr = adsenseImpBase > 0 ? (adsenseClickBase / adsenseImpBase) * 100 : 0;
+            const admobEcpm = admobImpBase > 0 ? (admobToday / admobImpBase) * 1000 : 0;
+            const totalImpressionsToday = adsenseImpressionsToday + admobImpressionsToday;
+            const rpm = totalImpressionsToday > 0 ? (todayRevenue / totalImpressionsToday) * 1000 : 0;
 
-            document.getElementById('revenue-today').textContent = `$${todayRevenue.toFixed(2)}`;
-            document.getElementById('revenue-month').textContent = `$${monthRevenue.toFixed(2)}`;
-            document.getElementById('revenue-total').textContent = `$${totalRevenue.toFixed(2)}`;
-            document.getElementById('revenue-rpm').textContent = `$${rpm.toFixed(2)}`;
-            
-            document.getElementById('adsense-today').textContent = `$${adsenseToday.toFixed(2)}`;
-            document.getElementById('adsense-impressions').textContent = adsenseImpressions.toLocaleString();
-            document.getElementById('adsense-clicks').textContent = adsenseClicks.toLocaleString();
-            document.getElementById('adsense-ctr').textContent = `${adsenseCtr.toFixed(2)}%`;
-            
-            document.getElementById('admob-today').textContent = `$${admobToday.toFixed(2)}`;
-            document.getElementById('admob-impressions').textContent = admobImpressions.toLocaleString();
-            document.getElementById('admob-clicks').textContent = admobClicks.toLocaleString();
-            document.getElementById('admob-ecpm').textContent = `$${admobEcpm.toFixed(2)}`;
+            const setText = (id, value) => { const n = document.getElementById(id); if (n) n.textContent = value; };
+            setText('revenue-today', `$${todayRevenue.toFixed(2)}`);
+            setText('revenue-month', `$${monthRevenue.toFixed(2)}`);
+            setText('revenue-total', `$${totalRevenue.toFixed(2)}`);
+            setText('revenue-rpm', totalImpressionsToday > 0 ? `$${rpm.toFixed(2)}` : '—');
+            setText('adsense-today', `$${adsenseToday.toFixed(2)}`);
+            setText('adsense-impressions', String(adsenseImpBase));
+            setText('adsense-clicks', String(adsenseClickBase));
+            setText('adsense-ctr', adsenseImpBase > 0 ? `${adsenseCtr.toFixed(2)}%` : '—');
+            setText('admob-today', `$${admobToday.toFixed(2)}`);
+            setText('admob-impressions', String(admobImpBase));
+            setText('admob-clicks', String(admobClickBase));
+            setText('admob-ecpm', admobImpBase > 0 ? `$${admobEcpm.toFixed(2)}` : '—');
 
-            // Data source badges: real vs estimated
             const hasRealRevenue = revenueEvents.length > 0;
-            const badgeReal = 'bg-green-600';
-            const badgeEstimated = 'bg-yellow-600';
+            const adsenseHasReal = revenueEvents.some(e => isSource(e, 'adsense'));
+            const admobHasReal = revenueEvents.some(e => isSource(e, 'admob'));
             const adsenseBadge = document.getElementById('adsense-badge');
             const admobBadge = document.getElementById('admob-badge');
-            const adsenseHasReal = revenueEvents.some(e => (e.source || '').toLowerCase() === 'adsense');
-            const admobHasReal = revenueEvents.some(e => (e.source || '').toLowerCase() === 'admob');
-            if (adsenseBadge) { adsenseBadge.textContent = adsenseHasReal ? 'Real Data' : 'Estimated'; adsenseBadge.className = 'px-2 py-1 text-white text-xs rounded ' + (adsenseHasReal ? badgeReal : badgeEstimated); }
-            if (admobBadge) { admobBadge.textContent = admobHasReal ? 'Real Data' : 'Estimated'; admobBadge.className = 'px-2 py-1 text-white text-xs rounded ' + (admobHasReal ? badgeReal : badgeEstimated); }
-
-            // Gap state when no revenue events
-            let resultMsg = '';
-            if (!hasRealRevenue) {
-              resultMsg = '<div class="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 space-y-1"><div class="text-yellow-400 font-semibold text-sm"><i class="fas fa-exclamation-triangle mr-2"></i>No revenue_events found</div><div class="text-slate-400 text-xs">All revenue figures above are estimated from page view impressions. Connect AdSense/AdMob or log revenue_events to Firestore for accurate tracking.</div></div>';
-            } else {
-              resultMsg = `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Revenue loaded from ${revenueEvents.length} revenue events + ${pageViews.length} page views</div>`;
+            if (adsenseBadge) {
+              adsenseBadge.textContent = adsenseHasReal ? 'Firestore' : 'No data';
+              adsenseBadge.className = 'px-2 py-1 text-white text-xs rounded ' + (adsenseHasReal ? 'bg-green-600' : 'bg-slate-600');
             }
-            document.getElementById('revenue-operation-result').innerHTML = resultMsg;
+            if (admobBadge) {
+              admobBadge.textContent = admobHasReal ? 'Firestore' : 'No data';
+              admobBadge.className = 'px-2 py-1 text-white text-xs rounded ' + (admobHasReal ? 'bg-green-600' : 'bg-slate-600');
+            }
 
-            // Real 30-day revenue trend chart (replaces "Revenue chart will appear here" placeholder)
+            const resultEl = document.getElementById('revenue-operation-result');
+            if (resultEl) {
+              resultEl.innerHTML = !hasRealRevenue
+                ? '<div class="bg-slate-800/60 border border-slate-600/40 rounded-lg p-3 space-y-1"><div class="text-slate-200 font-semibold text-sm"><i class="fas fa-info-circle mr-2"></i>No revenue_events yet</div><div class="text-slate-400 text-xs">Totals stay at $0 until real AdSense/AdMob amounts are written to Firestore <code>revenue_events</code>. Use Connect AdSense / Connect AdMob for official Google dashboards — this panel does not invent estimates.</div></div>'
+                : `<div class="text-green-400"><i class="fas fa-check mr-2"></i>Loaded ${revenueEvents.length} real revenue_events from Firestore</div>`;
+            }
+
             try {
               const canvas = document.getElementById('revenue-trend-chart');
               const emptyMsg = document.getElementById('revenue-trend-empty');
@@ -9610,15 +9795,14 @@
               console.warn('[revenue-trend-chart] render failed:', chartErr);
             }
 
-            showToast('Revenue stats refreshed');
+            showToast(hasRealRevenue ? 'Revenue stats refreshed' : 'No revenue_events yet — showing zeros');
           } catch(e) {
             console.error('Failed to refresh revenue stats:', e);
             showToast('Failed to refresh revenue stats', 'error');
           }
         }
         
-        // The dashboards live on Google's side. We don't fake an in-app
-        // "connection" anymore — these now open the real consoles in a new tab.
+        // Official Google dashboards only — no fake in-app "connection"
         function connectAdSense() {
           window.open('https://www.google.com/adsense/start/', '_blank', 'noopener,noreferrer');
         }
@@ -9721,59 +9905,167 @@
         }
         
         // Load analytics data from Firestore
+
+        async function loadGoogleAnalyticsData() {
+          const setText = (id, v) => { const n = document.getElementById(id); if (n) n.textContent = v; };
+          const badge = document.getElementById('ga-source-badge');
+          const status = document.getElementById('ga-status-msg');
+          const barRow = (label, count, total, color = 'bg-yellow-500') => {
+            const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+            const safe = String(label || '').replace(/</g, '&lt;');
+            return `<div class="flex items-center justify-between"><span class="text-slate-300 truncate max-w-[60%]">${safe}</span><div class="flex items-center space-x-2"><div class="w-20 h-1.5 bg-slate-700 rounded overflow-hidden"><div class="h-full ${color}" style="width:${pct}%"></div></div><span class="text-slate-400 text-xs w-14 text-right">${count}</span></div></div>`;
+          };
+          try {
+            const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js');
+            const app = await ensureDefaultApp();
+            const fn = httpsCallable(getFunctions(app), 'getGoogleAnalyticsReport');
+            const res = await fn({});
+            const data = res?.data || {};
+            if (!data.ok) {
+              if (badge) { badge.textContent = data.configured ? 'Error' : 'Setup needed'; badge.className = 'ml-2 px-2 py-0.5 text-[10px] rounded bg-yellow-700 text-white'; }
+              if (status) status.innerHTML = (data.error || 'GA4 unavailable') + (data.helpUrl ? ` <a class="text-blue-400 underline" href="${data.helpUrl}" target="_blank" rel="noopener">Open Analytics</a>` : '');
+              ['ga-top-pages','ga-channels','ga-devices','ga-top-events'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = `<div class="text-slate-500 text-xs">${data.error || 'Not configured'}</div>`;
+              });
+              const trend = document.getElementById('ga-daily-trend');
+              if (trend) trend.innerHTML = '<div class="text-slate-500 text-sm">No GA4 data</div>';
+              setText('ga-users', '—'); setText('ga-sessions', '—'); setText('ga-pageviews', '—'); setText('ga-bounce', '—');
+              return data;
+            }
+
+            const s = data.summary || {};
+            setText('ga-users', Number(s.totalUsers || 0).toLocaleString());
+            setText('ga-sessions', Number(s.sessions || 0).toLocaleString());
+            setText('ga-pageviews', Number(s.screenPageViews || 0).toLocaleString());
+            setText('ga-bounce', typeof s.bounceRate === 'number' ? `${(s.bounceRate * 100).toFixed(1)}%` : '—');
+            if (badge) { badge.textContent = 'GA4 Live'; badge.className = 'ml-2 px-2 py-0.5 text-[10px] rounded bg-green-600 text-white'; }
+            if (status) status.textContent = `Property ${data.propertyId} · ${data.measurementId} · last 30 days`;
+
+            const pages = data.topPages || [];
+            const pageTotal = pages.reduce((a, p) => a + (p.views || 0), 0) || 1;
+            const pagesEl = document.getElementById('ga-top-pages');
+            if (pagesEl) pagesEl.innerHTML = pages.length ? pages.map(p => barRow(p.path, p.views, pageTotal, 'bg-yellow-500')).join('') : '<div class="text-slate-500">No pages</div>';
+
+            const channels = data.channels || [];
+            const chTotal = channels.reduce((a, c) => a + (c.sessions || 0), 0) || 1;
+            const chEl = document.getElementById('ga-channels');
+            if (chEl) chEl.innerHTML = channels.length ? channels.map(c => barRow(c.channel, c.sessions, chTotal, 'bg-green-500')).join('') : '<div class="text-slate-500">No channels</div>';
+
+            const devices = data.devices || [];
+            const devTotal = devices.reduce((a, d) => a + (d.users || 0), 0) || 1;
+            const devEl = document.getElementById('ga-devices');
+            if (devEl) devEl.innerHTML = devices.length ? devices.map(d => barRow(d.device, d.users, devTotal, 'bg-cyan-500')).join('') : '<div class="text-slate-500">No devices</div>';
+
+            const events = data.topEvents || [];
+            const evEl = document.getElementById('ga-top-events');
+            if (evEl) {
+              evEl.innerHTML = events.length
+                ? '<div class="grid grid-cols-2 gap-2">' + events.map(e => `<div class="bg-slate-900/50 rounded px-3 py-2"><div class="text-purple-300 font-medium text-xs truncate">${String(e.event||'').replace(/</g,'&lt;')}</div><div class="text-white font-bold">${e.count}</div></div>`).join('') + '</div>'
+                : '<div class="text-slate-500">No events</div>';
+            }
+
+            const daily = data.daily || [];
+            const trendEl = document.getElementById('ga-daily-trend');
+            if (trendEl) {
+              if (!daily.length) {
+                trendEl.innerHTML = '<div class="text-slate-500 text-sm">No daily rows</div>';
+              } else {
+                const last = daily.slice(-14);
+                const max = Math.max(1, ...last.map(d => d.users || d.views || 0));
+                trendEl.innerHTML = last.map(d => {
+                  const val = d.users || 0;
+                  const pct = Math.max(4, (val / max) * 100);
+                  const label = String(d.date || '').slice(4); // MMDD from YYYYMMDD
+                  const pretty = label.length === 4 ? `${label.slice(0,2)}-${label.slice(2)}` : label;
+                  return `<div class="flex-1 flex flex-col items-center"><div class="w-full bg-yellow-500/80 rounded-t" style="height:${pct}%" title="${d.date}: ${val} users"></div><div class="text-[9px] text-slate-500 mt-1 truncate w-full text-center">${pretty}</div></div>`;
+                }).join('');
+              }
+            }
+            return data;
+          } catch (err) {
+            console.error('[GA4] load failed', err);
+            if (badge) { badge.textContent = 'Error'; badge.className = 'ml-2 px-2 py-0.5 text-[10px] rounded bg-red-700 text-white'; }
+            if (status) status.textContent = err?.message || String(err);
+            return null;
+          }
+        }
+
         async function loadAnalyticsData() {
           try {
-            const { getFirestore, collection, getDocs, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const gaPromise = loadGoogleAnalyticsData().catch((e) => { console.error('[GA4]', e); return null; });
+            const { getFirestore, collection, getDocs, query, where, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
             const el = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+            const cutoff = new Date(Date.now() - 30 * 86400000);
+            const toDate = (v) => {
+              try {
+                if (!v) return null;
+                if (v.toDate) return v.toDate();
+                return new Date(v);
+              } catch (_) { return null; }
+            };
 
-            // --- page_views ---
-            const pvSnap = await getDocs(query(collection(db, 'page_views'), orderBy('timestamp', 'desc'), limit(5000)));
-            const pageViews = pvSnap.docs.map(d => d.data() || {});
+            async function loadRecent(collName) {
+              // Prefer true 30-day server filter; fall back to recent docs + client filter
+              try {
+                const snap = await getDocs(query(
+                  collection(db, collName),
+                  where('timestamp', '>=', cutoff),
+                  orderBy('timestamp', 'desc'),
+                  limit(10000)
+                ));
+                return { docs: snap.docs.map(d => d.data() || {}), truncated: snap.size >= 10000, mode: 'range' };
+              } catch (err) {
+                console.warn(`[Analytics] range query failed for ${collName}, falling back:`, err && err.message);
+                const snap = await getDocs(query(collection(db, collName), orderBy('timestamp', 'desc'), limit(10000)));
+                const docs = snap.docs.map(d => d.data() || {}).filter(d => {
+                  const ts = toDate(d.timestamp);
+                  return ts && ts >= cutoff;
+                });
+                return { docs, truncated: snap.size >= 10000, mode: 'fallback' };
+              }
+            }
+
+            const pv = await loadRecent('page_views');
+            const ae = await loadRecent('analytics_events');
+            const pageViews = pv.docs;
+            const events = ae.docs;
             const totalViews = pageViews.length;
-            const uniqueVisitors = new Set(pageViews.map(v => v.visitorId || v.sessionId)).size;
+            const uniqueVisitors = new Set(pageViews.map(v => v.visitorId || v.sessionId).filter(Boolean)).size;
             el('anal-page-views', totalViews.toLocaleString());
             el('anal-unique-visitors', uniqueVisitors.toLocaleString());
-
-            // --- analytics_events ---
-            const aeSnap = await getDocs(query(collection(db, 'analytics_events'), orderBy('timestamp', 'desc'), limit(5000)));
-            const events = aeSnap.docs.map(d => d.data() || {});
             el('anal-total-events', events.length.toLocaleString());
 
-            // Avg engagement from page_engagement events
             const engagements = events.filter(e => e.event === 'page_engagement' && e.params?.duration_seconds);
             if (engagements.length > 0) {
               const avg = Math.round(engagements.reduce((s, e) => s + (e.params.duration_seconds || 0), 0) / engagements.length);
               el('anal-avg-engagement', avg + 's');
             } else { el('anal-avg-engagement', '--'); }
 
-            // Helper: bar row
             const barRow = (label, count, total, color = 'bg-blue-500') => {
               const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
               return `<div class="flex items-center justify-between"><span class="text-slate-300 truncate max-w-[60%]">${label}</span><div class="flex items-center space-x-2"><div class="w-20 h-1.5 bg-slate-700 rounded overflow-hidden"><div class="h-full ${color}" style="width:${pct}%"></div></div><span class="text-slate-400 text-xs w-14 text-right">${count}</span></div></div>`;
             };
 
-            // Top pages
             const pageCounts = {};
             pageViews.forEach(v => { const p = (v.page || 'unknown').replace(/^\//,'') || 'index'; pageCounts[p] = (pageCounts[p] || 0) + 1; });
             const topPages = Object.entries(pageCounts).sort((a,b) => b[1] - a[1]).slice(0, 8);
             const tpEl = document.getElementById('anal-top-pages');
-            if (tpEl) tpEl.innerHTML = topPages.length ? topPages.map(([p, c]) => barRow(p, c, totalViews, 'bg-blue-500')).join('') : '<div class="text-slate-500">No data</div>';
+            if (tpEl) tpEl.innerHTML = topPages.length ? topPages.map(([p, c]) => barRow(p, c, totalViews, 'bg-blue-500')).join('') : '<div class="text-slate-500">No page_views in last 30 days</div>';
 
-            // Referrer / traffic source
             const refCounts = {};
             pageViews.forEach(v => {
               let src = v.referrer || 'Direct';
               try { if (src.startsWith('http')) src = new URL(src).hostname; } catch (_) {}
-              if (src === window.location.hostname || src === 'redsracing.web.app' || src === 'redsracing-a7f8b.web.app') src = 'Direct';
+              if (src === window.location.hostname || src === 'www.redsracing.org' || src === 'redsracing.org' || src === 'redsracing.web.app' || src === 'redsracing-a7f8b.web.app') src = 'Direct';
               refCounts[src] = (refCounts[src] || 0) + 1;
             });
             const topRefs = Object.entries(refCounts).sort((a,b) => b[1] - a[1]).slice(0, 8);
             const refEl = document.getElementById('anal-referrers');
             if (refEl) refEl.innerHTML = topRefs.length ? topRefs.map(([r, c]) => barRow(r, c, totalViews, 'bg-green-500')).join('') : '<div class="text-slate-500">No data</div>';
 
-            // Device breakdown from userAgent
             const devCounts = { Mobile: 0, Desktop: 0, Tablet: 0 };
             pageViews.forEach(v => {
               const ua = (v.userAgent || '').toLowerCase();
@@ -9784,22 +10076,19 @@
             const devEl = document.getElementById('anal-devices');
             if (devEl) devEl.innerHTML = Object.entries(devCounts).filter(([,c]) => c > 0).sort((a,b) => b[1] - a[1]).map(([d, c]) => barRow(d, c, totalViews, 'bg-yellow-500')).join('') || '<div class="text-slate-500">No data</div>';
 
-            // Top events
             const evCounts = {};
             events.forEach(e => { const n = e.event || 'unknown'; evCounts[n] = (evCounts[n] || 0) + 1; });
             const topEv = Object.entries(evCounts).sort((a,b) => b[1] - a[1]).slice(0, 10);
             const evEl = document.getElementById('anal-top-events');
-            if (evEl) evEl.innerHTML = topEv.length ? '<div class="grid grid-cols-2 md:grid-cols-5 gap-2">' + topEv.map(([n, c]) => `<div class="bg-slate-900/50 rounded px-3 py-2"><div class="text-purple-300 font-medium text-xs truncate">${n}</div><div class="text-white font-bold">${c}</div></div>`).join('') + '</div>' : '<div class="text-slate-500">No events tracked yet</div>';
+            if (evEl) evEl.innerHTML = topEv.length ? '<div class="grid grid-cols-2 md:grid-cols-5 gap-2">' + topEv.map(([n, c]) => `<div class="bg-slate-900/50 rounded px-3 py-2"><div class="text-purple-300 font-medium text-xs truncate">${n}</div><div class="text-white font-bold">${c}</div></div>`).join('') + '</div>' : '<div class="text-slate-500">No analytics_events in last 30 days</div>';
 
-            // Daily trend (last 14 days)
             const dayCounts = {};
-            const now = Date.now();
             for (let i = 13; i >= 0; i--) {
-              const d = new Date(now - i * 86400000);
+              const d = new Date(Date.now() - i * 86400000);
               dayCounts[d.toISOString().split('T')[0]] = 0;
             }
             pageViews.forEach(v => {
-              const ts = v.timestamp?.toDate ? v.timestamp.toDate() : (v.timestamp ? new Date(v.timestamp) : null);
+              const ts = toDate(v.timestamp);
               if (!ts) return;
               const key = ts.toISOString().split('T')[0];
               if (key in dayCounts) dayCounts[key]++;
@@ -9810,19 +10099,22 @@
             if (trendEl) {
               trendEl.innerHTML = dayArr.map(([d, c]) => {
                 const pct = Math.max(4, (c / maxDay) * 100);
-                const label = d.substring(5); // MM-DD
+                const label = d.substring(5);
                 return `<div class="flex-1 flex flex-col items-center"><div class="w-full bg-cyan-500/80 rounded-t" style="height:${pct}%" title="${d}: ${c} views"></div><div class="text-[9px] text-slate-500 mt-1 truncate w-full text-center">${label}</div></div>`;
               }).join('');
             }
 
-            showToast('Analytics loaded');
+            const note = (pv.truncated || ae.truncated)
+              ? ' (capped at 10k docs — older events beyond the cap may be missing)'
+              : '';
+            try { await gaPromise; } catch (_) {}
+            showToast(`Analytics loaded (30 days)${note}`);
           } catch (error) {
             console.error('[Analytics] Error loading data:', error);
             showToast('Failed to load analytics', 'error');
           }
         }
         
-        // Load real Firebase data for all stats
         async function loadRealFirebaseData() {
           try {
             const { getFirestore, collection, getDocs, query, where, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
@@ -9948,8 +10240,8 @@
               galleryPendingEl.textContent = pendingPhotos.size;
             }
             
-            // Update pending badge in gallery section
-            const galleryPendingBadge = document.querySelector('.status-pending');
+            // Update pending badge in gallery section (dedicated id — never touch race-status)
+            const galleryPendingBadge = document.getElementById('gallery-pending-badge');
             if (galleryPendingBadge) {
               galleryPendingBadge.textContent = `${pendingPhotos.size} Pending`;
             }
