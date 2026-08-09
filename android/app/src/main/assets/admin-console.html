@@ -616,6 +616,16 @@
           radial-gradient(ellipse 90% 55% at 100% 15%, rgba(251, 191, 36, 0.09), transparent 50%),
           radial-gradient(ellipse 70% 45% at 0% 85%, rgba(239, 68, 68, 0.07), transparent 50%),
           linear-gradient(180deg, #0f172a 0%, #0a0f1a 45%, #070b14 100%);
+        overflow-x: hidden;
+        max-width: 100vw;
+      }
+
+      /* Keep sticky admin header above drawer overlay so hamburger/home stay tappable */
+      @media (max-width: 1023.98px) {
+        html:not(.rr-native-app) body.admin-console-page > header.sticky,
+        html:not(.rr-native-app) body.admin-console-page > header[class*="sticky"] {
+          z-index: 10055 !important;
+        }
       }
 
       .admin-main {
@@ -840,6 +850,72 @@
         display: none !important;
       }
 
+      /* Mobile/tablet web: explicit Home exit (desktop uses header nav "Home") */
+      #admin-mobile-home {
+        display: none;
+      }
+      @media (max-width: 1023.98px) {
+        html:not(.rr-native-app) #admin-mobile-home {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          margin-left: auto;
+          flex-shrink: 0;
+          min-width: 44px;
+          min-height: 44px;
+          padding: 10px;
+          border-radius: 12px;
+          border: 1px solid rgba(148, 163, 184, 0.25);
+          background: rgba(15, 23, 42, 0.65);
+          color: #fbbf24;
+          text-decoration: none;
+        }
+        html:not(.rr-native-app) #admin-mobile-home:active {
+          background: rgba(251, 191, 36, 0.18);
+        }
+      }
+      #admin-drawer-home {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        margin-bottom: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: rgba(15, 23, 42, 0.75);
+        color: #e2e8f0;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      }
+      #admin-drawer-home:hover,
+      #admin-drawer-home:focus-visible {
+        background: rgba(30, 64, 175, 0.35);
+        border-color: rgba(251, 191, 36, 0.45);
+        color: #fbbf24;
+        outline: none;
+      }
+      #admin-menu-bar-home {
+        display: none;
+        margin-left: auto;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        background: rgba(15, 23, 42, 0.55);
+        color: #fbbf24;
+        text-decoration: none;
+        flex-shrink: 0;
+      }
+      body.mobile-app #admin-menu-bar-home {
+        display: inline-flex;
+      }
+
       body.mobile-app #admin-sidebar-overlay,
       html:not(.rr-native-app) #admin-sidebar-overlay {
         display: block;
@@ -854,7 +930,7 @@
         pointer-events: none;
         transition: opacity 0.28s ease, visibility 0.28s ease;
       }
-      @media (min-width: 768px) {
+      @media (min-width: 1024px) {
         html:not(.rr-native-app) #admin-sidebar-overlay {
           display: none !important;
         }
@@ -865,7 +941,8 @@
         pointer-events: auto;
       }
 
-      @media (max-width: 767.98px) {
+      /* Phone + tablet: Command Center as left sheet (matches mobile-web ≤1023.98px) */
+      @media (max-width: 1023.98px) {
         html:not(.rr-native-app) #admin-sidebar.admin-sidebar,
         body.mobile-app #admin-sidebar.admin-sidebar {
           display: flex !important;
@@ -886,6 +963,8 @@
           box-shadow: 20px 0 80px rgba(0, 0, 0, 0.55);
           border-right: 1px solid rgba(251, 191, 36, 0.12);
           -webkit-overflow-scrolling: touch;
+          /* Keep off-canvas drawer out of document scroll width */
+          will-change: transform;
         }
         body.drawer-sidebar-open #admin-sidebar.admin-sidebar {
           transform: translate3d(0, 0, 0);
@@ -898,6 +977,23 @@
         body.mobile-app .admin-sidebar-close {
           display: inline-flex !important;
         }
+        html:not(.rr-native-app) .admin-main,
+        html:not(.rr-native-app) .admin-main .admin-card,
+        html:not(.rr-native-app) .admin-main .p-4,
+        html:not(.rr-native-app) .admin-main .p-6 {
+          max-width: 100%;
+        }
+        html:not(.rr-native-app) .admin-main table {
+          display: block;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        html:not(.rr-native-app) .admin-main .overflow-x-auto,
+        html:not(.rr-native-app) .admin-main [class*="overflow-x"] {
+          max-width: 100%;
+        }
       }
 
       body.mobile-app #admin-menu-bar {
@@ -908,7 +1004,7 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
-        @media (max-width: 767.98px) {
+        @media (max-width: 1023.98px) {
           #admin-sidebar.admin-sidebar {
             transition: none !important;
           }
@@ -930,6 +1026,9 @@
         <span class="admin-app-bar-title truncate">Command Center</span>
         <span class="admin-app-bar-sub truncate">RedsRacing Admin</span>
       </div>
+      <a href="index.html" id="admin-menu-bar-home" aria-label="Back to RedsRacing home">
+        <i class="fas fa-home" aria-hidden="true"></i>
+      </a>
     </div>
     <div id="admin-sidebar-overlay" onclick="closeAdminDrawer()" aria-hidden="true"></div>
 
@@ -979,13 +1078,16 @@
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
       <nav class="container mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 max-w-full">
         <!-- Mobile hamburger — LEFT on phones -->
-        <button id="mobile-menu-button" class="md:hidden shrink-0 text-white focus:outline-none" type="button" aria-label="Open admin sections" aria-controls="admin-sidebar" aria-expanded="false">
+        <button id="mobile-menu-button" class="lg:hidden shrink-0 text-white focus:outline-none" type="button" aria-label="Open admin sections" aria-controls="admin-sidebar" aria-expanded="false">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
           </svg>
         </button>
-        <a href="index.html" class="rr-brand text-2xl sm:text-4xl font-racing uppercase tracking-wider min-w-0 truncate flex-1 md:flex-none">
+        <a href="index.html" class="rr-brand text-2xl sm:text-4xl font-racing uppercase tracking-wider min-w-0 truncate flex-1 md:flex-none" aria-label="RedsRacing home">
           <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+        </a>
+        <a href="index.html" id="admin-mobile-home" aria-label="Back to RedsRacing home" title="Home">
+          <i class="fas fa-home text-lg" aria-hidden="true"></i>
         </a>
         
         <!-- Navigation Links (desktop) -->
@@ -1059,7 +1161,7 @@
     <!-- Main Dashboard Layout -->
     <div class="flex min-h-screen">
       <!-- Modern Sidebar (desktop: in flow; in-app WebView: same markup slides in from left) -->
-      <aside id="admin-sidebar" class="sidebar-nav admin-sidebar w-64 lg:w-72 flex-shrink-0 hidden md:block">
+      <aside id="admin-sidebar" class="sidebar-nav admin-sidebar w-64 lg:w-72 flex-shrink-0 hidden lg:block">
         <div class="p-6 flex flex-col h-full min-h-0 max-h-full">
           <div class="mb-5 shrink-0">
             <div class="flex items-center justify-between gap-2">
@@ -1079,6 +1181,15 @@
           </div>
           
           <nav class="space-y-1 flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-2">
+            <!-- Leave admin → public site (mobile drawer / always available) -->
+            <div class="mb-3">
+              <h3 class="text-[10px] uppercase tracking-[0.2em] text-slate-500 px-3 mb-2 font-bold">Site</h3>
+              <a href="index.html" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300" data-admin-exit-home>
+                <i class="fas fa-home w-5 mr-3 text-amber-300" aria-hidden="true"></i>
+                <span>Back to home</span>
+              </a>
+            </div>
+
             <!-- Dashboard -->
             <div class="mb-3">
               <h3 class="text-[10px] uppercase tracking-[0.2em] text-slate-500 px-3 mb-2 font-bold">Dashboard</h3>
@@ -1189,6 +1300,10 @@
           </nav>
 
           <div id="admin-sidebar-app-footer" class="shrink-0 pt-4 mt-1 border-t border-slate-700/50">
+            <a href="index.html" id="admin-drawer-home" aria-label="Back to RedsRacing home">
+              <i class="fas fa-home" aria-hidden="true"></i>
+              <span>Back to home</span>
+            </a>
             <button type="button" id="mobile-logout-button" class="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-900/25">
               <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
               <span>Sign Out</span>
@@ -3476,25 +3591,13 @@
           if (headerMenuBtn) headerMenuBtn.addEventListener('click', toggleMobileMenu);
           if (mainMenuBtn) mainMenuBtn.addEventListener('click', toggleMobileMenu);
 
-          // Admin Menu sidebar toggle (the yellow button in main content area)
+          // Admin Menu sidebar toggle (yellow button) → Command Center drawer
           const sidebarToggle = document.getElementById('sidebar-toggle');
-          if (sidebarToggle && mobileMenu) {
+          if (sidebarToggle) {
             sidebarToggle.addEventListener('click', function(e) {
               e.preventDefault();
               e.stopPropagation();
-              const isHidden = mobileMenu.classList.contains('hidden');
-              console.log('[ADMIN] Sidebar toggle clicked, isHidden:', isHidden);
-              if (isHidden) {
-                mobileMenu.classList.remove('hidden');
-                mobileMenu.style.cssText = 'position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;z-index:9999 !important;background:rgba(15,23,42,0.98) !important;overflow-y:auto !important;display:flex !important;flex-direction:column !important;';
-                document.body.style.overflow = 'hidden';
-                console.log('[ADMIN] Mobile menu shown');
-              } else {
-                mobileMenu.classList.add('hidden');
-                mobileMenu.style.cssText = 'display:none !important;';
-                document.body.style.overflow = '';
-                console.log('[ADMIN] Mobile menu hidden');
-              }
+              if (typeof toggleAdminDrawer === 'function') toggleAdminDrawer();
             });
           }
           
@@ -3525,7 +3628,7 @@
             });
           });
           
-          // Close dropdowns when clicking outside
+          // Close dropdowns / admin drawer when clicking outside
           document.addEventListener('click', function(e) {
             if (!e.target.closest('.dropdown')) {
               document.querySelectorAll('header .dropdown-menu').forEach(function(m) {
@@ -3533,13 +3636,13 @@
                 m.style.cssText = '';
               });
             }
-            if (!e.target.closest('#mobile-menu') && !e.target.closest('#mobile-menu-button') && !e.target.closest('#mobile-menu-button-main')) {
-              if (mobileMenu && !mobileMenu.classList.contains('-translate-x-full')) {
-                mobileMenu.classList.add('-translate-x-full');
-                if (mobileOverlay) mobileOverlay.classList.add('hidden');
-                document.body.style.overflow = '';
-              }
-            }
+            if (!document.body.classList.contains('drawer-sidebar-open')) return;
+            const inDrawer = e.target.closest('#admin-sidebar')
+              || e.target.closest('#mobile-menu-button')
+              || e.target.closest('#mobile-menu-button-main')
+              || e.target.closest('#android-hamburger')
+              || e.target.closest('#sidebar-toggle');
+            if (!inDrawer && typeof closeAdminDrawer === 'function') closeAdminDrawer();
           });
         } catch(err) { console.error('Dropdown init error:', err); }
       });
@@ -5363,9 +5466,14 @@
           };
         }
 
+        let refreshLogsGeneration = 0;
+        const REFRESH_LOGS_BTN_HTML = '<i class="fas fa-sync mr-2"></i>Refresh';
+
         async function refreshLogsUI() {
           const button = document.getElementById('refresh-logs-btn');
-          const originalHtml = button?.innerHTML;
+          // Guard against overlapping calls (nav hash + click, or duplicate listeners).
+          // Restoring captured originalHtml races and can leave the button stuck on "Loading...".
+          const generation = ++refreshLogsGeneration;
           
           try {
             if (button) {
@@ -5383,6 +5491,7 @@
               console.warn('[logs] serverTimestamp query failed, trying createdAt', qErr);
               snap = await getDocs(query(collection(db, 'client_logs'), orderBy('createdAt','desc'), limit(100)));
             }
+            if (generation !== refreshLogsGeneration) return;
             const tbody = document.getElementById('logs-table-body');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -5390,6 +5499,8 @@
               const tr = document.createElement('tr');
               tr.innerHTML = '<td class="p-2 text-slate-400" colspan="7">No errors logged yet</td>';
               tbody.appendChild(tr);
+              const countEl = document.getElementById('logs-count');
+              if (countEl) countEl.textContent = '0 errors logged';
               return;
             }
             snap.forEach(d => {
@@ -5445,16 +5556,16 @@
               };
               
               tr.innerHTML = `
-                <td class="p-2 whitespace-nowrap text-xs">${escapeHtml(when)}</td>
+                <td class="p-2 whitespace-nowrap text-xs text-slate-200">${escapeHtml(when)}</td>
                 <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${errorType.toLowerCase().includes('promise') ? 'bg-orange-600/20 text-orange-400' : 'bg-red-600/20 text-red-400'}">${escapeHtml(errorType)}</span></td>
-                <td class="p-2 text-xs" style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(message)}">${escapeHtml(message)}</td>
+                <td class="p-2 text-xs text-slate-200" style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(message)}">${escapeHtml(message)}</td>
                 <td class="p-2 text-xs"><span class="font-semibold text-yellow-300">${escapeHtml(pageName)}</span>${docTitle ? '<br><span class="text-slate-500 text-[10px]">' + escapeHtml(docTitle) + '</span>' : ''}</td>
                 <td class="p-2 text-xs font-mono">
                   <div class="text-cyan-300 font-semibold">${escapeHtml(loc.display)}</div>
                   ${loc.line > 0 ? `<div class="text-slate-500 text-[10px]">line ${loc.line}${loc.column ? ', col ' + loc.column : ''}</div>` : '<div class="text-slate-600 text-[10px]">no line info</div>'}
                 </td>
                 <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${device === 'mobile' ? 'bg-blue-600/20 text-blue-400' : device === 'desktop' ? 'bg-purple-600/20 text-purple-400' : 'bg-gray-600/20 text-gray-400'}">${escapeHtml(device)}${isAndroidApp}${isIosApp}</span></td>
-                <td class="p-2 text-xs truncate">${escapeHtml(userId)}</td>
+                <td class="p-2 text-xs text-slate-300 truncate">${escapeHtml(userId)}</td>
               `;
               
               tr.addEventListener('click', () => {
@@ -5470,12 +5581,14 @@
             showToast(`Loaded ${snap.size} error logs`, 'info');
           } catch (e) {
             console.error('Failed to load logs:', e);
-            showToast('Failed to load error logs', 'error');
-            const countEl = document.getElementById('logs-count');
-            if (countEl) countEl.textContent = 'Error loading';
+            if (generation === refreshLogsGeneration) {
+              showToast('Failed to load error logs', 'error');
+              const countEl = document.getElementById('logs-count');
+              if (countEl) countEl.textContent = 'Error loading';
+            }
           } finally {
-            if (button) {
-              button.innerHTML = originalHtml || '<i class="fas fa-sync mr-2"></i>Refresh';
+            if (button && generation === refreshLogsGeneration) {
+              button.innerHTML = REFRESH_LOGS_BTN_HTML;
               button.disabled = false;
             }
           }
@@ -7054,13 +7167,8 @@
             });
           }
           
-          // Setup refresh logs button
-          const refreshLogsBtn = document.getElementById('refresh-logs-btn');
-          if (refreshLogsBtn) {
-            refreshLogsBtn.addEventListener('click', () => {
-              try { refreshLogsUI(); } catch(e) { console.error('Failed to refresh logs:', e); }
-            });
-          }
+          // Refresh logs button is wired once in the primary admin init block
+          // (duplicate listeners raced refreshLogsUI and stuck the button on Loading...).
           
           // Setup refresh Q&A button
           const refreshQnaBtn = document.getElementById('refresh-qna-btn');

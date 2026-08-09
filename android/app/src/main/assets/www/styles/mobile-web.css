@@ -9,7 +9,7 @@ html:not(.rr-native-app) {
   /* ---- Base mobile hygiene ---- */
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 1023.98px) {
   html:not(.rr-native-app) {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
@@ -75,13 +75,15 @@ html:not(.rr-native-app) {
     color: #fbbf24;
   }
 
-  /* If hamburger sits inside a clock/menu wrapper, pull that group left */
-  html:not(.rr-native-app) header nav > .md\:hidden {
+  /* If hamburger sits inside a clock/menu wrapper, pull that group left.
+     Attribute selectors avoid Stylelint selector-class-pattern on .md\:hidden. */
+  html:not(.rr-native-app) header nav > [class*="md:hidden"] {
     order: -30;
     flex-shrink: 0;
     margin-left: 0 !important;
   }
-  html:not(.rr-native-app) header nav > .md\:hidden #mobile-menu-button {
+
+  html:not(.rr-native-app) header nav > [class*="md:hidden"] #mobile-menu-button {
     order: 0 !important;
   }
 
@@ -100,12 +102,16 @@ html:not(.rr-native-app) {
     white-space: nowrap;
   }
 
-  /* Desktop-only clusters stay out of the mobile flex flow */
+  /* Desktop-only clusters stay out of the mobile/tablet flex flow.
+     Use attribute selectors so Stylelint selector-class-pattern stays clean. */
   html:not(.rr-native-app) #admin-top-auth {
     display: none !important;
   }
-  html:not(.rr-native-app) header nav > .hidden.md\:flex,
-  html:not(.rr-native-app) header nav > .hidden.lg\:flex {
+
+  html:not(.rr-native-app) header nav > .hidden[class*="md:flex"],
+  html:not(.rr-native-app) header nav > .hidden[class*="lg:flex"],
+  html:not(.rr-native-app) header nav > [class*="md:flex"],
+  html:not(.rr-native-app) header nav > [class*="lg:flex"] {
     display: none !important;
   }
 

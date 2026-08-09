@@ -1112,7 +1112,7 @@
   function normalizeMobileHeader() {
     try {
       if (document.documentElement.classList.contains('rr-native-app')) return;
-      const narrow = !window.matchMedia || window.matchMedia('(max-width: 767.98px)').matches;
+      const narrow = !window.matchMedia || window.matchMedia('(max-width: 1023.98px)').matches;
       if (!narrow) return;
       const nav = document.querySelector('header nav');
       if (!nav) return;

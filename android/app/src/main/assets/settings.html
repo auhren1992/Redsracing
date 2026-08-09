@@ -19,7 +19,8 @@
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/input-fix.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
-    <link rel="stylesheet" href="styles/mobile-menu-tabs.css?v=2026080914" />
+    <link rel="stylesheet" href="styles/mobile-menu-tabs.css?v=2026080917" />
+    <link rel="stylesheet" href="styles/mobile-web.css?v=2026080917" />
     
     <style>
       /* Modern Settings Page Styles */
@@ -33,13 +34,65 @@
       html:not(.dark) body {
         background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
       }
+
+      /* Settings header: real bar (not a floating orphan hamburger) */
+      .settings-site-header {
+        background: rgba(15, 23, 42, 0.92);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      html:not(.dark) .settings-site-header,
+      html[data-theme="light"] .settings-site-header {
+        background: rgba(255, 255, 255, 0.92);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+      }
+      html:not(.dark) .settings-site-header .nav-link,
+      html[data-theme="light"] .settings-site-header .nav-link {
+        color: #334155;
+      }
+      html:not(.dark) .settings-site-header .nav-link:hover,
+      html:not(.dark) .settings-site-header .nav-link[aria-current="page"],
+      html[data-theme="light"] .settings-site-header .nav-link:hover,
+      html[data-theme="light"] .settings-site-header .nav-link[aria-current="page"] {
+        color: #1d4ed8;
+      }
+      /* Soften hamburger on light settings (global mobile-web chrome is too heavy here) */
+      html:not(.dark) .settings-site-header #mobile-menu-button,
+      html[data-theme="light"] .settings-site-header #mobile-menu-button {
+        background: rgba(241, 245, 249, 0.95) !important;
+        border: 1px solid rgba(148, 163, 184, 0.45) !important;
+        color: #0f172a !important;
+        box-shadow: none !important;
+      }
+      .settings-site-header #mobile-menu-button {
+        box-shadow: none !important;
+      }
+      /* Don't rely on Tailwind lg:* utilities (not all are in committed tailwind.css) */
+      .settings-desktop-nav {
+        display: none;
+        align-items: center;
+        gap: 1.5rem;
+        margin-left: auto;
+        font-weight: 700;
+      }
+      @media (min-width: 1024px) {
+        .settings-site-header #mobile-menu-button {
+          display: none !important;
+        }
+        .settings-desktop-nav {
+          display: flex !important;
+        }
+        .settings-console-wrap {
+          margin-left: 0 !important;
+        }
+      }
       
       .settings-hero {
         background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(251, 191, 36, 0.1));
         border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-        padding: 3rem 1.5rem 2rem;
+        padding: 2rem 1.5rem 1.75rem;
         text-align: center;
-        margin-top: 70px;
+        margin-top: 0;
         transition: background 0.3s ease, border-color 0.3s ease;
       }
       
@@ -476,7 +529,7 @@
       /* Responsive */
       @media (max-width: 768px) {
         .settings-hero {
-          margin-top: 60px;
+          margin-top: 0;
         }
         
         .setting-row {
@@ -515,8 +568,98 @@
     </style>
   </head>
   <body>
-    <!-- Navigation -->
-    <div id="navigation-placeholder"></div>
+    <!-- Real site header (replaces empty #navigation-placeholder that left a floating orphan hamburger) -->
+    <header class="settings-site-header sticky w-full top-0 z-50">
+      <nav class="container mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 max-w-full">
+        <button
+          id="mobile-menu-button"
+          type="button"
+          class="lg:hidden shrink-0 focus:outline-none"
+          aria-label="Open menu"
+          aria-expanded="false"
+          aria-controls="mobile-menu-tabs"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+
+        <a href="index.html" class="text-2xl sm:text-3xl font-racing uppercase tracking-wider shrink-0 min-w-0">
+          <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+        </a>
+
+        <div class="settings-desktop-nav">
+          <a href="index.html" class="nav-link">Home</a>
+          <div class="relative dropdown">
+            <button type="button" class="dropdown-toggle nav-link">
+              Drivers <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="driver.html" class="dropdown-item">Jon Kirsch #8</a>
+              <a href="jonny.html" class="dropdown-item">Jonny Kirsch #88</a>
+              <a href="legends.html" class="dropdown-item">Team Legends</a>
+            </div>
+          </div>
+          <div class="relative dropdown">
+            <button type="button" class="dropdown-toggle nav-link">
+              Racing <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu modern-dropdown">
+              <a href="schedule.html" class="dropdown-item">Schedule</a>
+              <a href="leaderboard.html" class="dropdown-item">Leaderboard</a>
+              <a href="videos.html" class="dropdown-item">Videos</a>
+            </div>
+          </div>
+          <a href="admin-console.html" class="nav-link">Dashboard</a>
+          <a href="settings.html" class="nav-link text-yellow-400" aria-current="page">Settings</a>
+        </div>
+
+        <div class="settings-console-wrap ml-auto flex items-center gap-2 shrink-0">
+          <!-- Home stays visible for guests; admin-console links are hidden by navigation.js for non-admins -->
+          <a
+            href="index.html"
+            class="settings-home-link inline-flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg transition-colors"
+          >
+            <i class="fas fa-home text-yellow-500" aria-hidden="true"></i>
+            <span>Home</span>
+          </a>
+          <a
+            href="admin-console.html"
+            class="settings-console-link inline-flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg transition-colors"
+            title="Admin Console"
+          >
+            <i class="fas fa-gauge-high text-yellow-500" aria-hidden="true"></i>
+            <span>Console</span>
+          </a>
+        </div>
+      </nav>
+    </header>
+    <style>
+      .settings-home-link,
+      .settings-console-link {
+        color: #e2e8f0;
+        background: rgba(30, 41, 59, 0.7);
+        border: 1px solid rgba(100, 116, 139, 0.5);
+      }
+      .settings-home-link:hover,
+      .settings-console-link:hover { background: rgba(51, 65, 85, 0.85); }
+      html:not(.dark) .settings-home-link,
+      html:not(.dark) .settings-console-link,
+      html[data-theme="light"] .settings-home-link,
+      html[data-theme="light"] .settings-console-link {
+        color: #0f172a;
+        background: rgba(241, 245, 249, 0.95);
+        border: 1px solid rgba(148, 163, 184, 0.45);
+      }
+      html:not(.dark) .settings-home-link:hover,
+      html:not(.dark) .settings-console-link:hover,
+      html[data-theme="light"] .settings-home-link:hover,
+      html[data-theme="light"] .settings-console-link:hover { background: #e2e8f0; }
+      /* Home CTA always visible (do not use !important on Console — nav.js hides it for non-admins) */
+      .settings-home-link {
+        display: inline-flex !important;
+      }
+    </style>
     
     <!-- Hero Section -->
     <div class="settings-hero">
@@ -734,7 +877,7 @@
     
     <!-- Scripts -->
     <script type="module" src="navigation.js"></script>
-    <script src="assets/js/mobile-menu-tabs.js?v=2026080914"></script>
+    <script src="assets/js/mobile-menu-tabs.js?v=2026080917"></script>
     
     <script type="module">
       import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
