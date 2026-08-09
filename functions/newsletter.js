@@ -6,7 +6,7 @@ const logger = require("firebase-functions/logger");
 const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
 const nodemailer = require("nodemailer");
 
-const { escapeHtml } = require("./escape-html");
+const htmlEscape = require("./escape-html");
 
 // Initialize MailerSend client
 const getMailerSend = () => {
@@ -267,10 +267,10 @@ exports.notifyNewRace = onCall({
     throw new HttpsError('invalid-argument', 'raceTitle, raceDate, and raceLocation are required');
   }
 
-  const safeTitle = escapeHtml(raceTitle);
-  const safeDate = escapeHtml(raceDate);
-  const safeLocation = escapeHtml(raceLocation);
-  const safeDetails = raceDetails ? escapeHtml(raceDetails) : '';
+  const safeTitle = htmlEscape.escapeHtml(raceTitle);
+  const safeDate = htmlEscape.escapeHtml(raceDate);
+  const safeLocation = htmlEscape.escapeHtml(raceLocation);
+  const safeDetails = raceDetails ? htmlEscape.escapeHtml(raceDetails) : '';
 
   try {
     const mailerSend = getMailerSend();

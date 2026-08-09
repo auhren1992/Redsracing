@@ -575,7 +575,7 @@ exports.ensureDefaultRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) 
 // The historical K1 Firestore documents (k1_stats/*) are preserved as a
 // read-only archive; static snapshots live under data/k1_*_addison_history.json.
 
-const { scrapeSpeedhiveJon } = require("./speedhive-jon");
+const speedhiveJon = require("./speedhive-jon");
 
 // Speedhive: staff-only HTTP trigger (prevents public DoS/cost abuse)
 exports.fetchSpeedhiveJon = onRequest({ secrets: ["SENTRY_DSN"], timeoutSeconds: 120, memory: "1GiB" }, async (req, res) => {
@@ -589,7 +589,7 @@ exports.fetchSpeedhiveJon = onRequest({ secrets: ["SENTRY_DSN"], timeoutSeconds:
       return res.status(authErr.status || 401).json({ ok: false, message: authErr.message || 'Unauthorized' });
     }
 
-    const events = await scrapeSpeedhiveJon();
+    const events = await speedhiveJon.scrapeSpeedhiveJon();
     res.status(200).json({ ok: true, events });
   } catch (error) {
     try { Sentry.captureException(error); } catch (_) {}
@@ -600,7 +600,7 @@ exports.fetchSpeedhiveJon = onRequest({ secrets: ["SENTRY_DSN"], timeoutSeconds:
 // Schedule: refresh Speedhive daily via shared scrape (no unauthenticated HTTP hop)
 exports.speedhiveAutoRefreshJon = onSchedule({ schedule: 'every 24 hours', timeZone: 'America/Chicago', secrets: ["SENTRY_DSN"], timeoutSeconds: 120, memory: "1GiB" }, async () => {
   try {
-    await scrapeSpeedhiveJon();
+    await speedhiveJon.scrapeSpeedhiveJon();
   } catch (e) {
     try { Sentry.captureException(e); } catch (_) {}
   }

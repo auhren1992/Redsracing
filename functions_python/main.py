@@ -151,6 +151,29 @@ def _rate_limit_start_window(ref, bucket: str, now):
     )
 
 
+def _enforce_ip_rate_limit_inner(req, bucket: str, max_requests: int, window_seconds: int):
+    db = firestore.client()
+    ip = get_client_ip(req) or "unknown"
+    doc_id = hashlib.sha256(f"{bucket}:{ip}".encode("utf-8")).hexdigest()[:48]
+    ref = db.collection("_rate_limits").document(doc_id)
+    now = datetime.utcnow()
+    snap = ref.get()
+    if not snap.exists:
+        _rate_limit_start_window(ref, bucket, now)
+        return True, None
+
+    data = snap.to_dict() or {}
+    count = int(data.get("count") or 0)
+    elapsed = _rate_limit_elapsed_seconds(data.get("windowStart"), now, window_seconds)
+    if elapsed >= window_seconds:
+        _rate_limit_start_window(ref, bucket, now)
+        return True, None
+    if count >= max_requests:
+        return False, _rate_limit_blocked_response()
+    ref.set({"count": count + 1, "updatedAt": firestore.SERVER_TIMESTAMP}, merge=True)
+    return True, None
+
+
 def enforce_ip_rate_limit(req, bucket: str, max_requests: int = 8, window_seconds: int = 3600):
     """Firestore-backed IP rate limit for public form endpoints.
 
@@ -158,28 +181,7 @@ def enforce_ip_rate_limit(req, bucket: str, max_requests: int = 8, window_second
     Fails open if the rate-limit store is unavailable so legitimate mail is not lost.
     """
     try:
-        db = firestore.client()
-        ip = get_client_ip(req) or "unknown"
-        doc_id = hashlib.sha256(f"{bucket}:{ip}".encode("utf-8")).hexdigest()[:48]
-        ref = db.collection("_rate_limits").document(doc_id)
-        now = datetime.utcnow()
-        snap = ref.get()
-        if not snap.exists:
-            _rate_limit_start_window(ref, bucket, now)
-            return True, None
-
-        data = snap.to_dict() or {}
-        count = int(data.get("count") or 0)
-        elapsed = _rate_limit_elapsed_seconds(
-            data.get("windowStart"), now, window_seconds
-        )
-        if elapsed >= window_seconds:
-            _rate_limit_start_window(ref, bucket, now)
-            return True, None
-        if count >= max_requests:
-            return False, _rate_limit_blocked_response()
-        ref.set({"count": count + 1, "updatedAt": firestore.SERVER_TIMESTAMP}, merge=True)
-        return True, None
+        return _enforce_ip_rate_limit_inner(req, bucket, max_requests, window_seconds)
     except Exception as e:
         try:
             sentry_sdk.capture_exception(e)
