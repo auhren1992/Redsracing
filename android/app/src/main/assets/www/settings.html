@@ -610,29 +610,46 @@
         </div>
 
         <div class="settings-console-wrap ml-auto flex items-center gap-2 shrink-0">
+          <!-- Home stays visible for guests; admin-console links are hidden by navigation.js for non-admins -->
+          <a
+            href="index.html"
+            class="settings-home-link inline-flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg transition-colors"
+          >
+            <i class="fas fa-home text-yellow-500" aria-hidden="true"></i>
+            <span>Home</span>
+          </a>
           <a
             href="admin-console.html"
             class="settings-console-link inline-flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg transition-colors"
+            title="Admin Console"
           >
-            <i class="fas fa-arrow-left text-yellow-500" aria-hidden="true"></i>
+            <i class="fas fa-gauge-high text-yellow-500" aria-hidden="true"></i>
             <span>Console</span>
           </a>
         </div>
       </nav>
     </header>
     <style>
+      .settings-home-link,
       .settings-console-link {
         color: #e2e8f0;
         background: rgba(30, 41, 59, 0.7);
         border: 1px solid rgba(100, 116, 139, 0.5);
       }
+      .settings-home-link:hover,
       .settings-console-link:hover { background: rgba(51, 65, 85, 0.85); }
+      html:not(.dark) .settings-home-link,
       html:not(.dark) .settings-console-link {
         color: #0f172a;
         background: rgba(241, 245, 249, 0.95);
         border: 1px solid rgba(148, 163, 184, 0.45);
       }
+      html:not(.dark) .settings-home-link:hover,
       html:not(.dark) .settings-console-link:hover { background: #e2e8f0; }
+      /* Home CTA always visible (do not use !important on Console — nav.js hides it for non-admins) */
+      .settings-home-link {
+        display: inline-flex !important;
+      }
     </style>
     
     <!-- Hero Section -->
