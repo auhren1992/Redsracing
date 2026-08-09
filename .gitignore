@@ -39,6 +39,8 @@ build
 __pycache__/
 *.py[cod]
 *$py.class
+.venv/
+venv/
 
 # Certificates and private keys
 certificates/

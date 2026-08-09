@@ -1,0 +1,13 @@
+services:
+  1min-openai-relay:
+    build: .
+    image: redsracing/1min-openai-relay:local
+    container_name: 1min-openai-relay
+    ports:
+      - "5001:5001"
+    environment:
+      # Critical: allow every 1min.ai model ID, not just a small subset.
+      ALLOW_ALL_MODELS: "true"
+      LOG_LEVEL: INFO
+      PORT: "5001"
+    restart: unless-stopped
