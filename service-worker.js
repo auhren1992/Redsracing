@@ -12,7 +12,7 @@
  */
 /* eslint-disable no-restricted-globals */
 
-const CACHE_VERSION = "redsracing-v2-2026051203";
+const CACHE_VERSION = "redsracing-v2-2026080901";
 const STATIC_CACHE = CACHE_VERSION + "-static";
 const HTML_CACHE = CACHE_VERSION + "-html";
 
@@ -24,7 +24,6 @@ const PRECACHE_URLS = [
   "/jonny.html",
   "/gallery.html",
   "/manifest.json",
-  "/styles/main.css",
   "/assets/js/page-meta.js",
   "/assets/js/firebase-core.js",
   "/assets/js/navigation.js",
@@ -140,12 +139,27 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Network-first for CSS so brand/theme polish ships immediately
+  if (url.pathname.indexOf("/styles/") === 0) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && res.status === 200) {
+            const copy = res.clone();
+            caches.open(STATIC_CACHE).then((c) => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req).then((hit) => hit || Response.error())),
+    );
+    return;
+  }
+
   // Cache-first for /assets/ and /data/schedule.json
   if (
     url.pathname.indexOf("/assets/") === 0 ||
     url.pathname === "/data/schedule.json" ||
-    url.pathname === "/manifest.json" ||
-    url.pathname.indexOf("/styles/") === 0
+    url.pathname === "/manifest.json"
   ) {
     event.respondWith(
       caches.match(req).then((hit) => {

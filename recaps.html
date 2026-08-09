@@ -17,8 +17,8 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico" /><link rel="manifest" href="/manifest.json" />
   <link rel="stylesheet" href="styles/tailwind.css" />
   <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles/main.css" /><link rel="stylesheet" href="styles/input-fix.css" />
-  <link rel="stylesheet" href="styles/modern-nav.css" /><link rel="stylesheet" href="styles/mobile-menu-tabs.css" />
+  <link rel="stylesheet" href="styles/main.css?v=2026080901" /><link rel="stylesheet" href="styles/input-fix.css" />
+  <link rel="stylesheet" href="styles/modern-nav.css?v=2026080901" /><link rel="stylesheet" href="styles/mobile-menu-tabs.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -33,7 +33,7 @@
     <meta name="theme-color" content="#fbbf24" />
       <meta property="og:image" content="/assets/img/og-default.jpg" />
       <meta name="twitter:image" content="/assets/img/og-default.jpg" />
-      <script src="assets/js/page-meta.js" defer></script>
+      <script src="assets/js/page-meta.js?v=2026080901" defer></script>
       <script src="assets/js/site-search.js" defer></script>
   </head>
 <body class="flex flex-col min-h-screen">
@@ -60,7 +60,7 @@
           <span>Results you can share</span>
         </div>
         <h1 class="rr-hero-title text-4xl md:text-6xl text-white mb-3">RACE RECAPS</h1>
-        <p class="rr-hero-sub text-lg md:text-xl mb-7">Every race night — quick hits for Jon (#8) and Jonny (#88).</p>
+        <p class="rr-hero-sub text-lg md:text-xl mb-7">Race night, recapped — quick hits for #8 and #88.</p>
 
         <div class="flex flex-wrap items-center justify-center gap-3">
           <label class="text-slate-300 text-sm font-bold uppercase tracking-wider" for="season-select">Season</label>
@@ -84,7 +84,7 @@
     <div id="recaps-list" class="hidden space-y-6"></div>
   </div>
   <div id="share-toast" class="share-toast"><i class="fas fa-check mr-2"></i>Copied to clipboard!</div>
-  <script type="module" src="navigation.js"></script><script src="assets/js/mobile-menu-tabs.js"></script>
+  <script type="module" src="navigation.js?v=2026080901"></script><script src="assets/js/mobile-menu-tabs.js"></script>
   <script>
   if(!firebase.apps.length)firebase.initializeApp({apiKey:"AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",authDomain:"redsracing-a7f8b.firebaseapp.com",projectId:"redsracing-a7f8b",storageBucket:"redsracing-a7f8b.firebasestorage.app",messagingSenderId:"517034606151",appId:"1:517034606151:web:24cae262e1d98832757b62"});
   const db=firebase.firestore();

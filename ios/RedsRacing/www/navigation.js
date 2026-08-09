@@ -2,6 +2,22 @@
 (function () {
   'use strict';
 
+  // Critical brand wordmark CSS (beats stale service-worker CSS caches)
+  (function injectBrandCriticalCss() {
+    try {
+      if (document.getElementById('rr-brand-critical')) return;
+      var s = document.createElement('style');
+      s.id = 'rr-brand-critical';
+      s.textContent =
+        '.logo-blue,.logo-yellow{display:inline-block;background-color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;color:transparent!important;filter:none!important}' +
+        '.logo-blue{background-image:linear-gradient(45deg,#3b82f6,#60a5fa)!important}' +
+        '.logo-yellow{background-image:linear-gradient(45deg,#fbbf24,#fde047)!important}' +
+        '.rr-brand{font-family:"Racing Sans One",sans-serif;text-transform:uppercase;letter-spacing:.14em;line-height:1}' +
+        'header .rr-brand:hover,header a.font-racing:hover{filter:none!important;text-shadow:0 0 18px rgba(251,191,36,.28)}';
+      (document.head || document.documentElement).appendChild(s);
+    } catch (_) {}
+  })();
+
   /** Home link after sign-out from role hub pages under fan/, crew/, or racer/. */
   function rrPostLogoutHome() {
     try {

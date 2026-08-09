@@ -84,25 +84,33 @@ html:not([data-theme="light"]) body {
 }
 
 /* Index-matched RedsRacing wordmark — use on every page header/brand */
+.logo-blue,
+.logo-yellow {
+  display: inline-block;
+  background-color: transparent !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: none !important;
+}
 .logo-blue {
-  background: linear-gradient(45deg, #3b82f6, #60a5fa);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  background-image: linear-gradient(45deg, #3b82f6, #60a5fa) !important;
 }
 .logo-yellow {
-  background: linear-gradient(45deg, #fbbf24, #fde047);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  background-image: linear-gradient(45deg, #fbbf24, #fde047) !important;
 }
 .rr-brand {
   font-family: "Racing Sans One", sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   line-height: 1;
+}
+/* Hover scale is fine; drop-shadow filter breaks background-clip text in WebKit */
+header .rr-brand:hover,
+header a.font-racing:hover {
+  filter: none !important;
+  text-shadow: 0 0 18px rgba(251, 191, 36, 0.28);
 }
 .section-glow {
   position: relative;

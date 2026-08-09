@@ -18,12 +18,12 @@
     <meta name="twitter:description" content="Jonny Kirsch (#88) race results and season performance for RedsRacing." />
     <title>Jonny #88 — Race Results</title>
     <link rel="stylesheet" href="styles/tailwind.css" />
-    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/main.css?v=2026080901" />
     <link rel="stylesheet" href="styles/input-fix.css" />
-    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css?v=2026080901" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
       <link rel="manifest" href="/manifest.json" />
-      <meta name="theme-color" content="#fbbf24" />
+      <meta name="theme-color" content="#ef4444" />
       <meta property="og:image" content="/assets/img/og-default.jpg" />
       <meta name="twitter:image" content="/assets/img/og-default.jpg" />
       <script src="assets/js/page-meta.js" defer></script>
@@ -145,7 +145,7 @@
         
         <!-- Mobile Clock and Menu -->
         <div class="md:hidden flex items-center space-x-4">
-          <div id="mobile-clock" class="text-yellow-400 font-bold text-sm bg-slate-800/50 px-3 py-1 rounded-lg border border-slate-600/50">
+          <div id="mobile-clock" class="text-red-400 font-bold text-sm bg-slate-800/50 px-3 py-1 rounded-lg border border-slate-600/50">
             12:00 PM
           </div>
           <button id="mobile-menu-button" class="text-white focus:outline-none">
@@ -248,7 +248,8 @@
 
     <main class="py-10">
       <section class="container mx-auto px-6">
-        <h1 class="font-racing text-5xl uppercase text-white mb-2">Jonny <span class="neon-yellow">Race Results</span></h1>
+        <h1 class="font-racing text-5xl uppercase text-white mb-2">Jonny <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-red-500">Race Results</span></h1>
+        <p class="text-slate-400 mb-6">Every finish. Every track. The #88 season board.</p>
         <p class="text-slate-400 mb-6">Official season results powered by MYLAPS Speedhive</p>
         <div id="jonny-results-root"></div>
       </section>

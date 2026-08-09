@@ -34,9 +34,9 @@
     <link rel="dns-prefetch" href="//redsracing-a7f8b.firebasestorage.app" />
     <script defer src="https://unpkg.com/scrollreveal"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/main.css?v=2026080901" />
     <link rel="stylesheet" href="styles/input-fix.css" />
-    <link rel="stylesheet" href="styles/modern-nav.css" />
+    <link rel="stylesheet" href="styles/modern-nav.css?v=2026080901" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
     <link rel="stylesheet" href="styles/hotspot-3d.css" />
     <style>
@@ -365,16 +365,97 @@
         0% { left: -100%; }
         100% { left: 100%; }
       }
-    </style>
+    
+      /* ===== Jonny #88 — red & black page theme ===== */
+      body.jonny-page {
+        background: #050505;
+        color: #e5e7eb;
+      }
+      body.jonny-page header {
+        border-bottom-color: rgba(239, 68, 68, 0.35) !important;
+        background: rgba(0, 0, 0, 0.72) !important;
+      }
+      body.jonny-page .driver-hero-3d {
+        background: radial-gradient(ellipse at 50% 0%, rgba(239,68,68,0.28) 0%, transparent 55%),
+                    linear-gradient(180deg, #0a0a0a 0%, #111 40%, #000 100%) !important;
+      }
+      body.jonny-page .driver-hero-3d::before {
+        background:
+          radial-gradient(ellipse at 20% 20%, rgba(239, 68, 68, 0.35) 0%, transparent 50%),
+          radial-gradient(ellipse at 80% 80%, rgba(127, 29, 29, 0.35) 0%, transparent 50%) !important;
+      }
+      body.jonny-page .hero-title-3d {
+        background: linear-gradient(90deg, #fff 0%, #ef4444 40%, #fff 55%, #b91c1c 100%) !important;
+        background-size: 220% 220% !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        color: transparent !important;
+        text-shadow: none !important;
+        filter: drop-shadow(0 0 28px rgba(239,68,68,0.45));
+      }
+      body.jonny-page .stat-card-3d {
+        background: linear-gradient(160deg, rgba(239,68,68,0.12), rgba(0,0,0,0.85)) !important;
+        border: 1px solid rgba(239,68,68,0.35) !important;
+        box-shadow: 0 0 40px rgba(239,68,68,0.12);
+      }
+      body.jonny-page .stat-number-3d {
+        color: #ef4444 !important;
+        text-shadow: 0 0 24px rgba(239,68,68,0.55);
+      }
+      body.jonny-page .progress-fill-3d {
+        background: linear-gradient(90deg, #7f1d1d, #ef4444, #fecaca) !important;
+      }
+      body.jonny-page .jonny-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 1rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(239,68,68,0.5);
+        background: rgba(239,68,68,0.12);
+        color: #fecaca;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      body.jonny-page .jonny-kicker__dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: #ef4444;
+        box-shadow: 0 0 10px #ef4444;
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      body.jonny-page .jonny-cta-primary {
+        background: linear-gradient(90deg, #ef4444, #991b1b) !important;
+        color: #fff !important;
+        box-shadow: 0 10px 30px rgba(239,68,68,0.35);
+      }
+      body.jonny-page .jonny-cta-primary:hover {
+        filter: brightness(1.08);
+      }
+      body.jonny-page .jonny-cta-ghost {
+        border: 2px solid rgba(239,68,68,0.55) !important;
+        color: #fecaca !important;
+        background: rgba(0,0,0,0.35) !important;
+      }
+      body.jonny-page .jonny-cta-ghost:hover {
+        background: rgba(239,68,68,0.15) !important;
+        border-color: #ef4444 !important;
+      }
+      body.jonny-page footer {
+        background: linear-gradient(180deg, #0a0a0a, #000) !important;
+        border-top-color: rgba(239,68,68,0.35) !important;
+      }
+</style>
       <!-- Analytics Tracker -->
     <script type="module" src="assets/js/analytics-tracker.js"></script>
-    <meta name="theme-color" content="#fbbf24" />
+    <meta name="theme-color" content="#ef4444" />
       <meta property="og:image" content="/assets/img/og-default.jpg" />
       <meta name="twitter:image" content="/assets/img/og-default.jpg" />
-      <script src="assets/js/page-meta.js" defer></script>
+      <script src="assets/js/page-meta.js?v=2026080901" defer></script>
       <script src="assets/js/site-search.js" defer></script>
   </head>
-  <body>
+  <body class="jonny-page">
     <!-- Clean Modern Header -->
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
       <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
@@ -451,7 +532,7 @@
             <!-- User Profile Dropdown (shown when authenticated) -->
             <div id="user-profile" class="relative dropdown hidden">
               <button class="dropdown-toggle flex items-center space-x-2 bg-slate-800/50 hover:bg-slate-700/50 px-3 py-2 rounded-lg border border-slate-600/50 hover:border-slate-500/50 transition-colors">
-                <div class="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <div class="w-7 h-7 bg-gradient-to-br from-red-600 to-black rounded-full flex items-center justify-center">
                   <i class="fas fa-user text-white text-xs"></i>
                 </div>
                 <div class="text-left hidden md:block">
@@ -464,18 +545,18 @@
               <div class="dropdown-menu modern-dropdown right-0 w-44">
                 <div class="px-4 py-2 border-b border-slate-600/50">
                   <div class="flex items-center space-x-2">
-                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span class="text-green-400 text-sm">Online</span>
+                    <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <span class="text-red-400 text-sm">Online</span>
                   </div>
                 </div>
                 
                 <a href="admin-console.html" class="dropdown-item flex items-center">
-                  <i class="fas fa-tachometer-alt w-4 mr-3 text-blue-400"></i>
+                  <i class="fas fa-tachometer-alt w-4 mr-3 text-red-300"></i>
                   <span>Dashboard</span>
                 </a>
                 
                 <a href="profile.html" class="dropdown-item flex items-center">
-                  <i class="fas fa-user w-4 mr-3 text-green-400"></i>
+                  <i class="fas fa-user w-4 mr-3 text-red-400"></i>
                   <span>My Profile</span>
                 </a>
                 
@@ -492,7 +573,7 @@
         
         <!-- Mobile Clock and Menu -->
         <div class="md:hidden flex items-center space-x-4">
-          <div id="mobile-clock" class="text-yellow-400 font-bold text-sm bg-slate-800/50 px-3 py-1 rounded-lg border border-slate-600/50">
+          <div id="mobile-clock" class="text-red-400 font-bold text-sm bg-slate-800/50 px-3 py-1 rounded-lg border border-slate-600/50">
             12:00 PM
           </div>
           <button id="mobile-menu-button" class="text-white focus:outline-none">
@@ -512,7 +593,7 @@
         <div class="mobile-accordion-content">
           <!-- Jonny Kirsch Nested -->
           <button class="mobile-accordion mobile-accordion-nested">
-            <span>Jonny Kirsch #8</span><i class="fas fa-chevron-down accordion-icon"></i>
+            <span>Jon Kirsch #8</span><i class="fas fa-chevron-down accordion-icon"></i>
           </button>
           <div class="mobile-accordion-content mobile-accordion-content-nested">
             <a href="driver.html" class="mobile-nav-subitem mobile-nav-subitem-nested">👤 Profile</a>
@@ -559,26 +640,26 @@
             <div id="mobile-user-profile" class="hidden">
               <div class="bg-slate-800/50 rounded-lg p-3 mb-3">
                 <div class="flex items-center space-x-3 mb-3">
-                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <div class="w-10 h-10 bg-gradient-to-br from-red-600 to-black rounded-full flex items-center justify-center">
                     <i class="fas fa-user text-white"></i>
                   </div>
                   <div>
                     <div class="text-white font-semibold" id="mobile-user-name">Driver</div>
                     <div class="text-slate-400 text-sm">Team Member</div>
                     <div class="flex items-center space-x-1 mt-1">
-                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span class="text-green-400 text-xs">Online</span>
+                      <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                      <span class="text-red-400 text-xs">Online</span>
                     </div>
                   </div>
                 </div>
                 
                 <div class="space-y-1">
                   <a href="admin-console.html" class="mobile-nav-item flex items-center p-2 rounded">
-                    <i class="fas fa-tachometer-alt w-5 mr-3 text-blue-400"></i>
+                    <i class="fas fa-tachometer-alt w-5 mr-3 text-red-300"></i>
                     <span>Dashboard</span>
                   </a>
                   <a href="profile.html" class="mobile-nav-item flex items-center p-2 rounded">
-                    <i class="fas fa-user w-5 mr-3 text-green-400"></i>
+                    <i class="fas fa-user w-5 mr-3 text-red-400"></i>
                     <span>My Profile</span>
                   </a>
                   <button id="mobile-user-logout" class="mobile-nav-item flex items-center p-2 rounded w-full text-left hover:bg-red-600/10 hover:text-red-400">
@@ -599,29 +680,30 @@
         <div class="container mx-auto px-6">
           <div class="relative z-10">
             <!-- Driver Status Badge -->
-            <div class="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-8">
-              <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
-              <span class="text-sm font-semibold text-white">
-                <i class="fas fa-flag-checkered mr-1"></i>
-                Active Racing Season 2025
-              </span>
+            <div class="jonny-kicker mb-8">
+              <span class="jonny-kicker__dot"></span>
+              <span>#88 • 2026 Rookie Season</span>
             </div>
             
-            <h1 class="hero-title-3d text-6xl md:text-8xl font-racing uppercase tracking-wider mb-6">
+            <h1 class="hero-title-3d text-6xl md:text-8xl font-racing uppercase tracking-wider mb-4">
               Jonny Kirsch
             </h1>
+            <p class="text-red-400 font-racing text-2xl md:text-3xl tracking-[0.25em] mb-6">CAR #88</p>
             
             <!-- Animated Divider -->
             <div class="flex items-center justify-center space-x-6 mb-8">
-              <div class="h-px w-20 bg-gradient-to-r from-transparent via-yellow-400 to-transparent animate-pulse"></div>
-              <div class="text-6xl transform rotate-12 hover:rotate-0 transition-transform duration-500">
-                <i class="fas fa-trophy text-yellow-400"></i>
+              <div class="h-px w-24 bg-gradient-to-r from-transparent via-red-500 to-transparent animate-pulse"></div>
+              <div class="text-5xl transform rotate-12 hover:rotate-0 transition-transform duration-500">
+                <i class="fas fa-bolt text-red-500"></i>
               </div>
-              <div class="h-px w-20 bg-gradient-to-l from-transparent via-yellow-400 to-transparent animate-pulse"></div>
+              <div class="h-px w-24 bg-gradient-to-l from-transparent via-red-500 to-transparent animate-pulse"></div>
             </div>
             
-            <p class="text-xl md:text-2xl font-bold text-slate-200 tracking-widest mb-12 max-w-3xl mx-auto">
-              Rookie Sensation • Next Generation • Racing Legacy
+            <p class="text-xl md:text-2xl font-bold text-white tracking-[0.18em] mb-3 max-w-3xl mx-auto uppercase">
+              Full send. No fear. Family fuel.
+            </p>
+            <p class="text-slate-400 text-base md:text-lg mb-12 max-w-2xl mx-auto leading-relaxed">
+              Nine years old. American Super Cup debut. The next chapter of RedsRacing starts here.
             </p>
             
             <!-- Enhanced Stats Grid -->
@@ -629,7 +711,7 @@
               <div class="stat-card-3d text-center group">
                 <div class="stat-number-3d mb-2">#88</div>
                 <div class="text-slate-300 font-semibold mb-1">Racing Number</div>
-                <div class="text-slate-500 text-sm">Up and Coming Driver</div>
+                <div class="text-slate-500 text-sm">RedsRacing future</div>
                 <div class="progress-bar-3d mt-4">
                   <div class="progress-fill-3d" style="width: 100%"></div>
                 </div>
@@ -647,7 +729,7 @@
               <div class="stat-card-3d text-center group">
                 <div class="stat-number-3d mb-2">9</div>
                 <div class="text-slate-300 font-semibold mb-1">Years Old</div>
-                <div class="text-slate-500 text-sm">Young Talent</div>
+                <div class="text-slate-500 text-sm">Next gen heat</div>
                 <div class="progress-bar-3d mt-4">
                   <div class="progress-fill-3d" style="width: 80%"></div>
                 </div>
@@ -656,13 +738,17 @@
             
             <!-- CTA Section -->
             <div class="mt-12 flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <a href="#jonny-gallery" class="px-8 py-4 bg-gradient-to-r from-yellow-400 to-yellow-600 text-slate-900 font-bold rounded-xl hover:from-yellow-300 hover:to-yellow-500 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+              <a href="#jonny-gallery" class="jonny-cta-primary px-8 py-4 font-bold rounded-xl transition-all duration-300 transform hover:scale-105">
                 <i class="fas fa-images mr-2"></i>
-                View Gallery
+                See the shots
               </a>
-              <a href="#the-car" class="px-8 py-4 border-2 border-white/30 text-white font-bold rounded-xl hover:bg-white/10 hover:border-yellow-400 transition-all duration-300">
+              <a href="#the-car" class="jonny-cta-ghost px-8 py-4 font-bold rounded-xl transition-all duration-300">
                 <i class="fas fa-car mr-2"></i>
-                Meet The Beast
+                Meet #88
+              </a>
+              <a href="jonny-results.html" class="jonny-cta-ghost px-8 py-4 font-bold rounded-xl transition-all duration-300">
+                <i class="fas fa-flag-checkered mr-2"></i>
+                Race results
               </a>
             </div>
           </div>
@@ -670,7 +756,7 @@
       </section>
 
       <!-- Modern Bio Section -->
-      <section class="py-20 md:py-32 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+      <section class="py-20 md:py-32 bg-gradient-to-b from-black via-zinc-950 to-black">
         <div class="container mx-auto px-6">
           <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-16">
             <!-- 3D Photo Section -->
@@ -690,10 +776,10 @@
                   
                   <div class="absolute bottom-6 left-6 bg-black/80 backdrop-blur-sm px-6 py-3 rounded-xl border border-red-400/20">
                     <p class="text-red-400 font-racing text-xl mb-1">THE ROOKIE</p>
-                    <p class="text-slate-300 text-sm">Rookie Sensation</p>
+                    <p class="text-slate-300 text-sm">2026 • American Super Cup</p>
                     <div class="flex items-center mt-2">
-                      <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
-                      <span class="text-xs text-green-400 font-semibold">Active</span>
+                      <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2"></div>
+                      <span class="text-xs text-red-400 font-semibold">Race ready</span>
                     </div>
                   </div>
                   
@@ -714,21 +800,18 @@
             <div class="lg:order-2 space-y-8">
               <div class="space-y-6">
                 <h2 class="font-racing text-4xl md:text-6xl uppercase leading-tight">
-                  The <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-white">Rookie</span> 
-                  <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-red-500 to-black">
-                    Sensation
-                  </span>
+                  Born for <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-white">speed</span>
                 </h2>
                 
                 <div class="space-y-4 text-lg leading-relaxed">
                   <p class="text-slate-300">
-                    For nine-year-old Jonny, speed has always been a way of life. His journey began not on asphalt, but on dirt trails, mastering 4-wheelers and developing a natural feel for handling a machine at speed. This raw passion was later refined over 1.5 years of disciplined competition in indoor karting, where he learned sophisticated racecraft, precise control, and the art of the overtake. The first time he went to a race track was at 3 years old at Sycamore Speedway in 2018.
+                    Speed found Jonny early — dirt trails, 4-wheelers, then 1.5 years of indoor karting where he learned racecraft, control, and the art of the overtake. First track visit: Sycamore Speedway, age 3, 2018.
                   </p>
                   <p class="text-slate-400">
-                    Now, Jonny is ready to trade his kart for a stock car and step onto the big stage of the American Super Cups. He won't be doing it alone. This next chapter is a shared dream with his father, built on countless hours in the garage and a mutual love for the sport. When Jonny climbs behind the wheel of the iconic #88, he's not just a driver; he's the future of a family legacy.
+                    Now the kart stays home. #88 rolls American Super Cup asphalt with Dad in the program — shop nights, race nights, one family mission.
                   </p>
                   <p class="text-slate-400">
-                    Off the track, Jonny's competitive spirit shines on the baseball diamond. The intense focus of the batter's box and the quick reflexes of an infielder translate directly to the split-second decisions required on the track.
+                    Off track he battles on the baseball diamond. Same focus. Same quick hands. Same will to win.
                   </p>
                 </div>
               </div>
@@ -736,8 +819,8 @@
               <!-- Racing Timeline -->
               <div class="timeline-3d">
                 <h3 class="font-racing text-2xl uppercase mb-6 text-white">
-                  <i class="fas fa-road text-yellow-400 mr-2"></i>
-                  Racing Journey
+                  <i class="fas fa-road text-red-400 mr-2"></i>
+                  The road to #88
                 </h3>
                 
                 <div class="space-y-4">
@@ -787,16 +870,15 @@
           <div class="mb-16">
             <h2 class="font-racing text-4xl md:text-6xl uppercase mb-4">
               <i class="fas fa-car-side text-red-400 mr-3"></i>
-              Meet The 
-              <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500">Beast</span>
+              Meet 
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-red-500 to-red-700">The Beast</span>
             </h2>
             <p class="max-w-3xl mx-auto mb-8 text-slate-300 text-lg">
-              The American Super Cup Series cars are ½ scale stock cars built similarly to SPRINT Cup cars. 
-              These precision-engineered machines provide a competitive and affordable racing experience for both new and experienced drivers.
+              Half-scale stock car. Tube chassis. Built to race — Jonny’s #88 for the 2026 American Super Cup season.
             </p>
-            <div class="inline-flex items-center px-4 py-2 bg-blue-500/20 backdrop-blur-sm rounded-full border border-blue-400/30">
-              <i class="fas fa-info-circle text-blue-400 mr-2"></i>
-              <span class="text-blue-400 text-sm font-semibold">Interactive Vehicle Showcase</span>
+            <div class="inline-flex items-center px-4 py-2 bg-red-600/20 backdrop-blur-sm rounded-full border border-red-400/30">
+              <i class="fas fa-hand-pointer text-red-300 mr-2"></i>
+              <span class="text-red-300 text-sm font-semibold">Tap the hotspots</span>
             </div>
           </div>
           
@@ -810,7 +892,7 @@
                 loading="lazy" 
                 width="1200" 
                 height="675" 
-                onerror="this.onerror=null;this.src='https://placehold.co/1200x675/1e293b/fbbf24?text=Race+Car+%238';" 
+                onerror="this.onerror=null;this.src='https://placehold.co/1200x675/0a0a0a/ef4444?text=Race+Car+%238';" 
               />
               
               <!-- Enhanced 3D Hotspots -->
@@ -818,15 +900,15 @@
                 <i class="fas fa-cogs"></i>
                 <div class="hotspot-info-3d">
                   <div class="flex items-center mb-2">
-                    <i class="fas fa-engine text-yellow-400 mr-2"></i>
-                    <strong class="text-yellow-400">Engine & Powertrain</strong>
+                    <i class="fas fa-engine text-red-400 mr-2"></i>
+                    <strong class="text-red-400">Engine & Powertrain</strong>
                   </div>
                   <p class="text-slate-300 text-sm mb-3">
                     ½ scale stock car design with tube chassis construction, built for durability and performance on the track.
                   </p>
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-green-400">Stock Car Design</span>
-                    <span class="text-blue-400">Tube Chassis</span>
+                    <span class="text-red-400">Stock Car Design</span>
+                    <span class="text-red-300">Tube Chassis</span>
                   </div>
                 </div>
               </div>
@@ -835,15 +917,15 @@
                 <i class="fas fa-wind"></i>
                 <div class="hotspot-info-3d">
                   <div class="flex items-center mb-2">
-                    <i class="fas fa-paper-plane text-blue-400 mr-2"></i>
-                    <strong class="text-blue-400">Aerodynamics Package</strong>
+                    <i class="fas fa-paper-plane text-red-300 mr-2"></i>
+                    <strong class="text-red-300">Aerodynamics Package</strong>
                   </div>
                   <p class="text-slate-300 text-sm mb-3">
                     Adjustable suspension system designed for optimal handling on both 3 and 4 wide track configurations.
                   </p>
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-purple-400">Adjustable Setup</span>
-                    <span class="text-green-400">Multi-Width Tracks</span>
+                    <span class="text-red-300">Adjustable Setup</span>
+                    <span class="text-red-400">Multi-Width Tracks</span>
                   </div>
                 </div>
               </div>
@@ -859,8 +941,8 @@
                     Hoosier Racing Slicks with soft compound that increases grip as temperature rises during competition.
                   </p>
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-orange-400">Heat Activated</span>
-                    <span class="text-yellow-400">Maximum Grip</span>
+                    <span class="text-red-400">Heat Activated</span>
+                    <span class="text-red-400">Maximum Grip</span>
                   </div>
                 </div>
               </div>
@@ -869,14 +951,14 @@
                 <i class="fas fa-dashboard"></i>
                 <div class="hotspot-info-3d">
                   <div class="flex items-center mb-2">
-                    <i class="fas fa-tachometer-alt text-green-400 mr-2"></i>
-                    <strong class="text-green-400">Digital Command Center</strong>
+                    <i class="fas fa-tachometer-alt text-red-400 mr-2"></i>
+                    <strong class="text-red-400">Digital Command Center</strong>
                   </div>
                   <p class="text-slate-300 text-sm mb-3">
                     Advanced telemetry system providing real-time performance data and race analytics.
                   </p>
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-cyan-400">Real-time Data</span>
+                    <span class="text-red-300">Real-time Data</span>
                     <span class="text-pink-400">AI Analytics</span>
                   </div>
                 </div>
@@ -886,15 +968,15 @@
                 <i class="fas fa-shield-alt"></i>
                 <div class="hotspot-info-3d">
                   <div class="flex items-center mb-2">
-                    <i class="fas fa-hard-hat text-orange-400 mr-2"></i>
-                    <strong class="text-orange-400">Safety Systems</strong>
+                    <i class="fas fa-hard-hat text-red-400 mr-2"></i>
+                    <strong class="text-red-400">Safety Systems</strong>
                   </div>
                   <p class="text-slate-300 text-sm mb-3">
                     Professional-grade roll cage, fire suppression, and impact-absorbing technologies.
                   </p>
                   <div class="flex items-center justify-between text-xs">
-                    <span class="text-green-400">FIA Certified</span>
-                    <span class="text-blue-400">Driver Protection</span>
+                    <span class="text-red-400">FIA Certified</span>
+                    <span class="text-red-300">Driver Protection</span>
                   </div>
                 </div>
               </div>
@@ -903,7 +985,7 @@
             <!-- Technical Specifications -->
             <div class="mt-16">
               <h3 class="text-3xl font-racing text-center mb-8 text-white uppercase">
-                <i class="fas fa-cogs text-yellow-400 mr-3"></i>
+                <i class="fas fa-cogs text-red-400 mr-3"></i>
                 Complete Technical Specifications
               </h3>
               
@@ -918,7 +1000,7 @@
                 </div>
                 
                 <div class="stat-card-3d text-center">
-                  <div class="text-2xl text-yellow-400 mb-2">
+                  <div class="text-2xl text-red-400 mb-2">
                     <i class="fas fa-weight"></i>
                   </div>
                   <div class="stat-number-3d text-2xl mb-1">410</div>
@@ -926,7 +1008,7 @@
                 </div>
                 
                 <div class="stat-card-3d text-center">
-                  <div class="text-2xl text-blue-400 mb-2">
+                  <div class="text-2xl text-red-300 mb-2">
                     <i class="fas fa-ruler"></i>
                   </div>
                   <div class="stat-number-3d text-2xl mb-1">110</div>
@@ -934,7 +1016,7 @@
                 </div>
                 
                 <div class="stat-card-3d text-center">
-                  <div class="text-2xl text-green-400 mb-2">
+                  <div class="text-2xl text-red-400 mb-2">
                     <i class="fas fa-arrows-alt-h"></i>
                   </div>
                   <div class="stat-number-3d text-2xl mb-1">60</div>
@@ -985,7 +1067,7 @@
                 <!-- Chassis & Construction -->
                 <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 p-6">
                   <h4 class="text-xl font-racing text-white uppercase mb-4 flex items-center">
-                    <i class="fas fa-wrench text-blue-400 mr-3"></i>
+                    <i class="fas fa-wrench text-red-300 mr-3"></i>
                     Chassis & Construction
                   </h4>
                   <div class="space-y-3 text-slate-300">
@@ -1023,7 +1105,7 @@
                 <!-- Suspension & Steering -->
                 <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 p-6">
                   <h4 class="text-xl font-racing text-white uppercase mb-4 flex items-center">
-                    <i class="fas fa-cog text-green-400 mr-3"></i>
+                    <i class="fas fa-cog text-red-400 mr-3"></i>
                     Suspension & Steering
                   </h4>
                   <div class="space-y-3 text-slate-300">
@@ -1057,7 +1139,7 @@
                 <!-- Safety & Interior -->
                 <div class="bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700/50 p-6">
                   <h4 class="text-xl font-racing text-white uppercase mb-4 flex items-center">
-                    <i class="fas fa-shield-alt text-orange-400 mr-3"></i>
+                    <i class="fas fa-shield-alt text-red-400 mr-3"></i>
                     Safety & Interior
                   </h4>
                   <div class="space-y-3 text-slate-300">
@@ -1084,24 +1166,24 @@
               <!-- Dimensions Summary -->
               <div class="bg-gradient-to-r from-slate-800/80 to-slate-700/80 rounded-xl p-6 mt-8">
                 <h4 class="text-xl font-racing text-white uppercase mb-4 text-center">
-                  <i class="fas fa-ruler-combined text-purple-400 mr-3"></i>
+                  <i class="fas fa-ruler-combined text-red-300 mr-3"></i>
                   Vehicle Dimensions
                 </h4>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                   <div>
-                    <div class="text-2xl font-bold text-purple-400 mb-1">110"</div>
+                    <div class="text-2xl font-bold text-red-300 mb-1">110"</div>
                     <div class="text-slate-300 text-sm">Overall Length</div>
                   </div>
                   <div>
-                    <div class="text-2xl font-bold text-blue-400 mb-1">45"</div>
+                    <div class="text-2xl font-bold text-red-300 mb-1">45"</div>
                     <div class="text-slate-300 text-sm">Width</div>
                   </div>
                   <div>
-                    <div class="text-2xl font-bold text-green-400 mb-1">32"</div>
+                    <div class="text-2xl font-bold text-red-400 mb-1">32"</div>
                     <div class="text-slate-300 text-sm">Overall Height</div>
                   </div>
                   <div>
-                    <div class="text-2xl font-bold text-yellow-400 mb-1">60"</div>
+                    <div class="text-2xl font-bold text-red-400 mb-1">60"</div>
                     <div class="text-slate-300 text-sm">Wheelbase</div>
                   </div>
                 </div>
@@ -1118,13 +1200,13 @@
             <details id="jonny-k1-archive-details" class="group">
               <summary class="cursor-pointer list-none px-6 py-5 md:px-8 md:py-6 flex items-center justify-between gap-4 select-none">
                 <div class="flex items-center gap-4">
-                  <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-yellow-400/15 border border-yellow-400/30 flex items-center justify-center">
-                    <i class="fas fa-archive text-yellow-400 text-xl"></i>
+                  <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center">
+                    <i class="fas fa-archive text-red-400 text-xl"></i>
                   </div>
                   <div>
-                    <div class="text-xs uppercase tracking-[0.25em] text-yellow-400 font-bold">Archive</div>
-                    <h2 class="font-racing text-2xl md:text-3xl text-white uppercase leading-tight">K1 Karting Archive (2024–2025)</h2>
-                    <p class="text-slate-400 text-sm mt-1">Frozen historical record from K1 Speed Addison Junior League. Click to expand.</p>
+                    <div class="text-xs uppercase tracking-[0.25em] text-red-400 font-bold">Before the stock car</div>
+                    <h2 class="font-racing text-2xl md:text-3xl text-white uppercase leading-tight">K1 Karting Archive</h2>
+                    <p class="text-slate-400 text-sm mt-1">2024–2025 K1 Speed Addison Junior League — tap to open the record.</p>
                   </div>
                 </div>
                 <i class="fas fa-chevron-down text-slate-400 text-lg transition-transform duration-300 group-open:rotate-180"></i>
@@ -1139,28 +1221,29 @@
 
       <section id="jonny-gallery" class="py-16 md:py-24 bg-black/20">
         <div class="container mx-auto px-6">
-          <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Jonny's <span class="neon-yellow">Gallery</span></h2>
+          <h2 class="font-racing text-5xl uppercase mb-4 text-center reveal-fade">Jonny's <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-red-500">Gallery</span></h2>
+          <p class="text-center text-slate-400 mb-12 max-w-xl mx-auto">Trackside moments. Victory vibes. The #88 story in frames.</p>
 
           <div id="upload-container" class="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl p-8 md:p-10 rounded-2xl border border-slate-700/50 shadow-2xl mb-16" style="display: none">
             <div class="text-center mb-8">
-              <div class="inline-flex items-center bg-yellow-400/20 px-4 py-2 rounded-full mb-4">
-                <i class="fas fa-camera text-yellow-400 mr-2"></i>
-                <span class="text-yellow-400 font-bold uppercase tracking-wider text-sm">Community Upload</span>
+              <div class="inline-flex items-center bg-red-500/20 px-4 py-2 rounded-full mb-4">
+                <i class="fas fa-camera text-red-400 mr-2"></i>
+                <span class="text-red-400 font-bold uppercase tracking-wider text-sm">Community Upload</span>
               </div>
               <h3 class="font-racing text-3xl md:text-4xl text-white uppercase mb-3">
-                Share Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Photos of Jonny</span>
+                Drop your <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-red-500">#88 shots</span>
               </h3>
               <p class="text-slate-400 text-lg max-w-2xl mx-auto">
-                Captured an awesome moment at the track? Share it with the RedsRacing community!
+                Got a heater from race night? Send it — fans keep this gallery alive.
               </p>
             </div>
             
             <div class="space-y-6">
               <div class="relative group">
-                <div class="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 rounded-xl opacity-0 group-hover:opacity-100 blur transition-opacity duration-300"></div>
-                <label for="photo-upload-input" class="relative flex items-center justify-center w-full p-8 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:border-yellow-400 transition-all duration-300 bg-slate-800/30 hover:bg-slate-800/50">
+                <div class="absolute inset-0 bg-gradient-to-r from-red-500/20 to-red-600/20 rounded-xl opacity-0 group-hover:opacity-100 blur transition-opacity duration-300"></div>
+                <label for="photo-upload-input" class="relative flex items-center justify-center w-full p-8 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:border-red-400 transition-all duration-300 bg-slate-800/30 hover:bg-slate-800/50">
                   <div class="text-center">
-                    <i class="fas fa-cloud-upload-alt text-5xl text-yellow-400 mb-4"></i>
+                    <i class="fas fa-cloud-upload-alt text-5xl text-red-400 mb-4"></i>
                     <p class="text-white font-bold text-lg mb-2">Click to select photos</p>
                     <p class="text-slate-400 text-sm">or drag and drop • JPEG, PNG up to 10MB</p>
                   </div>
@@ -1168,14 +1251,14 @@
                 </label>
               </div>
               
-              <button id="upload-btn" class="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-300 hover:to-yellow-400 text-slate-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-yellow-400/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" disabled>
+              <button id="upload-btn" class="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-slate-900 font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" disabled>
                 <i class="fas fa-paper-plane mr-2"></i>
                 Upload Photo
               </button>
               
               <div class="mt-6">
                 <div class="relative w-full bg-slate-700/50 rounded-full h-3 overflow-hidden">
-                  <div id="upload-progress-bar" class="absolute top-0 left-0 h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                  <div id="upload-progress-bar" class="absolute top-0 left-0 h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full transition-all duration-300" style="width: 0%"></div>
                 </div>
                 <p id="upload-status" class="text-sm text-center text-slate-400 mt-3 min-h-6"></p>
               </div>
@@ -1185,16 +1268,16 @@
           <div id="dynamic-gallery-container" class="gallery-3d grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <!-- Photos will be dynamically inserted here -->
           </div>
-          <p class="text-center mt-8 text-slate-400">This gallery will feature photos from Jonny's races and events.</p>
+          <p class="text-center mt-8 text-slate-500 text-sm uppercase tracking-wider">More shots drop after every race night</p>
         </div>
       </section>
 
       <section id="jonny-videos" class="py-16 md:py-24">
         <div class="container mx-auto px-6">
-          <h2 class="font-racing text-5xl uppercase mb-12 text-center reveal-fade">Jonny's <span class="neon-yellow">Videos</span></h2>
+          <h2 class="font-racing text-5xl uppercase mb-4 text-center reveal-fade">Jonny's <span class="text-transparent bg-clip-text bg-gradient-to-r from-white to-red-500">Videos</span></h2>
+          <p class="text-center text-slate-400 mb-12 max-w-xl mx-auto">Clips, onboard energy, and race-night highlights.</p>
           <div id="dynamic-video-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Videos will be dynamically inserted here -->
-            <p class="text-center text-slate-400 col-span-full">Videos coming soon.</p>
+            <p class="text-center text-slate-500 col-span-full uppercase tracking-wider text-sm">Fresh footage loading soon</p>
           </div>
         </div>
       </section>
@@ -1203,38 +1286,38 @@
     <footer class="bg-gradient-to-b from-slate-900 via-slate-900 to-black border-t border-slate-800 py-20 relative overflow-hidden">
       <!-- Background Effects -->
       <div class="absolute inset-0 opacity-20">
-        <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-red-600/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-red-600/10 rounded-full blur-3xl"></div>
       </div>
       
       <div class="container mx-auto px-6 relative z-10">
         <!-- Newsletter Section -->
         <div class="max-w-3xl mx-auto text-center mb-16">
           <div class="mb-8">
-            <h3 class="font-racing text-5xl md:text-6xl uppercase mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-yellow-400 to-blue-400 animate-gradient">
-              Stay In The Loop
+            <h3 class="font-racing text-5xl md:text-6xl uppercase mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-red-500 to-white animate-gradient">
+              Ride with #88
             </h3>
             <p class="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto">
-              Get exclusive race updates, behind-the-scenes content, and be part of the racing family.
+              Race alerts. Garage drops. First look at Jonny’s season.
             </p>
           </div>
           
           <div class="max-w-2xl mx-auto">
             <form id="subscribe-form" class="flex flex-col sm:flex-row gap-3 mb-4">
               <div class="flex-1 relative group">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-yellow-500 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-red-600 to-red-600 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300"></div>
                 <input
                   type="email"
                   id="subscribe-email"
                   placeholder="your@email.com"
                   required
-                  class="relative w-full bg-slate-800/80 backdrop-blur-sm text-white px-6 py-4 rounded-xl border-2 border-slate-700 focus:outline-none focus:border-yellow-400 transition-all duration-300 text-lg"
+                  class="relative w-full bg-slate-800/80 backdrop-blur-sm text-white px-6 py-4 rounded-xl border-2 border-slate-700 focus:outline-none focus:border-red-500 transition-all duration-300 text-lg"
                   style="color: #ffffff !important;"
                 />
               </div>
               <button
                 type="submit"
-                class="bg-gradient-to-r from-yellow-400 to-yellow-500 text-slate-900 font-bold py-4 px-8 rounded-xl hover:from-yellow-300 hover:to-yellow-400 transition-all duration-300 shadow-lg hover:shadow-yellow-400/50 transform hover:-translate-y-1 text-lg whitespace-nowrap"
+                class="bg-gradient-to-r from-red-500 to-red-600 text-slate-900 font-bold py-4 px-8 rounded-xl hover:from-red-400 hover:to-red-500 transition-all duration-300 shadow-lg hover:shadow-red-500/50 transform hover:-translate-y-1 text-lg whitespace-nowrap"
               >
                 <i class="fas fa-paper-plane mr-2"></i>Subscribe
               </button>
@@ -1250,9 +1333,9 @@
               href="https://www.facebook.com/share/1F1RTxz9xa/"
               target="_blank"
               rel="noopener noreferrer"
-              class="group relative w-14 h-14 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 flex items-center justify-center hover:border-blue-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/30"
+              class="group relative w-14 h-14 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 flex items-center justify-center hover:border-red-500 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-red-500/30"
             >
-              <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-500 transition-colors duration-300" fill="currentColor" viewBox="0 0 24 24">
+              <svg class="w-6 h-6 text-slate-400 group-hover:text-red-400 transition-colors duration-300" fill="currentColor" viewBox="0 0 24 24">
                 <path
                   fill-rule="evenodd"
                   d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
@@ -1276,7 +1359,7 @@
             </a>
           </div>
         </div>
-        <p class="mt-8 text-slate-500 text-sm text-center">© <span id="year"></span> RedsRacing #8. All Rights Reserved.</p>
+        <p class="mt-8 text-slate-500 text-sm text-center">© <span id="year"></span> RedsRacing #88 — Jonny Kirsch. All Rights Reserved.</p>
       
         <div style="margin-top:8px;display:flex;justify-content:center;gap:16px;font-size:0.8rem;">
             <a href="privacy-policy.html" style="color:#94a3b8;text-decoration:none;">Privacy Policy</a>
@@ -1286,7 +1369,7 @@
       </div>
     </footer>
 
-    <script type="module" src="navigation.js"></script>
+    <script type="module" src="navigation.js?v=2026080901"></script>
     <script type="module" src="main.js"></script>
     <script type="module" src="assets/js/racer-schedule.js"></script>
     <script src="assets/js/gallery-tagging.js"></script>

@@ -139,7 +139,8 @@ header .font-racing {
 
 header .font-racing:hover {
   transform: scale(1.05);
-  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.3));
+  /* Avoid filter:drop-shadow — it breaks gradient wordmark (background-clip:text) */
+  text-shadow: 0 0 14px rgba(251, 191, 36, 0.35);
 }
 
 /* Sticky Header Enhancement */

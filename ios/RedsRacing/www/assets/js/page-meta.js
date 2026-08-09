@@ -17,6 +17,20 @@
 (function () {
   "use strict";
 
+  // Brand wordmark CSS early (helps when service worker served stale main.css)
+  try {
+    if (!document.getElementById("rr-brand-critical")) {
+      var brandStyle = document.createElement("style");
+      brandStyle.id = "rr-brand-critical";
+      brandStyle.textContent =
+        ".logo-blue,.logo-yellow{display:inline-block;background-color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;color:transparent!important;filter:none!important}" +
+        ".logo-blue{background-image:linear-gradient(45deg,#3b82f6,#60a5fa)!important}" +
+        ".logo-yellow{background-image:linear-gradient(45deg,#fbbf24,#fde047)!important}" +
+        ".rr-brand{font-family:\"Racing Sans One\",sans-serif;text-transform:uppercase;letter-spacing:.14em;line-height:1}";
+      (document.head || document.documentElement).appendChild(brandStyle);
+    }
+  } catch (_) {}
+
   var PROJECT_ID = "redsracing-a7f8b";
   var CACHE_TTL_MS = 5 * 60 * 1000; // 5 min
   var FIRESTORE_BASE =
