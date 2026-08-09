@@ -542,7 +542,7 @@
           <i class="fas fa-user-lock"></i>
           <h2>Sign In Required</h2>
           <p>Please sign in to access your personalized settings and preferences.</p>
-          <button class="btn btn-primary" onclick="window.location.href='login.html'">
+          <button class="btn btn-primary" onclick="window.location.href='login.html?returnTo=settings.html'">
             <i class="fas fa-sign-in-alt"></i>
             Sign In
           </button>
@@ -649,25 +649,66 @@
           </div>
         </div>
         
-        <!-- Favorite Driver -->
+        <!-- Favorite Driver & Look -->
         <div class="settings-card">
           <div class="card-header">
             <div class="card-icon">
               <i class="fas fa-star"></i>
             </div>
-            <h2 class="card-title">Favorite Driver</h2>
+            <h2 class="card-title">Fan Customization</h2>
           </div>
           
           <div class="setting-row">
             <div class="setting-info">
-              <div class="setting-label">Select Your Favorite</div>
-              <div class="setting-description">Prioritize content from your favorite driver</div>
+              <div class="setting-label">Favorite Driver</div>
+              <div class="setting-description">Prioritize #8 or #88 content &amp; alerts</div>
             </div>
             <select class="settings-select" id="favorite-driver">
               <option value="">None Selected</option>
               <option value="jon">Jon Kirsch #8</option>
               <option value="jonny">Jonny Kirsch #88</option>
             </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Accent Color</div>
+              <div class="setting-description">Personal color on your profile</div>
+            </div>
+            <input type="color" id="accent-color" value="#fbbf24" style="width:3.5rem;height:2.5rem;border:none;background:transparent;cursor:pointer;" />
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Jon #8 Race Alerts</div>
+              <div class="setting-description">Push topic for the #8 car</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="sub-fan-8">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Jonny #88 Race Alerts</div>
+              <div class="setting-description">Push topic for the #88 car</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="sub-fan-88">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Your Profile</div>
+              <div class="setting-description">Edit bio, avatar, badges &amp; more</div>
+            </div>
+            <a href="profile.html" class="btn btn-secondary" style="text-decoration:none;padding:0.55rem 1rem;">
+              <i class="fas fa-id-card"></i>
+              <span>Open profile</span>
+            </a>
           </div>
         </div>
         
@@ -738,9 +779,15 @@
     <script src="assets/js/mobile-menu-tabs.js"></script>
     
     <script type="module">
-      import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+      import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
       import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
       import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+      import {
+        loadUserSettings,
+        saveUserSettings,
+        applySiteTheme,
+        writeLocalSettings,
+      } from './assets/js/user-settings.js';
       
       // Wait a moment for navigation.js to initialize Firebase
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -750,8 +797,7 @@
       try {
         app = getApp();
       } catch (e) {
-        // If no app exists, create one
-                const firebaseConfig = {
+        const firebaseConfig = {
           apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
           authDomain: "redsracing-a7f8b.firebaseapp.com",
           databaseURL: "https://redsracing-a7f8b-default-rtdb.firebaseio.com",
@@ -769,135 +815,152 @@
       
       let currentUser = null;
       let userRole = 'fan';
+      let suppressAutoSave = false;
       
-      // Function to handle auth state
+      function gatherSettingsFromUI() {
+        return {
+          notifRace: document.getElementById('notif-race').checked,
+          notifNewsletter: document.getElementById('notif-newsletter').checked,
+          notifSocial: document.getElementById('notif-social').checked,
+          notifAdmin: document.getElementById('notif-admin').checked,
+          theme: document.getElementById('theme-select').value || 'auto',
+          autoplayVideos: document.getElementById('autoplay-videos').checked,
+          reduceMotion: document.getElementById('reduce-motion').checked,
+          favoriteDriver: document.getElementById('favorite-driver').value || '',
+        };
+      }
+
+      async function persistExtras(uid) {
+        if (!uid) return;
+        const accent = document.getElementById('accent-color')?.value || '#fbbf24';
+        const sub8 = !!document.getElementById('sub-fan-8')?.checked;
+        const sub88 = !!document.getElementById('sub-fan-88')?.checked;
+        const fav = document.getElementById('favorite-driver')?.value || '';
+        // If favorite is set, keep alert toggles aligned unless user overrode both
+        let fan8 = sub8;
+        let fan88 = sub88;
+        if (fav === 'jon' && !sub8 && !sub88) fan8 = true;
+        if (fav === 'jonny' && !sub8 && !sub88) fan88 = true;
+        try {
+          document.documentElement.style.setProperty('--fun-accent', accent);
+        } catch (_) {}
+        await setDoc(doc(db, 'users', uid), {
+          themeColor: accent,
+          subscriptions: { 'fan-8': fan8, 'fan-88': fan88 },
+          updatedAt: new Date(),
+        }, { merge: true });
+      }
+
       async function handleAuthState(user) {
-        console.log('[Settings] Auth state changed, user:', user ? user.email : 'none');
-        
         const loadingState = document.getElementById('loading-state');
         const guestState = document.getElementById('guest-state');
         const userSettings = document.getElementById('user-settings');
         const userBadge = document.getElementById('user-badge');
         
         if (!user) {
-          // Not signed in
-          console.log('[Settings] No user, showing guest prompt');
+          currentUser = null;
           loadingState.classList.add('hidden');
           guestState.classList.remove('hidden');
+          userSettings.classList.add('hidden');
           userBadge.innerHTML = '<i class="fas fa-user"></i><span>Guest</span>';
-        } else {
-          console.log('[Settings] User found:', user.email);
-          currentUser = user;
+          // Still apply any local theme for guests
+          const local = await loadUserSettings(null);
+          applySiteTheme(local.theme || 'auto');
+          return;
+        }
+
+        currentUser = user;
           
+        try {
+          const token = await user.getIdTokenResult();
+          userRole = token.claims.role || 'fan';
+            
+          let userData = {};
           try {
-            // Get user role from token claims
-            const token = await user.getIdTokenResult();
-            userRole = token.claims.role || 'fan';
-            console.log('[Settings] User role from token:', userRole);
-            
-            // Get user data
-            let userData = {};
-            try {
-              const userDoc = await getDoc(doc(db, 'users', user.uid));
-              userData = userDoc.data() || {};
-            } catch (e) {
-              console.log('Could not fetch user document:', e);
-            }
-            
-            // Update badge
-            const roleLabels = {
-              'admin': 'Admin',
-              'team-member': 'Team Member',
-              'fan': 'Fan'
-            };
-            const roleIcons = {
-              'admin': 'fa-crown',
-              'team-member': 'fa-user-tie',
-              'fan': 'fa-user'
-            };
-            
-            userBadge.innerHTML = `<i class="fas ${roleIcons[userRole] || 'fa-user'}"></i><span>${roleLabels[userRole] || 'Fan'}</span>`;
-            console.log('[Settings] Updated badge for role:', userRole);
-            
-            // Show team features for team members and admins
-            if (userRole === 'admin' || userRole === 'team-member') {
-              console.log('[Settings] Showing admin features');
-              document.getElementById('admin-notif-row').style.display = 'flex';
-              document.getElementById('quick-links-card').style.display = 'block';
-            }
-            
-            // Load settings
-            loadSettings(userData);
-            
-            console.log('[Settings] Showing user settings');
-            loadingState.classList.add('hidden');
-            userSettings.classList.remove('hidden');
-          } catch (error) {
-            console.error('[Settings] Error loading user data:', error);
-            loadingState.classList.add('hidden');
-            userSettings.classList.remove('hidden');
-            loadSettings({});
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            userData = userDoc.data() || {};
+          } catch (e) {
+            console.log('Could not fetch user document:', e);
           }
+            
+          const roleLabels = {
+            'admin': 'Admin',
+            'team-member': 'Team Member',
+            'fan': 'Fan'
+          };
+          const roleIcons = {
+            'admin': 'fa-crown',
+            'team-member': 'fa-user-tie',
+            'fan': 'fa-user'
+          };
+            
+          userBadge.innerHTML = `<i class="fas ${roleIcons[userRole] || 'fa-user'}"></i><span>${roleLabels[userRole] || 'Fan'}</span>`;
+            
+          if (userRole === 'admin' || userRole === 'team-member') {
+            document.getElementById('admin-notif-row').style.display = 'flex';
+            document.getElementById('quick-links-card').style.display = 'block';
+          }
+            
+          await loadSettings(userData);
+            
+          loadingState.classList.add('hidden');
+          guestState.classList.add('hidden');
+          userSettings.classList.remove('hidden');
+        } catch (error) {
+          console.error('[Settings] Error loading user data:', error);
+          loadingState.classList.add('hidden');
+          guestState.classList.add('hidden');
+          userSettings.classList.remove('hidden');
+          await loadSettings({});
         }
       }
       
-      // Check current user immediately
-      const currentAuthUser = auth.currentUser;
-      console.log('[Settings] Current user on load:', currentAuthUser ? currentAuthUser.email : 'none');
-      
-      if (currentAuthUser) {
-        // User already signed in, handle immediately
-        handleAuthState(currentAuthUser);
+      if (auth.currentUser) {
+        handleAuthState(auth.currentUser);
       }
-      
-      // Also listen for auth state changes
       onAuthStateChanged(auth, handleAuthState);
       
-      // Load settings from Firestore and localStorage
-      function loadSettings(userData) {
-        const localSettings = JSON.parse(localStorage.getItem('rr_settings') || '{}');
-        const settings = { ...localSettings, ...(userData?.settings || {}) };
+      async function loadSettings(userData) {
+        suppressAutoSave = true;
+        const settings = await loadUserSettings(currentUser?.uid);
         
-        // Apply settings to UI
         document.getElementById('notif-race').checked = settings.notifRace !== false;
         document.getElementById('notif-newsletter').checked = settings.notifNewsletter !== false;
-        document.getElementById('notif-social').checked = settings.notifSocial || false;
+        document.getElementById('notif-social').checked = !!settings.notifSocial;
         document.getElementById('notif-admin').checked = settings.notifAdmin !== false;
         
         document.getElementById('theme-select').value = settings.theme || 'auto';
-        document.getElementById('autoplay-videos').checked = settings.autoplayVideos || false;
-        document.getElementById('reduce-motion').checked = settings.reduceMotion || false;
+        document.getElementById('autoplay-videos').checked = !!settings.autoplayVideos;
+        document.getElementById('reduce-motion').checked = !!settings.reduceMotion;
         
         document.getElementById('favorite-driver').value = settings.favoriteDriver || '';
+
+        const accentEl = document.getElementById('accent-color');
+        const col = userData?.themeColor || '#fbbf24';
+        if (accentEl) {
+          try { accentEl.value = /^#/.test(col) ? col : '#fbbf24'; } catch (_) {}
+        }
+        const subs = userData?.subscriptions || {};
+        const fav = settings.favoriteDriver || '';
+        const sub8 = document.getElementById('sub-fan-8');
+        const sub88 = document.getElementById('sub-fan-88');
+        if (sub8) sub8.checked = !!subs['fan-8'] || fav === 'jon';
+        if (sub88) sub88.checked = !!subs['fan-88'] || fav === 'jonny';
         
-        // Apply theme
-        applyTheme(settings.theme || 'auto');
+        applySiteTheme(settings.theme || 'auto');
         
-        // Apply reduce motion
         if (settings.reduceMotion) {
           document.documentElement.style.setProperty('--animation-duration', '0.01ms');
-        }
-      }
-      
-      // Apply theme
-      function applyTheme(theme) {
-        const html = document.documentElement;
-        
-        if (theme === 'dark') {
-          html.classList.add('dark');
-        } else if (theme === 'light') {
-          html.classList.remove('dark');
         } else {
-          // Auto - use system preference
-          if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            html.classList.add('dark');
-          } else {
-            html.classList.remove('dark');
-          }
+          document.documentElement.style.removeProperty('--animation-duration');
         }
+        try {
+          document.documentElement.style.setProperty('--fun-accent', accentEl?.value || col);
+        } catch (_) {}
+        // Allow change handlers after paint
+        setTimeout(() => { suppressAutoSave = false; }, 0);
       }
       
-      // Save settings
       window.saveSettings = async function() {
         const saveBtn = document.getElementById('save-btn');
         const originalHTML = saveBtn.innerHTML;
@@ -905,39 +968,11 @@
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Saving...</span>';
         
-        const settings = {
-          notifRace: document.getElementById('notif-race').checked,
-          notifNewsletter: document.getElementById('notif-newsletter').checked,
-          notifSocial: document.getElementById('notif-social').checked,
-          notifAdmin: document.getElementById('notif-admin').checked,
-          theme: document.getElementById('theme-select').value,
-          autoplayVideos: document.getElementById('autoplay-videos').checked,
-          reduceMotion: document.getElementById('reduce-motion').checked,
-          favoriteDriver: document.getElementById('favorite-driver').value,
-          updatedAt: new Date().toISOString()
-        };
-        
         try {
-          // Save to localStorage
-          localStorage.setItem('rr_settings', JSON.stringify(settings));
+          const settings = gatherSettingsFromUI();
+          await saveUserSettings(currentUser?.uid || null, settings);
+          await persistExtras(currentUser?.uid);
           
-          // Save to Firestore if logged in
-          if (currentUser) {
-            try {
-              await setDoc(doc(db, 'users', currentUser.uid), {
-                settings: settings,
-                updatedAt: new Date()
-              }, { merge: true });
-            } catch (e) {
-              console.log('Could not save to Firestore:', e);
-              // Continue anyway - localStorage is saved
-            }
-          }
-          
-          // Apply theme
-          applyTheme(settings.theme);
-          
-          // Apply reduce motion
           if (settings.reduceMotion) {
             document.documentElement.style.setProperty('--animation-duration', '0.01ms');
           } else {
@@ -954,16 +989,23 @@
         }
       };
       
-      // Reset settings
-      window.resetSettings = function() {
+      window.resetSettings = async function() {
         if (!confirm('Are you sure you want to reset all settings to default?')) {
           return;
         }
         
-        // Clear local storage
-        localStorage.removeItem('rr_settings');
-        
-        // Reset UI to defaults
+        suppressAutoSave = true;
+        const defaults = {
+          notifRace: true,
+          notifNewsletter: true,
+          notifSocial: false,
+          notifAdmin: true,
+          theme: 'auto',
+          autoplayVideos: false,
+          reduceMotion: false,
+          favoriteDriver: '',
+        };
+        writeLocalSettings(defaults);
         document.getElementById('notif-race').checked = true;
         document.getElementById('notif-newsletter').checked = true;
         document.getElementById('notif-social').checked = false;
@@ -972,14 +1014,28 @@
         document.getElementById('autoplay-videos').checked = false;
         document.getElementById('reduce-motion').checked = false;
         document.getElementById('favorite-driver').value = '';
+        const accent = document.getElementById('accent-color');
+        if (accent) accent.value = '#fbbf24';
+        const sub8 = document.getElementById('sub-fan-8');
+        const sub88 = document.getElementById('sub-fan-88');
+        if (sub8) sub8.checked = false;
+        if (sub88) sub88.checked = false;
         
-        applyTheme('auto');
+        await saveUserSettings(currentUser?.uid || null, defaults);
+        if (currentUser) {
+          await setDoc(doc(db, 'users', currentUser.uid), {
+            themeColor: '#fbbf24',
+            subscriptions: { 'fan-8': false, 'fan-88': false },
+            updatedAt: new Date(),
+          }, { merge: true }).catch(() => {});
+        }
+        applySiteTheme('auto');
         document.documentElement.style.removeProperty('--animation-duration');
+        suppressAutoSave = false;
         
         showToast('Settings reset to default', 'success');
       };
       
-      // Logout
       window.logout = async function() {
         if (!confirm('Are you sure you want to sign out?')) {
           return;
@@ -994,7 +1050,6 @@
         }
       };
       
-      // Toast notification
       function showToast(message, type = 'success') {
         const toast = document.getElementById('toast');
         const toastMessage = document.getElementById('toast-message');
@@ -1017,29 +1072,19 @@
         }, 3000);
       }
       
-      // Auto-save helper: gathers all settings, saves, and shows toast
       async function autoSave(settingName) {
-        const settings = {
-          notifRace: document.getElementById('notif-race').checked,
-          notifNewsletter: document.getElementById('notif-newsletter').checked,
-          notifSocial: document.getElementById('notif-social').checked,
-          notifAdmin: document.getElementById('notif-admin').checked,
-          theme: document.getElementById('theme-select').value,
-          autoplayVideos: document.getElementById('autoplay-videos').checked,
-          reduceMotion: document.getElementById('reduce-motion').checked,
-          favoriteDriver: document.getElementById('favorite-driver').value,
-          updatedAt: new Date().toISOString()
-        };
-        localStorage.setItem('rr_settings', JSON.stringify(settings));
-        if (currentUser) {
-          try {
-            await setDoc(doc(db, 'users', currentUser.uid), { settings, updatedAt: new Date() }, { merge: true });
-          } catch(e) { console.log('Firestore save failed:', e); }
+        if (suppressAutoSave) return;
+        try {
+          const settings = gatherSettingsFromUI();
+          await saveUserSettings(currentUser?.uid || null, settings);
+          await persistExtras(currentUser?.uid);
+          showToast(settingName + ' updated', 'success');
+        } catch (e) {
+          console.error(e);
+          showToast('Could not save setting', 'error');
         }
-        showToast(settingName + ' updated', 'success');
       }
 
-      // Wire every toggle and select to auto-save on change
       document.getElementById('notif-race').addEventListener('change', (e) => {
         autoSave('Race Updates ' + (e.target.checked ? 'enabled' : 'disabled'));
       });
@@ -1053,7 +1098,7 @@
         autoSave('Admin Alerts ' + (e.target.checked ? 'enabled' : 'disabled'));
       });
       document.getElementById('theme-select').addEventListener('change', (e) => {
-        applyTheme(e.target.value);
+        applySiteTheme(e.target.value);
         autoSave('Theme changed to ' + e.target.value);
       });
       document.getElementById('autoplay-videos').addEventListener('change', (e) => {
@@ -1068,8 +1113,22 @@
         autoSave('Reduce Animations ' + (e.target.checked ? 'enabled' : 'disabled'));
       });
       document.getElementById('favorite-driver').addEventListener('change', (e) => {
+        const v = e.target.value;
+        const sub8 = document.getElementById('sub-fan-8');
+        const sub88 = document.getElementById('sub-fan-88');
+        if (v === 'jon' && sub8) sub8.checked = true;
+        if (v === 'jonny' && sub88) sub88.checked = true;
         const labels = { '': 'None', 'jon': 'Jon Kirsch #8', 'jonny': 'Jonny Kirsch #88' };
-        autoSave('Favorite Driver set to ' + (labels[e.target.value] || e.target.value));
+        autoSave('Favorite Driver set to ' + (labels[v] || v));
+      });
+      document.getElementById('accent-color')?.addEventListener('change', () => {
+        autoSave('Accent color');
+      });
+      document.getElementById('sub-fan-8')?.addEventListener('change', (e) => {
+        autoSave('Jon #8 alerts ' + (e.target.checked ? 'on' : 'off'));
+      });
+      document.getElementById('sub-fan-88')?.addEventListener('change', (e) => {
+        autoSave('Jonny #88 alerts ' + (e.target.checked ? 'on' : 'off'));
       });
     </script>
   </body>

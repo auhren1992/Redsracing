@@ -7,7 +7,13 @@ import {
   getFirebaseDb,
 } from "./firebase-core.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-import { doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, collection, getDocs, getCountFromServer } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import {
+  loadUserSettings,
+  saveUserSettings,
+  applySiteTheme,
+  favoriteDriverLabel,
+} from "./user-settings.js";
 
 // Import centralized authentication utilities
 import {
@@ -220,6 +226,15 @@ import { LoadingService } from "./loading.js";
   async function toggleEditMode(force) {
     const next = typeof force === "boolean" ? force : !isEditing;
     setEditOpen(next);
+  }
+
+  const heroEditBtn = document.getElementById("hero-edit-btn");
+  if (heroEditBtn) {
+    heroEditBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!isCurrentUserProfile) return;
+      void toggleEditMode(true);
+    });
   }
 
   if (editProfileBtn) {
@@ -775,6 +790,17 @@ import { LoadingService } from "./loading.js";
       editFavoriteCars.value = profileData.favoriteCars
         ? profileData.favoriteCars.join(", ")
         : "";
+    if (editStatusEmoji) editStatusEmoji.value = profileData.funStatusEmoji || "";
+    if (editThemeColor) {
+      const col = profileData.themeColor || "#fbbf24";
+      try { editThemeColor.value = /^#/.test(col) ? col : "#fbbf24"; } catch { editThemeColor.value = "#fbbf24"; }
+    }
+    if (editFavoriteTrack) {
+      editFavoriteTrack.value =
+        profileData.favoriteTrack ||
+        profileData.racingStats?.favoriteTrack ||
+        "";
+    }
     try {
       const sl = profileData.socialLinks || {};
       if (editSocialTikTok) editSocialTikTok.value = sl.tiktok || "";
@@ -782,6 +808,9 @@ import { LoadingService } from "./loading.js";
       if (editSocialTwitch) editSocialTwitch.value = sl.twitch || "";
       if (editSocialDiscord) editSocialDiscord.value = sl.discord || "";
     } catch {}
+
+    // Live fan stats + customization panel (own profile)
+    void hydrateFanExtras(profileData);
 
     // Badges picker highlight
     try {
@@ -799,10 +828,183 @@ import { LoadingService } from "./loading.js";
     if (editProfileBtn) {
       editProfileBtn.style.display = isCurrentUserProfile ? "block" : "none";
     }
+    if (heroEditBtn) {
+      heroEditBtn.style.display = isCurrentUserProfile ? "" : "none";
+    }
 
     hideLoadingAndShowContent();
     try { LoadingService.done('profile-content'); } catch {}
   }
+
+  async function countSubcollection(uid, name) {
+    try {
+      const ref = collection(db, "users", uid, name);
+      if (typeof getCountFromServer === "function") {
+        const agg = await getCountFromServer(ref);
+        return agg.data().count || 0;
+      }
+      const snap = await getDocs(ref);
+      return snap.size;
+    } catch {
+      return 0;
+    }
+  }
+
+  function setDriverPick(value) {
+    const jon = document.getElementById("pick-jon");
+    const jonny = document.getElementById("pick-jonny");
+    if (jon) jon.classList.toggle("active-jon", value === "jon");
+    if (jonny) jonny.classList.toggle("active-jonny", value === "jonny");
+  }
+
+  async function hydrateFanExtras(profileData) {
+    const uid = currentUser?.uid;
+    const predEl = document.getElementById("stat-pred-points");
+    const stampEl = document.getElementById("stat-stamps");
+    const rsvpEl = document.getElementById("stat-rsvps");
+    const favEl = document.getElementById("stat-fav-driver");
+    const customize = document.getElementById("customize-section");
+
+    const pts = Number(profileData.prediction_score || profileData.totalPoints || 0) || 0;
+    if (predEl) predEl.textContent = String(pts);
+
+    if (uid && isCurrentUserProfile) {
+      const [stamps, rsvps] = await Promise.all([
+        countSubcollection(uid, "passport_stamps"),
+        countSubcollection(uid, "race_rsvps"),
+      ]);
+      if (stampEl) stampEl.textContent = String(stamps);
+      if (rsvpEl) rsvpEl.textContent = String(rsvps);
+
+      const settings = await loadUserSettings(uid);
+      const fav = settings.favoriteDriver || "";
+      if (favEl) favEl.textContent = favoriteDriverLabel(fav);
+      setDriverPick(fav);
+
+      if (customize) customize.style.display = "block";
+      const themeSel = document.getElementById("quick-theme");
+      const accent = document.getElementById("quick-accent");
+      const sub8 = document.getElementById("sub-fan-8");
+      const sub88 = document.getElementById("sub-fan-88");
+      const notifRace = document.getElementById("quick-notif-race");
+      const notifNews = document.getElementById("quick-notif-news");
+      const notifSocial = document.getElementById("quick-notif-social");
+      if (themeSel) themeSel.value = settings.theme || "auto";
+      if (accent) {
+        const col = profileData.themeColor || "#fbbf24";
+        try { accent.value = /^#/.test(col) ? col : "#fbbf24"; } catch (_) {}
+      }
+      const subs = profileData.subscriptions || {};
+      if (sub8) sub8.checked = !!subs["fan-8"] || fav === "jon";
+      if (sub88) sub88.checked = !!subs["fan-88"] || fav === "jonny";
+      if (notifRace) notifRace.checked = settings.notifRace !== false;
+      if (notifNews) notifNews.checked = settings.notifNewsletter !== false;
+      if (notifSocial) notifSocial.checked = !!settings.notifSocial;
+
+      // Apply stored site theme
+      applySiteTheme(settings.theme || "auto");
+    } else {
+      if (stampEl) stampEl.textContent = "—";
+      if (rsvpEl) rsvpEl.textContent = "—";
+      if (favEl) {
+        const fav = profileData.settings?.favoriteDriver || "";
+        favEl.textContent = favoriteDriverLabel(fav);
+      }
+      if (customize) customize.style.display = "none";
+    }
+  }
+
+  // Wire customize controls once
+  (function wireCustomize() {
+    const pickWrap = document.getElementById("driver-pick");
+    if (pickWrap && !pickWrap.dataset.bound) {
+      pickWrap.dataset.bound = "1";
+      pickWrap.querySelectorAll("[data-driver]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const v = btn.getAttribute("data-driver");
+          setDriverPick(v);
+          const sub8 = document.getElementById("sub-fan-8");
+          const sub88 = document.getElementById("sub-fan-88");
+          if (v === "jon" && sub8) sub8.checked = true;
+          if (v === "jonny" && sub88) sub88.checked = true;
+        });
+      });
+    }
+
+    const themeSel = document.getElementById("quick-theme");
+    if (themeSel && !themeSel.dataset.bound) {
+      themeSel.dataset.bound = "1";
+      themeSel.addEventListener("change", () => {
+        applySiteTheme(themeSel.value || "auto");
+      });
+    }
+
+    const accentInput = document.getElementById("quick-accent");
+    if (accentInput && !accentInput.dataset.bound) {
+      accentInput.dataset.bound = "1";
+      accentInput.addEventListener("input", () => {
+        const accent = accentInput.value || "#fbbf24";
+        try { document.documentElement.style.setProperty("--fun-accent", accent); } catch (_) {}
+        if (profileThemeDot) profileThemeDot.style.backgroundColor = accent;
+      });
+    }
+
+    const saveBtn = document.getElementById("save-customize-btn");
+    if (saveBtn && !saveBtn.dataset.bound) {
+      saveBtn.dataset.bound = "1";
+      saveBtn.addEventListener("click", async () => {
+        if (!currentUser || !isCurrentUserProfile) return;
+        const status = document.getElementById("customize-status");
+        const jon = document.getElementById("pick-jon");
+        const jonny = document.getElementById("pick-jonny");
+        let favoriteDriver = "";
+        if (jon?.classList.contains("active-jon")) favoriteDriver = "jon";
+        if (jonny?.classList.contains("active-jonny")) favoriteDriver = "jonny";
+        const theme = document.getElementById("quick-theme")?.value || "auto";
+        const accent = document.getElementById("quick-accent")?.value || "#fbbf24";
+        const sub8 = !!document.getElementById("sub-fan-8")?.checked;
+        const sub88 = !!document.getElementById("sub-fan-88")?.checked;
+        const notifRace = !!document.getElementById("quick-notif-race")?.checked;
+        const notifNewsletter = !!document.getElementById("quick-notif-news")?.checked;
+        const notifSocial = !!document.getElementById("quick-notif-social")?.checked;
+
+        try {
+          saveBtn.disabled = true;
+          if (status) { status.style.color = "var(--rr-muted)"; status.textContent = "Saving…"; }
+          const prev = await loadUserSettings(currentUser.uid);
+          await saveUserSettings(currentUser.uid, {
+            ...prev,
+            theme,
+            favoriteDriver,
+            notifRace,
+            notifNewsletter,
+            notifSocial,
+          });
+          await setDoc(
+            doc(db, "users", currentUser.uid),
+            {
+              themeColor: accent,
+              subscriptions: { "fan-8": sub8, "fan-88": sub88 },
+              updatedAt: new Date(),
+            },
+            { merge: true },
+          );
+          try { document.documentElement.style.setProperty("--fun-accent", accent); } catch (_) {}
+          const favEl = document.getElementById("stat-fav-driver");
+          if (favEl) favEl.textContent = favoriteDriverLabel(favoriteDriver);
+          if (profileThemeDot) profileThemeDot.style.backgroundColor = accent;
+          const sigDot = document.querySelector(".rr-signature-dot");
+          if (sigDot) sigDot.style.backgroundColor = accent;
+          if (status) { status.style.color = "#4ade80"; status.textContent = "✓ Customization saved — opens across the site"; }
+          showToast("Customization saved!");
+        } catch (e) {
+          if (status) { status.style.color = "#f87171"; status.textContent = "✗ " + (e?.message || "Save failed"); }
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+    }
+  })();
 
   // Display minimal profile when backend is not available
   function displayMinimalProfile(userId) {

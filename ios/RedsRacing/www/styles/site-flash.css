@@ -1,0 +1,304 @@
+/*!
+ * site-flash.css — forced brighter blue/gold look for EVERY page
+ * Loaded on all public HTML. Overrides flat Tailwind slate defaults.
+ * Jonny pages (body.jonny-page) stay red/black accented.
+ */
+
+:root {
+  --flash-blue: #60a5fa;
+  --flash-blue-deep: #3b82f6;
+  --flash-gold: #fcd34d;
+  --flash-gold-hot: #fde047;
+  --flash-bg: #07111f;
+  --flash-panel: #0f2138;
+  --flash-panel-2: #152a45;
+  --flash-text: #f1f5f9;
+  --flash-muted: #c4d4e8;
+}
+
+/* ========== GLOBAL CANVAS ========== */
+html:not([data-theme="light"]) body {
+  color: var(--flash-text) !important;
+  background-color: var(--flash-bg) !important;
+  background-image:
+    radial-gradient(1100px circle at 10% -5%, rgba(59, 130, 246, 0.32), transparent 55%),
+    radial-gradient(900px circle at 95% 5%, rgba(251, 191, 36, 0.26), transparent 50%),
+    radial-gradient(700px circle at 50% 110%, rgba(59, 130, 246, 0.16), transparent 55%),
+    linear-gradient(180deg, #07111f 0%, #0a1628 45%, #050a14 100%) !important;
+  background-attachment: fixed !important;
+}
+
+html:not([data-theme="light"]) body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(500px circle at 18% 28%, rgba(96, 165, 250, 0.16), transparent 62%),
+    radial-gradient(460px circle at 82% 68%, rgba(253, 224, 71, 0.12), transparent 62%);
+  animation: flashDrift 12s ease-in-out infinite alternate;
+}
+@keyframes flashDrift {
+  from { opacity: 0.75; transform: translate3d(0, 0, 0); }
+  to { opacity: 1; transform: translate3d(1.5%, -1%, 0); }
+}
+body > * { position: relative; z-index: 1; }
+
+/* ========== KILL FLAT SLATE BACKGROUNDS ========== */
+html:not([data-theme="light"]) .bg-slate-950,
+html:not([data-theme="light"]) .bg-slate-900,
+html:not([data-theme="light"]) .bg-dark-blue {
+  background-color: #0a1628 !important;
+}
+html:not([data-theme="light"]) .bg-slate-800,
+html:not([data-theme="light"]) .bg-slate-800\/50,
+html:not([data-theme="light"]) .bg-slate-800\/80 {
+  background-color: rgba(15, 33, 56, 0.88) !important;
+}
+html:not([data-theme="light"]) .bg-slate-700,
+html:not([data-theme="light"]) .bg-slate-700\/50 {
+  background-color: rgba(21, 42, 69, 0.9) !important;
+}
+html:not([data-theme="light"]) .bg-black\/20,
+html:not([data-theme="light"]) .bg-black\/30 {
+  background-color: rgba(7, 17, 31, 0.55) !important;
+}
+
+/* Tailwind gradient stops → richer blue/gold night */
+html:not([data-theme="light"]) .from-slate-900 {
+  --tw-gradient-from: #0a1628 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(10 22 40 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+html:not([data-theme="light"]) .via-slate-800 {
+  --tw-gradient-to: rgb(15 33 56 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #12233d var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+html:not([data-theme="light"]) .via-slate-900 {
+  --tw-gradient-to: rgb(10 22 40 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #0c1a2e var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+html:not([data-theme="light"]) .to-slate-900 {
+  --tw-gradient-to: #0a1628 var(--tw-gradient-to-position) !important;
+}
+html:not([data-theme="light"]) .to-black {
+  --tw-gradient-to: #050a14 var(--tw-gradient-to-position) !important;
+}
+html:not([data-theme="light"]) .from-black {
+  --tw-gradient-from: #050a14 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(5 10 20 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+/* ========== BRIGHTER TEXT ========== */
+html:not([data-theme="light"]) .text-slate-500 {
+  color: #9fb4d1 !important;
+}
+html:not([data-theme="light"]) .text-slate-400 {
+  color: #c4d4e8 !important;
+}
+html:not([data-theme="light"]) .text-slate-300 {
+  color: #e2eaf6 !important;
+}
+html:not([data-theme="light"]) .text-slate-200 {
+  color: #f8fafc !important;
+}
+html:not([data-theme="light"]) .text-white {
+  color: #ffffff !important;
+}
+
+/* Brand accents — brighter + glow */
+html:not([data-theme="light"]) body:not(.jonny-page) .text-yellow-400,
+html:not([data-theme="light"]) body:not(.jonny-page) .text-yellow-300,
+html:not([data-theme="light"]) body:not(.jonny-page) .neon-yellow {
+  color: #fde047 !important;
+  text-shadow: 0 0 18px rgba(253, 224, 71, 0.45);
+}
+html:not([data-theme="light"]) body:not(.jonny-page) .text-blue-400,
+html:not([data-theme="light"]) body:not(.jonny-page) .text-blue-300,
+html:not([data-theme="light"]) body:not(.jonny-page) .title-blue {
+  color: #7dd3fc !important;
+  text-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+}
+html:not([data-theme="light"]) body:not(.jonny-page) .text-blue-500 {
+  color: #60a5fa !important;
+}
+
+/* Borders less muddy */
+html:not([data-theme="light"]) .border-slate-700,
+html:not([data-theme="light"]) .border-slate-700\/50,
+html:not([data-theme="light"]) .border-slate-600,
+html:not([data-theme="light"]) .border-slate-600\/50 {
+  border-color: rgba(96, 165, 250, 0.22) !important;
+}
+html:not([data-theme="light"]) .border-yellow-400,
+html:not([data-theme="light"]) .border-yellow-400\/20,
+html:not([data-theme="light"]) .border-yellow-400\/30 {
+  border-color: rgba(253, 224, 71, 0.45) !important;
+}
+
+/* ========== CARDS / PANELS ========== */
+html:not([data-theme="light"]) .modern-card,
+html:not([data-theme="light"]) .glass-card,
+html:not([data-theme="light"]) .card,
+html:not([data-theme="light"]) .stat-card,
+html:not([data-theme="light"]) .content-section {
+  background: linear-gradient(165deg, rgba(18, 40, 68, 0.92), rgba(8, 18, 34, 0.9)) !important;
+  border: 1px solid rgba(96, 165, 250, 0.22) !important;
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(253, 224, 71, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(16px);
+}
+html:not([data-theme="light"]) .modern-card:hover,
+html:not([data-theme="light"]) .glass-card:hover,
+html:not([data-theme="light"]) .card:hover,
+html:not([data-theme="light"]) .stat-card:hover {
+  border-color: rgba(253, 224, 71, 0.55) !important;
+  box-shadow:
+    0 24px 55px rgba(0, 0, 0, 0.5),
+    0 0 36px rgba(253, 224, 71, 0.18) !important;
+  transform: translateY(-4px);
+}
+
+/* ========== HEADER ========== */
+html:not([data-theme="light"]) header,
+html:not([data-theme="light"]) header.bg-black\/30,
+html:not([data-theme="light"]) header[class*="backdrop-blur"] {
+  background: linear-gradient(180deg, rgba(7, 17, 31, 0.92), rgba(10, 22, 40, 0.88)) !important;
+  border-bottom: 1px solid rgba(253, 224, 71, 0.28) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 30px rgba(59, 130, 246, 0.1) !important;
+  backdrop-filter: blur(20px) saturate(1.35) !important;
+}
+
+/* ========== HEROES ========== */
+html:not([data-theme="light"]) .rr-hero {
+  background:
+    radial-gradient(900px circle at 15% 20%, rgba(59, 130, 246, 0.35), transparent 55%),
+    radial-gradient(800px circle at 85% 25%, rgba(253, 224, 71, 0.28), transparent 55%),
+    linear-gradient(180deg, rgba(7, 17, 31, 0.2), rgba(7, 17, 31, 0.92)) !important;
+  border-bottom: 1px solid rgba(253, 224, 71, 0.25) !important;
+}
+html:not([data-theme="light"]) .rr-hero-kicker {
+  background: rgba(253, 224, 71, 0.14) !important;
+  border-color: rgba(253, 224, 71, 0.45) !important;
+  color: #fde047 !important;
+  box-shadow: 0 0 28px rgba(253, 224, 71, 0.25);
+}
+html:not([data-theme="light"]) .rr-hero-title {
+  color: #fff !important;
+  text-shadow: 0 0 40px rgba(253, 224, 71, 0.25), 0 0 60px rgba(59, 130, 246, 0.2);
+}
+html:not([data-theme="light"]) .rr-hero-sub {
+  color: #d7e4f5 !important;
+}
+html:not([data-theme="light"]) .rr-pill {
+  background: rgba(15, 33, 56, 0.75) !important;
+  border-color: rgba(96, 165, 250, 0.35) !important;
+  color: #f1f5f9 !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+html:not([data-theme="light"]) .rr-pill--primary {
+  background: linear-gradient(45deg, #fbbf24, #fde047, #f59e0b) !important;
+  background-size: 200% 200% !important;
+  color: #0b1220 !important;
+  border-color: rgba(253, 224, 71, 0.5) !important;
+  box-shadow: 0 12px 34px rgba(253, 224, 71, 0.45) !important;
+  animation: flashGold 3.5s ease infinite;
+}
+@keyframes flashGold {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Wordmark always bright */
+.logo-blue {
+  background-image: linear-gradient(45deg, #3b82f6, #7dd3fc, #60a5fa) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.45)) !important;
+}
+.logo-yellow {
+  background-image: linear-gradient(45deg, #fbbf24, #fde047, #f59e0b) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 0 10px rgba(253, 224, 71, 0.5)) !important;
+}
+
+/* ========== FOOTER ========== */
+html:not([data-theme="light"]) footer {
+  background: linear-gradient(180deg, #0a1628, #050a14 60%, #000) !important;
+  border-top: 1px solid rgba(253, 224, 71, 0.3) !important;
+  box-shadow: 0 -20px 50px rgba(59, 130, 246, 0.08);
+}
+
+/* ========== BUTTONS ========== */
+html:not([data-theme="light"]) body:not(.jonny-page) .bg-yellow-400,
+html:not([data-theme="light"]) body:not(.jonny-page) .bg-yellow-500,
+html:not([data-theme="light"]) body:not(.jonny-page) .bg-neon-yellow {
+  background: linear-gradient(45deg, #fbbf24, #fde047) !important;
+  color: #0b1220 !important;
+  box-shadow: 0 10px 28px rgba(253, 224, 71, 0.4) !important;
+}
+html:not([data-theme="light"]) .bg-blue-500,
+html:not([data-theme="light"]) .bg-blue-600 {
+  background: linear-gradient(45deg, #3b82f6, #60a5fa) !important;
+  box-shadow: 0 10px 28px rgba(59, 130, 246, 0.35) !important;
+}
+
+/* ========== FEATURE STRIP / MISC ========== */
+html:not([data-theme="light"]) .rr-feature-shell {
+  background: linear-gradient(165deg, rgba(18, 40, 68, 0.95), rgba(8, 18, 34, 0.92)) !important;
+  border-color: rgba(253, 224, 71, 0.35) !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.4), 0 0 40px rgba(253, 224, 71, 0.12) !important;
+}
+
+/* Mobile menu */
+html:not([data-theme="light"]) #mobile-menu,
+html:not([data-theme="light"]) .mobile-menu {
+  background: rgba(7, 17, 31, 0.97) !important;
+  border-top-color: rgba(253, 224, 71, 0.28) !important;
+}
+
+/* ========== JONNY: red/black flash (not blue/gold panels) ========== */
+html:not([data-theme="light"]) body.jonny-page {
+  background-color: #050505 !important;
+  background-image:
+    radial-gradient(1100px circle at 10% -5%, rgba(239, 68, 68, 0.34), transparent 55%),
+    radial-gradient(900px circle at 95% 5%, rgba(127, 29, 29, 0.3), transparent 50%),
+    linear-gradient(180deg, #0a0505 0%, #050505 50%, #000 100%) !important;
+}
+html:not([data-theme="light"]) body.jonny-page::before {
+  background:
+    radial-gradient(500px circle at 18% 28%, rgba(239, 68, 68, 0.18), transparent 62%),
+    radial-gradient(460px circle at 82% 68%, rgba(127, 29, 29, 0.14), transparent 62%) !important;
+}
+html:not([data-theme="light"]) body.jonny-page .modern-card,
+html:not([data-theme="light"]) body.jonny-page .glass-card,
+html:not([data-theme="light"]) body.jonny-page .card,
+html:not([data-theme="light"]) body.jonny-page .stat-card {
+  background: linear-gradient(165deg, rgba(40, 10, 10, 0.92), rgba(8, 0, 0, 0.92)) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5), 0 0 30px rgba(239, 68, 68, 0.12) !important;
+}
+html:not([data-theme="light"]) body.jonny-page .text-red-400,
+html:not([data-theme="light"]) body.jonny-page .text-red-300 {
+  color: #f87171 !important;
+  text-shadow: 0 0 18px rgba(248, 113, 113, 0.45);
+}
+html:not([data-theme="light"]) body.jonny-page header {
+  border-bottom-color: rgba(239, 68, 68, 0.4) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 30px rgba(239, 68, 68, 0.12) !important;
+}
+
+/* Selection */
+::selection {
+  background: rgba(253, 224, 71, 0.4);
+  color: #fff;
+}
