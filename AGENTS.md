@@ -12,8 +12,9 @@ Python 3.12 (`functions_python/`). Mobile apps (`android/`, `ios/`), the Go stub
 The startup update script already installs deps: root `npm install`, `functions/` `npm install`,
 and a Python venv at `functions_python/venv` with `functions_python/requirements.txt`.
 Prefer `npm install` over `npm ci` — the root lockfile can disagree with the `uuid` override in
-`package.json`, so `npm ci` may fail. The `python3.12-venv` system package is provided by the
-VM snapshot (not the update script).
+`package.json`, so `npm ci` may fail. Python tests need `python3.12-venv` on the base image
+(`sudo apt-get install -y python3.12-venv` once if `python3 -m venv` fails with ensurepip missing).
+The update script creates `functions_python/venv` when possible and skips cleanly if venv cannot be created.
 
 ### Node version gotcha (Cloud Agent VMs)
 - Cloud Functions declare Node **20** (`functions/package.json` engines). Prefer Node 20 via nvm.
