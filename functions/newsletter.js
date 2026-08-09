@@ -6,14 +6,7 @@ const logger = require("firebase-functions/logger");
 const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
 const nodemailer = require("nodemailer");
 
-/* eslint-env node */
-const escapeHtml = (value) =>
-  String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+const { escapeHtml } = require("./escape-html");
 
 // Initialize MailerSend client
 const getMailerSend = () => {

@@ -140,6 +140,17 @@ def _rate_limit_blocked_response():
     )
 
 
+def _rate_limit_start_window(ref, bucket: str, now):
+    ref.set(
+        {
+            "bucket": bucket,
+            "count": 1,
+            "windowStart": now,
+            "updatedAt": firestore.SERVER_TIMESTAMP,
+        }
+    )
+
+
 def enforce_ip_rate_limit(req, bucket: str, max_requests: int = 8, window_seconds: int = 3600):
     """Firestore-backed IP rate limit for public form endpoints.
 
@@ -154,14 +165,7 @@ def enforce_ip_rate_limit(req, bucket: str, max_requests: int = 8, window_second
         now = datetime.utcnow()
         snap = ref.get()
         if not snap.exists:
-            ref.set(
-                {
-                    "bucket": bucket,
-                    "count": 1,
-                    "windowStart": now,
-                    "updatedAt": firestore.SERVER_TIMESTAMP,
-                }
-            )
+            _rate_limit_start_window(ref, bucket, now)
             return True, None
 
         data = snap.to_dict() or {}
@@ -170,21 +174,11 @@ def enforce_ip_rate_limit(req, bucket: str, max_requests: int = 8, window_second
             data.get("windowStart"), now, window_seconds
         )
         if elapsed >= window_seconds:
-            ref.set(
-                {
-                    "bucket": bucket,
-                    "count": 1,
-                    "windowStart": now,
-                    "updatedAt": firestore.SERVER_TIMESTAMP,
-                }
-            )
+            _rate_limit_start_window(ref, bucket, now)
             return True, None
         if count >= max_requests:
             return False, _rate_limit_blocked_response()
-        ref.set(
-            {"count": count + 1, "updatedAt": firestore.SERVER_TIMESTAMP},
-            merge=True,
-        )
+        ref.set({"count": count + 1, "updatedAt": firestore.SERVER_TIMESTAMP}, merge=True)
         return True, None
     except Exception as e:
         try:
