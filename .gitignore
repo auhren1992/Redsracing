@@ -80,3 +80,4 @@ deploy-log.txt
 
 # Accidental nested full-repo duplicate (do not commit)
 /Redsracing/
+functions_python/venv/

@@ -131,41 +131,8 @@ async function adminCheck() {
       console.warn('[CMS] Custom claims check failed:', claimError);
     }
 
-    // Fallback to Firestore role check with fresh data
-    console.log('[CMS] Checking Firestore user document...');
-    try {
-      const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-      const db = getFirebaseDb();
-      
-      // Get fresh data from Firestore
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      console.log('[CMS] Firestore document exists:', userDoc.exists());
-      
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        console.log('[CMS] Firestore user data (fresh):', userData);
-        
-        const firestoreRole = userData.role;
-        const isAdmin = userData.isAdmin === true;
-        const isTeamMember = userData.isTeamMember === true;
-        const isOwner = userData.isOwner === true;
-        
-        console.log('[CMS] Parsed roles - role:', firestoreRole, 'isAdmin:', isAdmin, 'isTeamMember:', isTeamMember, 'isOwner:', isOwner);
-        
-        if (firestoreRole === 'admin' || firestoreRole === 'team-member' || 
-            firestoreRole === 'owner' || isAdmin || isTeamMember || isOwner) {
-          console.log('[CMS] ✅ Admin access via Firestore role:', firestoreRole || 'admin flag');
-          return true;
-        }
-      } else {
-        console.warn('[CMS] No Firestore user document found for:', user.uid);
-        
-      }
-    } catch (firestoreError) {
-      console.warn('[CMS] Firestore role check failed:', firestoreError);
-    }
-
-    console.log('[CMS] ❌ No admin access found via any method');
+    // No Firestore privilege fallback — Auth custom claims are authoritative.
+    console.log('[CMS] ❌ No admin access found via Auth claims');
     
     return false;
   } catch (error) {

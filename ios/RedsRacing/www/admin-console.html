@@ -3601,23 +3601,9 @@
             
             console.log('[getUserRole] User authenticated:', auth.currentUser.uid);
             
-            // ALWAYS check Firestore first for mobile reliability
+            // Claims-only: Firestore users/{uid}.role is not a privilege source.
             try {
-              const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
-              const db = getFirestore(app);
-              const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-              if (userDoc.exists()) {
-                const firestoreRole = userDoc.data()?.role;
-                console.log('[getUserRole] Firestore role:', firestoreRole);
-                if (firestoreRole) return firestoreRole;
-              }
-            } catch (firestoreErr) {
-              console.warn('[getUserRole] Firestore check failed, trying token:', firestoreErr);
-            }
-            
-            // Fallback to token claims
-            try {
-              const token = await auth.currentUser.getIdTokenResult(false); // Don't force refresh
+              const token = await auth.currentUser.getIdTokenResult(true);
               const role = token?.claims?.role || null;
               console.log('[getUserRole] Token claims role:', role);
               return role;
@@ -5392,13 +5378,13 @@
               };
               
               tr.innerHTML = `
-                <td class="p-2 whitespace-nowrap text-xs">${when}</td>
-                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${errorType.toLowerCase().includes('promise') ? 'bg-orange-600/20 text-orange-400' : 'bg-red-600/20 text-red-400'}">${errorType}</span></td>
-                <td class="p-2 text-xs" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${message.replace(/"/g, '&quot;')}">${message}</td>
-                <td class="p-2 text-xs"><span class="font-semibold text-yellow-300">${pageName}</span>${docTitle ? '<br><span class="text-slate-500 text-[10px]">' + docTitle + '</span>' : ''}</td>
-                <td class="p-2 text-xs font-mono" title="${sourceFile.replace(/"/g, '&quot;')}"><span class="text-cyan-400">${sourceShort}${lineInfo}</span></td>
-                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${device === 'mobile' ? 'bg-blue-600/20 text-blue-400' : device === 'desktop' ? 'bg-purple-600/20 text-purple-400' : 'bg-gray-600/20 text-gray-400'}">${device}${isAndroidApp}</span></td>
-                <td class="p-2 text-xs truncate">${userId}</td>
+                <td class="p-2 whitespace-nowrap text-xs">${escHtmlInbox(when)}</td>
+                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${errorType.toLowerCase().includes('promise') ? 'bg-orange-600/20 text-orange-400' : 'bg-red-600/20 text-red-400'}">${escHtmlInbox(errorType)}</span></td>
+                <td class="p-2 text-xs" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escHtmlInbox(message)}">${escHtmlInbox(message)}</td>
+                <td class="p-2 text-xs"><span class="font-semibold text-yellow-300">${escHtmlInbox(pageName)}</span>${docTitle ? '<br><span class="text-slate-500 text-[10px]">' + escHtmlInbox(docTitle) + '</span>' : ''}</td>
+                <td class="p-2 text-xs font-mono" title="${escHtmlInbox(sourceFile)}"><span class="text-cyan-400">${escHtmlInbox(sourceShort)}${escHtmlInbox(lineInfo)}</span></td>
+                <td class="p-2 text-xs"><span class="px-2 py-1 rounded text-xs ${device === 'mobile' ? 'bg-blue-600/20 text-blue-400' : device === 'desktop' ? 'bg-purple-600/20 text-purple-400' : 'bg-gray-600/20 text-gray-400'}">${escHtmlInbox(device)}${escHtmlInbox(isAndroidApp)}</span></td>
+                <td class="p-2 text-xs truncate">${escHtmlInbox(userId)}</td>
               `;
               
               tr.addEventListener('click', () => {
@@ -5843,7 +5829,7 @@
                     const dev = v.device?.deviceType || 'unknown';
                     const tr = document.createElement('tr');
                     tr.className = 'border-b border-slate-700/50';
-                    tr.innerHTML = '<td class="p-2 text-xs text-slate-400">' + ts + '</td><td class="p-2 text-xs text-yellow-300">' + pg + '</td><td class="p-2 text-xs text-slate-300" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + msg + '</td><td class="p-2 text-xs text-slate-400">' + dev + '</td>';
+                    tr.innerHTML = '<td class="p-2 text-xs text-slate-400">' + escHtmlInbox(ts) + '</td><td class="p-2 text-xs text-yellow-300">' + escHtmlInbox(pg) + '</td><td class="p-2 text-xs text-slate-300" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtmlInbox(msg) + '</td><td class="p-2 text-xs text-slate-400">' + escHtmlInbox(dev) + '</td>';
                     errTbody.appendChild(tr);
                   });
                 }
@@ -5882,6 +5868,8 @@
         function showErrorDetails(data) {
           const modal = document.createElement('div');
           modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4';
+          const e = escHtmlInbox;
+          const device = data.device || {};
           modal.innerHTML = `
             <div class="bg-slate-900 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-slate-700">
               <div class="flex items-center justify-between mb-4">
@@ -5894,72 +5882,72 @@
               <div class="space-y-4 text-sm">
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-1">Error Type</div>
-                  <div class="text-red-400 font-semibold">${data.errorType}</div>
+                  <div class="text-red-400 font-semibold">${e(data.errorType)}</div>
                 </div>
                 
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-1">Message</div>
-                  <div class="text-white font-mono break-words">${data.message}</div>
+                  <div class="text-white font-mono break-words">${e(data.message)}</div>
                 </div>
                 
                 <div class="grid grid-cols-3 gap-4">
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Page</div>
-                    <div class="text-yellow-300 font-semibold">${data.pageName || data.page}</div>
-                    <div class="text-slate-500 text-xs mt-1 font-mono">${data.page}</div>
-                    ${data.documentTitle ? '<div class="text-slate-400 text-xs mt-1">' + data.documentTitle + '</div>' : ''}
+                    <div class="text-yellow-300 font-semibold">${e(data.pageName || data.page)}</div>
+                    <div class="text-slate-500 text-xs mt-1 font-mono">${e(data.page)}</div>
+                    ${data.documentTitle ? '<div class="text-slate-400 text-xs mt-1">' + e(data.documentTitle) + '</div>' : ''}
                   </div>
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Source File</div>
-                    <div class="text-cyan-400 font-mono text-xs break-all">${data.source || '—'}</div>
-                    ${data.lineno ? '<div class="text-slate-400 mt-1">Line ' + data.lineno + ', Column ' + data.colno + '</div>' : ''}
+                    <div class="text-cyan-400 font-mono text-xs break-all">${e(data.source || '—')}</div>
+                    ${data.lineno ? '<div class="text-slate-400 mt-1">Line ' + e(data.lineno) + ', Column ' + e(data.colno) + '</div>' : ''}
                   </div>
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Timestamp</div>
-                    <div class="text-white">${data.timestamp}</div>
+                    <div class="text-white">${e(data.timestamp)}</div>
                   </div>
                 </div>
                 
                 ${data.fullUrl ? `
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-1">Full URL</div>
-                  <div class="text-white font-mono text-xs break-all">${data.fullUrl}</div>
+                  <div class="text-white font-mono text-xs break-all">${e(data.fullUrl)}</div>
                 </div>
                 ` : ''}
                 
                 ${data.source && data.source !== data.fullUrl ? `
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-1">Source</div>
-                  <div class="text-white font-mono text-xs break-all">${data.source}</div>
-                  ${data.lineno ? `<div class="text-slate-400 mt-1">Line ${data.lineno}, Column ${data.colno}</div>` : ''}
+                  <div class="text-white font-mono text-xs break-all">${e(data.source)}</div>
+                  ${data.lineno ? `<div class="text-slate-400 mt-1">Line ${e(data.lineno)}, Column ${e(data.colno)}</div>` : ''}
                 </div>
                 ` : ''}
                 
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-2">Device Information</div>
                   <div class="grid grid-cols-2 gap-2 text-xs">
-                    <div><span class="text-slate-400">Type:</span> <span class="text-white">${data.device.deviceType || 'unknown'}${data.device.isAndroidApp ? ' (Android App)' : ''}</span></div>
-                    <div><span class="text-slate-400">Platform:</span> <span class="text-white">${data.device.platform || 'unknown'}</span></div>
-                    <div><span class="text-slate-400">Viewport:</span> <span class="text-white">${data.device.viewport || 'unknown'}</span></div>
-                    <div><span class="text-slate-400">Online:</span> <span class="text-white">${data.device.online !== undefined ? (data.device.online ? 'Yes' : 'No') : 'unknown'}</span></div>
+                    <div><span class="text-slate-400">Type:</span> <span class="text-white">${e(device.deviceType || 'unknown')}${device.isAndroidApp ? ' (Android App)' : ''}</span></div>
+                    <div><span class="text-slate-400">Platform:</span> <span class="text-white">${e(device.platform || 'unknown')}</span></div>
+                    <div><span class="text-slate-400">Viewport:</span> <span class="text-white">${e(device.viewport || 'unknown')}</span></div>
+                    <div><span class="text-slate-400">Online:</span> <span class="text-white">${device.online !== undefined ? (device.online ? 'Yes' : 'No') : 'unknown'}</span></div>
                   </div>
                 </div>
                 
                 ${data.stack && data.stack !== 'No stack trace available' ? `
                 <div class="bg-slate-800/50 rounded-lg p-4">
                   <div class="text-slate-400 text-xs mb-2">Stack Trace</div>
-                  <pre class="text-white font-mono text-xs overflow-x-auto whitespace-pre-wrap break-words">${data.stack}</pre>
+                  <pre class="text-white font-mono text-xs overflow-x-auto whitespace-pre-wrap break-words">${e(data.stack)}</pre>
                 </div>
                 ` : ''}
                 
                 <div class="grid grid-cols-3 gap-4">
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">User ID</div>
-                    <div class="text-white text-xs break-all">${data.userId}</div>
+                    <div class="text-white text-xs break-all">${e(data.userId)}</div>
                   </div>
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Session ID</div>
-                    <div class="text-white text-xs break-all">${data.sessionId || '—'}</div>
+                    <div class="text-white text-xs break-all">${e(data.sessionId || '—')}</div>
                   </div>
                   <div class="bg-slate-800/50 rounded-lg p-4">
                     <div class="text-slate-400 text-xs mb-1">Referrer</div>
@@ -7631,7 +7619,7 @@
                 const message = formatActivityMessage(log);
                 const div = document.createElement('div');
                 div.className = 'bg-slate-800/50 border border-slate-700/50 rounded p-3 text-sm';
-                div.innerHTML = `<div class="text-slate-300">${message} • ${timeAgo}</div>`;
+                div.innerHTML = `<div class="text-slate-300">${escHtmlInbox(message)} • ${escHtmlInbox(timeAgo)}</div>`;
                 list.appendChild(div);
               });
             }
@@ -7870,7 +7858,7 @@
               const ts = v.timestamp?.toDate ? v.timestamp.toDate().toLocaleString() : '--';
               const sev = v.severity || 'info';
               const sevColor = sev === 'high' ? 'text-red-400' : sev === 'warning' ? 'text-yellow-400' : 'text-slate-400';
-              rows += `<tr class="border-b border-slate-700/50"><td class="p-2 text-xs text-slate-400">${ts}</td><td class="p-2 text-xs ${sevColor} font-semibold uppercase">${sev}</td><td class="p-2 text-xs text-white">${v.type || '--'}</td><td class="p-2 text-xs text-slate-300">${v.actorEmail || v.actorUid || '--'}</td><td class="p-2 text-xs text-slate-400">${v.targetEmail || v.code || v.role || '--'}</td></tr>`;
+              rows += `<tr class="border-b border-slate-700/50"><td class="p-2 text-xs text-slate-400">${escHtmlInbox(ts)}</td><td class="p-2 text-xs ${sevColor} font-semibold uppercase">${escHtmlInbox(sev)}</td><td class="p-2 text-xs text-white">${escHtmlInbox(v.type || '--')}</td><td class="p-2 text-xs text-slate-300">${escHtmlInbox(v.actorEmail || v.actorUid || '--')}</td><td class="p-2 text-xs text-slate-400">${escHtmlInbox(v.targetEmail || v.code || v.role || '--')}</td></tr>`;
             });
             modal.innerHTML = `<div class="bg-slate-900 rounded-xl p-6 max-w-5xl w-full max-h-[85vh] overflow-y-auto border border-slate-700"><div class="flex items-center justify-between mb-4"><h3 class="text-xl font-bold text-white"><i class="fas fa-shield-alt text-red-400 mr-2"></i>Security Events (last 50)</h3><button class="text-slate-400 hover:text-white" onclick="this.closest('.fixed').remove()"><i class="fas fa-times text-xl"></i></button></div><table class="w-full"><thead><tr class="text-left text-slate-500 text-xs"><th class="p-2">Time</th><th class="p-2">Severity</th><th class="p-2">Type</th><th class="p-2">Actor</th><th class="p-2">Detail</th></tr></thead><tbody>${rows}</tbody></table></div>`;
             document.body.appendChild(modal);

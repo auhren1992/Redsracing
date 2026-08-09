@@ -22,10 +22,23 @@ import {
 // Import sanitization utilities
 import {
   html,
+  escapeHTML,
   safeSetHTML,
   setSafeText,
   createSafeElement,
 } from "./sanitize.js";
+
+function safeHttpUrl(raw) {
+  const s = String(raw || "").trim();
+  if (!s) return "";
+  try {
+    const u = new URL(s.startsWith("http://") || s.startsWith("https://") ? s : `https://${s}`);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return "";
+    return u.toString();
+  } catch (_) {
+    return "";
+  }
+}
 
 // Import navigation helpers
 import { navigateToInternal } from "./navigation-helpers.js";
@@ -569,11 +582,17 @@ import { LoadingService } from "./loading.js";
 
     if (garageCount) garageCount.textContent = `${cars.length} ${cars.length === 1 ? 'car' : 'cars'}`;
 
-    garageEl.innerHTML = cars.map(car => `
+    garageEl.innerHTML = cars.map(car => {
+      const photo = safeHttpUrl(car.photoUrl);
+      const make = escapeHTML(car.make || 'Unknown');
+      const model = escapeHTML(car.model || '');
+      const year = car.year != null ? escapeHTML(String(car.year)) : '';
+      const mods = car.mods ? escapeHTML(String(car.mods)) : '';
+      return `
       <div class="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden hover:border-slate-600 transition group">
-        ${car.photoUrl ? `
+        ${photo ? `
           <div class="h-40 overflow-hidden bg-slate-900">
-            <img src="${car.photoUrl}" alt="${car.make} ${car.model}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <img src="${escapeHTML(photo)}" alt="${make} ${model}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
           </div>
         ` : `
           <div class="h-40 bg-slate-900 flex items-center justify-center">
@@ -581,12 +600,12 @@ import { LoadingService } from "./loading.js";
           </div>
         `}
         <div class="p-4">
-          <h3 class="text-white font-bold text-lg">${car.make || 'Unknown'} ${car.model || ''}</h3>
-          ${car.year ? `<p class="text-slate-400 text-sm">${car.year}</p>` : ''}
-          ${car.mods ? `<p class="text-slate-300 text-sm mt-2 line-clamp-2">${car.mods}</p>` : ''}
+          <h3 class="text-white font-bold text-lg">${make} ${model}</h3>
+          ${year ? `<p class="text-slate-400 text-sm">${year}</p>` : ''}
+          ${mods ? `<p class="text-slate-300 text-sm mt-2 line-clamp-2">${mods}</p>` : ''}
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   }
 
   // Display social links
@@ -598,10 +617,20 @@ import { LoadingService } from "./loading.js";
 
     const links = [];
     const socialPlatforms = [
-      { key: 'tiktok', icon: 'fab fa-tiktok', color: 'from-slate-900 to-slate-700', label: 'TikTok', url: (val) => val.startsWith('@') ? `https://tiktok.com/@${val.slice(1)}` : `https://tiktok.com/@${val}` },
-      { key: 'youtube', icon: 'fab fa-youtube', color: 'from-red-600 to-red-500', label: 'YouTube', url: (val) => val.includes('youtube.com') || val.includes('youtu.be') ? val : `https://youtube.com/@${val}` },
+      { key: 'tiktok', icon: 'fab fa-tiktok', color: 'from-slate-900 to-slate-700', label: 'TikTok', url: (val) => {
+        const handle = val.startsWith('@') ? val.slice(1) : val.replace(/^https?:\/\/(www\.)?tiktok\.com\/@?/i, '');
+        return safeHttpUrl(`https://www.tiktok.com/@${encodeURIComponent(handle.replace(/[^a-zA-Z0-9._-]/g, ''))}`);
+      } },
+      { key: 'youtube', icon: 'fab fa-youtube', color: 'from-red-600 to-red-500', label: 'YouTube', url: (val) => {
+        if (/^https?:\/\//i.test(val) && (val.includes('youtube.com') || val.includes('youtu.be'))) return safeHttpUrl(val);
+        const handle = val.replace(/^@/, '').replace(/[^a-zA-Z0-9._-]/g, '');
+        return handle ? safeHttpUrl(`https://www.youtube.com/@${encodeURIComponent(handle)}`) : '';
+      } },
       { key: 'discord', icon: 'fab fa-discord', color: 'from-indigo-600 to-blue-500', label: 'Discord', url: null },
-      { key: 'twitch', icon: 'fab fa-twitch', color: 'from-purple-600 to-purple-500', label: 'Twitch', url: (val) => `https://twitch.tv/${val}` }
+      { key: 'twitch', icon: 'fab fa-twitch', color: 'from-purple-600 to-purple-500', label: 'Twitch', url: (val) => {
+        const handle = val.replace(/^https?:\/\/(www\.)?twitch\.tv\//i, '').replace(/[^a-zA-Z0-9_]/g, '');
+        return handle ? safeHttpUrl(`https://www.twitch.tv/${encodeURIComponent(handle)}`) : '';
+      } }
     ];
 
     socialPlatforms.forEach(platform => {
@@ -609,18 +638,20 @@ import { LoadingService } from "./loading.js";
       if (value && value.trim()) {
         const urlFunc = platform.url;
         if (urlFunc) {
+          const href = urlFunc(value.trim());
+          if (!href) return;
           links.push(`
-            <a href="${urlFunc(value.trim())}" target="_blank" rel="noopener noreferrer" 
+            <a href="${escapeHTML(href)}" target="_blank" rel="noopener noreferrer" 
                class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r ${platform.color} text-white rounded-lg font-semibold text-sm hover:scale-105 transition-transform">
               <i class="${platform.icon}"></i>
-              <span>${platform.label}</span>
+              <span>${escapeHTML(platform.label)}</span>
             </a>
           `);
         } else {
           links.push(`
             <div class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r ${platform.color} text-white rounded-lg font-semibold text-sm">
               <i class="${platform.icon}"></i>
-              <span>${value.trim()}</span>
+              <span>${escapeHTML(value.trim())}</span>
             </div>
           `);
         }

@@ -889,27 +889,29 @@ exports.getUserRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
     const userRecord = await auth.getUser(uid);
     const customClaims = userRecord.customClaims || {};
     
-    // Also check Firestore document as fallback
+    // Firestore role is diagnostic only — privilege comes from Auth claims.
     let firestoreRole = null;
     try {
       const userDoc = await db.collection('users').doc(uid).get();
       if (userDoc.exists) {
-        firestoreRole = userDoc.data()?.role;
+        firestoreRole = userDoc.data()?.role || null;
       }
     } catch (e) {
       logger.warn('Could not fetch user document:', e.message);
     }
-    
-    const role = customClaims.role || firestoreRole || 'public-fan';
-    
+
+    const role = customClaims.role || 'public-fan';
+    const claimAdmin = customClaims.admin === true || role === 'admin' || role === 'owner';
+    const claimTeam = customClaims.teamMember === true || role === 'team-member' || claimAdmin;
+
     return {
       uid: uid,
       email: userRecord.email,
       role: role,
       customClaims: customClaims,
       firestoreRole: firestoreRole,
-      isAdmin: role === 'admin',
-      isTeamMember: ['admin', 'team-member'].includes(role)
+      isAdmin: claimAdmin,
+      isTeamMember: claimTeam
     };
   } catch (error) {
     logger.error('Error getting user role:', error);

@@ -1174,25 +1174,29 @@ def handleGetLeaderboard(req: https_fn.Request) -> https_fn.Response:
     if req.method != "GET":
         return https_fn.Response("Method not allowed", status=405)
 
+    ok, limited = enforce_ip_rate_limit(
+        req, "leaderboard", max_requests=30, window_seconds=3600
+    )
+    if not ok:
+        return limited
+
     try:
         db = firestore.client()
 
-        # Get all user achievements and calculate total points
-        user_achievements = db.collection("user_achievements").stream()
         achievements_data = {}
-
-        # First get all achievements to know their point values
-        for doc in db.collection("achievements").stream():
+        for doc in db.collection("achievements").limit(200).stream():
             achievements_data[doc.id] = doc.to_dict()
 
-        # Calculate total points per user
         user_points = {}
         user_achievement_counts = {}
-
-        for doc in user_achievements:
-            data = doc.to_dict()
-            user_id = data["userId"]
-            achievement_id = data["achievementId"]
+        scanned = 0
+        for doc in db.collection("user_achievements").limit(2000).stream():
+            scanned += 1
+            data = doc.to_dict() or {}
+            user_id = data.get("userId")
+            achievement_id = data.get("achievementId")
+            if not user_id or not achievement_id:
+                continue
 
             if user_id not in user_points:
                 user_points[user_id] = 0
@@ -1204,39 +1208,39 @@ def handleGetLeaderboard(req: https_fn.Request) -> https_fn.Response:
                 )
                 user_achievement_counts[user_id] += 1
 
-        # Get user profile data for leaderboard display
+        # Prefer users who already expose a public profile to avoid PII harvest.
         leaderboard = []
-        for user_id, total_points in user_points.items():
+        for user_id, total_points in sorted(
+            user_points.items(), key=lambda kv: kv[1], reverse=True
+        )[:80]:
             try:
                 profile_doc = db.collection("users").document(user_id).get()
-                if profile_doc.exists:
-                    profile_data = profile_doc.to_dict()
-                    leaderboard.append(
-                        {
-                            "userId": user_id,
-                            "displayName": profile_data.get(
-                                "displayName", "Anonymous User"
-                            ),
-                            "username": profile_data.get("username", ""),
-                            "avatarUrl": profile_data.get("avatarUrl", ""),
-                            "totalPoints": total_points,
-                            "achievementCount": user_achievement_counts[user_id],
-                        }
-                    )
+                if not profile_doc.exists:
+                    continue
+                profile_data = profile_doc.to_dict() or {}
+                if profile_data.get("publicProfile") is False:
+                    # Still allow display with redacted name if they earned points
+                    display_name = "Racer"
+                else:
+                    display_name = profile_data.get("displayName", "Anonymous User")
+                leaderboard.append(
+                    {
+                        "userId": user_id,
+                        "displayName": display_name,
+                        "username": profile_data.get("username", ""),
+                        "avatarUrl": profile_data.get("avatarUrl", ""),
+                        "totalPoints": total_points,
+                        "achievementCount": user_achievement_counts[user_id],
+                    }
+                )
             except Exception as e:
-                # Skip users with missing profiles
                 print(
                     f"Warning: Skipping user {user_id} due to missing profile data: {str(e)}"
                 )
                 continue
 
-        # Sort by total points descending
         leaderboard.sort(key=lambda x: x["totalPoints"], reverse=True)
-
-        # Limit to top 50 users
         leaderboard = leaderboard[:50]
-
-        # Add rank numbers
         for i, user in enumerate(leaderboard):
             user["rank"] = i + 1
 
@@ -1880,6 +1884,19 @@ def handlePhotoProcess(req: https_fn.Request) -> https_fn.Response:
     if auth_error:
         return auth_error
 
+    # Per-IP + per-uid cost control for download/Pillow work
+    ok, limited = enforce_ip_rate_limit(
+        req, "photo_process", max_requests=20, window_seconds=3600
+    )
+    if not ok:
+        return limited
+    uid = (decoded_token or {}).get("uid") or "anon"
+    ok_uid, limited_uid = enforce_ip_rate_limit(
+        req, f"photo_process_uid:{uid}", max_requests=12, window_seconds=3600
+    )
+    if not ok_uid:
+        return limited_uid
+
     data = req.get_json(silent=True)
     if not data or "imageUrl" not in data:
         return https_fn.Response("imageUrl is required", status=400)
@@ -1908,12 +1925,21 @@ def handlePhotoProcess(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response("Invalid imageUrl", status=400)
 
     try:
-        # Download image from URL
+        # Download image from URL (hard byte cap)
         import requests as http_requests
-        response = http_requests.get(image_url, timeout=30)
+        response = http_requests.get(image_url, timeout=20, stream=True)
         response.raise_for_status()
-        image_data = response.content
-
+        max_bytes = 8 * 1024 * 1024
+        chunks = []
+        total = 0
+        for chunk in response.iter_content(chunk_size=65536):
+            if not chunk:
+                continue
+            total += len(chunk)
+            if total > max_bytes:
+                return https_fn.Response("Image too large (max 8MB)", status=413)
+            chunks.append(chunk)
+        image_data = b"".join(chunks)
         # Open image with Pillow
         img = Image.open(io.BytesIO(image_data))
 
@@ -1981,27 +2007,55 @@ def handlePhotoSort(req: https_fn.Request) -> https_fn.Response:
     if req.method != "GET":
         return https_fn.Response("Method not allowed", status=405)
 
+    decoded_token, auth_error = _get_user_from_token(req)
+    if auth_error:
+        return auth_error
+    if not _is_admin(decoded_token):
+        return https_fn.Response(
+            json.dumps({"message": "Admin or team member only"}),
+            status=403,
+            headers={"Content-Type": "application/json"},
+        )
+
+    ok, limited = enforce_ip_rate_limit(
+        req, "photo_sort", max_requests=40, window_seconds=3600
+    )
+    if not ok:
+        return limited
+
     sort_by = req.args.get("sortBy", "date")  # date, track, driver
     driver_id = req.args.get("driverId")
     track_name = req.args.get("trackName")
     start_date = req.args.get("startDate")
     end_date = req.args.get("endDate")
+    include_pending = str(req.args.get("includePending", "")).lower() in (
+        "1",
+        "true",
+        "yes",
+    )
 
     try:
         db = firestore.client()
 
         query = db.collection("gallery_images")
+        if not include_pending:
+            query = query.where("approved", "==", True)
 
         if driver_id:
             query = query.where("driverId", "==", driver_id)
         if track_name:
             query = query.where("trackName", "==", track_name)
 
-        photos = list(query.stream())
+        photos = list(query.limit(300).stream())
 
-        # Convert to list with IDs
-        photos_data = [{"id": doc.id, **doc.to_dict()} for doc in photos]
-
+        # Convert to list with IDs (strip uploader PII for non-pending views)
+        photos_data = []
+        for doc in photos:
+            row = {"id": doc.id, **(doc.to_dict() or {})}
+            if not include_pending:
+                row.pop("uploaderEmail", None)
+                row.pop("uploaderUid", None)
+            photos_data.append(row)
         # Filter by date range if provided
         if start_date or end_date:
             filtered_photos = []

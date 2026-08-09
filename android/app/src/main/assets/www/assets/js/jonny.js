@@ -463,6 +463,7 @@ await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js').
     try {
       const commentsQuery = query(
         collection(db, "gallery_images", imageId, "comments"),
+        where("approved", "==", true),
         orderBy("createdAt", "desc"),
       );
 
