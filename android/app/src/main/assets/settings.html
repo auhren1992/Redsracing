@@ -41,19 +41,24 @@
         backdrop-filter: blur(12px);
         border-bottom: 1px solid rgba(148, 163, 184, 0.2);
       }
-      html:not(.dark) .settings-site-header {
+      html:not(.dark) .settings-site-header,
+      html[data-theme="light"] .settings-site-header {
         background: rgba(255, 255, 255, 0.92);
         border-bottom: 1px solid rgba(148, 163, 184, 0.25);
       }
-      html:not(.dark) .settings-site-header .nav-link {
+      html:not(.dark) .settings-site-header .nav-link,
+      html[data-theme="light"] .settings-site-header .nav-link {
         color: #334155;
       }
       html:not(.dark) .settings-site-header .nav-link:hover,
-      html:not(.dark) .settings-site-header .nav-link[aria-current="page"] {
+      html:not(.dark) .settings-site-header .nav-link[aria-current="page"],
+      html[data-theme="light"] .settings-site-header .nav-link:hover,
+      html[data-theme="light"] .settings-site-header .nav-link[aria-current="page"] {
         color: #1d4ed8;
       }
       /* Soften hamburger on light settings (global mobile-web chrome is too heavy here) */
-      html:not(.dark) .settings-site-header #mobile-menu-button {
+      html:not(.dark) .settings-site-header #mobile-menu-button,
+      html[data-theme="light"] .settings-site-header #mobile-menu-button {
         background: rgba(241, 245, 249, 0.95) !important;
         border: 1px solid rgba(148, 163, 184, 0.45) !important;
         color: #0f172a !important;
@@ -639,13 +644,17 @@
       .settings-home-link:hover,
       .settings-console-link:hover { background: rgba(51, 65, 85, 0.85); }
       html:not(.dark) .settings-home-link,
-      html:not(.dark) .settings-console-link {
+      html:not(.dark) .settings-console-link,
+      html[data-theme="light"] .settings-home-link,
+      html[data-theme="light"] .settings-console-link {
         color: #0f172a;
         background: rgba(241, 245, 249, 0.95);
         border: 1px solid rgba(148, 163, 184, 0.45);
       }
       html:not(.dark) .settings-home-link:hover,
-      html:not(.dark) .settings-console-link:hover { background: #e2e8f0; }
+      html:not(.dark) .settings-console-link:hover,
+      html[data-theme="light"] .settings-home-link:hover,
+      html[data-theme="light"] .settings-console-link:hover { background: #e2e8f0; }
       /* Home CTA always visible (do not use !important on Console — nav.js hides it for non-admins) */
       .settings-home-link {
         display: inline-flex !important;
