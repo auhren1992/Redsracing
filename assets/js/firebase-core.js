@@ -4,12 +4,14 @@ import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.
 import { getAuth, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import { getFirestore, initializeFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
+import { getFunctions } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js";
 
 // Singleton pattern to prevent multiple initializations
 let app = null;
 let auth = null;
 let db = null;
 let storage = null;
+let functions = null;
 
 function initializeFirebaseIfNeeded() {
   if (!app) {
@@ -41,8 +43,9 @@ function initializeFirebaseIfNeeded() {
       db = getFirestore(app);
     }
     storage = getStorage(app);
+    functions = getFunctions(app);
   }
-  return { app, auth, db, storage };
+  return { app, auth, db, storage, functions };
 }
 
 // Export getter functions that initialize if needed
@@ -60,4 +63,8 @@ export function getFirebaseDb() {
 
 export function getFirebaseStorage() {
   return initializeFirebaseIfNeeded().storage;
+}
+
+export function getFirebaseFunctions() {
+  return initializeFirebaseIfNeeded().functions;
 }

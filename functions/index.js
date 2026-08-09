@@ -31,6 +31,81 @@ const cors = require("cors")({ origin: true });
 // Initialize Firebase Admin SDK
 initializeApp({ storageBucket: "redsracing-a7f8b.firebasestorage.app" });
 
+const ALLOWED_ROLES = new Set([
+  "admin",
+  "owner",
+  "team-member",
+  "TeamRedFollower",
+  "public-fan",
+]);
+
+function assertAllowedRole(role) {
+  if (!ALLOWED_ROLES.has(role)) {
+    throw new HttpsError(
+      "invalid-argument",
+      `Role must be one of: ${Array.from(ALLOWED_ROLES).join(", ")}`,
+    );
+  }
+}
+
+function stripPrivilegeFields(data = {}) {
+  const blocked = [
+    "role",
+    "isAdmin",
+    "isTeamMember",
+    "isOwner",
+    "admin",
+    "teamMember",
+    "owner",
+  ];
+  const cleaned = { ...data };
+  for (const key of blocked) delete cleaned[key];
+  return cleaned;
+}
+
+function tokenHasStaffRole(token = {}) {
+  const role = token.role || "";
+  return (
+    role === "admin" ||
+    role === "owner" ||
+    role === "team-member" ||
+    token.admin === true ||
+    token.teamMember === true
+  );
+}
+
+async function requireAuthFromRequest(req) {
+  const header = req.get("Authorization") || req.get("authorization") || "";
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  if (!match) {
+    const err = new Error("Missing Authorization Bearer token");
+    err.status = 401;
+    throw err;
+  }
+  try {
+    return await getAuth().verifyIdToken(match[1]);
+  } catch (_) {
+    const err = new Error("Invalid Authorization token");
+    err.status = 401;
+    throw err;
+  }
+}
+
+function isAllowedSpeedhiveUrl(rawUrl) {
+  try {
+    const u = new URL(rawUrl);
+    if (u.protocol !== "https:") return false;
+    const host = u.hostname.toLowerCase();
+    return (
+      host === "speedhive.mylaps.com" ||
+      host === "www.speedhive.mylaps.com" ||
+      host.endsWith(".speedhive.mylaps.com")
+    );
+  } catch (_) {
+    return false;
+  }
+}
+
 async function writeAdminLog(payload = {}) {
   try {
     const db = getFirestore();
@@ -168,8 +243,15 @@ exports.processInvitationCode = onCall({ secrets: ["SENTRY_DSN"] }, async (reque
       };
     }
 
-    // 3. Assign the custom role to the user
+    // 3. Assign the custom role to the user (allowlisted roles only)
     const roleToAssign = codeData.role; // No more fallback
+    if (!ALLOWED_ROLES.has(roleToAssign) || roleToAssign === "admin" || roleToAssign === "owner") {
+      logger.warn(`Invitation code '${code}' has disallowed role '${roleToAssign}'.`);
+      return {
+        status: "error",
+        message: "This invitation code has an invalid role configuration.",
+      };
+    }
     logger.info(`Assigning role '${roleToAssign}' to user ${uid}.`);
     await auth.setCustomUserClaims(uid, { role: roleToAssign });
 
@@ -621,6 +703,17 @@ exports.process_queues = onRequest({ secrets: ["SENTRY_DSN"] }, async (req, res)
         return res.status(405).json({ ok: false, message: 'Method not allowed' });
       }
 
+      // Require a Firebase ID token with staff claims (Admin SDK schedulers should
+      // call the Python OIDC-secured handler, or pass a staff Bearer token).
+      try {
+        const decoded = await requireAuthFromRequest(req);
+        if (!tokenHasStaffRole(decoded)) {
+          return res.status(403).json({ ok: false, message: 'Admin or team member only' });
+        }
+      } catch (authErr) {
+        return res.status(authErr.status || 401).json({ ok: false, message: authErr.message || 'Unauthorized' });
+      }
+
       const db = getFirestore();
       let processed = 0;
       let errors = 0;
@@ -732,10 +825,16 @@ exports.setAdminRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
 
   // Allow initial admin setup for your email specifically
   const isInitialSetup = targetEmail === 'auhren1992@gmail.com' && !currentUserRole;
-  const isCurrentAdmin = currentUserRole === 'admin';
+  const isCurrentAdmin = currentUserRole === 'admin' || currentUserRole === 'owner';
 
   if (!isInitialSetup && !isCurrentAdmin) {
     throw new HttpsError('permission-denied', 'Only admins can assign roles');
+  }
+
+  assertAllowedRole(role);
+  // Initial bootstrap may only mint admin for the allowlisted owner email.
+  if (isInitialSetup && role !== 'admin' && role !== 'owner') {
+    throw new HttpsError('invalid-argument', 'Initial setup may only assign admin/owner.');
   }
 
   try {
@@ -818,9 +917,19 @@ exports.getUserRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
 // Speedhive: scrape a specific event or session URL and extract rows for "Jonathan Kirsch"
 exports.fetchSpeedhiveEvent = onRequest({ secrets: ["SENTRY_DSN"], timeoutSeconds: 120, memory: "1GiB" }, async (req, res) => {
   try {
+    // Staff-only + host allowlist to prevent unauthenticated SSRF via Puppeteer.
+    try {
+      const decoded = await requireAuthFromRequest(req);
+      if (!tokenHasStaffRole(decoded)) {
+        return res.status(403).json({ ok: false, message: 'Admin or team member only' });
+      }
+    } catch (authErr) {
+      return res.status(authErr.status || 401).json({ ok: false, message: authErr.message || 'Unauthorized' });
+    }
+
     const targetUrl = (req.query.url || req.body?.url || '').toString();
-    if (!targetUrl || !/^https?:\/\//i.test(targetUrl)) {
-      return res.status(400).json({ ok: false, message: 'Missing ?url=' });
+    if (!targetUrl || !isAllowedSpeedhiveUrl(targetUrl)) {
+      return res.status(400).json({ ok: false, message: 'url must be an https://speedhive.mylaps.com/... URL' });
     }
     const puppeteer = require('puppeteer');
     const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'], headless: 'new' });
@@ -924,12 +1033,15 @@ exports.updateProfile = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
     );
   }
 
+  // Never allow clients to self-assign privilege fields via this callable.
+  const safeProfileData = stripPrivilegeFields(profileData);
+
   logger.info(`Updating profile for user ${userId}`);
   const db = getFirestore();
 
   try {
     const userDocRef = db.collection("users").doc(userId);
-    await userDocRef.set(profileData, { merge: true }); // Use merge to avoid overwriting fields
+    await userDocRef.set(safeProfileData, { merge: true }); // Use merge to avoid overwriting fields
     logger.info(`Profile for user ${userId} updated successfully.`);
     return { status: "success", message: "Profile updated successfully." };
   } catch (error) {
@@ -1025,6 +1137,7 @@ exports.setUserRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
   if (!emails || !role) {
     throw new HttpsError('invalid-argument', "Provide 'emails' and 'role'.");
   }
+  assertAllowedRole(role);
   const list = Array.isArray(emails) ? emails : [emails];
   const auth = getAuth();
   const db = getFirestore();
@@ -1078,6 +1191,11 @@ exports.createInvitationCodes = onCall({ secrets: ["SENTRY_DSN"] }, async (reque
   }
   const { role, codes, count, prefix, expiresAt } = request.data || {};
   if (!role) throw new HttpsError('invalid-argument', "'role' is required");
+  assertAllowedRole(role);
+  // Invitation codes must not mint admin/owner — use setAdminRole / setUserRole instead.
+  if (role === 'admin' || role === 'owner') {
+    throw new HttpsError('invalid-argument', 'Invitation codes cannot assign admin/owner roles.');
+  }
   const db = getFirestore();
   const out = [];
   const actorUid = request.auth.uid;
@@ -1141,8 +1259,13 @@ exports.setFollowerRole = onCall({ secrets: ["SENTRY_DSN"] }, async (request) =>
   const db = getFirestore();
 
   try {
-    // If already team-member or follower, do nothing
-    if (currentRole === "team-member" || currentRole === "TeamRedFollower") {
+    // Never demote privileged roles; no-op for existing followers.
+    if (
+      currentRole === "admin" ||
+      currentRole === "owner" ||
+      currentRole === "team-member" ||
+      currentRole === "TeamRedFollower"
+    ) {
       return { status: "noop", role: currentRole };
     }
 
@@ -1708,20 +1831,18 @@ exports.checkInPassport = onRequest({ cors: true }, async (req, res) => {
   const db = getFirestore();
   try {
     const raceId = String(req.query.raceId || '').trim();
-    const uid    = String(req.query.uid    || '').trim();
-
-    if (!raceId || !uid) {
-      return res.status(400).json({ ok: false, error: 'Missing raceId or uid' });
+    if (!raceId) {
+      return res.status(400).json({ ok: false, error: 'Missing raceId' });
     }
 
-    // Verify user exists
-    const auth2 = getAuth();
-    let userRecord;
+    // UID must come from a verified Firebase ID token (ignore spoofable query uid).
+    let decoded;
     try {
-      userRecord = await auth2.getUser(uid);
-    } catch (_) {
-      return res.status(403).json({ ok: false, error: 'Invalid user' });
+      decoded = await requireAuthFromRequest(req);
+    } catch (authErr) {
+      return res.status(authErr.status || 401).json({ ok: false, error: authErr.message || 'Unauthorized' });
     }
+    const uid = decoded.uid;
 
     // Find matching race in schedule to get start time
     const scheduleData = require('./schedule-data.json');

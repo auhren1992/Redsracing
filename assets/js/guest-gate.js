@@ -37,10 +37,19 @@
       }
     } catch (_) {}
 
-    var hasGuest = localStorage.getItem("rr_guest_ok") === "1";
+    // localStorage alone is forgeable — do not treat rr_guest_ok / rr_auth_uid as auth.
+    // Soft redirect when no signals are present; auth-guard.js enforces real Firebase auth
+    // on admin/staff pages. Guest flag never unlocks protected hubs.
     var hasUid = !!localStorage.getItem("rr_auth_uid");
+    var hasNative = false;
+    try {
+      if (window.FirebaseAuthBridge) {
+        var nativeUid = window.FirebaseAuthBridge.getAuthUid();
+        hasNative = !!(nativeUid && nativeUid.length > 0);
+      }
+    } catch (_) {}
 
-    if (!hasGuest && !hasUid) {
+    if (!hasUid && !hasNative) {
       var returnTo = encodeURIComponent(
         window.location.pathname + window.location.search + window.location.hash,
       );

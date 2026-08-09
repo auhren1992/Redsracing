@@ -39,22 +39,17 @@ export function normalizeRoleString(role) {
  */
 export function resolveCanonicalRoleFromSources({ tokenClaims = {}, userDoc = null } = {}) {
   const c = tokenClaims && typeof tokenClaims === "object" ? tokenClaims : {};
-  const d = userDoc && typeof userDoc === "object" ? userDoc : {};
+  // Privilege MUST come from Auth custom claims only. Firestore users/{uid}
+  // role/isAdmin fields are client-writable and must not elevate the UI.
+  void userDoc;
 
   const claimRole = normalizeRoleString(c.role);
-  const docRole = normalizeRoleString(d.role);
 
   if (c.admin === true) return APP_ROLE.ADMIN;
   if (claimRole === "admin" || claimRole === "owner") return APP_ROLE.ADMIN;
 
-  if (d.isAdmin === true || d.isOwner === true) return APP_ROLE.ADMIN;
-  if (docRole === "admin" || docRole === "owner") return APP_ROLE.ADMIN;
-
   if (c.teamMember === true) return APP_ROLE.CREW;
   if (claimRole === "team-member" || claimRole === "crew" || claimRole === "team") return APP_ROLE.CREW;
-
-  if (d.isTeamMember === true) return APP_ROLE.CREW;
-  if (docRole === "team-member" || docRole === "crew" || docRole === "team") return APP_ROLE.CREW;
 
   return APP_ROLE.FOLLOWER;
 }

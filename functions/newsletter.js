@@ -6,6 +6,15 @@ const logger = require("firebase-functions/logger");
 const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
 const nodemailer = require("nodemailer");
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Initialize MailerSend client
 const getMailerSend = () => {
   const apiKey = process.env.MAILERSEND_API_KEY;
@@ -98,14 +107,15 @@ exports.sendAdminBroadcast = onCall({
   }
 
   const db = getFirestore();
-  let role = request.auth.token?.role || '';
-  if (!role) {
-    try {
-      const userSnap = await db.collection('users').doc(request.auth.uid).get();
-      role = userSnap.exists ? (userSnap.data().role || '') : '';
-    } catch (_) {}
-  }
-  if (role !== 'admin' && role !== 'team-member') {
+  // Trust Auth custom claims only — Firestore users.role is client-writable.
+  const role = request.auth.token?.role || '';
+  const isStaff =
+    role === 'admin' ||
+    role === 'owner' ||
+    role === 'team-member' ||
+    request.auth.token?.admin === true ||
+    request.auth.token?.teamMember === true;
+  if (!isStaff) {
     throw new HttpsError('permission-denied', 'Admin or team member only');
   }
 
@@ -255,7 +265,7 @@ exports.notifyNewRace = onCall({
   }
   
   const role = request.auth.token?.role || '';
-  if (role !== 'admin' && role !== 'team-member') {
+  if (role !== 'admin' && role !== 'owner' && role !== 'team-member') {
     throw new HttpsError('permission-denied', 'Admin or team member only');
   }
 
@@ -263,6 +273,11 @@ exports.notifyNewRace = onCall({
   if (!raceTitle || !raceDate || !raceLocation) {
     throw new HttpsError('invalid-argument', 'raceTitle, raceDate, and raceLocation are required');
   }
+
+  const safeTitle = escapeHtml(raceTitle);
+  const safeDate = escapeHtml(raceDate);
+  const safeLocation = escapeHtml(raceLocation);
+  const safeDetails = raceDetails ? escapeHtml(raceDetails) : '';
 
   try {
     const mailerSend = getMailerSend();
@@ -285,11 +300,11 @@ exports.notifyNewRace = onCall({
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 40px; border-radius: 16px;">
         <h1 style="color: #fbbf24; text-align: center;">REDSRACING</h1>
         <div style="background: rgba(30, 41, 59, 0.6); padding: 30px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.3);">
-          <h2 style="color: #fbbf24; margin-top: 0;">📅 ${raceTitle}</h2>
+          <h2 style="color: #fbbf24; margin-top: 0;">📅 ${safeTitle}</h2>
           <div style="color: #cbd5e1; line-height: 1.8;">
-            <p><strong style="color: #ffffff;">Date:</strong> ${raceDate}</p>
-            <p><strong style="color: #ffffff;">Location:</strong> ${raceLocation}</p>
-            ${raceDetails ? `<p style="margin-top: 15px;">${raceDetails}</p>` : ''}
+            <p><strong style="color: #ffffff;">Date:</strong> ${safeDate}</p>
+            <p><strong style="color: #ffffff;">Location:</strong> ${safeLocation}</p>
+            ${safeDetails ? `<p style="margin-top: 15px;">${safeDetails}</p>` : ''}
           </div>
           <div style="text-align: center; margin-top: 30px;">
             <a href="https://redsracing.org/schedule.html" style="display: inline-block; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #0f172a; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">

@@ -274,7 +274,17 @@
         const time = v.createdAt?.toDate ? v.createdAt.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
         const div = document.createElement('div');
         div.className = 'commentary-item bg-slate-800/40 rounded-lg p-3 pl-4';
-        div.innerHTML = '<div class="flex items-start justify-between"><p class="text-white text-sm flex-1">' + (v.text||'') + '</p><span class="text-slate-600 text-xs ml-3 whitespace-nowrap">' + time + '</span></div>';
+        const row = document.createElement('div');
+        row.className = 'flex items-start justify-between';
+        const textEl = document.createElement('p');
+        textEl.className = 'text-white text-sm flex-1';
+        textEl.textContent = v.text || '';
+        const timeEl = document.createElement('span');
+        timeEl.className = 'text-slate-600 text-xs ml-3 whitespace-nowrap';
+        timeEl.textContent = time;
+        row.appendChild(textEl);
+        row.appendChild(timeEl);
+        div.appendChild(row);
         feed.appendChild(div);
       });
     });

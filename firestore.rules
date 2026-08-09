@@ -18,33 +18,19 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Fallback: check role from users document for current user
+    // Privilege checks trust Auth custom claims ONLY.
+    // Firestore users/{uid}.role / isAdmin flags must not grant privilege (clients can write their own docs).
     function hasProfileRole(role) {
-      return isAuthenticated() &&
-             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             'role' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+      return hasRole(role);
     }
 
-    // Align with client admin checks (cms-admin, queue-admin): token flags + Firestore role/booleans
     function isPrivilegedStaff() {
       return isAuthenticated() && (
         request.auth.token.role == 'admin' ||
         request.auth.token.role == 'owner' ||
         request.auth.token.role == 'team-member' ||
         request.auth.token.admin == true ||
-        request.auth.token.teamMember == true ||
-        (
-          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-          (
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'team-member' ||
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner' ||
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true ||
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isTeamMember', false) == true ||
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isOwner', false) == true
-          )
-        )
+        request.auth.token.teamMember == true
       );
     }
 
@@ -52,17 +38,21 @@ service cloud.firestore {
       return isAuthenticated() && (
         request.auth.token.role == 'admin' ||
         request.auth.token.role == 'owner' ||
-        request.auth.token.admin == true ||
-        (
-          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-          (
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner' ||
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true ||
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isOwner', false) == true
-          )
-        )
+        request.auth.token.admin == true
       );
+    }
+
+    // Privilege / staff fields that clients must never self-assign.
+    function privilegeKeys() {
+      return ['role', 'isAdmin', 'isTeamMember', 'isOwner', 'admin', 'teamMember', 'owner'];
+    }
+
+    function ownerProfileWriteSafe() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(privilegeKeys());
+    }
+
+    function ownerProfileCreateSafe() {
+      return !request.resource.data.keys().hasAny(privilegeKeys());
     }
     
     // ========================================
@@ -91,8 +81,9 @@ service cloud.firestore {
         // Keep sources reasonably small to avoid junk payloads
         (!('source' in request.resource.data) || (request.resource.data.source is string && request.resource.data.source.size() <= 50)) &&
         true; // Anyone can subscribe
-      allow read: if true; // Allow checking for duplicates
-      // Use isPrivilegedStaff() so doc-role admins (no custom claim) can manage too.
+      // Do not allow public list/harvest of subscriber emails.
+      allow get: if isPrivilegedStaff();
+      allow list: if isPrivilegedStaff();
       allow update, delete: if isPrivilegedStaff();
     }
     
@@ -100,9 +91,11 @@ service cloud.firestore {
     match /users/{userId} {
       // Allow public read if user has enabled publicProfile; otherwise require auth
       allow read: if (resource.data.publicProfile == true) || isAuthenticated();
-      // Owner can write own profile; any privileged staff (admin or team-member, via
-      // claim OR users-doc role) can write to any profile (e.g., role grants).
-      allow write: if isOwner(userId) || isPrivilegedStaff();
+      // Owners may create/update their own profile but cannot set privilege fields.
+      // Staff with Auth custom claims may write any profile (role grants via Admin SDK preferred).
+      allow create: if (isOwner(userId) && ownerProfileCreateSafe()) || isPrivilegedStaff();
+      allow update: if (isOwner(userId) && ownerProfileWriteSafe()) || isPrivilegedStaff();
+      allow delete: if isAdminOnly();
     }
 
     // User achievements
@@ -123,9 +116,11 @@ service cloud.firestore {
       // On create, validate uploader matches the auth user using request.resource.data
       allow create: if isAuthenticated() &&
         request.auth.uid == request.resource.data.uploaderUid;
-      // On update, allow uploader (so they can edit own caption/altText/tags) or staff
-      allow update: if hasRole('team-member') || hasProfileRole('team-member') || hasRole('admin') || hasProfileRole('admin') ||
-        (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
+      // On update, allow uploader (caption/altText/tags only — cannot self-approve) or staff
+      allow update: if isPrivilegedStaff() ||
+        (isAuthenticated() &&
+         request.auth.uid == resource.data.uploaderUid &&
+         request.resource.data.approved == resource.data.approved);
       allow delete: if hasRole('team-member') || hasProfileRole('team-member') || hasRole('admin') || hasProfileRole('admin');
 
       // Comments subcollection — moderated
@@ -247,11 +242,11 @@ service cloud.firestore {
     // Push notification queue (for Cloud Functions)
     match /push_notifications/{notificationId} {
       // Team members and admins can create notifications
-      allow create: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow create: if isPrivilegedStaff();
       // Admins and team members can read queue status (admin inbox, ops)
-      allow read: if hasRole('admin') || hasProfileRole('admin') || hasRole('team-member') || hasProfileRole('team-member');
-      // Cloud Functions can update status
-      allow update: if true;
+      allow read: if isPrivilegedStaff();
+      // Client updates restricted; Cloud Functions Admin SDK bypasses rules.
+      allow update: if isPrivilegedStaff();
     }
     
     // Jonny-specific images (approvals)
@@ -264,12 +259,11 @@ service cloud.firestore {
                   || hasProfileRole('admin');
       // Uploader can create; team members/admins can update/approve or delete
       allow create: if isAuthenticated() && request.auth.uid == request.resource.data.uploaderUid;
-      allow update: if hasRole('team-member')
-                    || hasRole('admin')
-                    || hasProfileRole('team-member')
-                    || hasProfileRole('admin')
-                    || (isAuthenticated() && request.auth.uid == resource.data.uploaderUid);
-      allow delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow update: if isPrivilegedStaff() ||
+        (isAuthenticated() &&
+         request.auth.uid == resource.data.uploaderUid &&
+         request.resource.data.approved == resource.data.approved);
+      allow delete: if isPrivilegedStaff();
     }
 
     // Jonny-specific videos
@@ -310,7 +304,7 @@ service cloud.firestore {
       allow delete: if hasRole('admin') || hasProfileRole('admin');
     }
     
-    // Feedback submissions (public create and read for stats)
+    // Feedback submissions (public create; staff-only read to protect PII)
     match /feedback/{feedbackId} {
       allow create: if
         onlyHasKeys(['name', 'email', 'message', 'createdAt', 'source', 'page']) &&
@@ -321,8 +315,8 @@ service cloud.firestore {
         (!('page' in request.resource.data) || (request.resource.data.page is string && request.resource.data.page.size() <= 120)) &&
         (!('source' in request.resource.data) || (request.resource.data.source is string && request.resource.data.source.size() <= 50)) &&
         true; // Anyone can submit feedback
-      allow read: if true; // Public read for displaying stats
-      allow update, delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow read: if isPrivilegedStaff();
+      allow update, delete: if isPrivilegedStaff();
     }
 
     // Email retry queues (written by Cloud Functions Admin SDK; team reads/updates in admin console)
@@ -395,14 +389,17 @@ service cloud.firestore {
     // Fan Wall shoutouts
     match /fan_wall/{postId} {
       // Public can read approved posts
-      allow read: if (resource.data.approved == true)
-                  || hasRole('team-member') || hasRole('admin')
-                  || hasProfileRole('team-member') || hasProfileRole('admin');
-      // Authenticated users can create (with approved=false)
-      allow create: if isAuthenticated();
+      allow read: if (resource.data.approved == true) || isPrivilegedStaff();
+      // Authenticated users can create only as unapproved posts
+      allow create: if isAuthenticated() &&
+        request.resource.data.approved == false &&
+        (
+          request.resource.data.authorUid == request.auth.uid ||
+          request.resource.data.userId == request.auth.uid
+        );
       // Team/admin can approve or delete
-      allow update: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
-      allow delete: if hasRole('team-member') || hasRole('admin') || hasProfileRole('team-member') || hasProfileRole('admin');
+      allow update: if isPrivilegedStaff();
+      allow delete: if isPrivilegedStaff();
     }
     
     // Fan predictions
@@ -462,7 +459,8 @@ service cloud.firestore {
     match /scheduled_pushes/{id} {
       allow read:   if isAdminOnly();
       allow create: if isAdminOnly();
-      allow update: if true; // Cloud Functions update status
+      // Client updates restricted; Cloud Functions Admin SDK bypasses rules.
+      allow update: if isAdminOnly();
       allow delete: if isAdminOnly();
     }
 
@@ -484,11 +482,10 @@ service cloud.firestore {
       allow write: if isAdminOnly();
     }
 
-    // Fan passport stamps
+    // Fan passport stamps — clients may read; writes go through checkInPassport (Admin SDK).
     match /users/{uid}/passport_stamps/{raceId} {
       allow read:   if isOwner(uid) || isAdminOnly();
-      allow create: if isAuthenticated() && request.auth.uid == uid;
-      allow update, delete: if false;
+      allow create, update, delete: if false;
     }
 
     // Default deny - catches everything not explicitly allowed above

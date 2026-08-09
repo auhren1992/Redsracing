@@ -354,29 +354,43 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
     email = data.get("email")
     phone = data.get("phone", "N/A")
     message_content = data.get("message")
+    sponsorship_level = (
+        data.get("sponsorshipLevel") or data.get("sponsorship_level") or "N/A"
+    )
 
     if not all([name, email, message_content]):
         return https_fn.Response(
             "Missing required fields: name, email, message", status=400
         )
 
+    def _esc(value):
+        return (
+            str("" if value is None else value)
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+        )
+
     try:
-        email_subject = f"New Sponsorship Inquiry from {name}"
+        email_subject = f"New Sponsorship Inquiry from {name}".replace("\r", " ").replace("\n", " ")
         text_body = (
             f"Company: {company}\n"
             f"Contact Name: {name}\n"
             f"Email: {email}\n"
-            f"Phone: {phone}\n\n"
+            f"Phone: {phone}\n"
+            f"Partnership Level: {sponsorship_level}\n\n"
             f"Message:\n{message_content}"
         )
         html_body = (
             f"<h2>New Sponsorship Inquiry</h2>"
-            f"<p><strong>Company:</strong> {company}</p>"
-            f"<p><strong>Contact Name:</strong> {name}</p>"
-            f"<p><strong>Email:</strong> {email}</p>"
-            f"<p><strong>Phone:</strong> {phone}</p>"
+            f"<p><strong>Company:</strong> {_esc(company)}</p>"
+            f"<p><strong>Contact Name:</strong> {_esc(name)}</p>"
+            f"<p><strong>Email:</strong> {_esc(email)}</p>"
+            f"<p><strong>Phone:</strong> {_esc(phone)}</p>"
+            f"<p><strong>Partnership Level:</strong> {_esc(sponsorship_level)}</p>"
             f"<p><strong>Message:</strong></p>"
-            f"<p>{message_content}</p>"
+            f"<p>{_esc(message_content)}</p>"
         )
 
         response = send_email_via_mailersend(
@@ -402,6 +416,7 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
                     "name": name,
                     "email": email,
                     "phone": phone,
+                    "sponsorshipLevel": sponsorship_level,
                     "message": message_content,
                 },
                 req,
@@ -429,6 +444,7 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
                 "name": name,
                 "email": email,
                 "phone": phone,
+                "sponsorshipLevel": sponsorship_level,
                 "message": message_content,
             },
             req,
@@ -459,6 +475,7 @@ def handleSendSponsorship(req: https_fn.Request) -> https_fn.Response:
                 "name": name,
                 "email": email,
                 "phone": phone,
+                "sponsorshipLevel": sponsorship_level,
                 "message": message_content,
             },
             req,
@@ -675,9 +692,34 @@ def _get_user_from_token(req):
 
 
 def _is_admin(decoded_token):
-    """Helper function to check if user has admin role."""
-    custom_claims = decoded_token.get("role")
-    return custom_claims == "team-member"
+    """Helper function to check if user has admin/owner/team-member role via Auth claims."""
+    role = decoded_token.get("role")
+    return (
+        role in ("admin", "owner", "team-member")
+        or decoded_token.get("admin") is True
+        or decoded_token.get("teamMember") is True
+    )
+
+
+def _public_profile_fields(profile_data):
+    """Redact privilege / sensitive fields from profile API responses."""
+    if not isinstance(profile_data, dict):
+        return {}
+    blocked = {
+        "role",
+        "isAdmin",
+        "isTeamMember",
+        "isOwner",
+        "admin",
+        "teamMember",
+        "owner",
+        "email",
+        "fcm_token",
+        "fcmToken",
+        "phoneNumber",
+        "phone",
+    }
+    return {k: v for k, v in profile_data.items() if k not in blocked}
 
 
 @https_fn.on_request(cors=CORS_OPTIONS)
@@ -705,7 +747,13 @@ def handleGetProfile(req: https_fn.Request) -> https_fn.Response:
         if not profile_doc.exists:
             return https_fn.Response("Profile not found", status=404)
 
-        profile_data = profile_doc.to_dict()
+        profile_data = profile_doc.to_dict() or {}
+        # Enforce publicProfile unless the caller is the owner or staff.
+        decoded_token, _auth_err = _get_user_from_token(req)
+        is_owner = bool(decoded_token and decoded_token.get("uid") == user_id)
+        is_staff = bool(decoded_token and _is_admin(decoded_token))
+        if not profile_data.get("publicProfile", False) and not is_owner and not is_staff:
+            return https_fn.Response("Profile not found", status=404)
 
         # Get user achievements
         achievements_query = (
@@ -729,8 +777,13 @@ def handleGetProfile(req: https_fn.Request) -> https_fn.Response:
                 )
                 user_achievements.append(achievement_details)
 
-        # Combine profile with achievements
-        result = {**profile_data, "achievements": user_achievements}
+        # Combine redacted profile with achievements
+        safe_profile = _public_profile_fields(profile_data)
+        if is_owner or is_staff:
+            # Owners/staff may see email on their own / managed profiles.
+            if "email" in profile_data:
+                safe_profile["email"] = profile_data.get("email")
+        result = {**safe_profile, "achievements": user_achievements}
 
         return https_fn.Response(
             json.dumps(result, default=ts_to_dict),
@@ -1122,19 +1175,32 @@ def handleAutoAwardAchievement(req: https_fn.Request) -> https_fn.Response:
     if req.method != "POST":
         return https_fn.Response("Method not allowed", status=405)
 
-    # This endpoint can be called internally or by authenticated users
+    # Require a verified Firebase ID token. Users may only award for themselves;
+    # staff may award for any userId.
+    decoded_token, auth_error = _get_user_from_token(req)
+    if auth_error:
+        return auth_error
+
     data = req.get_json(silent=True)
     if not data:
         return https_fn.Response("Invalid request body", status=400)
 
     user_id = data.get("userId")
     action_type = data.get("actionType")
-    action_data = data.get("actionData", {})
+    action_data = data.get("actionData", {}) or {}
 
     if not all([user_id, action_type]):
         return https_fn.Response(
             "Missing required fields: userId, actionType", status=400
         )
+
+    caller_uid = decoded_token.get("uid")
+    if user_id != caller_uid and not _is_admin(decoded_token):
+        return https_fn.Response("Forbidden", status=403)
+
+    allowed_actions = {"first_login", "photo_upload", "photo_liked", "profile_created"}
+    if action_type not in allowed_actions:
+        return https_fn.Response("Invalid actionType", status=400)
 
     try:
         db = firestore.client()
@@ -1156,7 +1222,8 @@ def handleAutoAwardAchievement(req: https_fn.Request) -> https_fn.Response:
             doc.to_dict()["achievementId"] for doc in user_achievements_query
         }
 
-        # Determine which achievements to award based on action type
+        # Determine which achievements to award based on action type.
+        # Photo/like counts are verified server-side — never trust client totals.
         achievements_to_award = []
 
         if action_type == "first_login":
@@ -1164,16 +1231,30 @@ def handleAutoAwardAchievement(req: https_fn.Request) -> https_fn.Response:
                 achievements_to_award.append("community_member")
 
         elif action_type == "photo_upload":
-            # Check for photographer achievement (5 photos)
             if "photographer" not in user_achievement_ids:
-                photo_count = action_data.get("totalPhotos", 1)
+                photo_count = sum(
+                    1
+                    for _ in db.collection("gallery_images")
+                    .where("uploaderUid", "==", user_id)
+                    .stream()
+                )
                 if photo_count >= 5:
                     achievements_to_award.append("photographer")
 
         elif action_type == "photo_liked":
-            # Check for fan favorite achievement (10 total likes across all photos)
             if "fan_favorite" not in user_achievement_ids:
-                total_likes = action_data.get("totalLikes", 1)
+                total_likes = 0
+                for img in (
+                    db.collection("gallery_images")
+                    .where("uploaderUid", "==", user_id)
+                    .stream()
+                ):
+                    img_data = img.to_dict() or {}
+                    likes = img_data.get("likes") or img_data.get("likeCount") or 0
+                    try:
+                        total_likes += int(likes)
+                    except (TypeError, ValueError):
+                        pass
                 if total_likes >= 10:
                     achievements_to_award.append("fan_favorite")
 
@@ -1722,6 +1803,27 @@ def handlePhotoProcess(req: https_fn.Request) -> https_fn.Response:
 
     image_url = data["imageUrl"]
 
+    # SSRF guard: only allow Firebase Storage / Googleusercontent image URLs.
+    try:
+        from urllib.parse import urlparse
+
+        parsed = urlparse(image_url)
+        host = (parsed.hostname or "").lower()
+        allowed_hosts = (
+            "firebasestorage.googleapis.com",
+            "storage.googleapis.com",
+            "lh3.googleusercontent.com",
+        )
+        if parsed.scheme != "https" or not any(
+            host == h or host.endswith("." + h) for h in allowed_hosts
+        ):
+            return https_fn.Response(
+                "imageUrl host not allowed",
+                status=400,
+            )
+    except Exception:
+        return https_fn.Response("Invalid imageUrl", status=400)
+
     try:
         # Download image from URL
         import requests as http_requests
@@ -1747,10 +1849,10 @@ def handlePhotoProcess(req: https_fn.Request) -> https_fn.Response:
         # Generate sizes
         sizes = {
             "original": {"width": img.width, "height": img.height},
-            "large": self._resize_image(img, 1920),
-            "medium": self._resize_image(img, 1024),
-            "small": self._resize_image(img, 640),
-            "thumbnail": self._resize_image(img, 320),
+            "large": _resize_image(img, 1920),
+            "medium": _resize_image(img, 1024),
+            "small": _resize_image(img, 640),
+            "thumbnail": _resize_image(img, 320),
         }
 
         # Get image info

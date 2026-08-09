@@ -83,7 +83,13 @@ class TestProfileEndpoints(unittest.TestCase):
             mock_firestore_client.return_value = mock_db
             mock_profile_doc = Mock()
             mock_profile_doc.exists = True
-            mock_profile_doc.to_dict.return_value = {'username': 'testuser', 'displayName': 'Test User'}
+            mock_profile_doc.to_dict.return_value = {
+                'username': 'testuser',
+                'displayName': 'Test User',
+                'publicProfile': True,
+                'role': 'admin',  # must be redacted from public responses
+                'isAdmin': True,
+            }
             mock_db.collection.return_value.document.return_value.get.return_value = mock_profile_doc
             mock_db.collection.return_value.where.return_value.stream.return_value = []
 
@@ -92,6 +98,8 @@ class TestProfileEndpoints(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             response_data = json.loads(response.data)
             self.assertEqual(response_data['username'], 'testuser')
+            self.assertNotIn('role', response_data)
+            self.assertNotIn('isAdmin', response_data)
 
     @patch('main.firestore.client')
     def test_get_profile_not_found(self, mock_firestore_client):

@@ -165,7 +165,16 @@
         const tagClass=v.tag==='jon'?'tag-jon':v.tag==='jonny'?'tag-jonny':'tag-team';
         const tagLabel=v.tag==='jon'?'Jon #8':v.tag==='jonny'?'Jonny #88':'Team';
         const card=document.createElement('div');card.className='shout-card p-4';
-        card.innerHTML=`<div class="flex items-start justify-between"><div class="flex-1"><div class="flex items-center space-x-2 mb-1"><span class="text-white font-semibold text-sm">${v.userName||'Fan'}</span><span class="${tagClass} px-2 py-0.5 rounded text-[10px] font-bold">${tagLabel}</span></div><p class="text-slate-300 text-sm">${v.text}</p></div><span class="text-slate-600 text-xs ml-3 whitespace-nowrap">${time}</span></div>`;
+        const row=document.createElement('div');row.className='flex items-start justify-between';
+        const left=document.createElement('div');left.className='flex-1';
+        const meta=document.createElement('div');meta.className='flex items-center space-x-2 mb-1';
+        const nameEl=document.createElement('span');nameEl.className='text-white font-semibold text-sm';nameEl.textContent=v.userName||'Fan';
+        const tagEl=document.createElement('span');tagEl.className=tagClass+' px-2 py-0.5 rounded text-[10px] font-bold';tagEl.textContent=tagLabel;
+        meta.appendChild(nameEl);meta.appendChild(tagEl);
+        const textEl=document.createElement('p');textEl.className='text-slate-300 text-sm';textEl.textContent=v.text||'';
+        left.appendChild(meta);left.appendChild(textEl);
+        const timeEl=document.createElement('span');timeEl.className='text-slate-600 text-xs ml-3 whitespace-nowrap';timeEl.textContent=time;
+        row.appendChild(left);row.appendChild(timeEl);card.appendChild(row);
         feed.appendChild(card)});
     }catch(e){console.error('Feed error:',e);ld.classList.add('hidden');em.classList.remove('hidden')}
   }

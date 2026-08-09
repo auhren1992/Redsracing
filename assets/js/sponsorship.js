@@ -12,6 +12,9 @@ async function main() {
       const email = sponsorshipForm.email.value;
       const phone = sponsorshipForm.phone.value;
       const message = sponsorshipForm.message.value;
+      const sponsorshipLevel = sponsorshipForm.sponsorshipLevel
+        ? sponsorshipForm.sponsorshipLevel.value
+        : "";
 
       sponsorshipStatus.textContent = "Sending...";
       sponsorshipStatus.classList.remove("text-red-500", "text-green-500");
@@ -28,6 +31,7 @@ async function main() {
             email,
             phone,
             message,
+            sponsorshipLevel,
           }),
         });
 
