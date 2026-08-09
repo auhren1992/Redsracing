@@ -281,10 +281,11 @@ service cloud.firestore {
     
     // Client error logs (frontend)
     match /client_logs/{logId} {
-      // Authenticated clients may create bounded telemetry; staff read/delete
-      allow create: if isAuthenticated() &&
-        request.resource.data.keys().hasAll(['message']) &&
+      // Public create allowed for guest telemetry, but payload is size-bounded.
+      // Admin UI must HTML-escape all fields (XSS sink closed separately).
+      allow create: if request.resource.data.keys().hasAll(['message']) &&
         request.resource.data.message is string &&
+        request.resource.data.message.size() > 0 &&
         request.resource.data.message.size() <= 4000;
       allow read: if isPrivilegedStaff();
       allow delete: if isPrivilegedStaff();
