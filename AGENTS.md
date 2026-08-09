@@ -14,7 +14,9 @@ and a Python venv at `functions_python/venv` with `functions_python/requirements
 Prefer `npm install` over `npm ci` — the root lockfile can disagree with the `uuid` override in
 `package.json`, so `npm ci` may fail. Python tests need `python3.12-venv` on the base image
 (`sudo apt-get install -y python3.12-venv` once if `python3 -m venv` fails with ensurepip missing).
-The update script creates `functions_python/venv` when possible and skips cleanly if venv cannot be created.
+Create the venv with `--copies` (`python3 -m venv functions_python/venv --copies`) so
+`venv/bin/python` survives environment snapshots (symlink-only venvs often lose `bin/` after boot).
+If `functions_python/venv/bin/python` is missing, delete `functions_python/venv` and recreate it.
 
 ### Node version gotcha (Cloud Agent VMs)
 - Cloud Functions declare Node **20** (`functions/package.json` engines). Prefer Node 20 via nvm.
