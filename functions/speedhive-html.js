@@ -1,26 +1,33 @@
 /* eslint-env node */
 "use strict";
 
+function parseEventFragment(raw) {
+  try {
+    const obj = JSON.parse(raw);
+    if (obj["@type"] !== "Event") return null;
+    return {
+      name: obj.name || null,
+      startDate: obj.startDate || null,
+      location: obj?.location?.name || null,
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
+function scriptBlocksFromHtml(html) {
+  return Array.from(html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)).map(
+    (m) => m[1],
+  );
+}
+
 function eventsFromJsonLd(html) {
   const events = [];
-  const scriptBlocks = Array.from(
-    html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi),
-  ).map((m) => m[1]);
-  for (const block of scriptBlocks) {
+  for (const block of scriptBlocksFromHtml(html)) {
     if (!/"@type"\s*:\s*"Event"/i.test(block)) continue;
-    const objMatches = block.match(/\{[\s\S]*?\}/g) || [];
-    for (const raw of objMatches) {
-      try {
-        const obj = JSON.parse(raw);
-        if (obj["@type"] !== "Event") continue;
-        events.push({
-          name: obj.name || null,
-          startDate: obj.startDate || null,
-          location: obj?.location?.name || null,
-        });
-      } catch (_) {
-        /* ignore bad JSON fragments */
-      }
+    for (const raw of block.match(/\{[\s\S]*?\}/g) || []) {
+      const ev = parseEventFragment(raw);
+      if (ev) events.push(ev);
     }
   }
   return events;

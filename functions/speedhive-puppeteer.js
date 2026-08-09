@@ -4,6 +4,27 @@
 const SPEEDHIVE_JON_RACES_URL =
   "https://speedhive.mylaps.com/profile/MYLAPS-GA-3a22ae250e154baf8f798908b7e3599e/races";
 
+function collectRaceAnchorsInPage() {
+  const anchors = Array.from(document.querySelectorAll("a"));
+  const items = [];
+  for (const a of anchors) {
+    const href = a.getAttribute("href") || "";
+    const label = (a.textContent || "").trim();
+    const interesting =
+      /result|event|race/i.test(href) || /Jonathan\s+Kirsch/i.test(label);
+    if (!interesting) continue;
+    let date = "";
+    const parent = a.closest("div,li,section,article") || document.body;
+    const parentText = parent.innerText || "";
+    const dm = parentText.match(
+      /\b(\d{1,2}\s+[A-Z][a-z]+\s+\d{4}|\d{4}-\d{2}-\d{2})\b/,
+    );
+    if (dm) date = dm[0];
+    items.push({ name: label || "Race", link: href, date });
+  }
+  return items.slice(0, 50);
+}
+
 async function extractSpeedhiveEventsWithPuppeteer() {
   const puppeteer = require("puppeteer");
   const browser = await puppeteer.launch({
@@ -21,36 +42,7 @@ async function extractSpeedhiveEventsWithPuppeteer() {
       timeout: 90000,
     });
     await page.waitForSelector("a", { timeout: 30000 }).catch(() => {});
-    const rendered = await page.evaluate(() => {
-      const anchors = Array.from(document.querySelectorAll("a"));
-      const items = [];
-      for (const a of anchors) {
-        const href = a.getAttribute("href") || "";
-        const label = (a.textContent || "").trim();
-        if (
-          !(
-            /result|event|race/i.test(href) ||
-            /Jonathan\s+Kirsch/i.test(label)
-          )
-        ) {
-          continue;
-        }
-        let date = "";
-        try {
-          const parentText =
-            (a.closest("div,li,section,article") || document.body).innerText ||
-            "";
-          const dm = parentText.match(
-            /\b(\d{1,2}\s+[A-Z][a-z]+\s+\d{4}|\d{4}-\d{2}-\d{2})\b/,
-          );
-          date = dm ? dm[0] : "";
-        } catch (_) {
-          /* ignore */
-        }
-        items.push({ name: label || "Race", link: href, date });
-      }
-      return items.slice(0, 50);
-    });
+    const rendered = await page.evaluate(collectRaceAnchorsInPage);
     return Array.isArray(rendered) ? rendered : [];
   } finally {
     await browser.close().catch(() => {});
