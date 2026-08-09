@@ -64,6 +64,12 @@
         ]
       },
       {
+        "source": "/styles/site-flash.css",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-store" }
+        ]
+      },
+      {
         "source": "/navigation.js",
         "headers": [
           { "key": "Cache-Control", "value": "no-store" }

@@ -17,15 +17,24 @@
 (function () {
   "use strict";
 
-  // Brand wordmark CSS early (helps when service worker served stale main.css)
+  // Site-wide flash + brand CSS early (every page, even if HTML missed the link)
   try {
+    var path = (window.location.pathname || "").replace(/\\/g, "/");
+    var root = /\/(fan|crew|racer)\//i.test(path) ? "../" : "";
+    if (!document.getElementById("rr-site-flash-link")) {
+      var flashLink = document.createElement("link");
+      flashLink.id = "rr-site-flash-link";
+      flashLink.rel = "stylesheet";
+      flashLink.href = root + "styles/site-flash.css?v=2026080903";
+      (document.head || document.documentElement).appendChild(flashLink);
+    }
     if (!document.getElementById("rr-brand-critical")) {
       var brandStyle = document.createElement("style");
       brandStyle.id = "rr-brand-critical";
       brandStyle.textContent =
-        ".logo-blue,.logo-yellow{display:inline-block;background-color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;color:transparent!important;filter:none!important}" +
-        ".logo-blue{background-image:linear-gradient(45deg,#3b82f6,#60a5fa)!important}" +
-        ".logo-yellow{background-image:linear-gradient(45deg,#fbbf24,#fde047)!important}" +
+        ".logo-blue,.logo-yellow{display:inline-block;background-color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;color:transparent!important}" +
+        ".logo-blue{background-image:linear-gradient(45deg,#3b82f6,#7dd3fc,#60a5fa)!important;filter:drop-shadow(0 0 10px rgba(96,165,250,.45))!important}" +
+        ".logo-yellow{background-image:linear-gradient(45deg,#fbbf24,#fde047,#f59e0b)!important;filter:drop-shadow(0 0 10px rgba(253,224,71,.5))!important}" +
         ".rr-brand{font-family:\"Racing Sans One\",sans-serif;text-transform:uppercase;letter-spacing:.14em;line-height:1}";
       (document.head || document.documentElement).appendChild(brandStyle);
     }
