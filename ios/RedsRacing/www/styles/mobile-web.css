@@ -110,7 +110,7 @@ html:not(.rr-native-app) {
 
   html:not(.rr-native-app) header nav > .hidden[class*="md:flex"],
   html:not(.rr-native-app) header nav > .hidden[class*="lg:flex"],
-  html:not(.rr-native-app) header nav > [class*="md:flex"]:not(#mobile-menu-button):not(#mobile-menu-toggle),
+  html:not(.rr-native-app) header nav > [class*="md:flex"],
   html:not(.rr-native-app) header nav > [class*="lg:flex"] {
     display: none !important;
   }
