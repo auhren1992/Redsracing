@@ -4,25 +4,22 @@
 const SPEEDHIVE_JON_RACES_URL =
   "https://speedhive.mylaps.com/profile/MYLAPS-GA-3a22ae250e154baf8f798908b7e3599e/races";
 
-function collectRaceAnchorsInPage() {
-  const anchors = Array.from(document.querySelectorAll("a"));
-  const items = [];
-  for (const a of anchors) {
-    const href = a.getAttribute("href") || "";
-    const label = (a.textContent || "").trim();
-    const interesting =
-      /result|event|race/i.test(href) || /Jonathan\s+Kirsch/i.test(label);
-    if (!interesting) continue;
-    let date = "";
-    const parent = a.closest("div,li,section,article") || document.body;
-    const parentText = parent.innerText || "";
-    const dm = parentText.match(
-      /\b(\d{1,2}\s+[A-Z][a-z]+\s+\d{4}|\d{4}-\d{2}-\d{2})\b/,
-    );
-    if (dm) date = dm[0];
-    items.push({ name: label || "Race", link: href, date });
-  }
-  return items.slice(0, 50);
+function isRaceAnchor(item) {
+  return (
+    /result|event|race/i.test(item.href) ||
+    /Jonathan\s+Kirsch/i.test(item.label)
+  );
+}
+
+function toRaceEvent(item) {
+  const dm = String(item.parentText || "").match(
+    /\b(\d{1,2}\s+[A-Z][a-z]+\s+\d{4}|\d{4}-\d{2}-\d{2})\b/,
+  );
+  return {
+    name: item.label || "Race",
+    link: item.href,
+    date: dm ? dm[0] : "",
+  };
 }
 
 async function extractSpeedhiveEventsWithPuppeteer() {
@@ -42,8 +39,22 @@ async function extractSpeedhiveEventsWithPuppeteer() {
       timeout: 90000,
     });
     await page.waitForSelector("a", { timeout: 30000 }).catch(() => {});
-    const rendered = await page.evaluate(collectRaceAnchorsInPage);
-    return Array.isArray(rendered) ? rendered : [];
+
+    // Pull plain fields in the page, filter/map in Node (keeps page fn simple).
+    const anchors = await page.$$eval("a", (nodes) =>
+      nodes.map((a) => ({
+        href: a.getAttribute("href") || "",
+        label: (a.textContent || "").trim(),
+        parentText: (
+          (a.closest("div,li,section,article") || document.body).innerText || ""
+        ).slice(0, 400),
+      })),
+    );
+
+    return (anchors || [])
+      .filter(isRaceAnchor)
+      .slice(0, 50)
+      .map(toRaceEvent);
   } finally {
     await browser.close().catch(() => {});
   }

@@ -22,15 +22,11 @@ function scriptBlocksFromHtml(html) {
 }
 
 function eventsFromJsonLd(html) {
-  const events = [];
-  for (const block of scriptBlocksFromHtml(html)) {
-    if (!/"@type"\s*:\s*"Event"/i.test(block)) continue;
-    for (const raw of block.match(/\{[\s\S]*?\}/g) || []) {
-      const ev = parseEventFragment(raw);
-      if (ev) events.push(ev);
-    }
-  }
-  return events;
+  return scriptBlocksFromHtml(html)
+    .filter((block) => /"@type"\s*:\s*"Event"/i.test(block))
+    .flatMap((block) => block.match(/\{[\s\S]*?\}/g) || [])
+    .map(parseEventFragment)
+    .filter(Boolean);
 }
 
 function eventsFromAnchorHeuristics(html) {
