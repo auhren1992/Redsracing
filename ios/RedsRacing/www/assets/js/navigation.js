@@ -108,7 +108,7 @@
         if (!document.querySelector('link[href*="mobile-web.css"]')) {
           const link = document.createElement('link');
           link.rel = 'stylesheet';
-          link.href = assetRoot + 'styles/mobile-web.css?v=2026080914';
+          link.href = assetRoot + 'styles/mobile-web.css?v=2026080915';
           document.head.appendChild(link);
         }
       } catch (_) {}
@@ -336,16 +336,25 @@
             document.body.setAttribute('data-auth', 'signed-in');
             localStorage.setItem('rr_auth_uid', user.uid);
             
-            // Add visible debug indicator
-            let debugDiv = document.getElementById('auth-debug-status');
-            if (!debugDiv) {
-              debugDiv = document.createElement('div');
-              debugDiv.id = 'auth-debug-status';
-              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#22c55e;color:#000;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
-              debugDiv.textContent = '✓ Logged in as ' + (user.email || 'User');
-              document.body.appendChild(debugDiv);
-              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
-            }
+            // Optional auth debug toast (opt-in only — overlaps mobile menu tabs otherwise)
+            try {
+              const dbg = new URLSearchParams(window.location.search).has('rr_debug')
+                || localStorage.getItem('rr_debug') === '1';
+              if (dbg) {
+                let debugDiv = document.getElementById('auth-debug-status');
+                if (!debugDiv) {
+                  debugDiv = document.createElement('div');
+                  debugDiv.id = 'auth-debug-status';
+                  debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#22c55e;color:#000;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+                  debugDiv.textContent = '✓ Logged in as ' + (user.email || 'User');
+                  document.body.appendChild(debugDiv);
+                  setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+                }
+              } else {
+                const stale = document.getElementById('auth-debug-status');
+                if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
+              }
+            } catch (_) {}
             
             // CSS will handle visibility via body[data-auth="signed-in"] rules
             // Just set attributes and let CSS take over
@@ -1099,9 +1108,44 @@
   // Make it globally available for debugging
   window.upgradeNavMenus = upgradeNavMenus;
 
+  /** Put hamburger on the left of the header on mobile web; keep brand truncating. */
+  function normalizeMobileHeader() {
+    try {
+      if (document.documentElement.classList.contains('rr-native-app')) return;
+      const narrow = !window.matchMedia || window.matchMedia('(max-width: 767.98px)').matches;
+      if (!narrow) return;
+      const nav = document.querySelector('header nav');
+      if (!nav) return;
+      const btn = document.getElementById('mobile-menu-button') || document.getElementById('mobile-menu-toggle');
+      if (!btn) return;
+
+      // Extract hamburger from clock wrappers so it can sit at the true left edge
+      if (btn.parentElement && btn.parentElement !== nav) {
+        nav.insertBefore(btn, nav.firstChild);
+      } else if (nav.firstElementChild !== btn) {
+        nav.insertBefore(btn, nav.firstChild);
+      }
+
+      const auth = document.getElementById('admin-top-auth');
+      if (auth) {
+        auth.classList.add('hidden');
+        auth.classList.add('md:flex');
+      }
+
+      // Clock stays trailing if present
+      const clock = document.getElementById('mobile-clock');
+      if (clock && clock.parentElement === nav) {
+        clock.style.marginLeft = 'auto';
+      } else if (clock && clock.parentElement && clock.parentElement !== nav) {
+        clock.parentElement.style.marginLeft = 'auto';
+      }
+    } catch (_) {}
+  }
+
   function ready() {
     try { hideAdminConsoleLinks(); } catch (_) {} // Hide admin links by default until role verified
     try { upgradeNavMenus(); } catch (_) {}
+    try { normalizeMobileHeader(); } catch (_) {}
     try { initDropdowns(); } catch (_) {}
     try { initMobileMenu(); } catch (_) {}
     try { initClock(); } catch (_) {}
@@ -1132,6 +1176,12 @@
         ads.defer = true;
         document.head.appendChild(ads);
       }
+    } catch (_) {}
+
+    try {
+      window.addEventListener('resize', function () {
+        try { normalizeMobileHeader(); } catch (_) {}
+      });
     } catch (_) {}
   }
 

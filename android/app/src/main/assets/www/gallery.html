@@ -51,8 +51,14 @@
   </head>
   <body class="bg-dark-blue">
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
-      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-        <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+      <nav class="container mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 max-w-full">
+        <button id="mobile-menu-button" class="md:hidden shrink-0 text-white focus:outline-none" >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            </svg>
+          </button>
+
+        <a href="index.html" class="rr-brand text-2xl sm:text-4xl font-racing uppercase tracking-wider min-w-0 truncate flex-1 md:flex-none">
           <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
         </a>
         
@@ -164,16 +170,7 @@
         </div>
         
         <!-- Mobile Clock and Menu -->
-        <div class="md:hidden flex items-center space-x-4">
-          <div id="mobile-clock" class="text-yellow-400 font-bold text-sm bg-slate-800/50 px-3 py-1 rounded-lg border border-slate-600/50">
-            12:00 PM
-          </div>
-          <button id="mobile-menu-button" class="text-white focus:outline-none">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-            </svg>
-          </button>
-        </div>
+        
       </nav>
       
       <!-- Mobile Menu -->

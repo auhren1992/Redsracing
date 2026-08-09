@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/input-fix.css" />
+    <link rel="stylesheet" href="styles/mobile-web.css?v=2026080915" />
     <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
     
     <!-- Mobile App Detection -->
@@ -976,13 +977,19 @@
 
     <!-- Clean Modern Header -->
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
-      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-        <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+      <nav class="container mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 max-w-full">
+        <!-- Mobile hamburger — LEFT on phones -->
+        <button id="mobile-menu-button" class="md:hidden shrink-0 text-white focus:outline-none" type="button" aria-label="Open admin sections" aria-controls="admin-sidebar" aria-expanded="false">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+        <a href="index.html" class="rr-brand text-2xl sm:text-4xl font-racing uppercase tracking-wider min-w-0 truncate flex-1 md:flex-none">
           <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
         </a>
         
-        <!-- Navigation Links -->
-        <div class="hidden md:flex items-center space-x-6 font-bold">
+        <!-- Navigation Links (desktop) -->
+        <div class="hidden md:flex items-center space-x-6 font-bold ml-auto">
           <a href="index.html" class="nav-link">🏠 Home</a>
           <div class="relative dropdown">
             <button class="dropdown-toggle nav-link">
@@ -1040,17 +1047,11 @@
           
         </div>
         
-        <!-- Mobile Menu Button — opens Command Center section drawer on phones -->
-        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none" type="button" aria-label="Open admin sections" aria-controls="admin-sidebar" aria-expanded="false">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-          </svg>
-        </button>
-        <!-- Admin top auth pill -->
-        <div id="admin-top-auth" class="hidden md:flex items-center space-x-3 ml-4">
+        <!-- Admin top auth pill — desktop only (never push hamburger on mobile) -->
+        <div id="admin-top-auth" class="hidden md:flex items-center space-x-3 ml-4 shrink-0">
           <div id="admin-online-dot" class="w-2 h-2 bg-green-400 rounded-full animate-pulse" style="display:none"></div>
-          <span id="admin-user-email" class="text-slate-300 text-sm"></span>
-<button id="logout-button-top" class="bg-slate-800/50 hover:bg-slate-700/50 border border-slate-600/50 text-white px-3 py-1 rounded text-sm flex items-center"><i class="fas fa-sign-out-alt mr-2"></i>Sign Out</button>
+          <span id="admin-user-email" class="text-slate-300 text-sm truncate max-w-[12rem]"></span>
+          <button id="logout-button-top" class="bg-slate-800/50 hover:bg-slate-700/50 border border-slate-600/50 text-white px-3 py-1 rounded text-sm flex items-center"><i class="fas fa-sign-out-alt mr-2"></i>Sign Out</button>
         </div>
       </nav>
     </header>
@@ -6867,11 +6868,14 @@
               onAuthStateChanged(auth, (user) => {
                 if (!area) return;
                 if (user) {
+                  // Keep desktop-only: never become a 3rd flex child on mobile
                   area.classList.remove('hidden');
+                  area.classList.add('md:flex');
                   if (dot) dot.style.display = '';
                   if (emailEl) emailEl.textContent = user.email || 'Signed In';
                 } else {
                   area.classList.add('hidden');
+                  area.classList.remove('md:flex');
                 }
               });
             } catch(_) {}
