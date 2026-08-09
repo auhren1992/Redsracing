@@ -14,14 +14,13 @@ import {
   where,
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-function escHtml(s) {
-  return String(s == null ? "" : s)
+const escHtml = (s) =>
+  String(s == null ? "" : s)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-}
 
 /** Opens the staff’s email app to reply to the address the visitor provided (feedback / queue items). */
 function buildFeedbackReplyMailto(email, name, message, kindLabel) {

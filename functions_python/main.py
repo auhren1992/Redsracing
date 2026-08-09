@@ -117,6 +117,29 @@ def get_user_agent(req):
     return req.headers.get("User-Agent", "unknown")
 
 
+def _rate_limit_elapsed_seconds(window_start, now, window_seconds: int) -> float:
+    """Return seconds since window_start, or window_seconds+1 if unknown/invalid."""
+    if window_start is None:
+        return float(window_seconds + 1)
+    try:
+        ws_naive = (
+            window_start.replace(tzinfo=None)
+            if getattr(window_start, "tzinfo", None)
+            else window_start
+        )
+        return (now - ws_naive).total_seconds()
+    except Exception:
+        return float(window_seconds + 1)
+
+
+def _rate_limit_blocked_response():
+    return https_fn.Response(
+        json.dumps({"message": "Too many requests. Please try again later."}),
+        status=429,
+        headers={"Content-Type": "application/json"},
+    )
+
+
 def enforce_ip_rate_limit(req, bucket: str, max_requests: int = 8, window_seconds: int = 3600):
     """Firestore-backed IP rate limit for public form endpoints.
 
@@ -130,38 +153,37 @@ def enforce_ip_rate_limit(req, bucket: str, max_requests: int = 8, window_second
         ref = db.collection("_rate_limits").document(doc_id)
         now = datetime.utcnow()
         snap = ref.get()
-        if snap.exists:
-            data = snap.to_dict() or {}
-            ws = data.get("windowStart")
-            count = int(data.get("count") or 0)
-            elapsed = window_seconds + 1
-            if ws is not None:
-                try:
-                    ws_naive = ws.replace(tzinfo=None) if getattr(ws, "tzinfo", None) else ws
-                    elapsed = (now - ws_naive).total_seconds()
-                except Exception:
-                    elapsed = window_seconds + 1
-            if elapsed < window_seconds:
-                if count >= max_requests:
-                    return False, https_fn.Response(
-                        json.dumps(
-                            {"message": "Too many requests. Please try again later."}
-                        ),
-                        status=429,
-                        headers={"Content-Type": "application/json"},
-                    )
-                ref.set(
-                    {"count": count + 1, "updatedAt": firestore.SERVER_TIMESTAMP},
-                    merge=True,
-                )
-                return True, None
+        if not snap.exists:
+            ref.set(
+                {
+                    "bucket": bucket,
+                    "count": 1,
+                    "windowStart": now,
+                    "updatedAt": firestore.SERVER_TIMESTAMP,
+                }
+            )
+            return True, None
+
+        data = snap.to_dict() or {}
+        count = int(data.get("count") or 0)
+        elapsed = _rate_limit_elapsed_seconds(
+            data.get("windowStart"), now, window_seconds
+        )
+        if elapsed >= window_seconds:
+            ref.set(
+                {
+                    "bucket": bucket,
+                    "count": 1,
+                    "windowStart": now,
+                    "updatedAt": firestore.SERVER_TIMESTAMP,
+                }
+            )
+            return True, None
+        if count >= max_requests:
+            return False, _rate_limit_blocked_response()
         ref.set(
-            {
-                "bucket": bucket,
-                "count": 1,
-                "windowStart": now,
-                "updatedAt": firestore.SERVER_TIMESTAMP,
-            }
+            {"count": count + 1, "updatedAt": firestore.SERVER_TIMESTAMP},
+            merge=True,
         )
         return True, None
     except Exception as e:
@@ -1274,7 +1296,7 @@ def handleAutoAwardAchievement(req: https_fn.Request) -> https_fn.Response:
 
     user_id = data.get("userId")
     action_type = data.get("actionType")
-    action_data = data.get("actionData", {}) or {}
+    # Note: clients may send actionData; award counts are derived server-side.
 
     if not all([user_id, action_type]):
         return https_fn.Response(

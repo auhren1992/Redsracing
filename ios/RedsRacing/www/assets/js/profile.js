@@ -22,7 +22,6 @@ import {
 // Import sanitization utilities
 import {
   html,
-  escapeHTML,
   safeSetHTML,
   setSafeText,
   createSafeElement,
@@ -562,60 +561,85 @@ import { LoadingService } from "./loading.js";
     }
   }
 
-  // Display garage cars
+  // Display garage cars (DOM APIs only — no innerHTML with user data)
   function displayGarageCars(cars) {
     const garageEl = document.getElementById('profile-garage');
     const garageCount = document.getElementById('garage-count');
     
     if (!garageEl) return;
+    garageEl.replaceChildren();
 
     if (!cars || cars.length === 0) {
-      garageEl.innerHTML = `
-        <div class="text-center py-8 col-span-full">
-          <i class="fas fa-car text-4xl text-slate-600 mb-3"></i>
-          <p class="text-slate-500">No cars in garage yet</p>
-        </div>
-      `;
+      const empty = document.createElement('div');
+      empty.className = 'text-center py-8 col-span-full';
+      const icon = document.createElement('i');
+      icon.className = 'fas fa-car text-4xl text-slate-600 mb-3';
+      const p = document.createElement('p');
+      p.className = 'text-slate-500';
+      p.textContent = 'No cars in garage yet';
+      empty.appendChild(icon);
+      empty.appendChild(p);
+      garageEl.appendChild(empty);
       if (garageCount) garageCount.textContent = '';
       return;
     }
 
     if (garageCount) garageCount.textContent = `${cars.length} ${cars.length === 1 ? 'car' : 'cars'}`;
 
-    garageEl.innerHTML = cars.map(car => {
+    cars.forEach((car) => {
       const photo = safeHttpUrl(car.photoUrl);
-      const make = escapeHTML(car.make || 'Unknown');
-      const model = escapeHTML(car.model || '');
-      const year = car.year != null ? escapeHTML(String(car.year)) : '';
-      const mods = car.mods ? escapeHTML(String(car.mods)) : '';
-      return `
-      <div class="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden hover:border-slate-600 transition group">
-        ${photo ? `
-          <div class="h-40 overflow-hidden bg-slate-900">
-            <img src="${escapeHTML(photo)}" alt="${make} ${model}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-          </div>
-        ` : `
-          <div class="h-40 bg-slate-900 flex items-center justify-center">
-            <i class="fas fa-car text-5xl text-slate-700"></i>
-          </div>
-        `}
-        <div class="p-4">
-          <h3 class="text-white font-bold text-lg">${make} ${model}</h3>
-          ${year ? `<p class="text-slate-400 text-sm">${year}</p>` : ''}
-          ${mods ? `<p class="text-slate-300 text-sm mt-2 line-clamp-2">${mods}</p>` : ''}
-        </div>
-      </div>`;
-    }).join('');
+      const make = String(car.make || 'Unknown');
+      const model = String(car.model || '');
+      const card = document.createElement('div');
+      card.className = 'bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden hover:border-slate-600 transition group';
+
+      const media = document.createElement('div');
+      if (photo) {
+        media.className = 'h-40 overflow-hidden bg-slate-900';
+        const img = document.createElement('img');
+        img.src = photo;
+        img.alt = `${make} ${model}`.trim();
+        img.className = 'w-full h-full object-cover group-hover:scale-105 transition-transform duration-300';
+        media.appendChild(img);
+      } else {
+        media.className = 'h-40 bg-slate-900 flex items-center justify-center';
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-car text-5xl text-slate-700';
+        media.appendChild(icon);
+      }
+      card.appendChild(media);
+
+      const body = document.createElement('div');
+      body.className = 'p-4';
+      const title = document.createElement('h3');
+      title.className = 'text-white font-bold text-lg';
+      title.textContent = `${make} ${model}`.trim();
+      body.appendChild(title);
+      if (car.year != null && String(car.year).trim()) {
+        const yearEl = document.createElement('p');
+        yearEl.className = 'text-slate-400 text-sm';
+        yearEl.textContent = String(car.year);
+        body.appendChild(yearEl);
+      }
+      if (car.mods) {
+        const modsEl = document.createElement('p');
+        modsEl.className = 'text-slate-300 text-sm mt-2 line-clamp-2';
+        modsEl.textContent = String(car.mods);
+        body.appendChild(modsEl);
+      }
+      card.appendChild(body);
+      garageEl.appendChild(card);
+    });
   }
 
-  // Display social links
+  // Display social links (DOM APIs only — no innerHTML with user data)
   function displaySocialLinks(socialLinks) {
     const socialEl = document.getElementById('profile-social-links');
     const socialSection = document.getElementById('social-section');
     
     if (!socialEl || !socialSection) return;
+    socialEl.replaceChildren();
 
-    const links = [];
     const socialPlatforms = [
       { key: 'tiktok', icon: 'fab fa-tiktok', color: 'from-slate-900 to-slate-700', label: 'TikTok', url: (val) => {
         const handle = val.startsWith('@') ? val.slice(1) : val.replace(/^https?:\/\/(www\.)?tiktok\.com\/@?/i, '');
@@ -633,37 +657,35 @@ import { LoadingService } from "./loading.js";
       } }
     ];
 
-    socialPlatforms.forEach(platform => {
+    let count = 0;
+    socialPlatforms.forEach((platform) => {
       const value = socialLinks[platform.key];
-      if (value && value.trim()) {
-        const urlFunc = platform.url;
-        if (urlFunc) {
-          const href = urlFunc(value.trim());
-          if (!href) return;
-          links.push(`
-            <a href="${escapeHTML(href)}" target="_blank" rel="noopener noreferrer" 
-               class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r ${platform.color} text-white rounded-lg font-semibold text-sm hover:scale-105 transition-transform">
-              <i class="${platform.icon}"></i>
-              <span>${escapeHTML(platform.label)}</span>
-            </a>
-          `);
-        } else {
-          links.push(`
-            <div class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r ${platform.color} text-white rounded-lg font-semibold text-sm">
-              <i class="${platform.icon}"></i>
-              <span>${escapeHTML(value.trim())}</span>
-            </div>
-          `);
-        }
+      if (!value || !String(value).trim()) return;
+      const trimmed = String(value).trim();
+      let node;
+      if (platform.url) {
+        const href = platform.url(trimmed);
+        if (!href) return;
+        node = document.createElement('a');
+        node.href = href;
+        node.target = '_blank';
+        node.rel = 'noopener noreferrer';
+      } else {
+        node = document.createElement('div');
       }
+      node.className = `inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r ${platform.color} text-white rounded-lg font-semibold text-sm hover:scale-105 transition-transform`;
+      const icon = document.createElement('i');
+      icon.className = platform.icon;
+      const span = document.createElement('span');
+      span.textContent = platform.url ? platform.label : trimmed;
+      node.appendChild(icon);
+      node.appendChild(span);
+      socialEl.appendChild(node);
+      count += 1;
     });
 
-    if (links.length > 0) {
-      socialEl.innerHTML = links.join('');
-      socialSection.classList.remove('hidden');
-    } else {
-      socialSection.classList.add('hidden');
-    }
+    if (count > 0) socialSection.classList.remove('hidden');
+    else socialSection.classList.add('hidden');
   }
 
   // Display profile data

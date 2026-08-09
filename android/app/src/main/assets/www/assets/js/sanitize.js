@@ -59,10 +59,8 @@ export function safeSetHTML(element, htmlString) {
       }
       return;
     }
-    // Without DOMPurify, never inject raw HTML — escape to text.
-    element.textContent = "";
-    const escaped = escapeHTML(htmlString);
-    element.innerHTML = escaped;
+    // Without DOMPurify, never inject HTML — text only (avoids XSS / analyzer flags).
+    element.textContent = String(htmlString);
   } catch (e) {
     // Absolute fallback: text only
     element.textContent = String(htmlString || "");
