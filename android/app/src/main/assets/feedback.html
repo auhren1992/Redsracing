@@ -6,6 +6,16 @@
          crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Send feedback to RedsRacing — report an issue, request a feature, share a race-night update, or suggest content for Jon (#8) and Jonny (#88)." />
+    <link rel="canonical" href="https://www.redsracing.org/feedback.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RedsRacing" />
+    <meta property="og:title" content="Feedback - RedsRacing #8 & #88" />
+    <meta property="og:description" content="Send feedback to RedsRacing: report issues, request features, or suggest content and updates." />
+    <meta property="og:url" content="https://www.redsracing.org/feedback.html" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Feedback - RedsRacing #8 & #88" />
+    <meta name="twitter:description" content="Send feedback to RedsRacing: report issues, request features, or suggest content and updates." />
     <title>Feedback - RedsRacing #8</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -256,6 +266,12 @@
         </div>
       </div>
     </header>
+    
+    <!-- Featured strip (live updates) -->
+    <div class="mt-6">
+      <div id="rr-feature-strip"></div>
+    </div>
+    <script type="module" src="assets/js/featured-strip.js"></script>
 
     <main>
       <!-- Modern Hero Section -->
@@ -590,7 +606,7 @@
     import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
     // Initialize dedicated Firebase app for newsletter
-        const firebaseConfig = {
+    const firebaseConfig = {
         apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
         authDomain: "redsracing-a7f8b.firebaseapp.com",
         databaseURL: "https://redsracing-a7f8b-default-rtdb.firebaseio.com",
@@ -684,6 +700,7 @@
     <script src="modern-effects.js"></script>
     <!-- Navigation handled by navigation.js -->
       <script src="assets/js/cookie-consent.js"></script>
-  </body>
+  <div style="text-align:center;padding:1.5rem 1rem;border-top:1px solid rgba(148,163,184,0.1);margin-top:2rem;font-size:0.75rem;color:#64748b;"><a href="privacy.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Privacy Policy</a> | <a href="terms.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Terms of Service</a> | <a href="contact.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Contact</a><div style="margin-top:4px;">&copy; 2026 RedsRacing #8 &amp; #88</div></div>
+</body>
 </html>
 

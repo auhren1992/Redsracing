@@ -101,7 +101,17 @@
       var assetRoot = /\/(fan|crew|racer)\//i.test(path) ? '../' : '';
 
       if (!has('assets/js/mobile-app-detector.js')) inject(assetRoot + 'assets/js/mobile-app-detector.js');
-      if (!has('global-error-tracker.js')) inject(assetRoot + 'assets/js/global-error-tracker.js?v=202605061');
+      if (!has('global-error-tracker.js')) inject(assetRoot + 'assets/js/global-error-tracker.js?v=2026080913');
+
+      // Mobile browser UX stylesheet (skipped for native app class if detector adds it later)
+      try {
+        if (!document.querySelector('link[href*="mobile-web.css"]')) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = assetRoot + 'styles/mobile-web.css?v=2026080911';
+          document.head.appendChild(link);
+        }
+      } catch (_) {}
     } catch (_) {}
   })();
 
@@ -407,11 +417,26 @@
             // Check admin role and show/hide admin-console links accordingly
             checkAdminRole(user);
             async function multiSignOut() {
-              try { await auth.signOut(); } catch(_) {}
               try {
-const core = await import('./assets/js/firebase-core.js');
-                try { await core.getFirebaseAuth().signOut(); } catch(_) {}
-              } catch(_) {}
+                const { safeSignOut } = await import('./assets/js/auth-utils.js');
+                await safeSignOut();
+                return;
+              } catch (_) {}
+              // Fallback if auth-utils fails to load
+              try {
+                localStorage.removeItem('rr_auth_uid');
+                localStorage.removeItem('rr_user_name');
+                localStorage.removeItem('rr_user_role');
+                localStorage.removeItem('rr_guest_ok');
+                localStorage.removeItem('redsracing_user');
+              } catch (_) {}
+              try { if (window.FirebaseAuthBridge) window.FirebaseAuthBridge.clearAllAuth(); } catch (_) {}
+              try { window.webkit?.messageHandlers?.redsRacingAuth?.postMessage?.({ action: "clear" }); } catch (_) {}
+              try { await auth.signOut(); } catch (_) {}
+              try {
+                const core = await import('./assets/js/firebase-core.js');
+                try { await core.getFirebaseAuth().signOut(); } catch (_) {}
+              } catch (_) {}
             }
             if (logoutBtn) {
               logoutBtn.addEventListener('click', async (e) => {
@@ -627,18 +652,46 @@ const core = await import('./assets/js/firebase-core.js');
 
     // Make mobile menu visible and functional
     mobileMenu.classList.add('hidden'); // Start hidden
+
+    function openMenu() {
+      mobileMenu.classList.remove('hidden');
+      try { document.body.style.overflow = 'hidden'; } catch (_) {}
+      btn.setAttribute('aria-expanded', 'true');
+    }
+    function closeMenu() {
+      mobileMenu.classList.add('hidden');
+      try { document.body.style.overflow = ''; } catch (_) {}
+      btn.setAttribute('aria-expanded', 'false');
+    }
+
+    // Inject a close control once for full-screen drawer UX
+    if (!mobileMenu.querySelector('[data-rr-mobile-close]')) {
+      const closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.setAttribute('data-rr-mobile-close', '1');
+      closeBtn.setAttribute('aria-label', 'Close menu');
+      closeBtn.innerHTML = '&times;';
+      closeBtn.style.cssText = 'position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:14px;z-index:10060;width:44px;height:44px;border-radius:9999px;border:1px solid rgba(239,68,68,0.45);background:rgba(127,29,29,0.55);color:#fecaca;font-size:1.6rem;line-height:1;display:flex;align-items:center;justify-content:center;';
+      closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMenu();
+      });
+      mobileMenu.appendChild(closeBtn);
+    }
     
     // Mobile menu toggle functionality
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      mobileMenu.classList.toggle('hidden');
+      if (mobileMenu.classList.contains('hidden')) openMenu();
+      else closeMenu();
     });
     
     // Close mobile menu when clicking outside
     document.addEventListener('click', (e) => {
       if (!mobileMenu.contains(e.target) && !btn.contains(e.target)) {
-        mobileMenu.classList.add('hidden');
+        closeMenu();
       }
     });
     
@@ -687,13 +740,15 @@ const core = await import('./assets/js/firebase-core.js');
           // Toggle current accordion
           if (isCurrentlyHidden) {
             accordion.classList.add('active');
-            content.style.maxHeight = content.scrollHeight + 'px';
+            content.style.maxHeight = Math.max(content.scrollHeight, 2000) + 'px';
+            content.style.overflow = 'visible';
             if (icon) {
               icon.style.transform = 'rotate(180deg)';
             }
           } else {
             accordion.classList.remove('active');
             content.style.maxHeight = '0';
+            content.style.overflow = 'hidden';
             if (icon) {
               icon.style.transform = 'rotate(0deg)';
             }
@@ -706,7 +761,7 @@ const core = await import('./assets/js/firebase-core.js');
     const navLinks = mobileMenu.querySelectorAll('a');
     navLinks.forEach(link => {
       link.addEventListener('click', () => {
-        mobileMenu.classList.add('hidden');
+        closeMenu();
       });
     });
   }
@@ -739,6 +794,8 @@ const core = await import('./assets/js/firebase-core.js');
   }
 
   async function logClientError(evt) {
+    // Rich tracker owns client_logs writes (file/line/stack). Skip thin duplicate.
+    if (window.__rrErrorTrackerActive || window.logError) return;
     try {
       // Throttle to max 1 write per 8s to avoid floods
       const now = Date.now();
@@ -756,16 +813,27 @@ const core = await import('./assets/js/firebase-core.js');
       const errorObj = isPromiseRejection ? (evt.reason || {}) : (isErrorEvent ? (evt.error || {}) : evt);
       const message = (errorObj && (errorObj.message || String(errorObj))) || (evt && evt.message) || 'Unknown front-end error';
       const stack = (errorObj && errorObj.stack) || null;
+      const filename = isErrorEvent ? (evt.filename || null) : null;
+      const lineno = isErrorEvent ? (evt.lineno || 0) : 0;
+      const colno = isErrorEvent ? (evt.colno || 0) : 0;
 
       const payload = {
         level: 'error',
+        errorType: (errorObj && errorObj.name) || 'Error',
         message,
         stack,
-        page: (location && location.href) || null,
+        source: filename || ((location && location.href) || null),
+        lineno,
+        colno,
+        location: filename && lineno ? String(filename).split('/').pop() + ':' + lineno + (colno ? ':' + colno : '') : 'Location unknown',
+        page: (location && location.pathname) || null,
+        fullUrl: (location && location.href) || null,
         userAgent: (navigator && navigator.userAgent) || null,
         uid: auth?.currentUser?.uid || null,
         email: auth?.currentUser?.email || null,
+        userId: auth?.currentUser?.uid || localStorage.getItem('rr_auth_uid') || 'anonymous',
         createdAt: serverTimestamp(),
+        serverTimestamp: serverTimestamp(),
       };
       await addDoc(collection(db, 'client_logs'), payload);
     } catch (_) {}

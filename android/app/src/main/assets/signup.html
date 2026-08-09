@@ -14,7 +14,17 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/mobile-web.css?v=2026080911" />
     <link rel="stylesheet" href="styles/input-fix.css" />
+    <script src="assets/js/guest-gate.js"></script>
+    <script>
+      // Already logged in — skip signup entirely
+      try {
+        if (localStorage.getItem('rr_auth_uid')) {
+          window.location.replace('team.html');
+        }
+      } catch(_) {}
+    </script>
       <meta name="theme-color" content="#fbbf24" />
       <meta property="og:image" content="/assets/img/og-default.jpg" />
       <meta name="twitter:image" content="/assets/img/og-default.jpg" />

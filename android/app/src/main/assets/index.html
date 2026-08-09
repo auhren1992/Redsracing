@@ -26,7 +26,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" crossorigin="anonymous"></script>
     
     <!-- Global Error Tracking -->
-    <script src="assets/js/global-error-tracker.js?v=202605061"></script>
+    <script src="assets/js/global-error-tracker.js?v=2026080913"></script>
+    <link rel="stylesheet" href="styles/mobile-web.css?v=2026080911" />
+    <link rel="stylesheet" href="styles/site-flash.css?v=2026080911" />
     
     <!-- Analytics Tracker -->
     <script type="module" src="assets/js/analytics-tracker.js"></script>
@@ -911,6 +913,54 @@
           animation-duration: 22s;
         }
       }
+
+      /* Compact mobile site nav (homepage has no shared chrome) */
+      .home-mobile-bar {
+        display: none;
+      }
+      @media (max-width: 767.98px) {
+        .home-mobile-bar {
+          display: flex;
+          position: sticky;
+          top: 0;
+          z-index: 80;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.75rem;
+          padding: calc(0.65rem + env(safe-area-inset-top, 0px)) 1rem 0.65rem;
+          background: rgba(2, 6, 23, 0.88);
+          backdrop-filter: blur(12px);
+          border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        .home-mobile-bar a.brand {
+          font-family: "Racing Sans One", cursive;
+          font-size: 1.35rem;
+          text-decoration: none;
+          letter-spacing: 0.02em;
+        }
+        .home-mobile-bar a.brand .b { color: #60a5fa; }
+        .home-mobile-bar a.brand .y { color: #fbbf24; }
+        .home-mobile-bar .links {
+          display: flex;
+          gap: 0.4rem;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+        .home-mobile-bar .links a {
+          min-height: 40px;
+          display: inline-flex;
+          align-items: center;
+          padding: 0.4rem 0.7rem;
+          border-radius: 9999px;
+          border: 1px solid rgba(148, 163, 184, 0.25);
+          background: rgba(30, 41, 59, 0.65);
+          color: #e2e8f0;
+          text-decoration: none;
+          font-size: 0.75rem;
+          font-weight: 700;
+        }
+        .container { padding-top: 0.5rem; }
+      }
     </style>
       <meta name="theme-color" content="#fbbf24" />
       <meta property="og:image" content="/assets/img/og-default.jpg" />
@@ -919,6 +969,15 @@
       <script src="assets/js/site-search.js" defer></script>
   </head>
   <body>
+    <nav class="home-mobile-bar" aria-label="Mobile site navigation">
+      <a class="brand" href="index.html"><span class="b">Reds</span><span class="y">Racing</span></a>
+      <div class="links">
+        <a href="schedule.html">Schedule</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="team.html">Team</a>
+        <a href="login.html">Login</a>
+      </div>
+    </nav>
     <!-- Animated Background -->
     <div class="bg-animation">
       <div class="bg-gradient gradient-1"></div>

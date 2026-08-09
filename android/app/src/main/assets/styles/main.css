@@ -280,6 +280,57 @@ html:not([data-theme="light"]) body {
   50% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0.0); transform: scale(1.05); }
 }
 
+/* Featured strip: active live_race/current broadcast */
+.rr-feature-head--live {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), rgba(251, 191, 36, 0.08), rgba(59, 130, 246, 0.1));
+  border-bottom-color: rgba(239, 68, 68, 0.28);
+}
+.rr-feature-kicker--live {
+  color: rgba(254, 226, 226, 0.98);
+}
+.rr-feature-live-dot--danger {
+  background: #ef4444;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55);
+  animation: rr-livePulseDanger 1.35s ease-in-out infinite;
+}
+@keyframes rr-livePulseDanger {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    transform: scale(1.06);
+  }
+}
+.rr-feature-shell--live {
+  border-color: rgba(239, 68, 68, 0.32);
+}
+.rr-feature-card.rr-accent-live::before {
+  background: radial-gradient(700px circle at 12% 18%, rgba(239, 68, 68, 0.18), transparent 52%);
+}
+.rr-feature-live-meta {
+  font-size: 0.78rem;
+  color: rgba(148, 163, 184, 0.95);
+  margin: 0 0 10px;
+  font-weight: 650;
+}
+.rr-feature-cta--live {
+  background: linear-gradient(45deg, #ef4444, #f97316);
+  border-color: rgba(248, 113, 113, 0.45);
+  box-shadow: 0 10px 26px rgba(239, 68, 68, 0.2);
+}
+.rr-feature-cta--live:hover {
+  box-shadow: 0 14px 34px rgba(239, 68, 68, 0.32);
+}
+.rr-feature-live-event {
+  margin-top: 0.35rem;
+}
+.rr-feature-place {
+  font-size: 2rem;
+}
+
 .rr-feature-actions a {
   color: rgba(226, 232, 240, 0.85);
   text-decoration: none;
