@@ -41,7 +41,7 @@
     <link rel="stylesheet" href="styles/input-fix.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/premium-effects.css" />
-    <link rel="stylesheet" href="styles/mobile-menu-tabs.css" />
+    <link rel="stylesheet" href="styles/mobile-menu-tabs.css?v=2026080914" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
     
@@ -1390,7 +1390,7 @@
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script type="module" src="navigation.js"></script>
     <script type="module" src="main.js"></script>
-    <script src="assets/js/mobile-menu-tabs.js"></script>
+    <script src="assets/js/mobile-menu-tabs.js?v=2026080914"></script>
     <script>
       // Modern Homepage JavaScript with Animations
       (function () {
@@ -1548,11 +1548,17 @@
             }
           });
           
-          // Mobile menu - using correct ID from HTML
+          // Mobile menu - skip classic drawer when tabbed menu owns hamburger
           var mobileButton = document.getElementById("mobile-menu-button");
           var mobileMenu = document.getElementById("mobile-menu");
-          
-          if (mobileButton && mobileMenu) {
+          var usesTabsMenu = !!(window.__rrMobileTabsMenu || document.getElementById('mobile-menu-tabs') || document.querySelector('script[src*="mobile-menu-tabs"]'));
+
+          if (usesTabsMenu && mobileMenu) {
+            mobileMenu.classList.add('hidden');
+            mobileMenu.style.display = 'none';
+            mobileMenu.setAttribute('aria-hidden', 'true');
+            console.log('🔧 Classic mobile menu skipped (tabbed menu active)');
+          } else if (mobileButton && mobileMenu) {
             console.log('🔧 Mobile menu elements found, setting up...');
             
             mobileButton.addEventListener("click", function (e) {

@@ -108,7 +108,7 @@
         if (!document.querySelector('link[href*="mobile-web.css"]')) {
           const link = document.createElement('link');
           link.rel = 'stylesheet';
-          link.href = assetRoot + 'styles/mobile-web.css?v=2026080911';
+          link.href = assetRoot + 'styles/mobile-web.css?v=2026080914';
           document.head.appendChild(link);
         }
       } catch (_) {}
@@ -271,17 +271,26 @@
             console.log('[RedsRacing Auth] User signed out');
             document.body.setAttribute('data-auth', 'signed-out');
             localStorage.removeItem('rr_auth_uid');
-            
-            // Add visible debug indicator
-            let debugDiv = document.getElementById('auth-debug-status');
-            if (!debugDiv) {
-              debugDiv = document.createElement('div');
-              debugDiv.id = 'auth-debug-status';
-              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#ef4444;color:#fff;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
-              debugDiv.textContent = '✗ Not logged in';
-              document.body.appendChild(debugDiv);
-              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
-            }
+
+            // Optional debug toast only (never on mobile menu / production UX)
+            try {
+              const dbg = new URLSearchParams(window.location.search).has('rr_debug')
+                || localStorage.getItem('rr_debug') === '1';
+              if (dbg) {
+                let debugDiv = document.getElementById('auth-debug-status');
+                if (!debugDiv) {
+                  debugDiv = document.createElement('div');
+                  debugDiv.id = 'auth-debug-status';
+                  debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#ef4444;color:#fff;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+                  debugDiv.textContent = '✗ Not logged in';
+                  document.body.appendChild(debugDiv);
+                  setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+                }
+              } else {
+                const stale = document.getElementById('auth-debug-status');
+                if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
+              }
+            } catch (_) {}
             
             // CRITICAL: Clear inline !important styles set during sign-in
             // Otherwise they override .hidden class and dropdown stays visible
@@ -327,16 +336,25 @@
             document.body.setAttribute('data-auth', 'signed-in');
             localStorage.setItem('rr_auth_uid', user.uid);
             
-            // Add visible debug indicator
-            let debugDiv = document.getElementById('auth-debug-status');
-            if (!debugDiv) {
-              debugDiv = document.createElement('div');
-              debugDiv.id = 'auth-debug-status';
-              debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#22c55e;color:#000;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
-              debugDiv.textContent = '✓ Logged in as ' + (user.email || 'User');
-              document.body.appendChild(debugDiv);
-              setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
-            }
+            // Optional auth debug toast (opt-in only — overlaps mobile menu tabs otherwise)
+            try {
+              const dbg = new URLSearchParams(window.location.search).has('rr_debug')
+                || localStorage.getItem('rr_debug') === '1';
+              if (dbg) {
+                let debugDiv = document.getElementById('auth-debug-status');
+                if (!debugDiv) {
+                  debugDiv = document.createElement('div');
+                  debugDiv.id = 'auth-debug-status';
+                  debugDiv.style.cssText = 'position:fixed;top:80px;right:10px;background:#22c55e;color:#000;padding:8px 12px;border-radius:8px;z-index:99999;font-size:12px;font-weight:bold;';
+                  debugDiv.textContent = '✓ Logged in as ' + (user.email || 'User');
+                  document.body.appendChild(debugDiv);
+                  setTimeout(() => { if (debugDiv.parentNode) debugDiv.parentNode.removeChild(debugDiv); }, 5000);
+                }
+              } else {
+                const stale = document.getElementById('auth-debug-status');
+                if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
+              }
+            } catch (_) {}
             
             // CSS will handle visibility via body[data-auth="signed-in"] rules
             // Just set attributes and let CSS take over
@@ -646,6 +664,18 @@
   }
 
   function initMobileMenu() {
+    // Tabbed mobile menu owns the hamburger on pages that load it.
+    if (window.__rrMobileTabsMenu || document.getElementById('mobile-menu-tabs') || document.querySelector('script[src*="mobile-menu-tabs"]')) {
+      const classic = document.getElementById('mobile-menu');
+      if (classic) {
+        classic.classList.add('hidden');
+        classic.setAttribute('hidden', 'true');
+        classic.style.display = 'none';
+      }
+      try { document.documentElement.classList.add('rr-has-mobile-tabs'); } catch (_) {}
+      return;
+    }
+
     const btn = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
     if (!btn || !mobileMenu) return;
@@ -656,11 +686,13 @@
     function openMenu() {
       mobileMenu.classList.remove('hidden');
       try { document.body.style.overflow = 'hidden'; } catch (_) {}
+      try { document.documentElement.classList.add('rr-mobile-menu-open'); } catch (_) {}
       btn.setAttribute('aria-expanded', 'true');
     }
     function closeMenu() {
       mobileMenu.classList.add('hidden');
       try { document.body.style.overflow = ''; } catch (_) {}
+      try { document.documentElement.classList.remove('rr-mobile-menu-open'); } catch (_) {}
       btn.setAttribute('aria-expanded', 'false');
     }
 

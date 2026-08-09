@@ -1,21 +1,42 @@
 // Modern Tabbed Mobile Menu
 (function() {
   'use strict';
+
+  // Claim ownership early so navigation.js classic menu does not also bind.
+  window.__rrMobileTabsMenu = true;
+  try { document.documentElement.classList.add('rr-has-mobile-tabs'); } catch (_) {}
   
   let mobileMenuElement = null;
+
+  function hideClassicMobileMenu() {
+    try {
+      const classic = document.getElementById('mobile-menu');
+      if (classic) {
+        classic.classList.add('hidden');
+        classic.setAttribute('hidden', 'true');
+        classic.setAttribute('aria-hidden', 'true');
+        classic.style.display = 'none';
+      }
+      // Close any open desktop dropdown panels on small screens
+      document.querySelectorAll('.dropdown-menu, .dropdown-menu-nested').forEach((el) => {
+        el.classList.add('hidden');
+      });
+    } catch (_) {}
+  }
   
   function createMobileMenu() {
     // Remove old mobile menu if exists
     const oldMenu = document.getElementById('mobile-menu-tabs');
     if (oldMenu) oldMenu.remove();
+    hideClassicMobileMenu();
     
     // Create new mobile menu structure
     const menuHTML = `
-      <div id="mobile-menu-tabs" class="mobile-menu-tabs">
+      <div id="mobile-menu-tabs" class="mobile-menu-tabs" aria-hidden="true">
         <!-- Header -->
         <div class="mobile-menu-header">
           <div class="mobile-menu-logo">REDSRACING</div>
-          <button class="mobile-menu-close" id="mobile-menu-close">
+          <button type="button" class="mobile-menu-close" id="mobile-menu-close" aria-label="Close menu">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -273,17 +294,22 @@
   }
   
   function openMobileMenu() {
+    hideClassicMobileMenu();
     if (!mobileMenuElement) {
       createMobileMenu();
     }
     mobileMenuElement.classList.add('active');
+    mobileMenuElement.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    document.documentElement.classList.add('rr-mobile-menu-open');
   }
   
   function closeMobileMenu() {
     if (mobileMenuElement) {
       mobileMenuElement.classList.remove('active');
+      mobileMenuElement.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
+      document.documentElement.classList.remove('rr-mobile-menu-open');
     }
   }
   
@@ -334,23 +360,78 @@
     }
   }
   
+  function bindHamburgerButton(btn) {
+    if (!btn || btn.dataset.rrTabsBound === '1') return;
+    btn.dataset.rrTabsBound = '1';
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      hideClassicMobileMenu();
+      openMobileMenu();
+    }, true);
+  }
+
+  function createMenuButton() {
+    if (document.getElementById('mobile-menu-button')) return;
+    const btn = document.createElement('button');
+    btn.id = 'mobile-menu-button';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Open menu');
+    btn.innerHTML = '<i class="fas fa-bars" aria-hidden="true"></i>';
+    btn.style.cssText = [
+      'position:fixed',
+      'top:calc(12px + env(safe-area-inset-top,0px))',
+      'right:12px',
+      'z-index:10055',
+      'width:48px',
+      'height:48px',
+      'border-radius:12px',
+      'border:1px solid rgba(148,163,184,0.35)',
+      'background:rgba(15,23,42,0.92)',
+      'color:#fbbf24',
+      'font-size:1.15rem',
+      'display:inline-flex',
+      'align-items:center',
+      'justify-content:center',
+      'box-shadow:0 8px 24px rgba(0,0,0,0.35)'
+    ].join(';');
+    document.body.appendChild(btn);
+    bindHamburgerButton(btn);
+  }
+
+  function watchForHamburger() {
+    try {
+      const obs = new MutationObserver(() => {
+        const btn = document.getElementById('mobile-menu-button');
+        if (btn) {
+          bindHamburgerButton(btn);
+          hideClassicMobileMenu();
+        }
+      });
+      obs.observe(document.documentElement, { childList: true, subtree: true });
+      // Stop watching after nav settles
+      setTimeout(() => { try { obs.disconnect(); } catch (_) {} }, 8000);
+    } catch (_) {}
+  }
+
   // Initialize when DOM is ready
   function init() {
-    // Replace old mobile menu button functionality
-    const mobileMenuBtn = document.getElementById('mobile-menu-button');
+    hideClassicMobileMenu();
+
+    let mobileMenuBtn = document.getElementById('mobile-menu-button');
     if (mobileMenuBtn) {
       // Remove old listeners by cloning
       const newBtn = mobileMenuBtn.cloneNode(true);
       mobileMenuBtn.parentNode.replaceChild(newBtn, mobileMenuBtn);
-      
-      // Add new listener
-      newBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openMobileMenu();
-      });
+      bindHamburgerButton(newBtn);
+    } else {
+      // Pages that inject nav into #navigation-placeholder (or omit header)
+      createMenuButton();
     }
-    
+
+    watchForHamburger();
+
     // Create menu structure
     createMobileMenu();
   }

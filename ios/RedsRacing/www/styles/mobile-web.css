@@ -78,11 +78,52 @@ html:not(.rr-native-app) {
     padding: calc(0.75rem + env(safe-area-inset-top, 0px)) 1rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
   }
 
+  /* When tabbed menu is present, never show the classic drawer */
+  html:not(.rr-native-app):has(#mobile-menu-tabs) #mobile-menu,
+  html:not(.rr-native-app).rr-has-mobile-tabs #mobile-menu {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  /* Desktop dropdown panels must not appear on phones (beat inline style.display=block) */
+  html:not(.rr-native-app) nav .dropdown-menu,
+  html:not(.rr-native-app) nav .dropdown-menu-nested,
+  html:not(.rr-native-app) .dropdown .dropdown-menu,
+  html:not(.rr-native-app) .modern-dropdown,
+  html:not(.rr-native-app) .dropdown-menu[style],
+  html:not(.rr-native-app) .dropdown-menu-nested[style] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Tabbed menu always wins stacking while open */
+  html:not(.rr-native-app) #mobile-menu-tabs {
+    z-index: 10060 !important;
+  }
+  html:not(.rr-native-app) #mobile-menu-tabs.active {
+    transform: translateX(0) !important;
+  }
+
+  /* Keep cookie/language widgets under open mobile menus */
+  html.rr-mobile-menu-open #cookie-consent-banner,
+  html.rr-mobile-menu-open #rr-lang-widget,
+  html.rr-mobile-menu-open .language-resources,
+  html.rr-mobile-menu-open [id*="google_ads"],
+  html.rr-mobile-menu-open ins.adsbygoogle,
+  html.rr-mobile-menu-open #auth-debug-status {
+    display: none !important;
+  }
+
   html:not(.rr-native-app) #mobile-menu.hidden {
     display: none !important;
   }
 
-  html:not(.rr-native-app) #mobile-menu:not(.hidden) {
+  html:not(.rr-native-app):not(.rr-has-mobile-tabs):not(:has(#mobile-menu-tabs)) #mobile-menu:not(.hidden) {
     display: block !important;
   }
 
