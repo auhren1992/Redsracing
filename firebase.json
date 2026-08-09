@@ -40,6 +40,18 @@
         ]
       },
       {
+        "source": "/admin-console.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-store" }
+        ]
+      },
+      {
+        "source": "/styles/mobile-web.css",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-store" }
+        ]
+      },
+      {
         "source": "/login.html",
         "headers": [
           { "key": "Cache-Control", "value": "no-store" }
