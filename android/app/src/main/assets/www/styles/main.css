@@ -1591,3 +1591,282 @@ ins.adsbygoogle iframe {
   clip-path: none !important;
   filter: none !important;
 }
+
+/* ============================================
+   MAJOR SITE OVERHAUL — flashy blue/gold system
+   (Jonny pages keep red/black via body.jonny-page)
+   ============================================ */
+
+:root {
+  --rr-blue: #3b82f6;
+  --rr-blue-bright: #60a5fa;
+  --rr-gold: #fbbf24;
+  --rr-gold-hot: #fde047;
+  --rr-navy: #020617;
+  --rr-glow-gold: 0 0 40px rgba(251, 191, 36, 0.25);
+  --rr-glow-blue: 0 0 40px rgba(59, 130, 246, 0.25);
+}
+
+html:not([data-theme="light"]) body:not(.jonny-page) {
+  background-color: #030712;
+  background-image:
+    radial-gradient(1200px circle at 8% -10%, rgba(59, 130, 246, 0.18), transparent 55%),
+    radial-gradient(900px circle at 92% 0%, rgba(251, 191, 36, 0.14), transparent 50%),
+    radial-gradient(800px circle at 50% 100%, rgba(59, 130, 246, 0.08), transparent 55%),
+    linear-gradient(180deg, #030712 0%, #05080f 40%, #020617 100%);
+  background-attachment: fixed;
+  min-height: 100%;
+}
+
+/* Ambient floating orbs behind content (CSS-only flash) */
+html:not([data-theme="light"]) body:not(.jonny-page)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(420px circle at 20% 30%, rgba(59, 130, 246, 0.09), transparent 60%),
+    radial-gradient(380px circle at 80% 70%, rgba(251, 191, 36, 0.08), transparent 60%);
+  animation: rrAmbientDrift 14s ease-in-out infinite alternate;
+}
+@keyframes rrAmbientDrift {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
+  to { transform: translate3d(2%, -1.5%, 0) scale(1.05); opacity: 1; }
+}
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Sticky glass header — sitewide */
+header.bg-black\/30,
+header[class*="backdrop-blur"] {
+  background: rgba(2, 6, 23, 0.72) !important;
+  border-bottom: 1px solid rgba(251, 191, 36, 0.18) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(18px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.2) !important;
+}
+
+/* Nav links polish */
+.nav-link {
+  position: relative;
+  letter-spacing: 0.04em;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+.nav-link:hover {
+  color: #fbbf24 !important;
+  text-shadow: 0 0 18px rgba(251, 191, 36, 0.35);
+}
+
+/* Heroes — brighter, more motion */
+.rr-hero {
+  border-bottom: 1px solid rgba(251, 191, 36, 0.16);
+  background:
+    linear-gradient(180deg, rgba(2, 6, 23, 0.2), rgba(2, 6, 23, 0.85));
+}
+.rr-hero::before {
+  background:
+    radial-gradient(800px circle at 12% 20%, rgba(59, 130, 246, 0.28), transparent 55%),
+    radial-gradient(700px circle at 88% 30%, rgba(251, 191, 36, 0.22), transparent 55%),
+    radial-gradient(600px circle at 50% 100%, rgba(59, 130, 246, 0.12), transparent 60%),
+    repeating-linear-gradient(115deg, rgba(148, 163, 184, 0.08) 0px, rgba(148, 163, 184, 0.08) 1px, transparent 1px, transparent 22px) !important;
+  animation: rrHeroShift 12s ease-in-out infinite alternate;
+}
+@keyframes rrHeroShift {
+  from { transform: rotate(-2deg) scale(1); }
+  to { transform: rotate(-1deg) scale(1.04); }
+}
+.rr-hero-title {
+  text-shadow: 0 0 40px rgba(251, 191, 36, 0.15);
+}
+.rr-hero-kicker {
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.12);
+  animation: rrKickerPulse 2.8s ease-in-out infinite;
+}
+@keyframes rrKickerPulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(251, 191, 36, 0.1); }
+  50% { box-shadow: 0 0 28px rgba(251, 191, 36, 0.28); }
+}
+.rr-pill {
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+.rr-pill--primary {
+  background: linear-gradient(45deg, #fbbf24, #f59e0b, #fde047) !important;
+  background-size: 200% 200% !important;
+  animation: rrGoldFlow 4s ease infinite;
+  box-shadow: 0 10px 30px rgba(251, 191, 36, 0.35);
+}
+@keyframes rrGoldFlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.rr-pill--primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 14px 36px rgba(251, 191, 36, 0.45);
+}
+
+/* Cards — premium glass everywhere */
+.modern-card,
+.glass-card,
+.card,
+.stat-card {
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.78), rgba(2, 6, 23, 0.72)) !important;
+  border: 1px solid rgba(148, 163, 184, 0.16) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.28s ease, box-shadow 0.28s ease;
+}
+.modern-card:hover,
+.glass-card:hover,
+.card:hover,
+.stat-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(251, 191, 36, 0.4) !important;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.45), 0 0 30px rgba(251, 191, 36, 0.12);
+}
+
+/* Section titles get gold underline flash */
+.rr-section-title,
+h2.font-racing,
+h3.font-racing {
+  position: relative;
+}
+main h2.font-racing:not(.rr-hero-title)::after,
+.rr-section-title::after {
+  content: "";
+  display: block;
+  width: 3.5rem;
+  height: 3px;
+  margin-top: 0.65rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3b82f6, #fbbf24, transparent);
+}
+
+/* Footer upgrade */
+footer {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid rgba(251, 191, 36, 0.2) !important;
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.95), #000) !important;
+}
+footer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(600px circle at 20% 0%, rgba(59, 130, 246, 0.12), transparent 60%),
+    radial-gradient(600px circle at 80% 0%, rgba(251, 191, 36, 0.1), transparent 60%);
+}
+
+/* Buttons / login accents */
+a.bg-red-600,
+button.bg-red-600 {
+  box-shadow: 0 8px 22px rgba(220, 38, 38, 0.35);
+}
+.bg-neon-yellow,
+button.bg-neon-yellow {
+  background: linear-gradient(45deg, #fbbf24, #f59e0b) !important;
+  color: #0b1220 !important;
+  box-shadow: 0 8px 22px rgba(251, 191, 36, 0.35);
+}
+
+/* Feature strip flash */
+.rr-feature-shell {
+  border-color: rgba(251, 191, 36, 0.22) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), var(--rr-glow-gold);
+}
+
+/* Dropdown menus */
+.dropdown-menu.modern-dropdown,
+.modern-dropdown {
+  border-color: rgba(251, 191, 36, 0.22) !important;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(59, 130, 246, 0.08);
+}
+
+/* Gallery / media grids */
+.gallery-3d .gallery-item,
+#dynamic-gallery-container > *,
+.gallery-item {
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.gallery-item:hover,
+#dynamic-gallery-container > *:hover {
+  transform: translateY(-6px) scale(1.01);
+  border-color: rgba(251, 191, 36, 0.45);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(251, 191, 36, 0.15);
+}
+
+/* Schedule countdown cards */
+#countdown-timer .modern-card,
+.countdown-item {
+  border-color: rgba(251, 191, 36, 0.25) !important;
+}
+
+/* Smooth reveal utility */
+.reveal-fade {
+  animation: rrFadeUp 0.8s ease both;
+}
+@keyframes rrFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Selection color brand */
+::selection {
+  background: rgba(251, 191, 36, 0.35);
+  color: #fff;
+}
+
+/* Scrollbar (WebKit) */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #020617; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #3b82f6, #fbbf24);
+  border-radius: 999px;
+  border: 2px solid #020617;
+}
+
+/* Mobile menu panel */
+#mobile-menu.modern-mobile,
+.mobile-menu.modern-mobile {
+  background: rgba(2, 6, 23, 0.96) !important;
+  border-top: 1px solid rgba(251, 191, 36, 0.2) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* Keep Jonny red theme dominant over blue/gold ambient */
+body.jonny-page::before {
+  background:
+    radial-gradient(420px circle at 20% 30%, rgba(239, 68, 68, 0.14), transparent 60%),
+    radial-gradient(380px circle at 80% 70%, rgba(127, 29, 29, 0.12), transparent 60%) !important;
+}
+html:not([data-theme="light"]) body.jonny-page {
+  background-image:
+    radial-gradient(1200px circle at 8% -10%, rgba(239, 68, 68, 0.2), transparent 55%),
+    radial-gradient(900px circle at 92% 0%, rgba(0, 0, 0, 0.4), transparent 50%),
+    linear-gradient(180deg, #050505 0%, #0a0a0a 40%, #000 100%) !important;
+}
+body.jonny-page header.bg-black\/30,
+body.jonny-page header[class*="backdrop-blur"] {
+  border-bottom-color: rgba(239, 68, 68, 0.35) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(239, 68, 68, 0.08);
+}
+body.jonny-page .modern-card:hover,
+body.jonny-page .glass-card:hover,
+body.jonny-page .card:hover {
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(239, 68, 68, 0.18);
+}
+body.jonny-page .rr-pill--primary {
+  background: linear-gradient(45deg, #ef4444, #991b1b) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+  animation: none;
+}

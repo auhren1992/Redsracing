@@ -1,10 +1,11 @@
 /* Modern Visual Effects - Sitewide */
 
-/* Global Background Patterns */
-body {
+/* Global Background Patterns — amplified (pairs with main.css overhaul) */
+body:not(.jonny-page) {
   background-image: 
-    radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(251, 191, 36, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 20% 15%, rgba(59, 130, 246, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 80% 10%, rgba(251, 191, 36, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 50% 90%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
   background-attachment: fixed;
   background-size: 100% 100%;
 }
