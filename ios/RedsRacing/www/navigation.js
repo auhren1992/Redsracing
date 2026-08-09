@@ -14,6 +14,62 @@
   }
 
   // ============================================================
+  // Inject shared chrome into pages that only have #navigation-placeholder
+  // ============================================================
+  (function injectNavPlaceholder() {
+    try {
+      var ph = document.getElementById('navigation-placeholder');
+      if (!ph || ph.querySelector('header, nav, .site-header')) return;
+      var path = (window.location.pathname || '').replace(/\\/g, '/');
+      var root = /\/(fan|crew|racer)\//i.test(path) ? '../' : '';
+      ph.innerHTML =
+        '<header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">' +
+          '<nav class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center gap-3">' +
+            '<a href="' + root + 'index.html" class="text-2xl md:text-3xl font-racing uppercase tracking-wider shrink-0">' +
+              '<span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>' +
+            '</a>' +
+            '<div class="hidden md:flex items-center space-x-5 font-bold text-sm">' +
+              '<a href="' + root + 'team.html" class="nav-link hover:text-yellow-400">Team</a>' +
+              '<a href="' + root + 'schedule.html" class="nav-link hover:text-yellow-400">Schedule</a>' +
+              '<a href="' + root + 'live.html" class="nav-link hover:text-yellow-400">Live</a>' +
+              '<a href="' + root + 'predictions.html" class="nav-link hover:text-yellow-400">Predict</a>' +
+              '<a href="' + root + 'gallery.html" class="nav-link hover:text-yellow-400">Gallery</a>' +
+              '<a href="' + root + 'fan-wall.html" class="nav-link hover:text-yellow-400">Fan Wall</a>' +
+              '<a href="' + root + 'leaderboard.html" class="nav-link hover:text-yellow-400">Leaderboard</a>' +
+            '</div>' +
+            '<div class="flex items-center gap-2">' +
+              '<div id="auth-section" class="text-sm"></div>' +
+              '<button type="button" id="mobile-menu-button" class="md:hidden text-white focus:outline-none p-2" aria-label="Open menu">' +
+                '<i class="fas fa-bars text-xl"></i>' +
+              '</button>' +
+            '</div>' +
+          '</nav>' +
+          '<div id="mobile-menu" class="mobile-menu modern-mobile hidden md:hidden border-t border-slate-700/50">' +
+            '<div class="container mx-auto px-4 py-3 flex flex-col gap-2 text-sm font-semibold">' +
+              '<a href="' + root + 'team.html" class="py-2 text-slate-200 hover:text-yellow-400">Team</a>' +
+              '<a href="' + root + 'schedule.html" class="py-2 text-slate-200 hover:text-yellow-400">Schedule</a>' +
+              '<a href="' + root + 'live.html" class="py-2 text-slate-200 hover:text-yellow-400">Live</a>' +
+              '<a href="' + root + 'predictions.html" class="py-2 text-slate-200 hover:text-yellow-400">Predict</a>' +
+              '<a href="' + root + 'gallery.html" class="py-2 text-slate-200 hover:text-yellow-400">Gallery</a>' +
+              '<a href="' + root + 'fan-wall.html" class="py-2 text-slate-200 hover:text-yellow-400">Fan Wall</a>' +
+              '<a href="' + root + 'leaderboard.html" class="py-2 text-slate-200 hover:text-yellow-400">Leaderboard</a>' +
+              '<a href="' + root + 'login.html" class="py-2 text-yellow-400">Sign In</a>' +
+            '</div>' +
+          '</div>' +
+        '</header>';
+      // Wire mobile toggle immediately (initMobileMenu may also bind later)
+      var btn = document.getElementById('mobile-menu-button');
+      var menu = document.getElementById('mobile-menu');
+      if (btn && menu && !btn.dataset.rrBound) {
+        btn.dataset.rrBound = '1';
+        btn.addEventListener('click', function () {
+          menu.classList.toggle('hidden');
+        });
+      }
+    } catch (_) {}
+  })();
+
+  // ============================================================
   // Theme (luxury dark / clean light)
   // - Persists in localStorage as 'rr_theme'
   // - Defaults to system preference when unset

@@ -173,6 +173,9 @@
       <a href="schedule.html" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition inline-block mt-4"><i class="fas fa-calendar mr-2"></i>View Schedule</a>
     </div>
 
+    <!-- Signed-in fan history -->
+    <div id="my-predictions-panel" class="hidden"></div>
+
     <!-- Leaderboard -->
     <div class="glass-card p-6">
       <h2 class="text-xl font-bold text-white mb-4 flex items-center"><i class="fas fa-trophy text-yellow-400 mr-3"></i>Prediction Leaderboard</h2>
@@ -195,6 +198,7 @@
 
   <script type="module" src="navigation.js"></script>
   <script src="assets/js/mobile-menu-tabs.js"></script>
+  <script src="assets/js/my-predictions.js"></script>
   <script>
     // Use same Firebase config as login/navigation so auth state is shared
     if (!firebase.apps.length) firebase.initializeApp({

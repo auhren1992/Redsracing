@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="styles/mobile-menu-tabs.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <style>
     body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); min-height: 100vh; }
@@ -47,6 +48,11 @@
   </head>
 <body class="flex flex-col min-h-screen">
   <div id="navigation-placeholder"></div>
+
+  <div class="container mx-auto px-4 pt-20 pb-4 max-w-3xl">
+    <div id="rr-race-night-kit" data-compact="1"></div>
+  </div>
+  <script src="assets/js/race-night-kit.js"></script>
 
   <!-- LIVE STATE (shown when race is active) -->
   <div id="live-state" class="hidden">

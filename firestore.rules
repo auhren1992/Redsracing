@@ -491,6 +491,28 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Fan "I'm Going" RSVPs — public read for counts; owner manages own entry
+    match /race_rsvps/{raceId} {
+      allow read: if true;
+      allow write: if false;
+
+      match /entries/{uid} {
+        allow read: if true;
+        allow create, update: if isAuthenticated()
+          && request.auth.uid == uid
+          && request.resource.data.raceId == raceId
+          && request.resource.data.displayName is string
+          && request.resource.data.displayName.size() <= 80;
+        allow delete: if isAuthenticated() && request.auth.uid == uid;
+      }
+    }
+
+    // Per-user RSVP mirror for "my races" lists
+    match /users/{uid}/race_rsvps/{raceId} {
+      allow read: if isOwner(uid) || isAdminOnly();
+      allow create, update, delete: if isAuthenticated() && request.auth.uid == uid;
+    }
+
     // Default deny - catches everything not explicitly allowed above
     match /{document=**} {
       allow read, write: if false;

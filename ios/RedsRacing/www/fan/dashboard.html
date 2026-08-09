@@ -96,8 +96,10 @@
   </div>
   <div class="px-3 md:px-0 mt-2 mb-1 w-full max-w-[1100px] mx-auto">
     <div id="rr-feature-strip"></div>
+    <div id="rr-race-night-kit" class="mt-3"></div>
   </div>
   <script type="module" src="../assets/js/featured-strip.js"></script>
+  <script src="../assets/js/race-night-kit.js"></script>
   <div class="tabs"><button onclick="showTab('home')" id="tb-home" class="tb act"><i class="fas fa-home"></i><span>Home</span></button><button onclick="showTab('schedule')" id="tb-schedule" class="tb"><i class="fas fa-calendar-alt"></i><span>Schedule</span></button><button onclick="showTab('gallery')" id="tb-gallery" class="tb"><i class="fas fa-images"></i><span>Gallery</span></button><button onclick="showTab('videos')" id="tb-videos" class="tb"><i class="fas fa-play-circle"></i><span>Videos</span></button><button onclick="showTab('standings')" id="tb-standings" class="tb"><i class="fas fa-trophy"></i><span>Standings</span></button><button onclick="showTab('fanwall')" id="tb-fanwall" class="tb"><i class="fas fa-bullhorn"></i><span>Fan Wall</span></button><button onclick="showTab('drivers')" id="tb-drivers" class="tb"><i class="fas fa-users"></i><span>Drivers</span></button><button onclick="showTab('profile')" id="tb-profile" class="tb"><i class="fas fa-id-card"></i><span>Profile</span></button></div>
   <main>
     <div id="ld" class="ldg"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
@@ -147,52 +149,63 @@
       var ud={};
       try{var us=await db.collection('users').doc(u.uid).get();if(us.exists)ud=us.data()||{};}catch(_){}
       var first=((ud.displayName||u.displayName||((u.email||'').split('@')[0])||'Fan').trim().split(/\s+/)[0]);
-      var pts=typeof ud.totalPoints==='number'?ud.totalPoints:0;
+      var pts=typeof ud.prediction_score==='number'?ud.prediction_score:(typeof ud.totalPoints==='number'?ud.totalPoints:0);
       var ach=typeof ud.achievementCount==='number'?ud.achievementCount:0;
-      var predCount=0;
+      var predCount=0, predPts=0, stampCount=0, goingCount=0;
       try{
         var pq=await db.collection('predictions').where('userId','==',u.uid).get();
+        if(pq.empty) pq=await db.collection('predictions').where('uid','==',u.uid).get();
         predCount=pq.size;
-        if(predCount===0){var pq2=await db.collection('predictions').where('uid','==',u.uid).get();predCount=pq2.size;}
+        pq.forEach(function(d){ var s=d.data().score; if(typeof s==='number') predPts+=s; });
       }catch(_){}
+      try{ var ss=await db.collection('users').doc(u.uid).collection('passport_stamps').get(); stampCount=ss.size; }catch(_){}
+      try{ var gs=await db.collection('users').doc(u.uid).collection('race_rsvps').get(); goingCount=gs.size; }catch(_){}
 
       el.innerHTML=
         '<div class="home-grid">'+
           '<div class="home-left">'+
             '<div class="hi" id="hm-greet">Hey '+escHtml(first)+' — this is your fan hub</div>'+
-            '<p class="sub" id="hm-sub">Count down to the next race, browse highlights, post on the Fan Wall, and open the full RedsRacing site whenever you want the big experience.</p>'+
+            '<p class="sub" id="hm-sub">RSVP for race night, make predictions, stamp your passport, and cheer on #8 &amp; #88.</p>'+
             '<div class="card"><div class="card-t"><i class="fas fa-flag-checkered"></i>Next race</div><div id="rn" style="font-weight:700"></div><div id="rt" style="color:rgba(255,255,255,.4);font-size:.8rem"></div><div id="cdg" class="cgrid"><div class="ci"><div id="d0" class="cn">0</div><div class="cl">Days</div></div><div class="ci"><div id="d1" class="cn">0</div><div class="cl">Hrs</div></div><div class="ci"><div id="d2" class="cn">0</div><div class="cl">Min</div></div><div class="ci"><div id="d3" class="cn">0</div><div class="cl">Sec</div></div></div></div>'+
             '<div class="card" id="hm-season"><div class="card-t"><i class="fas fa-chart-line"></i>2026 season snapshot</div><div id="hm-seas-body" class="st-muted">Loading…</div></div>'+
+            '<div class="card"><div class="card-t"><i class="fas fa-passport"></i>Passport &amp; RSVPs</div>'+
+              '<div class="stat" style="margin-bottom:.5rem">'+
+                '<div class="stat-i"><div class="v">'+stampCount+'</div><div class="l">Stamps</div></div>'+
+                '<div class="stat-i"><div class="v">'+goingCount+'</div><div class="l">Going</div></div>'+
+              '</div>'+
+              '<a class="ql" href="../passport.html" style="margin-bottom:.35rem"><span class="qi"><i class="fas fa-book-open"></i></span><span>Open stamp album</span></a>'+
+              '<a class="ql" href="../schedule.html"><span class="qi"><i class="fas fa-calendar-check"></i></span><span>RSVP on schedule</span></a>'+
+            '</div>'+
             '<div class="card hid" id="hm-last"><div class="card-t"><i class="fas fa-history"></i>Last time out</div><div id="hm-last-body"></div></div>'+
             '<div class="card hid" id="hm-potw"><div class="card-t"><i class="fas fa-star"></i>Photo of the week</div><div id="hm-potw-body"></div></div>'+
           '</div>'+
           '<div class="home-right">'+
             '<div class="card"><div class="card-t"><i class="fas fa-fire"></i>Your fan stats</div><div class="stat" style="margin-bottom:.5rem">'+
-              '<div class="stat-i"><div class="v" id="hm-pts">'+pts+'</div><div class="l">Fan points</div></div>'+
-              '<div class="stat-i"><div class="v" id="hm-ach">'+ach+'</div><div class="l">Achievements</div></div>'+
+              '<div class="stat-i"><div class="v" id="hm-pts">'+predPts+'</div><div class="l">Pred. points</div></div>'+
+              '<div class="stat-i"><div class="v" id="hm-ach">'+stampCount+'</div><div class="l">Stamps</div></div>'+
               '<div class="stat-i"><div class="v" id="hm-pr">'+predCount+'</div><div class="l">Predictions</div></div>'+
               '<div class="stat-i"><div class="v" id="hm-upc">—</div><div class="l">Races left</div></div>'+
-            '</div><p class="st-muted" style="margin:0 0 .5rem">Earn points from site achievements. Submit race predictions and cheer on the team on the Fan Wall.</p>'+
+            '</div><p class="st-muted" style="margin:0 0 .5rem">Mark yourself going, submit picks before green flag, and stamp your passport at the track.</p>'+
             '<a class="ql" href="../predictions.html" style="margin-bottom:.35rem"><span class="qi"><i class="fas fa-dice"></i></span><span>Make a prediction</span></a>'+
             '<a class="ql" href="../leaderboard.html"><span class="qi"><i class="fas fa-medal"></i></span><span>Open fan leaderboard</span></a></div>'+
             '<div class="card"><div class="card-t"><i class="fas fa-compass"></i>Explore RedsRacing</div><div class="quick-grid">'+
               '<a class="qlk" href="../index.html"><i class="fas fa-home"></i><span>Home</span></a>'+
               '<a class="qlk" href="../schedule.html"><i class="fas fa-calendar-alt"></i><span>Schedule</span></a>'+
-              '<a class="qlk" href="../leaderboard.html"><i class="fas fa-ranking-star"></i><span>Leaderboard</span></a>'+
+              '<a class="qlk" href="../live.html"><i class="fas fa-broadcast-tower"></i><span>Live</span></a>'+
+              '<a class="qlk" href="../passport.html"><i class="fas fa-passport"></i><span>Passport</span></a>'+
               '<a class="qlk" href="../gallery.html"><i class="fas fa-images"></i><span>Gallery</span></a>'+
               '<a class="qlk" href="../videos.html"><i class="fas fa-play"></i><span>Videos</span></a>'+
               '<a class="qlk" href="../qna.html"><i class="fas fa-question-circle"></i><span>Q&amp;A</span></a>'+
               '<a class="qlk" href="../predictions.html"><i class="fas fa-bolt"></i><span>Predictions</span></a>'+
-              '<a class="qlk" href="../sponsorship.html"><i class="fas fa-handshake"></i><span>Sponsors</span></a>'+
-              '<a class="qlk" href="../feedback.html"><i class="fas fa-comment-dots"></i><span>Feedback</span></a>'+
+              '<a class="qlk" href="../fan-wall.html"><i class="fas fa-bullhorn"></i><span>Fan Wall</span></a>'+
               '<a class="qlk" href="../fan-settings.html"><i class="fas fa-sliders-h"></i><span>Fan settings</span></a>'+
               '<a class="qlk" href="../profile.html"><i class="fas fa-user"></i><span>Full profile</span></a>'+
             '</div></div>'+
             '<div class="card"><div class="card-t"><i class="fas fa-lightbulb"></i>Fan playbook</div><ul class="bul">'+
-              '<li>Use <strong>Schedule</strong> for the full calendar; this hub keeps the same data in a tighter view.</li>'+
+              '<li>Tap <strong>I\'m Going</strong> on the Race Night Kit so the team knows who\'s in the stands.</li>'+
+              '<li><strong>Predictions</strong> lock before race day — check My Predictions for your score history.</li>'+
+              '<li>Scan the team QR on race night to stamp your <strong>Fan Passport</strong>.</li>'+
               '<li><strong>Fan Wall</strong> posts are moderated — keep it positive and family-friendly.</li>'+
-              '<li><strong>Predictions</strong> let you pick finishes before race day; check the leaderboard to see how you rank.</li>'+
-              '<li>Tap <strong>Drivers</strong> for bios, social links, and a peek at recent races and photos.</li>'+
             '</ul></div>'+
           '</div></div>';
 
@@ -253,8 +266,54 @@
 
     // ---- SCHEDULE ----
     async function loadSchedule(el){
-      el.innerHTML='<h2><i class="fas fa-calendar-alt" style="margin-right:.4rem"></i>2026 Schedule</h2><div id="slist"><div class="ldg"><i class="fas fa-spinner fa-spin"></i></div></div>';
-      try{var t=new Date();t.setHours(0,0,0,0);var s=await db.collection('races').where('season','==',2026).orderBy('date','asc').get();var list=document.getElementById('slist');list.innerHTML='';if(s.empty){list.innerHTML='<div class="ldg">No races yet</div>';return;}s.forEach(function(d){var r=d.data();var rd=r.date?new Date(r.date+'T00:00:00'):null;var past=rd&&rd<t;var div=document.createElement('div');div.className='race'+(past?' past':'');div.innerHTML='<div class="rdate">'+(rd?rd.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'TBD')+'</div><div style="flex:1;margin:0 .75rem"><div class="rname">'+(r.eventName||r.name||'Race')+'</div><div class="rtrack">'+(r.track||'')+(r.city?' — '+r.city+', '+r.state:'')+'</div></div><span class="st '+(past?'dn':'up')+'">'+(past?'Done':'Upcoming')+'</span>';list.appendChild(div);});}catch(e){document.getElementById('slist').innerHTML='<div class="ldg">Failed to load</div>';}
+      el.innerHTML='<h2><i class="fas fa-calendar-alt" style="margin-right:.4rem"></i>2026 Schedule</h2><p class="sub" style="margin-top:-.35rem">Mark races you plan to attend — your RSVPs sync with the Race Night Kit.</p><div id="slist"><div class="ldg"><i class="fas fa-spinner fa-spin"></i></div></div>';
+      try{
+        var t=new Date();t.setHours(0,0,0,0);
+        var mine={};
+        try{
+          var ms=await db.collection('users').doc(au.currentUser.uid).collection('race_rsvps').get();
+          ms.forEach(function(d){ mine[d.id]=true; });
+        }catch(_){}
+        var s=await db.collection('races').where('season','==',2026).orderBy('date','asc').get();
+        var list=document.getElementById('slist');list.innerHTML='';
+        if(s.empty){list.innerHTML='<div class="ldg">No races yet</div>';return;}
+        s.forEach(function(d){
+          var r=d.data();
+          var rd=r.date?new Date(r.date+'T00:00:00'):null;
+          var past=rd&&rd<t;
+          var going=!!mine[d.id];
+          var div=document.createElement('div');
+          div.className='race'+(past?' past':'');
+          div.innerHTML='<div class="rdate">'+(rd?rd.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'TBD')+'</div><div style="flex:1;margin:0 .75rem"><div class="rname">'+(r.eventName||r.name||'Race')+'</div><div class="rtrack">'+(r.track||'')+(r.city?' — '+r.city+', '+r.state:'')+'</div></div>'+
+            (past
+              ? '<span class="st dn">Done</span>'
+              : '<button type="button" class="st '+(going?'up':'dn')+'" data-rsvp="'+d.id+'" style="cursor:pointer;border:0">'+(going?"You're Going":"I'm Going")+'</button>');
+          list.appendChild(div);
+        });
+        list.querySelectorAll('[data-rsvp]').forEach(function(btn){
+          btn.addEventListener('click', async function(){
+            var raceId=btn.getAttribute('data-rsvp');
+            var u=au.currentUser; if(!u||!raceId) return;
+            var entryRef=db.collection('race_rsvps').doc(raceId).collection('entries').doc(u.uid);
+            var mineRef=db.collection('users').doc(u.uid).collection('race_rsvps').doc(raceId);
+            btn.disabled=true;
+            try{
+              var snap=await entryRef.get();
+              if(snap.exists){
+                await Promise.all([entryRef.delete(), mineRef.delete()]);
+                btn.textContent="I'm Going"; btn.className='st dn';
+              }else{
+                var raceSnap=await db.collection('races').doc(raceId).get();
+                var rd=raceSnap.exists?(raceSnap.data()||{}):{};
+                var payload={displayName:u.displayName||(u.email||'').split('@')[0]||'Fan',createdAt:firebase.firestore.FieldValue.serverTimestamp(),raceId:raceId,raceName:rd.eventName||rd.name||'',raceDate:rd.date||'',track:rd.track||''};
+                await Promise.all([entryRef.set(payload), mineRef.set(payload,{merge:true})]);
+                btn.textContent="You're Going"; btn.className='st up';
+              }
+            }catch(e){ console.warn(e); }
+            btn.disabled=false;
+          });
+        });
+      }catch(e){document.getElementById('slist').innerHTML='<div class="ldg">Failed to load</div>';}
     }
 
     // ---- GALLERY ----
