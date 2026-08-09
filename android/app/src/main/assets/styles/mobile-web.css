@@ -75,13 +75,15 @@ html:not(.rr-native-app) {
     color: #fbbf24;
   }
 
-  /* If hamburger sits inside a clock/menu wrapper, pull that group left */
-  html:not(.rr-native-app) header nav > .md\:hidden {
+  /* If hamburger sits inside a clock/menu wrapper, pull that group left.
+     Use attribute selectors (not .md\:hidden) so Stylelint selector-class-pattern stays clean. */
+  html:not(.rr-native-app) header nav > [class*="md:hidden"] {
     order: -30;
     flex-shrink: 0;
     margin-left: 0 !important;
   }
-  html:not(.rr-native-app) header nav > .md\:hidden #mobile-menu-button {
+
+  html:not(.rr-native-app) header nav > [class*="md:hidden"] #mobile-menu-button {
     order: 0 !important;
   }
 
@@ -104,8 +106,9 @@ html:not(.rr-native-app) {
   html:not(.rr-native-app) #admin-top-auth {
     display: none !important;
   }
-  html:not(.rr-native-app) header nav > .hidden.md\:flex,
-  html:not(.rr-native-app) header nav > .hidden.lg\:flex {
+
+  html:not(.rr-native-app) header nav > .hidden[class*="md:flex"],
+  html:not(.rr-native-app) header nav > .hidden[class*="lg:flex"] {
     display: none !important;
   }
 

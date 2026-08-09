@@ -2,6 +2,11 @@
 
 ## Cursor Cloud specific instructions
 
+### Codacy
+
+- After opening or updating a PR, always inspect **Codacy Static Code Analysis** check-run annotations (`gh api repos/<owner>/<repo>/check-runs/<id>/annotations`). Mobile sync duplicates files under `android/**` and `ios/**`, so one root fix often maps to many mirrored Codacy findings.
+- Prefer fixing canonical sources (`navigation.js`, `styles/mobile-web.css`, `admin-console.html`, …) then `npm run sync:mobile` — do not hand-edit mirrored copies.
+
 ### Mobile web nav (browser, not native app)
 
 - Many pages load **both** classic `#mobile-menu` (accordion) and tabbed `#mobile-menu-tabs` (`assets/js/mobile-menu-tabs.js`). Only one must own the hamburger.

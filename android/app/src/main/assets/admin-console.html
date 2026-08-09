@@ -865,9 +865,40 @@
         pointer-events: auto;
       }
 
+      /* Native WebView: left sheet at ALL widths (incl. landscape / tablet). */
+      body.mobile-app #admin-sidebar.admin-sidebar {
+        display: flex !important;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        height: 100dvh;
+        width: min(20.5rem, 90vw);
+        max-width: 22rem;
+        z-index: 10050;
+        margin: 0;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        transform: translate3d(-105%, 0, 0);
+        transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+        box-shadow: 20px 0 80px rgba(0, 0, 0, 0.55);
+        border-right: 1px solid rgba(251, 191, 36, 0.12);
+        -webkit-overflow-scrolling: touch;
+      }
+      body.mobile-app.drawer-sidebar-open #admin-sidebar.admin-sidebar {
+        transform: translate3d(0, 0, 0);
+      }
+      body.mobile-app #admin-sidebar-app-footer {
+        display: block !important;
+      }
+      body.mobile-app .admin-sidebar-close {
+        display: inline-flex !important;
+      }
+
+      /* Mobile browser only: same drawer under the phone breakpoint. */
       @media (max-width: 767.98px) {
-        html:not(.rr-native-app) #admin-sidebar.admin-sidebar,
-        body.mobile-app #admin-sidebar.admin-sidebar {
+        html:not(.rr-native-app) #admin-sidebar.admin-sidebar {
           display: flex !important;
           flex-direction: column;
           position: fixed;
@@ -887,15 +918,13 @@
           border-right: 1px solid rgba(251, 191, 36, 0.12);
           -webkit-overflow-scrolling: touch;
         }
-        body.drawer-sidebar-open #admin-sidebar.admin-sidebar {
+        html:not(.rr-native-app) body.drawer-sidebar-open #admin-sidebar.admin-sidebar {
           transform: translate3d(0, 0, 0);
         }
-        html:not(.rr-native-app) #admin-sidebar-app-footer,
-        body.mobile-app #admin-sidebar-app-footer {
+        html:not(.rr-native-app) #admin-sidebar-app-footer {
           display: block !important;
         }
-        html:not(.rr-native-app) .admin-sidebar-close,
-        body.mobile-app .admin-sidebar-close {
+        html:not(.rr-native-app) .admin-sidebar-close {
           display: inline-flex !important;
         }
       }
@@ -908,11 +937,15 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
+        body.mobile-app #admin-sidebar.admin-sidebar,
+        body.mobile-app #admin-sidebar-overlay {
+          transition: none !important;
+        }
         @media (max-width: 767.98px) {
-          #admin-sidebar.admin-sidebar {
+          html:not(.rr-native-app) #admin-sidebar.admin-sidebar {
             transition: none !important;
           }
-          #admin-sidebar-overlay {
+          html:not(.rr-native-app) #admin-sidebar-overlay {
             transition: none !important;
           }
         }
@@ -3476,25 +3509,13 @@
           if (headerMenuBtn) headerMenuBtn.addEventListener('click', toggleMobileMenu);
           if (mainMenuBtn) mainMenuBtn.addEventListener('click', toggleMobileMenu);
 
-          // Admin Menu sidebar toggle (the yellow button in main content area)
+          // Admin Menu sidebar toggle (yellow button) → Command Center drawer
           const sidebarToggle = document.getElementById('sidebar-toggle');
-          if (sidebarToggle && mobileMenu) {
+          if (sidebarToggle) {
             sidebarToggle.addEventListener('click', function(e) {
               e.preventDefault();
               e.stopPropagation();
-              const isHidden = mobileMenu.classList.contains('hidden');
-              console.log('[ADMIN] Sidebar toggle clicked, isHidden:', isHidden);
-              if (isHidden) {
-                mobileMenu.classList.remove('hidden');
-                mobileMenu.style.cssText = 'position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;z-index:9999 !important;background:rgba(15,23,42,0.98) !important;overflow-y:auto !important;display:flex !important;flex-direction:column !important;';
-                document.body.style.overflow = 'hidden';
-                console.log('[ADMIN] Mobile menu shown');
-              } else {
-                mobileMenu.classList.add('hidden');
-                mobileMenu.style.cssText = 'display:none !important;';
-                document.body.style.overflow = '';
-                console.log('[ADMIN] Mobile menu hidden');
-              }
+              if (typeof toggleAdminDrawer === 'function') toggleAdminDrawer();
             });
           }
           
@@ -3525,7 +3546,7 @@
             });
           });
           
-          // Close dropdowns when clicking outside
+          // Close dropdowns / admin drawer when clicking outside
           document.addEventListener('click', function(e) {
             if (!e.target.closest('.dropdown')) {
               document.querySelectorAll('header .dropdown-menu').forEach(function(m) {
@@ -3533,13 +3554,13 @@
                 m.style.cssText = '';
               });
             }
-            if (!e.target.closest('#mobile-menu') && !e.target.closest('#mobile-menu-button') && !e.target.closest('#mobile-menu-button-main')) {
-              if (mobileMenu && !mobileMenu.classList.contains('-translate-x-full')) {
-                mobileMenu.classList.add('-translate-x-full');
-                if (mobileOverlay) mobileOverlay.classList.add('hidden');
-                document.body.style.overflow = '';
-              }
-            }
+            if (!document.body.classList.contains('drawer-sidebar-open')) return;
+            const inDrawer = e.target.closest('#admin-sidebar')
+              || e.target.closest('#mobile-menu-button')
+              || e.target.closest('#mobile-menu-button-main')
+              || e.target.closest('#android-hamburger')
+              || e.target.closest('#sidebar-toggle');
+            if (!inDrawer && typeof closeAdminDrawer === 'function') closeAdminDrawer();
           });
         } catch(err) { console.error('Dropdown init error:', err); }
       });
