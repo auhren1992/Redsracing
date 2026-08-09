@@ -48,8 +48,8 @@
     '<header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">' +
     '  <nav class="container mx-auto px-6 py-3 flex justify-between items-center gap-3">' +
     '    <div class="flex items-center gap-2 md:gap-4 min-w-0">' +
-    '      <a href="' + h(R) + '/index.html" class="text-3xl sm:text-4xl font-racing uppercase tracking-wider shrink-0">' +
-    '        <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>' +
+    '      <a href="' + h(R) + '/index.html" class="text-3xl sm:text-4xl font-racing uppercase tracking-wider shrink-0 rr-brand">' +
+    '        <span class="logo-blue">Reds</span><span class="logo-yellow">Racing</span>' +
     '      </a>' +
     '      <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ' +
     hubColor +

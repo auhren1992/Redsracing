@@ -72,10 +72,37 @@ html:not([data-theme="light"]) body {
   color: transparent;
 }
 .neon-yellow {
-  color: #f7ff00;
+  color: #fbbf24;
 }
 .title-blue {
-  color: #00c6ff;
+  /* Match index wordmark blue (was flat cyan #00c6ff) */
+  background: linear-gradient(45deg, #3b82f6, #60a5fa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Index-matched RedsRacing wordmark — use on every page header/brand */
+.logo-blue {
+  background: linear-gradient(45deg, #3b82f6, #60a5fa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.logo-yellow {
+  background: linear-gradient(45deg, #fbbf24, #fde047);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.rr-brand {
+  font-family: "Racing Sans One", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  line-height: 1;
 }
 .section-glow {
   position: relative;
@@ -1284,8 +1311,15 @@ input.bg-white::placeholder, textarea.bg-white::placeholder { color: #6b7280 !im
 
 /* Mobile header adjustments: shrink brand text and space hamburger */
 @media (max-width: 420px) {
-  nav .font-racing { font-size: 1.75rem !important; letter-spacing: 0.05em; }
+  nav .font-racing,
+  nav .rr-brand { font-size: 1.75rem !important; letter-spacing: 0.08em; }
   #mobile-menu-button { margin-left: 8px; }
+}
+
+/* Keep nav wordmark polished like index (not flat cyan / neon lime) */
+nav .rr-brand,
+header .rr-brand {
+  letter-spacing: 0.12em;
 }
 
 /* Aspect ratio utilities for video embeds */

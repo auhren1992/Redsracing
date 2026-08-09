@@ -25,8 +25,8 @@
       ph.innerHTML =
         '<header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">' +
           '<nav class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center gap-3">' +
-            '<a href="' + root + 'index.html" class="text-2xl md:text-3xl font-racing uppercase tracking-wider shrink-0">' +
-              '<span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>' +
+            '<a href="' + root + 'index.html" class="text-2xl md:text-3xl font-racing uppercase tracking-wider shrink-0 rr-brand">' +
+              '<span class="logo-blue">Reds</span><span class="logo-yellow">Racing</span>' +
             '</a>' +
             '<div class="hidden md:flex items-center space-x-5 font-bold text-sm">' +
               '<a href="' + root + 'team.html" class="nav-link hover:text-yellow-400">Team</a>' +
