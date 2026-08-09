@@ -38,17 +38,23 @@
     <div id="rr-feature-strip"></div>
   </div>
   <script type="module" src="assets/js/featured-strip.js"></script>
-  <div style="margin-top:70px" class="bg-gradient-to-r from-yellow-900/20 to-red-900/20 border-b border-yellow-500/20">
-    <div class="container mx-auto px-4 py-10">
-      <div class="flex items-center justify-between mb-4">
+  <section class="rr-hero" style="margin-top:70px">
+    <div class="rr-hero__inner container mx-auto px-4 py-12 md:py-16">
+      <div class="flex items-center justify-between mb-6">
         <a href="team.html" class="text-slate-400 hover:text-white transition flex items-center text-sm"><i class="fas fa-arrow-left mr-2"></i>Home</a>
+        <a href="predictions.html" class="text-yellow-400 hover:text-yellow-300 transition text-sm"><i class="fas fa-dice mr-2"></i>Predict</a>
       </div>
       <div class="text-center">
-        <h1 class="text-4xl md:text-6xl font-racing text-white mb-2">FAN WALL</h1>
-        <p class="text-slate-400">Cheer for your favorite driver!</p>
+        <div class="rr-hero-kicker mx-auto mb-5"><i class="fas fa-bullhorn"></i><span>Race night energy</span></div>
+        <h1 class="rr-hero-title text-4xl md:text-6xl text-white mb-3">FAN WALL</h1>
+        <p class="rr-hero-sub text-lg md:text-xl mb-8">Shoutouts for #8 and #88 — post it for race night.</p>
+        <div class="rr-hero-actions">
+          <a class="rr-pill rr-pill--primary" href="login.html?returnTo=fan-wall.html"><i class="fas fa-pen"></i><span>Post a shoutout</span></a>
+          <a class="rr-pill" href="live.html"><i class="fas fa-broadcast-tower"></i><span>Live race</span></a>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
   <div class="container mx-auto px-4 py-8 max-w-2xl space-y-6">
     <!-- Post Form -->
     <div id="post-form-container" class="hidden">

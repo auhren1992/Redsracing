@@ -44,18 +44,23 @@
   <div id="navigation-placeholder"></div>
 
   <!-- Hero -->
-  <div style="margin-top:70px;" class="bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border-b border-yellow-500/20">
-    <div class="container mx-auto px-4 py-10">
-      <div class="flex items-center justify-between mb-4">
-        <a href="team.html" class="text-slate-400 hover:text-white transition flex items-center text-sm"><i class="fas fa-arrow-left mr-2"></i>Back to Home</a>
-        <a href="live.html" class="text-yellow-400 hover:text-yellow-300 transition flex items-center text-sm"><i class="fas fa-broadcast-tower mr-2"></i>Live Race</a>
+  <section class="rr-hero" style="margin-top:70px">
+    <div class="rr-hero__inner container mx-auto px-4 py-12 md:py-16">
+      <div class="flex items-center justify-between mb-6">
+        <a href="team.html" class="text-slate-400 hover:text-white transition flex items-center text-sm"><i class="fas fa-arrow-left mr-2"></i>Home</a>
+        <a href="live.html" class="text-yellow-400 hover:text-yellow-300 transition flex items-center text-sm"><i class="fas fa-broadcast-tower mr-2"></i>Live</a>
       </div>
       <div class="text-center">
-        <h1 class="text-4xl md:text-6xl font-racing text-white mb-2">FAN PREDICTIONS</h1>
-        <p class="text-slate-400">Pick the winner before each race and climb the leaderboard!</p>
+        <div class="rr-hero-kicker mx-auto mb-5"><i class="fas fa-flag-checkered"></i><span>Lock it in before green</span></div>
+        <h1 class="rr-hero-title text-4xl md:text-6xl text-white mb-3">FAN PREDICTIONS</h1>
+        <p class="rr-hero-sub text-lg md:text-xl mb-8">Pick #8 vs #88 before race day — then climb the board.</p>
+        <div class="rr-hero-actions">
+          <a class="rr-pill rr-pill--primary" href="leaderboard.html"><i class="fas fa-trophy"></i><span>Leaderboard</span></a>
+          <a class="rr-pill" href="schedule.html"><i class="fas fa-calendar"></i><span>Schedule</span></a>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 
   <div class="container mx-auto px-4 py-8 space-y-8">
 
@@ -63,8 +68,8 @@
     <div id="signin-prompt" class="hidden">
       <div class="glass-card p-8 text-center max-w-lg mx-auto">
         <i class="fas fa-lock text-yellow-400 text-4xl mb-4"></i>
-        <h2 class="text-2xl font-bold text-white mb-2">Sign In to Predict</h2>
-        <p class="text-slate-400 mb-6">Create a free account to submit your predictions and compete on the leaderboard.</p>
+        <h2 class="text-2xl font-bold text-white mb-2">Sign in to lock your pick</h2>
+        <p class="text-slate-400 mb-6">Free account. Submit predictions. Climb the fan leaderboard.</p>
         <a href="login.html?returnTo=predictions.html" class="bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-3 rounded-lg font-bold text-lg transition inline-block"><i class="fas fa-sign-in-alt mr-2"></i>Sign In</a>
       </div>
     </div>
@@ -76,7 +81,7 @@
         <div id="next-race-card" class="bg-slate-800/50 rounded-lg p-4 mb-6">
           <div class="flex items-center justify-between">
             <div>
-              <div class="text-yellow-400 font-bold text-lg" id="pred-race-name">Loading...</div>
+              <div class="text-yellow-400 font-bold text-lg" id="pred-race-name">Finding next race…</div>
               <div class="text-slate-400 text-sm" id="pred-race-info">--</div>
             </div>
             <div class="text-right">

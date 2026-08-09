@@ -6,15 +6,15 @@
          crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Team Roster - RedsRacing #8</title>
+    <title>Leaderboard - RedsRacing #8 & #88</title>
     <meta name="description" content="Meet the RedsRacing drivers: Jon Kirsch (#8) and Jonny Kirsch (#88). Explore driver profiles, gallery highlights, and the team’s racing legacy." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="RedsRacing" />
-    <meta property="og:title" content="Team Roster - RedsRacing #8 & #88" />
+    <meta property="og:title" content="Leaderboard - RedsRacing #8 & #88" />
     <meta property="og:description" content="Meet Jon (#8) and Jonny (#88) — profiles, photos, and racing legacy." />
     <meta property="og:url" content="https://www.redsracing.org/leaderboard.html" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Team Roster - RedsRacing #8 & #88" />
+    <meta name="twitter:title" content="Leaderboard - RedsRacing #8 & #88" />
     <meta name="twitter:description" content="Meet Jon (#8) and Jonny (#88) — profiles, photos, and racing legacy." />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -263,43 +263,45 @@
 
     <main>
       <!-- Modern Hero Section -->
-      <section class="py-20 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
-        <div class="container mx-auto px-6 relative z-10">
-          <div class="text-center mb-16">
-            <div class="inline-flex items-center bg-blue-600/20 backdrop-blur-sm px-6 py-3 rounded-full border border-blue-400/30 mb-6">
-              <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse mr-3"></div>
-              <span class="text-blue-400 font-bold uppercase tracking-wider text-sm">
-                <i class="fas fa-users mr-2"></i>Team Excellence
-              </span>
+      <section class="rr-hero py-16 md:py-24 relative overflow-hidden">
+        <div class="rr-hero__inner container mx-auto px-6 relative z-10">
+          <div class="text-center mb-10">
+            <div class="rr-hero-kicker mx-auto mb-5">
+              <i class="fas fa-trophy"></i>
+              <span>2026 season</span>
             </div>
             
-            <h1 class="font-racing text-6xl md:text-8xl lg:text-9xl uppercase tracking-wider mb-6">
-              <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-blue-600">
-                Team Roster
-              </span>
+            <h1 class="rr-hero-title text-5xl md:text-7xl lg:text-8xl mb-5">
+              <span class="rr-title-gold">Leaderboard</span>
             </h1>
             
-            <p class="text-xl md:text-2xl text-slate-300 font-bold tracking-wide max-w-4xl mx-auto mb-8">
-              Elite drivers • Proven performance • Racing legends in the making
+            <p class="rr-hero-sub text-lg md:text-xl mb-8">
+              Fan picks, #8 and #88, and who is climbing the board.
             </p>
+
+            <div class="rr-hero-actions mb-10">
+              <a class="rr-pill rr-pill--primary" href="predictions.html"><i class="fas fa-dice"></i><span>Make a prediction</span></a>
+              <a class="rr-pill" href="driver.html"><i class="fas fa-user"></i><span>Jon #8</span></a>
+              <a class="rr-pill" href="jonny.html"><i class="fas fa-user"></i><span>Jonny #88</span></a>
+            </div>
             
             <!-- Stats Bar -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
               <div class="modern-card p-4 border border-blue-400/20">
-                <div class="text-3xl font-bold text-blue-400">2</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider">Active Drivers</div>
-              </div>
-              <div class="modern-card p-4 border border-green-400/20">
-                <div class="text-3xl font-bold text-green-400">5+</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider">Years Experience</div>
-              </div>
-              <div class="modern-card p-4 border border-yellow-400/20">
-                <div class="text-3xl font-bold text-yellow-400">#8</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider">Team Legacy</div>
+                <div class="text-3xl font-bold text-blue-400">#8</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Jon Kirsch</div>
               </div>
               <div class="modern-card p-4 border border-red-400/20">
-                <div class="text-3xl font-bold text-red-400">∞</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider">Racing Spirit</div>
+                <div class="text-3xl font-bold text-red-400">#88</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Jonny Kirsch</div>
+              </div>
+              <div class="modern-card p-4 border border-yellow-400/20">
+                <div class="text-3xl font-bold text-yellow-400">2026</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Season</div>
+              </div>
+              <div class="modern-card p-4 border border-emerald-400/20">
+                <div class="text-3xl font-bold text-emerald-400">Fans</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider">On the board</div>
               </div>
             </div>
           </div>
@@ -412,18 +414,17 @@
 
             <!-- Call to Action -->
             <div class="modern-card p-8 md:p-12 rounded-2xl text-center">
-              <div class="inline-flex items-center bg-purple-500/20 px-4 py-2 rounded-full mb-6">
-                <i class="fas fa-star text-purple-400 mr-2"></i>
-                <span class="text-purple-400 font-bold uppercase tracking-wider text-sm">Discover More</span>
+              <div class="rr-section-kicker mx-auto mb-6">
+                <i class="fas fa-star"></i>
+                <span>Discover more</span>
               </div>
               
-              <h3 class="font-racing text-3xl md:text-4xl text-white uppercase mb-6">
-                Explore Our <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Racing Legacy</span>
+              <h3 class="rr-section-title text-3xl md:text-4xl mb-6">
+                Explore Our <span class="rr-title-gold">Racing Legacy</span>
               </h3>
               
-              <p class="text-slate-300 text-lg mb-8 max-w-3xl mx-auto">
-                Dive deeper into the racing personas, achievements, and stories that make our team unique. 
-                Discover the racing DNA that drives RedsRacing #8 to victory.
+              <p class="rr-section-sub text-lg mb-8 mx-auto">
+                Drivers, wins, and the stories behind #8 and #88 — the DNA that drives RedsRacing.
               </p>
               
               <div class="flex flex-col sm:flex-row gap-4 justify-center">

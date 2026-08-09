@@ -40,10 +40,22 @@
 <body>
   <div id="navigation-placeholder"></div>
 
+  <section class="rr-hero" style="margin-top:70px">
+    <div class="rr-hero__inner container mx-auto px-4 py-10 md:py-14 text-center">
+      <div class="rr-hero-kicker mx-auto mb-5"><i class="fas fa-passport"></i><span>Race night check-in</span></div>
+      <h1 class="rr-hero-title text-4xl md:text-5xl text-white mb-3">FAN <span class="rr-title-gold">PASSPORT</span></h1>
+      <p class="rr-hero-sub text-lg mb-6">Scan. Stamp. Collect the season.</p>
+      <div class="rr-hero-actions">
+        <a class="rr-pill rr-pill--primary" href="schedule.html"><i class="fas fa-calendar"></i><span>Race schedule</span></a>
+        <a class="rr-pill" href="fan/dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Fan hub</span></a>
+      </div>
+    </div>
+  </section>
+
   <div class="card" id="checkin-card">
     <div class="stamp-icon">🏁</div>
-    <h1>Fan Passport</h1>
-    <p class="sub" id="race-name">Loading…</p>
+    <h1>Check In</h1>
+    <p class="sub" id="race-name">Finding next race…</p>
     <div id="checkin-area" style="display:none;">
       <button class="btn-check" id="checkin-btn"><i class="fas fa-passport"></i> Stamp My Passport!</button>
     </div>
@@ -59,8 +71,9 @@
     <div class="card" style="max-width:none;text-align:left">
       <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.25rem">
         <div>
-          <h2 style="font-family:'Racing Sans One',sans-serif;color:#fbbf24;font-size:1.6rem;margin:0">Stamp Album</h2>
-          <p class="sub" style="margin:0.35rem 0 0">Collect a stamp at each race. Scan team QR codes on race night to check in.</p>
+          <div class="rr-section-kicker" style="margin-bottom:.5rem"><i class="fas fa-stamp"></i><span>Your album</span></div>
+          <h2 style="font-family:'Racing Sans One',sans-serif;color:#fff;font-size:1.6rem;margin:0">Stamp Album</h2>
+          <p class="sub" style="margin:0.35rem 0 0">One stamp per race. Scan the team QR on race night.</p>
         </div>
         <div class="badge-row" id="badge-row"></div>
       </div>

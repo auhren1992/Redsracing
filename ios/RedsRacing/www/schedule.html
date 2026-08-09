@@ -279,39 +279,40 @@
     
     <main>
       <!-- Modern Hero Section -->
-      <section class="py-20 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
-        <div class="container mx-auto px-6 relative z-10">
-          <div class="text-center mb-16">
-            <div class="inline-flex items-center bg-yellow-600/20 backdrop-blur-sm px-6 py-3 rounded-full border border-yellow-400/30 mb-6">
-              <div class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse mr-3"></div>
-              <span class="text-yellow-400 font-bold uppercase tracking-wider text-sm">
-                <i class="fas fa-calendar-alt mr-2"></i>2025 Season
-              </span>
+      <section class="rr-hero py-16 md:py-24 relative overflow-hidden">
+        <div class="rr-hero__inner container mx-auto px-6 relative z-10">
+          <div class="text-center mb-10">
+            <div class="rr-hero-kicker mx-auto mb-6">
+              <i class="fas fa-calendar-alt"></i>
+              <span>2026 season</span>
             </div>
             
-            <h1 class="font-racing text-6xl md:text-8xl lg:text-9xl uppercase tracking-wider mb-6">
-              <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-red-500 to-yellow-600">
-                Schedule
-              </span>
+            <h1 class="rr-hero-title text-5xl md:text-7xl lg:text-8xl mb-5">
+              <span class="rr-title-gold">Schedule</span>
             </h1>
             
-            <p class="text-xl md:text-2xl text-slate-300 font-bold tracking-wide max-w-4xl mx-auto mb-8">
-              Track the season • Mark your calendar • Never miss the action
+            <p class="rr-hero-sub text-lg md:text-xl mb-8">
+              Every date. Every track. Don’t miss the green.
             </p>
+            <div class="rr-hero-actions mb-10">
+              <a class="rr-pill rr-pill--primary" href="#countdown-timer"><i class="fas fa-flag-checkered"></i><span>Next race</span></a>
+              <a class="rr-pill" href="tracks.html"><i class="fas fa-map-marker-alt"></i><span>Track guides</span></a>
+              <a class="rr-pill" href="live.html"><i class="fas fa-broadcast-tower"></i><span>Live</span></a>
+            </div>
             
             <!-- Stats Bar -->
             <div class="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+              <div class="modern-card p-6 border border-yellow-400/20">
+                <div class="text-4xl font-bold text-yellow-400">2026</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider mt-2">Season</div>
+              </div>
+              <div class="modern-card p-6 border border-blue-400/20">
+                <div class="text-4xl font-bold text-blue-400">#8</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider mt-2">Jon</div>
+              </div>
               <div class="modern-card p-6 border border-red-400/20">
-                <div class="text-4xl font-bold text-red-400">24</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider mt-2">Total Races</div>
-              </div>
-              <div class="modern-card p-6 border border-green-400/20">
-                <div class="text-4xl font-bold text-green-400">24</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider mt-2">Completed</div>
-              </div>
-              <div class="modern-card p-6 border border-purple-400/20">
-                <div class="text-4xl font-bold text-purple-400">12</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider mt-2">Tracks</div>
+                <div class="text-4xl font-bold text-red-400">#88</div>
+                <div class="text-slate-400 text-sm uppercase tracking-wider mt-2">Jonny</div>
               </div>
             </div>
           </div>
@@ -335,7 +336,7 @@
             </div>
             
             <h2 id="next-race-name" class="font-racing text-3xl md:text-4xl text-white uppercase mb-8">
-              Loading...
+              Finding next race…
             </h2>
             
             <div id="countdown-timer" class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
@@ -404,7 +405,7 @@
                     <i class="fas fa-trophy text-white text-xl"></i>
                   </div>
                   <h3 class="font-racing text-3xl text-white uppercase">
-                    American <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">Super Cups</span>
+                    American <span class="rr-title-gold">Super Cups</span>
                   </h3>
                 </div>
                 <div id="super-cups-schedule" class="space-y-4"></div>
@@ -414,11 +415,11 @@
             <div>
               <div class="modern-card p-8 rounded-2xl h-full">
                 <div class="flex items-center mb-6">
-                  <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center mr-4">
+                  <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-xl flex items-center justify-center mr-4">
                     <i class="fas fa-star text-white text-xl"></i>
                   </div>
                   <h3 class="font-racing text-3xl text-white uppercase">
-                    Special <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">Events</span>
+                    Special <span class="rr-title-gold">Events</span>
                   </h3>
                 </div>
                 <div id="special-events-schedule" class="space-y-4"></div>

@@ -226,6 +226,75 @@ html:not([data-theme="light"]) body {
   border-color: rgba(251, 191, 36, 0.45);
 }
 
+/* Brand title treatment — gold→amber like index follow CTA */
+.rr-title-gold {
+  background: linear-gradient(45deg, #fbbf24, #f59e0b, #fbbf24);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Mid-page section kickers (same energy as hero kicker) */
+.rr-section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  background: rgba(251, 191, 36, 0.08);
+  color: rgba(251, 191, 36, 0.95);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  margin-bottom: 0.75rem;
+}
+
+.rr-section-title {
+  font-family: "Racing Sans One", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  line-height: 1.05;
+}
+
+.rr-section-sub {
+  color: rgba(226, 232, 240, 0.72);
+  font-weight: 600;
+  max-width: 56ch;
+}
+
+/* Shared loading state — never leave a bare "Loading..." H1 */
+.rr-loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: rgba(148, 163, 184, 0.9);
+}
+.rr-loading i {
+  color: #fbbf24;
+  font-size: 1.75rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+.rr-loading p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.75);
+}
+
+/* Soft glass cards used across fan pages */
+.glass-card {
+  background: rgba(30, 41, 59, 0.45);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 1rem;
+}
+
 /* ============================================
    Featured Strip (reusable "always fresh" row)
    ============================================ */
