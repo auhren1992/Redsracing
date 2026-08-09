@@ -69,7 +69,10 @@ if (protectedPaths.has(pageKey)) {
           const profileRef = doc(db, "users", user.uid);
           const snap = await getDoc(profileRef);
           if (snap.exists()) return;
-          const storedRole = toStoredFirestoreRole(canonical);
+          // Do not write role/isAdmin from the client — claims are the source of truth
+          // and Firestore rules reject privilege-field writes by document owners.
+          void toStoredFirestoreRole;
+          void canonical;
           const profile = {
             username: user.email ? user.email.split("@")[0] : "user",
             displayName:
@@ -81,7 +84,6 @@ if (protectedPaths.has(pageKey)) {
             joinDate: new Date().toISOString(),
             totalPoints: 0,
             achievementCount: 0,
-            role: storedRole,
           };
           await setDoc(profileRef, profile, { merge: true });
         };
@@ -125,6 +127,8 @@ if (protectedPaths.has(pageKey)) {
         }
       } catch (error) {
         console.error("[AuthGuard] Error resolving role:", error);
+        // Fail closed on protected pages — do not leave privileged UI exposed.
+        safeRedirectToLogin();
       }
     },
     () => {},

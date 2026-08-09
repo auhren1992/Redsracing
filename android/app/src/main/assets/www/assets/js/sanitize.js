@@ -47,24 +47,25 @@ export function safeSetHTML(element, htmlString) {
   try {
     // Check if DOMPurify is available before using it
     /* global DOMPurify */
-    const cleanHTML =
-      typeof DOMPurify !== "undefined"
-        ? DOMPurify.sanitize(htmlString)
-        : htmlString;
-    element.innerHTML = "";
-    const tempDiv = document.createElement("div");
-    tempDiv.appendChild(
-      document.createRange().createContextualFragment(cleanHTML),
-    );
-    while (tempDiv.firstChild) {
-      element.appendChild(tempDiv.firstChild);
+    if (typeof DOMPurify !== "undefined") {
+      const cleanHTML = DOMPurify.sanitize(htmlString);
+      element.innerHTML = "";
+      const tempDiv = document.createElement("div");
+      tempDiv.appendChild(
+        document.createRange().createContextualFragment(cleanHTML),
+      );
+      while (tempDiv.firstChild) {
+        element.appendChild(tempDiv.firstChild);
+      }
+      return;
     }
+    // Without DOMPurify, never inject raw HTML — escape to text.
+    element.textContent = "";
+    const escaped = escapeHTML(htmlString);
+    element.innerHTML = escaped;
   } catch (e) {
-    // Fallback to basic innerHTML if anything fails
-    element.innerHTML =
-      typeof DOMPurify !== "undefined"
-        ? DOMPurify.sanitize(htmlString)
-        : htmlString;
+    // Absolute fallback: text only
+    element.textContent = String(htmlString || "");
   }
 }
 

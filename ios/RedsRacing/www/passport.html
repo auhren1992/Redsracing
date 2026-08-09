@@ -54,12 +54,17 @@
   var db   = firebase.firestore();
   var auth = firebase.auth();
 
-  // Extract raceId from URL path: /passport/<raceId>
-  var path   = window.location.pathname;
-  var raceId = path.replace(/^\/passport\/?/, '') || new URLSearchParams(window.location.search).get('raceId') || '';
+  // Extract raceId from /passport/<raceId> OR ?raceId= (ignore bare passport.html path)
+  var path = window.location.pathname || '';
+  var pathRace = '';
+  var passportMatch = path.match(/\/passport\/([^\/?#]+)/i);
+  if (passportMatch && passportMatch[1] && !/\.html?$/i.test(passportMatch[1])) {
+    pathRace = decodeURIComponent(passportMatch[1]);
+  }
+  var raceId = pathRace || new URLSearchParams(window.location.search).get('raceId') || '';
 
   if (raceId) {
-    document.getElementById('race-name').textContent = 'Race: ' + decodeURIComponent(raceId);
+    document.getElementById('race-name').textContent = 'Race: ' + raceId;
     loadStampCount();
   } else {
     document.getElementById('race-name').textContent = 'Invalid check-in link.';
@@ -87,10 +92,15 @@
     var btn = document.getElementById('checkin-btn');
     btn.disabled = true; btn.textContent = 'Checking in…';
 
-    // Call Cloud Function
-    fetch('/passport/checkin?raceId=' + encodeURIComponent(raceId) + '&uid=' + encodeURIComponent(user.uid), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+    // Call Cloud Function with verified ID token (server ignores spoofable uid query).
+    user.getIdToken().then(function(idToken){
+      return fetch('/passport/checkin?raceId=' + encodeURIComponent(raceId), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + idToken
+        }
+      });
     }).then(function(r){ return r.json(); }).then(function(data){
       if (data.ok) {
         showResult('success', '<i class="fas fa-stamp mr-2"></i>Passport stamped! Welcome to ' + escHtml(data.track || raceId));
@@ -101,15 +111,8 @@
         btn.disabled = false; btn.textContent = 'Stamp My Passport!';
       }
     }).catch(function(e){
-      // Fallback: write directly if function not reachable yet
-      var now = new Date();
-      db.doc('users/' + user.uid + '/passport_stamps/' + raceId).set({
-        raceId: raceId, ts: firebase.firestore.FieldValue.serverTimestamp(), checkedInAt: now.toISOString()
-      }).then(function(){
-        showResult('success', '<i class="fas fa-stamp mr-2"></i>Passport stamped!');
-        document.getElementById('checkin-area').style.display = 'none';
-        loadStampCount();
-      }).catch(function(e2){ showResult('error', 'Error: ' + e2.message); btn.disabled = false; });
+      showResult('error', 'Check-in failed. Please try again.');
+      btn.disabled = false; btn.textContent = 'Stamp My Passport!';
     });
   });
 

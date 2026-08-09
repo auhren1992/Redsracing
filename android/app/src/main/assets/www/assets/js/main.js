@@ -39,7 +39,7 @@ async function initFirebase() {
         }
 
         // Check for first login achievement
-        checkFirstLoginAchievement(user.uid);
+        checkFirstLoginAchievement(user);
       } else {
         if (authLink) authLink.textContent = "DRIVER LOGIN";
         if (authLink) authLink.href = "login.html";
@@ -49,16 +49,20 @@ async function initFirebase() {
     });
 
     // Check and award first login achievement
-    async function checkFirstLoginAchievement(userId) {
+    async function checkFirstLoginAchievement(user) {
+      const userId = user?.uid;
+      if (!userId) return;
       // Only run this check once per session to avoid repeated calls
       const sessionKey = `firstLoginCheck_${userId}`;
       if (sessionStorage.getItem(sessionKey)) return;
 
       try {
+        const idToken = await user.getIdToken();
         const response = await fetch("/auto_award_achievement", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
           },
           body: JSON.stringify({
             userId: userId,

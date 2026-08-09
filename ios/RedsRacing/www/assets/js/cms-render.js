@@ -34,7 +34,7 @@ function applyHero(sec) {
   if (!hero) return;
   if (sec.data?.title) {
     const h = hero.querySelector('h1');
-    if (h) h.innerHTML = sec.data.title;
+    if (h) h.textContent = sec.data.title;
   }
   if (sec.data?.subtitle) {
     const p = hero.querySelector('p');
@@ -59,7 +59,17 @@ function applyTrackTips(sec) {
     sec.data.tips.forEach(t => {
       const card = document.createElement('div');
       card.className = 'quiz-card';
-      card.innerHTML = `<div class="text-white font-extrabold mb-1"><i class="fas fa-lightbulb text-yellow-400 mr-2"></i>${t.title||'Tip'}</div><p class="text-slate-300 text-sm">${t.body||''}</p>`;
+      const title = document.createElement('div');
+      title.className = 'text-white font-extrabold mb-1';
+      const icon = document.createElement('i');
+      icon.className = 'fas fa-lightbulb text-yellow-400 mr-2';
+      title.appendChild(icon);
+      title.appendChild(document.createTextNode(t.title || 'Tip'));
+      const body = document.createElement('p');
+      body.className = 'text-slate-300 text-sm';
+      body.textContent = t.body || '';
+      card.appendChild(title);
+      card.appendChild(body);
       container.appendChild(card);
     });
   }

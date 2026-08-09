@@ -14,6 +14,32 @@
   }
 
   // ============================================================
+  // Inject shared chrome into pages that only have #navigation-placeholder
+  // ============================================================
+  (function injectNavPlaceholder() {
+    try {
+      const ph = document.getElementById('navigation-placeholder');
+      if (!ph || ph.querySelector('header, nav, .site-header')) return;
+      var path = (window.location.pathname || '').replace(/\\/g, '/');
+      var root = /\/(fan|crew|racer)\//i.test(path) ? '../' : '';
+      ph.innerHTML =
+        '<header class="site-header sticky top-0 z-50 bg-slate-950/90 backdrop-blur border-b border-slate-800">' +
+        '<div class="container mx-auto px-4 py-3 flex items-center justify-between gap-4">' +
+        '<a href="' + root + 'index.html" class="font-bold tracking-wider text-yellow-400 text-lg">REDSRACING</a>' +
+        '<nav class="hidden md:flex items-center gap-4 text-sm text-slate-200">' +
+        '<a class="hover:text-yellow-400" href="' + root + 'index.html">Home</a>' +
+        '<a class="hover:text-yellow-400" href="' + root + 'schedule.html">Schedule</a>' +
+        '<a class="hover:text-yellow-400" href="' + root + 'live.html">Live</a>' +
+        '<a class="hover:text-yellow-400" href="' + root + 'gallery.html">Gallery</a>' +
+        '<a class="hover:text-yellow-400" href="' + root + 'leaderboard.html">Leaderboard</a>' +
+        '<a class="hover:text-yellow-400" href="' + root + 'login.html">Login</a>' +
+        '</nav>' +
+        '<a href="' + root + 'login.html" id="login-btn" class="md:hidden text-sm text-yellow-400">Login</a>' +
+        '</div></header>';
+    } catch (_) {}
+  })();
+
+  // ============================================================
   // Theme (luxury dark / clean light)
   // - Persists in localStorage as 'rr_theme'
   // - Defaults to system preference when unset

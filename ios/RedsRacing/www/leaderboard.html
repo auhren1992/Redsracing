@@ -6,7 +6,7 @@
          crossorigin="anonymous"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Team Roster - RedsRacing #8</title>
+    <title>Leaderboard & Team Roster - RedsRacing #8</title>
     <meta name="description" content="Meet the RedsRacing drivers: Jon Kirsch (#8) and Jonny Kirsch (#88). Explore driver profiles, gallery highlights, and the team’s racing legacy." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="RedsRacing" />
@@ -111,7 +111,7 @@
           <!-- User Profile / Login -->
           <div id="auth-section">
             <!-- Login Button (shown when not authenticated) -->
-            <a href="admin-console.html" id="login-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-bold transition duration-300 flex items-center space-x-1">
+            <a href="login.html" id="login-btn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-bold transition duration-300 flex items-center space-x-1">
               <i class="fas fa-sign-in-alt"></i>
               <span>Login</span>
             </a>
@@ -219,7 +219,7 @@
           <!-- Mobile Auth Section -->
           <div id="mobile-auth-section">
             <!-- Mobile Login Button (shown when not authenticated) -->
-            <a href="admin-console.html" id="mobile-login-btn" class="mobile-login-btn bg-red-600 hover:bg-red-700">
+            <a href="login.html" id="mobile-login-btn" class="mobile-login-btn bg-red-600 hover:bg-red-700">
               <i class="fas fa-sign-in-alt mr-2"></i>Driver Login
             </a>
             
@@ -441,6 +441,27 @@
         </div>
       </section>
       </div>
+    <!-- Fan Achievement Leaderboard -->
+    <section class="py-12 bg-gradient-to-b from-slate-950 to-slate-900 border-t border-slate-800">
+      <div class="container mx-auto px-6">
+        <h2 class="text-2xl font-bold text-white mb-2 flex items-center">
+          <i class="fas fa-medal text-yellow-400 mr-3"></i>Fan Leaderboard
+        </h2>
+        <p class="text-slate-400 text-sm mb-6">Top fans ranked by achievement points.</p>
+        <div id="loading-state" class="text-slate-400 py-8">Loading leaderboard…</div>
+        <div id="error-state" class="hidden text-red-400 py-8">
+          Could not load leaderboard.
+          <button id="retry-btn" class="ml-3 underline">Retry</button>
+        </div>
+        <div id="leaderboard-content" class="hidden">
+          <div class="max-w-4xl">
+            <div id="leaderboard-table"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <script type="module" src="assets/js/leaderboard.js"></script>
+
     <!-- Predictions League Season Rankings (Phase 2) -->
     <section id="predictions-rankings-section" class="py-12 bg-gradient-to-b from-slate-900 to-black" style="display:none;">
       <div class="container mx-auto px-6">

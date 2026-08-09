@@ -613,10 +613,16 @@ function escapeAttr(s) { return escapeHtml(s); }
 // Auto award achievement helper function
 async function autoAwardAchievement(userId, actionType, actionData = {}) {
   try {
+    const { getFirebaseAuth } = await import("./firebase-core.js");
+    const auth = getFirebaseAuth();
+    const user = auth.currentUser;
+    if (!user) return null;
+    const idToken = await user.getIdToken();
     const response = await fetch("/auto_award_achievement", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
         userId: userId,

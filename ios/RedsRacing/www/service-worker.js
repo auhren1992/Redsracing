@@ -12,7 +12,7 @@
  */
 /* eslint-disable no-restricted-globals */
 
-const CACHE_VERSION = "redsracing-v2-2026051203";
+const CACHE_VERSION = "redsracing-v2-2026080901";
 const STATIC_CACHE = CACHE_VERSION + "-static";
 const HTML_CACHE = CACHE_VERSION + "-html";
 
@@ -140,12 +140,29 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Cache-first for /assets/ and /data/schedule.json
+  // Network-first for mutable JS/CSS so deploys are not stuck on stale SW cache.
+  // Fall back to cache when offline. Keep schedule.json / manifest cache-friendly.
   if (
     url.pathname.indexOf("/assets/") === 0 ||
-    url.pathname === "/data/schedule.json" ||
-    url.pathname === "/manifest.json" ||
     url.pathname.indexOf("/styles/") === 0
+  ) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && res.status === 200) {
+            const copy = res.clone();
+            caches.open(STATIC_CACHE).then((c) => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req).then((hit) => hit || Response.error())),
+    );
+    return;
+  }
+
+  if (
+    url.pathname === "/data/schedule.json" ||
+    url.pathname === "/manifest.json"
   ) {
     event.respondWith(
       caches.match(req).then((hit) => {
