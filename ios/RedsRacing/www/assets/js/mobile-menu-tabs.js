@@ -374,9 +374,15 @@
 
   function createMenuButton() {
     if (document.getElementById('mobile-menu-button')) return;
+    // Never paint a floating orphan hamburger on desktop/tablet landscape.
+    // Pages should include a real header button; this is a mobile last-resort only.
+    if (window.matchMedia && window.matchMedia('(min-width: 1024px)').matches) {
+      return;
+    }
     const btn = document.createElement('button');
     btn.id = 'mobile-menu-button';
     btn.type = 'button';
+    btn.dataset.rrOrphan = '1';
     btn.setAttribute('aria-label', 'Open menu');
     btn.innerHTML = '<i class="fas fa-bars" aria-hidden="true"></i>';
     btn.style.cssText = [
@@ -398,6 +404,16 @@
     ].join(';');
     document.body.appendChild(btn);
     bindHamburgerButton(btn);
+    try {
+      const mq = window.matchMedia('(min-width: 1024px)');
+      const sync = () => {
+        if (!btn.isConnected) return;
+        btn.style.display = mq.matches ? 'none' : 'inline-flex';
+      };
+      if (mq.addEventListener) mq.addEventListener('change', sync);
+      else if (mq.addListener) mq.addListener(sync);
+      sync();
+    } catch (_) {}
   }
 
   function watchForHamburger() {

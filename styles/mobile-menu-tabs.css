@@ -367,3 +367,11 @@
   margin: 1.5rem 0 0.75rem 0;
   padding-left: 0.5rem;
 }
+
+/* Orphan floating hamburger (last-resort when page has no header button).
+   Never show on desktop — settings.html and similar pages looked broken. */
+@media (min-width: 1024px) {
+  #mobile-menu-button[data-rr-orphan="1"] {
+    display: none !important;
+  }
+}
