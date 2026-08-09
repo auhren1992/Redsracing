@@ -82,6 +82,7 @@
       if (document.body) {
         try {
           document.body.classList.add('mobile-app');
+          try { document.documentElement.classList.add('rr-native-app'); } catch (_) {}
         } catch (e) {
           console.warn('Failed to add mobile-app class:', e);
         }

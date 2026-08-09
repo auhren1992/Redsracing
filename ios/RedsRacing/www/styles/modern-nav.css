@@ -53,7 +53,8 @@
 }
 
 .mobile-accordion.active + .mobile-accordion-content {
-  max-height: 300px;
+  max-height: none;
+  overflow: visible;
 }
 
 .mobile-accordion-icon {
@@ -123,10 +124,12 @@ nav a:hover::after {
 }
 
 /* Hamburger Animation */
+#mobile-menu-button svg,
 #mobile-menu-toggle svg {
   transition: all 0.3s ease;
 }
 
+#mobile-menu-button:hover svg,
 #mobile-menu-toggle:hover svg {
   transform: scale(1.1);
   color: #fbbf24;

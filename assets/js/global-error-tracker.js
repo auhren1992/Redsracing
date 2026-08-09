@@ -1,7 +1,7 @@
 /**
  * RedsRacing Global Error Tracker
- * Captures JS errors and logs to Firestore `client_logs`.
- * Supports Firebase compat (global `firebase`) OR modular v9 (default for most pages).
+ * Captures JS errors and logs to Firestore `client_logs` with physical file/line/col.
+ * Supports Firebase modular v9 (default for most pages).
  */
 (function () {
   'use strict';
@@ -10,6 +10,7 @@
   const MAX_ERRORS_PER_SESSION = 50;
   const BATCH_SEND_DELAY = 2000;
   const DEBUG = false;
+  const TRACKER_VERSION = '2026080911';
 
   const FIREBASE_CFG = {
     apiKey: 'AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg',
@@ -52,15 +53,124 @@
     return sessionId;
   }
 
+  function fileShortName(url) {
+    if (!url) return '—';
+    try {
+      const clean = String(url).split('?')[0].split('#')[0];
+      const parts = clean.split('/');
+      return parts[parts.length - 1] || clean;
+    } catch (_) {
+      return String(url);
+    }
+  }
+
+  /**
+   * Parse a stack string into frame objects with file/line/column.
+   * Supports V8/Chrome, Firefox, and Safari formats.
+   */
+  function parseStackFrames(stack) {
+    if (!stack || typeof stack !== 'string') return [];
+    const frames = [];
+    const lines = stack.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      // Chrome: at fn (https://host/path/file.js:12:34)
+      // Chrome: at https://host/path/file.js:12:34
+      let m = line.match(/at\s+(?:(.+?)\s+\()?((?:https?:|file:|\/)[^)\s]+):(\d+):(\d+)\)?$/i);
+      if (!m) {
+        // Firefox: fn@https://host/path/file.js:12:34
+        m = line.match(/^(?:(.*?)@)?((?:https?:|file:|\/)[^\s]+):(\d+):(\d+)$/i);
+      }
+      if (!m) continue;
+
+      const fn = (m[1] || '').trim();
+      const file = m[2];
+      const lineNo = parseInt(m[3], 10) || 0;
+      const colNo = parseInt(m[4], 10) || 0;
+      const isApp =
+        /redsracing\.(org|web\.app)|localhost|127\.0\.0\.1|\/assets\/|\/styles\//i.test(file) &&
+        !/gstatic\.com|googletagmanager|google-analytics|doubleclick|sentry\.io/i.test(file);
+
+      frames.push({
+        functionName: fn || '(anonymous)',
+        file: file,
+        fileShort: fileShortName(file),
+        line: lineNo,
+        column: colNo,
+        isApp: isApp,
+        raw: line,
+        display: fileShortName(file) + ':' + lineNo + (colNo ? ':' + colNo : '')
+      });
+    }
+    return frames;
+  }
+
+  /**
+   * Resolve the best physical location for an error.
+   */
+  function resolvePhysicalLocation(source, lineno, colno, stack) {
+    const frames = parseStackFrames(stack);
+    const appFrame = frames.find(function (f) { return f.isApp && f.line > 0; }) || frames.find(function (f) { return f.line > 0; });
+
+    const src = source || '';
+    const isUsefulSource =
+      !!src &&
+      lineno > 0 &&
+      !/^(https?:)?\/\/[^/]+\/?$/i.test(src) &&
+      src !== (typeof location !== 'undefined' ? location.href : '');
+
+    if (isUsefulSource) {
+      return {
+        file: src,
+        fileShort: fileShortName(src),
+        line: lineno || 0,
+        column: colno || 0,
+        functionName: appFrame ? appFrame.functionName : '',
+        display: fileShortName(src) + ':' + (lineno || 0) + (colno ? ':' + colno : ''),
+        frames: frames,
+        resolvedFrom: 'error-event'
+      };
+    }
+
+    if (appFrame) {
+      return {
+        file: appFrame.file,
+        fileShort: appFrame.fileShort,
+        line: appFrame.line,
+        column: appFrame.column,
+        functionName: appFrame.functionName,
+        display: appFrame.display,
+        frames: frames,
+        resolvedFrom: 'stack'
+      };
+    }
+
+    return {
+      file: src || (typeof location !== 'undefined' ? location.href : ''),
+      fileShort: fileShortName(src) || 'unknown',
+      line: lineno || 0,
+      column: colno || 0,
+      functionName: '',
+      display: lineno > 0
+        ? fileShortName(src || 'page') + ':' + lineno + (colno ? ':' + colno : '')
+        : 'Location unknown',
+      frames: frames,
+      resolvedFrom: 'fallback'
+    };
+  }
+
+  // Expose for admin console to re-parse legacy logs
+  window.__rrParseErrorLocation = resolvePhysicalLocation;
+  window.__rrParseStackFrames = parseStackFrames;
+
   async function initFirebase() {
     if (firestoreReady || initStarted) return;
     initStarted = true;
     initAttempts++;
 
     try {
-      // Always prefer modular SDK. Pages that load firebase-*-compat.js for legacy reasons would
-      // otherwise call firebase.firestore() here and spin up a second Firestore runtime, which breaks
-      // modular APIs (collection() / query() rejecting the shared app’s db instance — invalid-argument).
       const { initializeApp, getApps } = await import(
         'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js'
       );
@@ -96,6 +206,7 @@
       writeClientLog = function (errorData) {
         return addDoc(collection(fsdb, 'client_logs'), {
           ...errorData,
+          createdAt: serverTimestamp(),
           serverTimestamp: serverTimestamp()
         });
       };
@@ -127,11 +238,14 @@
     }
 
     const isAndroidApp = /RedsRacingApp/i.test(ua) || typeof Android !== 'undefined';
+    const isIosApp = /RedsRacingApp\/1\.0 iOS/i.test(ua);
 
     return {
       userAgent: ua,
       deviceType: deviceType,
       isAndroidApp: isAndroidApp,
+      isIosApp: isIosApp,
+      isNativeApp: isAndroidApp || isIosApp,
       platform: navigator.platform,
       language: navigator.language,
       screenResolution: window.screen.width + 'x' + window.screen.height,
@@ -154,9 +268,13 @@
 
   function formatError(error, source, lineno, colno, errorObj) {
     const deviceInfo = getDeviceInfo();
+    const stack =
+      errorObj && errorObj.stack
+        ? String(errorObj.stack)
+        : typeof error === 'string' && error.includes('\n')
+          ? error
+          : '';
 
-    // Build a helpful message when the raw message is missing/empty so the
-    // admin dashboard never logs a bare "Unknown error" row.
     let message = error;
     if (!message || (typeof message === 'string' && !message.trim())) {
       if (errorObj && (errorObj.message || errorObj.stack || errorObj.name)) {
@@ -176,12 +294,17 @@
       }
     }
 
+    const physical = resolvePhysicalLocation(source, lineno || 0, colno || 0, stack || (errorObj && errorObj.stack) || '');
+
     return {
       message: String(message),
-      source: source || window.location.href,
-      lineno: lineno || 0,
-      colno: colno || 0,
-      stack: errorObj && errorObj.stack ? errorObj.stack : 'No stack trace available',
+      source: physical.file || source || window.location.href,
+      lineno: physical.line || lineno || 0,
+      colno: physical.column || colno || 0,
+      location: physical.display,
+      physicalLocation: physical,
+      stack: stack || (errorObj && errorObj.stack) || 'No stack trace available',
+      stackFrames: physical.frames || [],
       errorType: errorObj && errorObj.name ? errorObj.name : 'Error',
       page: window.location.pathname,
       pageName: getPageName(),
@@ -191,7 +314,8 @@
       device: deviceInfo,
       userId: localStorage.getItem('rr_auth_uid') || 'anonymous',
       documentTitle: document.title,
-      referrer: document.referrer || 'direct'
+      referrer: document.referrer || 'direct',
+      trackerVersion: TRACKER_VERSION
     };
   }
 
@@ -202,7 +326,7 @@
 
     try {
       await writeClientLog(errorData);
-      logDebug('Error logged to Firestore:', errorData.message);
+      logDebug('Error logged to Firestore:', errorData.message, errorData.location);
     } catch (error) {
       if (DEBUG) console.error('[Error Tracker] Failed to log error to Firestore:', error);
       try {
@@ -236,10 +360,6 @@
       if (!ERROR_TRACKING_ENABLED) return;
       if (errorCount >= MAX_ERRORS_PER_SESSION) return;
 
-      // CORS-stripped errors from third-party scripts show up as the literal
-      // string "Script error." with no filename/line/col and no error object.
-      // They are duplicates of whatever the third-party script logged on its
-      // own origin and just clutter the dashboard, so drop them here.
       const isCorsStripped =
         (event && typeof event.message === 'string' &&
           event.message.trim() === 'Script error.') &&
@@ -307,17 +427,43 @@
     if (!ERROR_TRACKING_ENABLED) return;
     if (errorCount >= MAX_ERRORS_PER_SESSION) return;
 
+    // Prefer first Error argument for real stack/location
+    let errObj = null;
+    for (let i = 0; i < arguments.length; i++) {
+      if (arguments[i] instanceof Error) {
+        errObj = arguments[i];
+        break;
+      }
+    }
+
     const message = Array.prototype.map
       .call(arguments, function (arg) {
+        if (arg instanceof Error) return arg.message || String(arg);
         return typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
       })
       .join(' ');
 
     const lower = message.toLowerCase();
-    if (lower.includes('error') || lower.includes('failed')) {
+    if (lower.includes('error') || lower.includes('failed') || errObj) {
       errorCount++;
 
-      const errorData = formatError('Console Error: ' + message, window.location.href, 0, 0, null);
+      // Build synthetic stack if we only have console call site
+      let stack = errObj && errObj.stack ? errObj.stack : '';
+      if (!stack) {
+        try {
+          throw new Error('Console Error marker');
+        } catch (e) {
+          stack = e.stack || '';
+        }
+      }
+
+      const errorData = formatError(
+        'Console Error: ' + message,
+        window.location.href,
+        0,
+        0,
+        errObj || { name: 'ConsoleError', message: message, stack: stack }
+      );
 
       errorQueue.push(errorData);
 
@@ -359,13 +505,26 @@
 
   window.logError = function (message, details) {
     details = details || {};
-    const errorData = formatError(message, window.location.href, 0, 0, null);
+    let stack = '';
+    try {
+      throw new Error(String(message));
+    } catch (e) {
+      stack = e.stack || '';
+    }
+    const errorData = formatError(message, details.source || window.location.href, details.lineno || 0, details.colno || 0, {
+      name: 'ManualLog',
+      message: String(message),
+      stack: details.stack || stack
+    });
     errorData.manualLog = true;
     errorData.details = details;
 
     errorQueue.push(errorData);
     processErrorQueue();
   };
+
+  // Mark so navigation.js skips the thin duplicate writer
+  window.__rrErrorTrackerActive = true;
 
   logDebug('Global error tracking initialized; session:', getSessionId());
 })();
