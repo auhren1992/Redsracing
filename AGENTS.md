@@ -6,7 +6,8 @@
 
 - Many pages load **both** classic `#mobile-menu` (accordion) and tabbed `#mobile-menu-tabs` (`assets/js/mobile-menu-tabs.js`). Only one must own the hamburger.
 - When tabs script is present, `window.__rrMobileTabsMenu` / `html.rr-has-mobile-tabs` is set and classic drawer stays `display:none`. Do not re-bind `#mobile-menu-button` to open classic.
-- **Hamburger stays on the LEFT** of the sticky header on mobile web (`styles/mobile-web.css` + `normalizeMobileHeader()` in `navigation.js`). Do not put auth pills / clocks before it or use `justify-between` with 3 visible children (that centers the button).
+- **Hamburger stays on the LEFT** of the sticky header on mobile/tablet web (`styles/mobile-web.css` applies through **1023.98px**, plus `normalizeMobileHeader()` in `navigation.js`). Do not put auth pills / clocks before it or use `justify-between` with 3 visible children (that centers the button).
+- Through tablet widths, desktop `md:flex` / `lg:flex` nav clusters stay forced hidden so the header does not overflow horizontally.
 - Desktop `.dropdown-menu` panels are forced hidden under `styles/mobile-web.css` at mobile widths; do not “fix” by toggling inline `display:block` on phones.
 - Auth debug toast `#auth-debug-status` is opt-in only (`?rr_debug=1` or `localStorage.rr_debug=1`). It overlaps the tab row if re-enabled unconditionally.
 - Open menu sets `html.rr-mobile-menu-open` so cookie/lang/ad overlays stay hidden while the drawer is open.

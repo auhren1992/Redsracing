@@ -39,6 +39,11 @@ build
 __pycache__/
 *.py[cod]
 *$py.class
+functions_python/venv/
+
+# Firebase service account keys (never commit)
+functions/serviceAccountKey.json
+**/serviceAccountKey.json
 
 # Certificates and private keys
 certificates/
