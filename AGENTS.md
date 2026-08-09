@@ -12,7 +12,7 @@
 
 ### Admin console (mobile web)
 
-- Section chips live in `#admin-mobile-section-nav` (md:hidden). Native app hides that strip and uses `#admin-menu-bar` + `#admin-sidebar` drawer instead.
-- On phone browsers, `#mobile-menu-button` opens the Command Center `#admin-sidebar` drawer (`toggleAdminDrawer`), not a site nav menu.
+- Do **not** show a pill/chip section strip on the main admin page. Section access on phones is via the header hamburger → `#admin-sidebar` Command Center drawer (`toggleAdminDrawer`).
+- Native app uses `#admin-menu-bar` + the same `#admin-sidebar` drawer.
 - After admin-console / nav CSS/JS changes: `npm run sync:mobile`, then typically `npm run deploy:hosting`.
 - Standard commands: see root `package.json` scripts (`sync:mobile`, `deploy:hosting`).
