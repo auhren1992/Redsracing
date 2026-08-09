@@ -108,7 +108,7 @@
         if (!document.querySelector('link[href*="mobile-web.css"]')) {
           const link = document.createElement('link');
           link.rel = 'stylesheet';
-          link.href = assetRoot + 'styles/mobile-web.css?v=2026080914';
+          link.href = assetRoot + 'styles/mobile-web.css?v=2026080915';
           document.head.appendChild(link);
         }
       } catch (_) {}
@@ -1108,9 +1108,44 @@
   // Make it globally available for debugging
   window.upgradeNavMenus = upgradeNavMenus;
 
+  /** Put hamburger on the left of the header on mobile web; keep brand truncating. */
+  function normalizeMobileHeader() {
+    try {
+      if (document.documentElement.classList.contains('rr-native-app')) return;
+      const narrow = !window.matchMedia || window.matchMedia('(max-width: 767.98px)').matches;
+      if (!narrow) return;
+      const nav = document.querySelector('header nav');
+      if (!nav) return;
+      const btn = document.getElementById('mobile-menu-button') || document.getElementById('mobile-menu-toggle');
+      if (!btn) return;
+
+      // Extract hamburger from clock wrappers so it can sit at the true left edge
+      if (btn.parentElement && btn.parentElement !== nav) {
+        nav.insertBefore(btn, nav.firstChild);
+      } else if (nav.firstElementChild !== btn) {
+        nav.insertBefore(btn, nav.firstChild);
+      }
+
+      const auth = document.getElementById('admin-top-auth');
+      if (auth) {
+        auth.classList.add('hidden');
+        auth.classList.add('md:flex');
+      }
+
+      // Clock stays trailing if present
+      const clock = document.getElementById('mobile-clock');
+      if (clock && clock.parentElement === nav) {
+        clock.style.marginLeft = 'auto';
+      } else if (clock && clock.parentElement && clock.parentElement !== nav) {
+        clock.parentElement.style.marginLeft = 'auto';
+      }
+    } catch (_) {}
+  }
+
   function ready() {
     try { hideAdminConsoleLinks(); } catch (_) {} // Hide admin links by default until role verified
     try { upgradeNavMenus(); } catch (_) {}
+    try { normalizeMobileHeader(); } catch (_) {}
     try { initDropdowns(); } catch (_) {}
     try { initMobileMenu(); } catch (_) {}
     try { initClock(); } catch (_) {}
@@ -1141,6 +1176,12 @@
         ads.defer = true;
         document.head.appendChild(ads);
       }
+    } catch (_) {}
+
+    try {
+      window.addEventListener('resize', function () {
+        try { normalizeMobileHeader(); } catch (_) {}
+      });
     } catch (_) {}
   }
 

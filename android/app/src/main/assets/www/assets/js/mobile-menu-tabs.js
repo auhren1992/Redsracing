@@ -382,7 +382,7 @@
     btn.style.cssText = [
       'position:fixed',
       'top:calc(12px + env(safe-area-inset-top,0px))',
-      'right:12px',
+      'left:12px',
       'z-index:10055',
       'width:48px',
       'height:48px',

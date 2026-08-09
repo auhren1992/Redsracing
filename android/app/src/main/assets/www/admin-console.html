@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/input-fix.css" />
+    <link rel="stylesheet" href="styles/mobile-web.css?v=2026080915" />
     <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
     
     <!-- Mobile App Detection -->
@@ -598,13 +599,6 @@
         font-size: 13px;
       }
       
-      /* Mobile Tab Navigation */
-      .mobile-tab-btn.active {
-        background: linear-gradient(45deg, #3b82f6, #6366f1) !important;
-        color: white !important;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-      }
-      
       .scrollbar-hide {
         -ms-overflow-style: none;
         scrollbar-width: none;
@@ -835,11 +829,19 @@
         display: none !important;
       }
 
-      /* In-app: use the same <aside> Command Center nav as a left sheet (matches desktop sidebar styling). */
+      /* In-app / mobile web: Command Center nav as a left sheet */
       #admin-sidebar-overlay {
         display: none;
       }
-      body.mobile-app #admin-sidebar-overlay {
+      #admin-sidebar-app-footer {
+        display: none;
+      }
+      .admin-sidebar-close {
+        display: none !important;
+      }
+
+      body.mobile-app #admin-sidebar-overlay,
+      html:not(.rr-native-app) #admin-sidebar-overlay {
         display: block;
         position: fixed;
         inset: 0;
@@ -849,49 +851,53 @@
         -webkit-backdrop-filter: blur(10px);
         opacity: 0;
         visibility: hidden;
+        pointer-events: none;
         transition: opacity 0.28s ease, visibility 0.28s ease;
       }
-      body.mobile-app.drawer-sidebar-open #admin-sidebar-overlay {
+      @media (min-width: 768px) {
+        html:not(.rr-native-app) #admin-sidebar-overlay {
+          display: none !important;
+        }
+      }
+      body.drawer-sidebar-open #admin-sidebar-overlay {
         opacity: 1;
         visibility: visible;
+        pointer-events: auto;
       }
 
-      body.mobile-app #admin-sidebar.admin-sidebar {
-        display: flex !important;
-        flex-direction: column;
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        height: 100dvh;
-        width: min(20.5rem, 90vw);
-        max-width: 22rem;
-        z-index: 10050;
-        margin: 0;
-        padding-top: env(safe-area-inset-top, 0px);
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-        transform: translate3d(-105%, 0, 0);
-        transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
-        box-shadow: 20px 0 80px rgba(0, 0, 0, 0.55);
-        border-right: 1px solid rgba(251, 191, 36, 0.12);
-        -webkit-overflow-scrolling: touch;
-      }
-      body.mobile-app.drawer-sidebar-open #admin-sidebar.admin-sidebar {
-        transform: translate3d(0, 0, 0);
-      }
-
-      body.mobile-app #admin-sidebar-app-footer {
-        display: block !important;
-      }
-      #admin-sidebar-app-footer {
-        display: none;
-      }
-
-      .admin-sidebar-close {
-        display: none !important;
-      }
-      body.mobile-app .admin-sidebar-close {
-        display: inline-flex !important;
+      @media (max-width: 767.98px) {
+        html:not(.rr-native-app) #admin-sidebar.admin-sidebar,
+        body.mobile-app #admin-sidebar.admin-sidebar {
+          display: flex !important;
+          flex-direction: column;
+          position: fixed;
+          top: 0;
+          left: 0;
+          height: 100vh;
+          height: 100dvh;
+          width: min(20.5rem, 90vw);
+          max-width: 22rem;
+          z-index: 10050;
+          margin: 0;
+          padding-top: env(safe-area-inset-top, 0px);
+          padding-bottom: env(safe-area-inset-bottom, 0px);
+          transform: translate3d(-105%, 0, 0);
+          transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+          box-shadow: 20px 0 80px rgba(0, 0, 0, 0.55);
+          border-right: 1px solid rgba(251, 191, 36, 0.12);
+          -webkit-overflow-scrolling: touch;
+        }
+        body.drawer-sidebar-open #admin-sidebar.admin-sidebar {
+          transform: translate3d(0, 0, 0);
+        }
+        html:not(.rr-native-app) #admin-sidebar-app-footer,
+        body.mobile-app #admin-sidebar-app-footer {
+          display: block !important;
+        }
+        html:not(.rr-native-app) .admin-sidebar-close,
+        body.mobile-app .admin-sidebar-close {
+          display: inline-flex !important;
+        }
       }
 
       body.mobile-app #admin-menu-bar {
@@ -902,11 +908,13 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
-        body.mobile-app #admin-sidebar.admin-sidebar {
-          transition: none !important;
-        }
-        body.mobile-app #admin-sidebar-overlay {
-          transition: none !important;
+        @media (max-width: 767.98px) {
+          #admin-sidebar.admin-sidebar {
+            transition: none !important;
+          }
+          #admin-sidebar-overlay {
+            transition: none !important;
+          }
         }
       }
     </style>
@@ -932,14 +940,18 @@
       }
       function openAdminDrawer() {
         document.body.classList.add("drawer-sidebar-open");
-        var btn = document.getElementById("android-hamburger");
-        if (btn) btn.setAttribute("aria-expanded", "true");
+        ["android-hamburger", "mobile-menu-button"].forEach(function (id) {
+          var btn = document.getElementById(id);
+          if (btn) btn.setAttribute("aria-expanded", "true");
+        });
         document.body.style.overflow = "hidden";
       }
       function closeAdminDrawer() {
         document.body.classList.remove("drawer-sidebar-open");
-        var btn = document.getElementById("android-hamburger");
-        if (btn) btn.setAttribute("aria-expanded", "false");
+        ["android-hamburger", "mobile-menu-button"].forEach(function (id) {
+          var btn = document.getElementById(id);
+          if (btn) btn.setAttribute("aria-expanded", "false");
+        });
         document.body.style.overflow = "";
       }
       /* Back-compat for any remaining onclick="closeDrawer()" */
@@ -965,13 +977,19 @@
 
     <!-- Clean Modern Header -->
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
-      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-        <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
+      <nav class="container mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 max-w-full">
+        <!-- Mobile hamburger — LEFT on phones -->
+        <button id="mobile-menu-button" class="md:hidden shrink-0 text-white focus:outline-none" type="button" aria-label="Open admin sections" aria-controls="admin-sidebar" aria-expanded="false">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+        <a href="index.html" class="rr-brand text-2xl sm:text-4xl font-racing uppercase tracking-wider min-w-0 truncate flex-1 md:flex-none">
           <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
         </a>
         
-        <!-- Navigation Links -->
-        <div class="hidden md:flex items-center space-x-6 font-bold">
+        <!-- Navigation Links (desktop) -->
+        <div class="hidden md:flex items-center space-x-6 font-bold ml-auto">
           <a href="index.html" class="nav-link">🏠 Home</a>
           <div class="relative dropdown">
             <button class="dropdown-toggle nav-link">
@@ -1029,17 +1047,11 @@
           
         </div>
         
-        <!-- Mobile Menu Button -->
-        <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-          </svg>
-        </button>
-        <!-- Admin top auth pill -->
-        <div id="admin-top-auth" class="hidden md:flex items-center space-x-3 ml-4">
+        <!-- Admin top auth pill — desktop only (never push hamburger on mobile) -->
+        <div id="admin-top-auth" class="hidden md:flex items-center space-x-3 ml-4 shrink-0">
           <div id="admin-online-dot" class="w-2 h-2 bg-green-400 rounded-full animate-pulse" style="display:none"></div>
-          <span id="admin-user-email" class="text-slate-300 text-sm"></span>
-<button id="logout-button-top" class="bg-slate-800/50 hover:bg-slate-700/50 border border-slate-600/50 text-white px-3 py-1 rounded text-sm flex items-center"><i class="fas fa-sign-out-alt mr-2"></i>Sign Out</button>
+          <span id="admin-user-email" class="text-slate-300 text-sm truncate max-w-[12rem]"></span>
+          <button id="logout-button-top" class="bg-slate-800/50 hover:bg-slate-700/50 border border-slate-600/50 text-white px-3 py-1 rounded text-sm flex items-center"><i class="fas fa-sign-out-alt mr-2"></i>Sign Out</button>
         </div>
       </nav>
     </header>
@@ -3449,36 +3461,20 @@
         
         // Explicit dropdown handling for Android WebView
         try {
-          // Mobile menu toggle (header hamburger)
+          // Header hamburger opens Command Center section drawer (not a missing #mobile-menu)
           const headerMenuBtn = document.getElementById('mobile-menu-button');
           const mainMenuBtn = document.getElementById('mobile-menu-button-main');
-          const mobileMenu = document.getElementById('mobile-menu');
-          const mobileOverlay = document.getElementById('mobile-menu-overlay');
 
           function toggleMobileMenu(e) {
             if (e) {
               e.preventDefault();
               e.stopPropagation();
             }
-            if (!mobileMenu) return;
-
-            const isClosed = mobileMenu.classList.contains('-translate-x-full');
-            if (isClosed) {
-              // Open
-              mobileMenu.classList.remove('-translate-x-full');
-              if (mobileOverlay) mobileOverlay.classList.remove('hidden');
-              document.body.style.overflow = 'hidden';
-            } else {
-              // Close
-              mobileMenu.classList.add('-translate-x-full');
-              if (mobileOverlay) mobileOverlay.classList.add('hidden');
-              document.body.style.overflow = '';
-            }
+            if (typeof toggleAdminDrawer === 'function') toggleAdminDrawer();
           }
           
           if (headerMenuBtn) headerMenuBtn.addEventListener('click', toggleMobileMenu);
           if (mainMenuBtn) mainMenuBtn.addEventListener('click', toggleMobileMenu);
-          if (mobileOverlay) mobileOverlay.addEventListener('click', toggleMobileMenu);
 
           // Admin Menu sidebar toggle (the yellow button in main content area)
           const sidebarToggle = document.getElementById('sidebar-toggle');
@@ -6872,11 +6868,14 @@
               onAuthStateChanged(auth, (user) => {
                 if (!area) return;
                 if (user) {
+                  // Keep desktop-only: never become a 3rd flex child on mobile
                   area.classList.remove('hidden');
+                  area.classList.add('md:flex');
                   if (dot) dot.style.display = '';
                   if (emailEl) emailEl.textContent = user.email || 'Signed In';
                 } else {
                   area.classList.add('hidden');
+                  area.classList.remove('md:flex');
                 }
               });
             } catch(_) {}
@@ -6896,29 +6895,14 @@
             showDashboard();
           }
           
-          // Remove active class from all nav items (desktop sidebar + mobile tabs)
+          // Remove active class from all nav items (sidebar)
           document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-          document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
-            btn.classList.remove('active', 'bg-blue-600', 'text-white');
-            btn.classList.add('bg-slate-700', 'text-slate-300');
-          });
           
-          // Find and activate the corresponding nav item (desktop sidebar)
+          // Find and activate the corresponding nav item (desktop sidebar / mobile drawer)
           const navItem = document.querySelector('.nav-item[href="' + hash + '"]');
           if (navItem) {
             navItem.classList.add('active');
             console.log('🔗 [HASH] Activated nav item:', navItem.textContent.trim());
-          }
-          
-          // Find and activate the corresponding mobile tab
-          const mobileTab = document.querySelector('.mobile-tab-btn[href="' + hash + '"]');
-          if (mobileTab) {
-            mobileTab.classList.remove('bg-slate-700', 'text-slate-300');
-            mobileTab.classList.add('active', 'bg-blue-600', 'text-white');
-            console.log('🔗 [HASH] Activated mobile tab:', mobileTab.textContent.trim());
-            
-            // Scroll the tab into view
-            mobileTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
           }
           
           // Show the appropriate section
