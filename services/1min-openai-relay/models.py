@@ -140,6 +140,16 @@ VISION_MODELS = {
     "qwen3-vl-plus",
 }
 
+# Models that 1min.ai only accepts on /api/features (CODE_GENERATOR),
+# not on /api/chat-with-ai (UNIFY_CHAT_WITH_AI).
+CODE_GENERATOR_ONLY_MODELS = {
+    "qwen3-coder-plus",
+    "qwen3-coder-flash",
+    "gpt-5.1-codex",
+    "gpt-5.1-codex-mini",
+    "grok-code-fast-1",
+}
+
 # Friendly aliases users might type in Cursor's model list.
 MODEL_ALIASES = {
     "mistral-nemo": "open-mistral-nemo",

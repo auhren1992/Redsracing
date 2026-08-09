@@ -23,6 +23,7 @@ from flask import Flask, Response, jsonify, make_response, request
 
 from models import (
     CHAT_MODELS,
+    CODE_GENERATOR_ONLY_MODELS,
     IMAGE_GENERATION_MODELS,
     MODEL_ALIASES,
     VISION_MODELS,
@@ -206,6 +207,200 @@ def _size_to_aspect_ratio(size_str: str) -> str:
     return "1:1"
 
 
+def _extract_result_text(one_min: dict[str, Any]) -> str:
+    return one_min["aiRecord"]["aiRecordDetail"]["resultObject"][0]
+
+
+def _post_unify_chat(
+    *,
+    api_key: str,
+    model: str,
+    prompt: str,
+    image_paths: list[str],
+    web_search: bool,
+) -> tuple[requests.Response | None, Any]:
+    prompt_object: dict[str, Any] = {
+        "prompt": prompt,
+        "isMixed": False,
+        "webSearch": web_search,
+    }
+    if image_paths:
+        prompt_object["attachments"] = {"images": image_paths, "files": []}
+    payload = {
+        "type": "UNIFY_CHAT_WITH_AI",
+        "model": model,
+        "promptObject": prompt_object,
+    }
+    try:
+        return (
+            requests.post(
+                ONE_MIN_CHAT_URL,
+                json=payload,
+                headers=_one_min_headers(api_key),
+                timeout=300,
+            ),
+            None,
+        )
+    except requests.RequestException as exc:
+        return None, _openai_error(f"Upstream request failed: {exc}", status=502)
+
+
+def _post_code_generator(
+    *, api_key: str, model: str, prompt: str, web_search: bool
+) -> tuple[requests.Response | None, Any]:
+    prompt_object: dict[str, Any] = {"prompt": prompt}
+    if web_search:
+        prompt_object["webSearch"] = True
+        prompt_object["numOfSite"] = 3
+        prompt_object["maxWord"] = 1000
+    payload = {
+        "type": "CODE_GENERATOR",
+        "model": model,
+        "conversationId": None,
+        "promptObject": prompt_object,
+    }
+    try:
+        return (
+            requests.post(
+                ONE_MIN_FEATURES_URL,
+                json=payload,
+                headers=_one_min_headers(api_key),
+                timeout=300,
+            ),
+            None,
+        )
+    except requests.RequestException as exc:
+        return None, _openai_error(f"Upstream request failed: {exc}", status=502)
+
+
+def _response_to_content_or_error(upstream: requests.Response):
+    if upstream.status_code == 401:
+        return None, _openai_error(
+            "Incorrect API key. Get one at https://app.1min.ai/api",
+            err_type="authentication_error",
+            code="invalid_api_key",
+            status=401,
+        )
+    if upstream.status_code != 200:
+        logger.error(
+            "Upstream error status=%s body=%s",
+            upstream.status_code,
+            upstream.text[:500],
+        )
+        return None, _openai_error(
+            f"1min.ai error ({upstream.status_code}): {upstream.text[:400]}",
+            status=upstream.status_code if upstream.status_code >= 400 else 502,
+        )
+    try:
+        return _extract_result_text(upstream.json()), None
+    except (KeyError, IndexError, TypeError, ValueError) as exc:
+        logger.error("Unexpected upstream payload: %s", upstream.text[:500])
+        return None, _openai_error(
+            f"Unexpected 1min.ai response shape: {exc}", status=502
+        )
+
+
+def _complete_non_stream(
+    *,
+    api_key: str,
+    model: str,
+    prompt: str,
+    image_paths: list[str],
+    web_search: bool,
+    prefer_code_generator: bool,
+):
+    """Return (content, error_response). Exactly one is non-None."""
+    order = (
+        ["code", "chat"] if prefer_code_generator else ["chat", "code"]
+    )
+    last_err = None
+    for route in order:
+        if route == "chat":
+            upstream, err = _post_unify_chat(
+                api_key=api_key,
+                model=model,
+                prompt=prompt,
+                image_paths=image_paths,
+                web_search=web_search,
+            )
+        else:
+            upstream, err = _post_code_generator(
+                api_key=api_key, model=model, prompt=prompt, web_search=web_search
+            )
+        if err is not None:
+            return None, err
+        assert upstream is not None
+        if upstream.status_code == 200:
+            return _response_to_content_or_error(upstream)
+        # Retry the other route when the model is unsupported on this feature.
+        if "UNSUPPORTED_MODEL" in upstream.text and route != order[-1]:
+            logger.info(
+                "Model %s unsupported on %s; retrying alternate route",
+                model,
+                "CODE_GENERATOR" if route == "code" else "UNIFY_CHAT_WITH_AI",
+            )
+            last_err = upstream
+            continue
+        return _response_to_content_or_error(upstream)
+    if last_err is not None:
+        return _response_to_content_or_error(last_err)
+    return None, _openai_error("No upstream response", status=502)
+
+
+def _fake_stream_response(model: str, content: str, prompt_tokens: int):
+    """Emit one OpenAI SSE stream for non-streaming upstream routes."""
+
+    def generate():
+        chunk_id = f"chatcmpl-{uuid.uuid4()}"
+        yield (
+            "data: "
+            + json.dumps(
+                {
+                    "id": chunk_id,
+                    "object": "chat.completion.chunk",
+                    "created": int(time.time()),
+                    "model": model,
+                    "choices": [
+                        {
+                            "index": 0,
+                            "delta": {"role": "assistant", "content": content},
+                            "finish_reason": None,
+                        }
+                    ],
+                }
+            )
+            + "\n\n"
+        )
+        completion_tokens = _estimate_tokens(content)
+        yield (
+            "data: "
+            + json.dumps(
+                {
+                    "id": chunk_id,
+                    "object": "chat.completion.chunk",
+                    "created": int(time.time()),
+                    "model": model,
+                    "choices": [
+                        {
+                            "index": 0,
+                            "delta": {"content": ""},
+                            "finish_reason": "stop",
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": prompt_tokens,
+                        "completion_tokens": completion_tokens,
+                        "total_tokens": prompt_tokens + completion_tokens,
+                    },
+                }
+            )
+            + "\n\n"
+        )
+        yield "data: [DONE]\n\n"
+
+    return Response(generate(), content_type="text/event-stream")
+
+
 def _cors(resp: Response) -> Response:
     resp.headers["Access-Control-Allow-Origin"] = "*"
     resp.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization,API-KEY"
@@ -299,65 +494,43 @@ def chat_completions():
 
     prompt = _format_prompt(messages)
     prompt_tokens = _estimate_tokens(prompt)
-
-    prompt_object: dict[str, Any] = {
-        "prompt": prompt,
-        "isMixed": False,
-        "webSearch": bool(body.get("web_search", False)),
-    }
-    if image_paths:
-        prompt_object["attachments"] = {"images": image_paths, "files": []}
-
-    payload = {
-        "type": "UNIFY_CHAT_WITH_AI",
-        "model": model,
-        "promptObject": prompt_object,
-    }
+    use_code_generator = model in CODE_GENERATOR_ONLY_MODELS
     headers = _one_min_headers(api_key)
 
     logger.info(
-        "chat model=%s stream=%s prompt_tokens~=%s images=%s",
+        "chat model=%s stream=%s prompt_tokens~=%s images=%s route=%s",
         model,
         stream,
         prompt_tokens,
         len(image_paths),
+        "CODE_GENERATOR" if use_code_generator else "UNIFY_CHAT_WITH_AI",
     )
 
+    # CODE_GENERATOR has no SSE stream — complete then emit OpenAI SSE.
+    if stream and use_code_generator:
+        content, err = _complete_non_stream(
+            api_key=api_key,
+            model=model,
+            prompt=prompt,
+            image_paths=image_paths,
+            web_search=bool(body.get("web_search", False)),
+            prefer_code_generator=True,
+        )
+        if err is not None:
+            return err
+        return _fake_stream_response(model, content, prompt_tokens)
+
     if not stream:
-        try:
-            upstream = requests.post(
-                ONE_MIN_CHAT_URL, json=payload, headers=headers, timeout=300
-            )
-        except requests.RequestException as exc:
-            logger.error("Upstream request failed: %s", exc)
-            return _openai_error(f"Upstream request failed: {exc}", status=502)
-
-        if upstream.status_code == 401:
-            return _openai_error(
-                "Incorrect API key. Get one at https://app.1min.ai/api",
-                err_type="authentication_error",
-                code="invalid_api_key",
-                status=401,
-            )
-        if upstream.status_code != 200:
-            logger.error(
-                "Upstream error status=%s body=%s",
-                upstream.status_code,
-                upstream.text[:500],
-            )
-            return _openai_error(
-                f"1min.ai error ({upstream.status_code}): {upstream.text[:400]}",
-                status=upstream.status_code if upstream.status_code >= 400 else 502,
-            )
-
-        try:
-            one_min = upstream.json()
-            content = one_min["aiRecord"]["aiRecordDetail"]["resultObject"][0]
-        except (KeyError, IndexError, TypeError, ValueError) as exc:
-            logger.error("Unexpected upstream payload: %s", upstream.text[:500])
-            return _openai_error(
-                f"Unexpected 1min.ai response shape: {exc}", status=502
-            )
+        content, err = _complete_non_stream(
+            api_key=api_key,
+            model=model,
+            prompt=prompt,
+            image_paths=image_paths,
+            web_search=bool(body.get("web_search", False)),
+            prefer_code_generator=use_code_generator,
+        )
+        if err is not None:
+            return err
 
         completion_tokens = _estimate_tokens(content)
         return jsonify(
@@ -381,7 +554,20 @@ def chat_completions():
             }
         )
 
-    # Streaming
+    # Streaming via chat-with-ai
+    prompt_object: dict[str, Any] = {
+        "prompt": prompt,
+        "isMixed": False,
+        "webSearch": bool(body.get("web_search", False)),
+    }
+    if image_paths:
+        prompt_object["attachments"] = {"images": image_paths, "files": []}
+    payload = {
+        "type": "UNIFY_CHAT_WITH_AI",
+        "model": model,
+        "promptObject": prompt_object,
+    }
+
     try:
         upstream = requests.post(
             ONE_MIN_CHAT_STREAM_URL,
@@ -401,6 +587,19 @@ def chat_completions():
             status=401,
         )
     if upstream.status_code != 200:
+        # Fall back to non-stream CODE_GENERATOR when chat rejects the model.
+        if "UNSUPPORTED_MODEL" in upstream.text:
+            content, err = _complete_non_stream(
+                api_key=api_key,
+                model=model,
+                prompt=prompt,
+                image_paths=image_paths,
+                web_search=bool(body.get("web_search", False)),
+                prefer_code_generator=True,
+            )
+            if err is not None:
+                return err
+            return _fake_stream_response(model, content, prompt_tokens)
         return _openai_error(
             f"1min.ai error ({upstream.status_code}): {upstream.text[:400]}",
             status=upstream.status_code if upstream.status_code >= 400 else 502,
