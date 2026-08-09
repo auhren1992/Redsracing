@@ -10,7 +10,7 @@
   const MAX_ERRORS_PER_SESSION = 50;
   const BATCH_SEND_DELAY = 2000;
   const DEBUG = false;
-  const TRACKER_VERSION = '2026080911';
+  const TRACKER_VERSION = '2026080912';
 
   const FIREBASE_CFG = {
     apiKey: 'AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg',
