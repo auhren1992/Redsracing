@@ -15,6 +15,7 @@
 
 - Do **not** show a pill/chip section strip on the main admin page. Section access on phones is via the header hamburger (left) → `#admin-sidebar` Command Center drawer (`toggleAdminDrawer`).
 - `#admin-top-auth` is desktop-only (`hidden md:flex`); never remove `hidden` without keeping `md:flex` or the hamburger shifts to the middle.
-- Native app uses `#admin-menu-bar` + the same `#admin-sidebar` drawer.
+- Mobile exit to the public site: header `#admin-mobile-home`, drawer “Back to home” (`#admin-drawer-home` + Site nav), and brand link → `index.html`. Keep at least one of these on phones (desktop already has the header “Home” link).
+- Native app uses `#admin-menu-bar` (+ `#admin-menu-bar-home`) and the same `#admin-sidebar` drawer.
 - After admin-console / nav CSS/JS changes: `npm run sync:mobile`, then typically `npm run deploy:hosting`.
 - Standard commands: see root `package.json` scripts (`sync:mobile`, `deploy:hosting`).

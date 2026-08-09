@@ -840,6 +840,72 @@
         display: none !important;
       }
 
+      /* Mobile web: explicit Home exit (desktop uses header nav "Home") */
+      #admin-mobile-home {
+        display: none;
+      }
+      @media (max-width: 767.98px) {
+        html:not(.rr-native-app) #admin-mobile-home {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          margin-left: auto;
+          flex-shrink: 0;
+          min-width: 44px;
+          min-height: 44px;
+          padding: 10px;
+          border-radius: 12px;
+          border: 1px solid rgba(148, 163, 184, 0.25);
+          background: rgba(15, 23, 42, 0.65);
+          color: #fbbf24;
+          text-decoration: none;
+        }
+        html:not(.rr-native-app) #admin-mobile-home:active {
+          background: rgba(251, 191, 36, 0.18);
+        }
+      }
+      #admin-drawer-home {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        margin-bottom: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: rgba(15, 23, 42, 0.75);
+        color: #e2e8f0;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      }
+      #admin-drawer-home:hover,
+      #admin-drawer-home:focus-visible {
+        background: rgba(30, 64, 175, 0.35);
+        border-color: rgba(251, 191, 36, 0.45);
+        color: #fbbf24;
+        outline: none;
+      }
+      #admin-menu-bar-home {
+        display: none;
+        margin-left: auto;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        background: rgba(15, 23, 42, 0.55);
+        color: #fbbf24;
+        text-decoration: none;
+        flex-shrink: 0;
+      }
+      body.mobile-app #admin-menu-bar-home {
+        display: inline-flex;
+      }
+
       body.mobile-app #admin-sidebar-overlay,
       html:not(.rr-native-app) #admin-sidebar-overlay {
         display: block;
@@ -930,6 +996,9 @@
         <span class="admin-app-bar-title truncate">Command Center</span>
         <span class="admin-app-bar-sub truncate">RedsRacing Admin</span>
       </div>
+      <a href="index.html" id="admin-menu-bar-home" aria-label="Back to RedsRacing home">
+        <i class="fas fa-home" aria-hidden="true"></i>
+      </a>
     </div>
     <div id="admin-sidebar-overlay" onclick="closeAdminDrawer()" aria-hidden="true"></div>
 
@@ -984,8 +1053,11 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
           </svg>
         </button>
-        <a href="index.html" class="rr-brand text-2xl sm:text-4xl font-racing uppercase tracking-wider min-w-0 truncate flex-1 md:flex-none">
+        <a href="index.html" class="rr-brand text-2xl sm:text-4xl font-racing uppercase tracking-wider min-w-0 truncate flex-1 md:flex-none" aria-label="RedsRacing home">
           <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+        </a>
+        <a href="index.html" id="admin-mobile-home" class="md:hidden" aria-label="Back to RedsRacing home" title="Home">
+          <i class="fas fa-home text-lg" aria-hidden="true"></i>
         </a>
         
         <!-- Navigation Links (desktop) -->
@@ -1079,6 +1151,15 @@
           </div>
           
           <nav class="space-y-1 flex-1 min-h-0 overflow-y-auto scrollbar-hide pb-2">
+            <!-- Leave admin → public site (mobile drawer / always available) -->
+            <div class="mb-3">
+              <h3 class="text-[10px] uppercase tracking-[0.2em] text-slate-500 px-3 mb-2 font-bold">Site</h3>
+              <a href="index.html" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300" data-admin-exit-home>
+                <i class="fas fa-home w-5 mr-3 text-amber-300" aria-hidden="true"></i>
+                <span>Back to home</span>
+              </a>
+            </div>
+
             <!-- Dashboard -->
             <div class="mb-3">
               <h3 class="text-[10px] uppercase tracking-[0.2em] text-slate-500 px-3 mb-2 font-bold">Dashboard</h3>
@@ -1189,6 +1270,10 @@
           </nav>
 
           <div id="admin-sidebar-app-footer" class="shrink-0 pt-4 mt-1 border-t border-slate-700/50">
+            <a href="index.html" id="admin-drawer-home" aria-label="Back to RedsRacing home">
+              <i class="fas fa-home" aria-hidden="true"></i>
+              <span>Back to home</span>
+            </a>
             <button type="button" id="mobile-logout-button" class="w-full bg-red-600 hover:bg-red-700 text-white p-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-900/25">
               <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
               <span>Sign Out</span>
