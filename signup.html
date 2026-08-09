@@ -18,10 +18,21 @@
     <link rel="stylesheet" href="styles/input-fix.css" />
     <script src="assets/js/guest-gate.js"></script>
     <script>
-      // Already logged in — skip signup entirely
+      // Already signed in — send them to their destination (not team.html)
       try {
         if (localStorage.getItem('rr_auth_uid')) {
-          window.location.replace('team.html');
+          var params = new URLSearchParams(location.search || '');
+          var rt = params.get('returnTo');
+          var dest = 'profile.html';
+          if (rt) {
+            try {
+              var decoded = decodeURIComponent(rt);
+              if (decoded && !decoded.startsWith('http') && !decoded.includes('..') && decoded.indexOf('signup') === -1) {
+                dest = decoded.replace(/^\//, '');
+              }
+            } catch (_) {}
+          }
+          window.location.replace(dest);
         }
       } catch(_) {}
     </script>
@@ -102,7 +113,7 @@
             <label class="block text-sm font-semibold text-slate-300 mb-4">Choose Your Role</label>
             <div class="space-y-3">
               <label class="role-card flex items-center p-4 rounded-xl border-2 border-slate-600 cursor-pointer hover:border-yellow-400 transition-all duration-300 bg-slate-800/50">
-                <input type="radio" name="team-role" value="fan" class="text-yellow-400 focus:ring-yellow-400 focus:ring-2 w-5 h-5" required />
+                <input type="radio" name="team-role" value="fan" class="text-yellow-400 focus:ring-yellow-400 focus:ring-2 w-5 h-5" required checked />
                 <div class="flex items-center space-x-4 w-full ml-3">
                   <div class="text-3xl role-icon">🏁</div>
                   <div class="flex-1">
@@ -141,7 +152,7 @@
           >
             Create Account
           </button>
-          <div id="signup-error" style="color: red; margin-top: 8px"></div>
+          <div id="signup-error" class="text-sm font-semibold mt-3 min-h-[1.25rem]" style="color:#f87171" role="alert" aria-live="polite"></div>
         </form>
 
         <!-- Divider -->
@@ -191,6 +202,6 @@
       </p>
     </div>
 
-    <script type="module" src="assets/js/signup-page.js"></script>
+    <script type="module" src="assets/js/signup-page.js?v=2026080904"></script>
   </body>
 </html>

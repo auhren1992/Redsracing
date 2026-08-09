@@ -150,7 +150,8 @@ exports.processInvitationCode = onCall({ secrets: ["SENTRY_DSN"] }, async (reque
       return { status: "error", message: "This invitation code has expired." };
     }
 
-    if (codeData.used === true) {
+    const reusable = codeData.reusable === true;
+    if (codeData.used === true && !reusable) {
       logger.warn(
         `Already used invitation code '${code}' attempted by ${uid}.`,
       );
@@ -173,13 +174,21 @@ exports.processInvitationCode = onCall({ secrets: ["SENTRY_DSN"] }, async (reque
     logger.info(`Assigning role '${roleToAssign}' to user ${uid}.`);
     await auth.setCustomUserClaims(uid, { role: roleToAssign });
 
-    // 4. Mark the invitation code as used with tracking information
-    await codeDoc.ref.update({
-      used: true,
-      usedBy: uid,
-      usedAt: FieldValue.serverTimestamp(),
-    });
-    logger.info(`Marked invitation code '${code}' as used by ${uid}.`);
+    // 4. Mark the invitation code as used (skip for reusable bootstrap codes)
+    if (!reusable) {
+      await codeDoc.ref.update({
+        used: true,
+        usedBy: uid,
+        usedAt: FieldValue.serverTimestamp(),
+      });
+      logger.info(`Marked invitation code '${code}' as used by ${uid}.`);
+    } else {
+      await codeDoc.ref.update({
+        lastUsedBy: uid,
+        lastUsedAt: FieldValue.serverTimestamp(),
+      });
+      logger.info(`Reusable invitation code '${code}' used by ${uid}.`);
+    }
 
     // 5. Update user's public profile with the new role
     // This is useful for client-side checks without needing to refresh the ID token
@@ -213,6 +222,7 @@ exports.processInvitationCode = onCall({ secrets: ["SENTRY_DSN"] }, async (reque
 
     return {
       status: "success",
+      role: roleToAssign,
       message: `Role '${roleToAssign}' assigned successfully.`,
     };
   } catch (error) {

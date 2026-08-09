@@ -215,13 +215,34 @@
     }
 
     // ---- INIT ----
-    au.onAuthStateChanged(async function(u){
-      if(!u){window.location.replace('../signup.html');return;}
-      try{localStorage.setItem('rr_auth_uid',u.uid);}catch(_){}
-      document.getElementById('ld').classList.add('hid');
-      document.getElementById('content').classList.remove('hid');
-      loadSection('home');
-    });
+    (function initAuthGate(){
+      var settled = false;
+      var redirectTimer = null;
+      au.onAuthStateChanged(async function(u){
+        if(u){
+          settled = true;
+          if(redirectTimer){clearTimeout(redirectTimer);redirectTimer=null;}
+          try{localStorage.setItem('rr_auth_uid',u.uid);}catch(_){}
+          document.getElementById('ld').classList.add('hid');
+          document.getElementById('content').classList.remove('hid');
+          loadSection('home');
+          return;
+        }
+        if(settled){
+          window.location.replace('../login.html?returnTo='+encodeURIComponent('racer/dashboard.html'));
+          return;
+        }
+        if(redirectTimer) clearTimeout(redirectTimer);
+        redirectTimer = setTimeout(function(){
+          if(au.currentUser) return;
+          var hasMarker=false;
+          try{hasMarker=!!localStorage.getItem('rr_auth_uid');}catch(_){}
+          window.location.replace(hasMarker
+            ? '../login.html?returnTo='+encodeURIComponent('racer/dashboard.html')
+            : '../signup.html?returnTo='+encodeURIComponent('racer/dashboard.html'));
+        }, 2200);
+      });
+    })();
   </script>
   <script src="../main.js"></script>
   <script type="module" src="../navigation.js?v=2026080903"></script>

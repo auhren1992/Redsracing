@@ -32,9 +32,8 @@ export async function validateInvitationCode(code) {
   if (!code) {
     return { valid: false, message: "No code provided." };
   }
-  // This function would typically call a backend endpoint to validate the code
-  // For now, we'll just do a basic client-side check
-  if (code.length < 6) {
+  // Soft client hint only — real validation is server-side
+  if (!String(code).trim()) {
     return { valid: false, message: "Invalid invitation code." };
   }
   return { valid: true };
