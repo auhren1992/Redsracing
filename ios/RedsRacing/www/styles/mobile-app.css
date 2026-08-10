@@ -75,6 +75,16 @@ header, .navbar, .navigation, .header-nav {
   display: none !important;
 }
 
+/* Native shell owns navigation — never show browser hamburger / tab drawer overlays. */
+#mobile-menu-button[data-rr-orphan="1"],
+#mobile-menu-tabs,
+#mobile-menu,
+#mobile-menu-overlay {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* Main container adjustments */
 main {
   padding: var(--spacing-md) !important;

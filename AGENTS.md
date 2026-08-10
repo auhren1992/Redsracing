@@ -2,6 +2,12 @@
 
 ## Cursor Cloud specific instructions
 
+### Native app WebView nav (Android / iOS)
+
+- Hosted pages load inside the app WebView (`https://www.redsracing.org/...`). Native bottom nav owns destinations — **do not** install browser hamburger / `#mobile-menu-tabs` in that shell.
+- `mobile-menu-tabs.js` must short-circuit when `__RR_NATIVE_APP__`, `html.rr-native-app`, `body.mobile-app`, `RedsRacingApp/` UA, or Android bridges are present.
+- Android `MainActivity` sets `__RR_NATIVE_APP__='android'` via document-start JS (same idea as LoginActivity / iOS).
+
 ### Mobile web nav (browser, not native app)
 
 - Many pages load **both** classic `#mobile-menu` (accordion) and tabbed `#mobile-menu-tabs` (`assets/js/mobile-menu-tabs.js`). Only one must own the hamburger.
