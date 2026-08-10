@@ -2,6 +2,12 @@
 
 ## Cursor Cloud specific instructions
 
+### Codacy
+
+- Project grade is weighted (issues + complexity + duplication + coverage). Large mirrored `android/**` / `ios/**` www bundles amplify finding counts.
+- After opening or updating a PR, inspect **Codacy Static Code Analysis** check-run annotations. Prefer fixing canonical sources then `npm run sync:mobile` — do not hand-edit mirrored copies.
+- Keep cyclomatic complexity of helpers under Codacy’s threshold (~8); split large HTML/JS handlers instead of growing them.
+
 ### Mobile web nav (browser, not native app)
 
 - Many pages load **both** classic `#mobile-menu` (accordion) and tabbed `#mobile-menu-tabs` (`assets/js/mobile-menu-tabs.js`). Only one must own the hamburger.

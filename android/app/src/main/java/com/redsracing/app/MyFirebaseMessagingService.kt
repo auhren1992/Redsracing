@@ -20,6 +20,53 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             Log.d(TAG, "New FCM token: $token")
         }
         subscribeToAppTopics()
+        reportAppUsage(token)
+    }
+
+    /** Keep Firestore app_usage in sync when FCM rotates the token. */
+    private fun reportAppUsage(fcmToken: String) {
+        try {
+            val pm = packageManager
+            val pkg = packageName
+            val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                pm.getPackageInfo(pkg, android.content.pm.PackageManager.PackageInfoFlags.of(0)).longVersionCode.toInt()
+            } else {
+                @Suppress("DEPRECATION")
+                pm.getPackageInfo(pkg, 0).versionCode
+            }
+            val versionName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                pm.getPackageInfo(pkg, android.content.pm.PackageManager.PackageInfoFlags.of(0)).versionName
+            } else {
+                @Suppress("DEPRECATION")
+                pm.getPackageInfo(pkg, 0).versionName
+            }
+            val user = try { com.google.firebase.auth.FirebaseAuth.getInstance().currentUser } catch (_: Exception) { null }
+            val usageData = hashMapOf(
+                "platform" to "android",
+                "app_version" to versionCode,
+                "app_version_code" to versionCode,
+                "app_version_name" to (versionName ?: ""),
+                "fcm_token" to fcmToken,
+                "device_manufacturer" to Build.MANUFACTURER,
+                "device_brand" to Build.BRAND,
+                "device_model" to Build.MODEL,
+                "device" to Build.DEVICE,
+                "android_version" to Build.VERSION.RELEASE,
+                "os_version" to Build.VERSION.RELEASE,
+                "os_sdk" to Build.VERSION.SDK_INT,
+                "auth_uid" to (user?.uid ?: ""),
+                "auth_email" to (user?.email ?: ""),
+                "last_seen" to com.google.firebase.Timestamp.now()
+            )
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("app_usage")
+                .document(fcmToken)
+                .set(usageData)
+                .addOnSuccessListener { Log.d(TAG, "App usage reported from onNewToken") }
+                .addOnFailureListener { e -> Log.w(TAG, "Failed to report app usage from onNewToken", e) }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reporting app usage from onNewToken", e)
+        }
     }
     
     private fun subscribeToAppTopics() {
