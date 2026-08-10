@@ -1212,14 +1212,14 @@
           <i class="fas fa-star" style="color: #fbbf24;"></i> FOLLOW REDSRACING
         </h2>
         <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 2rem; font-size: 1.125rem;">
-          Get race reminders, exclusive updates, and behind-the-scenes content delivered right to your device.
+          Get race reminders, schedule-change alerts, and team updates on this device — works in the Android &amp; iOS apps.
         </p>
         <button id="follow-team-btn" onclick="handleFollowTeam()" style="background: linear-gradient(45deg, #fbbf24, #f59e0b); color: #000; padding: 1rem 2.5rem; border-radius: 0.75rem; font-weight: 700; font-size: 1.125rem; border: none; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem;">
           <i class="fas fa-bell"></i>
           <span>Enable Notifications</span>
         </button>
         <p style="color: rgba(255, 255, 255, 0.5); margin-top: 1rem; font-size: 0.875rem;">
-          Never miss a race or team update again
+          Never miss a race or schedule update again
         </p>
       </div>
     </div>
@@ -1703,115 +1703,76 @@
         }
       }
       
-      // Follow Team Handler
+      // Follow Team Handler — uses native FCM bridges inside Android/iOS apps.
       async function handleFollowTeam() {
         const btn = document.getElementById('follow-team-btn');
-        
+        const api = window.RRNativeNotifications;
+
         try {
-          // Track the follow action
-          trackEvent('follow_team_click', { source: 'homepage_follow_section' });
-          
-          // Check if notifications are supported
-          if (!('Notification' in window)) {
-            btn.innerHTML = '<i class="fas fa-times"></i> <span>Not Supported</span>';
-            btn.style.background = 'linear-gradient(45deg, #ef4444, #dc2626)';
-            
-            alert('Your browser does not support notifications. Please use Chrome, Firefox, Safari, or Edge.');
-            
-            setTimeout(() => {
-              btn.innerHTML = '<i class="fas fa-bell"></i> <span>Enable Notifications</span>';
-              btn.style.background = 'linear-gradient(45deg, #fbbf24, #f59e0b)';
-            }, 3000);
+          trackEvent('follow_team_click', {
+            source: 'homepage_follow_section',
+            native: !!(api && api.isNativeApp && api.isNativeApp())
+          });
+
+          if (!api || typeof api.enable !== 'function') {
+            alert('Notification helper failed to load. Pull to refresh and try again.');
             return;
           }
-          
-          // Check current permission state
-          const currentPermission = Notification.permission;
-          
-          if (currentPermission === 'granted') {
-            // Already granted
-            btn.innerHTML = '<i class="fas fa-check"></i> <span>Already Following!</span>';
-            btn.style.background = 'linear-gradient(45deg, #10b981, #059669)';
-            trackEvent('follow_team_already_granted', { permission: 'granted' });
-            return;
-          }
-          
-          if (currentPermission === 'denied') {
-            // Previously denied - show instructions
-            btn.innerHTML = '<i class="fas fa-info-circle"></i> <span>Blocked</span>';
-            btn.style.background = 'linear-gradient(45deg, #ef4444, #dc2626)';
-            
-            trackEvent('follow_team_blocked', { permission: 'denied' });
-            
-            // Show instructions to reset
-            const instructions = `Notifications are blocked. To enable:\n\n` +
-              `Chrome/Edge: Click the lock icon 🔒 in the address bar → Notifications → Allow\n` +
-              `Firefox: Click the shield icon 🛡️ → Permissions → Notifications → Allow\n` +
-              `Safari: Safari menu → Settings for This Website → Notifications → Allow`;
-            
-            alert(instructions);
-            
-            setTimeout(() => {
-              btn.innerHTML = '<i class="fas fa-bell"></i> <span>Enable Notifications</span>';
-              btn.style.background = 'linear-gradient(45deg, #fbbf24, #f59e0b)';
-            }, 3000);
-            return;
-          }
-          
-          // Request permission (only works if not previously denied)
-          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Requesting...</span>';
+
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Enabling...</span>';
           btn.disabled = true;
-          
-          const permission = await Notification.requestPermission();
-          btn.disabled = false;
-          
-          if (permission === 'granted') {
-            btn.innerHTML = '<i class="fas fa-check"></i> <span>Notifications Enabled!</span>';
-            btn.style.background = 'linear-gradient(45deg, #10b981, #059669)';
-            
-            trackEvent('follow_team_success', { permission: 'granted' });
-            
-            // Show a test notification
-            new Notification('RedsRacing', {
-              body: '🏁 You\'re now following the team! You\'ll get race updates and exclusive content.',
-              icon: 'favicon.ico',
-              badge: 'favicon.ico'
+
+          const result = await api.enable();
+          const status = (result && result.status) || 'error';
+
+          if (status === 'granted' || status === 'already') {
+            api.applyFollowButtonState(btn, 'granted');
+            trackEvent('follow_team_success', {
+              permission: 'granted',
+              platform: (result && result.platform) || 'unknown',
+              already: status === 'already'
             });
-            
-            // Update button after delay
             setTimeout(() => {
               btn.innerHTML = '<i class="fas fa-bell"></i> <span>You\'re Following!</span>';
-            }, 2000);
-          } else if (permission === 'denied') {
-            btn.innerHTML = '<i class="fas fa-times"></i> <span>Access Denied</span>';
-            btn.style.background = 'linear-gradient(45deg, #ef4444, #dc2626)';
-            
-            trackEvent('follow_team_denied', { permission: 'denied' });
-            
-            setTimeout(() => {
-              btn.innerHTML = '<i class="fas fa-bell"></i> <span>Enable Notifications</span>';
-              btn.style.background = 'linear-gradient(45deg, #fbbf24, #f59e0b)';
-            }, 3000);
-          } else {
-            // 'default' - user dismissed the prompt
-            btn.innerHTML = '<i class="fas fa-undo"></i> <span>Try Again</span>';
-            trackEvent('follow_team_dismissed', { permission: 'default' });
-            
-            setTimeout(() => {
-              btn.innerHTML = '<i class="fas fa-bell"></i> <span>Enable Notifications</span>';
-            }, 2000);
+            }, 1800);
+            return;
           }
+
+          if (status === 'denied') {
+            api.applyFollowButtonState(btn, 'denied');
+            trackEvent('follow_team_denied', { permission: 'denied', platform: result.platform || 'unknown' });
+            const tips = (api.isNativeApp && api.isNativeApp())
+              ? 'Notifications are blocked. Open your device Settings → RedsRacing → Notifications and turn them on, then tap Enable again.'
+              : 'Notifications are blocked in this browser. Use the lock/site settings icon to allow Notifications for redsracing.org.';
+            alert(tips);
+            setTimeout(() => api.applyFollowButtonState(btn, 'denied'), 50);
+            return;
+          }
+
+          if (status === 'unsupported') {
+            btn.innerHTML = '<i class="fas fa-times"></i> <span>Not Supported</span>';
+            btn.style.background = 'linear-gradient(45deg, #ef4444, #dc2626)';
+            btn.disabled = false;
+            trackEvent('follow_team_unsupported', { message: result.message || '' });
+            alert(result.message || 'Notifications are not supported on this device.');
+            setTimeout(() => api.applyFollowButtonState(btn, 'default'), 3000);
+            return;
+          }
+
+          btn.innerHTML = '<i class="fas fa-undo"></i> <span>Try Again</span>';
+          btn.disabled = false;
+          trackEvent('follow_team_dismissed', { status: status });
+          setTimeout(() => api.applyFollowButtonState(btn, 'default'), 2200);
         } catch (error) {
           console.error('Follow error:', error);
           btn.innerHTML = '<i class="fas fa-exclamation"></i> <span>Error</span>';
           btn.style.background = 'linear-gradient(45deg, #ef4444, #dc2626)';
           btn.disabled = false;
-          
-          trackEvent('follow_team_error', { error: error.message });
-          
+          trackEvent('follow_team_error', { error: error && error.message ? error.message : String(error) });
           setTimeout(() => {
-            btn.innerHTML = '<i class="fas fa-bell"></i> <span>Enable Notifications</span>';
-            btn.style.background = 'linear-gradient(45deg, #fbbf24, #f59e0b)';
+            if (window.RRNativeNotifications) {
+              window.RRNativeNotifications.applyFollowButtonState(btn, 'default');
+            }
           }, 3000);
         }
       }
@@ -1824,6 +1785,7 @@
     <div style="text-align: center; margin: 40px 0; padding: 0 20px;">
       
     </div>
+      <script src="assets/js/native-notifications.js?v=20260810"></script>
       <script src="assets/js/homepage-pulse.js?v=20260810"></script>
       <script src="assets/js/cookie-consent.js"></script>
   </body>

@@ -120,6 +120,23 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
                 }
             }
         }
+        // If the user already granted notification permission, also join race/schedule topics.
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            switch settings.authorizationStatus {
+            case .authorized, .provisional, .ephemeral:
+                for topic in ["race_reminders", "schedule_updates"] {
+                    Messaging.messaging().subscribe(toTopic: topic) { error in
+                        if let error = error {
+                            print("Failed to subscribe to \(topic): \(error.localizedDescription)")
+                        } else {
+                            print("Subscribed to \(topic)")
+                        }
+                    }
+                }
+            default:
+                break
+            }
+        }
     }
 
     // Show banner while app is foregrounded

@@ -9,7 +9,7 @@
 
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onDocumentCreated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 const Sentry = require("@sentry/node");
 let __dsn = process.env.SENTRY_DSN;
 try {
@@ -1297,7 +1297,7 @@ exports.sendPushNotification = onDocumentCreated(
         return;
       }
       
-      const { platform, title, message } = notificationData;
+      const { platform, title, message, topics: customTopics, deeplink } = notificationData;
       
       if (!title || !message) {
         throw new Error('Missing title or message');
@@ -1307,22 +1307,26 @@ exports.sendPushNotification = onDocumentCreated(
       const { getMessaging } = require('firebase-admin/messaging');
       const messaging = getMessaging();
       
-      // Determine which topics to send to based on platform
+      // Determine which topics to send to based on platform / explicit topics
       let topics = [];
-      switch (platform) {
-        case 'all':
-        case 'both':
-          // Send to both Android and iOS separately
-          topics = ['android_users', 'ios_users'];
-          break;
-        case 'android':
-          topics = ['android_users'];
-          break;
-        case 'ios':
-          topics = ['ios_users'];
-          break;
-        default:
-          throw new Error(`Unknown platform: ${platform}`);
+      if (Array.isArray(customTopics) && customTopics.length) {
+        topics = customTopics.map(String);
+      } else {
+        switch (platform) {
+          case 'all':
+          case 'both':
+            // Send to both Android and iOS separately
+            topics = ['android_users', 'ios_users'];
+            break;
+          case 'android':
+            topics = ['android_users'];
+            break;
+          case 'ios':
+            topics = ['ios_users'];
+            break;
+          default:
+            throw new Error(`Unknown platform: ${platform}`);
+        }
       }
       
       // Send messages to all topics
@@ -1332,6 +1336,10 @@ exports.sendPushNotification = onDocumentCreated(
           notification: {
             title: title,
             body: message,
+          },
+          data: {
+            deeplink: String(deeplink || 'schedule.html'),
+            url: String(deeplink || 'schedule.html'),
           },
           topic: topic,
         };
@@ -1416,77 +1424,182 @@ exports.autoNotifyLiveRaceStart = onDocumentCreated(
 );
 
 /**
- * Check for upcoming races and send reminders.
- * Runs every hour to check if any races are starting soon.
+ * Check for upcoming races and send push reminders.
+ * Uses Firestore `races` (schedule) with string dates like "2026-08-15".
+ * Runs every hour (America/Chicago).
  */
 exports.sendRaceDayReminders = onSchedule(
-  { schedule: 'every 60 minutes', secrets: ["SENTRY_DSN"] },
-  async (event) => {
+  { schedule: 'every 60 minutes', timeZone: 'America/Chicago', secrets: ["SENTRY_DSN"] },
+  async () => {
     logger.info('Checking for upcoming races to send reminders');
-    
+
     try {
       const db = getFirestore();
       const now = new Date();
-      const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
-      
-      // Check race_results collection for upcoming races
-      const upcomingRacesSnapshot = await db.collection('race_results')
-        .where('date', '>=', now)
-        .where('date', '<=', oneHourFromNow)
+      // America/Chicago calendar day
+      const chicagoNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+      const yyyy = chicagoNow.getFullYear();
+      const mm = String(chicagoNow.getMonth() + 1).padStart(2, '0');
+      const dd = String(chicagoNow.getDate()).padStart(2, '0');
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+      const tomorrow = new Date(chicagoNow.getTime() + 24 * 60 * 60 * 1000);
+      const tY = tomorrow.getFullYear();
+      const tM = String(tomorrow.getMonth() + 1).padStart(2, '0');
+      const tD = String(tomorrow.getDate()).padStart(2, '0');
+      const tomorrowStr = `${tY}-${tM}-${tD}`;
+
+      const racesSnap = await db.collection('races')
+        .where('date', 'in', [todayStr, tomorrowStr])
         .get();
-      
-      if (upcomingRacesSnapshot.empty) {
-        logger.info('No races starting in the next hour');
+
+      if (racesSnap.empty) {
+        logger.info('No races today/tomorrow for push reminders');
         return;
       }
-      
-      // Check if we already sent a notification for these races
+
+      const hour = chicagoNow.getHours();
       const notificationPromises = [];
-      
-      for (const raceDoc of upcomingRacesSnapshot.docs) {
-        const race = raceDoc.data();
+
+      for (const raceDoc of racesSnap.docs) {
+        const race = raceDoc.data() || {};
         const raceId = raceDoc.id;
-        
-        // Check if we already sent a reminder for this race
-        const existingNotification = await db.collection('push_notifications')
-          .where('raceId', '==', raceId)
-          .where('triggeredBy', '==', 'race_day_reminder')
-          .limit(1)
-          .get();
-        
-        if (!existingNotification.empty) {
-          logger.info(`Already sent reminder for race ${raceId}, skipping`);
-          continue;
+        const raceDate = String(race.date || '');
+        const trackName = race.track || race.eventName || race.title || 'the track';
+        const startTime = String(race.startTime || race.start_time || 'TBD');
+        const cityState = [race.city, race.state].filter(Boolean).join(', ');
+
+        // Day-before afternoon reminder (tomorrow's races, after 3pm local)
+        if (raceDate === tomorrowStr && hour >= 15) {
+          const existing = await db.collection('push_notifications')
+            .where('raceId', '==', raceId)
+            .where('triggeredBy', '==', 'race_day_before_reminder')
+            .limit(1)
+            .get();
+          if (existing.empty) {
+            notificationPromises.push(
+              db.collection('push_notifications').add({
+                title: '🏁 Race Tomorrow!',
+                message: `${trackName}${cityState ? ' (' + cityState + ')' : ''} is tomorrow${startTime && startTime !== 'TBD' ? ' · ' + startTime : ''}. Open the app for the schedule.`,
+                platform: 'all',
+                topics: ['race_reminders', 'android_users', 'ios_users'],
+                status: 'pending',
+                createdBy: 'system',
+                createdByEmail: 'auto@redsracing.org',
+                createdAt: FieldValue.serverTimestamp(),
+                autoTriggered: true,
+                triggeredBy: 'race_day_before_reminder',
+                raceId,
+                deeplink: 'schedule.html',
+              })
+            );
+          }
         }
-        
-        // Calculate time until race
-        const raceTime = race.date.toDate();
-        const minutesUntil = Math.round((raceTime - now) / 1000 / 60);
-        
-        const trackName = race.track || 'the track';
-        const driverName = race.driver || 'Jon Kirsch #8';
-        
-        notificationPromises.push(
-          db.collection('push_notifications').add({
-            title: '🏁 Race Starting Soon!',
-            message: `${driverName} races in ${minutesUntil} minutes at ${trackName}! Don't miss it.`,
-            platform: 'all',
-            status: 'pending',
-            createdBy: 'system',
-            createdByEmail: 'auto@redsracing.org',
-            createdAt: FieldValue.serverTimestamp(),
-            autoTriggered: true,
-            triggeredBy: 'race_day_reminder',
-            raceId: raceId,
-          })
-        );
+
+        // Race-day morning reminder (today's races, 7am–11am local)
+        if (raceDate === todayStr && hour >= 7 && hour < 12) {
+          const existing = await db.collection('push_notifications')
+            .where('raceId', '==', raceId)
+            .where('triggeredBy', '==', 'race_day_reminder')
+            .limit(1)
+            .get();
+          if (existing.empty) {
+            notificationPromises.push(
+              db.collection('push_notifications').add({
+                title: '🏁 Race Day!',
+                message: `We're racing today at ${trackName}${startTime && startTime !== 'TBD' ? ' · ' + startTime : ''}. Don't miss it!`,
+                platform: 'all',
+                topics: ['race_reminders', 'android_users', 'ios_users'],
+                status: 'pending',
+                createdBy: 'system',
+                createdByEmail: 'auto@redsracing.org',
+                createdAt: FieldValue.serverTimestamp(),
+                autoTriggered: true,
+                triggeredBy: 'race_day_reminder',
+                raceId,
+                deeplink: 'schedule.html',
+              })
+            );
+          }
+        }
       }
-      
+
       await Promise.all(notificationPromises);
-      logger.info(`Sent ${notificationPromises.length} race day reminder notifications`);
-      
+      logger.info(`Queued ${notificationPromises.length} race reminder notifications`);
     } catch (error) {
       logger.error('Failed to send race day reminders:', error);
+      try { Sentry.captureException(error); } catch (_) {}
+    }
+  }
+);
+
+/**
+ * Notify opted-in devices when a schedule race is created or key fields change.
+ */
+exports.autoNotifyScheduleUpdates = onDocumentWritten(
+  { document: 'races/{raceId}', secrets: ['SENTRY_DSN'] },
+  async (event) => {
+    try {
+      const before = event.data.before.exists ? event.data.before.data() : null;
+      const after = event.data.after.exists ? event.data.after.data() : null;
+      if (!after) return; // deleted — skip
+
+      const raceId = event.params.raceId;
+      const keys = ['date', 'track', 'eventName', 'startTime', 'city', 'state', 'type'];
+      let changed = !before;
+      if (before) {
+        for (const k of keys) {
+          if (String(before[k] ?? '') !== String(after[k] ?? '')) {
+            changed = true;
+            break;
+          }
+        }
+      }
+      if (!changed) return;
+
+      const trackName = after.track || after.eventName || after.title || 'Schedule update';
+      const dateStr = after.date || '';
+      const startTime = after.startTime || after.start_time || '';
+      const isNew = !before;
+      const title = isNew ? '📅 Schedule Update' : '📅 Race Details Updated';
+      const message = isNew
+        ? `New race added: ${trackName}${dateStr ? ' on ' + dateStr : ''}${startTime ? ' · ' + startTime : ''}.`
+        : `${trackName}${dateStr ? ' on ' + dateStr : ''} was updated${startTime ? ' · ' + startTime : ''}. Check the schedule.`;
+
+      const db = getFirestore();
+      // Dedup: one schedule_update push per race per hour (filter in memory to avoid composite index)
+      const recent = await db.collection('push_notifications')
+        .where('raceId', '==', raceId)
+        .where('triggeredBy', '==', 'schedule_update')
+        .limit(5)
+        .get();
+      const oneHourAgoMs = Date.now() - 60 * 60 * 1000;
+      const hasRecent = recent.docs.some((d) => {
+        const ts = d.data().createdAt;
+        const ms = ts && ts.toMillis ? ts.toMillis() : 0;
+        return ms >= oneHourAgoMs;
+      });
+      if (hasRecent) {
+        logger.info('Skipping duplicate schedule_update push for', raceId);
+        return;
+      }
+
+      await db.collection('push_notifications').add({
+        title,
+        message,
+        platform: 'all',
+        topics: ['schedule_updates', 'android_users', 'ios_users'],
+        status: 'pending',
+        createdBy: 'system',
+        createdByEmail: 'auto@redsracing.org',
+        createdAt: FieldValue.serverTimestamp(),
+        autoTriggered: true,
+        triggeredBy: 'schedule_update',
+        raceId,
+        deeplink: 'schedule.html',
+      });
+      logger.info('Queued schedule update push for', raceId);
+    } catch (error) {
+      logger.error('autoNotifyScheduleUpdates failed:', error);
       try { Sentry.captureException(error); } catch (_) {}
     }
   }
@@ -1670,30 +1783,33 @@ exports.dispatchScheduledPushes = onSchedule(
       if (scheduledFor && scheduledFor > now) continue;
 
       try {
-        const topic   = d.topic || 'all';
-        const message = {
-          notification: {
-            title: d.title || 'RedsRacing Update',
-            body:  d.body  || '',
-          },
-          data: {
-            deeplink: d.deeplink || '/',
-            click_action: 'FLUTTER_NOTIFICATION_CLICK',
-          },
-          topic: topic,
-        };
+        let topic = d.topic || 'all';
+        // Apps subscribe to android_users / ios_users / race_reminders / schedule_updates —
+        // map legacy "all" to the platform topics devices actually join.
+        const topics = topic === 'all' || topic === 'both'
+          ? ['android_users', 'ios_users']
+          : [topic];
 
-        await messaging.sendToTopic(topic, {
-          notification: { title: message.notification.title, body: message.notification.body },
-          data: message.data,
-        });
+        for (const t of topics) {
+          await messaging.send({
+            notification: {
+              title: d.title || 'RedsRacing Update',
+              body: d.body || '',
+            },
+            data: {
+              deeplink: String(d.deeplink || '/'),
+              click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            },
+            topic: t,
+          });
+        }
 
         await doc.ref.update({
           status:     'sent',
           sentAt:     FieldValue.serverTimestamp(),
         });
 
-        logger.info('dispatchScheduledPushes: sent push to topic', topic, d.title);
+        logger.info('dispatchScheduledPushes: sent push to topics', topics.join(','), d.title);
       } catch (err) {
         logger.error('dispatchScheduledPushes: failed to send', doc.id, err);
         await doc.ref.update({ status: 'failed', error: String(err) });
