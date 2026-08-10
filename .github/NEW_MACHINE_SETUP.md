@@ -11,7 +11,7 @@ git checkout main
 git pull origin main
 ```
 
-Latest mobile release on `main` (when this doc was added): **11.2.17 (203)** — settings.html header/hamburger fix + mobile web sync.
+Latest mobile release on `main` (when this doc was added): **11.2.18 (204)** — Releases check-in telemetry + device/OS reporting.
 
 ## Already in Git (you get everything below with `git pull`)
 

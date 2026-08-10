@@ -941,10 +941,41 @@
         pointer-events: auto;
       }
 
-      /* Phone + tablet: Command Center as left sheet (matches mobile-web ≤1023.98px) */
+      /* Native WebView: left sheet at ALL widths (incl. landscape / tablet). */
+      body.mobile-app #admin-sidebar.admin-sidebar {
+        display: flex !important;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        height: 100dvh;
+        width: min(20.5rem, 90vw);
+        max-width: 22rem;
+        z-index: 10050;
+        margin: 0;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        transform: translate3d(-105%, 0, 0);
+        transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+        box-shadow: 20px 0 80px rgba(0, 0, 0, 0.55);
+        border-right: 1px solid rgba(251, 191, 36, 0.12);
+        -webkit-overflow-scrolling: touch;
+        will-change: transform;
+      }
+      body.mobile-app.drawer-sidebar-open #admin-sidebar.admin-sidebar {
+        transform: translate3d(0, 0, 0);
+      }
+      body.mobile-app #admin-sidebar-app-footer {
+        display: block !important;
+      }
+      body.mobile-app .admin-sidebar-close {
+        display: inline-flex !important;
+      }
+
+      /* Phone + tablet web: Command Center as left sheet (matches mobile-web ≤1023.98px) */
       @media (max-width: 1023.98px) {
-        html:not(.rr-native-app) #admin-sidebar.admin-sidebar,
-        body.mobile-app #admin-sidebar.admin-sidebar {
+        html:not(.rr-native-app) #admin-sidebar.admin-sidebar {
           display: flex !important;
           flex-direction: column;
           position: fixed;
@@ -966,15 +997,13 @@
           /* Keep off-canvas drawer out of document scroll width */
           will-change: transform;
         }
-        body.drawer-sidebar-open #admin-sidebar.admin-sidebar {
+        html:not(.rr-native-app) body.drawer-sidebar-open #admin-sidebar.admin-sidebar {
           transform: translate3d(0, 0, 0);
         }
-        html:not(.rr-native-app) #admin-sidebar-app-footer,
-        body.mobile-app #admin-sidebar-app-footer {
+        html:not(.rr-native-app) #admin-sidebar-app-footer {
           display: block !important;
         }
-        html:not(.rr-native-app) .admin-sidebar-close,
-        body.mobile-app .admin-sidebar-close {
+        html:not(.rr-native-app) .admin-sidebar-close {
           display: inline-flex !important;
         }
         html:not(.rr-native-app) .admin-main,
@@ -2662,11 +2691,15 @@
                     <div class="grid grid-cols-2 gap-3">
                       <div>
                         <label class="block text-xs text-slate-400 mb-1">Latest Version Code</label>
-                        <input type="number" id="android-latest-version" class="modern-input w-full p-2 text-white text-sm" placeholder="91" />
+                        <input type="number" id="android-latest-version" class="modern-input w-full p-2 text-white text-sm" placeholder="204" />
                       </div>
                       <div>
                         <label class="block text-xs text-slate-400 mb-1">Minimum Required</label>
-                        <input type="number" id="android-min-version" class="modern-input w-full p-2 text-white text-sm" placeholder="85" />
+                        <input type="number" id="android-min-version" class="modern-input w-full p-2 text-white text-sm" placeholder="200" />
+                      </div>
+                      <div class="col-span-2">
+                        <label class="block text-xs text-slate-400 mb-1">Version Name (store marketing)</label>
+                        <input type="text" id="android-version-name" class="modern-input w-full p-2 text-white text-sm" placeholder="11.2.18" />
                       </div>
                     </div>
                     <div class="mt-2">
@@ -2683,11 +2716,15 @@
                     <div class="grid grid-cols-2 gap-3">
                       <div>
                         <label class="block text-xs text-slate-400 mb-1">Latest Version Code</label>
-                        <input type="number" id="ios-latest-version" class="modern-input w-full p-2 text-white text-sm" placeholder="91" />
+                        <input type="number" id="ios-latest-version" class="modern-input w-full p-2 text-white text-sm" placeholder="204" />
                       </div>
                       <div>
                         <label class="block text-xs text-slate-400 mb-1">Minimum Required</label>
-                        <input type="number" id="ios-min-version" class="modern-input w-full p-2 text-white text-sm" placeholder="85" />
+                        <input type="number" id="ios-min-version" class="modern-input w-full p-2 text-white text-sm" placeholder="200" />
+                      </div>
+                      <div class="col-span-2">
+                        <label class="block text-xs text-slate-400 mb-1">Version Name (store marketing)</label>
+                        <input type="text" id="ios-version-name" class="modern-input w-full p-2 text-white text-sm" placeholder="11.2.18" />
                       </div>
                     </div>
                     <div class="mt-2">
@@ -3519,12 +3556,21 @@
           <!-- Releases -->
           <div id="releases-section" class="space-y-6 hidden">
             <div class="admin-card rounded-xl p-6">
-              <div class="flex items-center justify-between mb-6">
+              <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div>
                   <h2 class="text-2xl font-bold text-white flex items-center"><i class="fas fa-rocket text-indigo-400 mr-3"></i>Deployment & Releases</h2>
-                  <p class="text-slate-400 text-sm mt-1">Active versions, version distribution, recent deployments</p>
+                  <p class="text-slate-400 text-sm mt-1">Live app versions, device check-ins, and Android/iOS distribution from <code class="text-slate-300">app_usage</code></p>
                 </div>
-                <button id="refresh-releases-btn" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center"><i class="fas fa-sync mr-2"></i>Refresh</button>
+                <div class="flex flex-wrap items-center gap-2">
+                  <label class="inline-flex items-center gap-2 text-xs text-slate-300 bg-slate-800/50 border border-slate-700/50 px-3 py-2 rounded-lg cursor-pointer">
+                    <input type="checkbox" id="releases-active-only" class="rounded border-slate-600" checked />
+                    Active only (seen ≤7d)
+                  </label>
+                  <button id="send-checkin-ping-btn" type="button" class="success-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                    <i class="fas fa-bell mr-2"></i>Send check-in ping
+                  </button>
+                  <button id="refresh-releases-btn" type="button" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center"><i class="fas fa-sync mr-2"></i>Refresh</button>
+                </div>
               </div>
               <div id="releases-content" class="space-y-4"><div class="text-slate-500 text-center py-8">Loading release data...</div></div>
             </div>
@@ -4156,35 +4202,233 @@
           } catch(e) { console.error('loadDataQuality error:', e); container.innerHTML = '<div class="text-red-400 text-center py-4">Quality check failed</div>'; }
         }
 
+        function releasesToMillis(ts) {
+          try {
+            if (!ts) return null;
+            if (ts.toMillis) return ts.toMillis();
+            const d = ts.toDate ? ts.toDate() : new Date(ts);
+            const n = d.getTime();
+            return Number.isFinite(n) ? n : null;
+          } catch (_) { return null; }
+        }
+
+        function releasesFmtAgo(ms) {
+          if (!ms) return 'never';
+          const mins = Math.floor((Date.now() - ms) / 60000);
+          if (mins < 60) return mins + 'm ago';
+          const hrs = Math.floor(mins / 60);
+          if (hrs < 48) return hrs + 'h ago';
+          return Math.floor(hrs / 24) + 'd ago';
+        }
+
+        function releasesEscape(s) {
+          return String(s ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+        }
+
+        function parseAppUsageDoc(docSnap) {
+          const v = docSnap.data() || {};
+          const platform = String(v.platform || '').toLowerCase();
+          if (platform !== 'android' && platform !== 'ios') return null;
+          const version =
+            extractVersionCode(v.app_version) ??
+            extractVersionCode(v.app_version_code) ??
+            extractVersionCode(v.versionCode) ??
+            extractVersionCode(v.appVersion) ??
+            null;
+          const versionName =
+            extractVersionName(v.app_version_name) ||
+            extractVersionName(v.appVersionName) ||
+            extractVersionName(v.versionName) ||
+            extractVersionName(v.app_version) ||
+            '';
+          const manufacturer = (v.device_manufacturer || v.manufacturer || '').trim();
+          const model = (v.device_model || v.model || '').trim();
+          const modelName = (v.device_model_name || v.device_brand || '').trim();
+          let deviceLabel = [manufacturer, model].filter(Boolean).join(' ') || model || manufacturer || '—';
+          if (modelName && modelName !== model && modelName.toLowerCase() !== manufacturer.toLowerCase()) {
+            deviceLabel += ' (' + modelName + ')';
+          }
+          const osRelease = (v.android_version || v.ios_version || v.os_version || '').trim();
+          const osSdk = v.os_sdk != null ? String(v.os_sdk) : '';
+          const osLabel = osSdk ? (osRelease + ' (API ' + osSdk + ')') : (osRelease || '—');
+          return {
+            id: docSnap.id,
+            platform,
+            version,
+            versionName,
+            deviceLabel,
+            osLabel,
+            lastSeenMs: releasesToMillis(v.last_seen) ?? releasesToMillis(v.lastSeen),
+            authUid: (v.auth_uid || '').trim(),
+            authEmail: (v.auth_email || '').trim()
+          };
+        }
+
+        function classifyReleaseStatus(version, latest, min) {
+          if (!version || !latest) return 'unknown';
+          if (min && version < min) return 'must_update';
+          if (version < latest) return 'update_available';
+          return 'up_to_date';
+        }
+
+        function buildVersionDist(list) {
+          const byCode = {};
+          const names = {};
+          list.forEach((d) => {
+            if (d.version == null) return;
+            byCode[d.version] = (byCode[d.version] || 0) + 1;
+            if (d.versionName) names[d.version] = d.versionName;
+          });
+          return { byCode, names };
+        }
+
+        function renderVersionDistBars(dist, colorClass) {
+          const entries = Object.entries(dist.byCode || {}).sort((a, b) => Number(b[0]) - Number(a[0]));
+          const total = entries.reduce((s, e) => s + e[1], 0);
+          if (!entries.length) return '<div class="text-slate-500 text-xs">No usage data</div>';
+          return entries.map(([ver, cnt]) => {
+            const pct = total ? ((cnt / total) * 100).toFixed(0) : '0';
+            const name = dist.names[ver] ? ' · ' + releasesEscape(dist.names[ver]) : '';
+            return `<div class="flex items-center justify-between text-xs gap-2">
+              <span class="text-slate-300">v${releasesEscape(ver)}${name}</span>
+              <div class="flex items-center space-x-2">
+                <div class="w-20 h-1.5 bg-slate-700 rounded"><div class="h-full ${colorClass} rounded" style="width:${pct}%"></div></div>
+                <span class="text-slate-400 w-14 text-right">${cnt} (${pct}%)</span>
+              </div>
+            </div>`;
+          }).join('');
+        }
+
+        function renderReleaseDeviceTable(platform, list, latest, min) {
+          const staleCutoff = Date.now() - 7 * 86400000;
+          const counts = { up_to_date: 0, update_available: 0, must_update: 0, unknown: 0, stale: 0 };
+          const rows = list.slice().sort((a, b) => (b.lastSeenMs || 0) - (a.lastSeenMs || 0)).map((d) => {
+            const status = classifyReleaseStatus(d.version, latest, min);
+            counts[status] = (counts[status] || 0) + 1;
+            const isStale = !d.lastSeenMs || d.lastSeenMs < staleCutoff;
+            if (isStale) counts.stale += 1;
+            const badge =
+              status === 'up_to_date' ? 'bg-green-500/15 text-green-300 border-green-500/30' :
+              status === 'update_available' ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30' :
+              status === 'must_update' ? 'bg-red-500/15 text-red-300 border-red-500/30' :
+              'bg-slate-500/10 text-slate-300 border-slate-500/20';
+            const label =
+              status === 'up_to_date' ? 'Up to date' :
+              status === 'update_available' ? 'Update available' :
+              status === 'must_update' ? 'Update required' : 'Unknown';
+            const who = releasesEscape(d.authEmail || d.authUid || '—');
+            const appLabel = 'v' + (d.version ?? '—') + (d.versionName ? ' (' + releasesEscape(d.versionName) + ')' : '');
+            const staleChip = isStale
+              ? '<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full border border-slate-600/40 text-slate-300 bg-slate-800/30">No check-in 7d+</span>'
+              : '';
+            return `<tr class="border-b border-slate-700/40">
+              <td class="py-2 pr-2 text-slate-200 text-xs font-semibold">${who}</td>
+              <td class="py-2 pr-2 text-slate-300 text-xs">${releasesEscape(d.deviceLabel)}</td>
+              <td class="py-2 pr-2 text-slate-300 text-xs font-mono">${appLabel}</td>
+              <td class="py-2 pr-2 text-slate-400 text-xs">${releasesEscape(d.osLabel)}</td>
+              <td class="py-2 pr-2 text-slate-400 text-xs">${releasesFmtAgo(d.lastSeenMs)}</td>
+              <td class="py-2 text-xs"><span class="inline-flex items-center px-2 py-0.5 rounded-full border ${badge}">${label}</span>${staleChip}</td>
+            </tr>`;
+          }).join('');
+
+          const icon = platform === 'android'
+            ? '<i class="fab fa-android text-green-400 mr-2"></i>Android'
+            : '<i class="fab fa-apple text-blue-400 mr-2"></i>iOS';
+          return `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+              <h4 class="text-white font-semibold text-sm">${icon}
+                <span class="text-slate-500 font-normal text-xs ml-2">${list.length} device(s) · config latest v${latest || '--'} · min v${min || '--'}</span>
+              </h4>
+              <div class="text-xs text-slate-300 space-x-2">
+                <span class="text-green-300">Up-to-date: ${counts.up_to_date}</span>
+                <span class="text-yellow-300">Update: ${counts.update_available}</span>
+                <span class="text-red-300">Required: ${counts.must_update}</span>
+                <span class="text-slate-400">Stale: ${counts.stale}</span>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full">
+                <thead><tr class="text-[11px] text-slate-500 border-b border-slate-700/50">
+                  <th class="text-left py-2 pr-2 font-semibold">User</th>
+                  <th class="text-left py-2 pr-2 font-semibold">Device</th>
+                  <th class="text-left py-2 pr-2 font-semibold">App version</th>
+                  <th class="text-left py-2 pr-2 font-semibold">OS / software</th>
+                  <th class="text-left py-2 pr-2 font-semibold">Last check-in</th>
+                  <th class="text-left py-2 font-semibold">Status</th>
+                </tr></thead>
+                <tbody>${rows || '<tr><td colspan="6" class="py-3 text-slate-500 text-sm">No devices in this filter.</td></tr>'}</tbody>
+              </table>
+            </div>
+          </div>`;
+        }
+
+        async function sendCheckInPing() {
+          const btn = document.getElementById('send-checkin-ping-btn');
+          try {
+            const role = await getUserRole();
+            if (!isModeratorRole(role)) {
+              showToast('Admin/team-member required to send check-in ping', 'error');
+              return;
+            }
+            if (!confirm('Send a push to all app users asking them to open the app so Releases can refresh who is still active?')) {
+              return;
+            }
+            if (btn) {
+              btn.disabled = true;
+              btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+            }
+            const { getFirestore, collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const auth = getAuth();
+            const payload = {
+              platform: 'both',
+              title: 'Quick check-in 🏁',
+              message: 'Open RedsRacing so we can confirm you are still active and on the latest app build. Thanks for riding with #8!',
+              timestamp: serverTimestamp(),
+              sentBy: auth.currentUser?.uid || null,
+              status: 'pending',
+              kind: 'app_checkin_ping'
+            };
+            await addDoc(collection(db, 'push_notifications'), payload);
+            await addDoc(collection(db, 'admin_logs'), {
+              action: 'app_checkin_ping_sent',
+              platform: 'both',
+              title: payload.title,
+              message: payload.message,
+              timestamp: serverTimestamp(),
+              uid: auth.currentUser?.uid || null,
+              actorEmail: auth.currentUser?.email || null,
+              role: role || 'unknown'
+            });
+            showToast('Check-in ping queued for Android + iOS');
+          } catch (e) {
+            console.error('sendCheckInPing failed', e);
+            showToast('Failed to send check-in ping', 'error');
+          } finally {
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-bell mr-2"></i>Send check-in ping';
+            }
+          }
+        }
+
         async function loadReleases() {
           const container = document.getElementById('releases-content');
           if (!container) return;
+          container.innerHTML = '<div class="text-slate-500 text-center py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Loading release data...</div>';
           try {
             const { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
             const app = await ensureDefaultApp();
             const db = getFirestore(app);
-            let html = '';
-            const msDay = 86400000;
-            const toMillis = (ts) => {
-              try {
-                if (!ts) return null;
-                if (ts.toMillis) return ts.toMillis();
-                const d = ts.toDate ? ts.toDate() : new Date(ts);
-                const n = d.getTime();
-                return Number.isFinite(n) ? n : null;
-              } catch (_) { return null; }
-            };
-            const fmtAgo = (ms) => {
-              if (!ms) return 'never';
-              const delta = Date.now() - ms;
-              const mins = Math.floor(delta / 60000);
-              if (mins < 60) return `${mins}m ago`;
-              const hrs = Math.floor(mins / 60);
-              if (hrs < 48) return `${hrs}h ago`;
-              const days = Math.floor(hrs / 24);
-              return `${days}d ago`;
-            };
-            // Active versions
+            const activeOnly = !!document.getElementById('releases-active-only')?.checked;
+            const staleCutoff = Date.now() - 7 * 86400000;
+
             const androidDoc = await getDoc(doc(db, 'app_config', 'android_version'));
             const iosDoc = await getDoc(doc(db, 'app_config', 'ios_version'));
             const av = androidDoc.exists() ? androidDoc.data() : {};
@@ -4193,151 +4437,73 @@
             const androidMin = Number(av.minimum_version || 0) || 0;
             const iosLatest = Number(iv.latest_version || 0) || 0;
             const iosMin = Number(iv.minimum_version || 0) || 0;
+            const androidName = av.version_name || av.latest_version_name || '';
+            const iosName = iv.version_name || iv.latest_version_name || '';
+
+            const usSnap = await getDocs(collection(db, 'app_usage'));
+            const all = { android: [], ios: [] };
+            usSnap.forEach((d) => {
+              const row = parseAppUsageDoc(d);
+              if (row) all[row.platform].push(row);
+            });
+
+            const filterList = (list) => activeOnly
+              ? list.filter((d) => d.lastSeenMs && d.lastSeenMs >= staleCutoff)
+              : list;
+            const androidList = filterList(all.android);
+            const iosList = filterList(all.ios);
+            const androidDist = buildVersionDist(androidList);
+            const iosDist = buildVersionDist(iosList);
+            const maxAndroid = Object.keys(androidDist.byCode).map(Number).filter(Number.isFinite).sort((a, b) => b - a)[0] || 0;
+            const maxIos = Object.keys(iosDist.byCode).map(Number).filter(Number.isFinite).sort((a, b) => b - a)[0] || 0;
+            const androidLag = maxAndroid && androidLatest && maxAndroid > androidLatest;
+            const iosLag = maxIos && iosLatest && maxIos > iosLatest;
+
+            let html = '';
             html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">`;
-            html += `<div class="bg-slate-800/50 border border-green-500/30 rounded-lg p-4"><div class="flex items-center space-x-2 mb-2"><i class="fab fa-android text-green-400"></i><span class="text-white font-semibold text-sm">Android</span></div><div class="text-2xl font-bold text-green-400">${av.latest_version || '--'}</div><div class="text-slate-500 text-xs">Min: ${av.minimum_version || '--'}</div></div>`;
-            html += `<div class="bg-slate-800/50 border border-blue-500/30 rounded-lg p-4"><div class="flex items-center space-x-2 mb-2"><i class="fab fa-apple text-blue-400"></i><span class="text-white font-semibold text-sm">iOS</span></div><div class="text-2xl font-bold text-blue-400">${iv.latest_version || '--'}</div><div class="text-slate-500 text-xs">Min: ${iv.minimum_version || '--'}</div></div>`;
-            html += `<div class="bg-slate-800/50 border border-indigo-500/30 rounded-lg p-4"><div class="flex items-center space-x-2 mb-2"><i class="fas fa-globe text-indigo-400"></i><span class="text-white font-semibold text-sm">Web</span></div><div class="text-2xl font-bold text-indigo-400">Live</div><div class="text-slate-500 text-xs">Firebase Hosting</div></div>`;
+            html += `<div class="bg-slate-800/50 border border-green-500/30 rounded-lg p-4"><div class="flex items-center space-x-2 mb-2"><i class="fab fa-android text-green-400"></i><span class="text-white font-semibold text-sm">Android (configured)</span></div><div class="text-2xl font-bold text-green-400">v${androidLatest || '--'}${androidName ? ' <span class="text-base text-slate-300">(' + releasesEscape(androidName) + ')</span>' : ''}</div><div class="text-slate-500 text-xs">Min build: ${androidMin || '--'} · Seen max: v${maxAndroid || '--'}${androidLag ? ' <span class="text-yellow-300">config behind store</span>' : ''}</div><div class="text-slate-500 text-xs mt-1">${androidList.length} ${activeOnly ? 'active' : 'total'} install(s)</div></div>`;
+            html += `<div class="bg-slate-800/50 border border-blue-500/30 rounded-lg p-4"><div class="flex items-center space-x-2 mb-2"><i class="fab fa-apple text-blue-400"></i><span class="text-white font-semibold text-sm">iOS (configured)</span></div><div class="text-2xl font-bold text-blue-400">v${iosLatest || '--'}${iosName ? ' <span class="text-base text-slate-300">(' + releasesEscape(iosName) + ')</span>' : ''}</div><div class="text-slate-500 text-xs">Min build: ${iosMin || '--'} · Seen max: v${maxIos || '--'}${iosLag ? ' <span class="text-yellow-300">config behind store</span>' : ''}</div><div class="text-slate-500 text-xs mt-1">${iosList.length} ${activeOnly ? 'active' : 'total'} install(s)</div></div>`;
+            html += `<div class="bg-slate-800/50 border border-indigo-500/30 rounded-lg p-4"><div class="flex items-center space-x-2 mb-2"><i class="fas fa-globe text-indigo-400"></i><span class="text-white font-semibold text-sm">Web</span></div><div class="text-2xl font-bold text-indigo-400">Live</div><div class="text-slate-500 text-xs">Firebase Hosting · filter: ${activeOnly ? 'active ≤7d' : 'all installs'}</div></div>`;
             html += `</div>`;
-            // Version distribution
+
+            if (androidLag || iosLag) {
+              html += `<div class="mb-4 text-xs text-yellow-200 bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2"><i class="fas fa-exclamation-triangle mr-2"></i>Configured latest build is behind devices already checking in. Update <strong>Settings → Mobile App → Version Config</strong> (e.g. Android/iOS latest = ${Math.max(maxAndroid, maxIos) || '203'}) so distribution status stays accurate.</div>`;
+            }
+
+            html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">`;
+            html += `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4"><h4 class="text-white font-semibold text-sm mb-2"><i class="fab fa-android text-green-400 mr-2"></i>Android distribution ${activeOnly ? '(active)' : '(all)'}</h4><div class="space-y-1">${renderVersionDistBars(androidDist, 'bg-green-500')}</div></div>`;
+            html += `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4"><h4 class="text-white font-semibold text-sm mb-2"><i class="fab fa-apple text-blue-400 mr-2"></i>iOS distribution ${activeOnly ? '(active)' : '(all)'}</h4><div class="space-y-1">${renderVersionDistBars(iosDist, 'bg-blue-500')}</div></div>`;
+            html += `</div>`;
+
+            html += `<div class="grid grid-cols-1 gap-4 mb-4">`;
+            html += renderReleaseDeviceTable('android', androidList, androidLatest, androidMin);
+            html += renderReleaseDeviceTable('ios', iosList, iosLatest, iosMin);
+            html += `</div>`;
+
             try {
-              const usSnap = await getDocs(collection(db, 'app_usage'));
-              const dist = { android: {}, ios: {} };
-              const devices = { android: [], ios: [] };
-              usSnap.forEach(d => {
-                const v = d.data() || {};
-                const platform = String(v.platform || '').toLowerCase();
-                const ver = extractVersionCode(v.app_version) ?? extractVersionCode(v.appVersion) ?? null;
-                if (platform === 'android' || platform === 'ios') {
-                  if (ver !== null) {
-                    dist[platform] = dist[platform] || {};
-                    dist[platform][ver] = (dist[platform][ver] || 0) + 1;
-                  }
-                  devices[platform].push({
-                    id: d.id,
-                    platform,
-                    version: ver,
-                    versionName: extractVersionName(v.app_version_name) || extractVersionName(v.appVersionName) || extractVersionName(v.app_version) || '',
-                    model: v.device_model || '',
-                    os: v.android_version || v.ios_version || '',
-                    lastSeenMs: toMillis(v.last_seen) ?? toMillis(v.lastSeen),
-                    authUid: (v.auth_uid || '').trim(),
-                    authEmail: (v.auth_email || '').trim(),
-                  });
-                }
-              });
-
-              const classify = (platform, version) => {
-                const latest = platform === 'android' ? androidLatest : iosLatest;
-                const min = platform === 'android' ? androidMin : iosMin;
-                if (!version || !latest) return 'unknown';
-                if (min && version < min) return 'must_update';
-                if (latest && version < latest) return 'update_available';
-                return 'up_to_date';
-              };
-              const renderDeviceTable = (platform, list) => {
-                const latest = platform === 'android' ? androidLatest : iosLatest;
-                const min = platform === 'android' ? androidMin : iosMin;
-                const staleCutoff = Date.now() - 7 * msDay;
-                const rows = list
-                  .slice()
-                  .sort((a,b) => (b.lastSeenMs||0) - (a.lastSeenMs||0))
-                  .map((d) => {
-                    const status = classify(platform, d.version);
-                    const isStale = !d.lastSeenMs || d.lastSeenMs < staleCutoff;
-                    const badge =
-                      status === 'up_to_date' ? 'bg-green-500/15 text-green-300 border-green-500/30' :
-                      status === 'update_available' ? 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30' :
-                      status === 'must_update' ? 'bg-red-500/15 text-red-300 border-red-500/30' :
-                      'bg-slate-500/10 text-slate-300 border-slate-500/20';
-                    const label =
-                      status === 'up_to_date' ? 'Up to date' :
-                      status === 'update_available' ? 'Update available' :
-                      status === 'must_update' ? 'Update required' :
-                      'Unknown';
-                    const staleChip = isStale ? `<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full border border-slate-600/40 text-slate-300 bg-slate-800/30">No check-in 7d+</span>` : '';
-                    const who = (d.authEmail || d.authUid) ? `${d.authEmail || d.authUid}` : '—';
-                    return `
-                      <tr class="border-b border-slate-700/40">
-                        <td class="py-2 pr-2 text-slate-200 text-xs font-semibold">${who}</td>
-                        <td class="py-2 pr-2 text-slate-400 text-xs">${d.model || '—'}</td>
-                        <td class="py-2 pr-2 text-slate-400 text-xs">v${d.version ?? '—'}${d.versionName ? ` (${d.versionName})` : ''}</td>
-                        <td class="py-2 pr-2 text-slate-400 text-xs">${d.os || '—'}</td>
-                        <td class="py-2 pr-2 text-slate-400 text-xs">${fmtAgo(d.lastSeenMs)}</td>
-                        <td class="py-2 text-xs">
-                          <span class="inline-flex items-center px-2 py-0.5 rounded-full border ${badge}">${label}</span>
-                          ${staleChip}
-                        </td>
-                      </tr>`;
-                  }).join('');
-
-                const counts = { up_to_date: 0, update_available: 0, must_update: 0, unknown: 0, stale: 0 };
-                list.forEach((d) => {
-                  const s = classify(platform, d.version);
-                  counts[s] = (counts[s] || 0) + 1;
-                  if (!d.lastSeenMs || d.lastSeenMs < (Date.now() - 7 * msDay)) counts.stale += 1;
-                });
-
-                return `
-                  <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
-                    <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
-                      <h4 class="text-white font-semibold text-sm">
-                        ${platform === 'android' ? '<i class="fab fa-android text-green-400 mr-2"></i>Android' : '<i class="fab fa-apple text-blue-400 mr-2"></i>iOS'}
-                        <span class="text-slate-500 font-normal text-xs ml-2">(latest v${latest || '--'}, min v${min || '--'})</span>
-                      </h4>
-                      <div class="text-xs text-slate-300 space-x-2">
-                        <span class="text-green-300">Up-to-date: ${counts.up_to_date}</span>
-                        <span class="text-yellow-300">Update: ${counts.update_available}</span>
-                        <span class="text-red-300">Required: ${counts.must_update}</span>
-                        <span class="text-slate-400">No check-in 7d+: ${counts.stale}</span>
-                      </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                      <table class="min-w-full">
-                        <thead>
-                          <tr class="text-[11px] text-slate-500 border-b border-slate-700/50">
-                            <th class="text-left py-2 pr-2 font-semibold">User</th>
-                            <th class="text-left py-2 pr-2 font-semibold">Device</th>
-                            <th class="text-left py-2 pr-2 font-semibold">App</th>
-                            <th class="text-left py-2 pr-2 font-semibold">OS</th>
-                            <th class="text-left py-2 pr-2 font-semibold">Last seen</th>
-                            <th class="text-left py-2 font-semibold">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody>${rows || `<tr><td colspan="6" class="py-3 text-slate-500 text-sm">No usage data yet.</td></tr>`}</tbody>
-                      </table>
-                    </div>
-                  </div>`;
-              };
-
-              const renderDist = (obj, color) => { const entries = Object.entries(obj).sort((a,b)=>b[1]-a[1]); const total = entries.reduce((s,e)=>s+e[1],0); return entries.length ? entries.map(([ver,cnt]) => { const pct = total?((cnt/total)*100).toFixed(0):'0'; return `<div class="flex items-center justify-between text-xs"><span class="text-slate-300">v${ver}</span><div class="flex items-center space-x-2"><div class="w-16 h-1.5 bg-slate-700 rounded"><div class="h-full ${color} rounded" style="width:${pct}%"></div></div><span class="text-slate-500 w-10 text-right">${cnt}</span></div></div>`; }).join('') : '<div class="text-slate-500 text-xs">No usage data</div>'; };
-              html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">`;
-              html += `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4"><h4 class="text-white font-semibold text-sm mb-2"><i class="fab fa-android text-green-400 mr-2"></i>Android Distribution</h4><div class="space-y-1">${renderDist(dist.android||{}, 'bg-green-500')}</div></div>`;
-              html += `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4"><h4 class="text-white font-semibold text-sm mb-2"><i class="fab fa-apple text-blue-400 mr-2"></i>iOS Distribution</h4><div class="space-y-1">${renderDist(dist.ios||{}, 'bg-blue-500')}</div></div>`;
-              html += `</div>`;
-
-              // Live per-device update monitor (who updated / who hasn't)
-              html += `<div class="grid grid-cols-1 gap-4 mb-4">`;
-              html += renderDeviceTable('android', devices.android || []);
-              html += renderDeviceTable('ios', devices.ios || []);
-              html += `</div>`;
-            } catch(_) {}
-            // Recent admin logs related to deployments
-            try {
-              const ls = await getDocs(query(collection(db, 'admin_logs'), orderBy('timestamp','desc'), limit(10)));
+              const ls = await getDocs(query(collection(db, 'admin_logs'), orderBy('timestamp', 'desc'), limit(12)));
               const deployLogs = [];
-              ls.forEach(d => { const v = d.data(); if (v.action && (v.action.includes('version') || v.action.includes('deploy') || v.action.includes('build') || v.action.includes('settings_saved'))) deployLogs.push(v); });
+              ls.forEach((d) => {
+                const v = d.data() || {};
+                const action = String(v.action || '');
+                if (/version|deploy|build|settings_saved|checkin_ping|push_notification/i.test(action)) deployLogs.push(v);
+              });
               if (deployLogs.length) {
-                html += `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4"><h4 class="text-white font-semibold text-sm mb-2"><i class="fas fa-clock text-slate-400 mr-2"></i>Recent Config Activity</h4><div class="space-y-1">`;
-                deployLogs.slice(0,5).forEach(v => {
+                html += `<div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4"><h4 class="text-white font-semibold text-sm mb-2"><i class="fas fa-clock text-slate-400 mr-2"></i>Recent release / push activity</h4><div class="space-y-1">`;
+                deployLogs.slice(0, 6).forEach((v) => {
                   const ts = v.timestamp?.toDate ? v.timestamp.toDate().toLocaleString() : '--';
-                  html += `<div class="text-xs text-slate-400">${ts} — <span class="text-white">${v.action}</span> ${v.configPath ? '(' + v.configPath + ')' : ''} by ${v.actorEmail||'--'}</div>`;
+                  html += `<div class="text-xs text-slate-400">${releasesEscape(ts)} — <span class="text-white">${releasesEscape(v.action)}</span> by ${releasesEscape(v.actorEmail || v.uid || '--')}</div>`;
                 });
                 html += `</div></div>`;
               }
-            } catch(_) {}
+            } catch (_) { /* admin_logs optional */ }
+
             container.innerHTML = html;
-            showToast('Releases loaded');
-          } catch(e) { console.error('loadReleases error:', e); container.innerHTML = '<div class="text-red-400 text-center py-4">Failed to load releases</div>'; }
+            showToast(activeOnly ? 'Active releases loaded' : 'All releases loaded');
+          } catch (e) {
+            console.error('loadReleases error:', e);
+            container.innerHTML = '<div class="text-red-400 text-center py-4">Failed to load releases</div>';
+          }
         }
         // ===== END PHASE 3 LOADERS =====
         
@@ -6309,41 +6475,13 @@
           }
         }
 
-        // Enhanced mobile sidebar toggle - use mobile menu on small screens
+        // Admin Menu sidebar toggle → Command Center drawer
         const sidebarToggle = document.getElementById('sidebar-toggle');
         if (sidebarToggle) {
-          sidebarToggle.addEventListener('click', () => {
-            // On mobile (< 1024px), use the mobile menu instead of sidebar
-            const isMobile = window.innerWidth < 1024;
-            
-            if (isMobile) {
-              const mobileMenu = document.getElementById('mobile-menu');
-              if (mobileMenu) {
-                mobileMenu.classList.toggle('hidden');
-              }
-            } else {
-              // Desktop: show/hide sidebar with overlay
-              const sidebar = document.querySelector('aside');
-              const overlay = createMobileSidebarOverlay();
-              
-              if (sidebar) {
-                const isHidden = sidebar.classList.contains('hidden');
-                
-                if (isHidden) {
-                  // Show sidebar
-                  sidebar.classList.remove('hidden');
-                  sidebar.classList.add('fixed', 'top-0', 'left-0', 'z-50', 'h-full');
-                  overlay.classList.remove('hidden');
-                  document.body.style.overflow = 'hidden';
-                } else {
-                  // Hide sidebar
-                  sidebar.classList.add('hidden');
-                  sidebar.classList.remove('fixed', 'top-0', 'left-0', 'z-50', 'h-full');
-                  overlay.classList.add('hidden');
-                  document.body.style.overflow = '';
-                }
-              }
-            }
+          sidebarToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof toggleAdminDrawer === 'function') toggleAdminDrawer();
           });
         }
         
@@ -7259,6 +7397,10 @@
           if (runQualityBtn) runQualityBtn.addEventListener('click', () => loadDataQuality());
           const refreshReleasesBtn = document.getElementById('refresh-releases-btn');
           if (refreshReleasesBtn) refreshReleasesBtn.addEventListener('click', () => loadReleases());
+          const releasesActiveOnly = document.getElementById('releases-active-only');
+          if (releasesActiveOnly) releasesActiveOnly.addEventListener('change', () => loadReleases());
+          const sendCheckinPingBtn = document.getElementById('send-checkin-ping-btn');
+          if (sendCheckinPingBtn) sendCheckinPingBtn.addEventListener('click', () => sendCheckInPing());
           // Analytics refresh button
           const refreshAnalyticsBtn = document.getElementById('refresh-analytics-btn');
           if (refreshAnalyticsBtn) refreshAnalyticsBtn.addEventListener('click', async () => {
@@ -9327,6 +9469,8 @@
               document.getElementById('android-latest-version').value = data.latest_version || '';
               document.getElementById('android-min-version').value = data.minimum_version || '';
               document.getElementById('android-update-message').value = data.update_message || '';
+              const androidNameEl = document.getElementById('android-version-name');
+              if (androidNameEl) androidNameEl.value = data.version_name || data.latest_version_name || '';
               const latest = data.latest_version;
               const min = data.minimum_version;
               const vEl = document.getElementById('android-version');
@@ -9338,6 +9482,8 @@
             } else {
               document.getElementById('android-latest-version').value = '';
               document.getElementById('android-min-version').value = '';
+              const androidNameEl = document.getElementById('android-version-name');
+              if (androidNameEl) androidNameEl.value = '';
               const vEl = document.getElementById('android-version');
               if (vEl) vEl.textContent = '--';
             }
@@ -9349,6 +9495,8 @@
               document.getElementById('ios-latest-version').value = data.latest_version || '';
               document.getElementById('ios-min-version').value = data.minimum_version || '';
               document.getElementById('ios-update-message').value = data.update_message || '';
+              const iosNameEl = document.getElementById('ios-version-name');
+              if (iosNameEl) iosNameEl.value = data.version_name || data.latest_version_name || '';
               const latest = data.latest_version;
               const min = data.minimum_version;
               const vEl = document.getElementById('ios-version');
@@ -9408,15 +9556,18 @@
             const androidLatest = parseInt(document.getElementById('android-latest-version').value) || 0;
             const androidMin = parseInt(document.getElementById('android-min-version').value) || 0;
             const androidMessage = document.getElementById('android-update-message').value;
+            const androidVersionName = (document.getElementById('android-version-name')?.value || '').trim();
             
             const iosLatest = parseInt(document.getElementById('ios-latest-version').value) || 0;
             const iosMin = parseInt(document.getElementById('ios-min-version').value) || 0;
             const iosMessage = document.getElementById('ios-update-message').value;
+            const iosVersionName = (document.getElementById('ios-version-name')?.value || '').trim();
             
             // Save Android config
             await setDoc(doc(db, 'app_config', 'android_version'), {
               latest_version: androidLatest,
               minimum_version: androidMin,
+              version_name: androidVersionName,
               update_message: androidMessage,
               updated_at: serverTimestamp(),
               updated_by: auth.currentUser?.uid || null
@@ -9426,6 +9577,7 @@
             await setDoc(doc(db, 'app_config', 'ios_version'), {
               latest_version: iosLatest,
               minimum_version: iosMin,
+              version_name: iosVersionName,
               update_message: iosMessage,
               updated_at: serverTimestamp(),
               updated_by: auth.currentUser?.uid || null
@@ -9434,8 +9586,9 @@
             showToast('Version config saved successfully');
             document.getElementById('app-operation-result').innerHTML = 
               '<div class="text-green-400"><i class="fas fa-check mr-2"></i>App version config updated. Users will be prompted on next app launch.</div>';
-            document.getElementById('android-version').textContent = `v${androidLatest} (min v${androidMin})`;
-            document.getElementById('ios-version').textContent = `v${iosLatest} (min v${iosMin})`;
+            document.getElementById('android-version').textContent = `v${androidLatest}${androidVersionName ? ' (' + androidVersionName + ')' : ''} (min v${androidMin})`;
+            document.getElementById('ios-version').textContent = `v${iosLatest}${iosVersionName ? ' (' + iosVersionName + ')' : ''} (min v${iosMin})`;
+            try { loadReleases(); } catch (_) {}
             
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Config';

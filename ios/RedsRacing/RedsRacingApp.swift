@@ -5,6 +5,7 @@ import FirebaseFirestore
 import FirebaseAuth
 import UIKit
 import UserNotifications
+import Darwin
 
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     private var lastFcmToken: String? = nil
@@ -24,6 +25,12 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         requestPushPermissions(application)
         URLProtocol.registerClass(BundledAuthURLProtocol.self)
         return true
+    }
+
+    /// Called when the SwiftUI scene becomes active so Releases "last check-in" stays fresh.
+    func refreshAppUsageIfPossible() {
+        guard let token = lastFcmToken, !token.isEmpty else { return }
+        reportAppUsage(fcmToken: token)
     }
 
     private func requestPushPermissions(_ application: UIApplication) {
@@ -60,17 +67,34 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         reportAppUsage(fcmToken: token)
     }
 
+    private func deviceMachineIdentifier() -> String {
+        var systemInfo = utsname()
+        uname(&systemInfo)
+        return withUnsafePointer(to: &systemInfo.machine) { ptr in
+            ptr.withMemoryRebound(to: CChar.self, capacity: 1) { cString in
+                String(cString: cString)
+            }
+        }
+    }
+
     private func reportAppUsage(fcmToken: String) {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
+        let buildCode = Int(build) ?? 0
         let user = Auth.auth().currentUser
+        let machine = deviceMachineIdentifier()
+        let modelName = UIDevice.current.model
         let usageData: [String: Any] = [
             "platform": "ios",
-            "app_version": Int(build) ?? 0,
+            "app_version": buildCode,
+            "app_version_code": buildCode,
             "app_version_name": version,
             "fcm_token": fcmToken,
-            "device_model": UIDevice.current.model,
+            "device_manufacturer": "Apple",
+            "device_model": machine.isEmpty ? modelName : machine,
+            "device_model_name": modelName,
             "ios_version": UIDevice.current.systemVersion,
+            "os_version": UIDevice.current.systemVersion,
             // Optional identity fields (present only when signed in)
             "auth_uid": user?.uid ?? "",
             "auth_email": user?.email ?? "",
@@ -129,6 +153,7 @@ extension Notification.Name {
 @main
 struct RedsRacingApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         // Configure Firebase for iOS app (only if not already configured)
@@ -143,6 +168,11 @@ struct RedsRacingApp: App {
                 .onOpenURL { url in
                     handleDeepLink(url)
                 }
+        }
+        .onChange(of: scenePhase) { phase in
+            if phase == .active {
+                appDelegate.refreshAppUsageIfPossible()
+            }
         }
     }
 

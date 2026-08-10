@@ -1108,37 +1108,47 @@
   // Make it globally available for debugging
   window.upgradeNavMenus = upgradeNavMenus;
 
+  /** True for phone/tablet browser viewports (not the native WebView shell). */
+  function isMobileBrowserViewport() {
+    if (document.documentElement.classList.contains('rr-native-app')) return false;
+    if (!window.matchMedia) return true;
+    return window.matchMedia('(max-width: 1023.98px)').matches;
+  }
+
+  function pinHamburgerLeft(nav, btn) {
+    if (btn.parentElement && btn.parentElement !== nav) {
+      nav.insertBefore(btn, nav.firstChild);
+      return;
+    }
+    if (nav.firstElementChild !== btn) nav.insertBefore(btn, nav.firstChild);
+  }
+
+  function hideAuthOnMobileHeader() {
+    const auth = document.getElementById('admin-top-auth');
+    if (!auth) return;
+    auth.classList.add('hidden', 'md:flex');
+  }
+
+  function trailClockOnHeader(nav) {
+    const clock = document.getElementById('mobile-clock');
+    if (!clock) return;
+    if (clock.parentElement === nav) {
+      clock.style.marginLeft = 'auto';
+    } else if (clock.parentElement) {
+      clock.parentElement.style.marginLeft = 'auto';
+    }
+  }
+
   /** Put hamburger on the left of the header on mobile web; keep brand truncating. */
   function normalizeMobileHeader() {
     try {
-      if (document.documentElement.classList.contains('rr-native-app')) return;
-      const narrow = !window.matchMedia || window.matchMedia('(max-width: 1023.98px)').matches;
-      if (!narrow) return;
+      if (!isMobileBrowserViewport()) return;
       const nav = document.querySelector('header nav');
-      if (!nav) return;
       const btn = document.getElementById('mobile-menu-button') || document.getElementById('mobile-menu-toggle');
-      if (!btn) return;
-
-      // Extract hamburger from clock wrappers so it can sit at the true left edge
-      if (btn.parentElement && btn.parentElement !== nav) {
-        nav.insertBefore(btn, nav.firstChild);
-      } else if (nav.firstElementChild !== btn) {
-        nav.insertBefore(btn, nav.firstChild);
-      }
-
-      const auth = document.getElementById('admin-top-auth');
-      if (auth) {
-        auth.classList.add('hidden');
-        auth.classList.add('md:flex');
-      }
-
-      // Clock stays trailing if present
-      const clock = document.getElementById('mobile-clock');
-      if (clock && clock.parentElement === nav) {
-        clock.style.marginLeft = 'auto';
-      } else if (clock && clock.parentElement && clock.parentElement !== nav) {
-        clock.parentElement.style.marginLeft = 'auto';
-      }
+      if (!nav || !btn) return;
+      pinHamburgerLeft(nav, btn);
+      hideAuthOnMobileHeader();
+      trailClockOnHeader(nav);
     } catch (_) {}
   }
 

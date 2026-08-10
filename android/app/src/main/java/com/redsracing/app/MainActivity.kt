@@ -980,10 +980,16 @@ class MainActivity : AppCompatActivity() {
             val usageData = hashMapOf(
                 "platform" to "android",
                 "app_version" to versionCode,
-                "app_version_name" to versionName,
+                "app_version_code" to versionCode,
+                "app_version_name" to (versionName ?: ""),
                 "fcm_token" to fcmToken,
+                "device_manufacturer" to Build.MANUFACTURER,
+                "device_brand" to Build.BRAND,
                 "device_model" to Build.MODEL,
+                "device" to Build.DEVICE,
                 "android_version" to Build.VERSION.RELEASE,
+                "os_version" to Build.VERSION.RELEASE,
+                "os_sdk" to Build.VERSION.SDK_INT,
                 // Optional identity fields (present only when signed in)
                 "auth_uid" to uid,
                 "auth_email" to email,
