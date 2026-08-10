@@ -924,6 +924,7 @@
           console.log('[RedsRacing] Upgrading Racing desktop menu');
           menu.innerHTML = `
             <a href="live.html" class="dropdown-item">🔴 Live Race</a>
+            <a href="next-race.html" class="dropdown-item">⚡ Next Race Hub</a>
             <a href="schedule.html" class="dropdown-item">📅 Schedule</a>
             <a href="stats.html" class="dropdown-item">📊 Season Stats</a>
             <a href="recaps.html" class="dropdown-item">🏁 Race Recaps</a>
@@ -984,6 +985,7 @@
             console.log('[RedsRacing] Upgrading Racing mobile menu');
             content.innerHTML = `
               <a href="live.html" class="mobile-nav-subitem">🔴 Live Race</a>
+              <a href="next-race.html" class="mobile-nav-subitem">⚡ Next Race Hub</a>
               <a href="schedule.html" class="mobile-nav-subitem">📅 Schedule</a>
               <a href="stats.html" class="mobile-nav-subitem">📊 Season Stats</a>
               <a href="recaps.html" class="mobile-nav-subitem">🏁 Race Recaps</a>

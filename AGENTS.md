@@ -9,6 +9,12 @@
 - After opening or updating a PR, inspect **Codacy Static Code Analysis** check-run annotations. Prefer fixing canonical sources then `npm run sync:mobile` — do not hand-edit mirrored copies.
 - Keep cyclomatic complexity of helpers under Codacy’s threshold (~8); split large HTML/JS handlers instead of growing them.
 
+### Homepage Pulse + Next Race Hub
+
+- Site Editor CMS was removed. Admin **Content → Homepage Pulse** (`#pulse`) writes `config/homepage_pulse` (banner, ticker, spotlight, race mode, gate/parking notes).
+- Public consumers: `assets/js/homepage-pulse.js` (home), `next-race.html` + `assets/js/next-race-hub.js` (hub), schedule weather via `assets/js/race-weather.js` (Open-Meteo, no API key).
+- After changing those files: `npm run sync:mobile` then `npm run deploy:hosting`.
+
 ### Native app WebView nav (Android / iOS)
 
 - Hosted pages load inside the app WebView (`https://www.redsracing.org/...`). Native bottom nav owns destinations — **do not** install browser hamburger / `#mobile-menu-tabs` in that shell.

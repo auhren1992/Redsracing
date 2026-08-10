@@ -275,13 +275,13 @@
             
             try {
                 // Import the admin check function
-                const { initCMSAdmin } = await import('./assets/js/cms-admin.js');
+                await import('./assets/js/homepage-pulse-admin.js');
                 
-                showStatus('✅ CMS module loaded successfully', 'success');
-                showStatus('Try accessing the admin console now', 'info');
+                showStatus('✅ Homepage Pulse admin module loaded', 'success');
+                showStatus('Opening Homepage Pulse in admin console…', 'info');
                 
                 setTimeout(() => {
-                    window.location.href = 'admin-console.html';
+                    window.location.href = 'admin-console.html#pulse';
                 }, 2000);
                 
             } catch (error) {
