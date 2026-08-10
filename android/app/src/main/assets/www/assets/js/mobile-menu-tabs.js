@@ -2,9 +2,49 @@
 (function() {
   'use strict';
 
+  /** Native Android/iOS shells already own navigation (bottom tabs / overlays). */
+  function isNativeAppShell() {
+    try {
+      if (window.__RR_NATIVE_APP__) return true;
+      if (document.documentElement.classList.contains('rr-native-app')) return true;
+      if (document.body && document.body.classList.contains('mobile-app')) return true;
+      if (/RedsRacingApp\//i.test(navigator.userAgent || '')) return true;
+      if (typeof window.AndroidAuth !== 'undefined') return true;
+      if (typeof window.AndroidNotifications !== 'undefined') return true;
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.redsRacingAuth) return true;
+    } catch (_) {}
+    return false;
+  }
+
+  function scrubWebNavChrome() {
+    try {
+      const orphan = document.getElementById('mobile-menu-button');
+      if (orphan && orphan.dataset && orphan.dataset.rrOrphan === '1') orphan.remove();
+      const tabs = document.getElementById('mobile-menu-tabs');
+      if (tabs) tabs.remove();
+      const classic = document.getElementById('mobile-menu');
+      if (classic) {
+        classic.classList.add('hidden');
+        classic.setAttribute('hidden', 'true');
+        classic.setAttribute('aria-hidden', 'true');
+        classic.style.display = 'none';
+      }
+    } catch (_) {}
+  }
+
   // Claim ownership early so navigation.js classic menu does not also bind.
   window.__rrMobileTabsMenu = true;
   try { document.documentElement.classList.add('rr-has-mobile-tabs'); } catch (_) {}
+
+  // In the native app WebView, never install the browser hamburger / tab drawer.
+  if (isNativeAppShell()) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', scrubWebNavChrome);
+    } else {
+      scrubWebNavChrome();
+    }
+    return;
+  }
   
   let mobileMenuElement = null;
 
@@ -373,6 +413,7 @@
   }
 
   function createMenuButton() {
+    if (isNativeAppShell()) return;
     if (document.getElementById('mobile-menu-button')) return;
     // Never paint a floating orphan hamburger on desktop/tablet landscape.
     // Pages should include a real header button; this is a mobile last-resort only.
@@ -433,6 +474,10 @@
 
   // Initialize when DOM is ready
   function init() {
+    if (isNativeAppShell()) {
+      scrubWebNavChrome();
+      return;
+    }
     hideClassicMobileMenu();
 
     let mobileMenuBtn = document.getElementById('mobile-menu-button');

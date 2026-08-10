@@ -640,6 +640,22 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Throwable) {
         }
 
+        // Mark native shell before page scripts run so mobile-menu-tabs.js / detector
+        // skip browser hamburger UX on hosted weblink pages.
+        try {
+            WebViewCompat.addDocumentStartJavaScript(
+                webView,
+                """
+                try {
+                  window.__RR_NATIVE_APP__ = 'android';
+                  document.documentElement.classList.add('rr-native-app');
+                } catch (e) {}
+                """.trimIndent(),
+                setOf("*"),
+            )
+        } catch (_: Throwable) {
+        }
+
         webView.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest): WebResourceResponse? {
                 val url = request.url
@@ -722,6 +738,15 @@ class MainActivity : AppCompatActivity() {
                                 header.style.height = '0';
                                 header.style.overflow = 'hidden';
                             }
+                            // Remove browser hamburger / tab drawer if page scripts painted them
+                            try {
+                              var orphan = document.getElementById('mobile-menu-button');
+                              if (orphan && orphan.getAttribute('data-rr-orphan') === '1') orphan.remove();
+                              var tabs = document.getElementById('mobile-menu-tabs');
+                              if (tabs) tabs.remove();
+                              var classic = document.getElementById('mobile-menu');
+                              if (classic) { classic.style.display = 'none'; classic.setAttribute('hidden','true'); }
+                            } catch (eNav) {}
                             // On admin console: show the admin menu bar and ensure mobile-menu works
                             if (isAdmin) {
                                 var adminBar = document.getElementById('admin-menu-bar');

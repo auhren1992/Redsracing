@@ -2,11 +2,19 @@
 
 ## Cursor Cloud specific instructions
 
+
 ### Codacy
 
 - Project grade is weighted (issues + complexity + duplication + coverage). Large mirrored `android/**` / `ios/**` www bundles amplify finding counts.
 - After opening or updating a PR, inspect **Codacy Static Code Analysis** check-run annotations. Prefer fixing canonical sources then `npm run sync:mobile` — do not hand-edit mirrored copies.
 - Keep cyclomatic complexity of helpers under Codacy’s threshold (~8); split large HTML/JS handlers instead of growing them.
+
+### Native app WebView nav (Android / iOS)
+
+- Hosted pages load inside the app WebView (`https://www.redsracing.org/...`). Native bottom nav owns destinations — **do not** install browser hamburger / `#mobile-menu-tabs` in that shell.
+- `mobile-menu-tabs.js` must short-circuit when `__RR_NATIVE_APP__`, `html.rr-native-app`, `body.mobile-app`, `RedsRacingApp/` UA, or Android bridges are present.
+- Android `MainActivity` sets `__RR_NATIVE_APP__='android'` via document-start JS (same idea as LoginActivity / iOS).
+
 
 ### Mobile web nav (browser, not native app)
 
