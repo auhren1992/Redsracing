@@ -30,6 +30,11 @@
   - iOS: `ios/RedsRacing.xcodeproj/project.pbxproj` → `CURRENT_PROJECT_VERSION` and `MARKETING_VERSION`
 - Keep Android `versionCode` / iOS `CURRENT_PROJECT_VERSION` equal, and `versionName` / `MARKETING_VERSION` equal.
 - Update `.github/NEW_MACHINE_SETUP.md` “Latest mobile release” line to match.
+- Also sync Firestore release config so Admin → Deployment & Releases stays accurate (not stuck on an old “configured” build like v10):
+  - Docs: `app_config/android_version` and `app_config/ios_version`
+  - Fields: `latest_version` = build code, `version_name` = marketing version (same on both platforms)
+  - Run: `GOOGLE_APPLICATION_CREDENTIALS=functions/serviceAccountKey.json node scripts/sync-app-version-config.mjs`
+  - Or in admin: **Releases → Sync config to seen** (sets both platforms to max check-in build)
 - Do this in the same PR as the native fix — do not leave version bumps for later.
 
 

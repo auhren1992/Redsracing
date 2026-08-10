@@ -2712,7 +2712,7 @@
                     <div class="grid grid-cols-2 gap-3">
                       <div>
                         <label class="block text-xs text-slate-400 mb-1">Latest Version Code</label>
-                        <input type="number" id="android-latest-version" class="modern-input w-full p-2 text-white text-sm" placeholder="204" />
+                        <input type="number" id="android-latest-version" class="modern-input w-full p-2 text-white text-sm" placeholder="205" />
                       </div>
                       <div>
                         <label class="block text-xs text-slate-400 mb-1">Minimum Required</label>
@@ -2720,7 +2720,7 @@
                       </div>
                       <div class="col-span-2">
                         <label class="block text-xs text-slate-400 mb-1">Version Name (store marketing)</label>
-                        <input type="text" id="android-version-name" class="modern-input w-full p-2 text-white text-sm" placeholder="11.2.18" />
+                        <input type="text" id="android-version-name" class="modern-input w-full p-2 text-white text-sm" placeholder="11.2.19" />
                       </div>
                     </div>
                     <div class="mt-2">
@@ -2737,7 +2737,7 @@
                     <div class="grid grid-cols-2 gap-3">
                       <div>
                         <label class="block text-xs text-slate-400 mb-1">Latest Version Code</label>
-                        <input type="number" id="ios-latest-version" class="modern-input w-full p-2 text-white text-sm" placeholder="204" />
+                        <input type="number" id="ios-latest-version" class="modern-input w-full p-2 text-white text-sm" placeholder="205" />
                       </div>
                       <div>
                         <label class="block text-xs text-slate-400 mb-1">Minimum Required</label>
@@ -2745,7 +2745,7 @@
                       </div>
                       <div class="col-span-2">
                         <label class="block text-xs text-slate-400 mb-1">Version Name (store marketing)</label>
-                        <input type="text" id="ios-version-name" class="modern-input w-full p-2 text-white text-sm" placeholder="11.2.18" />
+                        <input type="text" id="ios-version-name" class="modern-input w-full p-2 text-white text-sm" placeholder="11.2.19" />
                       </div>
                     </div>
                     <div class="mt-2">
@@ -3588,6 +3588,9 @@
                   <button id="send-checkin-ping-btn" type="button" class="success-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
                     <i class="fas fa-bell mr-2"></i>Send check-in ping
                   </button>
+                  <button id="sync-release-config-btn" type="button" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center" title="Set Android + iOS configured latest build to the max seen check-in (keeps both platforms equal)">
+                    <i class="fas fa-link mr-2"></i>Sync config to seen
+                  </button>
                   <button id="refresh-releases-btn" type="button" class="modern-btn text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center"><i class="fas fa-sync mr-2"></i>Refresh</button>
                 </div>
               </div>
@@ -4206,7 +4209,8 @@
               const av = ad.exists() ? ad.data().latest_version : null;
               const iv = id.exists() ? id.data().latest_version : null;
               if (av && iv) {
-                checks.push({ ok: Math.abs(Number(av) - Number(iv)) <= 2, label: `Android v${av} / iOS v${iv}${Math.abs(Number(av)-Number(iv)) > 2 ? ' — version drift!' : ''}`, warn: Math.abs(Number(av)-Number(iv)) > 2 });
+                const drift = Math.abs(Number(av) - Number(iv));
+                checks.push({ ok: drift === 0, label: `Android v${av} / iOS v${iv}${drift ? ' — keep platforms equal' : ''}`, warn: drift > 0 });
               } else { checks.push({ ok: false, label: 'App version config missing', warn: true }); }
             } catch(_) { checks.push({ ok: false, label: 'Could not read app_config' }); }
             // 4. Config/site exists
@@ -4440,6 +4444,110 @@
           }
         }
 
+        async function syncConfiguredVersionsFromSeen() {
+          const btn = document.getElementById('sync-release-config-btn');
+          try {
+            const role = await getUserRole();
+            if (role !== 'admin') {
+              showToast('Admin role required to sync version config', 'error');
+              return;
+            }
+            if (btn) {
+              btn.disabled = true;
+              btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Syncing...';
+            }
+            const { getFirestore, collection, getDocs, doc, getDoc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const auth = getAuth();
+            const activeOnly = !!document.getElementById('releases-active-only')?.checked;
+            const staleCutoff = Date.now() - 7 * 86400000;
+
+            const usSnap = await getDocs(collection(db, 'app_usage'));
+            const all = { android: [], ios: [] };
+            usSnap.forEach((d) => {
+              const row = parseAppUsageDoc(d);
+              if (row) all[row.platform].push(row);
+            });
+            const filterList = (list) => activeOnly
+              ? list.filter((d) => d.lastSeenMs && d.lastSeenMs >= staleCutoff)
+              : list;
+            const androidList = filterList(all.android);
+            const iosList = filterList(all.ios);
+            const androidDist = buildVersionDist(androidList);
+            const iosDist = buildVersionDist(iosList);
+            const maxAndroid = Object.keys(androidDist.byCode).map(Number).filter(Number.isFinite).sort((a, b) => b - a)[0] || 0;
+            const maxIos = Object.keys(iosDist.byCode).map(Number).filter(Number.isFinite).sort((a, b) => b - a)[0] || 0;
+            const targetBuild = Math.max(maxAndroid, maxIos);
+            if (!targetBuild) {
+              showToast('No device check-ins with build numbers yet', 'error');
+              return;
+            }
+
+            const nameFromDist = (list, code) => {
+              const hits = list.filter((d) => Number(d.version) === code && d.versionName);
+              if (!hits.length) return '';
+              const counts = {};
+              hits.forEach((d) => { counts[d.versionName] = (counts[d.versionName] || 0) + 1; });
+              return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] || '';
+            };
+            const versionName =
+              nameFromDist(androidList, targetBuild) ||
+              nameFromDist(iosList, targetBuild) ||
+              nameFromDist(all.android, targetBuild) ||
+              nameFromDist(all.ios, targetBuild) ||
+              '';
+
+            const androidPrev = (await getDoc(doc(db, 'app_config', 'android_version'))).data() || {};
+            const iosPrev = (await getDoc(doc(db, 'app_config', 'ios_version'))).data() || {};
+            const androidPayload = {
+              latest_version: targetBuild,
+              minimum_version: Number(androidPrev.minimum_version || 0) || 0,
+              version_name: versionName || androidPrev.version_name || androidPrev.latest_version_name || '',
+              latest_version_name: versionName || androidPrev.version_name || androidPrev.latest_version_name || '',
+              update_message: typeof androidPrev.update_message === 'string' ? androidPrev.update_message : '',
+              updated_at: serverTimestamp(),
+              updated_by: auth.currentUser?.uid || null
+            };
+            const iosPayload = {
+              latest_version: targetBuild,
+              minimum_version: Number(iosPrev.minimum_version || 0) || 0,
+              version_name: versionName || iosPrev.version_name || iosPrev.latest_version_name || '',
+              latest_version_name: versionName || iosPrev.version_name || iosPrev.latest_version_name || '',
+              update_message: typeof iosPrev.update_message === 'string' ? iosPrev.update_message : '',
+              updated_at: serverTimestamp(),
+              updated_by: auth.currentUser?.uid || null
+            };
+            // Keep platforms equal — always write the same latest build + marketing name.
+            androidPayload.version_name = iosPayload.version_name = androidPayload.version_name || iosPayload.version_name;
+            androidPayload.latest_version_name = iosPayload.latest_version_name = androidPayload.version_name;
+
+            await setDoc(doc(db, 'app_config', 'android_version'), androidPayload, { merge: true });
+            await setDoc(doc(db, 'app_config', 'ios_version'), iosPayload, { merge: true });
+
+            const aLatest = document.getElementById('android-latest-version');
+            const iLatest = document.getElementById('ios-latest-version');
+            const aName = document.getElementById('android-version-name');
+            const iName = document.getElementById('ios-version-name');
+            if (aLatest) aLatest.value = String(targetBuild);
+            if (iLatest) iLatest.value = String(targetBuild);
+            if (aName && androidPayload.version_name) aName.value = androidPayload.version_name;
+            if (iName && iosPayload.version_name) iName.value = iosPayload.version_name;
+
+            showToast(`Synced Android + iOS config to v${targetBuild}${androidPayload.version_name ? ' (' + androidPayload.version_name + ')' : ''}`);
+            await loadReleases();
+          } catch (e) {
+            console.error('syncConfiguredVersionsFromSeen failed', e);
+            showToast('Failed to sync version config', 'error');
+          } finally {
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-link mr-2"></i>Sync config to seen';
+            }
+          }
+        }
+
         async function loadReleases() {
           const container = document.getElementById('releases-content');
           if (!container) return;
@@ -4489,7 +4597,7 @@
             html += `</div>`;
 
             if (androidLag || iosLag) {
-              html += `<div class="mb-4 text-xs text-yellow-200 bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2"><i class="fas fa-exclamation-triangle mr-2"></i>Configured latest build is behind devices already checking in. Update <strong>Settings → Mobile App → Version Config</strong> (e.g. Android/iOS latest = ${Math.max(maxAndroid, maxIos) || '203'}) so distribution status stays accurate.</div>`;
+              html += `<div class="mb-4 text-xs text-yellow-200 bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2"><i class="fas fa-exclamation-triangle mr-2"></i>Configured latest build is behind devices already checking in. Click <strong>Sync config to seen</strong> (or Settings → Mobile App → Version Config) so Android + iOS both use build <strong>${Math.max(maxAndroid, maxIos) || '—'}</strong>.</div>`;
             }
 
             html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">`;
@@ -7429,6 +7537,8 @@
           if (releasesActiveOnly) releasesActiveOnly.addEventListener('change', () => loadReleases());
           const sendCheckinPingBtn = document.getElementById('send-checkin-ping-btn');
           if (sendCheckinPingBtn) sendCheckinPingBtn.addEventListener('click', () => sendCheckInPing());
+          const syncReleaseConfigBtn = document.getElementById('sync-release-config-btn');
+          if (syncReleaseConfigBtn) syncReleaseConfigBtn.addEventListener('click', () => syncConfiguredVersionsFromSeen());
           // Analytics refresh button
           const refreshAnalyticsBtn = document.getElementById('refresh-analytics-btn');
           if (refreshAnalyticsBtn) refreshAnalyticsBtn.addEventListener('click', async () => {
