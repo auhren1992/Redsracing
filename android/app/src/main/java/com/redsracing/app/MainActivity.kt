@@ -69,6 +69,8 @@ class MainActivity : AppCompatActivity() {
     private var pendingUpdateMessage = ""
     private var pendingStoreUrl: String? = null
 
+    private var pendingWebNotificationEnable = false
+
     /**
      * All in-app WebView navigations must stay on this origin so Firebase Auth
      * (IndexedDB / local persistence) and PasswordCredential / localStorage
@@ -109,7 +111,23 @@ class MainActivity : AppCompatActivity() {
 
         permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
-        ) { }
+        ) { grants ->
+            val notifGranted = if (Build.VERSION.SDK_INT >= 33) {
+                grants[Manifest.permission.POST_NOTIFICATIONS] == true
+            } else {
+                true
+            }
+            if (pendingWebNotificationEnable) {
+                pendingWebNotificationEnable = false
+                if (notifGranted) {
+                    completeNotificationEnableFromWeb(already = false)
+                } else {
+                    deliverNativeNotifResult(
+                        """{"status":"denied","platform":"android","message":"Notification permission denied"}"""
+                    )
+                }
+            }
+        }
 
         fileChooserLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -958,22 +976,124 @@ class MainActivity : AppCompatActivity() {
             lastFcmToken = token
 
             // Subscribe to topics
-            FirebaseMessaging.getInstance().subscribeToTopic("all_users")
-                .addOnCompleteListener { topicTask ->
-                    if (topicTask.isSuccessful) {
-                        android.util.Log.d("MainActivity", "Subscribed to all_users topic")
-                    }
-                }
-
-            FirebaseMessaging.getInstance().subscribeToTopic("android_users")
-                .addOnCompleteListener { topicTask ->
-                    if (topicTask.isSuccessful) {
-                        android.util.Log.d("MainActivity", "Subscribed to android_users topic")
-                    }
-                }
+            subscribeDefaultFcmTopics()
+            if (areNotificationsEnabled()) {
+                subscribeRaceAlertTopics()
+            }
             
             // Report app version and device info to Firestore
             reportAppUsage(token)
+        }
+    }
+
+    private fun subscribeDefaultFcmTopics() {
+        FirebaseMessaging.getInstance().subscribeToTopic("all_users")
+            .addOnCompleteListener { topicTask ->
+                if (topicTask.isSuccessful) {
+                    android.util.Log.d("MainActivity", "Subscribed to all_users topic")
+                }
+            }
+        FirebaseMessaging.getInstance().subscribeToTopic("android_users")
+            .addOnCompleteListener { topicTask ->
+                if (topicTask.isSuccessful) {
+                    android.util.Log.d("MainActivity", "Subscribed to android_users topic")
+                }
+            }
+    }
+
+    private fun subscribeRaceAlertTopics() {
+        listOf("race_reminders", "schedule_updates").forEach { topic ->
+            FirebaseMessaging.getInstance().subscribeToTopic(topic)
+                .addOnCompleteListener { topicTask ->
+                    if (topicTask.isSuccessful) {
+                        android.util.Log.d("MainActivity", "Subscribed to $topic topic")
+                    } else {
+                        android.util.Log.w("MainActivity", "Failed to subscribe to $topic", topicTask.exception)
+                    }
+                }
+        }
+    }
+
+    fun areNotificationsEnabled(): Boolean {
+        return try {
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (!nm.areNotificationsEnabled()) return false
+            if (Build.VERSION.SDK_INT >= 33) {
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+                    PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun notificationPermissionStatus(): String {
+        return when {
+            areNotificationsEnabled() -> "granted"
+            Build.VERSION.SDK_INT >= 33 &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_DENIED -> "denied"
+            else -> "default"
+        }
+    }
+
+    fun enableNotificationsFromWeb() {
+        runOnUiThread {
+            if (areNotificationsEnabled()) {
+                completeNotificationEnableFromWeb(already = true)
+                return@runOnUiThread
+            }
+            if (Build.VERSION.SDK_INT >= 33) {
+                pendingWebNotificationEnable = true
+                permissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+            } else {
+                // Pre-33: open system app notification settings if channel/app disabled.
+                try {
+                    val intent = Intent().apply {
+                        action = android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                        putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName)
+                    }
+                    startActivity(intent)
+                } catch (_: Exception) {}
+                deliverNativeNotifResult(
+                    """{"status":"denied","platform":"android","message":"Enable notifications in system settings"}"""
+                )
+            }
+        }
+    }
+
+    private fun completeNotificationEnableFromWeb(already: Boolean) {
+        subscribeDefaultFcmTopics()
+        subscribeRaceAlertTopics()
+        try {
+            val token = lastFcmToken
+            if (!token.isNullOrEmpty()) reportAppUsage(token)
+        } catch (_: Exception) {}
+        try {
+            NotificationsBridge(this).notify(
+                "RedsRacing",
+                "Notifications on — you'll get race reminders and schedule updates."
+            )
+        } catch (_: Exception) {}
+        val status = if (already) "already" else "granted"
+        deliverNativeNotifResult(
+            """{"status":"$status","platform":"android"}"""
+        )
+    }
+
+    fun deliverNativeNotifResult(json: String) {
+        runOnUiThread {
+            try {
+                // json is already a JSON object literal
+                binding.webview.evaluateJavascript(
+                    "window.__rrNativeNotifResult && window.__rrNativeNotifResult($json)",
+                    null
+                )
+            } catch (e: Exception) {
+                android.util.Log.w("MainActivity", "deliverNativeNotifResult failed", e)
+            }
         }
     }
     
@@ -1289,14 +1409,35 @@ class AuthBridge(
     }
 }
 
-class NotificationsBridge(private val context: Context) {
+class NotificationsBridge(private val activity: MainActivity) {
+    @android.webkit.JavascriptInterface
+    fun getStatus(): String {
+        return try {
+            activity.notificationPermissionStatus()
+        } catch (_: Exception) {
+            "default"
+        }
+    }
+
+    @android.webkit.JavascriptInterface
+    fun enable() {
+        try {
+            activity.enableNotificationsFromWeb()
+        } catch (e: Exception) {
+            android.util.Log.e("NotificationsBridge", "enable failed", e)
+            activity.deliverNativeNotifResult(
+                """{"status":"error","platform":"android","message":"${e.message?.replace("\"", "") ?: "error"}"}"""
+            )
+        }
+    }
+
     @android.webkit.JavascriptInterface
     fun notify(title: String, text: String) {
         // Unified with MainActivity.createNotificationChannel() and FCM service —
         // single user-visible channel, single importance level.
-        val channelId = context.getString(R.string.default_notification_channel_id)
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val builder = androidx.core.app.NotificationCompat.Builder(context, channelId)
+        val channelId = activity.getString(R.string.default_notification_channel_id)
+        val nm = activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val builder = androidx.core.app.NotificationCompat.Builder(activity, channelId)
             .setContentTitle(title)
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_dialog_info)

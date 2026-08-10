@@ -3,6 +3,8 @@ import WebKit
 import UIKit
 import LocalAuthentication
 import FirebaseFirestore
+import FirebaseMessaging
+import UserNotifications
 
 private enum AppLockUserDefaultsKeys {
     static let biometricEnabled = "app_biometric_unlock"
@@ -694,6 +696,7 @@ struct WebView: UIViewRepresentable {
         configuration.userContentController.add(context.coordinator, name: "redsRacingAppLock")
         configuration.userContentController.add(context.coordinator, name: "redsRacingAuth")
         configuration.userContentController.add(context.coordinator, name: "redsRacingAppUnlock")
+        configuration.userContentController.add(context.coordinator, name: "redsRacingNotifications")
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
         context.coordinator.webView = webView
@@ -1007,7 +1010,129 @@ extension WebView.Coordinator: WKScriptMessageHandler {
                     self.webView?.evaluateJavaScript(js, completionHandler: nil)
                 }
             }
+            return
         }
+
+        if message.name == "redsRacingNotifications" {
+            guard let dict = message.body as? [String: Any] else { return }
+            let action = (dict["action"] as? String ?? "").lowercased()
+            if action == "getstatus" || action == "getStatus" {
+                Self.notificationAuthorizationStatus { status in
+                    self.deliverNativeNotifResult(["status": status, "platform": "ios"])
+                }
+                return
+            }
+            if action == "enable" {
+                Self.enableRaceNotifications { payload in
+                    self.deliverNativeNotifResult(payload)
+                }
+                return
+            }
+        }
+    }
+
+    private func deliverNativeNotifResult(_ payload: [String: Any]) {
+        guard let data = try? JSONSerialization.data(withJSONObject: payload),
+              let json = String(data: data, encoding: .utf8) else { return }
+        let js = "window.__rrNativeNotifResult && window.__rrNativeNotifResult(\(json))"
+        DispatchQueue.main.async {
+            self.webView?.evaluateJavaScript(js, completionHandler: nil)
+        }
+    }
+
+    private static func notificationAuthorizationStatus(completion: @escaping (String) -> Void) {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            let status: String
+            switch settings.authorizationStatus {
+            case .authorized, .provisional, .ephemeral:
+                status = "granted"
+            case .denied:
+                status = "denied"
+            case .notDetermined:
+                status = "default"
+            @unknown default:
+                status = "default"
+            }
+            DispatchQueue.main.async { completion(status) }
+        }
+    }
+
+    private static func enableRaceNotifications(completion: @escaping ([String: Any]) -> Void) {
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { settings in
+            switch settings.authorizationStatus {
+            case .authorized, .provisional, .ephemeral:
+                Self.subscribeRaceAlertTopics()
+                Self.postLocalConfirmation()
+                DispatchQueue.main.async {
+                    completion(["status": "already", "platform": "ios"])
+                }
+            case .denied:
+                DispatchQueue.main.async {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                    completion([
+                        "status": "denied",
+                        "platform": "ios",
+                        "message": "Enable notifications in iOS Settings for RedsRacing"
+                    ])
+                }
+            case .notDetermined:
+                center.requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+                    if let error = error {
+                        DispatchQueue.main.async {
+                            completion([
+                                "status": "error",
+                                "platform": "ios",
+                                "message": error.localizedDescription
+                            ])
+                        }
+                        return
+                    }
+                    DispatchQueue.main.async {
+                        if granted {
+                            UIApplication.shared.registerForRemoteNotifications()
+                            Self.subscribeRaceAlertTopics()
+                            Self.postLocalConfirmation()
+                            completion(["status": "granted", "platform": "ios"])
+                        } else {
+                            completion(["status": "denied", "platform": "ios"])
+                        }
+                    }
+                }
+            @unknown default:
+                DispatchQueue.main.async {
+                    completion(["status": "default", "platform": "ios"])
+                }
+            }
+        }
+    }
+
+    private static func subscribeRaceAlertTopics() {
+        let topics = ["all_users", "ios_users", "race_reminders", "schedule_updates"]
+        for topic in topics {
+            Messaging.messaging().subscribe(toTopic: topic) { error in
+                if let error = error {
+                    print("Failed to subscribe to \(topic): \(error.localizedDescription)")
+                } else {
+                    print("Subscribed to \(topic)")
+                }
+            }
+        }
+    }
+
+    private static func postLocalConfirmation() {
+        let content = UNMutableNotificationContent()
+        content.title = "RedsRacing"
+        content.body = "Notifications on — you'll get race reminders and schedule updates."
+        content.sound = .default
+        let request = UNNotificationRequest(
+            identifier: "rr-notif-enabled-\(Int(Date().timeIntervalSince1970))",
+            content: content,
+            trigger: nil
+        )
+        UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
     }
 }
 
