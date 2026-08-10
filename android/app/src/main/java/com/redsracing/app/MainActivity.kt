@@ -731,6 +731,10 @@ class MainActivity : AppCompatActivity() {
                     (function(){
                         requestAnimationFrame(function() {
                             var isAdmin = window.location.href.indexOf('admin-console') !== -1;
+                            try {
+                              document.documentElement.classList.add('rr-native-app');
+                              if (document.body) document.body.classList.add('mobile-app');
+                            } catch (eClass) {}
                             var header = document.querySelector('header');
                             if (header) {
                                 header.style.display = 'none';
@@ -738,16 +742,27 @@ class MainActivity : AppCompatActivity() {
                                 header.style.height = '0';
                                 header.style.overflow = 'hidden';
                             }
+                            // Homepage web pill strip (Next Race / Schedule / …) — bottom nav owns this
+                            try {
+                              document.querySelectorAll('.home-mobile-bar').forEach(function(el) {
+                                el.style.display = 'none';
+                                el.style.visibility = 'hidden';
+                                el.style.height = '0';
+                                el.style.overflow = 'hidden';
+                                el.setAttribute('hidden', 'true');
+                                el.setAttribute('aria-hidden', 'true');
+                              });
+                            } catch (eHome) {}
                             // Remove browser hamburger / tab drawer if page scripts painted them
                             try {
                               var orphan = document.getElementById('mobile-menu-button');
-                              if (orphan && orphan.getAttribute('data-rr-orphan') === '1') orphan.remove();
+                              if (orphan) orphan.remove();
                               var tabs = document.getElementById('mobile-menu-tabs');
                               if (tabs) tabs.remove();
                               var classic = document.getElementById('mobile-menu');
                               if (classic) { classic.style.display = 'none'; classic.setAttribute('hidden','true'); }
                             } catch (eNav) {}
-                            // On admin console: show the admin menu bar and ensure mobile-menu works
+                            // On admin console: show the admin menu bar (its own UI) — keep Command Center drawer
                             if (isAdmin) {
                                 var adminBar = document.getElementById('admin-menu-bar');
                                 if (adminBar) {

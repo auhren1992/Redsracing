@@ -75,11 +75,29 @@ header, .navbar, .navigation, .header-nav {
   display: none !important;
 }
 
+/* Homepage web-only sticky pill strip (Next Race / Schedule / Gallery / Login).
+   Native Android/iOS already have bottom tabs — never stack a second top nav. */
+.home-mobile-bar,
+nav.home-mobile-bar {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  pointer-events: none !important;
+}
+
 /* Native shell owns navigation — never show browser hamburger / tab drawer overlays. */
 #mobile-menu-button[data-rr-orphan="1"],
+#mobile-menu-button,
+#mobile-menu-toggle,
 #mobile-menu-tabs,
 #mobile-menu,
-#mobile-menu-overlay {
+#mobile-menu-overlay,
+.mobile-menu-tabs {
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
