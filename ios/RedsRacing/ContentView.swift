@@ -534,7 +534,7 @@ struct WebView: UIViewRepresentable {
         // Native marker on every page; standalone-login flag is set only on login.html
         // (see decidePolicy / didFinish) so finishStandaloneAppLogin() cannot fire elsewhere.
         let nativeAppFlag = WKUserScript(
-            source: "try{window.__RR_NATIVE_APP__='ios';}catch(e){}",
+            source: "try{window.__RR_NATIVE_APP__='ios';document.documentElement.classList.add('rr-native-app');}catch(e){}",
             injectionTime: .atDocumentStart,
             forMainFrameOnly: true
         )
@@ -602,8 +602,24 @@ struct WebView: UIViewRepresentable {
             let js = """
                 (function(){
                   setTimeout(function(){
+                    try {
+                      document.documentElement.classList.add('rr-native-app');
+                      if (document.body) document.body.classList.add('mobile-app');
+                    } catch (eMark) {}
                     var header = document.querySelector('header');
                     if (header) { header.style.display='none'; header.style.visibility='hidden'; header.style.height='0'; header.style.overflow='hidden'; }
+                    try {
+                      document.querySelectorAll('.home-mobile-bar, nav.home-mobile-bar').forEach(function(el) {
+                        el.style.display = 'none';
+                        el.style.visibility = 'hidden';
+                        el.setAttribute('hidden', 'true');
+                        el.setAttribute('aria-hidden', 'true');
+                      });
+                      var orphan = document.getElementById('mobile-menu-button');
+                      if (orphan && orphan.getAttribute('data-rr-orphan') === '1') orphan.remove();
+                      var tabs = document.getElementById('mobile-menu-tabs');
+                      if (tabs) tabs.remove();
+                    } catch (eNav) {}
                     document.body.style.backgroundColor = '#05080f';
                     document.body.style.paddingBottom = '120px';
                     var mains = document.querySelectorAll('main');
@@ -616,7 +632,7 @@ struct WebView: UIViewRepresentable {
                         label.style.opacity = '1';
                         label.style.color = '#ffffff';
                     });
-                    // Show admin sidebar on mobile for admin-console page
+                    // Admin console keeps its own UI (menu bar / Command Center drawer)
                     if (window.location.href.indexOf('admin-console') !== -1) {
                         var adminBar = document.getElementById('admin-menu-bar');
                         if (adminBar) {

@@ -75,6 +75,20 @@ header, .navbar, .navigation, .header-nav {
   display: none !important;
 }
 
+/* Homepage web-only sticky pill strip (Next Race / Schedule / Gallery / Login).
+   Native apps already have a bottom tab bar — never show this duplicate chrome. */
+.home-mobile-bar,
+nav.home-mobile-bar {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
 /* Native shell owns navigation — never show browser hamburger / tab drawer overlays. */
 #mobile-menu-button[data-rr-orphan="1"],
 #mobile-menu-tabs,
@@ -83,6 +97,13 @@ header, .navbar, .navigation, .header-nav {
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
+}
+
+/* Keep admin Command Center chrome available in the native WebView. */
+body.mobile-app #admin-menu-bar,
+html.rr-native-app #admin-menu-bar {
+  display: flex !important;
+  visibility: visible !important;
 }
 
 /* Main container adjustments */
