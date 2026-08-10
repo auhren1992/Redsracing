@@ -52,6 +52,12 @@
       <script src="assets/js/page-meta.js" defer></script>
       <script src="assets/js/site-search.js" defer></script>
       <link rel="stylesheet" href="styles/mobile-menu-tabs.css?v=2026080914" />
+    <style>
+      .race-badge.wx-badge { background: rgba(56,189,248,.12); color: #7dd3fc; border: 1px solid rgba(56,189,248,.25); }
+      .race-badge.wx-risk-high { background: rgba(239,68,68,.18); color: #fecaca; border-color: rgba(239,68,68,.4); }
+      .race-badge.wx-risk-medium { background: rgba(251,191,36,.14); color: #fde68a; border-color: rgba(251,191,36,.35); }
+      .race-badge.wx-risk-low { background: rgba(52,211,153,.12); color: #a7f3d0; border-color: rgba(52,211,153,.3); }
+    </style>
   </head>
   <body class="bg-dark-blue">
     <!-- Clean Modern Header -->
@@ -324,9 +330,10 @@
               <span class="text-red-400 font-bold uppercase tracking-wider text-sm">Next Race</span>
             </div>
             
-            <h2 id="next-race-name" class="font-racing text-3xl md:text-4xl text-white uppercase mb-8">
+            <h2 id="next-race-name" class="font-racing text-3xl md:text-4xl text-white uppercase mb-4">
               Loading...
             </h2>
+            <p class="text-slate-400 text-sm mb-6">Rain forecast, gate notes, and countdown live on the <a href="next-race.html" class="text-yellow-400 font-semibold hover:underline">Next Race Hub</a>.</p>
             
             <div id="countdown-timer" class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
               <div class="modern-card p-4 border border-yellow-400/20">
@@ -744,7 +751,8 @@
       window.__countdownDb = firebase.firestore();
     })();
     </script>
-    <script src="assets/js/schedule-handler.js?v=20260506"></script>
+    <script src="assets/js/race-weather.js"></script>
+    <script src="assets/js/schedule-handler.js?v=20260810"></script>
     <script type="module" src="modern-effects.js"></script>
       <script src="assets/js/cookie-consent.js"></script>
   <div style="text-align:center;padding:1.5rem 1rem;border-top:1px solid rgba(148,163,184,0.1);margin-top:2rem;font-size:0.75rem;color:#64748b;"><a href="privacy.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Privacy Policy</a> | <a href="terms.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Terms of Service</a> | <a href="contact.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Contact</a><div style="margin-top:4px;">&copy; 2026 RedsRacing #8 &amp; #88</div></div>

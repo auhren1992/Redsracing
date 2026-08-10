@@ -159,7 +159,9 @@
           '#logs': 'logs-section',
           '#qna': 'qna-section',
           '#videos': 'videos-section',
-          '#admin-pages': 'admin-pages',
+          '#admin-pages': 'homepage-pulse-section',
+          '#pulse': 'homepage-pulse-section',
+          '#homepage-pulse': 'homepage-pulse-section',
           '#fanwall': 'fanwall-section',
           '#schedule-mgmt': 'schedule-mgmt-section',
           '#health': 'health-section',
@@ -1278,9 +1280,9 @@
                 <i class="fas fa-bullhorn w-5 mr-3 text-orange-400"></i>
                 <span>Fan Wall</span>
               </a>
-              <a href="#admin-pages" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
-                <i class="fas fa-file-alt w-5 mr-3 text-lime-400"></i>
-                <span>Site Editor</span>
+              <a href="#pulse" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300">
+                <i class="fas fa-bolt w-5 mr-3 text-yellow-400"></i>
+                <span>Homepage Pulse</span>
               </a>
             </div>
             
@@ -3151,10 +3153,8 @@
             </div>
           </div>
 
-          <!-- Admin Pages (CMS Site Editor) -->
-          <div id="admin-pages" class="space-y-6 hidden">
-            <!-- CMS content will be injected here by cms-admin.js -->
-          </div>
+          <!-- Homepage Pulse (replaces Site Editor) -->
+          <div id="homepage-pulse-section" class="space-y-6 hidden"></div>
 
           <!-- Videos Section (Approvals + Size Settings) -->
           <div id="videos-section" class="space-y-6 hidden">
@@ -3697,7 +3697,7 @@
     <script type="module" src="assets/js/auth-guard.js"></script>
     <script type="module" src="navigation.js"></script>
     <!-- redsracing-dashboard.js removed: admin console has its own countdown/data loading -->
-    <script type="module" src="assets/js/cms-admin.js?v=20251006-2"></script>
+    <script src="assets/js/homepage-pulse-admin.js?v=20260810b"></script>
     <script type="module" src="assets/js/queue-admin.js?v=202605082"></script>
     
     <script>
@@ -3725,6 +3725,7 @@
           }
           return appModule.getApps()[0];
         }
+        try { window.ensureDefaultApp = ensureDefaultApp; } catch (_) {}
         
         async function getUserRole() {
           try {
@@ -3781,6 +3782,8 @@
           const r = String(role).trim().toLowerCase().replace(/[\s_]+/g, '-');
           return r === 'team-member' || r === 'admin' || r === 'owner';
         }
+        try { window.getUserRole = getUserRole; } catch (_) {}
+        try { window.isModeratorRole = isModeratorRole; } catch (_) {}
         
         // ===== PHASE 1: CLIENT TELEMETRY HELPERS =====
         async function _getActorInfo() {
@@ -4247,7 +4250,11 @@
             '';
           const manufacturer = (v.device_manufacturer || v.manufacturer || '').trim();
           const model = (v.device_model || v.model || '').trim();
-          const deviceLabel = [manufacturer, model].filter(Boolean).join(' ') || model || manufacturer || '—';
+          const modelName = (v.device_model_name || v.device_brand || '').trim();
+          let deviceLabel = [manufacturer, model].filter(Boolean).join(' ') || model || manufacturer || '—';
+          if (modelName && modelName !== model && modelName.toLowerCase() !== manufacturer.toLowerCase()) {
+            deviceLabel += ' (' + modelName + ')';
+          }
           const osRelease = (v.android_version || v.ios_version || v.os_version || '').trim();
           const osSdk = v.os_sdk != null ? String(v.os_sdk) : '';
           const osLabel = osSdk ? (osRelease + ' (API ' + osSdk + ')') : (osRelease || '—');
@@ -4625,9 +4632,9 @@
                 } else if (href === '#qna') {
                   console.log('[NAV] Showing Q&A...');
                   showQnA();
-                } else if (href === '#admin-pages') {
-                  console.log('[NAV] Showing admin pages...');
-                  showAdminPages();
+                } else if (href === '#admin-pages' || href === '#pulse' || href === '#homepage-pulse') {
+                  console.log('[NAV] Showing Homepage Pulse...');
+                  showHomepagePulse();
                 } else if (href === '#logs') {
                   console.log('[NAV] Showing logs...');
                   showLogs();
@@ -4801,7 +4808,7 @@
         }
         
         function hideAllSections() {
-          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'admin-pages', 'qna-section', 'videos-section', 'analytics-section', 'schedule-mgmt-section', 'health-section', 'fanwall-section', 'ops-inbox-section', 'raceday-section', 'audit-section', 'data-quality-section', 'releases-section'];
+          const sections = ['dashboard-content', 'gallery-approvals', 'settings-section', 'advanced-section', 'race-section', 'logs-section', 'homepage-pulse-section', 'admin-pages', 'qna-section', 'videos-section', 'analytics-section', 'schedule-mgmt-section', 'health-section', 'fanwall-section', 'ops-inbox-section', 'raceday-section', 'audit-section', 'data-quality-section', 'releases-section'];
           sections.forEach(id => {
             const section = document.getElementById(id);
             if (section) {
@@ -4926,18 +4933,17 @@
           
           return settingsSection;
         }
-        function showAdminPages() {
+        function showHomepagePulse() {
           hideAllSections();
-          const sec = document.getElementById('admin-pages');
+          const sec = document.getElementById('homepage-pulse-section');
           if (sec) {
             sec.classList.remove('hidden');
             sec.style.display = 'block';
-            try { if (window.initCMSAdmin) window.initCMSAdmin(); } catch(_) {}
-            // Fallback button to manually load
-            const btn = document.getElementById('cms-load-btn');
-            if (btn) btn.onclick = () => { try { if (window.initCMSAdmin) window.initCMSAdmin(); } catch(_) {} };
+            try { if (window.initHomepagePulseAdmin) window.initHomepagePulseAdmin(); } catch (e) { console.error(e); }
           }
         }
+        // Back-compat for old #admin-pages hash bookmarks
+        function showAdminPages() { showHomepagePulse(); }
 
         function showQnA() {
           hideAllSections();
@@ -6864,6 +6870,7 @@
             window.__adminToastTimer = setTimeout(() => toast.classList.add('hidden'), 2500);
           } catch (_) {}
         }
+        try { window.showToast = showToast; } catch (_) {}
 
         // Simple validators and normalizers for TikTok
         function normalizeHandle(input) {
@@ -7196,8 +7203,10 @@
                 showVideos();
                 break;
               case '#admin-pages':
-                console.log('🔗 [HASH] Showing admin pages...');
-                showAdminPages();
+              case '#pulse':
+              case '#homepage-pulse':
+                console.log('🔗 [HASH] Showing Homepage Pulse...');
+                showHomepagePulse();
                 break;
               case '#fanwall':
                 console.log('🔗 [HASH] Showing fan wall...');
@@ -8353,23 +8362,15 @@
             const pages = [
               { url: '', priority: '1.0', changefreq: 'daily' },
               { url: 'index.html', priority: '1.0', changefreq: 'daily' },
+              { url: 'next-race.html', priority: '0.95', changefreq: 'daily' },
+              { url: 'schedule.html', priority: '0.95', changefreq: 'weekly' },
+              { url: 'live.html', priority: '0.9', changefreq: 'daily' },
               { url: 'gallery.html', priority: '0.9', changefreq: 'weekly' },
-              { url: 'race-day.html', priority: '0.9', changefreq: 'weekly' },
               { url: 'about.html', priority: '0.8', changefreq: 'monthly' },
               { url: 'contact.html', priority: '0.7', changefreq: 'monthly' },
               { url: 'fan-wall.html', priority: '0.7', changefreq: 'weekly' },
               { url: 'leaderboard.html', priority: '0.6', changefreq: 'weekly' },
             ];
-            // Dynamic: published CMS pages
-            try {
-              const cmsSnap = await getDocs(collection(db, 'pages'));
-              cmsSnap.forEach(d => {
-                const slug = d.id;
-                if (slug && !pages.find(p => p.url === slug + '.html')) {
-                  pages.push({ url: slug + '.html', priority: '0.6', changefreq: 'monthly' });
-                }
-              });
-            } catch (_) {}
             // Dynamic: published Q&A (adds count note)
             let qnaCount = 0;
             try { const qSnap = await getDocs(query(collection(db, 'qna_submissions'), where('status','==','published'))); qnaCount = qSnap.size; } catch (_) {}

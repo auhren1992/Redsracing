@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Next Race Hub - RedsRacing #8 & #88</title>
+  <meta name="description" content="Smart next-race hub for RedsRacing: countdown, rain forecast, track tips, parking/gate notes, and last results." />
+  <link rel="canonical" href="https://www.redsracing.org/next-race.html" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="styles/tailwind.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/input-fix.css" />
+  <link rel="stylesheet" href="styles/modern-nav.css" />
+  <link rel="stylesheet" href="styles/mobile-menu-tabs.css?v=2026080914" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="assets/js/mobile-app-detector.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="assets/js/guest-gate.js"></script>
+  <meta name="theme-color" content="#fbbf24" />
+  <meta property="og:image" content="/assets/img/og-default.jpg" />
+  <script src="assets/js/page-meta.js" defer></script>
+  <script src="assets/js/site-search.js" defer></script>
+  <style>
+    :root {
+      --nr-ink: #e8eef8;
+      --nr-muted: #94a3b8;
+      --nr-gold: #fbbf24;
+      --nr-panel: rgba(15, 23, 42, 0.72);
+      --nr-line: rgba(148, 163, 184, 0.18);
+    }
+    body.nr-page {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--nr-ink);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(251, 191, 36, 0.16), transparent 55%),
+        radial-gradient(900px 500px at 90% 0%, rgba(37, 99, 235, 0.22), transparent 50%),
+        linear-gradient(165deg, #070b16 0%, #0f172a 45%, #111827 100%);
+    }
+    .nr-shell { max-width: 1080px; margin: 0 auto; padding: 96px 16px 64px; }
+    .nr-kicker {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.72rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--nr-gold);
+    }
+    .nr-hero-title {
+      font-family: 'Bebas Neue', 'Racing Sans One', sans-serif;
+      font-size: clamp(2.6rem, 8vw, 4.4rem);
+      line-height: 0.95; margin: 10px 0 8px; letter-spacing: 0.02em;
+    }
+    .nr-hero-sub { color: var(--nr-muted); font-size: 1.05rem; margin-bottom: 18px; }
+    .nr-countdown {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;
+      margin: 18px 0 22px;
+    }
+    .nr-count-cell {
+      background: var(--nr-panel); border: 1px solid var(--nr-line); border-radius: 16px;
+      padding: 14px 8px; text-align: center;
+    }
+    .nr-count-num {
+      font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.8rem, 5vw, 2.6rem);
+      color: #fff; line-height: 1;
+    }
+    .nr-count-label { font-size: 0.68rem; letter-spacing: 0.12em; color: var(--nr-muted); margin-top: 4px; }
+    .nr-grid {
+      display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px;
+    }
+    @media (max-width: 860px) {
+      .nr-grid { grid-template-columns: 1fr; }
+      .nr-shell { padding-top: 84px; }
+    }
+    .nr-card {
+      background: var(--nr-panel); border: 1px solid var(--nr-line); border-radius: 18px;
+      padding: 18px; backdrop-filter: blur(12px);
+    }
+    .nr-card h2 {
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--nr-gold); margin: 0 0 12px; font-weight: 800;
+    }
+    .nr-meta { display: grid; gap: 8px; color: #cbd5e1; font-size: 0.95rem; }
+    .nr-meta i { color: var(--nr-gold); width: 18px; }
+    .nr-muted { color: var(--nr-muted); font-size: 0.92rem; line-height: 1.5; }
+    .nr-weather-card {
+      display: flex; gap: 12px; align-items: flex-start; border-radius: 14px; padding: 12px;
+      border: 1px solid var(--nr-line); background: rgba(2, 6, 23, 0.35);
+    }
+    .nr-weather-icon { font-size: 1.6rem; color: var(--nr-gold); width: 40px; text-align: center; }
+    .nr-weather-title { font-weight: 700; color: #fff; }
+    .nr-weather-sub { color: var(--nr-muted); font-size: 0.9rem; margin-top: 4px; }
+    .nr-weather-alert {
+      margin-top: 8px; color: #fecaca; font-size: 0.88rem; font-weight: 600;
+    }
+    .wx-risk-high { border-color: rgba(239, 68, 68, 0.45); background: rgba(127, 29, 29, 0.28); }
+    .wx-risk-medium { border-color: rgba(251, 191, 36, 0.4); background: rgba(120, 53, 15, 0.28); }
+    .wx-risk-low { border-color: rgba(52, 211, 153, 0.35); background: rgba(6, 78, 59, 0.25); }
+    .nr-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .nr-cta, .nr-link-btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 12px;
+      font-weight: 700; text-decoration: none; border: 1px solid transparent;
+    }
+    .nr-cta { background: linear-gradient(135deg, #f59e0b, #d97706); color: #111827; }
+    .nr-link-btn { background: rgba(15, 23, 42, 0.7); color: #e2e8f0; border-color: var(--nr-line); }
+    .nr-last-head { font-weight: 700; margin-bottom: 8px; }
+    .nr-last-list { list-style: none; padding: 0; margin: 0 0 10px; }
+    .nr-last-list li { padding: 6px 0; border-bottom: 1px solid rgba(148,163,184,0.12); font-size: 0.95rem; }
+    .nr-car { color: var(--nr-gold); font-size: 0.85rem; }
+    .nr-link { color: var(--nr-gold); text-decoration: none; font-weight: 700; font-size: 0.9rem; }
+    .nr-live-pill {
+      display: inline-flex; align-items: center; gap: 8px; font-size: 0.72rem; font-weight: 800;
+      letter-spacing: 0.14em; color: #fecaca; margin-bottom: 8px;
+    }
+    .nr-live-dot {
+      width: 8px; height: 8px; border-radius: 999px; background: #ef4444;
+      box-shadow: 0 0 0 0 rgba(239,68,68,.7); animation: nrPulse 1.6s infinite;
+    }
+    @keyframes nrPulse {
+      0% { box-shadow: 0 0 0 0 rgba(239,68,68,.55); }
+      70% { box-shadow: 0 0 0 12px rgba(239,68,68,0); }
+      100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    }
+    .nr-live-status { font-size: 1.15rem; font-weight: 800; color: #fff; }
+    .nr-live-note { color: #fecaca; margin: 8px 0 12px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body class="nr-page flex flex-col min-h-screen">
+  <div id="navigation-placeholder"></div>
+
+  <main class="nr-shell">
+    <div id="nr-loading" class="nr-card nr-muted">Loading next race hub…</div>
+    <div id="nr-empty" class="nr-card hidden">
+      <div class="nr-kicker"><i class="fas fa-flag-checkered"></i> Season wrap</div>
+      <h1 class="nr-hero-title">No upcoming races posted</h1>
+      <p class="nr-hero-sub">Check the full schedule or Live page for the latest.</p>
+      <div class="nr-actions">
+        <a class="nr-cta" href="schedule.html">Open schedule</a>
+        <a class="nr-link-btn" href="live.html">Live page</a>
+      </div>
+    </div>
+
+    <div id="nr-content" class="hidden">
+      <div id="nr-race-mode" class="nr-card hidden" style="margin-bottom:14px;border-color:rgba(239,68,68,.35);background:rgba(127,29,29,.28);"></div>
+
+      <div class="nr-kicker"><i class="fas fa-bolt"></i> Smart Next-Race Hub</div>
+      <h1 id="nr-title" class="nr-hero-title">Next race</h1>
+      <p id="nr-sub" class="nr-hero-sub">Loading track…</p>
+
+      <div class="nr-countdown" aria-label="Countdown to race">
+        <div class="nr-count-cell"><div id="nr-days" class="nr-count-num">0</div><div class="nr-count-label">DAYS</div></div>
+        <div class="nr-count-cell"><div id="nr-hours" class="nr-count-num">0</div><div class="nr-count-label">HOURS</div></div>
+        <div class="nr-count-cell"><div id="nr-minutes" class="nr-count-num">0</div><div class="nr-count-label">MINS</div></div>
+        <div class="nr-count-cell"><div id="nr-seconds" class="nr-count-num">0</div><div class="nr-count-label">SECS</div></div>
+      </div>
+
+      <div class="nr-grid">
+        <section class="nr-card">
+          <h2><i class="fas fa-cloud-sun-rain mr-2"></i>Race-day weather</h2>
+          <div id="nr-weather" class="nr-muted">Fetching forecast…</div>
+          <div class="nr-actions">
+            <a id="nr-map-link" class="nr-link-btn" href="schedule.html" target="_blank" rel="noopener"><i class="fas fa-map-marker-alt"></i> Directions</a>
+            <a class="nr-link-btn" href="live.html"><i class="fas fa-broadcast-tower"></i> Live updates</a>
+            <a class="nr-cta" href="schedule.html"><i class="fas fa-calendar-alt"></i> Full schedule</a>
+          </div>
+        </section>
+
+        <section class="nr-card">
+          <h2><i class="fas fa-info-circle mr-2"></i>Race details</h2>
+          <div id="nr-meta" class="nr-meta"></div>
+        </section>
+
+        <section class="nr-card">
+          <h2><i class="fas fa-lightbulb mr-2"></i>Track tips</h2>
+          <p id="nr-tips" class="nr-muted"></p>
+        </section>
+
+        <section class="nr-card">
+          <h2><i class="fas fa-ticket-alt mr-2"></i>Gate & parking</h2>
+          <p class="nr-muted" style="margin-bottom:10px;"><strong style="color:#e2e8f0;">Gate</strong><br><span id="nr-gate"></span></p>
+          <p class="nr-muted"><strong style="color:#e2e8f0;">Parking</strong><br><span id="nr-parking"></span></p>
+        </section>
+
+        <section class="nr-card" style="grid-column: 1 / -1;">
+          <h2><i class="fas fa-flag-checkered mr-2"></i>Last result</h2>
+          <div id="nr-last-result" class="nr-muted">Loading…</div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg",
+      authDomain: "redsracing-a7f8b.firebaseapp.com",
+      projectId: "redsracing-a7f8b",
+      storageBucket: "redsracing-a7f8b.firebasestorage.app",
+      messagingSenderId: "517034606151",
+      appId: "1:517034606151:web:24cae262e1d98832757b62"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  </script>
+  <script src="navigation.js"></script>
+  <script src="assets/js/mobile-menu-tabs.js?v=20260810-pulse"></script>
+  <script src="assets/js/race-weather.js"></script>
+  <script src="assets/js/next-race-hub.js"></script>
+  <script src="assets/js/ads-inject.js" defer></script>
+</body>
+</html>

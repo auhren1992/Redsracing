@@ -972,9 +972,9 @@
     <nav class="home-mobile-bar" aria-label="Mobile site navigation">
       <a class="brand" href="index.html"><span class="b">Reds</span><span class="y">Racing</span></a>
       <div class="links">
+        <a href="next-race.html">Next Race</a>
         <a href="schedule.html">Schedule</a>
         <a href="gallery.html">Gallery</a>
-        <a href="team.html">Team</a>
         <a href="login.html">Login</a>
       </div>
     </nav>
@@ -1121,9 +1121,9 @@
             <i class="fas fa-flag-checkered"></i>
             <span>Enter Garage</span>
           </a>
-          <a href="schedule.html" class="cta-button cta-secondary" style="flex: 1; min-width: 200px; max-width: 280px;" onclick="trackEvent('cta_view_schedule', {source: 'homepage_hero', position: 'primary'})">
-            <i class="fas fa-calendar-check"></i>
-            <span>Race Schedule</span>
+          <a href="next-race.html" class="cta-button cta-secondary" style="flex: 1; min-width: 200px; max-width: 280px;" onclick="trackEvent('cta_next_race_hub', {source: 'homepage_hero', position: 'primary'})">
+            <i class="fas fa-bolt"></i>
+            <span>Next Race Hub</span>
           </a>
         </div>
         
@@ -1424,6 +1424,13 @@
         const [recap, photo] = await Promise.all([rrFetchLatestRecapHeadline(), rrFetchHeroGalleryUrl()]);
         const slides = [];
 
+        try {
+          const pulseSlide = window.RRHomepagePulse && window.RRHomepagePulse.spotlightSlide
+            ? window.RRHomepagePulse.spotlightSlide()
+            : null;
+          if (pulseSlide) slides.push(pulseSlide);
+        } catch (_) {}
+
         if (nextMeta && nextMeta.raceName) {
           const dateStr = rrFormatRaceDateRaw(nextMeta.date);
           const sub = [nextMeta.trackName, dateStr].filter(Boolean).join(' • ') || 'Full schedule with dates and tracks.';
@@ -1523,14 +1530,36 @@
         }
 
         function seedTicker() {
-          setTickerItems([
-            { icon: 'fas fa-flag-checkered', text: raceInfo, href: 'schedule.html' },
+          const defaults = [
+            { icon: 'fas fa-flag-checkered', text: raceInfo, href: 'next-race.html' },
+            { icon: 'fas fa-cloud-sun-rain', text: 'Rain forecast on the Next Race Hub', href: 'next-race.html' },
             { icon: 'fas fa-trophy', text: 'Season stats & standings', href: 'stats.html' },
             { icon: 'fas fa-video', text: 'Highlights & clips', href: 'videos.html' },
             { icon: 'fas fa-users', text: 'Meet the team', href: 'team.html' },
-            { icon: 'fas fa-handshake', text: 'Sponsors & partnerships', href: 'sponsorship.html' },
-          ]);
+          ];
+          try {
+            const pulseItems = window.RRHomepagePulse ? window.RRHomepagePulse.tickerItems() : [];
+            const mode = window.RRHomepagePulse ? window.RRHomepagePulse.tickerMode() : 'append';
+            if (mode === 'replace' && pulseItems.length) {
+              setTickerItems(pulseItems);
+              return;
+            }
+            setTickerItems(pulseItems.length ? pulseItems.concat(defaults) : defaults);
+          } catch (_) {
+            setTickerItems(defaults);
+          }
         }
+
+        let __rrLastNextMeta = null;
+        let __rrLastRaceInfo = raceInfo;
+        window.addEventListener('rr-homepage-pulse-ready', () => {
+          try { seedTicker(); } catch (_) {}
+          try {
+            if (typeof hydrateFeaturedCarousel === 'function') {
+              hydrateFeaturedCarousel(__rrLastNextMeta, __rrLastRaceInfo);
+            }
+          } catch (_) {}
+        });
 
         // Fetch the next upcoming race from Firestore
         async function loadFirstRace() {
@@ -1583,6 +1612,8 @@
             // Use fallback values if Firebase fails
           } finally {
             try {
+              __rrLastNextMeta = nextMeta;
+              __rrLastRaceInfo = raceInfo;
               await hydrateFeaturedCarousel(nextMeta, raceInfo);
             } catch (e) {
               console.warn('Feature carousel:', e);
@@ -1792,6 +1823,7 @@
     <div style="text-align: center; margin: 40px 0; padding: 0 20px;">
       
     </div>
+      <script src="assets/js/homepage-pulse.js?v=20260810"></script>
       <script src="assets/js/cookie-consent.js"></script>
   </body>
 </html>

@@ -111,6 +111,13 @@
           </a>
           
           <div class="mobile-section-header">Quick Access</div>
+
+          <a href="next-race.html" class="mobile-nav-link">
+            <div class="mobile-nav-link-icon">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <span>Next Race Hub</span>
+          </a>
           
           <a href="schedule.html" class="mobile-nav-link">
             <div class="mobile-nav-link-icon">
@@ -202,6 +209,13 @@
         
         <!-- Tab Content: Racing -->
         <div class="mobile-tab-content" data-tab-content="racing">
+          <a href="next-race.html" class="mobile-nav-link">
+            <div class="mobile-nav-link-icon" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24;">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <span>Next Race Hub</span>
+          </a>
+
           <a href="schedule.html" class="mobile-nav-link">
             <div class="mobile-nav-link-icon">
               <i class="fas fa-calendar-alt"></i>

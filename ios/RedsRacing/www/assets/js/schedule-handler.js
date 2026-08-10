@@ -79,6 +79,10 @@
       // Create card using DOM methods to prevent XSS
       const card = document.createElement('div');
       card.className = `schedule-card p-4 rounded-lg ${cardClass}${isNextUp ? ' next-up' : ''}`;
+      card.dataset.raceDate = race.date || '';
+      card.dataset.raceCity = race.city || '';
+      card.dataset.raceState = race.state || '';
+      card.dataset.nextUp = isNextUp ? '1' : '0';
       
       const flexContainer = document.createElement('div');
       flexContainer.className = 'flex justify-between items-center';
@@ -117,11 +121,26 @@
       seriesBadge.className = 'race-badge';
       seriesBadge.textContent = race.type === 'specialEvent' ? 'SPECIAL EVENT' : 'SUPER CUP';
       badges.appendChild(seriesBadge);
+      if (!isPast) {
+        const wxBadge = document.createElement('span');
+        wxBadge.className = 'race-badge wx-badge';
+        wxBadge.dataset.wxSlot = '1';
+        wxBadge.innerHTML = '<i class="fas fa-cloud-sun"></i> Weather…';
+        badges.appendChild(wxBadge);
+      }
       leftDiv.appendChild(badges);
 
       // Actions row (map + add to calendar)
       const actions = document.createElement('div');
       actions.className = 'race-actions';
+
+      if (isNextUp) {
+        const hubLink = document.createElement('a');
+        hubLink.className = 'race-btn primary';
+        hubLink.href = 'next-race.html';
+        hubLink.innerHTML = '<i class="fas fa-bolt"></i> Next Race Hub';
+        actions.appendChild(hubLink);
+      }
 
       const mapsLink = document.createElement('a');
       mapsLink.className = 'race-btn';
@@ -199,6 +218,11 @@
     }
     if (specialEventsContainer && specialEventsContainer.innerHTML === '') {
       specialEventsContainer.innerHTML = '<p class="text-slate-400 text-center py-8">No special events scheduled for this season.</p>';
+    }
+
+    // Weather badges for upcoming races (Open-Meteo)
+    try { enrichScheduleWeather(sortedRaces.filter((r) => new Date(r.date + 'T00:00:00') >= today)); } catch (e) {
+      console.warn('Weather enrich failed', e);
     }
 
     // Update countdown for current/active season
@@ -397,6 +421,40 @@
       URL.revokeObjectURL(a.href);
       a.remove();
     }, 0);
+  }
+
+  async function enrichScheduleWeather(upcomingRaces) {
+    if (!window.RRRaceWeather || !upcomingRaces || !upcomingRaces.length) return;
+    // Forecast horizon is limited — only next ~16 days matter for Open-Meteo daily
+    const horizon = new Date();
+    horizon.setDate(horizon.getDate() + 16);
+    const near = upcomingRaces.filter((r) => new Date(r.date + 'T00:00:00') <= horizon);
+    if (!near.length) {
+      document.querySelectorAll('.wx-badge').forEach((el) => {
+        el.innerHTML = '<i class="fas fa-cloud-sun"></i> Forecast closer to race';
+      });
+      return;
+    }
+    const map = await window.RRRaceWeather.forRaces(near);
+    document.querySelectorAll('.schedule-card[data-race-date]').forEach((card) => {
+      const slot = card.querySelector('[data-wx-slot="1"]');
+      if (!slot) return;
+      const key = (card.dataset.raceDate || '') + '|' + (card.dataset.raceCity || '') + '|' + (card.dataset.raceState || '');
+      const wx = map.get(key);
+      if (!wx) {
+        const d = new Date((card.dataset.raceDate || '') + 'T00:00:00');
+        if (d > horizon) {
+          slot.innerHTML = '<i class="fas fa-cloud-sun"></i> Forecast closer to race';
+        } else {
+          slot.innerHTML = '<i class="fas fa-cloud"></i> Weather TBD';
+        }
+        return;
+      }
+      slot.classList.add(window.RRRaceWeather.riskClass(wx.risk));
+      const precip = Number.isFinite(wx.precipProb) ? wx.precipProb + '% rain' : wx.label;
+      slot.title = wx.summary + (wx.tempLine ? ' · ' + wx.tempLine : '');
+      slot.innerHTML = `<i class="${wx.icon}"></i> ${precip}${wx.risk === 'high' ? ' · WATCH' : ''}`;
+    });
   }
 
   // Initialize
