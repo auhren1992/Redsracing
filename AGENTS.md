@@ -36,6 +36,7 @@
   - Run: `GOOGLE_APPLICATION_CREDENTIALS=functions/serviceAccountKey.json node scripts/sync-app-version-config.mjs`
   - Or in admin: **Releases → Sync config to seen** (sets both platforms to max check-in build)
 - Native apps show an on-screen **Update available** banner (+ launch alert) whenever installed build `<` Firestore `latest_version`. Optional dismiss hides only the alert for that build; the banner stays until they update. Forced when installed `<` `minimum_version`.
+- Homepage **Enable Notifications** must use the native bridge in app WebViews (`AndroidNotifications.enable` / `redsRacingNotifications`), not the browser `Notification` API. Opt-in subscribes to FCM topics `race_reminders` + `schedule_updates` (plus platform topics). Helper: `assets/js/native-notifications.js`.
 - Do this in the same PR as the native fix — do not leave version bumps for later.
 
 
