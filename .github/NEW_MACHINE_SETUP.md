@@ -11,7 +11,7 @@ git checkout main
 git pull origin main
 ```
 
-Latest mobile release on `main` (when this doc was added): **11.2.18 (204)** — Releases check-in telemetry + device/OS reporting.
+Latest mobile release on `main` (when this doc was added): **11.2.19 (205)** — hide web homepage pill nav over native bottom tabs.
 
 ## Already in Git (you get everything below with `git pull`)
 
