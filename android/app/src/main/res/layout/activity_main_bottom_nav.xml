@@ -25,6 +25,46 @@
             android:contentInsetStartWithNavigation="0dp"
             android:contentInsetStart="0dp" />
 
+        <!-- Shown whenever Firestore latest_version > installed build -->
+        <LinearLayout
+            android:id="@+id/update_available_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="10dp"
+            android:background="#F59E0B"
+            android:visibility="gone"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintTop_toBottomOf="@id/toolbar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:id="@+id/update_available_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Update available"
+                android:textColor="#0F172A"
+                android:textStyle="bold"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/update_available_action"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:background="#0F172A"
+                android:text="Update"
+                android:textColor="#F8FAFC"
+                android:textStyle="bold"
+                android:textSize="13sp" />
+        </LinearLayout>
+
         <!-- WebView Container -->
         <FrameLayout
             android:id="@+id/webview_container"
@@ -33,7 +73,7 @@
             android:background="@color/website_background"
             android:clipChildren="true"
             android:clipToPadding="true"
-            app:layout_constraintTop_toBottomOf="@id/toolbar"
+            app:layout_constraintTop_toBottomOf="@id/update_available_banner"
             app:layout_constraintBottom_toTopOf="@id/ad_view"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">

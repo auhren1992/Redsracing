@@ -2,6 +2,7 @@ import SwiftUI
 import WebKit
 import UIKit
 import LocalAuthentication
+import FirebaseFirestore
 
 private enum AppLockUserDefaultsKeys {
     static let biometricEnabled = "app_biometric_unlock"
@@ -14,6 +15,10 @@ private enum NativeAuthUserDefaultsKeys {
     static let token = "firebase_native_auth_token"
 }
 
+private enum AppUpdateUserDefaultsKeys {
+    static let optionalDismissedBuild = "rr_optional_update_dismissed_build"
+}
+
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var isLoading = true
@@ -24,6 +29,13 @@ struct ContentView: View {
     @State private var overlayItems: [MenuItem] = []
     @State private var currentURL: URL = URL(string: "https://www.redsracing.org/") ?? URL(fileURLWithPath: "/")
     @State private var webViewRef: WKWebView? = nil
+    @State private var updateAvailable = false
+    @State private var updateForced = false
+    @State private var updateLatestBuild = 0
+    @State private var updateVersionName = ""
+    @State private var updateMessage = ""
+    @State private var updateStoreURL: URL? = nil
+    @State private var showUpdateAlert = false
     private let deepLinkPublisher = NotificationCenter.default.publisher(for: .deepLinkTarget)
 
     var body: some View {
@@ -34,6 +46,10 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 // Top App Bar (iOS-styled like Android)
                 topBar
+
+                if updateAvailable {
+                    updateAvailableBanner
+                }
 
                 // WebView
                 WebView(
@@ -83,6 +99,16 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .alert(updateForced ? "Update Required" : "Update Available", isPresented: $showUpdateAlert) {
+            Button("Update") { openStoreForUpdate() }
+            if !updateForced {
+                Button("Later", role: .cancel) {
+                    UserDefaults.standard.set(updateLatestBuild, forKey: AppUpdateUserDefaultsKeys.optionalDismissedBuild)
+                }
+            }
+        } message: {
+            Text(updateAlertBody)
+        }
         .onReceive(deepLinkPublisher) { notification in
             guard let page = notification.userInfo?["page"] as? String,
                   let target = URL(string: "https://www.redsracing.org/" + page) else { return }
@@ -97,6 +123,7 @@ struct ContentView: View {
             if !stillShowing {
                 routeToStandaloneLoginIfNeeded()
                 evaluateStartupAppLockIfNeeded()
+                checkAppVersion(promptDialog: true)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .nativeLoginComplete)) { _ in
@@ -107,9 +134,133 @@ struct ContentView: View {
             webViewRef?.load(URLRequest(url: home))
         }
         .onChange(of: scenePhase) { phase in
-            if phase == .active, appAuthenticationRequired {
-                runDeviceOwnerAuthGate()
+            if phase == .active {
+                if appAuthenticationRequired {
+                    runDeviceOwnerAuthGate()
+                }
+                checkAppVersion(promptDialog: updateForced)
             }
+        }
+        .onAppear {
+            checkAppVersion(promptDialog: true)
+        }
+    }
+
+    private var updateAlertBody: String {
+        if !updateMessage.isEmpty { return updateMessage }
+        let label = updateVersionName.isEmpty
+            ? "v\(updateLatestBuild)"
+            : "v\(updateLatestBuild) (\(updateVersionName))"
+        if updateForced {
+            return "A required update (\(label)) is available. Please update to continue using the app."
+        }
+        return "A new version (\(label)) is available. Would you like to update?"
+    }
+
+    private var updateAvailableBanner: some View {
+        Button(action: { openStoreForUpdate() }) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(updateForced ? "Update required" : "Update available")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(Color(red: 0.06, green: 0.09, blue: 0.16))
+                    Text(updateBannerSubtitle)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(Color(red: 0.06, green: 0.09, blue: 0.16).opacity(0.8))
+                }
+                Spacer(minLength: 8)
+                Text("Update")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color(red: 0.06, green: 0.09, blue: 0.16))
+                    .cornerRadius(8)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Color(red: 0.96, green: 0.62, blue: 0.04))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var updateBannerSubtitle: String {
+        if updateVersionName.isEmpty {
+            return "v\(updateLatestBuild) is ready in the App Store"
+        }
+        return "v\(updateLatestBuild) (\(updateVersionName)) is ready in the App Store"
+    }
+
+    private func currentInstalledBuild() -> Int {
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
+        return Int(build) ?? 0
+    }
+
+    private func checkAppVersion(promptDialog: Bool) {
+        let current = currentInstalledBuild()
+        guard current > 0 else { return }
+        Firestore.firestore().collection("app_config").document("ios_version").getDocument { snapshot, error in
+            if let error = error {
+                print("Failed to check iOS app version: \(error.localizedDescription)")
+                return
+            }
+            guard let data = snapshot?.data() else {
+                DispatchQueue.main.async {
+                    self.updateAvailable = false
+                    self.updateForced = false
+                }
+                return
+            }
+            let latest = (data["latest_version"] as? Int)
+                ?? (data["latest_version"] as? NSNumber)?.intValue
+                ?? Int("\(data["latest_version"] ?? 0)")
+                ?? 0
+            let minimum = (data["minimum_version"] as? Int)
+                ?? (data["minimum_version"] as? NSNumber)?.intValue
+                ?? Int("\(data["minimum_version"] ?? 0)")
+                ?? 0
+            let name = ((data["version_name"] as? String) ?? (data["latest_version_name"] as? String) ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let message = ((data["update_message"] as? String) ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let store = ((data["store_url"] as? String) ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let storeURL = URL(string: store.isEmpty ? "https://apps.apple.com/search?term=Reds%20Racing" : store)
+
+            DispatchQueue.main.async {
+                self.updateLatestBuild = latest
+                self.updateVersionName = name
+                self.updateMessage = message
+                self.updateStoreURL = storeURL
+
+                if minimum > 0 && current < minimum {
+                    self.updateForced = true
+                    self.updateAvailable = true
+                    if promptDialog || !self.showUpdateAlert {
+                        self.showUpdateAlert = true
+                    }
+                } else if latest > 0 && current < latest {
+                    self.updateForced = false
+                    self.updateAvailable = true
+                    let dismissed = UserDefaults.standard.integer(forKey: AppUpdateUserDefaultsKeys.optionalDismissedBuild)
+                    if promptDialog && dismissed != latest {
+                        self.showUpdateAlert = true
+                    }
+                } else {
+                    self.updateForced = false
+                    self.updateAvailable = false
+                    self.showUpdateAlert = false
+                }
+            }
+        }
+    }
+
+    private func openStoreForUpdate() {
+        guard let url = updateStoreURL ?? URL(string: "https://apps.apple.com/search?term=Reds%20Racing") else { return }
+        UIApplication.shared.open(url)
+        if updateForced {
+            // Keep the forced alert visible if they return without updating.
+            showUpdateAlert = true
         }
     }
 

@@ -11,7 +11,7 @@ git checkout main
 git pull origin main
 ```
 
-Latest mobile release on `main` (when this doc was added): **11.2.19 (205)** — hide web homepage pill nav over native bottom tabs.
+Latest mobile release on `main` (when this doc was added): **11.2.20 (206)** — on-screen Update available banner when Firestore latest build is newer.
 
 ## Already in Git (you get everything below with `git pull`)
 
