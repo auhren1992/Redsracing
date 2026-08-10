@@ -23,6 +23,15 @@
 - `mobile-menu-tabs.js` must short-circuit when `__RR_NATIVE_APP__`, `html.rr-native-app`, `body.mobile-app`, `RedsRacingApp/` UA, or Android bridges are present.
 - Android `MainActivity` sets `__RR_NATIVE_APP__='android'` via document-start JS (same idea as LoginActivity / iOS).
 
+### Always bump app versions on native changes
+
+- **Whenever** Android (`android/**`) or iOS (`ios/**`) native code/config changes ship (or any change that needs a store rebuild), bump **both** platforms together:
+  - Android: `android/app/build.gradle.kts` → `versionCode` (+1) and `versionName`
+  - iOS: `ios/RedsRacing.xcodeproj/project.pbxproj` → `CURRENT_PROJECT_VERSION` and `MARKETING_VERSION`
+- Keep Android `versionCode` / iOS `CURRENT_PROJECT_VERSION` equal, and `versionName` / `MARKETING_VERSION` equal.
+- Update `.github/NEW_MACHINE_SETUP.md` “Latest mobile release” line to match.
+- Do this in the same PR as the native fix — do not leave version bumps for later.
+
 
 ### Mobile web nav (browser, not native app)
 
