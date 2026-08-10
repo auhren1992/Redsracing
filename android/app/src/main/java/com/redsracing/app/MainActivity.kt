@@ -61,6 +61,13 @@ class MainActivity : AppCompatActivity() {
     private var lastFcmToken: String? = null
     private var initialUrl: String? = null
     private var isGuest: Boolean = false
+    private var updateDialogShowing = false
+    private var optionalUpdateDismissedForBuild = 0
+    private var pendingUpdateForced = false
+    private var pendingUpdateLatest = 0
+    private var pendingUpdateName = ""
+    private var pendingUpdateMessage = ""
+    private var pendingStoreUrl: String? = null
 
     /**
      * All in-app WebView navigations must stay on this origin so Firebase Auth
@@ -96,7 +103,9 @@ class MainActivity : AppCompatActivity() {
 
         createNotificationChannel()
         initializeFirebaseMessaging()
-        checkAppVersion()
+        binding.updateAvailableBanner.setOnClickListener { openStoreForUpdate() }
+        binding.updateAvailableAction.setOnClickListener { openStoreForUpdate() }
+        checkAppVersion(promptDialog = true)
 
         permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
@@ -1040,10 +1049,12 @@ class MainActivity : AppCompatActivity() {
                 reportAppUsage(token)
             }
         } catch (_: Exception) {}
+        // Re-check store config so a newly published build shows "Update available" without relaunch.
+        checkAppVersion(promptDialog = pendingUpdateForced)
     }
 
-    private fun checkAppVersion() {
-        val currentVersionCode = try {
+    private fun currentInstalledVersionCode(): Int {
+        return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0)).longVersionCode.toInt()
             } else {
@@ -1052,31 +1063,93 @@ class MainActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Failed to get version code", e)
-            return
+            0
         }
+    }
 
-        // Check Firestore for latest version
+    private fun checkAppVersion(promptDialog: Boolean) {
+        val currentVersionCode = currentInstalledVersionCode()
+        if (currentVersionCode <= 0) return
+
         FirebaseFirestore.getInstance()
             .collection("app_config")
             .document("android_version")
             .get()
             .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val latestVersion = document.getLong("latest_version")?.toInt() ?: currentVersionCode
-                    val minimumVersion = document.getLong("minimum_version")?.toInt() ?: currentVersionCode
-                    
-                    if (currentVersionCode < minimumVersion) {
-                        // Force update required
-                        showUpdateDialog(true, latestVersion)
-                    } else if (currentVersionCode < latestVersion) {
-                        // Optional update available
-                        showUpdateDialog(false, latestVersion)
+                if (!document.exists()) {
+                    hideUpdateBanner()
+                    return@addOnSuccessListener
+                }
+                val latestVersion = document.getLong("latest_version")?.toInt() ?: 0
+                val minimumVersion = document.getLong("minimum_version")?.toInt() ?: 0
+                val versionName = (
+                    document.getString("version_name")
+                        ?: document.getString("latest_version_name")
+                        ?: ""
+                ).trim()
+                val updateMessage = (document.getString("update_message") ?: "").trim()
+                val storeUrl = (document.getString("store_url") ?: "").trim().ifEmpty { null }
+
+                pendingUpdateLatest = latestVersion
+                pendingUpdateName = versionName
+                pendingUpdateMessage = updateMessage
+                pendingStoreUrl = storeUrl
+
+                when {
+                    minimumVersion > 0 && currentVersionCode < minimumVersion -> {
+                        pendingUpdateForced = true
+                        showUpdateBanner(true, latestVersion, versionName)
+                        showUpdateDialog(true, latestVersion, versionName, updateMessage)
+                    }
+                    latestVersion > 0 && currentVersionCode < latestVersion -> {
+                        pendingUpdateForced = false
+                        showUpdateBanner(false, latestVersion, versionName)
+                        val shouldPrompt = promptDialog && optionalUpdateDismissedForBuild != latestVersion
+                        if (shouldPrompt) {
+                            showUpdateDialog(false, latestVersion, versionName, updateMessage)
+                        }
+                    }
+                    else -> {
+                        pendingUpdateForced = false
+                        hideUpdateBanner()
                     }
                 }
             }
             .addOnFailureListener { e ->
                 android.util.Log.w("MainActivity", "Failed to check app version", e)
             }
+    }
+
+    private fun showUpdateBanner(isForced: Boolean, latestVersion: Int, versionName: String) {
+        runOnUiThread {
+            val label = if (versionName.isNotEmpty()) {
+                "Update available · v$latestVersion ($versionName)"
+            } else {
+                "Update available · v$latestVersion"
+            }
+            binding.updateAvailableText.text = if (isForced) "Update required · v$latestVersion" else label
+            binding.updateAvailableAction.text = "Update"
+            binding.updateAvailableBanner.visibility = View.VISIBLE
+        }
+    }
+
+    private fun hideUpdateBanner() {
+        runOnUiThread {
+            binding.updateAvailableBanner.visibility = View.GONE
+        }
+    }
+
+    private fun openStoreForUpdate() {
+        val url = pendingStoreUrl
+            ?: "https://play.google.com/store/apps/details?id=$packageName"
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Unable to open Play Store", Toast.LENGTH_SHORT).show()
+        }
+        if (pendingUpdateForced) {
+            finish()
+        }
     }
 
     private fun checkAuthAndRoute() {
@@ -1089,36 +1162,36 @@ class MainActivity : AppCompatActivity() {
             finish()
         }
     }
-    
-    private fun showUpdateDialog(isForced: Boolean, latestVersion: Int) {
-        val message = if (isForced) {
-            "A required update is available. Please update to continue using the app."
-        } else {
-            "A new version (v$latestVersion) is available. Would you like to update?"
+
+    private fun showUpdateDialog(
+        isForced: Boolean,
+        latestVersion: Int,
+        versionName: String,
+        updateMessage: String
+    ) {
+        if (updateDialogShowing) return
+        val versionLabel = if (versionName.isNotEmpty()) "v$latestVersion ($versionName)" else "v$latestVersion"
+        val message = when {
+            updateMessage.isNotEmpty() -> updateMessage
+            isForced -> "A required update ($versionLabel) is available. Please update to continue using the app."
+            else -> "A new version ($versionLabel) is available. Would you like to update?"
         }
 
         val builder = androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle(if (isForced) "Update Required" else "Update Available")
             .setMessage(message)
             .setPositiveButton("Update") { _, _ ->
-                // Open Play Store
-                val playStoreIntent = Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
-                )
-                try {
-                    startActivity(playStoreIntent)
-                } catch (e: Exception) {
-                    Toast.makeText(this, "Unable to open Play Store", Toast.LENGTH_SHORT).show()
-                }
-                if (isForced) {
-                    finish()
-                }
+                updateDialogShowing = false
+                openStoreForUpdate()
             }
             .setCancelable(!isForced)
+            .setOnDismissListener {
+                updateDialogShowing = false
+            }
 
         if (!isForced) {
             builder.setNegativeButton("Later") { dialog, _ ->
+                optionalUpdateDismissedForBuild = latestVersion
                 dialog.dismiss()
             }
         } else {
@@ -1128,6 +1201,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            updateDialogShowing = true
             builder.create().show()
         }
     }

@@ -35,6 +35,7 @@
   - Fields: `latest_version` = build code, `version_name` = marketing version (same on both platforms)
   - Run: `GOOGLE_APPLICATION_CREDENTIALS=functions/serviceAccountKey.json node scripts/sync-app-version-config.mjs`
   - Or in admin: **Releases → Sync config to seen** (sets both platforms to max check-in build)
+- Native apps show an on-screen **Update available** banner (+ launch alert) whenever installed build `<` Firestore `latest_version`. Optional dismiss hides only the alert for that build; the banner stays until they update. Forced when installed `<` `minimum_version`.
 - Do this in the same PR as the native fix — do not leave version bumps for later.
 
 
