@@ -361,11 +361,17 @@
       };
       await setDoc(doc(db, 'config', 'homepage_pulse'), payload, { merge: true });
       if (status) status.innerHTML = '<span class="text-green-400">Published — homepage + Next Race Hub will pick this up.</span>';
-      if (typeof showToast === 'function') showToast('Homepage Pulse published');
+      try {
+        if (typeof window.showToast === 'function') window.showToast('Homepage Pulse published', 'success');
+        else if (typeof showToast === 'function') showToast('Homepage Pulse published');
+      } catch (_) {}
     } catch (e) {
       console.error('savePulse', e);
       if (status) status.innerHTML = '<span class="text-red-400">Save failed: ' + esc(e.message || e) + '</span>';
-      if (typeof showToast === 'function') showToast('Failed to publish pulse', 'error');
+      try {
+        if (typeof window.showToast === 'function') window.showToast('Failed to publish pulse', 'error');
+        else if (typeof showToast === 'function') showToast('Failed to publish pulse', 'error');
+      } catch (_) {}
     } finally {
       if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save mr-2"></i>Publish to site'; }
     }

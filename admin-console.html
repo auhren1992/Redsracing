@@ -189,6 +189,17 @@
           var loader = document.getElementById('loading-state');
           if (loader) { try { loader.remove(); } catch (_) { loader.style.display = 'none'; } }
         }
+        function clearWatchdogBanner() {
+          try {
+            var bar = document.getElementById('admin-safety-banner');
+            if (bar && /watchdog/i.test(bar.textContent || '')) bar.remove();
+          } catch (_) {}
+        }
+        window.__adminMarkUiReady = function () {
+          window.__adminUiReady = true;
+          removeLoader();
+          clearWatchdogBanner();
+        };
         function forceShowForHash() {
           try {
             var hash = window.location.hash || '#overview';
@@ -241,10 +252,18 @@
         }, true);
         setTimeout(function watchdog() {
           try {
+            // Head script starts this timer before the huge body admin script even
+            // finishes parsing — so a short check races the real init. Only warn when
+            // the UI never marked itself ready.
+            if (window.__adminUiReady) {
+              removeLoader();
+              clearWatchdogBanner();
+              return;
+            }
             var loader = document.getElementById('loading-state');
             if (loader && document.body && document.body.contains(loader)) {
-              console.warn('[safety-net] watchdog: loader still present after 3s — forcing section visibility for', window.location.hash);
-              showBanner('Init watchdog: forcing UI render. Some live data may be unavailable. Check console.');
+              console.warn('[safety-net] watchdog: loader still present and UI not marked ready — forcing section visibility for', window.location.hash);
+              showBanner('Init watchdog: forcing UI render. If this stays, Firebase failed to initialize.');
               removeLoader();
               if (typeof window.handleHashChange === 'function') {
                 try { window.handleHashChange(); } catch (_) { forceShowForHash(); }
@@ -253,7 +272,7 @@
               }
             }
           } catch (_) {}
-        }, 3000);
+        }, 8000);
       })();
     </script>
     
@@ -3697,7 +3716,7 @@
     <script type="module" src="assets/js/auth-guard.js"></script>
     <script type="module" src="navigation.js"></script>
     <!-- redsracing-dashboard.js removed: admin console has its own countdown/data loading -->
-    <script src="assets/js/homepage-pulse-admin.js?v=20260810b"></script>
+    <script src="assets/js/homepage-pulse-admin.js?v=20260810c"></script>
     <script type="module" src="assets/js/queue-admin.js?v=202605082"></script>
     
     <script>
@@ -4512,13 +4531,15 @@
         
         // Enhanced loading with modern animations
         function showDashboard() {
+          try { if (typeof window.__adminMarkUiReady === 'function') window.__adminMarkUiReady(); } catch (_) {}
           const loader = document.getElementById('loading-state');
           
-          // Remove loading state
+          // Remove loading state immediately (was delayed 300ms and raced the head watchdog)
           if (loader) {
-            loader.style.opacity = '0';
-            loader.style.transform = 'scale(0.8)';
-            setTimeout(() => loader.remove(), 300);
+            try { loader.remove(); } catch (_) {
+              loader.style.display = 'none';
+              loader.classList.add('hidden');
+            }
           }
           
           // Check if there's a hash in URL - if so, don't force showing overview
@@ -7249,6 +7270,7 @@
         // Initialize everything when DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
           console.log('Admin Console: Initializing navigation...');
+          try { if (typeof window.__adminMarkUiReady === 'function') window.__adminMarkUiReady(); } catch (_) {}
           
           // Ensure all functions are available globally before init
           window.showRace = showRace;
@@ -7268,6 +7290,7 @@
           window.showAudit = showAudit;
           window.showDataQuality = showDataQuality;
           window.showReleases = showReleases;
+          window.showHomepagePulse = showHomepagePulse;
           window.hideAllSections = hideAllSections;
           window.handleHashChange = handleHashChange;
           
