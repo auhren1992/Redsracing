@@ -48,10 +48,11 @@
         .limit(8)
         .get();
       if (snap.empty) return null;
-      // Prefer superCup when available
+      // Prefer superCup when available; skip rainouts
       let chosen = null;
       snap.forEach((d) => {
         const r = Object.assign({ id: d.id }, d.data());
+        if (String(r.status || '').toLowerCase() === 'rainout') return;
         if (!chosen) chosen = r;
         if (!chosen._prefer && r.type === 'superCup') {
           chosen = r;
@@ -67,7 +68,7 @@
         const season = (data.seasons || []).find((s) => s.year === (data.currentSeason || 2026));
         const races = (season && season.races) || [];
         const upcoming = races
-          .filter((r) => String(r.date) >= todayStr)
+          .filter((r) => String(r.date) >= todayStr && String(r.status || '').toLowerCase() !== 'rainout')
           .sort((a, b) => String(a.date).localeCompare(String(b.date)));
         return upcoming.find((r) => r.type === 'superCup') || upcoming[0] || null;
       } catch (_) {

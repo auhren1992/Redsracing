@@ -63,9 +63,10 @@
 
     sortedRaces.forEach(race => {
       const raceDate = new Date(race.date + 'T00:00:00');
-      const isPast = raceDate < today;
-      const cardClass = isPast ? 'past' : 'upcoming';
-      const isNextUp = !isPast && !markedNextUp && race.type !== 'specialEvent';
+      const isRainout = String(race.status || '').toLowerCase() === 'rainout';
+      const isPast = raceDate < today || isRainout || String(race.status || '').toLowerCase() === 'completed';
+      const cardClass = isRainout ? 'past rainout' : (isPast ? 'past' : 'upcoming');
+      const isNextUp = !isPast && !isRainout && !markedNextUp && race.type !== 'specialEvent';
       if (isNextUp) markedNextUp = true;
       
       const formattedDate = raceDate.toLocaleString('en-US', {
@@ -93,7 +94,8 @@
       
       const eventName = document.createElement('p');
       eventName.className = 'font-bold text-lg text-white';
-      eventName.textContent = race.eventName;
+      const raceNo = race.raceNumber ? `Race ${race.raceNumber}: ` : '';
+      eventName.textContent = `${raceNo}${race.eventName}`;
       leftDiv.appendChild(eventName);
       
       const trackInfo = document.createElement('p');
@@ -121,7 +123,15 @@
       seriesBadge.className = 'race-badge';
       seriesBadge.textContent = race.type === 'specialEvent' ? 'SPECIAL EVENT' : 'SUPER CUP';
       badges.appendChild(seriesBadge);
-      if (!isPast) {
+      if (isRainout) {
+        const rainBadge = document.createElement('span');
+        rainBadge.className = 'race-badge';
+        rainBadge.style.borderColor = 'rgba(239,68,68,0.5)';
+        rainBadge.style.color = '#fca5a5';
+        rainBadge.innerHTML = '<i class="fas fa-cloud-showers-heavy"></i> RAIN OUT';
+        badges.appendChild(rainBadge);
+      }
+      if (!isPast && !isRainout) {
         const wxBadge = document.createElement('span');
         wxBadge.className = 'race-badge wx-badge';
         wxBadge.dataset.wxSlot = '1';
@@ -197,8 +207,8 @@
       rightDiv.appendChild(dateDiv);
       
       const statusSpan = document.createElement('span');
-      statusSpan.className = `text-xs ${isPast ? 'text-slate-600' : 'text-green-400'} uppercase`;
-      statusSpan.textContent = isPast ? 'Completed' : 'Upcoming';
+      statusSpan.className = `text-xs ${isRainout ? 'text-red-400' : (isPast ? 'text-slate-600' : 'text-green-400')} uppercase`;
+      statusSpan.textContent = isRainout ? 'Rain Out' : (isPast ? 'Completed' : 'Upcoming');
       rightDiv.appendChild(statusSpan);
       
       // Assemble the card
@@ -253,26 +263,35 @@
     // Try Firestore first — same query as index.html so both pages stay in sync
     try {
       if (window.__countdownDb) {
+        const todayStr = today.toISOString().split('T')[0];
         const raceSnapshot = await window.__countdownDb.collection('races')
           .where('season', '==', 2026)
           .where('type', '==', 'superCup')
+          .where('date', '>=', todayStr)
           .orderBy('date', 'asc')
-          .limit(1)
+          .limit(8)
           .get();
 
         if (!raceSnapshot.empty) {
-          const firstRace = raceSnapshot.docs[0].data();
-          const raceDate = firstRace.date;
+          let firstRace = null;
+          raceSnapshot.forEach((doc) => {
+            const row = doc.data() || {};
+            if (String(row.status || '').toLowerCase() === 'rainout') return;
+            if (!firstRace) firstRace = row;
+          });
+          if (firstRace) {
+            const raceDate = firstRace.date;
 
-          // Parse the date — handle both Firestore Timestamp and string
-          if (raceDate && raceDate.toDate) {
-            nextRaceDate = raceDate.toDate().getTime();
-          } else if (typeof raceDate === 'string') {
-            nextRaceDate = new Date(raceDate).getTime();
+            // Parse the date — handle both Firestore Timestamp and string
+            if (raceDate && raceDate.toDate) {
+              nextRaceDate = raceDate.toDate().getTime();
+            } else if (typeof raceDate === 'string') {
+              nextRaceDate = new Date(raceDate + 'T00:00:00').getTime();
+            }
+
+            nextRaceName = firstRace.eventName || firstRace.name || 'Next Race';
+            console.log('Schedule countdown synced from Firestore:', nextRaceName);
           }
-
-          nextRaceName = firstRace.eventName || firstRace.name || 'First Race';
-          console.log('Schedule countdown synced from Firestore:', nextRaceName);
         }
       }
     } catch (error) {
@@ -281,7 +300,10 @@
 
     // Fallback to local JSON data if Firestore didn't work
     if (!nextRaceDate) {
-      const nextRace = races.find(race => new Date(race.date + 'T00:00:00') >= today);
+      const nextRace = races.find(race =>
+        new Date(race.date + 'T00:00:00') >= today &&
+        String(race.status || '').toLowerCase() !== 'rainout'
+      );
       if (nextRace) {
         nextRaceName = nextRace.eventName;
         nextRaceDate = new Date(nextRace.date + 'T00:00:00').getTime();
