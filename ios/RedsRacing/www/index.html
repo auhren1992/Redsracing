@@ -1575,11 +1575,20 @@
               .where('type', '==', 'superCup')
               .where('date', '>=', todayStr)
               .orderBy('date', 'asc')
-              .limit(1)
+              .limit(8)
               .get();
 
             if (!raceSnapshot.empty) {
-              const nextRace = raceSnapshot.docs[0].data();
+              let nextRace = null;
+              raceSnapshot.forEach((doc) => {
+                const row = doc.data() || {};
+                if (String(row.status || '').toLowerCase() === 'rainout') return;
+                if (!nextRace) nextRace = row;
+              });
+              if (!nextRace) {
+                console.log('No upcoming non-rainout races found for 2026, using fallback');
+                return;
+              }
               const raceDate = nextRace.date;
               
               // Parse the date - handle both Firestore Timestamp and string formats

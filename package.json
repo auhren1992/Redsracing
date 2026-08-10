@@ -11,6 +11,8 @@
     "lint:firebase-imports": "node scripts/validate_firebase_imports.js",
     "deploy:hosting": "firebase deploy --only hosting --project redsracing-a7f8b",
     "sync:mobile": "node scripts/sync-mobile-www.mjs",
+    "sync:app-version-config": "node scripts/sync-app-version-config.mjs",
+    "sync:asc-2026-schedule": "node scripts/sync-asc-2026-schedule.mjs",
     "sync:app-version-config": "node scripts/sync-app-version-config.mjs"
   },
   "sideEffects": false,
