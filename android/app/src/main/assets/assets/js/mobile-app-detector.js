@@ -11,19 +11,29 @@
     const ua = navigator.userAgent.toLowerCase();
     return (
       ua.indexOf('wv') > -1 || // WebView
-      window.location.protocol === 'https:' && window.location.host === 'appassets.androidplatform.net' ||
+      (window.location.protocol === 'https:' && window.location.host === 'appassets.androidplatform.net') ||
       typeof window.AndroidNotifications !== 'undefined' ||
-      typeof window.AndroidAuth !== 'undefined'
+      typeof window.AndroidAuth !== 'undefined' ||
+      window.__RR_NATIVE_APP__ === 'android'
     );
   }
 
   /** iOS WKWebView sets a custom UA in ContentView.swift (e.g. RedsRacingApp/1.0 iOS). */
   function isIOSBundledApp() {
-    return /RedsRacingApp\//i.test(navigator.userAgent || '');
+    return /RedsRacingApp\/.*iOS/i.test(navigator.userAgent || '') ||
+      window.__RR_NATIVE_APP__ === 'ios';
+  }
+
+  /** Both platforms append RedsRacingApp/ to the WebView user agent. */
+  function isBundledNativeApp() {
+    return !!(window.__RR_NATIVE_APP__) ||
+      /RedsRacingApp\//i.test(navigator.userAgent || '') ||
+      isAndroidApp() ||
+      isIOSBundledApp();
   }
   
   // Load mobile CSS if in app
-  if (isAndroidApp() || isIOSBundledApp()) {
+  if (isBundledNativeApp()) {
     console.log('📱 Native app WebView detected - loading mobile styles');
     
     const link = document.createElement('link');
