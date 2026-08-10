@@ -598,12 +598,30 @@ struct WebView: UIViewRepresentable {
                     completionHandler: nil
                 )
             }
-            // Inject layout adjustments (hide site header etc.) similar to Android
+            // Inject layout adjustments (hide site header / web pill nav) similar to Android
             let js = """
                 (function(){
                   setTimeout(function(){
+                    try {
+                      document.documentElement.classList.add('rr-native-app');
+                      if (document.body) document.body.classList.add('mobile-app');
+                    } catch (e0) {}
                     var header = document.querySelector('header');
                     if (header) { header.style.display='none'; header.style.visibility='hidden'; header.style.height='0'; header.style.overflow='hidden'; }
+                    try {
+                      document.querySelectorAll('.home-mobile-bar').forEach(function(el) {
+                        el.style.display = 'none';
+                        el.style.visibility = 'hidden';
+                        el.style.height = '0';
+                        el.style.overflow = 'hidden';
+                        el.setAttribute('hidden', 'true');
+                        el.setAttribute('aria-hidden', 'true');
+                      });
+                      var orphan = document.getElementById('mobile-menu-button');
+                      if (orphan) orphan.remove();
+                      var tabs = document.getElementById('mobile-menu-tabs');
+                      if (tabs) tabs.remove();
+                    } catch (e1) {}
                     document.body.style.backgroundColor = '#05080f';
                     document.body.style.paddingBottom = '120px';
                     var mains = document.querySelectorAll('main');
@@ -616,7 +634,7 @@ struct WebView: UIViewRepresentable {
                         label.style.opacity = '1';
                         label.style.color = '#ffffff';
                     });
-                    // Show admin sidebar on mobile for admin-console page
+                    // Show admin menu bar on admin-console (its own UI; bottom tabs stay too)
                     if (window.location.href.indexOf('admin-console') !== -1) {
                         var adminBar = document.getElementById('admin-menu-bar');
                         if (adminBar) {
