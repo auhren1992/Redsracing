@@ -3697,7 +3697,7 @@
     <script type="module" src="assets/js/auth-guard.js"></script>
     <script type="module" src="navigation.js"></script>
     <!-- redsracing-dashboard.js removed: admin console has its own countdown/data loading -->
-    <script src="assets/js/homepage-pulse-admin.js?v=20260810"></script>
+    <script src="assets/js/homepage-pulse-admin.js?v=20260810b"></script>
     <script type="module" src="assets/js/queue-admin.js?v=202605082"></script>
     
     <script>
@@ -3725,6 +3725,7 @@
           }
           return appModule.getApps()[0];
         }
+        try { window.ensureDefaultApp = ensureDefaultApp; } catch (_) {}
         
         async function getUserRole() {
           try {
@@ -3781,6 +3782,8 @@
           const r = String(role).trim().toLowerCase().replace(/[\s_]+/g, '-');
           return r === 'team-member' || r === 'admin' || r === 'owner';
         }
+        try { window.getUserRole = getUserRole; } catch (_) {}
+        try { window.isModeratorRole = isModeratorRole; } catch (_) {}
         
         // ===== PHASE 1: CLIENT TELEMETRY HELPERS =====
         async function _getActorInfo() {
@@ -6867,6 +6870,7 @@
             window.__adminToastTimer = setTimeout(() => toast.classList.add('hidden'), 2500);
           } catch (_) {}
         }
+        try { window.showToast = showToast; } catch (_) {}
 
         // Simple validators and normalizers for TikTok
         function normalizeHandle(input) {

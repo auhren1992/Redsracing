@@ -208,12 +208,63 @@
     return wrap;
   }
 
+  const FIREBASE_CONFIG = {
+    apiKey: 'AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg',
+    authDomain: 'redsracing-a7f8b.firebaseapp.com',
+    projectId: 'redsracing-a7f8b',
+    storageBucket: 'redsracing-a7f8b.firebasestorage.app',
+    messagingSenderId: '517034606151',
+    appId: '1:517034606151:web:24cae262e1d98832757b62'
+  };
+
   async function getDbAuth() {
+    const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
     const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
     const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
-    const app = typeof ensureDefaultApp === 'function' ? await ensureDefaultApp() : null;
+
+    // Prefer admin-console helper when exposed; otherwise init/reuse default app here.
+    let app = null;
+    try {
+      if (typeof window.ensureDefaultApp === 'function') {
+        app = await window.ensureDefaultApp();
+      }
+    } catch (_) {}
+    if (!app) {
+      const existing = getApps().find((a) => a.name === '[DEFAULT]') || getApps()[0];
+      app = existing || initializeApp(FIREBASE_CONFIG);
+    }
     if (!app) throw new Error('Firebase app not ready');
-    return { db: getFirestore(app), auth: getAuth(), doc, getDoc, setDoc, serverTimestamp };
+    return { db: getFirestore(app), auth: getAuth(app), doc, getDoc, setDoc, serverTimestamp };
+  }
+
+  async function assertStaffAccess(auth) {
+    // Prefer admin-console helpers when available
+    try {
+      if (typeof window.getUserRole === 'function') {
+        const role = await window.getUserRole();
+        const ok = role === 'admin' || role === 'team-member' || role === 'owner'
+          || (typeof window.isModeratorRole === 'function' && window.isModeratorRole(role));
+        if (ok) return role || 'staff';
+      }
+    } catch (_) {}
+
+    const user = auth.currentUser;
+    if (!user) throw new Error('Sign in required');
+    let token = {};
+    try { token = await user.getIdTokenResult(); } catch (_) {}
+    const claimRole = token?.claims?.role;
+    if (claimRole === 'admin' || claimRole === 'owner' || claimRole === 'team-member' || token?.claims?.admin === true) {
+      return claimRole || 'admin';
+    }
+    // Fallback: users/{uid} profile role
+    try {
+      const { db, doc, getDoc } = await getDbAuth();
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      const role = snap.exists() ? (snap.data()?.role || '') : '';
+      if (role === 'admin' || role === 'owner' || role === 'team-member') return role;
+      if (snap.exists() && (snap.data()?.isAdmin || snap.data()?.isTeamMember || snap.data()?.isOwner)) return role || 'staff';
+    } catch (_) {}
+    throw new Error('Admin/team access required');
   }
 
   async function loadPulse() {
@@ -263,14 +314,15 @@
     const status = document.getElementById('pulse-status');
     const btn = document.getElementById('pulse-save-btn');
     try {
-      const role = typeof getUserRole === 'function' ? await getUserRole() : null;
-      const ok = role === 'admin' || role === 'team-member' || role === 'owner' || (typeof isModeratorRole === 'function' && isModeratorRole(role));
-      if (!ok) {
-        if (typeof showToast === 'function') showToast('Admin/team access required', 'error');
+      const { db, auth, doc, setDoc, serverTimestamp } = await getDbAuth();
+      try {
+        await assertStaffAccess(auth);
+      } catch (accessErr) {
+        if (typeof showToast === 'function') showToast(accessErr.message || 'Admin/team access required', 'error');
+        if (status) status.innerHTML = '<span class="text-red-400">' + esc(accessErr.message || accessErr) + '</span>';
         return;
       }
       if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Publishing…'; }
-      const { db, auth, doc, setDoc, serverTimestamp } = await getDbAuth();
       const payload = {
         enabled: checked('pulse-enabled'),
         banner: {
