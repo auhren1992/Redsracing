@@ -17,7 +17,9 @@
 
 ### Native app WebView nav (Android / iOS)
 
-- Hosted pages load inside the app WebView (`https://www.redsracing.org/...`). Native bottom nav owns destinations — **do not** install browser hamburger / `#mobile-menu-tabs` in that shell.
+- Hosted pages load inside the app WebView (`https://www.redsracing.org/...`). Native bottom nav owns destinations — **do not** install browser hamburger / `#mobile-menu-tabs` / homepage `.home-mobile-bar` pill strip in that shell.
+- `index.html` homepage sticky pills are **web-only** (`html:not(.rr-native-app)`). Native apps hide them via `styles/mobile-app.css` + `MainActivity` / iOS hide-nav JS.
+- Admin console keeps its own UI (`#admin-menu-bar` / Command Center drawer) inside the native WebView.
 - `mobile-menu-tabs.js` must short-circuit when `__RR_NATIVE_APP__`, `html.rr-native-app`, `body.mobile-app`, `RedsRacingApp/` UA, or Android bridges are present.
 - Android `MainActivity` sets `__RR_NATIVE_APP__='android'` via document-start JS (same idea as LoginActivity / iOS).
 
