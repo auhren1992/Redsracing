@@ -126,6 +126,22 @@ If upload fails:
 - Check that the app is already created in Play Console (first upload must be manual)
 - Ensure version code is higher than previous uploads
 
+### `400` / `FAILED_PRECONDITION`: "This edit has expired" / "This edit has been deleted"
+
+The Play Developer API allows **only one active edit** per app (`com.redsracing.app`) at a time. If another CI run, Play Console session, or API client opens a new edit while upload is in progress, the first edit is invalidated mid-upload.
+
+What CI already does:
+
+1. **Concurrency** — `android-build.yml` uses `concurrency.group: android-play-publish` with `cancel-in-progress: false` so publishes queue instead of overlapping.
+2. **Fast publish** — after `bundleRelease`, upload uses `publishBundle --artifact-dir app/build/outputs/bundle/release` so Gradle does not rebuild during the edit window.
+3. **Retries** — transient edit expired/deleted / `FAILED_PRECONDITION` failures retry up to 3 times with backoff.
+
+If it still fails after retries:
+
+- Avoid editing the same app in Play Console while the workflow is uploading.
+- Confirm no other automation uses the same Play service account against this package at the same time.
+- Re-run **Actions → Android Build → Run workflow**.
+
 ### `403` / `PERMISSION_DENIED` on `.../applications/com.redsracing.app/edits`
 
 Gradle Play Publisher is **authenticated** (otherwise you would see credential errors), but Play Console is **denying** that principal permission to open an **edit** for this app.

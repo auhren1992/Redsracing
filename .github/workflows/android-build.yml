@@ -18,17 +18,23 @@ on:
       - '.github/workflows/android-build.yml'
   workflow_dispatch:
 
+# Play Developer API allows only one active edit per package. Queue publishes
+# so overlapping Android Build runs do not invalidate each other's edits mid-upload.
+concurrency:
+  group: android-play-publish
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "24"
 
       - name: Sync website into Android assets
         run: npm run sync:mobile
@@ -56,7 +62,7 @@ jobs:
           fi
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -87,6 +93,7 @@ jobs:
           ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         working-directory: android
         run: |
+          set -euo pipefail
           if [ -z "${ANDROID_PUBLISHER_CREDENTIALS:-}" ]; then
             echo "⚠️ Google Play service account credentials not configured (add Actions secret GOOGLE_PLAY_SERVICE_ACCOUNT_JSON), skipping upload"
             exit 0
@@ -98,7 +105,40 @@ jobs:
           else
             echo "⚠️ Could not read client_email from GOOGLE_PLAY_SERVICE_ACCOUNT_JSON — check JSON is valid."
           fi
-          ./gradlew publishBundle --no-daemon --stacktrace
+
+          ARTIFACT_DIR="app/build/outputs/bundle/release"
+          if ! ls "$ARTIFACT_DIR"/*.aab >/dev/null 2>&1; then
+            echo "❌ No .aab found under $ARTIFACT_DIR — bundleRelease must succeed before publish."
+            exit 1
+          fi
+
+          # Publish the already-built AAB only (no rebuild). Short edit window + retries
+          # avoid Play API "This edit has expired/deleted" from concurrent edits.
+          MAX_ATTEMPTS=3
+          attempt=1
+          while [ "$attempt" -le "$MAX_ATTEMPTS" ]; do
+            echo "Play publish attempt ${attempt}/${MAX_ATTEMPTS} (artifact-dir=${ARTIFACT_DIR})"
+            set +e
+            ./gradlew publishBundle --no-daemon --stacktrace \
+              --artifact-dir "$ARTIFACT_DIR" 2>&1 | tee publish-bundle.log
+            status=${PIPESTATUS[0]}
+            set -e
+            if [ "$status" -eq 0 ]; then
+              echo "✅ Play publish succeeded on attempt ${attempt}"
+              exit 0
+            fi
+            if grep -Eqi 'edit has expired|edit has been deleted|editDeleted|FAILED_PRECONDITION' publish-bundle.log \
+              && [ "$attempt" -lt "$MAX_ATTEMPTS" ]; then
+              sleep_s=$((attempt * 45))
+              echo "⚠️ Transient Play edit conflict/expiry (attempt ${attempt}). Retrying in ${sleep_s}s…"
+              sleep "$sleep_s"
+              attempt=$((attempt + 1))
+              continue
+            fi
+            echo "--- Last 100 lines of publish-bundle.log ---"
+            tail -n 100 publish-bundle.log
+            exit "$status"
+          done
 
       - name: Upload Bundle Artifact
         uses: actions/upload-artifact@v4
@@ -125,7 +165,7 @@ jobs:
             echo "2. Scroll to **Artifacts** at the bottom of the page."
             echo "3. Download the artifact zip, extract it, and use \`app-release.aab\` in [Google Play Console](https://play.google.com/console) if you need a manual upload."
             echo ""
-            echo "When Play credentials are configured, CI also runs \`publishBundle\` to the **closed testing** track (API track \`alpha\`)."
+            echo "When Play credentials are configured, CI also runs \`publishBundle --artifact-dir\` to the **closed testing** track (API track \`alpha\`), with retries on expired/deleted Play edits."
             echo ""
             echo "To trigger a fresh build manually: **Actions → Android Build → Run workflow**."
             echo ""
