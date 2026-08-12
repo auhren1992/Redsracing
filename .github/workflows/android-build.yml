@@ -87,6 +87,15 @@ jobs:
         run: |
           ./gradlew bundleRelease --no-daemon --stacktrace -PREDSRACING_KEYSTORE_PASSWORD=$REDSRACING_KEYSTORE_PASSWORD -PREDSRACING_KEY_PASSWORD=$REDSRACING_KEY_PASSWORD 2>&1 | tee bundle-release.log || (echo "--- Last 100 lines ---"; tail -n 100 bundle-release.log; exit 1)
 
+      # Keep the AAB downloadable even when Play publish fails (e.g. version code already used).
+      - name: Upload Bundle Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reds-racing-aab-v${{ steps.app_version.outputs.version_name }}-b${{ steps.app_version.outputs.version_code }}
+          path: android/app/build/outputs/bundle/release/*.aab
+          retention-days: 90
+          if-no-files-found: error
+
       - name: Upload to Google Play (closed testing / alpha track)
         env:
           # Triple-T gradle-play-publisher 3.x reads this env var (full JSON), not -Pplay.* alone.
@@ -112,6 +121,10 @@ jobs:
             exit 1
           fi
 
+          VERSION_CODE="${{ steps.app_version.outputs.version_code }}"
+          VERSION_NAME="${{ steps.app_version.outputs.version_name }}"
+          echo "Publishing versionName=${VERSION_NAME} versionCode=${VERSION_CODE}"
+
           # Publish the already-built AAB only (no rebuild). Short edit window + retries
           # avoid Play API "This edit has expired/deleted" from concurrent edits.
           MAX_ATTEMPTS=3
@@ -127,6 +140,15 @@ jobs:
               echo "✅ Play publish succeeded on attempt ${attempt}"
               exit 0
             fi
+            # Version already on Play — not transient. AAB artifact was uploaded above.
+            if grep -Eqi 'Version code .* has already been used|Version code is too low or has already been used' publish-bundle.log; then
+              echo "❌ Play rejected versionCode ${VERSION_CODE} (already used or too low)."
+              echo "Bump android/app/build.gradle.kts versionCode (+1) and versionName, mirror on iOS"
+              echo "(CURRENT_PROJECT_VERSION / MARKETING_VERSION), update .github/NEW_MACHINE_SETUP.md,"
+              echo "then sync Firestore app_config via scripts/sync-app-version-config.mjs."
+              echo "The signed AAB is still available as a workflow artifact for manual upload."
+              exit "$status"
+            fi
             if grep -Eqi 'edit has expired|edit has been deleted|editDeleted|FAILED_PRECONDITION' publish-bundle.log \
               && [ "$attempt" -lt "$MAX_ATTEMPTS" ]; then
               sleep_s=$((attempt * 45))
@@ -139,14 +161,6 @@ jobs:
             tail -n 100 publish-bundle.log
             exit "$status"
           done
-
-      - name: Upload Bundle Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: reds-racing-aab-v${{ steps.app_version.outputs.version_name }}-b${{ steps.app_version.outputs.version_code }}
-          path: android/app/build/outputs/bundle/release/*.aab
-          retention-days: 90
-          if-no-files-found: error
 
       - name: Download instructions (job summary)
         run: |
