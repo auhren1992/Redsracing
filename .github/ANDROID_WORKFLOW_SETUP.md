@@ -126,6 +126,17 @@ If upload fails:
 - Check that the app is already created in Play Console (first upload must be manual)
 - Ensure version code is higher than previous uploads
 
+### `403`: "Version code N has already been used"
+
+Play never accepts the same `versionCode` twice (even if a prior CI run only partially committed an edit). Fix:
+
+1. Bump **both** platforms together: Android `versionCode` / `versionName` and iOS `CURRENT_PROJECT_VERSION` / `MARKETING_VERSION` (keep them equal).
+2. Update `.github/NEW_MACHINE_SETUP.md` “Latest mobile release”.
+3. Sync Firestore: `GOOGLE_APPLICATION_CREDENTIALS=functions/serviceAccountKey.json node scripts/sync-app-version-config.mjs` (or Admin → Releases → Sync config to seen).
+4. Re-run **Android Build**.
+
+The workflow uploads the signed `.aab` as an Actions artifact **before** Play publish, so you can still download the bundle when this error occurs.
+
 ### `400` / `FAILED_PRECONDITION`: "This edit has expired" / "This edit has been deleted"
 
 The Play Developer API allows **only one active edit** per app (`com.redsracing.app`) at a time. If another CI run, Play Console session, or API client opens a new edit while upload is in progress, the first edit is invalidated mid-upload.
