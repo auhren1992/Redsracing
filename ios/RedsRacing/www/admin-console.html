@@ -3363,6 +3363,48 @@
                 </select>
               </div>
 
+              <!-- Weather (schedule + Next Race Hub) -->
+              <div class="bg-slate-900/60 border border-sky-700/30 rounded-xl p-5 mb-6 space-y-4" id="sched-weather-panel">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 class="text-lg font-bold text-white flex items-center">
+                      <i class="fas fa-cloud-sun text-sky-400 mr-2"></i>Weather
+                    </h3>
+                    <p class="text-slate-400 text-xs mt-1 max-w-2xl">
+                      Public schedule badges auto-fill from Open-Meteo for races within ~16 days.
+                      Use this panel for a team-wide note on the Next Race Hub / schedule banner, or set a note on each race when you edit it.
+                    </p>
+                  </div>
+                  <button type="button" id="sched-weather-refresh-btn" class="modern-btn text-white px-3 py-2 rounded-lg text-xs font-semibold">
+                    <i class="fas fa-sync mr-1"></i>Refresh forecast
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div class="space-y-3">
+                    <div class="text-xs font-semibold uppercase tracking-wider text-sky-300">Team note (all fans)</div>
+                    <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                      <input type="checkbox" id="sched-weather-override" />
+                      Replace auto forecast with this note
+                    </label>
+                    <textarea id="sched-weather-note" rows="4" class="modern-input w-full p-3 text-white text-sm" placeholder="Example: Hot &amp; humid · 20% evening showers. Track says green flag still on."></textarea>
+                    <div class="flex flex-wrap gap-2">
+                      <button type="button" id="sched-weather-save-btn" class="success-btn text-white px-4 py-2 rounded-lg text-sm font-semibold">
+                        <i class="fas fa-save mr-2"></i>Publish weather note
+                      </button>
+                      <span id="sched-weather-status" class="text-xs text-slate-400 self-center">Load schedule to edit weather.</span>
+                    </div>
+                  </div>
+                  <div class="bg-slate-950/50 border border-slate-700/50 rounded-lg p-4">
+                    <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Auto forecast preview (next upcoming)</div>
+                    <div id="sched-weather-preview" class="text-sm text-slate-300 min-h-[5.5rem]">
+                      <span class="text-slate-500">Waiting for next race…</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-3">Per-race notes: Edit a race → Weather section. Those win over this team note when set.</p>
+                  </div>
+                </div>
+              </div>
+
               <!-- Schedule Table -->
               <div class="overflow-x-auto">
                 <table class="w-full text-left modern-table text-sm">
@@ -3719,6 +3761,7 @@
     <script type="module" src="assets/js/auth-guard.js"></script>
     <script type="module" src="navigation.js"></script>
     <!-- redsracing-dashboard.js removed: admin console has its own countdown/data loading -->
+    <script src="assets/js/race-weather.js?v=20260813w"></script>
     <script src="assets/js/homepage-pulse-admin.js?v=20260810c"></script>
     <script type="module" src="assets/js/queue-admin.js?v=202605082"></script>
     
@@ -5969,6 +6012,122 @@
         }
         
         // ========== SCHEDULE MANAGEMENT ==========
+        function schedRaceDateYmd(race) {
+          if (!race || !race.date) return '';
+          if (race.date.toDate) return race.date.toDate().toISOString().split('T')[0];
+          return String(race.date).slice(0, 10);
+        }
+
+        function findNextUpcomingRace(races) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const sorted = [...(races || [])].sort((a, b) => String(schedRaceDateYmd(a)).localeCompare(String(schedRaceDateYmd(b))));
+          return sorted.find((r) => {
+            const ymd = schedRaceDateYmd(r);
+            if (!ymd) return false;
+            if (String(r.status || '').toLowerCase() === 'rainout') return false;
+            return new Date(ymd + 'T00:00:00') >= today;
+          }) || null;
+        }
+
+        async function previewSchedAutoWeather(race) {
+          const box = document.getElementById('sched-weather-preview');
+          if (!box) return;
+          if (!race) {
+            box.innerHTML = '<span class="text-slate-500">No upcoming race in this season filter.</span>';
+            return;
+          }
+          const ymd = schedRaceDateYmd(race);
+          const where = [race.track, race.city, race.state].filter(Boolean).join(' · ');
+          box.innerHTML = `<div class="text-slate-400 text-xs mb-2">${where || 'Next race'} · ${ymd || 'TBD'}</div><span class="text-slate-500"><i class="fas fa-spinner fa-spin mr-1"></i>Fetching Open-Meteo…</span>`;
+          if (!window.RRRaceWeather) {
+            box.innerHTML = `<div class="text-slate-400 text-xs mb-2">${where || 'Next race'} · ${ymd || 'TBD'}</div><span class="text-yellow-300">Weather helper not loaded on this page.</span>`;
+            return;
+          }
+          try {
+            const wx = await window.RRRaceWeather.forRace({ city: race.city, state: race.state, date: ymd });
+            if (!wx) {
+              box.innerHTML = `<div class="text-slate-400 text-xs mb-2">${where || 'Next race'} · ${ymd || 'TBD'}</div><span class="text-slate-400">Forecast not available yet (outside ~16 day window or geocode miss).</span>`;
+              return;
+            }
+            const precip = Number.isFinite(wx.precipProb) ? wx.precipProb + '% rain' : wx.label;
+            box.innerHTML = `<div class="text-slate-400 text-xs mb-2">${where || 'Next race'} · ${ymd || 'TBD'}</div>
+              <div class="text-white font-semibold"><i class="${wx.icon} text-sky-400 mr-2"></i>${wx.label}${wx.tempLine ? ' · ' + wx.tempLine : ''}</div>
+              <div class="text-slate-300 text-xs mt-1">${precip} · ${wx.summary || ''}</div>
+              ${race.weatherNote ? '<div class="text-amber-300 text-xs mt-2"><i class="fas fa-pen mr-1"></i>Per-race note set on this race.</div>' : ''}`;
+          } catch (e) {
+            box.innerHTML = `<div class="text-red-400 text-xs">Forecast preview failed: ${e.message || e}</div>`;
+          }
+        }
+
+        async function loadSchedWeatherPanel(racesForPreview) {
+          const status = document.getElementById('sched-weather-status');
+          const noteEl = document.getElementById('sched-weather-note');
+          const overrideEl = document.getElementById('sched-weather-override');
+          if (!noteEl || !overrideEl) return;
+          try {
+            if (status) status.textContent = 'Loading weather note…';
+            const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const snap = await getDoc(doc(db, 'config', 'homepage_pulse'));
+            const hub = snap.exists() ? ((snap.data() || {}).hub || {}) : {};
+            noteEl.value = hub.weatherNote || '';
+            overrideEl.checked = !!hub.weatherOverride;
+            if (status) status.innerHTML = snap.exists()
+              ? '<span class="text-green-400">Loaded team weather note.</span>'
+              : '<span class="text-yellow-300">No pulse doc yet — publish to create.</span>';
+            const next = findNextUpcomingRace(racesForPreview || []);
+            await previewSchedAutoWeather(next);
+          } catch (e) {
+            console.error('loadSchedWeatherPanel', e);
+            if (status) status.innerHTML = '<span class="text-red-400">Failed to load weather note.</span>';
+          }
+        }
+
+        async function saveSchedWeatherPanel() {
+          const status = document.getElementById('sched-weather-status');
+          const btn = document.getElementById('sched-weather-save-btn');
+          try {
+            const { getFirestore, doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            const app = await ensureDefaultApp();
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Publishing…'; }
+            const weatherNote = document.getElementById('sched-weather-note')?.value || '';
+            const weatherOverride = !!document.getElementById('sched-weather-override')?.checked;
+            await setDoc(doc(db, 'config', 'homepage_pulse'), {
+              hub: { weatherNote, weatherOverride },
+              updatedAt: serverTimestamp(),
+              updatedBy: auth.currentUser?.uid || null,
+              updatedByEmail: auth.currentUser?.email || null
+            }, { merge: true });
+            if (status) status.innerHTML = '<span class="text-green-400">Published — schedule + Next Race Hub will update.</span>';
+            showToast('Weather note published', 'success');
+          } catch (e) {
+            console.error('saveSchedWeatherPanel', e);
+            if (status) status.innerHTML = '<span class="text-red-400">Publish failed: ' + (e.message || e) + '</span>';
+            showToast('Failed to publish weather note', 'error');
+          } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save mr-2"></i>Publish weather note'; }
+          }
+        }
+
+        function wireSchedWeatherPanel() {
+          const panel = document.getElementById('sched-weather-panel');
+          if (!panel || panel.dataset.wired === '1') return;
+          panel.dataset.wired = '1';
+          document.getElementById('sched-weather-save-btn')?.addEventListener('click', () => saveSchedWeatherPanel());
+          document.getElementById('sched-weather-refresh-btn')?.addEventListener('click', async () => {
+            try {
+              await loadScheduleTable();
+            } catch (e) {
+              console.error(e);
+            }
+          });
+        }
+
         async function loadScheduleTable() {
           try {
             const { getFirestore, collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
@@ -6001,6 +6160,8 @@
             tbody.innerHTML = '';
             if (filtered.length === 0) {
               tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400">No races found for this season.</td></tr>';
+              wireSchedWeatherPanel();
+              await loadSchedWeatherPanel(filtered);
               return;
             }
             filtered.forEach(r => {
@@ -6008,16 +6169,19 @@
               if (r.date?.toDate) { rd = r.date.toDate(); dateStr = rd.toLocaleDateString(); }
               else if (typeof r.date === 'string') { rd = new Date(r.date); dateStr = rd.toLocaleDateString(); }
               const isPast = rd && rd < today;
+              const wxChip = r.weatherNote
+                ? `<span class="ml-1 px-1.5 py-0.5 rounded text-[10px] ${r.weatherOverride ? 'bg-amber-600/25 text-amber-300' : 'bg-sky-600/20 text-sky-300'}" title="${String(r.weatherNote).replace(/"/g,'&quot;')}"><i class="fas fa-cloud-sun"></i></span>`
+                : '';
               const tr = document.createElement('tr');
               tr.className = 'border-b border-slate-700/50 hover:bg-slate-800/40';
               tr.innerHTML = `
                 <td class="p-3 text-slate-300 whitespace-nowrap">${dateStr}</td>
-                <td class="p-3 text-white font-medium">${r.eventName || 'Unnamed'}</td>
+                <td class="p-3 text-white font-medium">${r.eventName || 'Unnamed'}${wxChip}</td>
                 <td class="p-3 text-slate-300">${r.track || 'TBD'}</td>
                 <td class="p-3 text-slate-400 text-xs">${r.city && r.state ? r.city + ', ' + r.state : ''}</td>
                 <td class="p-3 text-slate-300">${r.startTime || 'TBD'}</td>
                 <td class="p-3"><span class="px-2 py-1 rounded text-xs ${r.type === 'specialEvent' ? 'bg-purple-600/20 text-purple-400' : 'bg-blue-600/20 text-blue-400'}">${r.type === 'specialEvent' ? 'Special' : 'Super Cup'}</span></td>
-                <td class="p-3"><span class="px-2 py-1 rounded text-xs ${isPast ? 'bg-slate-600/20 text-slate-500' : 'bg-green-600/20 text-green-400'}">${isPast ? 'Completed' : 'Upcoming'}</span></td>
+                <td class="p-3"><span class="px-2 py-1 rounded text-xs ${String(r.status||'').toLowerCase()==='rainout' ? 'bg-red-600/20 text-red-300' : (isPast ? 'bg-slate-600/20 text-slate-500' : 'bg-green-600/20 text-green-400')}">${String(r.status||'').toLowerCase()==='rainout' ? 'Rain out' : (isPast ? 'Completed' : 'Upcoming')}</span></td>
                 <td class="p-3 text-right whitespace-nowrap">
                   <button class="sched-edit-btn bg-blue-600 text-white px-3 py-1.5 rounded text-xs hover:bg-blue-500 transition mr-2" data-id="${r.id}"><i class="fas fa-edit mr-1"></i>Edit</button>
                   <button class="sched-del-btn bg-red-600 text-white px-3 py-1.5 rounded text-xs hover:bg-red-500 transition" data-id="${r.id}"><i class="fas fa-trash mr-1"></i>Delete</button>
@@ -6034,12 +6198,15 @@
                 else if (delBtn) deleteScheduleRace(delBtn.dataset.id);
               });
             }
+            wireSchedWeatherPanel();
+            await loadSchedWeatherPanel(filtered);
             showToast('Schedule loaded', 'info');
           } catch (e) { console.error('loadScheduleTable error:', e); showToast('Failed to load schedule', 'error'); }
         }
 
         async function openScheduleForm(raceId) {
-          let data = { eventName:'', date:'', track:'', city:'', state:'', startTime:'TBD', type:'superCup', season:2026 };
+          let data = { eventName:'', date:'', track:'', city:'', state:'', startTime:'TBD', type:'superCup', season:2026, weatherNote:'', weatherOverride:false, status:'scheduled' };
+          const escAttr = (s) => String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
           if (raceId) {
             try {
               const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js');
@@ -6055,6 +6222,9 @@
                 data.startTime = v.startTime || 'TBD';
                 data.type = v.type || 'superCup';
                 data.season = v.season || 2026;
+                data.weatherNote = v.weatherNote || '';
+                data.weatherOverride = !!v.weatherOverride;
+                data.status = v.status || 'scheduled';
                 if (v.date?.toDate) data.date = v.date.toDate().toISOString().split('T')[0];
                 else if (typeof v.date === 'string') data.date = v.date;
               }
@@ -6071,23 +6241,41 @@
               </div>
               <form id="schedule-race-form" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><label class="block text-sm font-medium text-slate-300 mb-1">Event Name *</label><input type="text" id="sf-eventName" class="modern-input w-full p-3 text-white" value="${data.eventName}" required></div>
-                  <div><label class="block text-sm font-medium text-slate-300 mb-1">Date *</label><input type="date" id="sf-date" class="modern-input w-full p-3 text-white" value="${data.date}" required></div>
+                  <div><label class="block text-sm font-medium text-slate-300 mb-1">Event Name *</label><input type="text" id="sf-eventName" class="modern-input w-full p-3 text-white" value="${escAttr(data.eventName)}" required></div>
+                  <div><label class="block text-sm font-medium text-slate-300 mb-1">Date *</label><input type="date" id="sf-date" class="modern-input w-full p-3 text-white" value="${escAttr(data.date)}" required></div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><label class="block text-sm font-medium text-slate-300 mb-1">Track *</label><input type="text" id="sf-track" class="modern-input w-full p-3 text-white" value="${data.track}" required></div>
-                  <div><label class="block text-sm font-medium text-slate-300 mb-1">Start Time</label><input type="text" id="sf-startTime" class="modern-input w-full p-3 text-white" value="${data.startTime}" placeholder="TBD or 19:30"></div>
+                  <div><label class="block text-sm font-medium text-slate-300 mb-1">Track *</label><input type="text" id="sf-track" class="modern-input w-full p-3 text-white" value="${escAttr(data.track)}" required></div>
+                  <div><label class="block text-sm font-medium text-slate-300 mb-1">Start Time</label><input type="text" id="sf-startTime" class="modern-input w-full p-3 text-white" value="${escAttr(data.startTime)}" placeholder="TBD or 19:30"></div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div><label class="block text-sm font-medium text-slate-300 mb-1">City</label><input type="text" id="sf-city" class="modern-input w-full p-3 text-white" value="${data.city}"></div>
-                  <div><label class="block text-sm font-medium text-slate-300 mb-1">State</label><input type="text" id="sf-state" class="modern-input w-full p-3 text-white" value="${data.state}" placeholder="WI"></div>
-                  <div><label class="block text-sm font-medium text-slate-300 mb-1">Season</label><input type="number" id="sf-season" class="modern-input w-full p-3 text-white" value="${data.season}" min="2020" max="2030"></div>
+                  <div><label class="block text-sm font-medium text-slate-300 mb-1">City</label><input type="text" id="sf-city" class="modern-input w-full p-3 text-white" value="${escAttr(data.city)}"></div>
+                  <div><label class="block text-sm font-medium text-slate-300 mb-1">State</label><input type="text" id="sf-state" class="modern-input w-full p-3 text-white" value="${escAttr(data.state)}" placeholder="WI"></div>
+                  <div><label class="block text-sm font-medium text-slate-300 mb-1">Season</label><input type="number" id="sf-season" class="modern-input w-full p-3 text-white" value="${escAttr(data.season)}" min="2020" max="2030"></div>
                 </div>
-                <div><label class="block text-sm font-medium text-slate-300 mb-1">Type</label>
-                  <select id="sf-type" class="modern-input w-full p-3 text-white">
-                    <option value="superCup" ${data.type==='superCup'?'selected':''}>Super Cup</option>
-                    <option value="specialEvent" ${data.type==='specialEvent'?'selected':''}>Special Event</option>
-                  </select>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div><label class="block text-sm font-medium text-slate-300 mb-1">Type</label>
+                    <select id="sf-type" class="modern-input w-full p-3 text-white">
+                      <option value="superCup" ${data.type==='superCup'?'selected':''}>Super Cup</option>
+                      <option value="specialEvent" ${data.type==='specialEvent'?'selected':''}>Special Event</option>
+                    </select>
+                  </div>
+                  <div><label class="block text-sm font-medium text-slate-300 mb-1">Status</label>
+                    <select id="sf-status" class="modern-input w-full p-3 text-white">
+                      <option value="scheduled" ${data.status==='scheduled'?'selected':''}>Scheduled</option>
+                      <option value="completed" ${data.status==='completed'?'selected':''}>Completed</option>
+                      <option value="rainout" ${data.status==='rainout'?'selected':''}>Rain out</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="bg-slate-950/50 border border-sky-700/30 rounded-lg p-4 space-y-3">
+                  <div class="text-sm font-semibold text-white"><i class="fas fa-cloud-sun text-sky-400 mr-2"></i>Weather for this race</div>
+                  <p class="text-xs text-slate-400">Optional. Shown on the public schedule card / Next Race Hub for this date. Leave blank to use Open-Meteo (and the team note above).</p>
+                  <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                    <input type="checkbox" id="sf-weatherOverride" ${data.weatherOverride ? 'checked' : ''} />
+                    Replace auto forecast with this note for this race
+                  </label>
+                  <textarea id="sf-weatherNote" rows="3" class="modern-input w-full p-3 text-white text-sm" placeholder="Example: Delayed for lightning · restart TBD">${escAttr(data.weatherNote)}</textarea>
                 </div>
                 <div class="flex justify-end space-x-3 pt-4 border-t border-slate-700">
                   <button type="button" class="px-6 py-3 rounded-lg font-semibold text-slate-300 hover:bg-slate-700/50 transition" onclick="document.getElementById('schedule-form-modal').remove()">Cancel</button>
@@ -6116,6 +6304,9 @@
               startTime: document.getElementById('sf-startTime')?.value || 'TBD',
               type: document.getElementById('sf-type')?.value || 'superCup',
               season: parseInt(document.getElementById('sf-season')?.value) || 2026,
+              status: document.getElementById('sf-status')?.value || 'scheduled',
+              weatherNote: document.getElementById('sf-weatherNote')?.value || '',
+              weatherOverride: !!document.getElementById('sf-weatherOverride')?.checked,
             };
             if (!payload.eventName || !payload.date || !payload.track) {
               showToast('Event name, date, and track are required', 'error');
@@ -6131,6 +6322,7 @@
             const modal = document.getElementById('schedule-form-modal');
             if (modal) modal.remove();
             await loadScheduleTable();
+            try { await loadSchedWeatherPanel(); } catch (_) {}
           } catch (e) {
             console.error('saveScheduleRace error:', e);
             showToast('Failed to save race: ' + (e.message || ''), 'error');

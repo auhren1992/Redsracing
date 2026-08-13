@@ -295,17 +295,24 @@
     const when = parseRaceDate(race.date, race.startTime) || new Date();
     startCountdown(when);
 
-    if (hub && hub.weatherOverride && String(hub.weatherNote || '').trim()) {
-      paintWeather(null, hub);
+    const raceWx = {
+      weatherNote: race.weatherNote || '',
+      weatherOverride: !!race.weatherOverride
+    };
+    const effectiveHub = (raceWx.weatherNote && String(raceWx.weatherNote).trim())
+      ? raceWx
+      : hub;
+    if (effectiveHub && effectiveHub.weatherOverride && String(effectiveHub.weatherNote || '').trim()) {
+      paintWeather(null, effectiveHub);
     } else if (window.RRRaceWeather) {
       const wx = await window.RRRaceWeather.forRace({
         city: race.city || (trackTips && trackTips.city),
         state: race.state || (trackTips && trackTips.state),
         date: String(race.date).slice(0, 10)
       });
-      paintWeather(wx, hub);
+      paintWeather(wx, effectiveHub);
     } else {
-      paintWeather(null, hub);
+      paintWeather(null, effectiveHub);
     }
 
     if (loading) loading.classList.add('hidden');

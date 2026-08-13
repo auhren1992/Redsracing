@@ -517,42 +517,85 @@
     }
   }
 
-  function paintWxSlot(slot, wx, hubWx, isNextUp) {
+  async function loadRaceWeatherNotes() {
+    const byDate = new Map();
+    try {
+      if (!window.firebase || !window.firebase.firestore) return byDate;
+      const todayStr = window.RRRaceDateTime
+        ? window.RRRaceDateTime.localTodayYmd()
+        : new Date().toISOString().slice(0, 10);
+      const snap = await window.firebase.firestore().collection('races')
+        .where('date', '>=', todayStr)
+        .orderBy('date', 'asc')
+        .limit(24)
+        .get();
+      snap.forEach((doc) => {
+        const r = doc.data() || {};
+        const note = String(r.weatherNote || '').trim();
+        if (!note) return;
+        const ymd = String(r.date || '').slice(0, 10);
+        if (!ymd) return;
+        byDate.set(ymd, { note, override: !!r.weatherOverride, track: r.track || '' });
+      });
+    } catch (e) {
+      console.warn('loadRaceWeatherNotes', e);
+    }
+    return byDate;
+  }
+
+  function pickCardWeatherNote(card, hubWx, raceNotes) {
+    const ymd = card.dataset.raceDate || '';
+    const raceWx = raceNotes.get(ymd);
+    if (raceWx && raceWx.note) return raceWx;
+    if (hubWx && hubWx.note && card.dataset.nextUp === '1') return hubWx;
+    return null;
+  }
+
+  function paintWxSlot(slot, wx, noteWx) {
     if (!slot) return;
-    if (hubWx && hubWx.override && isNextUp) {
+    if (noteWx && noteWx.override) {
       slot.classList.add('wx-risk-medium');
-      slot.title = hubWx.note;
+      slot.title = noteWx.note;
       slot.innerHTML = '<i class="fas fa-pen"></i> Team update';
       return;
     }
     if (!wx) {
+      if (noteWx && noteWx.note) {
+        slot.classList.add('wx-risk-medium');
+        slot.title = noteWx.note;
+        slot.innerHTML = '<i class="fas fa-pen"></i> Team note';
+        return;
+      }
       slot.innerHTML = '<i class="fas fa-cloud"></i> Weather TBD';
       return;
     }
     slot.classList.add(window.RRRaceWeather.riskClass(wx.risk));
     const precip = Number.isFinite(wx.precipProb) ? wx.precipProb + '% rain' : wx.label;
-    const noteBit = hubWx && hubWx.note && isNextUp ? ' · ' + hubWx.note : '';
+    const noteBit = noteWx && noteWx.note ? ' · ' + noteWx.note : '';
     slot.title = (wx.summary || '') + (wx.tempLine ? ' · ' + wx.tempLine : '') + noteBit;
-    slot.innerHTML = `<i class="${wx.icon}"></i> ${precip}${wx.risk === 'high' ? ' · WATCH' : ''}${hubWx && hubWx.note && isNextUp ? ' · NOTE' : ''}`;
+    slot.innerHTML = `<i class="${wx.icon}"></i> ${precip}${wx.risk === 'high' ? ' · WATCH' : ''}${noteWx && noteWx.note ? ' · NOTE' : ''}`;
   }
 
   async function enrichScheduleWeather(upcomingRaces) {
     if (!upcomingRaces || !upcomingRaces.length) return;
     const hubWx = await loadHubWeatherNote();
+    const raceNotes = await loadRaceWeatherNotes();
     const banner = document.getElementById('sched-weather-banner');
     if (banner) {
-      if (hubWx && hubWx.note) {
+      const nextCard = document.querySelector('.schedule-card.next-up');
+      const bannerWx = nextCard ? pickCardWeatherNote(nextCard, hubWx, raceNotes) : hubWx;
+      if (bannerWx && bannerWx.note) {
         banner.hidden = false;
         banner.textContent = '';
         const icon = document.createElement('i');
-        icon.className = hubWx.override ? 'fas fa-cloud-sun-rain' : 'fas fa-pen';
+        icon.className = bannerWx.override ? 'fas fa-cloud-sun-rain' : 'fas fa-pen';
         icon.setAttribute('aria-hidden', 'true');
         const strong = document.createElement('strong');
-        strong.textContent = hubWx.override ? 'Team weather override: ' : 'Team weather note: ';
+        strong.textContent = bannerWx.override ? 'Team weather override: ' : 'Team weather note: ';
         banner.appendChild(icon);
         banner.appendChild(document.createTextNode(' '));
         banner.appendChild(strong);
-        banner.appendChild(document.createTextNode(hubWx.note));
+        banner.appendChild(document.createTextNode(bannerWx.note));
       } else {
         banner.hidden = true;
         banner.textContent = '';
@@ -560,26 +603,23 @@
     }
 
     if (!window.RRRaceWeather) {
-      if (hubWx && hubWx.override) {
-        document.querySelectorAll('.schedule-card.next-up [data-wx-slot="1"]').forEach((slot) => {
-          paintWxSlot(slot, null, hubWx, true);
-        });
-      }
+      document.querySelectorAll('.schedule-card[data-race-date]').forEach((card) => {
+        const slot = card.querySelector('[data-wx-slot="1"]');
+        const noteWx = pickCardWeatherNote(card, hubWx, raceNotes);
+        if (noteWx) paintWxSlot(slot, null, noteWx);
+      });
       return;
     }
 
-    // Forecast horizon is limited — only next ~16 days matter for Open-Meteo daily
     const horizon = new Date();
     horizon.setDate(horizon.getDate() + 16);
     const near = upcomingRaces.filter((r) => new Date(r.date + 'T00:00:00') <= horizon);
     if (!near.length) {
       document.querySelectorAll('.wx-badge').forEach((el) => {
         const card = el.closest('.schedule-card');
-        if (hubWx && hubWx.override && card && card.dataset.nextUp === '1') {
-          paintWxSlot(el, null, hubWx, true);
-        } else {
-          el.innerHTML = '<i class="fas fa-cloud-sun"></i> Forecast closer to race';
-        }
+        const noteWx = card ? pickCardWeatherNote(card, hubWx, raceNotes) : null;
+        if (noteWx) paintWxSlot(el, null, noteWx);
+        else el.innerHTML = '<i class="fas fa-cloud-sun"></i> Forecast closer to race';
       });
       return;
     }
@@ -587,9 +627,9 @@
     document.querySelectorAll('.schedule-card[data-race-date]').forEach((card) => {
       const slot = card.querySelector('[data-wx-slot="1"]');
       if (!slot) return;
-      const isNextUp = card.dataset.nextUp === '1';
-      if (hubWx && hubWx.override && isNextUp) {
-        paintWxSlot(slot, null, hubWx, true);
+      const noteWx = pickCardWeatherNote(card, hubWx, raceNotes);
+      if (noteWx && noteWx.override) {
+        paintWxSlot(slot, null, noteWx);
         return;
       }
       const key = (card.dataset.raceDate || '') + '|' + (card.dataset.raceCity || '') + '|' + (card.dataset.raceState || '');
@@ -597,13 +637,14 @@
       if (!wx) {
         const d = new Date((card.dataset.raceDate || '') + 'T00:00:00');
         if (d > horizon) {
-          slot.innerHTML = '<i class="fas fa-cloud-sun"></i> Forecast closer to race';
+          if (noteWx) paintWxSlot(slot, null, noteWx);
+          else slot.innerHTML = '<i class="fas fa-cloud-sun"></i> Forecast closer to race';
         } else {
-          paintWxSlot(slot, null, hubWx, isNextUp);
+          paintWxSlot(slot, null, noteWx);
         }
         return;
       }
-      paintWxSlot(slot, wx, hubWx, isNextUp);
+      paintWxSlot(slot, wx, noteWx);
     });
   }
 
