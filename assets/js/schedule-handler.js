@@ -75,9 +75,13 @@
     card.dataset.filter = isPast || isRainout ? 'past' : 'upcoming';
 
     const rail = el('div', 'sched-date-rail');
-    rail.appendChild(el('span', 'sched-date-rail__dow', dayOfWeek));
-    rail.appendChild(el('span', 'sched-date-rail__day', dayNum));
-    rail.appendChild(el('span', 'sched-date-rail__mon', month));
+    rail.setAttribute('aria-label', `${dayOfWeek} ${dayNum} ${month}`);
+    const dow = el('span', 'sched-date-rail__dow', dayOfWeek);
+    const day = el('span', 'sched-date-rail__day', dayNum);
+    const mon = el('span', 'sched-date-rail__mon', month);
+    rail.appendChild(dow);
+    rail.appendChild(day);
+    rail.appendChild(mon);
 
     const body = el('div', 'sched-card-body');
     const raceNo = race.raceNumber ? `Race ${race.raceNumber} · ` : '';
