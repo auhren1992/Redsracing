@@ -1224,6 +1224,7 @@
       </div>
     </div>
 
+    <script src="assets/js/race-datetime.js?v=20260813c"></script>
     <script>
       // Firebase Configuration
       const firebaseConfig = {
@@ -1501,7 +1502,10 @@
 
       // Countdown Timer with Dynamic NEXT Race
       (function() {
-        let firstRaceDate = new Date('2026-04-18T00:00:00').getTime(); // Default fallback
+        // Fallback 7pm local (not midnight) so countdown matches race night
+        let firstRaceDate = (window.RRRaceDateTime
+          ? window.RRRaceDateTime.raceDateTimeMs('2026-04-18', '19:00')
+          : new Date('2026-04-18T19:00:00').getTime());
         let raceInfo = 'NEXT RACE: GRUNDY COUNTY SPEEDWAY'; // Default fallback
 
         function escapeHtml(value) {
@@ -1566,9 +1570,10 @@
         async function loadFirstRace() {
           let nextMeta = null;
           try {
-            // Get today's date as YYYY-MM-DD string for comparison
-            const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
+            // Local calendar day — avoid UTC toISOString shifting the date at night
+            const todayStr = window.RRRaceDateTime
+              ? window.RRRaceDateTime.localTodayYmd()
+              : new Date().toISOString().split('T')[0];
 
             const raceSnapshot = await db.collection('races')
               .where('season', '==', 2026)
@@ -1590,19 +1595,26 @@
                 return;
               }
               const raceDate = nextRace.date;
-              
-              // Parse the date - handle both Firestore Timestamp and string formats
-              if (raceDate && raceDate.toDate) {
+              const startTime = nextRace.startTime;
+
+              // Countdown targets admin startTime (e.g. 5:30 PM), not midnight
+              if (window.RRRaceDateTime) {
+                const ms = window.RRRaceDateTime.raceDateTimeMs(raceDate, startTime);
+                if (ms != null) firstRaceDate = ms;
+              } else if (raceDate && raceDate.toDate) {
                 firstRaceDate = raceDate.toDate().getTime();
               } else if (typeof raceDate === 'string') {
-                firstRaceDate = new Date(raceDate + 'T00:00:00').getTime();
+                firstRaceDate = new Date(raceDate + 'T19:00:00').getTime();
               }
 
               // Update race info text
               const raceName = nextRace.eventName || nextRace.name || 'Next Race';
               const trackName = nextRace.track || '';
-              raceInfo = `NEXT RACE: ${raceName.toUpperCase()}${trackName ? ' - ' + trackName.toUpperCase() : ''}`;
-              nextMeta = { raceName, trackName, date: raceDate };
+              const timeLabel = (startTime && String(startTime).toUpperCase() !== 'TBD')
+                ? ` · ${startTime}`
+                : '';
+              raceInfo = `NEXT RACE: ${raceName.toUpperCase()}${trackName ? ' - ' + trackName.toUpperCase() : ''}${timeLabel}`;
+              nextMeta = { raceName, trackName, date: raceDate, startTime };
               
               // Update the UI
               const raceInfoEl = document.querySelector('.race-info');

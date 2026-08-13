@@ -194,6 +194,7 @@
 
   <script type="module" src="navigation.js"></script>
   <script src="assets/js/mobile-menu-tabs.js?v=2026080914"></script>
+  <script src="assets/js/race-datetime.js?v=20260813c"></script>
   <script>
     // Firebase init
     // Use same Firebase config as login/navigation so auth state is shared
@@ -283,13 +284,17 @@
     let countdownInterval = null;
     async function loadNextRace() {
       try {
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = window.RRRaceDateTime
+          ? window.RRRaceDateTime.localTodayYmd()
+          : new Date().toISOString().split('T')[0];
         const snap = await db.collection('races').where('season','==',2026).where('type','==','superCup').where('date','>=',todayStr).orderBy('date','asc').limit(1).get();
         if (!snap.empty) {
           const r = snap.docs[0].data();
           document.getElementById('next-race-name').textContent = r.eventName || r.track || 'TBD';
           document.getElementById('next-race-info').textContent = (r.track||'') + (r.city?' • '+r.city+', '+r.state:'') + (r.startTime && r.startTime!=='TBD'?' • '+r.startTime:'');
-          const target = new Date(r.date + 'T00:00:00').getTime();
+          const target = window.RRRaceDateTime
+            ? window.RRRaceDateTime.raceDateTimeMs(r.date, r.startTime)
+            : new Date(r.date + 'T19:00:00').getTime();
           if (countdownInterval) clearInterval(countdownInterval);
           function tick() {
             const dist = target - Date.now();
