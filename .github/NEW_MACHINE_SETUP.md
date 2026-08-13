@@ -11,7 +11,7 @@ git checkout main
 git pull origin main
 ```
 
-Latest mobile release on `main` (when this doc was added): **11.2.24 (210)** — on-screen Update available banner; homepage Enable Notifications works reliably in Android/iOS app WebViews (FCM race/schedule topics).
+Latest mobile release on `main` (when this doc was added): **11.2.26 (212)** — on-screen Update available banner; homepage Enable Notifications works reliably in Android/iOS app WebViews (FCM race/schedule topics).
 
 ## Already in Git (you get everything below with `git pull`)
 
