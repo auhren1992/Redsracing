@@ -10,7 +10,10 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  function parseRaceDate(raw) {
+  function parseRaceDate(raw, startTime) {
+    if (window.RRRaceDateTime) {
+      return window.RRRaceDateTime.raceDateTime(raw, startTime);
+    }
     if (!raw) return null;
     if (raw.toDate) return raw.toDate();
     if (typeof raw === 'string') {
@@ -38,8 +41,9 @@
   }
 
   async function loadNextRace(db) {
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = window.RRRaceDateTime
+      ? window.RRRaceDateTime.localTodayYmd()
+      : new Date().toISOString().split('T')[0];
     try {
       const snap = await db.collection('races')
         .where('season', '==', 2026)
@@ -172,7 +176,7 @@
       sub.textContent = [race.track, [race.city, race.state].filter(Boolean).join(', ')].filter(Boolean).join(' · ');
     }
     if (meta) {
-      const d = parseRaceDate(race.date);
+      const d = parseRaceDate(race.date, race.startTime);
       const dateLabel = d
         ? d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
         : String(race.date || '');
@@ -269,7 +273,7 @@
     paintLastResult(last);
     paintNotes(hub, pulse);
 
-    const when = parseRaceDate(race.date) || new Date();
+    const when = parseRaceDate(race.date, race.startTime) || new Date();
     startCountdown(when);
 
     if (window.RRRaceWeather) {

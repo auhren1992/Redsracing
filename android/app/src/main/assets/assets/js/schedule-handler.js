@@ -264,7 +264,9 @@
     // Try Firestore first — same query as index.html so both pages stay in sync
     try {
       if (window.__countdownDb) {
-        const todayStr = today.toISOString().split('T')[0];
+        const todayStr = window.RRRaceDateTime
+          ? window.RRRaceDateTime.localTodayYmd()
+          : today.toISOString().split('T')[0];
         const raceSnapshot = await window.__countdownDb.collection('races')
           .where('season', '==', 2026)
           .where('type', '==', 'superCup')
@@ -281,17 +283,16 @@
             if (!firstRace) firstRace = row;
           });
           if (firstRace) {
-            const raceDate = firstRace.date;
-
-            // Parse the date — handle both Firestore Timestamp and string
-            if (raceDate && raceDate.toDate) {
-              nextRaceDate = raceDate.toDate().getTime();
-            } else if (typeof raceDate === 'string') {
-              nextRaceDate = new Date(raceDate + 'T00:00:00').getTime();
+            if (window.RRRaceDateTime) {
+              nextRaceDate = window.RRRaceDateTime.raceDateTimeMs(firstRace.date, firstRace.startTime);
+            } else if (firstRace.date && firstRace.date.toDate) {
+              nextRaceDate = firstRace.date.toDate().getTime();
+            } else if (typeof firstRace.date === 'string') {
+              nextRaceDate = new Date(firstRace.date + 'T19:00:00').getTime();
             }
 
             nextRaceName = firstRace.eventName || firstRace.name || 'Next Race';
-            console.log('Schedule countdown synced from Firestore:', nextRaceName);
+            console.log('Schedule countdown synced from Firestore:', nextRaceName, firstRace.startTime || 'TBD');
           }
         }
       }
@@ -307,7 +308,9 @@
       );
       if (nextRace) {
         nextRaceName = nextRace.eventName;
-        nextRaceDate = new Date(nextRace.date + 'T00:00:00').getTime();
+        nextRaceDate = window.RRRaceDateTime
+          ? window.RRRaceDateTime.raceDateTimeMs(nextRace.date, nextRace.startTime)
+          : new Date(nextRace.date + 'T19:00:00').getTime();
       }
     }
 
