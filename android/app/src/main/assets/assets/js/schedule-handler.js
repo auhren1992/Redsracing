@@ -105,7 +105,8 @@
       
       if (race.startTime !== 'TBD') {
         const startTime = document.createElement('p');
-        startTime.className = 'text-xs text-slate-500 mt-1';
+        startTime.className = 'text-xs text-slate-500 mt-1 rr-start-time';
+        startTime.setAttribute('data-start-time', '1');
         startTime.textContent = `Start: ${race.startTime}`;
         leftDiv.appendChild(startTime);
       }
