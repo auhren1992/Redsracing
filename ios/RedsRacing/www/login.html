@@ -18,6 +18,7 @@
     <script defer src="https://unpkg.com/scrollreveal"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/mobile-web.css">
     <link rel="stylesheet" href="styles/input-fix.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
@@ -33,16 +34,36 @@
       class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50"
     >
       <nav
-        class="container mx-auto px-6 py-3 flex justify-between items-center"
+        class="container mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 max-w-full"
       >
+        <button
+          id="mobile-menu-button"
+          class="lg:hidden shrink-0 text-white focus:outline-none"
+          type="button"
+          aria-label="Open menu"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16m-7 6h7"
+            ></path>
+          </svg>
+        </button>
         <a
           href="index.html"
-          class="rr-brand text-2xl sm:text-4xl font-racing uppercase tracking-wider min-w-0 truncate flex-1 md:flex-none"
+          class="rr-brand text-2xl sm:text-3xl font-racing uppercase tracking-wider min-w-0 truncate flex-1 lg:flex-none"
         >
           <span class="title-blue">Reds</span
           ><span class="neon-yellow">Racing</span>
         </a>
-        <div class="hidden md:flex items-center space-x-6 font-bold">
+        <div class="hidden lg:flex items-center space-x-6 font-bold ml-auto">
           <a href="index.html" class="nav-link">🏠 Home</a>
           <div class="relative dropdown">
             <button class="dropdown-toggle nav-link">
@@ -102,7 +123,8 @@
                   <span>Dashboard</span>
                 </a>
                 
-                <a href="profile.html" class="dropdown-item flex items-center">
+                <a href="settings.html" class="dropdown-item flex items-center gap-2"><i class="fas fa-cog text-yellow-400"></i> Settings</a>
+                  <a href="profile.html" class="dropdown-item flex items-center">
                   <i class="fas fa-user w-4 mr-3 text-green-400"></i>
                   <span>My Profile</span>
                 </a>
@@ -117,24 +139,6 @@
             </div>
           </div>
         </div>
-        <button
-          id="mobile-menu-button"
-          class="md:hidden text-white focus:outline-none"
-        >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h16m-7 6h7"
-            ></path>
-          </svg>
-        </button>
       </nav>
       <div id="mobile-menu" class="mobile-menu modern-mobile">
         <a href="index.html" class="mobile-nav-item">🏠 Home</a>
@@ -516,5 +520,6 @@
       })();
     </script>
     <script src="modern-effects.js"></script>
-  </body>
+      <script src="assets/js/user-settings.js" defer></script>
+</body>
 </html>

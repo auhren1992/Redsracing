@@ -12,13 +12,11 @@
 
     var protectedPages = {
       "dashboard.html": true,
-      "follower-dashboard.html": true,
-      "redsracing-dashboard.html": true,
-      "follower/index.html": true,
+                  "follower/index.html": true,
       "admin/index.html": true,
       "profile.html": true,
-      "fan-settings.html": true,
-      "team-settings.html": true,
+      "settings.html": true,
+      
       "admin-console.html": true,
       "admin.html": true,
       "fan/dashboard.html": true,

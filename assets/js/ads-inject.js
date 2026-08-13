@@ -34,38 +34,21 @@
   };
 
   // Pages we must NEVER place ads on (policy + UX).
-  var DENY_PATHS = [
+    var DENY_PATHS = [
     'login.html',
     'signup.html',
     'profile.html',
     'settings.html',
-    'fan-settings.html',
-    'team-settings.html',
     'admin-console.html',
     'admin.html',
-    'admin-setup.html',
-    'admin-debug.html',
-    'admin-role-test.html',
-    'setup-admin.html',
-    'simple-admin.html',
-    'follower-dashboard.html',
-    'redsracing-dashboard.html',
     'follower/index.html',
     'admin/index.html',
-    'force-dashboard.html',
     'fan/dashboard.html',
     'crew/dashboard.html',
+    'racer/dashboard.html',
     'push-notifications.html',
     'live-race-admin.html',
-    'migrate-schedule.html',
-    'modern-auth-test.html',
-    'test_auth_improvements.html',
-    '404.html',
-    'HEADER_TEMPLATE.html',
-    'temp_nav.html',
-    'mobile-test.html',
-    'mobile-debug.html',
-    'test.html'
+    '404.html'
   ];
 
   function normalizePath(pathname) {

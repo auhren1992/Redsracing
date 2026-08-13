@@ -24,80 +24,122 @@
       {
         "source": "/schedule.html",
         "headers": [
-          { "key": "Cache-Control", "value": "no-store" }
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
         ]
       },
       {
         "source": "/assets/js/schedule-handler.js",
         "headers": [
-          { "key": "Cache-Control", "value": "no-store" }
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
         ]
       },
       {
         "source": "/data/schedule.json",
         "headers": [
-          { "key": "Cache-Control", "value": "no-store" }
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
         ]
       },
       {
         "source": "/admin-console.html",
         "headers": [
-          { "key": "Cache-Control", "value": "no-store" }
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
         ]
       },
       {
         "source": "/styles/mobile-web.css",
         "headers": [
-          { "key": "Cache-Control", "value": "no-store" }
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
         ]
       },
       {
         "source": "/login.html",
         "headers": [
-          { "key": "Cache-Control", "value": "no-store" }
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
         ]
       },
       {
         "source": "/assets/js/mobile-app-detector.js",
         "headers": [
-          { "key": "Cache-Control", "value": "no-store" }
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
         ]
       },
       {
         "source": "/styles/mobile-app.css",
         "headers": [
-          { "key": "Cache-Control", "value": "no-store" }
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
         ]
       },
       {
         "source": "/styles/main.css",
         "headers": [
-          { "key": "Cache-Control", "value": "no-store" }
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
         ]
       },
       {
         "source": "/navigation.js",
         "headers": [
-          { "key": "Cache-Control", "value": "no-store" }
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
         ]
       },
       {
         "source": "/service-worker.js",
         "headers": [
-          { "key": "Cache-Control", "value": "no-cache" },
-          { "key": "Service-Worker-Allowed", "value": "/" }
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          },
+          {
+            "key": "Service-Worker-Allowed",
+            "value": "/"
+          }
         ]
       },
       {
         "source": "/manifest.json",
         "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=300" }
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=300"
+          }
         ]
       },
       {
         "source": "/data/search-index.json",
         "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=3600" }
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=3600"
+          }
         ]
       },
       {
@@ -243,6 +285,98 @@
           "functionId": "handleAutoAwardAchievement",
           "region": "us-central1"
         }
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/force-dashboard.html",
+        "destination": "/admin-console.html",
+        "type": 301
+      },
+      {
+        "source": "/admin-role-test.html",
+        "destination": "/admin-console.html",
+        "type": 301
+      },
+      {
+        "source": "/simple-admin.html",
+        "destination": "/admin-console.html",
+        "type": 301
+      },
+      {
+        "source": "/setup-admin.html",
+        "destination": "/admin-console.html",
+        "type": 301
+      },
+      {
+        "source": "/admin-setup.html",
+        "destination": "/admin-console.html",
+        "type": 301
+      },
+      {
+        "source": "/migrate-schedule.html",
+        "destination": "/admin-console.html",
+        "type": 301
+      },
+      {
+        "source": "/driver-new.html",
+        "destination": "/driver.html",
+        "type": 301
+      },
+      {
+        "source": "/countdown.html",
+        "destination": "/index.html",
+        "type": 301
+      },
+      {
+        "source": "/fan-settings.html",
+        "destination": "/settings.html",
+        "type": 301
+      },
+      {
+        "source": "/team-settings.html",
+        "destination": "/settings.html",
+        "type": 301
+      },
+      {
+        "source": "/privacy.html",
+        "destination": "/privacy-policy.html",
+        "type": 301
+      },
+      {
+        "source": "/teams.html",
+        "destination": "/team.html",
+        "type": 301
+      },
+      {
+        "source": "/follower-dashboard.html",
+        "destination": "/follower/index.html",
+        "type": 301
+      },
+      {
+        "source": "/redsracing-dashboard.html",
+        "destination": "/crew/dashboard.html",
+        "type": 301
+      },
+      {
+        "source": "/follower-login.html",
+        "destination": "/login.html",
+        "type": 301
+      },
+      {
+        "source": "/HEADER_TEMPLATE.html",
+        "destination": "/index.html",
+        "type": 301
+      },
+      {
+        "source": "/newsletter-footer.html",
+        "destination": "/index.html",
+        "type": 301
+      },
+      {
+        "source": "/live-race-widget.html",
+        "destination": "/live.html",
+        "type": 301
       }
     ]
   },

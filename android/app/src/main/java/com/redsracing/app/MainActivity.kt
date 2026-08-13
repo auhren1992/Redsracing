@@ -170,7 +170,8 @@ class MainActivity : AppCompatActivity() {
             filePathCallback = null
         }
 
-        requestNotificationPermissionIfNeeded()
+        // Notification permission is owned by the in-page Enable Notifications CTA
+        // (native bridge). Do not prompt on cold start — early denials break opt-in.
         clearCacheIfVersionChanged()
         setupWebView(binding.webview)
         setupBottomNavigation()
@@ -458,6 +459,7 @@ class MainActivity : AppCompatActivity() {
             MenuItem("📸", "Gallery", "jonny-gallery.html"),
             MenuItem("📊", "Race Results", "jonny-results.html"),
             MenuItem("", "Team", "", isHeader = true),
+            MenuItem("👥", "Team Home", "team.html"),
             MenuItem("🏆", "Team Legends", "legends.html")
         )
         showMenuOverlay("Drivers", items)
@@ -467,6 +469,7 @@ class MainActivity : AppCompatActivity() {
         val items = listOf(
             MenuItem("", "Live", "", isHeader = true),
             MenuItem("🔴", "Live Race", "live.html"),
+            MenuItem("⏱️", "Next Race Hub", "next-race.html"),
             MenuItem("", "Season", "", isHeader = true),
             MenuItem("📅", "Schedule", "schedule.html"),
             MenuItem("📊", "Season Stats", "stats.html"),
@@ -965,14 +968,6 @@ class MainActivity : AppCompatActivity() {
             }
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nm.createNotificationChannel(channel)
-        }
-    }
-
-    private fun requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT >= 33) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                notificationPermissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
-            }
         }
     }
 

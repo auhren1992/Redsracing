@@ -35,6 +35,7 @@
     <script defer src="https://unpkg.com/scrollreveal"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/mobile-web.css">
     <link rel="stylesheet" href="styles/input-fix.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
@@ -379,7 +380,7 @@
     <!-- Clean Modern Header -->
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
       <nav class="container mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 max-w-full">
-        <button id="mobile-menu-button" class="md:hidden shrink-0 text-white focus:outline-none" >
+        <button id="mobile-menu-button" class="lg:hidden shrink-0 text-white focus:outline-none" >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
             </svg>
@@ -390,7 +391,7 @@
         </a>
         
         <!-- Navigation Links -->
-        <div class="hidden md:flex items-center space-x-6 font-bold">
+        <div class="hidden lg:flex items-center space-x-6 font-bold ml-auto">
           <a href="index.html" class="nav-link">🏠 Home</a>
           <div class="relative dropdown">
             <button class="dropdown-toggle nav-link">
@@ -481,7 +482,8 @@
                   <span>Dashboard</span>
                 </a>
                 
-                <a href="profile.html" class="dropdown-item flex items-center">
+                <a href="settings.html" class="dropdown-item flex items-center gap-2"><i class="fas fa-cog text-yellow-400"></i> Settings</a>
+                  <a href="profile.html" class="dropdown-item flex items-center">
                   <i class="fas fa-user w-4 mr-3 text-green-400"></i>
                   <span>My Profile</span>
                 </a>
@@ -1328,7 +1330,8 @@
       })();
     </script>
       <script src="assets/js/cookie-consent.js"></script>
-  <div style="text-align:center;padding:1.5rem 1rem;border-top:1px solid rgba(148,163,184,0.1);margin-top:2rem;font-size:0.75rem;color:#64748b;"><a href="privacy.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Privacy Policy</a> | <a href="terms.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Terms of Service</a> | <a href="contact.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Contact</a><div style="margin-top:4px;">&copy; 2026 RedsRacing #8 &amp; #88</div></div>
+  <div style="text-align:center;padding:1.5rem 1rem;border-top:1px solid rgba(148,163,184,0.1);margin-top:2rem;font-size:0.75rem;color:#64748b;"><a href="privacy-policy.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Privacy Policy</a> | <a href="terms.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Terms of Service</a> | <a href="contact.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Contact</a><div style="margin-top:4px;">&copy; 2026 RedsRacing #8 &amp; #88</div></div>
+    <script src="assets/js/user-settings.js" defer></script>
 </body>
 </html>
 

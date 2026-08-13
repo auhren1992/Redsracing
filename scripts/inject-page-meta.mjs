@@ -27,7 +27,6 @@ const TARGET_DIRS = [
   ROOT,
   join(ROOT, "android", "app", "src", "main", "assets"),
   join(ROOT, "android", "app", "src", "main", "assets", "www"),
-  join(ROOT, "ios", "RedsRacing", "WebViewResources"),
   join(ROOT, "ios", "RedsRacing", "www")
 ];
 

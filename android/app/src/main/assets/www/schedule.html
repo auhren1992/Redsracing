@@ -37,6 +37,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script defer src="https://unpkg.com/scrollreveal"></script>
     <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/mobile-web.css">
     <link rel="stylesheet" href="styles/input-fix.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
@@ -57,13 +58,380 @@
       .race-badge.wx-risk-high { background: rgba(239,68,68,.18); color: #fecaca; border-color: rgba(239,68,68,.4); }
       .race-badge.wx-risk-medium { background: rgba(251,191,36,.14); color: #fde68a; border-color: rgba(251,191,36,.35); }
       .race-badge.wx-risk-low { background: rgba(52,211,153,.12); color: #a7f3d0; border-color: rgba(52,211,153,.3); }
+
+      body.schedule-page {
+        --sched-ink: #e8eef8;
+        --sched-muted: rgba(186, 198, 214, 0.78);
+        --sched-line: rgba(148, 163, 184, 0.16);
+        --sched-yellow: #fbbf24;
+        --sched-blue: #3b82f6;
+        --sched-red: #ef4444;
+        background:
+          radial-gradient(1200px 600px at 10% -10%, rgba(59,130,246,.18), transparent 55%),
+          radial-gradient(900px 500px at 90% 0%, rgba(239,68,68,.14), transparent 50%),
+          linear-gradient(180deg, #070b14 0%, #0b1220 40%, #05080f 100%);
+        color: var(--sched-ink);
+      }
+
+      .sched-hero {
+        position: relative;
+        min-height: min(58vh, 520px);
+        display: flex;
+        align-items: flex-end;
+        overflow: hidden;
+        border-bottom: 1px solid var(--sched-line);
+      }
+      .sched-hero__bg {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(105deg, rgba(5,8,15,.86) 0%, rgba(5,8,15,.38) 48%, rgba(5,8,15,.7) 100%),
+          linear-gradient(to top, #05080f 0%, transparent 48%),
+          url('assets/images/jonny-hero3.jpg') center 35%/cover no-repeat;
+        transform: scale(1.04);
+        animation: sched-hero-drift 18s ease-in-out infinite alternate;
+      }
+      .sched-hero__bg::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          repeating-linear-gradient(-18deg, transparent 0 14px, rgba(251,191,36,.035) 14px 15px),
+          linear-gradient(to top, #05080f 0%, transparent 42%);
+        pointer-events: none;
+      }
+      @keyframes sched-hero-drift {
+        from { transform: scale(1.04) translate3d(0,0,0); }
+        to { transform: scale(1.08) translate3d(-1.5%, -1%, 0); }
+      }
+      .sched-hero__inner {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2.4rem 1.25rem 3.4rem;
+      }
+      .sched-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
+        padding: .45rem .85rem;
+        border: 1px solid rgba(251,191,36,.28);
+        background: rgba(251,191,36,.1);
+        color: #fde68a;
+        font-size: .72rem;
+        font-weight: 900;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+      }
+      .sched-kicker__dot {
+        width: .55rem; height: .55rem; border-radius: 999px;
+        background: #fbbf24;
+        box-shadow: 0 0 0 0 rgba(251,191,36,.55);
+        animation: sched-pulse 1.8s ease-out infinite;
+      }
+      @keyframes sched-pulse {
+        0% { box-shadow: 0 0 0 0 rgba(251,191,36,.55); }
+        70% { box-shadow: 0 0 0 10px rgba(251,191,36,0); }
+        100% { box-shadow: 0 0 0 0 rgba(251,191,36,0); }
+      }
+      .sched-hero__brand {
+        font-family: "Racing Sans One", sans-serif;
+        font-size: clamp(2.4rem, 7vw, 4.6rem);
+        line-height: .95;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        margin: 0 0 .35rem;
+      }
+      .sched-hero__title {
+        font-family: "Racing Sans One", sans-serif;
+        font-size: clamp(1.6rem, 4.2vw, 2.4rem);
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: rgba(226,232,240,.9);
+        margin: 0 0 .85rem;
+      }
+      .sched-hero__sub {
+        max-width: 36rem;
+        color: var(--sched-muted);
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 0 0 1.35rem;
+      }
+      .sched-hero__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .7rem;
+      }
+
+      .sched-next {
+        position: relative;
+        max-width: 1100px;
+        margin: -2.25rem auto 0;
+        padding: 0 1.25rem;
+        z-index: 2;
+      }
+      .sched-next__panel {
+        display: grid;
+        grid-template-columns: 1.15fr .85fr;
+        gap: 1.25rem;
+        padding: 1.35rem 1.4rem;
+        border: 1px solid rgba(251,191,36,.22);
+        background:
+          linear-gradient(135deg, rgba(15,23,42,.94), rgba(2,6,23,.9)),
+          radial-gradient(500px 200px at 0% 0%, rgba(251,191,36,.12), transparent 60%);
+        box-shadow: 0 24px 60px rgba(0,0,0,.45);
+        overflow: hidden;
+      }
+      @media (max-width: 860px) {
+        .sched-next__panel { grid-template-columns: 1fr; }
+      }
+      .sched-next__label {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        color: #fca5a5;
+        font-size: .7rem;
+        font-weight: 900;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+        margin-bottom: .55rem;
+      }
+      .sched-next__name {
+        font-family: "Racing Sans One", sans-serif;
+        font-size: clamp(1.6rem, 3.5vw, 2.35rem);
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin: 0 0 .35rem;
+        line-height: 1.05;
+      }
+      .sched-next__meta {
+        color: var(--sched-muted);
+        font-size: .92rem;
+        margin: 0 0 .85rem;
+      }
+      .sched-next__link {
+        color: #fbbf24;
+        font-weight: 800;
+        text-decoration: none;
+      }
+      .sched-next__link:hover { text-decoration: underline; }
+      .sched-count {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0,1fr));
+        gap: .55rem;
+      }
+      .sched-count__cell {
+        text-align: center;
+        padding: .85rem .4rem;
+        border: 1px solid var(--sched-line);
+        background: rgba(2,6,23,.45);
+      }
+      .sched-count__num {
+        font-family: "Racing Sans One", sans-serif;
+        font-size: clamp(1.6rem, 4vw, 2.2rem);
+        line-height: 1;
+        color: #fbbf24;
+      }
+      .sched-count__cell:nth-child(2) .sched-count__num { color: #f87171; }
+      .sched-count__cell:nth-child(3) .sched-count__num { color: #60a5fa; }
+      .sched-count__cell:nth-child(4) .sched-count__num { color: #34d399; }
+      .sched-count__lbl {
+        margin-top: .35rem;
+        font-size: .65rem;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: rgba(148,163,184,.85);
+        font-weight: 800;
+      }
+
+      .sched-board {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2.75rem 1.25rem 3.5rem;
+      }
+      .sched-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .85rem;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--sched-line);
+      }
+      .sched-season {
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
+        padding: .35rem .4rem .35rem .85rem;
+        border: 1px solid rgba(251,191,36,.28);
+        background: rgba(2,6,23,.4);
+      }
+      .sched-season label {
+        font-size: .7rem;
+        font-weight: 900;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: rgba(251,191,36,.9);
+      }
+      .sched-season select {
+        background: transparent;
+        color: #fff;
+        border: 0;
+        font-weight: 800;
+        font-size: 1rem;
+        padding: .45rem .55rem;
+        cursor: pointer;
+        outline: none;
+      }
+      .sched-filters {
+        display: inline-flex;
+        gap: .35rem;
+        flex-wrap: wrap;
+      }
+      .sched-filter {
+        border: 1px solid var(--sched-line);
+        background: rgba(2,6,23,.35);
+        color: rgba(226,232,240,.78);
+        font-size: .72rem;
+        font-weight: 900;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        padding: .55rem .8rem;
+        cursor: pointer;
+        transition: border-color .2s ease, color .2s ease, background .2s ease;
+      }
+      .sched-filter.is-active,
+      .sched-filter:hover {
+        border-color: rgba(251,191,36,.4);
+        color: #fbbf24;
+        background: rgba(251,191,36,.08);
+      }
+      .sched-note {
+        color: rgba(251,191,36,.75);
+        font-size: .85rem;
+        margin: 0 0 1.25rem;
+      }
+      .sched-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0,1fr));
+        gap: .75rem;
+        margin-bottom: 1.75rem;
+      }
+      @media (max-width: 640px) {
+        .sched-stats { grid-template-columns: 1fr; }
+      }
+      .sched-stat {
+        padding: 1rem 1.1rem;
+        border: 1px solid var(--sched-line);
+        background: linear-gradient(180deg, rgba(30,41,59,.55), rgba(2,6,23,.35));
+      }
+      .sched-stat__num {
+        font-family: "Racing Sans One", sans-serif;
+        font-size: 2rem;
+        color: #fbbf24;
+        line-height: 1;
+      }
+      .sched-stat:nth-child(2) .sched-stat__num { color: #34d399; }
+      .sched-stat:nth-child(3) .sched-stat__num { color: #60a5fa; }
+      .sched-stat__lbl {
+        margin-top: .35rem;
+        font-size: .7rem;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--sched-muted);
+        font-weight: 800;
+      }
+
+      .sched-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+      }
+      .sched-columns.is-single {
+        grid-template-columns: 1fr;
+        max-width: 760px;
+      }
+      .sched-columns.is-single #special-events-column { display: none; }
+      @media (max-width: 900px) {
+        .sched-columns { grid-template-columns: 1fr; }
+      }
+      .sched-col__head {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        margin-bottom: 1rem;
+      }
+      .sched-col__icon {
+        width: 2.6rem; height: 2.6rem;
+        display: grid; place-items: center;
+        background: linear-gradient(135deg, #ef4444, #b91c1c);
+        color: #fff;
+        flex-shrink: 0;
+      }
+      .sched-col__icon--special {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      }
+      .sched-col__title {
+        font-family: "Racing Sans One", sans-serif;
+        font-size: 1.55rem;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin: 0;
+      }
+      .sched-col__title span { color: #fbbf24; }
+      .sched-list {
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+        position: relative;
+      }
+      .sched-list::before {
+        content: "";
+        position: absolute;
+        left: 2.15rem;
+        top: .5rem;
+        bottom: .5rem;
+        width: 2px;
+        background: linear-gradient(to bottom, rgba(251,191,36,.45), rgba(59,130,246,.15), transparent);
+        pointer-events: none;
+      }
+      @media (max-width: 520px) {
+        .sched-list::before { left: 1.85rem; }
+      }
+
+      .sched-ical {
+        max-width: 1100px;
+        margin: 0 auto 2rem;
+        padding: 1rem 1.25rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid rgba(251,191,36,.2);
+        background: rgba(251,191,36,.06);
+      }
+      .sched-ical p {
+        margin: 0;
+        color: var(--sched-muted);
+        font-weight: 650;
+      }
+
+      html[data-reduce-motion="1"] .sched-hero__bg,
+      html[data-reduce-motion="1"] .sched-kicker__dot {
+        animation: none !important;
+      }
     </style>
   </head>
-  <body class="bg-dark-blue">
+  <body class="bg-dark-blue schedule-page">
     <!-- Clean Modern Header -->
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
       <nav class="container mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 max-w-full">
-        <button id="mobile-menu-button" class="md:hidden shrink-0 text-white focus:outline-none" >
+        <button id="mobile-menu-button" class="lg:hidden shrink-0 text-white focus:outline-none" >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
             </svg>
@@ -74,7 +442,7 @@
         </a>
         
         <!-- Navigation Links -->
-        <div class="hidden md:flex items-center space-x-6 font-bold">
+        <div class="hidden lg:flex items-center space-x-6 font-bold ml-auto">
           <a href="index.html" class="nav-link">🏠 Home</a>
           <div class="relative dropdown">
             <button class="dropdown-toggle nav-link">
@@ -164,7 +532,8 @@
                   <span>Dashboard</span>
                 </a>
                 
-                <a href="profile.html" class="dropdown-item flex items-center">
+                <a href="settings.html" class="dropdown-item flex items-center gap-2"><i class="fas fa-cog text-yellow-400"></i> Settings</a>
+                  <a href="profile.html" class="dropdown-item flex items-center">
                   <i class="fas fa-user w-4 mr-3 text-green-400"></i>
                   <span>My Profile</span>
                 </a>
@@ -274,91 +643,62 @@
       </div>
     </header>
     
-    <!-- Featured strip (live updates) -->
-    <div class="mt-6">
-      <div id="rr-feature-strip"></div>
-    </div>
-    <script type="module" src="assets/js/featured-strip.js"></script>
-    
     <main>
-      <!-- Modern Hero Section -->
-      <section class="py-20 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
-        <div class="container mx-auto px-6 relative z-10">
-          <div class="text-center mb-16">
-            <div class="inline-flex items-center bg-yellow-600/20 backdrop-blur-sm px-6 py-3 rounded-full border border-yellow-400/30 mb-6">
-              <div class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse mr-3"></div>
-              <span class="text-yellow-400 font-bold uppercase tracking-wider text-sm">
-                <i class="fas fa-calendar-alt mr-2"></i>2025 Season
-              </span>
+      <section class="sched-hero" aria-label="Season schedule">
+        <div class="sched-hero__bg" aria-hidden="true"></div>
+        <div class="sched-hero__inner">
+          <div class="sched-kicker">
+            <span class="sched-kicker__dot" aria-hidden="true"></span>
+            <span id="schedule-season-kicker">2026 Season</span>
+          </div>
+          <h1 class="sched-hero__brand">
+            <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+          </h1>
+          <p class="sched-hero__title">Race Schedule</p>
+          <p class="sched-hero__sub">Every Super Cup date and special event — countdown to the next green flag, weather on the card, and one-tap calendar adds.</p>
+          <div class="sched-hero__actions">
+            <a class="rr-pill rr-pill--primary" href="next-race.html"><i class="fas fa-bolt"></i><span>Next Race Hub</span></a>
+            <a class="rr-pill" href="#schedule-board"><i class="fas fa-list"></i><span>Jump to dates</span></a>
+            <a class="rr-pill" href="/data/schedule.ics"><i class="fas fa-calendar-plus"></i><span>Subscribe</span></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="sched-next" aria-label="Next race countdown">
+        <div class="sched-next__panel">
+          <div>
+            <div class="sched-next__label"><i class="fas fa-flag-checkered"></i> Next up</div>
+            <h2 id="next-race-name" class="sched-next__name">Loading…</h2>
+            <p id="next-race-meta" class="sched-next__meta">Pulling the next green flag…</p>
+            <a class="sched-next__link" href="next-race.html">Open Next Race Hub →</a>
+          </div>
+          <div id="countdown-timer" class="sched-count" aria-live="polite">
+            <div class="sched-count__cell">
+              <div id="days" class="sched-count__num">0</div>
+              <div class="sched-count__lbl">Days</div>
             </div>
-            
-            <h1 class="font-racing text-6xl md:text-8xl lg:text-9xl uppercase tracking-wider mb-6">
-              <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-red-500 to-yellow-600">
-                Schedule
-              </span>
-            </h1>
-            
-            <p class="text-xl md:text-2xl text-slate-300 font-bold tracking-wide max-w-4xl mx-auto mb-8">
-              Track the season • Mark your calendar • Never miss the action
-            </p>
-            
-            <!-- Stats Bar -->
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-              <div class="modern-card p-6 border border-red-400/20">
-                <div class="text-4xl font-bold text-red-400">24</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider mt-2">Total Races</div>
-              </div>
-              <div class="modern-card p-6 border border-green-400/20">
-                <div class="text-4xl font-bold text-green-400">24</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider mt-2">Completed</div>
-              </div>
-              <div class="modern-card p-6 border border-purple-400/20">
-                <div class="text-4xl font-bold text-purple-400">12</div>
-                <div class="text-slate-400 text-sm uppercase tracking-wider mt-2">Tracks</div>
-              </div>
+            <div class="sched-count__cell">
+              <div id="hours" class="sched-count__num">0</div>
+              <div class="sched-count__lbl">Hours</div>
+            </div>
+            <div class="sched-count__cell">
+              <div id="minutes" class="sched-count__num">0</div>
+              <div class="sched-count__lbl">Minutes</div>
+            </div>
+            <div class="sched-count__cell">
+              <div id="seconds" class="sched-count__num">0</div>
+              <div class="sched-count__lbl">Seconds</div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Countdown Section -->
-      <section class="py-16 md:py-24 bg-gradient-to-b from-black to-slate-900">
-        <div class="container mx-auto px-6">
-          <div class="max-w-4xl mx-auto modern-card p-8 md:p-12 rounded-2xl text-center">
-            <div class="inline-flex items-center bg-red-500/20 px-4 py-2 rounded-full mb-6">
-              <i class="fas fa-flag-checkered text-red-400 mr-2"></i>
-              <span class="text-red-400 font-bold uppercase tracking-wider text-sm">Next Race</span>
-            </div>
-            
-            <h2 id="next-race-name" class="font-racing text-3xl md:text-4xl text-white uppercase mb-4">
-              Loading...
-            </h2>
-            <p class="text-slate-400 text-sm mb-6">Rain forecast, gate notes, and countdown live on the <a href="next-race.html" class="text-yellow-400 font-semibold hover:underline">Next Race Hub</a>.</p>
-            
-            <div id="countdown-timer" class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-              <div class="modern-card p-4 border border-yellow-400/20">
-                <div id="days" class="text-4xl md:text-5xl font-bold text-yellow-400">0</div>
-                <div class="text-xs uppercase text-slate-400 tracking-wider mt-2">Days</div>
-              </div>
-              <div class="modern-card p-4 border border-red-400/20">
-                <div id="hours" class="text-4xl md:text-5xl font-bold text-red-400">0</div>
-                <div class="text-xs uppercase text-slate-400 tracking-wider mt-2">Hours</div>
-              </div>
-              <div class="modern-card p-4 border border-blue-400/20">
-                <div id="minutes" class="text-4xl md:text-5xl font-bold text-blue-400">0</div>
-                <div class="text-xs uppercase text-slate-400 tracking-wider mt-2">Minutes</div>
-              </div>
-              <div class="modern-card p-4 border border-green-400/20">
-                <div id="seconds" class="text-4xl md:text-5xl font-bold text-green-400">0</div>
-                <div class="text-xs uppercase text-slate-400 tracking-wider mt-2">Seconds</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <div class="mt-8 mb-2 px-4">
+        <div id="rr-feature-strip"></div>
+      </div>
+      <script type="module" src="assets/js/featured-strip.js"></script>
 
-      <!-- AdSense: schedule-sidebar (placed inline between countdown and content) -->
-      <section class="py-6 bg-slate-900">
+      <section class="py-6">
         <div class="container mx-auto px-6">
           <div class="rr-ad-slot max-w-4xl mx-auto" style="min-height:120px;">
             <ins class="adsbygoogle"
@@ -372,67 +712,61 @@
         </div>
       </section>
 
-      <!-- Schedule Content -->
-      <section class="py-20 md:py-32 bg-gradient-to-b from-slate-900 to-black">
-        <div class="container mx-auto px-6">
-          <!-- Season Selector -->
-          <div class="flex flex-col items-center mb-12">
-            <div class="modern-card p-2 inline-flex items-center gap-2">
-              <label for="season-selector" class="text-slate-400 font-bold uppercase tracking-wider text-sm px-3">
-                <i class="fas fa-calendar-alt mr-2"></i>Season:
-              </label>
-              <select id="season-selector" class="bg-slate-800/50 text-white font-bold text-lg px-6 py-3 rounded-lg border border-yellow-400/30 focus:border-yellow-400 focus:outline-none cursor-pointer hover:bg-slate-700/50 transition">
-                <option value="2026">2026 Season</option>
-                <option value="2025">2025 Season</option>
-              </select>
-            </div>
-            <p class="text-amber-400/80 text-sm mt-4 italic">
-              <i class="fas fa-exclamation-triangle mr-1"></i>
-              2026 racing season schedule may change
-            </p>
+      <section id="schedule-board" class="sched-board">
+        <div class="sched-toolbar">
+          <div class="sched-season">
+            <label for="season-selector">Season</label>
+            <select id="season-selector" aria-label="Select season">
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+            </select>
           </div>
-          
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
-            <div>
-              <div class="modern-card p-8 rounded-2xl h-full">
-                <div class="flex items-center mb-6">
-                  <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mr-4">
-                    <i class="fas fa-trophy text-white text-xl"></i>
-                  </div>
-                  <h3 class="font-racing text-3xl text-white uppercase">
-                    American <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-yellow-400">Super Cups</span>
-                  </h3>
-                </div>
-                <div id="super-cups-schedule" class="space-y-4"></div>
-              </div>
+          <div class="sched-filters" role="tablist" aria-label="Filter races">
+            <button type="button" class="sched-filter is-active" data-filter="all" role="tab" aria-selected="true">All</button>
+            <button type="button" class="sched-filter" data-filter="upcoming" role="tab" aria-selected="false">Upcoming</button>
+            <button type="button" class="sched-filter" data-filter="past" role="tab" aria-selected="false">Completed</button>
+          </div>
+        </div>
+        <p class="sched-note"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> 2026 dates can still shift — check back before you drive.</p>
+        <div class="sched-stats" aria-label="Season snapshot">
+          <div class="sched-stat">
+            <div id="stat-total" class="sched-stat__num">—</div>
+            <div class="sched-stat__lbl">Total races</div>
+          </div>
+          <div class="sched-stat">
+            <div id="stat-done" class="sched-stat__num">—</div>
+            <div class="sched-stat__lbl">Completed</div>
+          </div>
+          <div class="sched-stat">
+            <div id="stat-tracks" class="sched-stat__num">—</div>
+            <div class="sched-stat__lbl">Tracks</div>
+          </div>
+        </div>
+
+        <div class="sched-columns">
+          <div>
+            <div class="sched-col__head">
+              <div class="sched-col__icon" aria-hidden="true"><i class="fas fa-trophy"></i></div>
+              <h3 class="sched-col__title">American <span>Super Cups</span></h3>
             </div>
-            
-            <div>
-              <div class="modern-card p-8 rounded-2xl h-full">
-                <div class="flex items-center mb-6">
-                  <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center mr-4">
-                    <i class="fas fa-star text-white text-xl"></i>
-                  </div>
-                  <h3 class="font-racing text-3xl text-white uppercase">
-                    Special <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">Events</span>
-                  </h3>
-                </div>
-                <div id="special-events-schedule" class="space-y-4"></div>
-              </div>
+            <div id="super-cups-schedule" class="sched-list"></div>
+          </div>
+          <div id="special-events-column">
+            <div class="sched-col__head">
+              <div class="sched-col__icon sched-col__icon--special" aria-hidden="true"><i class="fas fa-star"></i></div>
+              <h3 class="sched-col__title">Special <span>Events</span></h3>
             </div>
+            <div id="special-events-schedule" class="sched-list"></div>
           </div>
         </div>
       </section>
 
-      <!-- iCal Subscribe Strip -->
-      <section style="padding:1.25rem 1rem;text-align:center;background:rgba(251,191,36,.06);border-top:1px solid rgba(251,191,36,.15);border-bottom:1px solid rgba(251,191,36,.15);">
-        <span style="color:#94a3b8;font-size:.9rem;margin-right:.75rem;"><i class="fas fa-calendar-check" style="color:#fbbf24;margin-right:.4rem;"></i>Never miss a race —</span>
-        <a href="/data/schedule.ics" class="btn btn-sm btn-secondary" style="font-size:.82rem;padding:.35rem .8rem;">
-          <i class="fas fa-calendar-plus" style="margin-right:.35rem;"></i>Subscribe in your calendar
-        </a>
+      <section class="sched-ical">
+        <p><i class="fas fa-calendar-check" style="color:#fbbf24;margin-right:.4rem;"></i>Never miss a race — sync the season to your phone.</p>
+        <a href="/data/schedule.ics" class="rr-pill rr-pill--primary"><i class="fas fa-calendar-plus"></i><span>Subscribe (.ics)</span></a>
       </section>
-
     </main>
+
     <!-- Modern Newsletter Footer -->
     <footer class="newsletter-footer">
         <div class="newsletter-container">
@@ -463,7 +797,7 @@
         </div>
         
         <div class="footer-bottom">
-            <p>&copy; 2025 RedsRacing. All Rights Reserved.</p>
+            <p>&copy; 2026 RedsRacing. All Rights Reserved.</p>
             <div style="margin-top:8px;display:flex;justify-content:center;gap:16px;font-size:0.8rem;">
                 <a href="privacy-policy.html" style="color:#94a3b8;text-decoration:none;">Privacy Policy</a>
                 <span style="color:#475569;">&middot;</span>
@@ -751,12 +1085,13 @@
       window.__countdownDb = firebase.firestore();
     })();
     </script>
-    <script src="assets/js/race-datetime.js?v=20260813c"></script>
+    <script src="assets/js/race-datetime.js?v=20260813d"></script>
     <script src="assets/js/race-weather.js"></script>
-    <script src="assets/js/schedule-handler.js?v=20260813c"></script>
+    <script src="assets/js/schedule-handler.js?v=20260813f"></script>
     <script type="module" src="modern-effects.js"></script>
       <script src="assets/js/cookie-consent.js"></script>
-  <div style="text-align:center;padding:1.5rem 1rem;border-top:1px solid rgba(148,163,184,0.1);margin-top:2rem;font-size:0.75rem;color:#64748b;"><a href="privacy.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Privacy Policy</a> | <a href="terms.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Terms of Service</a> | <a href="contact.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Contact</a><div style="margin-top:4px;">&copy; 2026 RedsRacing #8 &amp; #88</div></div>
+  <div style="text-align:center;padding:1.5rem 1rem;border-top:1px solid rgba(148,163,184,0.1);margin-top:2rem;font-size:0.75rem;color:#64748b;"><a href="privacy-policy.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Privacy Policy</a> | <a href="terms.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Terms of Service</a> | <a href="contact.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Contact</a><div style="margin-top:4px;">&copy; 2026 RedsRacing #8 &amp; #88</div></div>
+    <script src="assets/js/user-settings.js" defer></script>
 </body>
 </html>
 
