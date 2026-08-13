@@ -27,6 +27,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/mobile-web.css">
+    <link rel="stylesheet" href="styles/mobile-menu-tabs.css">
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
     <script src="assets/js/page-meta.js" defer></script>
@@ -35,17 +37,35 @@
   </head>
   <body class="bg-dark-blue">
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
-      <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-        <a href="index.html" class="text-3xl font-racing uppercase tracking-wider">
+      <nav class="container mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 max-w-full">
+        <button id="mobile-menu-button" class="lg:hidden shrink-0 text-white focus:outline-none" type="button" aria-label="Open menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+        <a href="index.html" class="rr-brand text-2xl sm:text-3xl font-racing uppercase tracking-wider min-w-0 truncate flex-1 lg:flex-none">
           <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
         </a>
-        <div class="hidden md:flex items-center space-x-6 font-bold">
+        <div class="hidden lg:flex items-center space-x-6 font-bold ml-auto">
           <a href="index.html" class="nav-link">🏠 Home</a>
           <a href="team.html" class="nav-link">👥 Team</a>
-          <a href="schedule.html" class="nav-link">🏁 Schedule</a>
+          <a href="schedule.html" class="nav-link">📅 Schedule</a>
+          <a href="live.html" class="nav-link">🔴 Live</a>
           <a href="gallery.html" class="nav-link">📸 Gallery</a>
+          <a href="settings.html" class="nav-link">⚙️ Settings</a>
+          <a href="login.html" class="nav-link">🔐 Login</a>
         </div>
       </nav>
+      <div id="mobile-menu" class="mobile-menu modern-mobile hidden">
+        <a href="index.html" class="mobile-nav-item">🏠 Home</a>
+        <a href="team.html" class="mobile-nav-item">👥 Team</a>
+        <a href="schedule.html" class="mobile-nav-item">📅 Schedule</a>
+        <a href="next-race.html" class="mobile-nav-item">⏱️ Next Race</a>
+        <a href="live.html" class="mobile-nav-item">🔴 Live</a>
+        <a href="gallery.html" class="mobile-nav-item">📸 Gallery</a>
+        <a href="settings.html" class="mobile-nav-item">⚙️ Settings</a>
+        <a href="login.html" class="mobile-nav-item">🔐 Login</a>
+      </div>
     </header>
 
     <main class="pt-20">
@@ -164,5 +184,8 @@
         }
       })();
     </script>
-  </body>
+      <script src="assets/js/user-settings.js" defer></script>
+<script src="assets/js/navigation.js" defer></script>
+<script src="assets/js/mobile-menu-tabs.js" defer></script>
+</body>
 </html>

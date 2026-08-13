@@ -418,6 +418,7 @@ struct ContentView: View {
             .init(icon: "🏎️", title: "Jonny Kirsch #88 - Profile", url: "https://www.redsracing.org/jonny.html"),
             .init(icon: "📸", title: "Jonny Kirsch #88 - Gallery", url: "https://www.redsracing.org/jonny-gallery.html"),
             .init(icon: "📊", title: "Jonny Kirsch #88 - Results", url: "https://www.redsracing.org/jonny-results.html"),
+            .init(icon: "👥", title: "Team Home", url: "https://www.redsracing.org/team.html"),
             .init(icon: "🏆", title: "Team Legends", url: "https://www.redsracing.org/legends.html")
         ]
         withAnimation { showMenuOverlay = true }
@@ -427,6 +428,7 @@ struct ContentView: View {
         overlayTitle = "Racing"
         overlayItems = [
             .init(icon: "🔴", title: "Live Race", url: "https://www.redsracing.org/live.html"),
+            .init(icon: "⏱️", title: "Next Race Hub", url: "https://www.redsracing.org/next-race.html"),
             .init(icon: "📅", title: "Schedule", url: "https://www.redsracing.org/schedule.html"),
             .init(icon: "📊", title: "Season Stats", url: "https://www.redsracing.org/stats.html"),
             .init(icon: "🏁", title: "Race Recaps", url: "https://www.redsracing.org/recaps.html"),
@@ -775,9 +777,10 @@ struct WebView: UIViewRepresentable {
                       if (tabs) tabs.remove();
                     } catch (eNav) {}
                     document.body.style.backgroundColor = '#05080f';
-                    document.body.style.paddingBottom = '120px';
+                    // Tab bar only on iOS (no AdMob banner) — keep clearance tight
+                    document.body.style.paddingBottom = '88px';
                     var mains = document.querySelectorAll('main');
-                    mains.forEach(function(m){ m.style.marginTop='0'; m.style.paddingTop='0'; m.style.paddingBottom='120px'; });
+                    mains.forEach(function(m){ m.style.marginTop='0'; m.style.paddingTop='0'; m.style.paddingBottom='88px'; });
                     // Ensure countdown labels are visible
                     var countdownLabels = document.querySelectorAll('.countdown-label');
                     countdownLabels.forEach(function(label) {

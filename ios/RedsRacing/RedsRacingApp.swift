@@ -153,14 +153,49 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         completionHandler([.banner, .sound, .badge])
     }
 
-    // Handle notification taps
+    // Handle notification taps → deep-link the WebView when a page is provided
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        print("Notification opened: \(response.notification.request.content.userInfo)")
+        let info = response.notification.request.content.userInfo
+        print("Notification opened: \(info)")
+        let page = Self.resolveNotificationDeepLink(info)
+        if let page {
+            NotificationCenter.default.post(
+                name: .deepLinkTarget,
+                object: nil,
+                userInfo: ["page": page]
+            )
+        }
         completionHandler()
+    }
+
+    /// Accepts FCM/APS payloads with `page`, `url`, or `deepLink` keys (e.g. `next-race.html` or full https URL).
+    static func resolveNotificationDeepLink(_ info: [AnyHashable: Any]) -> String? {
+        let candidates: [Any?] = [
+            info["page"],
+            info["url"],
+            info["deepLink"],
+            (info["data"] as? [AnyHashable: Any])?["page"],
+            (info["data"] as? [AnyHashable: Any])?["url"]
+        ]
+        for raw in candidates {
+            guard let value = raw as? String else { continue }
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty { continue }
+            if trimmed.lowercased().hasPrefix("http") {
+                if let url = URL(string: trimmed), let host = url.host?.lowercased(),
+                   host.contains("redsracing.org") {
+                    let path = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                    return path.isEmpty ? "index.html" : path
+                }
+                continue
+            }
+            return trimmed.contains(".") ? trimmed : "\(trimmed).html"
+        }
+        return nil
     }
 }
 

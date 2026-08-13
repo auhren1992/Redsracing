@@ -11,6 +11,8 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="stylesheet" href="styles/tailwind.css" />
     <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/mobile-web.css">
+    <link rel="stylesheet" href="styles/mobile-menu-tabs.css">
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     
@@ -39,17 +41,35 @@
   </head>
 <body class="bg-slate-900 text-white">
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
-        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="index.html" class="text-4xl font-racing uppercase tracking-wider">
-                <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
-            </a>
-            <div class="hidden md:flex items-center space-x-6 font-bold">
-                <a href="index.html" class="nav-link">🏠 Home</a>
-                <a href="about.html" class="nav-link">ℹ️ About</a>
-                <a href="schedule.html" class="nav-link">📅 Schedule</a>
-                <a href="contact.html" class="nav-link">📧 Contact</a>
-            </div>
-        </nav>
+      <nav class="container mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 max-w-full">
+        <button id="mobile-menu-button" class="lg:hidden shrink-0 text-white focus:outline-none" type="button" aria-label="Open menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+        <a href="index.html" class="rr-brand text-2xl sm:text-3xl font-racing uppercase tracking-wider min-w-0 truncate flex-1 lg:flex-none">
+          <span class="title-blue">Reds</span><span class="neon-yellow">Racing</span>
+        </a>
+        <div class="hidden lg:flex items-center space-x-6 font-bold ml-auto">
+          <a href="index.html" class="nav-link">🏠 Home</a>
+          <a href="team.html" class="nav-link">👥 Team</a>
+          <a href="schedule.html" class="nav-link">📅 Schedule</a>
+          <a href="live.html" class="nav-link">🔴 Live</a>
+          <a href="gallery.html" class="nav-link">📸 Gallery</a>
+          <a href="settings.html" class="nav-link">⚙️ Settings</a>
+          <a href="login.html" class="nav-link">🔐 Login</a>
+        </div>
+      </nav>
+      <div id="mobile-menu" class="mobile-menu modern-mobile hidden">
+        <a href="index.html" class="mobile-nav-item">🏠 Home</a>
+        <a href="team.html" class="mobile-nav-item">👥 Team</a>
+        <a href="schedule.html" class="mobile-nav-item">📅 Schedule</a>
+        <a href="next-race.html" class="mobile-nav-item">⏱️ Next Race</a>
+        <a href="live.html" class="mobile-nav-item">🔴 Live</a>
+        <a href="gallery.html" class="mobile-nav-item">📸 Gallery</a>
+        <a href="settings.html" class="mobile-nav-item">⚙️ Settings</a>
+        <a href="login.html" class="mobile-nav-item">🔐 Login</a>
+      </div>
     </header>
 
     <main class="container mx-auto px-6 py-12 max-w-5xl">
@@ -400,8 +420,10 @@
         </div>
     </footer>
 
+    <script src="assets/js/user-settings.js" defer></script>
     <script type="module" src="assets/js/navigation.js"></script>
     <script src="assets/js/cookie-consent.js"></script>
-  <div style="text-align:center;padding:1.5rem 1rem;border-top:1px solid rgba(148,163,184,0.1);margin-top:2rem;font-size:0.75rem;color:#64748b;"><a href="privacy.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Privacy Policy</a> | <a href="terms.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Terms of Service</a> | <a href="contact.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Contact</a><div style="margin-top:4px;">&copy; 2026 RedsRacing #8 &amp; #88</div></div>
+  <div style="text-align:center;padding:1.5rem 1rem;border-top:1px solid rgba(148,163,184,0.1);margin-top:2rem;font-size:0.75rem;color:#64748b;"><a href="privacy-policy.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Privacy Policy</a> | <a href="terms.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Terms of Service</a> | <a href="contact.html" style="color:#94a3b8;text-decoration:none;margin:0 8px;">Contact</a><div style="margin-top:4px;">&copy; 2026 RedsRacing #8 &amp; #88</div></div>
+<script src="assets/js/mobile-menu-tabs.js" defer></script>
 </body>
 </html>

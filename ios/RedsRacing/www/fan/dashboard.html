@@ -185,7 +185,7 @@
               '<a class="qlk" href="../predictions.html"><i class="fas fa-bolt"></i><span>Predictions</span></a>'+
               '<a class="qlk" href="../sponsorship.html"><i class="fas fa-handshake"></i><span>Sponsors</span></a>'+
               '<a class="qlk" href="../feedback.html"><i class="fas fa-comment-dots"></i><span>Feedback</span></a>'+
-              '<a class="qlk" href="../fan-settings.html"><i class="fas fa-sliders-h"></i><span>Fan settings</span></a>'+
+              '<a class="qlk" href="../settings.html"><i class="fas fa-sliders-h"></i><span>Fan settings</span></a>'+
               '<a class="qlk" href="../profile.html"><i class="fas fa-user"></i><span>Full profile</span></a>'+
             '</div></div>'+
             '<div class="card"><div class="card-t"><i class="fas fa-lightbulb"></i>Fan playbook</div><ul class="bul">'+
@@ -327,7 +327,7 @@
 
     // ---- PROFILE ----
     async function loadProfile(el){
-      el.innerHTML='<h2><i class="fas fa-id-card" style="margin-right:.4rem"></i>My profile</h2><div class="card" style="margin-bottom:.75rem"><div class="card-t"><i class="fas fa-pen"></i>Manage account</div><p class="st-muted" style="margin:0 0 .55rem;font-size:.78rem">Edit avatar, bio, and preferences on the main site — this hub stays focused on race week.</p><div style="display:flex;flex-wrap:wrap;gap:.4rem"><a class="ql" href="../profile.html" style="margin:0"><span class="qi"><i class="fas fa-user"></i></span><span>Full profile</span></a><a class="ql" href="../fan-settings.html" style="margin:0"><span class="qi"><i class="fas fa-sliders-h"></i></span><span>Fan settings</span></a></div></div><div id="pdata" class="card"><div class="ldg"><i class="fas fa-spinner fa-spin"></i></div></div>';
+      el.innerHTML='<h2><i class="fas fa-id-card" style="margin-right:.4rem"></i>My profile</h2><div class="card" style="margin-bottom:.75rem"><div class="card-t"><i class="fas fa-pen"></i>Manage account</div><p class="st-muted" style="margin:0 0 .55rem;font-size:.78rem">Edit avatar, bio, and preferences on the main site — this hub stays focused on race week.</p><div style="display:flex;flex-wrap:wrap;gap:.4rem"><a class="ql" href="../profile.html" style="margin:0"><span class="qi"><i class="fas fa-user"></i></span><span>Full profile</span></a><a class="ql" href="../settings.html" style="margin:0"><span class="qi"><i class="fas fa-sliders-h"></i></span><span>Fan settings</span></a></div></div><div id="pdata" class="card"><div class="ldg"><i class="fas fa-spinner fa-spin"></i></div></div>';
       try{var u=au.currentUser;var d=await db.collection('users').doc(u.uid).get();var p=d.exists?d.data():{};
       var bio=p.bio?String(p.bio):'';
       if(bio.length>220)bio=bio.slice(0,217)+'…';
