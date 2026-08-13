@@ -33,15 +33,20 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         reportAppUsage(fcmToken: token)
     }
 
+    /// Register for APNs when already authorized. Do not prompt at cold start —
+    /// the homepage Enable Notifications CTA owns the first permission dialog so
+    /// mobile WebView opt-in is not pre-denied by a launch prompt.
     private func requestPushPermissions(_ application: UIApplication) {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
-            if let error = error {
-                print("Push permission request failed: \(error.localizedDescription)")
-                return
-            }
-            print("Push permission granted: \(granted)")
-            DispatchQueue.main.async {
-                application.registerForRemoteNotifications()
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            switch settings.authorizationStatus {
+            case .authorized, .provisional, .ephemeral:
+                DispatchQueue.main.async {
+                    application.registerForRemoteNotifications()
+                }
+            case .notDetermined, .denied:
+                print("Push permission not granted yet (status=\(settings.authorizationStatus.rawValue)); waiting for in-app Enable Notifications")
+            @unknown default:
+                break
             }
         }
     }
