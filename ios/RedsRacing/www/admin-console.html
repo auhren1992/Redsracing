@@ -3761,7 +3761,7 @@
     <script type="module" src="assets/js/auth-guard.js"></script>
     <script type="module" src="navigation.js"></script>
     <!-- redsracing-dashboard.js removed: admin console has its own countdown/data loading -->
-    <script src="assets/js/race-weather.js?v=20260813w"></script>
+    <script src="assets/js/race-weather.js?v=20260813x"></script>
     <script src="assets/js/homepage-pulse-admin.js?v=20260810c"></script>
     <script type="module" src="assets/js/queue-admin.js?v=202605082"></script>
     
@@ -6045,9 +6045,15 @@
             return;
           }
           try {
-            const wx = await window.RRRaceWeather.forRace({ city: race.city, state: race.state, date: ymd });
-            if (!wx) {
-              box.innerHTML = `<div class="text-slate-400 text-xs mb-2">${where || 'Next race'} · ${ymd || 'TBD'}</div><span class="text-slate-400">Forecast not available yet (outside ~16 day window or geocode miss).</span>`;
+            const wx = await window.RRRaceWeather.forRace({
+              city: race.city,
+              state: race.state,
+              date: ymd,
+              track: race.track || race.eventName || ''
+            });
+            if (!wx || wx.error) {
+              const msg = (wx && wx.message) || 'Forecast not available yet.';
+              box.innerHTML = `<div class="text-slate-400 text-xs mb-2">${where || 'Next race'} · ${ymd || 'TBD'}</div><span class="text-amber-300">${msg}</span>`;
               return;
             }
             const precip = Number.isFinite(wx.precipProb) ? wx.precipProb + '% rain' : wx.label;
