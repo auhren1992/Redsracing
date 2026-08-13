@@ -66,6 +66,8 @@
     const month = raceDate.toLocaleString('en-US', { month: 'short' });
     const dayNum = raceDate.toLocaleString('en-US', { day: 'numeric' });
     const dayOfWeek = raceDate.toLocaleString('en-US', { weekday: 'short' });
+    // Explicit spaced label — never concatenate as "Sun7Jun"
+    const dateLabel = `${dayOfWeek} ${dayNum} ${month}`;
 
     const card = el('article', `schedule-card ${isRainout ? 'past rainout' : (isPast ? 'past' : 'upcoming')}${isNextUp ? ' next-up' : ''}`);
     card.dataset.raceDate = race.date || '';
@@ -75,13 +77,10 @@
     card.dataset.filter = isPast || isRainout ? 'past' : 'upcoming';
 
     const rail = el('div', 'sched-date-rail');
-    rail.setAttribute('aria-label', `${dayOfWeek} ${dayNum} ${month}`);
-    const dow = el('span', 'sched-date-rail__dow', dayOfWeek);
-    const day = el('span', 'sched-date-rail__day', dayNum);
-    const mon = el('span', 'sched-date-rail__mon', month);
-    rail.appendChild(dow);
-    rail.appendChild(day);
-    rail.appendChild(mon);
+    rail.setAttribute('aria-label', dateLabel);
+    rail.appendChild(el('span', 'sched-date-rail__dow', dayOfWeek));
+    rail.appendChild(el('span', 'sched-date-rail__day', dayNum));
+    rail.appendChild(el('span', 'sched-date-rail__mon', month));
 
     const body = el('div', 'sched-card-body');
     const raceNo = race.raceNumber ? `Race ${race.raceNumber} · ` : '';
