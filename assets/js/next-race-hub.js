@@ -145,21 +145,40 @@
     setInterval(tick, 1000);
   }
 
-  function paintWeather(wx) {
+  function paintWeather(wx, hub) {
     const box = $('nr-weather');
     if (!box) return;
+    const note = hub && String(hub.weatherNote || '').trim();
+    const override = !!(hub && hub.weatherOverride && note);
+
+    if (override) {
+      box.innerHTML = `
+        <div class="nr-weather-card wx-risk-medium">
+          <div class="nr-weather-icon"><i class="fas fa-cloud-sun-rain" aria-hidden="true"></i></div>
+          <div>
+            <div class="nr-weather-title">Team weather update</div>
+            <div class="nr-weather-sub">${esc(note)}</div>
+          </div>
+        </div>`;
+      return;
+    }
+
     if (!wx) {
-      box.innerHTML = '<div class="nr-muted">Weather forecast unavailable for this track yet.</div>';
+      box.innerHTML = note
+        ? `<div class="nr-weather-card wx-risk-unknown"><div class="nr-weather-icon"><i class="fas fa-cloud-sun" aria-hidden="true"></i></div><div><div class="nr-weather-title">Team note</div><div class="nr-weather-sub">${esc(note)}</div></div></div>`
+        : '<div class="nr-muted">Weather forecast unavailable for this track yet.</div>';
       return;
     }
     const risk = wx.risk || 'unknown';
+    const riskClass = window.RRRaceWeather ? window.RRRaceWeather.riskClass(risk) : 'wx-risk-unknown';
     box.innerHTML = `
-      <div class="nr-weather-card ${esc(window.RRRaceWeather.riskClass(risk))}">
+      <div class="nr-weather-card ${esc(riskClass)}">
         <div class="nr-weather-icon"><i class="${esc(wx.icon)}" aria-hidden="true"></i></div>
         <div>
           <div class="nr-weather-title">${esc(wx.label)}${wx.tempLine ? ' · ' + esc(wx.tempLine) : ''}</div>
           <div class="nr-weather-sub">${esc(wx.summary)}</div>
           ${risk === 'high' ? '<div class="nr-weather-alert"><i class="fas fa-umbrella"></i> Rain risk is elevated — check for delays closer to green.</div>' : ''}
+          ${note ? '<div class="nr-weather-alert"><i class="fas fa-pen"></i> ' + esc(note) + '</div>' : ''}
         </div>
       </div>`;
   }
@@ -276,15 +295,17 @@
     const when = parseRaceDate(race.date, race.startTime) || new Date();
     startCountdown(when);
 
-    if (window.RRRaceWeather) {
+    if (hub && hub.weatherOverride && String(hub.weatherNote || '').trim()) {
+      paintWeather(null, hub);
+    } else if (window.RRRaceWeather) {
       const wx = await window.RRRaceWeather.forRace({
         city: race.city || (trackTips && trackTips.city),
         state: race.state || (trackTips && trackTips.state),
         date: String(race.date).slice(0, 10)
       });
-      paintWeather(wx);
+      paintWeather(wx, hub);
     } else {
-      paintWeather(null);
+      paintWeather(null, hub);
     }
 
     if (loading) loading.classList.add('hidden');

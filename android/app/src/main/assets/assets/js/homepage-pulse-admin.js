@@ -178,6 +178,7 @@
 
           <div class="bg-slate-900/50 border border-slate-700/50 rounded-xl p-4 space-y-3 xl:col-span-2">
             <h3 class="text-white font-semibold text-sm"><i class="fas fa-car text-emerald-400 mr-2"></i>Next Race Hub notes</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">Schedule weather badges auto-load from Open-Meteo (no typing needed) for races within ~16 days. Use the fields below when you want a team note or a full override (rain delay, heat advisory, etc.).</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs text-slate-400 mb-1">Gate / tickets</label>
@@ -186,6 +187,17 @@
               <div>
                 <label class="block text-xs text-slate-400 mb-1">Parking</label>
                 <textarea id="pulse-hub-parking" rows="3" class="modern-input w-full p-2 text-white text-sm" placeholder="Free lot on the north side — fill up early on features."></textarea>
+              </div>
+            </div>
+            <div class="border-t border-slate-700/60 pt-3 space-y-3">
+              <h4 class="text-white font-semibold text-xs uppercase tracking-wider"><i class="fas fa-cloud-sun text-sky-400 mr-2"></i>Weather (schedule + Next Race Hub)</h4>
+              <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                <input type="checkbox" id="pulse-hub-weather-override" />
+                Replace auto forecast with this note (otherwise the note shows under the forecast)
+              </label>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Weather note / override</label>
+                <textarea id="pulse-hub-weather" rows="3" class="modern-input w-full p-2 text-white text-sm" placeholder="Example: Hot &amp; humid · 20% evening showers. Track says green flag still on."></textarea>
               </div>
             </div>
           </div>
@@ -300,6 +312,8 @@
       const hub = d.hub || {};
       setVal('pulse-hub-gate', hub.gateNotes || '');
       setVal('pulse-hub-parking', hub.parkingNotes || '');
+      setVal('pulse-hub-weather', hub.weatherNote || '');
+      setChecked('pulse-hub-weather-override', !!hub.weatherOverride);
       if (status) status.innerHTML = snap.exists()
         ? '<span class="text-green-400">Loaded current pulse.</span>'
         : '<span class="text-yellow-300">No pulse yet — fill in and publish.</span>';
@@ -353,14 +367,16 @@
         },
         hub: {
           gateNotes: val('pulse-hub-gate'),
-          parkingNotes: val('pulse-hub-parking')
+          parkingNotes: val('pulse-hub-parking'),
+          weatherNote: val('pulse-hub-weather'),
+          weatherOverride: checked('pulse-hub-weather-override')
         },
         updatedAt: serverTimestamp(),
         updatedBy: auth.currentUser?.uid || null,
         updatedByEmail: auth.currentUser?.email || null
       };
       await setDoc(doc(db, 'config', 'homepage_pulse'), payload, { merge: true });
-      if (status) status.innerHTML = '<span class="text-green-400">Published — homepage + Next Race Hub will pick this up.</span>';
+      if (status) status.innerHTML = '<span class="text-green-400">Published — homepage, schedule weather note, and Next Race Hub will pick this up.</span>';
       try {
         if (typeof window.showToast === 'function') window.showToast('Homepage Pulse published', 'success');
         else if (typeof showToast === 'function') showToast('Homepage Pulse published');

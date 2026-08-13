@@ -503,15 +503,83 @@
     }, 0);
   }
 
+  async function loadHubWeatherNote() {
+    try {
+      if (!window.firebase || !window.firebase.firestore) return null;
+      const snap = await window.firebase.firestore().doc('config/homepage_pulse').get();
+      if (!snap.exists) return null;
+      const hub = (snap.data() || {}).hub || {};
+      const note = String(hub.weatherNote || '').trim();
+      if (!note) return null;
+      return { note, override: !!hub.weatherOverride };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function paintWxSlot(slot, wx, hubWx, isNextUp) {
+    if (!slot) return;
+    if (hubWx && hubWx.override && isNextUp) {
+      slot.classList.add('wx-risk-medium');
+      slot.title = hubWx.note;
+      slot.innerHTML = '<i class="fas fa-pen"></i> Team update';
+      return;
+    }
+    if (!wx) {
+      slot.innerHTML = '<i class="fas fa-cloud"></i> Weather TBD';
+      return;
+    }
+    slot.classList.add(window.RRRaceWeather.riskClass(wx.risk));
+    const precip = Number.isFinite(wx.precipProb) ? wx.precipProb + '% rain' : wx.label;
+    const noteBit = hubWx && hubWx.note && isNextUp ? ' · ' + hubWx.note : '';
+    slot.title = (wx.summary || '') + (wx.tempLine ? ' · ' + wx.tempLine : '') + noteBit;
+    slot.innerHTML = `<i class="${wx.icon}"></i> ${precip}${wx.risk === 'high' ? ' · WATCH' : ''}${hubWx && hubWx.note && isNextUp ? ' · NOTE' : ''}`;
+  }
+
   async function enrichScheduleWeather(upcomingRaces) {
-    if (!window.RRRaceWeather || !upcomingRaces || !upcomingRaces.length) return;
+    if (!upcomingRaces || !upcomingRaces.length) return;
+    const hubWx = await loadHubWeatherNote();
+    const banner = document.getElementById('sched-weather-banner');
+    if (banner) {
+      if (hubWx && hubWx.note) {
+        banner.hidden = false;
+        banner.textContent = '';
+        const icon = document.createElement('i');
+        icon.className = hubWx.override ? 'fas fa-cloud-sun-rain' : 'fas fa-pen';
+        icon.setAttribute('aria-hidden', 'true');
+        const strong = document.createElement('strong');
+        strong.textContent = hubWx.override ? 'Team weather override: ' : 'Team weather note: ';
+        banner.appendChild(icon);
+        banner.appendChild(document.createTextNode(' '));
+        banner.appendChild(strong);
+        banner.appendChild(document.createTextNode(hubWx.note));
+      } else {
+        banner.hidden = true;
+        banner.textContent = '';
+      }
+    }
+
+    if (!window.RRRaceWeather) {
+      if (hubWx && hubWx.override) {
+        document.querySelectorAll('.schedule-card.next-up [data-wx-slot="1"]').forEach((slot) => {
+          paintWxSlot(slot, null, hubWx, true);
+        });
+      }
+      return;
+    }
+
     // Forecast horizon is limited — only next ~16 days matter for Open-Meteo daily
     const horizon = new Date();
     horizon.setDate(horizon.getDate() + 16);
     const near = upcomingRaces.filter((r) => new Date(r.date + 'T00:00:00') <= horizon);
     if (!near.length) {
       document.querySelectorAll('.wx-badge').forEach((el) => {
-        el.innerHTML = '<i class="fas fa-cloud-sun"></i> Forecast closer to race';
+        const card = el.closest('.schedule-card');
+        if (hubWx && hubWx.override && card && card.dataset.nextUp === '1') {
+          paintWxSlot(el, null, hubWx, true);
+        } else {
+          el.innerHTML = '<i class="fas fa-cloud-sun"></i> Forecast closer to race';
+        }
       });
       return;
     }
@@ -519,6 +587,11 @@
     document.querySelectorAll('.schedule-card[data-race-date]').forEach((card) => {
       const slot = card.querySelector('[data-wx-slot="1"]');
       if (!slot) return;
+      const isNextUp = card.dataset.nextUp === '1';
+      if (hubWx && hubWx.override && isNextUp) {
+        paintWxSlot(slot, null, hubWx, true);
+        return;
+      }
       const key = (card.dataset.raceDate || '') + '|' + (card.dataset.raceCity || '') + '|' + (card.dataset.raceState || '');
       const wx = map.get(key);
       if (!wx) {
@@ -526,14 +599,11 @@
         if (d > horizon) {
           slot.innerHTML = '<i class="fas fa-cloud-sun"></i> Forecast closer to race';
         } else {
-          slot.innerHTML = '<i class="fas fa-cloud"></i> Weather TBD';
+          paintWxSlot(slot, null, hubWx, isNextUp);
         }
         return;
       }
-      slot.classList.add(window.RRRaceWeather.riskClass(wx.risk));
-      const precip = Number.isFinite(wx.precipProb) ? wx.precipProb + '% rain' : wx.label;
-      slot.title = wx.summary + (wx.tempLine ? ' · ' + wx.tempLine : '');
-      slot.innerHTML = `<i class="${wx.icon}"></i> ${precip}${wx.risk === 'high' ? ' · WATCH' : ''}`;
+      paintWxSlot(slot, wx, hubWx, isNextUp);
     });
   }
 
