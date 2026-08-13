@@ -1379,6 +1379,61 @@ body.theme-crew .mobile-accordion:hover { background: rgba(6,182,212,0.1); color
   }
 }
 
+/* User preference: Reduce Animations (settings.html → data-reduce-motion) */
+html[data-reduce-motion="1"] *,
+html[data-reduce-motion="1"] *::before,
+html[data-reduce-motion="1"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-reduce-motion="1"] .card:hover,
+html[data-reduce-motion="1"] .stat-card:hover,
+html[data-reduce-motion="1"] .video-item:hover,
+html[data-reduce-motion="1"] .gallery-item:hover,
+html[data-reduce-motion="1"] .sponsor-logo:hover,
+html[data-reduce-motion="1"] .schedule-card:hover,
+html[data-reduce-motion="1"] .nav-link:hover,
+html[data-reduce-motion="1"] .cta-button:hover,
+html[data-reduce-motion="1"] .modern-hero::before {
+  transform: none !important;
+  animation: none !important;
+}
+
+/* Compact schedule cards */
+html.rr-compact-schedule .schedule-card,
+html.rr-compact-schedule [data-race-card] {
+  padding-top: 0.65rem !important;
+  padding-bottom: 0.65rem !important;
+}
+
+html.rr-hide-start-times .rr-start-time,
+html.rr-hide-start-times [data-start-time] {
+  display: none !important;
+}
+
+/* Larger tap targets for mobile accessibility */
+html.rr-large-tap button,
+html.rr-large-tap a.nav-link,
+html.rr-large-tap .mobile-nav-item,
+html.rr-large-tap .toggle-switch,
+html.rr-large-tap .settings-select {
+  min-height: 48px;
+}
+
+html.rr-large-tap .toggle-switch {
+  min-width: 56px;
+}
+
+/* Favorite-driver accent hooks (optional consumers) */
+html[data-favorite-driver="jon"] .rr-fav-jon,
+html[data-favorite-driver="jonny"] .rr-fav-jonny {
+  outline: 2px solid rgba(251, 191, 36, 0.55);
+  outline-offset: 4px;
+}
+
 /* ===== AdSense visibility hardening =====
  * Forces every AdSense slot (manual <ins.adsbygoogle> and Auto Ads injected
  * containers) to render above decorative full-viewport overlays so the

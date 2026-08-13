@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/mobile-menu-tabs.css?v=2026080917" />
     <link rel="stylesheet" href="styles/mobile-web.css?v=2026080917" />
+    <script src="assets/js/user-settings.js?v=20260813s"></script>
+    <script src="assets/js/native-notifications.js?v=20260813n"></script>
     
     <style>
       /* Modern Settings Page Styles */
@@ -677,89 +679,19 @@
         <div class="spinner"></div>
         <p style="color: rgba(148, 163, 184, 0.8);">Loading your settings...</p>
       </div>
-      
-      <!-- Guest State -->
-      <div id="guest-state" class="hidden">
-        <div class="guest-prompt">
-          <i class="fas fa-user-lock"></i>
-          <h2>Sign In Required</h2>
-          <p>Please sign in to access your personalized settings and preferences.</p>
-          <button class="btn btn-primary" onclick="window.location.href='login.html'">
-            <i class="fas fa-sign-in-alt"></i>
-            Sign In
-          </button>
-        </div>
-      </div>
-      
-      <!-- User Settings -->
-      <div id="user-settings" class="hidden">
-        <!-- Notifications -->
+
+      <!-- Shared prefs — available to everyone (local device) -->
+      <div id="shared-settings" class="hidden">
         <div class="settings-card">
           <div class="card-header">
-            <div class="card-icon">
-              <i class="fas fa-bell"></i>
-            </div>
-            <h2 class="card-title">Notifications</h2>
+            <div class="card-icon"><i class="fas fa-palette"></i></div>
+            <h2 class="card-title">Display</h2>
           </div>
-          
-          <div class="setting-row">
-            <div class="setting-info">
-              <div class="setting-label">Race Updates</div>
-              <div class="setting-description">Get notified about upcoming races and results</div>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="notif-race" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-row">
-            <div class="setting-info">
-              <div class="setting-label">Team Newsletter</div>
-              <div class="setting-description">Receive weekly updates and highlights</div>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="notif-newsletter" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-row">
-            <div class="setting-info">
-              <div class="setting-label">Social Media Updates</div>
-              <div class="setting-description">Notifications for new posts and media</div>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="notif-social">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-row" id="admin-notif-row" style="display: none;">
-            <div class="setting-info">
-              <div class="setting-label">Admin Alerts</div>
-              <div class="setting-description">Notifications for pending approvals and actions</div>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="notif-admin" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-        
-        <!-- Display Preferences -->
-        <div class="settings-card">
-          <div class="card-header">
-            <div class="card-icon">
-              <i class="fas fa-palette"></i>
-            </div>
-            <h2 class="card-title">Display Preferences</h2>
-          </div>
-          
+
           <div class="setting-row">
             <div class="setting-info">
               <div class="setting-label">Theme</div>
-              <div class="setting-description">Choose your preferred color scheme</div>
+              <div class="setting-description">Site-wide light / dark look (syncs with the header toggle)</div>
             </div>
             <select class="settings-select" id="theme-select">
               <option value="auto">Auto (System)</option>
@@ -767,43 +699,40 @@
               <option value="dark">Dark Mode</option>
             </select>
           </div>
-          
-          <div class="setting-row">
-            <div class="setting-info">
-              <div class="setting-label">Autoplay Videos</div>
-              <div class="setting-description">Automatically play videos in gallery</div>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="autoplay-videos">
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          
+
           <div class="setting-row">
             <div class="setting-info">
               <div class="setting-label">Reduce Animations</div>
-              <div class="setting-description">Minimize motion for better performance</div>
+              <div class="setting-description">Cut motion for accessibility and slower devices</div>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="reduce-motion">
               <span class="toggle-slider"></span>
             </label>
           </div>
-        </div>
-        
-        <!-- Favorite Driver -->
-        <div class="settings-card">
-          <div class="card-header">
-            <div class="card-icon">
-              <i class="fas fa-star"></i>
-            </div>
-            <h2 class="card-title">Favorite Driver</h2>
-          </div>
-          
+
           <div class="setting-row">
             <div class="setting-info">
-              <div class="setting-label">Select Your Favorite</div>
-              <div class="setting-description">Prioritize content from your favorite driver</div>
+              <div class="setting-label">Larger Tap Targets</div>
+              <div class="setting-description">Bigger buttons and controls on phones</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="larger-tap">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-icon"><i class="fas fa-sliders-h"></i></div>
+            <h2 class="card-title">Browsing Preferences</h2>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Favorite Driver</div>
+              <div class="setting-description">Highlight Jon #8 or Jonny #88 across the site</div>
             </div>
             <select class="settings-select" id="favorite-driver">
               <option value="">None Selected</option>
@@ -811,50 +740,145 @@
               <option value="jonny">Jonny Kirsch #88</option>
             </select>
           </div>
-        </div>
-        
-        <!-- Quick Links (Team/Admin Only) -->
-        <div class="settings-card" id="quick-links-card" style="display: none;">
-          <div class="card-header">
-            <div class="card-icon">
-              <i class="fas fa-link"></i>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Default Home Page</div>
+              <div class="setting-description">Where “Home” shortcuts should send you</div>
             </div>
-            <h2 class="card-title">Quick Links</h2>
+            <select class="settings-select" id="default-landing">
+              <option value="countdown">Countdown</option>
+              <option value="team">Team Home</option>
+              <option value="next-race">Next Race Hub</option>
+              <option value="schedule">Schedule</option>
+            </select>
           </div>
-          
-          <div class="quick-links">
-            <a href="admin-console.html" class="quick-link">
-              <i class="fas fa-tachometer-alt"></i>
-              <span>Admin Console</span>
-            </a>
-            <a href="gallery.html" class="quick-link">
-              <i class="fas fa-images"></i>
-              <span>Gallery</span>
-            </a>
-            <a href="schedule.html" class="quick-link">
-              <i class="fas fa-calendar"></i>
-              <span>Schedule</span>
-            </a>
-            <a href="qna.html" class="quick-link">
-              <i class="fas fa-question-circle"></i>
-              <span>Q&A</span>
-            </a>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Compact Schedule</div>
+              <div class="setting-description">Tighter race cards on the schedule page</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="compact-schedule">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Show Race Start Times</div>
+              <div class="setting-description">Display feature times on schedule cards when known</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="show-start-times" checked>
+              <span class="toggle-slider"></span>
+            </label>
           </div>
         </div>
-        
-        <!-- Account Actions -->
+
         <div class="settings-card">
           <div class="card-header">
-            <div class="card-icon">
-              <i class="fas fa-user"></i>
+            <div class="card-icon"><i class="fas fa-bell"></i></div>
+            <h2 class="card-title">Push Notifications</h2>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Device Alerts</div>
+              <div class="setting-description">Race reminders &amp; schedule updates (best in the Android / iOS apps)</div>
             </div>
+            <button type="button" class="btn btn-primary" id="enable-push-btn" style="white-space:nowrap">
+              <i class="fas fa-bell"></i>
+              <span>Enable</span>
+            </button>
+          </div>
+
+          <div class="setting-row" id="notif-prefs-block">
+            <div class="setting-info">
+              <div class="setting-label">Race Updates</div>
+              <div class="setting-description">Remember that you want race / result alerts on this account</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="notif-race" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Team Newsletter</div>
+              <div class="setting-description">Weekly highlights preference for this account</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="notif-newsletter" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Social / Media Posts</div>
+              <div class="setting-description">Preference for new gallery and social alerts</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="notif-social">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row" id="admin-notif-row" style="display: none;">
+            <div class="setting-info">
+              <div class="setting-label">Admin Alerts</div>
+              <div class="setting-description">Pending approvals and ops actions</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="notif-admin" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Guest tip (display prefs still work above) -->
+      <div id="guest-state" class="hidden">
+        <div class="guest-prompt" style="margin-top: 0.5rem;">
+          <i class="fas fa-user-lock"></i>
+          <h2>Sign in to sync</h2>
+          <p>Display prefs already save on this device. Sign in to sync them to your account and unlock team tools.</p>
+          <button class="btn btn-primary" onclick="window.location.href='login.html'">
+            <i class="fas fa-sign-in-alt"></i>
+            Sign In
+          </button>
+        </div>
+      </div>
+      
+      <!-- Signed-in extras -->
+      <div id="user-settings" class="hidden">
+        <div class="settings-card" id="quick-links-card" style="display: none;">
+          <div class="card-header">
+            <div class="card-icon"><i class="fas fa-link"></i></div>
+            <h2 class="card-title">Quick Links</h2>
+          </div>
+          <div class="quick-links">
+            <a href="admin-console.html" class="quick-link"><i class="fas fa-tachometer-alt"></i><span>Admin Console</span></a>
+            <a href="gallery.html" class="quick-link"><i class="fas fa-images"></i><span>Gallery</span></a>
+            <a href="schedule.html" class="quick-link"><i class="fas fa-calendar"></i><span>Schedule</span></a>
+            <a href="qna.html" class="quick-link"><i class="fas fa-question-circle"></i><span>Q&amp;A</span></a>
+            <a href="next-race.html" class="quick-link"><i class="fas fa-flag-checkered"></i><span>Next Race</span></a>
+            <a href="profile.html" class="quick-link"><i class="fas fa-user"></i><span>Profile</span></a>
+          </div>
+        </div>
+        
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-icon"><i class="fas fa-user"></i></div>
             <h2 class="card-title">Account</h2>
           </div>
-          
           <div class="btn-group">
             <button class="btn btn-primary" id="save-btn" onclick="saveSettings()">
               <i class="fas fa-save"></i>
-              <span>Save Settings</span>
+              <span>Save &amp; Sync</span>
             </button>
             <button class="btn btn-secondary" onclick="resetSettings()">
               <i class="fas fa-undo"></i>
@@ -863,6 +887,26 @@
             <button class="btn btn-danger" onclick="logout()">
               <i class="fas fa-sign-out-alt"></i>
               <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Guest account actions (local only) -->
+      <div id="guest-actions" class="hidden">
+        <div class="settings-card">
+          <div class="card-header">
+            <div class="card-icon"><i class="fas fa-save"></i></div>
+            <h2 class="card-title">This Device</h2>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" id="save-btn-guest" onclick="saveSettings()">
+              <i class="fas fa-save"></i>
+              <span>Save on This Device</span>
+            </button>
+            <button class="btn btn-secondary" onclick="resetSettings()">
+              <i class="fas fa-undo"></i>
+              <span>Reset to Default</span>
             </button>
           </div>
         </div>
@@ -911,6 +955,57 @@
       
       let currentUser = null;
       let userRole = 'fan';
+
+      function gatherSettingsFromUi() {
+        return {
+          notifRace: document.getElementById('notif-race').checked,
+          notifNewsletter: document.getElementById('notif-newsletter').checked,
+          notifSocial: document.getElementById('notif-social').checked,
+          notifAdmin: document.getElementById('notif-admin').checked,
+          theme: document.getElementById('theme-select').value,
+          reduceMotion: document.getElementById('reduce-motion').checked,
+          largerTapTargets: document.getElementById('larger-tap').checked,
+          favoriteDriver: document.getElementById('favorite-driver').value,
+          defaultLanding: document.getElementById('default-landing').value,
+          compactSchedule: document.getElementById('compact-schedule').checked,
+          showStartTimes: document.getElementById('show-start-times').checked
+        };
+      }
+
+      function fillUiFromSettings(settings) {
+        const s = Object.assign({}, window.RRUserSettings ? window.RRUserSettings.DEFAULTS : {}, settings || {});
+        document.getElementById('notif-race').checked = s.notifRace !== false;
+        document.getElementById('notif-newsletter').checked = s.notifNewsletter !== false;
+        document.getElementById('notif-social').checked = !!s.notifSocial;
+        document.getElementById('notif-admin').checked = s.notifAdmin !== false;
+        document.getElementById('theme-select').value = s.theme || 'auto';
+        document.getElementById('reduce-motion').checked = !!s.reduceMotion;
+        document.getElementById('larger-tap').checked = !!s.largerTapTargets;
+        document.getElementById('favorite-driver').value = s.favoriteDriver || '';
+        document.getElementById('default-landing').value = s.defaultLanding || 'countdown';
+        document.getElementById('compact-schedule').checked = !!s.compactSchedule;
+        document.getElementById('show-start-times').checked = s.showStartTimes !== false;
+        if (window.RRUserSettings) window.RRUserSettings.apply(s);
+      }
+
+      async function persistSettings(settings, toastLabel) {
+        if (window.RRUserSettings) {
+          window.RRUserSettings.write(settings);
+        } else {
+          localStorage.setItem('rr_settings', JSON.stringify(settings));
+        }
+        if (currentUser) {
+          try {
+            await setDoc(doc(db, 'users', currentUser.uid), {
+              settings: settings,
+              updatedAt: new Date()
+            }, { merge: true });
+          } catch (e) {
+            console.log('Could not save to Firestore:', e);
+          }
+        }
+        if (toastLabel) showToast(toastLabel, 'success');
+      }
       
       // Function to handle auth state
       async function handleAuthState(user) {
@@ -918,68 +1013,62 @@
         
         const loadingState = document.getElementById('loading-state');
         const guestState = document.getElementById('guest-state');
+        const guestActions = document.getElementById('guest-actions');
+        const sharedSettings = document.getElementById('shared-settings');
         const userSettings = document.getElementById('user-settings');
         const userBadge = document.getElementById('user-badge');
+
+        // Always show shared prefs (everybody)
+        sharedSettings.classList.remove('hidden');
+        loadingState.classList.add('hidden');
         
         if (!user) {
-          // Not signed in
-          console.log('[Settings] No user, showing guest prompt');
-          loadingState.classList.add('hidden');
-          guestState.classList.remove('hidden');
+          currentUser = null;
+          userRole = 'fan';
           userBadge.innerHTML = '<i class="fas fa-user"></i><span>Guest</span>';
-        } else {
-          console.log('[Settings] User found:', user.email);
-          currentUser = user;
-          
+          guestState.classList.remove('hidden');
+          guestActions.classList.remove('hidden');
+          userSettings.classList.add('hidden');
+          document.getElementById('admin-notif-row').style.display = 'none';
+          document.getElementById('quick-links-card').style.display = 'none';
+          fillUiFromSettings(window.RRUserSettings ? window.RRUserSettings.read() : {});
+          return;
+        }
+
+        currentUser = user;
+        guestState.classList.add('hidden');
+        guestActions.classList.add('hidden');
+        userSettings.classList.remove('hidden');
+
+        try {
+          const token = await user.getIdTokenResult();
+          userRole = token.claims.role || 'fan';
+
+          let userData = {};
           try {
-            // Get user role from token claims
-            const token = await user.getIdTokenResult();
-            userRole = token.claims.role || 'fan';
-            console.log('[Settings] User role from token:', userRole);
-            
-            // Get user data
-            let userData = {};
-            try {
-              const userDoc = await getDoc(doc(db, 'users', user.uid));
-              userData = userDoc.data() || {};
-            } catch (e) {
-              console.log('Could not fetch user document:', e);
-            }
-            
-            // Update badge
-            const roleLabels = {
-              'admin': 'Admin',
-              'team-member': 'Team Member',
-              'fan': 'Fan'
-            };
-            const roleIcons = {
-              'admin': 'fa-crown',
-              'team-member': 'fa-user-tie',
-              'fan': 'fa-user'
-            };
-            
-            userBadge.innerHTML = `<i class="fas ${roleIcons[userRole] || 'fa-user'}"></i><span>${roleLabels[userRole] || 'Fan'}</span>`;
-            console.log('[Settings] Updated badge for role:', userRole);
-            
-            // Show team features for team members and admins
-            if (userRole === 'admin' || userRole === 'team-member') {
-              console.log('[Settings] Showing admin features');
-              document.getElementById('admin-notif-row').style.display = 'flex';
-              document.getElementById('quick-links-card').style.display = 'block';
-            }
-            
-            // Load settings
-            loadSettings(userData);
-            
-            console.log('[Settings] Showing user settings');
-            loadingState.classList.add('hidden');
-            userSettings.classList.remove('hidden');
-          } catch (error) {
-            console.error('[Settings] Error loading user data:', error);
-            loadingState.classList.add('hidden');
-            userSettings.classList.remove('hidden');
-            loadSettings({});
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            userData = userDoc.data() || {};
+          } catch (e) {
+            console.log('Could not fetch user document:', e);
           }
+
+          const roleLabels = { admin: 'Admin', 'team-member': 'Team Member', fan: 'Fan' };
+          const roleIcons = { admin: 'fa-crown', 'team-member': 'fa-user-tie', fan: 'fa-user' };
+          userBadge.innerHTML = `<i class="fas ${roleIcons[userRole] || 'fa-user'}"></i><span>${roleLabels[userRole] || 'Fan'}</span>`;
+
+          if (userRole === 'admin' || userRole === 'team-member') {
+            document.getElementById('admin-notif-row').style.display = 'flex';
+            document.getElementById('quick-links-card').style.display = 'block';
+          } else {
+            document.getElementById('admin-notif-row').style.display = 'none';
+            document.getElementById('quick-links-card').style.display = 'none';
+          }
+
+          const local = window.RRUserSettings ? window.RRUserSettings.read() : {};
+          fillUiFromSettings(Object.assign({}, local, userData.settings || {}));
+        } catch (error) {
+          console.error('[Settings] Error loading user data:', error);
+          fillUiFromSettings(window.RRUserSettings ? window.RRUserSettings.read() : {});
         }
       }
       
@@ -988,145 +1077,48 @@
       console.log('[Settings] Current user on load:', currentAuthUser ? currentAuthUser.email : 'none');
       
       if (currentAuthUser) {
-        // User already signed in, handle immediately
         handleAuthState(currentAuthUser);
+      } else {
+        // Show shared prefs immediately for guests (don't wait forever for auth)
+        handleAuthState(null);
       }
       
-      // Also listen for auth state changes
       onAuthStateChanged(auth, handleAuthState);
       
-      // Load settings from Firestore and localStorage
-      function loadSettings(userData) {
-        const localSettings = JSON.parse(localStorage.getItem('rr_settings') || '{}');
-        const settings = { ...localSettings, ...(userData?.settings || {}) };
-        
-        // Apply settings to UI
-        document.getElementById('notif-race').checked = settings.notifRace !== false;
-        document.getElementById('notif-newsletter').checked = settings.notifNewsletter !== false;
-        document.getElementById('notif-social').checked = settings.notifSocial || false;
-        document.getElementById('notif-admin').checked = settings.notifAdmin !== false;
-        
-        document.getElementById('theme-select').value = settings.theme || 'auto';
-        document.getElementById('autoplay-videos').checked = settings.autoplayVideos || false;
-        document.getElementById('reduce-motion').checked = settings.reduceMotion || false;
-        
-        document.getElementById('favorite-driver').value = settings.favoriteDriver || '';
-        
-        // Apply theme
-        applyTheme(settings.theme || 'auto');
-        
-        // Apply reduce motion
-        if (settings.reduceMotion) {
-          document.documentElement.style.setProperty('--animation-duration', '0.01ms');
-        }
-      }
-      
-      // Apply theme
-      function applyTheme(theme) {
-        const html = document.documentElement;
-        
-        if (theme === 'dark') {
-          html.classList.add('dark');
-        } else if (theme === 'light') {
-          html.classList.remove('dark');
-        } else {
-          // Auto - use system preference
-          if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            html.classList.add('dark');
-          } else {
-            html.classList.remove('dark');
-          }
-        }
-      }
-      
-      // Save settings
       window.saveSettings = async function() {
-        const saveBtn = document.getElementById('save-btn');
-        const originalHTML = saveBtn.innerHTML;
-        
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Saving...</span>';
-        
-        const settings = {
-          notifRace: document.getElementById('notif-race').checked,
-          notifNewsletter: document.getElementById('notif-newsletter').checked,
-          notifSocial: document.getElementById('notif-social').checked,
-          notifAdmin: document.getElementById('notif-admin').checked,
-          theme: document.getElementById('theme-select').value,
-          autoplayVideos: document.getElementById('autoplay-videos').checked,
-          reduceMotion: document.getElementById('reduce-motion').checked,
-          favoriteDriver: document.getElementById('favorite-driver').value,
-          updatedAt: new Date().toISOString()
-        };
-        
+        const saveBtn = document.getElementById('save-btn') || document.getElementById('save-btn-guest');
+        const originalHTML = saveBtn ? saveBtn.innerHTML : '';
+        if (saveBtn) {
+          saveBtn.disabled = true;
+          saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Saving...</span>';
+        }
         try {
-          // Save to localStorage
-          localStorage.setItem('rr_settings', JSON.stringify(settings));
-          
-          // Save to Firestore if logged in
-          if (currentUser) {
-            try {
-              await setDoc(doc(db, 'users', currentUser.uid), {
-                settings: settings,
-                updatedAt: new Date()
-              }, { merge: true });
-            } catch (e) {
-              console.log('Could not save to Firestore:', e);
-              // Continue anyway - localStorage is saved
-            }
-          }
-          
-          // Apply theme
-          applyTheme(settings.theme);
-          
-          // Apply reduce motion
-          if (settings.reduceMotion) {
-            document.documentElement.style.setProperty('--animation-duration', '0.01ms');
-          } else {
-            document.documentElement.style.removeProperty('--animation-duration');
-          }
-          
-          showToast('Settings saved successfully!', 'success');
+          await persistSettings(gatherSettingsFromUi(), currentUser ? 'Settings saved & synced' : 'Saved on this device');
         } catch (error) {
           console.error('Error saving settings:', error);
           showToast('Failed to save settings', 'error');
         } finally {
-          saveBtn.disabled = false;
-          saveBtn.innerHTML = originalHTML;
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalHTML;
+          }
         }
       };
       
-      // Reset settings
-      window.resetSettings = function() {
-        if (!confirm('Are you sure you want to reset all settings to default?')) {
-          return;
+      window.resetSettings = async function() {
+        if (!confirm('Reset all settings to default on this device?')) return;
+        const defaults = Object.assign({}, window.RRUserSettings ? window.RRUserSettings.DEFAULTS : {});
+        fillUiFromSettings(defaults);
+        await persistSettings(defaults, 'Settings reset to default');
+        if (currentUser) {
+          try {
+            await setDoc(doc(db, 'users', currentUser.uid), { settings: defaults, updatedAt: new Date() }, { merge: true });
+          } catch (_) {}
         }
-        
-        // Clear local storage
-        localStorage.removeItem('rr_settings');
-        
-        // Reset UI to defaults
-        document.getElementById('notif-race').checked = true;
-        document.getElementById('notif-newsletter').checked = true;
-        document.getElementById('notif-social').checked = false;
-        document.getElementById('notif-admin').checked = true;
-        document.getElementById('theme-select').value = 'auto';
-        document.getElementById('autoplay-videos').checked = false;
-        document.getElementById('reduce-motion').checked = false;
-        document.getElementById('favorite-driver').value = '';
-        
-        applyTheme('auto');
-        document.documentElement.style.removeProperty('--animation-duration');
-        
-        showToast('Settings reset to default', 'success');
       };
       
-      // Logout
       window.logout = async function() {
-        if (!confirm('Are you sure you want to sign out?')) {
-          return;
-        }
-        
+        if (!confirm('Are you sure you want to sign out?')) return;
         try {
           await signOut(auth);
           window.location.href = 'index.html';
@@ -1136,14 +1128,11 @@
         }
       };
       
-      // Toast notification
       function showToast(message, type = 'success') {
         const toast = document.getElementById('toast');
         const toastMessage = document.getElementById('toast-message');
         const toastIcon = document.getElementById('toast-icon');
-        
         toastMessage.textContent = message;
-        
         if (type === 'error') {
           toast.classList.add('error');
           toastIcon.className = 'fas fa-exclamation-circle';
@@ -1151,68 +1140,81 @@
           toast.classList.remove('error');
           toastIcon.className = 'fas fa-check-circle';
         }
-        
         toast.classList.add('show');
-        
-        setTimeout(() => {
-          toast.classList.remove('show');
-        }, 3000);
-      }
-      
-      // Auto-save helper: gathers all settings, saves, and shows toast
-      async function autoSave(settingName) {
-        const settings = {
-          notifRace: document.getElementById('notif-race').checked,
-          notifNewsletter: document.getElementById('notif-newsletter').checked,
-          notifSocial: document.getElementById('notif-social').checked,
-          notifAdmin: document.getElementById('notif-admin').checked,
-          theme: document.getElementById('theme-select').value,
-          autoplayVideos: document.getElementById('autoplay-videos').checked,
-          reduceMotion: document.getElementById('reduce-motion').checked,
-          favoriteDriver: document.getElementById('favorite-driver').value,
-          updatedAt: new Date().toISOString()
-        };
-        localStorage.setItem('rr_settings', JSON.stringify(settings));
-        if (currentUser) {
-          try {
-            await setDoc(doc(db, 'users', currentUser.uid), { settings, updatedAt: new Date() }, { merge: true });
-          } catch(e) { console.log('Firestore save failed:', e); }
-        }
-        showToast(settingName + ' updated', 'success');
+        setTimeout(() => toast.classList.remove('show'), 3000);
       }
 
-      // Wire every toggle and select to auto-save on change
-      document.getElementById('notif-race').addEventListener('change', (e) => {
-        autoSave('Race Updates ' + (e.target.checked ? 'enabled' : 'disabled'));
+      async function autoSave(label) {
+        await persistSettings(gatherSettingsFromUi(), label);
+      }
+
+      const wire = (id, fn) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', fn);
+      };
+
+      wire('notif-race', (e) => autoSave('Race Updates ' + (e.target.checked ? 'on' : 'off')));
+      wire('notif-newsletter', (e) => autoSave('Newsletter ' + (e.target.checked ? 'on' : 'off')));
+      wire('notif-social', (e) => autoSave('Social alerts ' + (e.target.checked ? 'on' : 'off')));
+      wire('notif-admin', (e) => autoSave('Admin alerts ' + (e.target.checked ? 'on' : 'off')));
+      wire('theme-select', (e) => {
+        if (window.RRUserSettings) window.RRUserSettings.applyTheme(e.target.value);
+        autoSave('Theme → ' + e.target.value);
       });
-      document.getElementById('notif-newsletter').addEventListener('change', (e) => {
-        autoSave('Newsletter ' + (e.target.checked ? 'enabled' : 'disabled'));
+      wire('reduce-motion', (e) => autoSave('Reduce animations ' + (e.target.checked ? 'on' : 'off')));
+      wire('larger-tap', (e) => autoSave('Larger tap targets ' + (e.target.checked ? 'on' : 'off')));
+      wire('favorite-driver', (e) => {
+        const labels = { '': 'None', jon: 'Jon #8', jonny: 'Jonny #88' };
+        autoSave('Favorite driver → ' + (labels[e.target.value] || e.target.value));
       });
-      document.getElementById('notif-social').addEventListener('change', (e) => {
-        autoSave('Social Updates ' + (e.target.checked ? 'enabled' : 'disabled'));
-      });
-      document.getElementById('notif-admin').addEventListener('change', (e) => {
-        autoSave('Admin Alerts ' + (e.target.checked ? 'enabled' : 'disabled'));
-      });
-      document.getElementById('theme-select').addEventListener('change', (e) => {
-        applyTheme(e.target.value);
-        autoSave('Theme changed to ' + e.target.value);
-      });
-      document.getElementById('autoplay-videos').addEventListener('change', (e) => {
-        autoSave('Autoplay Videos ' + (e.target.checked ? 'enabled' : 'disabled'));
-      });
-      document.getElementById('reduce-motion').addEventListener('change', (e) => {
-        if (e.target.checked) {
-          document.documentElement.style.setProperty('--animation-duration', '0.01ms');
-        } else {
-          document.documentElement.style.removeProperty('--animation-duration');
-        }
-        autoSave('Reduce Animations ' + (e.target.checked ? 'enabled' : 'disabled'));
-      });
-      document.getElementById('favorite-driver').addEventListener('change', (e) => {
-        const labels = { '': 'None', 'jon': 'Jon Kirsch #8', 'jonny': 'Jonny Kirsch #88' };
-        autoSave('Favorite Driver set to ' + (labels[e.target.value] || e.target.value));
-      });
+      wire('default-landing', (e) => autoSave('Default home → ' + e.target.value));
+      wire('compact-schedule', (e) => autoSave('Compact schedule ' + (e.target.checked ? 'on' : 'off')));
+      wire('show-start-times', (e) => autoSave('Start times ' + (e.target.checked ? 'shown' : 'hidden')));
+
+      const pushBtn = document.getElementById('enable-push-btn');
+      if (pushBtn && window.RRNativeNotifications) {
+        window.RRNativeNotifications.refreshFollowButton?.();
+        const syncPushLabel = () => {
+          if (window.RRNativeNotifications.isNativeApp && window.RRNativeNotifications.isNativeApp()) {
+            window.RRNativeNotifications.getStatus().then((res) => {
+              const st = (res && res.status) || 'default';
+              if (st === 'granted') {
+                pushBtn.innerHTML = '<i class="fas fa-check"></i><span>On</span>';
+                pushBtn.style.background = 'linear-gradient(45deg, #10b981, #059669)';
+              }
+            });
+          } else if ('Notification' in window && Notification.permission === 'granted') {
+            pushBtn.innerHTML = '<i class="fas fa-check"></i><span>On</span>';
+          }
+        };
+        syncPushLabel();
+        pushBtn.addEventListener('click', async () => {
+          pushBtn.disabled = true;
+          pushBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>...</span>';
+          try {
+            const result = await window.RRNativeNotifications.enable();
+            const status = (result && result.status) || 'error';
+            if (status === 'granted' || status === 'already') {
+              pushBtn.innerHTML = '<i class="fas fa-check"></i><span>On</span>';
+              pushBtn.style.background = 'linear-gradient(45deg, #10b981, #059669)';
+              showToast('Notifications enabled', 'success');
+              document.getElementById('notif-race').checked = true;
+              await autoSave('Push notifications enabled');
+            } else if (status === 'denied' || status === 'settings') {
+              showToast((result && result.message) || 'Enable notifications in system Settings', 'error');
+              pushBtn.innerHTML = '<i class="fas fa-bell"></i><span>Enable</span>';
+            } else {
+              showToast((result && result.message) || 'Could not enable notifications', 'error');
+              pushBtn.innerHTML = '<i class="fas fa-bell"></i><span>Enable</span>';
+            }
+          } catch (err) {
+            showToast('Notification error', 'error');
+            pushBtn.innerHTML = '<i class="fas fa-bell"></i><span>Enable</span>';
+          } finally {
+            pushBtn.disabled = false;
+          }
+        });
+      }
     </script>
   </body>
 </html>

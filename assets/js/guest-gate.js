@@ -17,7 +17,6 @@
       "follower/index.html": true,
       "admin/index.html": true,
       "profile.html": true,
-      "settings.html": true,
       "fan-settings.html": true,
       "team-settings.html": true,
       "admin-console.html": true,
