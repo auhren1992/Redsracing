@@ -28,6 +28,7 @@
     <!-- Global Error Tracking -->
     <script src="assets/js/global-error-tracker.js?v=2026080913"></script>
     <script src="assets/js/mobile-app-detector.js"></script>
+    <script src="assets/js/native-notifications.js?v=20260813n"></script>
     <link rel="stylesheet" href="styles/mobile-web.css?v=2026080915" />
     <link rel="stylesheet" href="styles/site-flash.css?v=2026080911" />
     
@@ -1212,9 +1213,9 @@
           <i class="fas fa-star" style="color: #fbbf24;"></i> FOLLOW REDSRACING
         </h2>
         <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 2rem; font-size: 1.125rem;">
-          Get race reminders, schedule-change alerts, and team updates on this device — works in the Android &amp; iOS apps.
+          Get race reminders, schedule-change alerts, and team updates — best in the Android &amp; iOS apps (tap Enable there).
         </p>
-        <button id="follow-team-btn" onclick="handleFollowTeam()" style="background: linear-gradient(45deg, #fbbf24, #f59e0b); color: #000; padding: 1rem 2.5rem; border-radius: 0.75rem; font-weight: 700; font-size: 1.125rem; border: none; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem;">
+        <button id="follow-team-btn" type="button" onclick="handleFollowTeam()" style="background: linear-gradient(45deg, #fbbf24, #f59e0b); color: #000; padding: 1rem 2.5rem; border-radius: 0.75rem; font-weight: 700; font-size: 1.125rem; border: none; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">
           <i class="fas fa-bell"></i>
           <span>Enable Notifications</span>
         </button>
@@ -1731,7 +1732,9 @@
           btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Enabling...</span>';
           btn.disabled = true;
 
-          const result = await api.enable();
+          // Keep enable() on the same user-gesture turn (important on mobile browsers).
+          const enablePromise = api.enable();
+          const result = await enablePromise;
           const status = (result && result.status) || 'error';
 
           if (status === 'granted' || status === 'already') {
@@ -1747,24 +1750,40 @@
             return;
           }
 
+          if (status === 'settings') {
+            api.applyFollowButtonState(btn, 'settings');
+            trackEvent('follow_team_settings', { platform: (result && result.platform) || 'unknown' });
+            alert(result.message || 'Turn on notifications for RedsRacing in system Settings, then return here.');
+            return;
+          }
+
           if (status === 'denied') {
             api.applyFollowButtonState(btn, 'denied');
-            trackEvent('follow_team_denied', { permission: 'denied', platform: result.platform || 'unknown' });
-            const tips = (api.isNativeApp && api.isNativeApp())
-              ? 'Notifications are blocked. Open your device Settings → RedsRacing → Notifications and turn them on, then tap Enable again.'
-              : 'Notifications are blocked in this browser. Use the lock/site settings icon to allow Notifications for redsracing.org.';
+            trackEvent('follow_team_denied', { permission: 'denied', platform: (result && result.platform) || 'unknown' });
+            const tips = (result && result.message)
+              || ((api.isNativeApp && api.isNativeApp())
+                ? 'Notifications are blocked. Open your device Settings → RedsRacing → Notifications and turn them on, then tap Enable again.'
+                : 'Notifications are blocked in this browser. For race alerts, use the RedsRacing app.');
             alert(tips);
-            setTimeout(() => api.applyFollowButtonState(btn, 'denied'), 50);
             return;
           }
 
           if (status === 'unsupported') {
-            btn.innerHTML = '<i class="fas fa-times"></i> <span>Not Supported</span>';
-            btn.style.background = 'linear-gradient(45deg, #ef4444, #dc2626)';
+            btn.innerHTML = '<i class="fas fa-mobile-alt"></i> <span>Use the App</span>';
+            btn.style.background = 'linear-gradient(45deg, #3b82f6, #2563eb)';
             btn.disabled = false;
-            trackEvent('follow_team_unsupported', { message: result.message || '' });
-            alert(result.message || 'Notifications are not supported on this device.');
-            setTimeout(() => api.applyFollowButtonState(btn, 'default'), 3000);
+            trackEvent('follow_team_unsupported', { message: (result && result.message) || '' });
+            alert(result.message || 'Open the RedsRacing app to enable race reminders on this device.');
+            setTimeout(() => api.applyFollowButtonState(btn, 'default'), 4000);
+            return;
+          }
+
+          if (status === 'timeout') {
+            btn.innerHTML = '<i class="fas fa-undo"></i> <span>Try Again</span>';
+            btn.disabled = false;
+            trackEvent('follow_team_timeout', { platform: (result && result.platform) || 'unknown' });
+            alert(result.message || 'That took too long. Tap Enable Notifications again.');
+            setTimeout(() => api.applyFollowButtonState(btn, 'default'), 2200);
             return;
           }
 
@@ -1794,7 +1813,6 @@
     <div style="text-align: center; margin: 40px 0; padding: 0 20px;">
       
     </div>
-      <script src="assets/js/native-notifications.js?v=20260810"></script>
       <script src="assets/js/homepage-pulse.js?v=20260810"></script>
       <script src="assets/js/cookie-consent.js"></script>
   </body>

@@ -56,6 +56,7 @@ class MainActivity : AppCompatActivity() {
     private var cameraPhotoUri: Uri? = null
     private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var notificationPermissionLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var firebaseAuthBridge: FirebaseAuthBridge
     private lateinit var appLockBridge: AppLockBridge
     private var lastFcmToken: String? = null
@@ -70,6 +71,8 @@ class MainActivity : AppCompatActivity() {
     private var pendingStoreUrl: String? = null
 
     private var pendingWebNotificationEnable = false
+    /** True after pre-33 Enable opens system notification settings; completed in onResume. */
+    private var pendingWebNotificationSettings = false
 
     /**
      * All in-app WebView navigations must stay on this origin so Firebase Auth
@@ -109,7 +112,13 @@ class MainActivity : AppCompatActivity() {
         binding.updateAvailableAction.setOnClickListener { openStoreForUpdate() }
         checkAppVersion(promptDialog = true)
 
+        // Camera/media only — keep separate from notification permission so a
+        // gallery grant cannot falsely deny a homepage Enable Notifications flow.
         permissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { /* media/camera results handled by system; no web notif side effects */ }
+
+        notificationPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { grants ->
             val notifGranted = if (Build.VERSION.SDK_INT >= 33) {
@@ -126,6 +135,9 @@ class MainActivity : AppCompatActivity() {
                         """{"status":"denied","platform":"android","message":"Notification permission denied"}"""
                     )
                 }
+            } else if (notifGranted) {
+                // Startup permission prompt: still subscribe race/schedule topics.
+                subscribeRaceAlertTopics()
             }
         }
 
@@ -959,7 +971,7 @@ class MainActivity : AppCompatActivity() {
     private fun requestNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= 33) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                permissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+                notificationPermissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
             }
         }
     }
@@ -1047,18 +1059,25 @@ class MainActivity : AppCompatActivity() {
             }
             if (Build.VERSION.SDK_INT >= 33) {
                 pendingWebNotificationEnable = true
-                permissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+                notificationPermissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
             } else {
-                // Pre-33: open system app notification settings if channel/app disabled.
+                // Pre-33: open system settings; complete when the user returns (onResume).
+                pendingWebNotificationSettings = true
                 try {
                     val intent = Intent().apply {
                         action = android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
                         putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName)
                     }
                     startActivity(intent)
-                } catch (_: Exception) {}
+                } catch (_: Exception) {
+                    pendingWebNotificationSettings = false
+                    deliverNativeNotifResult(
+                        """{"status":"denied","platform":"android","message":"Open Settings → Apps → RedsRacing → Notifications"}"""
+                    )
+                    return@runOnUiThread
+                }
                 deliverNativeNotifResult(
-                    """{"status":"denied","platform":"android","message":"Enable notifications in system settings"}"""
+                    """{"status":"settings","platform":"android","message":"Turn on notifications for RedsRacing in Settings, then return to the app."}"""
                 )
             }
         }
@@ -1162,6 +1181,15 @@ class MainActivity : AppCompatActivity() {
         try {
             binding.adView.resume()
         } catch (_: Throwable) {}
+        // After Settings (pre-33 Enable) or system toggles, finish web opt-in if now allowed.
+        try {
+            if (pendingWebNotificationSettings && areNotificationsEnabled()) {
+                pendingWebNotificationSettings = false
+                completeNotificationEnableFromWeb(already = false)
+            } else if (areNotificationsEnabled()) {
+                subscribeRaceAlertTopics()
+            }
+        } catch (_: Exception) {}
         // Refresh app_usage on resume so "who updated / last seen" stays current after login/navigation.
         try {
             val token = lastFcmToken
