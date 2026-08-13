@@ -43,6 +43,174 @@
     });
   }
 
+  function raceStatusFlags(race, today) {
+    const raceDate = new Date(race.date + 'T00:00:00');
+    const status = String(race.status || '').toLowerCase();
+    const isRainout = status === 'rainout';
+    const isPast = raceDate < today || isRainout || status === 'completed';
+    return { raceDate, isRainout, isPast };
+  }
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function buildRaceCard(race, opts) {
+    const isPast = opts.isPast;
+    const isRainout = opts.isRainout;
+    const isNextUp = opts.isNextUp;
+    const raceDate = opts.raceDate;
+    const month = raceDate.toLocaleString('en-US', { month: 'short' });
+    const dayNum = raceDate.toLocaleString('en-US', { day: 'numeric' });
+    const dayOfWeek = raceDate.toLocaleString('en-US', { weekday: 'short' });
+
+    const card = el('article', `schedule-card ${isRainout ? 'past rainout' : (isPast ? 'past' : 'upcoming')}${isNextUp ? ' next-up' : ''}`);
+    card.dataset.raceDate = race.date || '';
+    card.dataset.raceCity = race.city || '';
+    card.dataset.raceState = race.state || '';
+    card.dataset.nextUp = isNextUp ? '1' : '0';
+    card.dataset.filter = isPast || isRainout ? 'past' : 'upcoming';
+
+    const rail = el('div', 'sched-date-rail');
+    rail.appendChild(el('span', 'sched-date-rail__dow', dayOfWeek));
+    rail.appendChild(el('span', 'sched-date-rail__day', dayNum));
+    rail.appendChild(el('span', 'sched-date-rail__mon', month));
+
+    const body = el('div', 'sched-card-body');
+    const raceNo = race.raceNumber ? `Race ${race.raceNumber} · ` : '';
+    body.appendChild(el('h4', 'sched-card-title', `${raceNo}${race.eventName}`));
+    body.appendChild(el('p', 'sched-card-track', `${race.track} · ${race.city}, ${race.state}`));
+
+    if (race.startTime && race.startTime !== 'TBD') {
+      const startTime = el('p', 'sched-card-time rr-start-time', `Green flag ${race.startTime}`);
+      startTime.setAttribute('data-start-time', '1');
+      body.appendChild(startTime);
+    }
+
+    const badges = el('div', 'race-badges');
+    if (isNextUp) {
+      const b = el('span', 'race-badge next');
+      b.innerHTML = '<i class="fas fa-bolt"></i> NEXT UP';
+      badges.appendChild(b);
+    }
+    const seriesBadge = el('span', 'race-badge');
+    seriesBadge.textContent = race.type === 'specialEvent' ? 'SPECIAL EVENT' : 'SUPER CUP';
+    badges.appendChild(seriesBadge);
+    if (isRainout) {
+      const rainBadge = el('span', 'race-badge');
+      rainBadge.style.borderColor = 'rgba(239,68,68,0.5)';
+      rainBadge.style.color = '#fca5a5';
+      rainBadge.innerHTML = '<i class="fas fa-cloud-showers-heavy"></i> RAIN OUT';
+      badges.appendChild(rainBadge);
+    }
+    if (!isPast && !isRainout) {
+      const wxBadge = el('span', 'race-badge wx-badge');
+      wxBadge.dataset.wxSlot = '1';
+      wxBadge.innerHTML = '<i class="fas fa-cloud-sun"></i> Weather…';
+      badges.appendChild(wxBadge);
+    }
+    body.appendChild(badges);
+
+    const actions = el('div', 'race-actions');
+    if (isNextUp) {
+      const hubLink = el('a', 'race-btn primary');
+      hubLink.href = 'next-race.html';
+      hubLink.innerHTML = '<i class="fas fa-bolt"></i> Next Race Hub';
+      actions.appendChild(hubLink);
+    }
+    const mapsLink = el('a', 'race-btn');
+    mapsLink.target = '_blank';
+    mapsLink.rel = 'noopener';
+    mapsLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${race.track} ${race.city}, ${race.state}`)}`;
+    mapsLink.innerHTML = '<i class="fas fa-map-marker-alt"></i> Map';
+    actions.appendChild(mapsLink);
+    const ticketUrl = getTicketsUrlForRace(race);
+    if (ticketUrl) {
+      const ticketsLink = el('a', 'race-btn primary');
+      ticketsLink.target = '_blank';
+      ticketsLink.rel = 'noopener';
+      ticketsLink.href = ticketUrl;
+      ticketsLink.innerHTML = '<i class="fas fa-ticket-alt"></i> Tickets';
+      actions.appendChild(ticketsLink);
+    }
+    const icsBtn = el('button', 'race-btn');
+    icsBtn.type = 'button';
+    icsBtn.innerHTML = '<i class="fas fa-calendar-plus"></i> Add';
+    icsBtn.addEventListener('click', () => {
+      try {
+        downloadIcs({
+          title: race.eventName,
+          date: race.date,
+          startTime: race.startTime,
+          location: `${race.track}, ${race.city}, ${race.state}`,
+        });
+      } catch (e) {
+        console.warn('ICS failed', e);
+      }
+    });
+    actions.appendChild(icsBtn);
+    body.appendChild(actions);
+
+    const status = el('div', 'sched-card-status');
+    status.textContent = isRainout ? 'Rain out' : (isPast ? 'Done' : 'Upcoming');
+    status.dataset.state = isRainout ? 'rainout' : (isPast ? 'past' : 'upcoming');
+
+    card.appendChild(rail);
+    card.appendChild(body);
+    card.appendChild(status);
+    return card;
+  }
+
+  function updateSeasonChrome(year, season) {
+    const kicker = document.getElementById('schedule-season-kicker');
+    if (kicker) kicker.textContent = `${year} Season`;
+
+    const races = season.races || [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let done = 0;
+    const tracks = new Set();
+    races.forEach((r) => {
+      const flags = raceStatusFlags(r, today);
+      if (flags.isPast) done += 1;
+      if (r.track) tracks.add(String(r.track).toLowerCase());
+    });
+    const setText = (id, val) => {
+      const node = document.getElementById(id);
+      if (node) node.textContent = String(val);
+    };
+    setText('stat-total', races.length);
+    setText('stat-done', done);
+    setText('stat-tracks', tracks.size);
+  }
+
+  function applyScheduleFilter(filter) {
+    const active = filter || 'all';
+    document.querySelectorAll('.sched-filter').forEach((btn) => {
+      const on = btn.dataset.filter === active;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('.schedule-card').forEach((card) => {
+      const kind = card.dataset.filter || 'upcoming';
+      card.hidden = !(active === 'all' || kind === active);
+    });
+  }
+
+  function wireScheduleFilters() {
+    const bar = document.querySelector('.sched-filters');
+    if (!bar || bar.dataset.wired === '1') return;
+    bar.dataset.wired = '1';
+    bar.addEventListener('click', (e) => {
+      const btn = e.target.closest('.sched-filter');
+      if (!btn) return;
+      applyScheduleFilter(btn.dataset.filter || 'all');
+    });
+  }
+
   // Display races for selected season
   function displaySeason(year) {
     const season = scheduleData.seasons.find(s => s.year === year);
@@ -50,193 +218,57 @@
 
     const superCupsContainer = document.getElementById('super-cups-schedule');
     const specialEventsContainer = document.getElementById('special-events-schedule');
-    
+
     if (superCupsContainer) superCupsContainer.innerHTML = '';
     if (specialEventsContainer) specialEventsContainer.innerHTML = '';
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Sort races by date
     const sortedRaces = [...season.races].sort((a, b) => new Date(a.date) - new Date(b.date));
     let markedNextUp = false;
 
+    updateSeasonChrome(year, season);
+    wireScheduleFilters();
+
     sortedRaces.forEach(race => {
-      const raceDate = new Date(race.date + 'T00:00:00');
-      const isRainout = String(race.status || '').toLowerCase() === 'rainout';
-      const isPast = raceDate < today || isRainout || String(race.status || '').toLowerCase() === 'completed';
-      const cardClass = isRainout ? 'past rainout' : (isPast ? 'past' : 'upcoming');
-      const isNextUp = !isPast && !isRainout && !markedNextUp && race.type !== 'specialEvent';
+      const flags = raceStatusFlags(race, today);
+      const isNextUp = !flags.isPast && !flags.isRainout && !markedNextUp && race.type !== 'specialEvent';
       if (isNextUp) markedNextUp = true;
-      
-      const formattedDate = raceDate.toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+      const card = buildRaceCard(race, {
+        isPast: flags.isPast,
+        isRainout: flags.isRainout,
+        isNextUp,
+        raceDate: flags.raceDate,
       });
-
-      const dayOfWeek = raceDate.toLocaleString('en-US', { weekday: 'short' });
-
-      // Create card using DOM methods to prevent XSS
-      const card = document.createElement('div');
-      card.className = `schedule-card p-4 rounded-lg ${cardClass}${isNextUp ? ' next-up' : ''}`;
-      card.dataset.raceDate = race.date || '';
-      card.dataset.raceCity = race.city || '';
-      card.dataset.raceState = race.state || '';
-      card.dataset.nextUp = isNextUp ? '1' : '0';
-      
-      const flexContainer = document.createElement('div');
-      flexContainer.className = 'flex justify-between items-center';
-      
-      // Left side content
-      const leftDiv = document.createElement('div');
-      leftDiv.className = 'flex-1';
-      
-      const eventName = document.createElement('p');
-      eventName.className = 'font-bold text-lg text-white';
-      const raceNo = race.raceNumber ? `Race ${race.raceNumber}: ` : '';
-      eventName.textContent = `${raceNo}${race.eventName}`;
-      leftDiv.appendChild(eventName);
-      
-      const trackInfo = document.createElement('p');
-      trackInfo.className = 'text-sm text-slate-400';
-      trackInfo.textContent = `${race.track} • ${race.city}, ${race.state}`;
-      leftDiv.appendChild(trackInfo);
-      
-      if (race.startTime !== 'TBD') {
-        const startTime = document.createElement('p');
-        startTime.className = 'text-xs text-slate-500 mt-1 rr-start-time';
-        startTime.setAttribute('data-start-time', '1');
-        startTime.textContent = `Start: ${race.startTime}`;
-        leftDiv.appendChild(startTime);
-      }
-
-      // Badges row
-      const badges = document.createElement('div');
-      badges.className = 'race-badges';
-      if (isNextUp) {
-        const b = document.createElement('span');
-        b.className = 'race-badge next';
-        b.innerHTML = '<i class="fas fa-bolt"></i> NEXT UP';
-        badges.appendChild(b);
-      }
-      const seriesBadge = document.createElement('span');
-      seriesBadge.className = 'race-badge';
-      seriesBadge.textContent = race.type === 'specialEvent' ? 'SPECIAL EVENT' : 'SUPER CUP';
-      badges.appendChild(seriesBadge);
-      if (isRainout) {
-        const rainBadge = document.createElement('span');
-        rainBadge.className = 'race-badge';
-        rainBadge.style.borderColor = 'rgba(239,68,68,0.5)';
-        rainBadge.style.color = '#fca5a5';
-        rainBadge.innerHTML = '<i class="fas fa-cloud-showers-heavy"></i> RAIN OUT';
-        badges.appendChild(rainBadge);
-      }
-      if (!isPast && !isRainout) {
-        const wxBadge = document.createElement('span');
-        wxBadge.className = 'race-badge wx-badge';
-        wxBadge.dataset.wxSlot = '1';
-        wxBadge.innerHTML = '<i class="fas fa-cloud-sun"></i> Weather…';
-        badges.appendChild(wxBadge);
-      }
-      leftDiv.appendChild(badges);
-
-      // Actions row (map + add to calendar)
-      const actions = document.createElement('div');
-      actions.className = 'race-actions';
-
-      if (isNextUp) {
-        const hubLink = document.createElement('a');
-        hubLink.className = 'race-btn primary';
-        hubLink.href = 'next-race.html';
-        hubLink.innerHTML = '<i class="fas fa-bolt"></i> Next Race Hub';
-        actions.appendChild(hubLink);
-      }
-
-      const mapsLink = document.createElement('a');
-      mapsLink.className = 'race-btn';
-      mapsLink.target = '_blank';
-      mapsLink.rel = 'noopener';
-      const q = encodeURIComponent(`${race.track} ${race.city}, ${race.state}`);
-      mapsLink.href = `https://www.google.com/maps/search/?api=1&query=${q}`;
-      mapsLink.innerHTML = '<i class="fas fa-map-marker-alt"></i> Map';
-      actions.appendChild(mapsLink);
-
-      const ticketUrl = getTicketsUrlForRace(race);
-      if (ticketUrl) {
-        const ticketsLink = document.createElement('a');
-        ticketsLink.className = 'race-btn primary';
-        ticketsLink.target = '_blank';
-        ticketsLink.rel = 'noopener';
-        ticketsLink.href = ticketUrl;
-        ticketsLink.innerHTML = '<i class="fas fa-ticket-alt"></i> Tickets';
-        actions.appendChild(ticketsLink);
-      }
-
-      const icsBtn = document.createElement('button');
-      icsBtn.type = 'button';
-      icsBtn.className = 'race-btn';
-      icsBtn.innerHTML = '<i class="fas fa-calendar-plus"></i> Add to Calendar';
-      icsBtn.addEventListener('click', () => {
-        try {
-          downloadIcs({
-            title: race.eventName,
-            date: race.date,
-            startTime: race.startTime,
-            location: `${race.track}, ${race.city}, ${race.state}`,
-          });
-        } catch (e) {
-          console.warn('ICS failed', e);
-        }
-      });
-      actions.appendChild(icsBtn);
-
-      leftDiv.appendChild(actions);
-      
-      // Right side content
-      const rightDiv = document.createElement('div');
-      rightDiv.className = 'text-right';
-      
-      const dayDiv = document.createElement('div');
-      dayDiv.className = 'font-semibold text-slate-300';
-      dayDiv.textContent = dayOfWeek;
-      rightDiv.appendChild(dayDiv);
-      
-      const dateDiv = document.createElement('div');
-      dateDiv.className = `text-lg font-bold ${isPast ? 'text-slate-500' : 'text-yellow-400'}`;
-      dateDiv.textContent = formattedDate;
-      rightDiv.appendChild(dateDiv);
-      
-      const statusSpan = document.createElement('span');
-      statusSpan.className = `text-xs ${isRainout ? 'text-red-400' : (isPast ? 'text-slate-600' : 'text-green-400')} uppercase`;
-      statusSpan.textContent = isRainout ? 'Rain Out' : (isPast ? 'Completed' : 'Upcoming');
-      rightDiv.appendChild(statusSpan);
-      
-      // Assemble the card
-      flexContainer.appendChild(leftDiv);
-      flexContainer.appendChild(rightDiv);
-      card.appendChild(flexContainer);
-      
       const container = race.type === 'specialEvent' ? specialEventsContainer : superCupsContainer;
-      if (container) {
-        container.appendChild(card);
-      }
+      if (container) container.appendChild(card);
     });
 
-    // Show message if no races
     if (superCupsContainer && superCupsContainer.innerHTML === '') {
       superCupsContainer.innerHTML = '<p class="text-slate-400 text-center py-8">No Super Cup races scheduled for this season.</p>';
     }
-    if (specialEventsContainer && specialEventsContainer.innerHTML === '') {
+    const specialCol = document.getElementById('special-events-column');
+    const columns = document.querySelector('.sched-columns');
+    const specialEmpty = specialEventsContainer && specialEventsContainer.innerHTML === '';
+    if (specialEmpty) {
       specialEventsContainer.innerHTML = '<p class="text-slate-400 text-center py-8">No special events scheduled for this season.</p>';
+      if (specialCol) specialCol.hidden = true;
+      if (columns) columns.classList.add('is-single');
+    } else {
+      if (specialCol) specialCol.hidden = false;
+      if (columns) columns.classList.remove('is-single');
     }
 
-    // Weather badges for upcoming races (Open-Meteo)
-    try { enrichScheduleWeather(sortedRaces.filter((r) => new Date(r.date + 'T00:00:00') >= today)); } catch (e) {
+    const activeFilter = document.querySelector('.sched-filter.is-active');
+    applyScheduleFilter(activeFilter ? activeFilter.dataset.filter : 'all');
+
+    try {
+      enrichScheduleWeather(sortedRaces.filter((r) => new Date(r.date + 'T00:00:00') >= today));
+    } catch (e) {
       console.warn('Weather enrich failed', e);
     }
 
-    // Update countdown for current/active season
     if (season.isActive) {
       updateCountdown(sortedRaces);
     } else {
@@ -317,6 +349,24 @@
     if (nextRaceName && nextRaceDate) {
       const nextRaceNameEl = document.getElementById('next-race-name');
       if (nextRaceNameEl) nextRaceNameEl.textContent = nextRaceName;
+      const metaEl = document.getElementById('next-race-meta');
+      if (metaEl) {
+        const local = races.find((r) =>
+          (r.eventName || r.name) === nextRaceName &&
+          new Date(r.date + 'T00:00:00') >= today &&
+          String(r.status || '').toLowerCase() !== 'rainout'
+        ) || races.find((r) =>
+          new Date(r.date + 'T00:00:00') >= today &&
+          String(r.status || '').toLowerCase() !== 'rainout'
+        );
+        if (local) {
+          const when = new Date(local.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          const time = local.startTime && local.startTime !== 'TBD' ? ` · ${local.startTime}` : '';
+          metaEl.textContent = `${when}${time} · ${local.track}, ${local.city} ${local.state}`;
+        } else {
+          metaEl.textContent = 'Countdown synced to the next Super Cup green flag.';
+        }
+      }
 
       function tick() {
         const now = new Date().getTime();
@@ -326,7 +376,8 @@
         if (distance < 0) {
           clearInterval(activeCountdownInterval);
           if (countdownTimerEl) {
-            countdownTimerEl.innerHTML = '<div class="col-span-4 text-3xl font-racing text-yellow-400">RACE DAY!</div>';
+            countdownTimerEl.className = 'sched-count';
+            countdownTimerEl.innerHTML = '<div class="sched-count__cell" style="grid-column:1/-1"><div class="sched-count__num" style="color:#fbbf24">RACE DAY</div><div class="sched-count__lbl">See you at the track</div></div>';
           }
           return;
         }
@@ -353,10 +404,13 @@
   function updateCountdownForPastSeason() {
     const nextRaceNameEl = document.getElementById('next-race-name');
     const countdownTimerEl = document.getElementById('countdown-timer');
-    
-    if (nextRaceNameEl) nextRaceNameEl.textContent = 'Season Complete!';
+    const metaEl = document.getElementById('next-race-meta');
+
+    if (nextRaceNameEl) nextRaceNameEl.textContent = 'Season Complete';
+    if (metaEl) metaEl.textContent = 'Switch to the active season to see the next green flag.';
     if (countdownTimerEl) {
-      countdownTimerEl.innerHTML = '<div class="col-span-4 text-2xl font-racing text-slate-400">View upcoming season for next races</div>';
+      countdownTimerEl.className = 'sched-count';
+      countdownTimerEl.innerHTML = '<div class="sched-count__cell" style="grid-column:1/-1"><div class="sched-count__num" style="font-size:1.35rem;color:#94a3b8">Pick a live season</div><div class="sched-count__lbl">Countdown lives on the current year</div></div>';
     }
   }
 
