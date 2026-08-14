@@ -319,7 +319,7 @@
         transition: opacity 0.75s ease;
         display: flex;
         align-items: flex-end;
-        padding: 1.35rem 1.5rem 2.75rem;
+        padding: 1.35rem 3.25rem 3.25rem;
         text-align: left;
         background-size: cover;
         background-position: center;
@@ -348,6 +348,7 @@
         position: relative;
         z-index: 1;
         max-width: 38rem;
+        width: 100%;
       }
 
       .fc-kicker {
@@ -372,11 +373,11 @@
       }
 
       .fc-sub {
-        margin: 0 0 0.85rem;
+        margin: 0 0 0.95rem;
         font-size: clamp(0.9rem, 2.2vw, 1.05rem);
         font-weight: 600;
         color: rgba(226, 232, 240, 0.88);
-        line-height: 1.35;
+        line-height: 1.4;
         text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
       }
 
@@ -419,83 +420,160 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.65rem;
+        padding-bottom: 0.15rem;
       }
 
       .fc-nav {
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
-        z-index: 2;
+        z-index: 3;
         width: 2.5rem;
         height: 2.5rem;
         border-radius: 9999px;
         border: 1px solid rgba(255, 255, 255, 0.18);
-        background: rgba(15, 23, 42, 0.55);
+        background: rgba(15, 23, 42, 0.72);
         color: #fff;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         transition: background 0.2s ease, border-color 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
       }
 
       .fc-nav:hover {
-        background: rgba(15, 23, 42, 0.78);
+        background: rgba(15, 23, 42, 0.88);
         border-color: rgba(251, 191, 36, 0.45);
         color: #fbbf24;
       }
 
       .fc-prev {
-        left: 0.65rem;
+        left: 0.75rem;
       }
 
       .fc-next {
-        right: 0.65rem;
+        right: 0.75rem;
       }
 
       .fc-dots {
         position: absolute;
         left: 50%;
-        bottom: 0.65rem;
+        bottom: 0.9rem;
         transform: translateX(-50%);
-        z-index: 2;
+        z-index: 3;
         display: flex;
-        gap: 0.45rem;
+        gap: 0.5rem;
         align-items: center;
+        justify-content: center;
+        padding: 0.35rem 0.55rem;
+        border-radius: 9999px;
+        background: rgba(5, 8, 15, 0.45);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
       }
 
       .fc-dot {
-        width: 0.5rem;
-        height: 0.5rem;
+        width: 0.55rem;
+        height: 0.55rem;
         padding: 0;
         border: 0;
         border-radius: 9999px;
-        background: rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.4);
         cursor: pointer;
-        transition: transform 0.2s ease, background 0.2s ease;
+        transition: transform 0.2s ease, background 0.2s ease, width 0.2s ease;
+        flex-shrink: 0;
       }
 
       .fc-dot.is-active {
         background: #fbbf24;
-        transform: scale(1.2);
+        width: 1.15rem;
+        border-radius: 9999px;
+        transform: none;
       }
 
       @media (max-width: 640px) {
+        .feature-carousel {
+          width: calc(100% - 1.25rem);
+          margin: 0 auto 1.15rem;
+          border-radius: 1rem;
+        }
+
         .fc-viewport {
-          min-height: 210px;
-          aspect-ratio: 4 / 3;
+          min-height: 248px;
+          aspect-ratio: auto;
           max-height: none;
         }
 
         .fc-slide {
-          padding: 1.1rem 1.1rem 2.5rem;
+          /* Keep copy clear of side arrows + bottom dots / CTA */
+          padding: 1.15rem 3.1rem 3.85rem;
+          align-items: flex-end;
+        }
+
+        .fc-slide-inner {
+          max-width: 100%;
+        }
+
+        .fc-title {
+          font-size: clamp(1.25rem, 6.2vw, 1.7rem);
+          padding-right: 0.15rem;
+        }
+
+        .fc-sub {
+          margin-bottom: 1rem;
+          font-size: 0.95rem;
+          padding-right: 0.1rem;
+        }
+
+        .fc-cta {
+          padding: 0.7rem 1.1rem;
+          font-size: 0.92rem;
+        }
+
+        .fc-cta-row {
+          gap: 0.55rem;
+          width: 100%;
         }
 
         .fc-cta-secondary {
           margin-left: 0;
-          margin-top: 0.5rem;
+          margin-top: 0;
           display: inline-flex;
+        }
+
+        .fc-nav {
+          width: 2.15rem;
+          height: 2.15rem;
+          font-size: 0.85rem;
+          /* Sit mid-card but not over the CTA/dot row */
+          top: 42%;
+        }
+
+        .fc-prev {
+          left: 0.45rem;
+        }
+
+        .fc-next {
+          right: 0.45rem;
+        }
+
+        .fc-dots {
+          bottom: 0.7rem;
+          gap: 0.45rem;
+          padding: 0.3rem 0.5rem;
+        }
+      }
+
+      @media (max-width: 380px) {
+        .fc-slide {
+          padding: 1rem 2.75rem 3.7rem;
+        }
+
+        .fc-nav {
+          width: 2rem;
+          height: 2rem;
         }
       }
 
