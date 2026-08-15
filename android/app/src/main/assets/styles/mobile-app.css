@@ -369,8 +369,21 @@ html.rr-native-app .container,
 body.mobile-app .container {
   min-height: auto !important;
   justify-content: flex-start !important;
-  padding-top: 1rem !important;
+  padding-top: 1.15rem !important;
   padding-bottom: 1rem !important;
+}
+
+html.rr-native-app .subtitle,
+body.mobile-app .subtitle {
+  margin-bottom: 1rem !important;
+}
+
+html.rr-native-app .race-info,
+body.mobile-app .race-info {
+  margin: 0 auto 1.65rem !important;
+  line-height: 1.5 !important;
+  position: relative;
+  z-index: 5;
 }
 
 /* Auth FAB sits above native bottom tabs */
@@ -458,24 +471,38 @@ img {
   }
 }
 
-/* Homepage featured carousel — keep arrows/dots clear of copy in native WebView */
+/* Homepage featured carousel — spacing + no title clip in native WebView */
 html.rr-native-app .feature-carousel,
 body.mobile-app .feature-carousel {
   width: calc(100% - 1rem);
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0.75rem auto 1.35rem !important;
+}
+
+html.rr-native-app .fc-viewport,
+body.mobile-app .fc-viewport {
+  min-height: 320px !important;
+  aspect-ratio: auto !important;
+  max-height: none !important;
 }
 
 html.rr-native-app .fc-slide,
 body.mobile-app .fc-slide {
-  padding: 1.15rem 3.15rem 3.9rem !important;
+  padding: 1.35rem 3rem 3.75rem !important;
+  justify-content: flex-end !important;
+  align-items: stretch !important;
+}
+
+html.rr-native-app .fc-title,
+body.mobile-app .fc-title {
+  line-height: 1.18 !important;
+  font-size: clamp(1.2rem, 5.6vw, 1.5rem) !important;
 }
 
 html.rr-native-app .fc-nav,
 body.mobile-app .fc-nav {
   width: 2.15rem;
   height: 2.15rem;
-  top: 40%;
+  top: 44%;
   z-index: 3;
   background: rgba(15, 23, 42, 0.78);
 }

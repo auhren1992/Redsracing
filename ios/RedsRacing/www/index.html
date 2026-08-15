@@ -279,7 +279,12 @@
         font-size: clamp(0.875rem, 2vw, 1.125rem);
         color: #fbbf24;
         font-weight: 600;
-        margin-bottom: 1rem;
+        margin: 0 auto 1.5rem;
+        max-width: 36rem;
+        line-height: 1.45;
+        position: relative;
+        z-index: 4;
+        padding: 0 0.75rem;
         animation: fadeIn 1s ease-out 0.9s both;
       }
 
@@ -288,7 +293,7 @@
         position: relative;
         z-index: 3;
         width: min(980px, 100%);
-        margin: 0 auto 1.35rem;
+        margin: 0.5rem auto 1.5rem;
         border-radius: 1.25rem;
         overflow: hidden;
         border: 1px solid rgba(148, 163, 184, 0.22);
@@ -300,9 +305,9 @@
 
       .fc-viewport {
         position: relative;
-        min-height: 220px;
+        min-height: 260px;
         aspect-ratio: 16 / 9;
-        max-height: 320px;
+        max-height: 360px;
         background: rgba(15, 23, 42, 0.35);
       }
 
@@ -318,11 +323,14 @@
         pointer-events: none;
         transition: opacity 0.75s ease;
         display: flex;
-        align-items: flex-end;
-        padding: 1.35rem 3.25rem 3.25rem;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: stretch;
+        padding: 1.5rem 3.25rem 3.35rem;
         text-align: left;
         background-size: cover;
         background-position: center;
+        box-sizing: border-box;
       }
 
       .fc-slide.is-active {
@@ -366,10 +374,11 @@
       .fc-title {
         font-family: 'Racing Sans One', sans-serif;
         font-size: clamp(1.35rem, 4.2vw, 2.1rem);
-        line-height: 1.05;
+        line-height: 1.15;
         color: #fff;
-        margin: 0 0 0.4rem;
+        margin: 0 0 0.45rem;
         text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
+        overflow-wrap: anywhere;
       }
 
       .fc-sub {
@@ -494,36 +503,53 @@
       }
 
       @media (max-width: 640px) {
+        .subtitle {
+          margin-bottom: 1.15rem;
+        }
+
+        .race-info {
+          margin: 0 auto 1.75rem;
+          font-size: 0.95rem;
+          line-height: 1.5;
+        }
+
         .feature-carousel {
           width: calc(100% - 1.25rem);
-          margin: 0 auto 1.15rem;
+          margin: 0.85rem auto 1.35rem;
           border-radius: 1rem;
         }
 
         .fc-viewport {
-          min-height: 248px;
+          /* Tall enough for kicker + title + sub + CTA + dots without clipping */
+          min-height: 320px;
+          height: auto;
           aspect-ratio: auto;
           max-height: none;
         }
 
         .fc-slide {
           /* Keep copy clear of side arrows + bottom dots / CTA */
-          padding: 1.15rem 3.1rem 3.85rem;
-          align-items: flex-end;
+          padding: 1.35rem 3rem 3.75rem;
+          justify-content: flex-end;
         }
 
         .fc-slide-inner {
           max-width: 100%;
         }
 
+        .fc-kicker {
+          margin-bottom: 0.55rem;
+        }
+
         .fc-title {
-          font-size: clamp(1.25rem, 6.2vw, 1.7rem);
+          font-size: clamp(1.2rem, 5.8vw, 1.55rem);
+          line-height: 1.18;
           padding-right: 0.15rem;
         }
 
         .fc-sub {
           margin-bottom: 1rem;
-          font-size: 0.95rem;
+          font-size: 0.92rem;
           padding-right: 0.1rem;
         }
 
@@ -548,7 +574,7 @@
           height: 2.15rem;
           font-size: 0.85rem;
           /* Sit mid-card but not over the CTA/dot row */
-          top: 42%;
+          top: 44%;
         }
 
         .fc-prev {
@@ -567,8 +593,12 @@
       }
 
       @media (max-width: 380px) {
+        .fc-viewport {
+          min-height: 300px;
+        }
+
         .fc-slide {
-          padding: 1rem 2.75rem 3.7rem;
+          padding: 1.2rem 2.7rem 3.6rem;
         }
 
         .fc-nav {
