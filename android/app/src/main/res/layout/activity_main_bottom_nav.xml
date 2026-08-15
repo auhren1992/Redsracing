@@ -88,13 +88,14 @@
                 android:paddingBottom="0dp" />
         </FrameLayout>
 
-        <!-- Banner Ad -->
+        <!-- Banner Ad: collapsed until an ad loads (see MainActivity AdListener) -->
         <com.google.android.gms.ads.AdView
             android:id="@+id/ad_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:background="#0f172a"
+            android:visibility="gone"
             ads:adSize="BANNER"
             ads:adUnitId="ca-app-pub-8879853783053353/4189131487"
             app:layout_constraintBottom_toTopOf="@id/bottom_nav"
@@ -108,12 +109,16 @@
             android:layout_height="wrap_content"
             android:background="#0f172a"
             android:elevation="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:itemIconTint="@color/bottom_nav_color"
             app:itemTextColor="@color/bottom_nav_color"
             app:labelVisibilityMode="labeled"
+            app:itemPaddingTop="4dp"
+            app:itemPaddingBottom="4dp"
             app:menu="@menu/bottom_nav_menu" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -37,8 +37,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewCompat
+import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -177,18 +179,30 @@ class MainActivity : AppCompatActivity() {
         setupBottomNavigation()
         setupMenuOverlay()
         
-        // Initialize Mobile Ads SDK and load a compact anchored adaptive banner
-        // (avoids oversized creatives vs legacy BANNER + full-width scaling).
+        // Initialize Mobile Ads SDK and load a compact anchored adaptive banner.
+        // Keep the slot GONE until an ad loads so we don't leave empty cushion above the tab bar.
         try {
+            binding.adView.visibility = View.GONE
             MobileAds.initialize(this) {}
             val dm = resources.displayMetrics
             val widthDp = (dm.widthPixels / dm.density).toInt().coerceIn(320, 9999)
             val adaptive = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, widthDp)
             binding.adView.setAdSize(adaptive)
+            binding.adView.adListener = object : AdListener() {
+                override fun onAdLoaded() {
+                    binding.adView.visibility = View.VISIBLE
+                }
+
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    android.util.Log.w("MainActivity", "Banner ad failed: ${error.message}")
+                    binding.adView.visibility = View.GONE
+                }
+            }
             val adRequest = AdRequest.Builder().build()
             binding.adView.loadAd(adRequest)
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Failed to initialize ads", e)
+            try { binding.adView.visibility = View.GONE } catch (_: Exception) {}
         }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -812,13 +826,24 @@ class MainActivity : AppCompatActivity() {
                             }
                             document.body.style.paddingTop = '0';
                             document.body.style.marginTop = '0';
-                            document.body.style.paddingBottom = '120px';
+                            // Native bottom nav (+ optional ad) sit outside the WebView —
+                            // keep only a small scroll cushion, not a large empty pad.
+                            document.body.style.paddingBottom = '20px';
                             var mainElements = document.querySelectorAll('main');
                             mainElements.forEach(function(main) {
                                 main.style.marginTop = '0';
                                 main.style.paddingTop = '0';
-                                main.style.paddingBottom = '120px';
+                                main.style.paddingBottom = '20px';
                             });
+                            try {
+                              document.documentElement.style.setProperty('--rr-native-bottom-pad', '20px');
+                              document.querySelectorAll('.container').forEach(function(c) {
+                                c.style.minHeight = 'auto';
+                                c.style.justifyContent = 'flex-start';
+                                c.style.paddingTop = '1rem';
+                                c.style.paddingBottom = '1rem';
+                              });
+                            } catch (ePad) {}
                             var countdownLabels = document.querySelectorAll('.countdown-label');
                             countdownLabels.forEach(function(label) {
                                 label.style.display = 'block';

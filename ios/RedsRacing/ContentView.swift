@@ -389,9 +389,9 @@ struct ContentView: View {
             navButton(symbol: "bubble.left.and.bubble.right.fill", title: "Community") { showCommunityMenu() }
             navButton(symbol: "ellipsis.circle.fill", title: "More") { showMoreMenu() }
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(Color(red: 0.05, green: 0.09, blue: 0.16).opacity(0.95))
+        .padding(.vertical, 6)
+        .padding(.horizontal, 10)
+        .background(Color(red: 0.05, green: 0.09, blue: 0.16).opacity(0.98))
     }
 
     private func navButton(symbol: String, title: String, action: @escaping () -> Void) -> some View {
@@ -777,10 +777,19 @@ struct WebView: UIViewRepresentable {
                       if (tabs) tabs.remove();
                     } catch (eNav) {}
                     document.body.style.backgroundColor = '#05080f';
-                    // Tab bar only on iOS (no AdMob banner) — keep clearance tight
-                    document.body.style.paddingBottom = '88px';
+                    // Native tab bar sits outside the WebView — small scroll cushion only.
+                    document.body.style.paddingBottom = '20px';
                     var mains = document.querySelectorAll('main');
-                    mains.forEach(function(m){ m.style.marginTop='0'; m.style.paddingTop='0'; m.style.paddingBottom='88px'; });
+                    mains.forEach(function(m){ m.style.marginTop='0'; m.style.paddingTop='0'; m.style.paddingBottom='20px'; });
+                    try {
+                      document.documentElement.style.setProperty('--rr-native-bottom-pad', '20px');
+                      document.querySelectorAll('.container').forEach(function(c) {
+                        c.style.minHeight = 'auto';
+                        c.style.justifyContent = 'flex-start';
+                        c.style.paddingTop = '1rem';
+                        c.style.paddingBottom = '1rem';
+                      });
+                    } catch (ePad) {}
                     // Ensure countdown labels are visible
                     var countdownLabels = document.querySelectorAll('.countdown-label');
                     countdownLabels.forEach(function(label) {
