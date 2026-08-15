@@ -347,9 +347,36 @@ th {
   }
 }
 
-/* Bottom spacing for comfortable thumb reach */
+/* Bottom spacing for comfortable thumb reach — keep tight; native tab bar is outside WebView */
 .content-wrapper {
-  padding-bottom: 100px;
+  padding-bottom: 24px;
+}
+
+html.rr-native-app body,
+body.mobile-app {
+  padding-bottom: 20px !important;
+  min-height: auto !important;
+}
+
+html.rr-native-app main,
+body.mobile-app main {
+  padding-bottom: 20px !important;
+}
+
+/* Homepage hero is vertically centered on web — pin to top in native so content
+   sits flush above the tab bar instead of leaving a large empty cushion. */
+html.rr-native-app .container,
+body.mobile-app .container {
+  min-height: auto !important;
+  justify-content: flex-start !important;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+/* Auth FAB sits above native bottom tabs */
+html.rr-native-app .rr-app-auth-fab,
+body.mobile-app .rr-app-auth-fab {
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
 
 /* Image optimization */
