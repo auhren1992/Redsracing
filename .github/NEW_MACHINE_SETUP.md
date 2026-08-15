@@ -11,7 +11,7 @@ git checkout main
 git pull origin main
 ```
 
-Latest mobile release on `main` (when this doc was added): **11.2.29 (215)** — tighten native bottom cushion above tab bar; collapse empty Android banner ad slot.
+Latest mobile release on `main` (when this doc was added): **11.2.30 (216)** — unbunch homepage carousel from NEXT RACE line; taller card so titles do not clip.
 
 ## Already in Git (you get everything below with `git pull`)
 
