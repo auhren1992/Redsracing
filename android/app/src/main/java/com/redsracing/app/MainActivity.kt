@@ -840,8 +840,22 @@ class MainActivity : AppCompatActivity() {
                               document.querySelectorAll('.container').forEach(function(c) {
                                 c.style.minHeight = 'auto';
                                 c.style.justifyContent = 'flex-start';
-                                c.style.paddingTop = '1rem';
+                                c.style.paddingTop = '1.15rem';
                                 c.style.paddingBottom = '1rem';
+                              });
+                              document.querySelectorAll('.race-info').forEach(function(el) {
+                                el.style.margin = '0 auto 1.65rem';
+                                el.style.lineHeight = '1.5';
+                                el.style.position = 'relative';
+                                el.style.zIndex = '5';
+                              });
+                              document.querySelectorAll('.feature-carousel').forEach(function(el) {
+                                el.style.margin = '0.75rem auto 1.35rem';
+                              });
+                              document.querySelectorAll('.fc-viewport').forEach(function(el) {
+                                el.style.minHeight = '320px';
+                                el.style.aspectRatio = 'auto';
+                                el.style.maxHeight = 'none';
                               });
                             } catch (ePad) {}
                             var countdownLabels = document.querySelectorAll('.countdown-label');
