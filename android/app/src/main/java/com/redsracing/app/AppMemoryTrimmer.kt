@@ -43,7 +43,8 @@ object AppMemoryTrimmer {
     }
 
     fun onLowMemory() {
-        onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_COMPLETE)
+        // BACKGROUND covers UI release + cache drop without deprecated COMPLETE.
+        onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_BACKGROUND)
     }
 
     fun onActivityPause(webView: WebView?, adView: AdView?) {
