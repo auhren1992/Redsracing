@@ -48,6 +48,44 @@ class LoginActivity : AppCompatActivity() {
 
         setupLoginWebView(binding.loginWebView)
         binding.loginWebView.loadUrl(MainActivity.siteUrl("login.html"))
+        AppMemoryTrimmer.bind(binding.loginWebView, null)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (!::binding.isInitialized) return
+        AppMemoryTrimmer.onActivityPause(binding.loginWebView, null)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (!::binding.isInitialized) return
+        AppMemoryTrimmer.onTrimMemory(android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!::binding.isInitialized) return
+        AppMemoryTrimmer.onActivityResume(binding.loginWebView, null)
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        AppMemoryTrimmer.onTrimMemory(level)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onLowMemory() {
+        super.onLowMemory()
+        AppMemoryTrimmer.onTrimMemory(android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND)
+    }
+
+    override fun onDestroy() {
+        AppMemoryTrimmer.onActivityDestroy(
+            if (::binding.isInitialized) binding.loginWebView else null,
+            null,
+        )
+        super.onDestroy()
     }
 
     @SuppressLint("SetJavaScriptEnabled")
