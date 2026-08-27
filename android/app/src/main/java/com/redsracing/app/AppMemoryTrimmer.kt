@@ -98,7 +98,7 @@ object AppMemoryTrimmer {
 
     private fun releaseUiHidden(webView: WebView?, adView: AdView?) {
         if (uiReleased) {
-            pauseTimersIfNeeded()
+            pauseTimersIfNeeded(webView)
             return
         }
         uiReleased = true
@@ -119,7 +119,7 @@ object AppMemoryTrimmer {
             adView?.pause()
         } catch (_: Throwable) {
         }
-        pauseTimersIfNeeded()
+        pauseTimersIfNeeded(webView)
     }
 
     private fun releaseBackground(webView: WebView?) {
@@ -131,7 +131,7 @@ object AppMemoryTrimmer {
     }
 
     private fun restoreForeground(webView: WebView?) {
-        resumeTimersIfNeeded()
+        resumeTimersIfNeeded(webView)
         if (!uiReleased) return
         uiReleased = false
         android.util.Log.d(TAG, "Restoring UI memory policy (foreground)")
@@ -143,21 +143,24 @@ object AppMemoryTrimmer {
         }
     }
 
-    private fun pauseTimersIfNeeded() {
-        if (timersPaused) return
+    private fun pauseTimersIfNeeded(webView: WebView?) {
+        if (timersPaused || webView == null) return
         try {
-            WebView.pauseTimers()
+            // Still pauses layout/JS timers for all WebViews in the process.
+            webView.pauseTimers()
             timersPaused = true
         } catch (_: Throwable) {
         }
     }
 
-    private fun resumeTimersIfNeeded() {
+    private fun resumeTimersIfNeeded(webView: WebView?) {
         if (!timersPaused) return
         try {
-            WebView.resumeTimers()
+            webView?.resumeTimers()
             timersPaused = false
         } catch (_: Throwable) {
+            timersPaused = false
         }
     }
 }
+
