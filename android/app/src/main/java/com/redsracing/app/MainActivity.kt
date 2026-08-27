@@ -205,6 +205,8 @@ class MainActivity : AppCompatActivity() {
             try { binding.adView.visibility = View.GONE } catch (_: Exception) {}
         }
 
+        AppMemoryTrimmer.bind(binding.webview, binding.adView)
+
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (binding.root.findViewById<View>(R.id.menu_overlay)?.visibility == View.VISIBLE) {
@@ -304,12 +306,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        try {
-            binding.webview.onPause()
-        } catch (_: Throwable) {}
-        try {
-            binding.adView.pause()
-        } catch (_: Throwable) {}
+        AppMemoryTrimmer.onActivityPause(binding.webview, binding.adView)
         // Force WebView to flush localStorage/cookies to disk so auth persists across app restarts
         try {
             CookieManager.getInstance().flush()
@@ -318,23 +315,27 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+        // Drop compositor / ad bitmaps while not visible (Play bitmap memory guidance).
+        AppMemoryTrimmer.onActivityStop(binding.webview, binding.adView)
         try {
             CookieManager.getInstance().flush()
         } catch (_: Exception) {}
     }
 
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        AppMemoryTrimmer.onTrimMemory(level)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onLowMemory() {
+        super.onLowMemory()
+        AppMemoryTrimmer.onLowMemory()
+    }
+
     override fun onDestroy() {
-        // Tear down the WebView so the activity doesn't leak when the system
-        // recreates us (locale change, fontScale, density, process trim).
-        try {
-            binding.webview.let { wv ->
-                wv.stopLoading()
-                wv.loadUrl("about:blank")
-                (wv.parent as? android.view.ViewGroup)?.removeView(wv)
-                wv.removeAllViews()
-                wv.destroy()
-            }
-        } catch (_: Throwable) {}
+        // Tear down WebView + AdView so we don't leak bitmaps across recreation.
+        AppMemoryTrimmer.onActivityDestroy(binding.webview, binding.adView)
         super.onDestroy()
     }
 
@@ -1209,12 +1210,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        try {
-            binding.webview.onResume()
-        } catch (_: Throwable) {}
-        try {
-            binding.adView.resume()
-        } catch (_: Throwable) {}
+        AppMemoryTrimmer.onActivityResume(binding.webview, binding.adView)
         // After Settings (pre-33 Enable) or system toggles, finish web opt-in if now allowed.
         try {
             if (pendingWebNotificationSettings && areNotificationsEnabled()) {

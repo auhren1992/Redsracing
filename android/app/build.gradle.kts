@@ -21,8 +21,8 @@ android {
         applicationId = "com.redsracing.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 216
-        versionName = "11.2.30"
+        versionCode = 217
+        versionName = "11.2.31"
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
         }
@@ -39,7 +39,10 @@ android {
 
     buildTypes {
         release {
+            // Play DEX coverage: shrinking + optimization + obfuscation via R8
+            // (proguard-android-optimize.txt). Target ≥25% across all three.
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -48,6 +51,7 @@ android {
         }
         debug {
             isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 
