@@ -39,11 +39,6 @@ object AppMemoryTrimmer {
         }
     }
 
-    fun onLowMemory() {
-        // BACKGROUND covers UI release + cache drop without deprecated COMPLETE.
-        onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_BACKGROUND)
-    }
-
     fun onActivityPause(webView: WebView?, adView: AdView?) {
         runCatching { webView?.onPause() }
         runCatching { adView?.pause() }
@@ -81,16 +76,13 @@ object AppMemoryTrimmer {
 
     private fun dropVisibleBitmaps(webView: WebView?, adView: AdView?) {
         android.util.Log.d(TAG, "Releasing UI / bitmap memory (UI hidden)")
-        waiveRenderer(webView)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            runCatching {
+                webView?.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_WAIVED, true)
+            }
+        }
         runCatching { webView?.clearCache(false) }
         runCatching { adView?.pause() }
-    }
-
-    private fun waiveRenderer(webView: WebView?) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        runCatching {
-            webView?.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_WAIVED, true)
-        }
     }
 
     private fun pauseWebTimers(webView: WebView?) {

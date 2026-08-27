@@ -77,7 +77,7 @@ class LoginActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onLowMemory() {
         super.onLowMemory()
-        AppMemoryTrimmer.onLowMemory()
+        AppMemoryTrimmer.onTrimMemory(android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND)
     }
 
     override fun onDestroy() {

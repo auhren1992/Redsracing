@@ -1,6 +1,7 @@
 package com.redsracing.app
 
 import android.app.Application
+import android.content.ComponentCallbacks2
 
 /**
  * Process-level memory callbacks for Android 17 / Play dynamic-memory thresholds.
@@ -15,6 +16,6 @@ class RedsRacingApp : Application() {
     @Deprecated("Deprecated in Java")
     override fun onLowMemory() {
         super.onLowMemory()
-        AppMemoryTrimmer.onLowMemory()
+        AppMemoryTrimmer.onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_BACKGROUND)
     }
 }
