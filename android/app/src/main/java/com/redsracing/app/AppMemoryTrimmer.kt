@@ -35,10 +35,7 @@ object AppMemoryTrimmer {
             releaseUiHidden(webView, adView)
         }
         if (level >= ComponentCallbacks2.TRIM_MEMORY_BACKGROUND) {
-            try {
-                webView?.clearCache(true)
-            } catch (_: Throwable) {
-            }
+            runCatching { webView?.clearCache(true) }
         }
     }
 
@@ -48,39 +45,20 @@ object AppMemoryTrimmer {
     }
 
     fun onActivityPause(webView: WebView?, adView: AdView?) {
-        try {
-            webView?.onPause()
-        } catch (_: Throwable) {
-        }
-        try {
-            adView?.pause()
-        } catch (_: Throwable) {
-        }
-    }
-
-    fun onActivityStop(webView: WebView?, adView: AdView?) {
-        releaseUiHidden(webView, adView)
+        runCatching { webView?.onPause() }
+        runCatching { adView?.pause() }
     }
 
     fun onActivityResume(webView: WebView?, adView: AdView?) {
         restoreForeground(webView)
-        try {
-            webView?.onResume()
-        } catch (_: Throwable) {
-        }
-        try {
-            adView?.resume()
-        } catch (_: Throwable) {
-        }
+        runCatching { webView?.onResume() }
+        runCatching { adView?.resume() }
     }
 
     fun onActivityDestroy(webView: WebView?, adView: AdView?) {
         restoreForeground(webView)
-        try {
-            adView?.destroy()
-        } catch (_: Throwable) {
-        }
-        try {
+        runCatching { adView?.destroy() }
+        runCatching {
             webView?.let { wv ->
                 wv.stopLoading()
                 wv.loadUrl("about:blank")
@@ -88,7 +66,6 @@ object AppMemoryTrimmer {
                 wv.removeAllViews()
                 wv.destroy()
             }
-        } catch (_: Throwable) {
         }
         webViewRef = null
         adViewRef = null
@@ -97,47 +74,44 @@ object AppMemoryTrimmer {
     private fun releaseUiHidden(webView: WebView?, adView: AdView?) {
         if (!uiReleased) {
             uiReleased = true
-            android.util.Log.d(TAG, "Releasing UI / bitmap memory (UI hidden)")
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    webView?.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_WAIVED, true)
-                }
-            } catch (_: Throwable) {
-            }
-            try {
-                webView?.clearCache(false)
-            } catch (_: Throwable) {
-            }
-            try {
-                adView?.pause()
-            } catch (_: Throwable) {
-            }
+            dropVisibleBitmaps(webView, adView)
         }
-        if (!timersPaused && webView != null) {
-            try {
-                webView.pauseTimers()
-                timersPaused = true
-            } catch (_: Throwable) {
-            }
+        pauseWebTimers(webView)
+    }
+
+    private fun dropVisibleBitmaps(webView: WebView?, adView: AdView?) {
+        android.util.Log.d(TAG, "Releasing UI / bitmap memory (UI hidden)")
+        waiveRenderer(webView)
+        runCatching { webView?.clearCache(false) }
+        runCatching { adView?.pause() }
+    }
+
+    private fun waiveRenderer(webView: WebView?) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        runCatching {
+            webView?.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_WAIVED, true)
+        }
+    }
+
+    private fun pauseWebTimers(webView: WebView?) {
+        if (timersPaused || webView == null) return
+        runCatching {
+            webView.pauseTimers()
+            timersPaused = true
         }
     }
 
     private fun restoreForeground(webView: WebView?) {
         if (timersPaused) {
-            try {
-                webView?.resumeTimers()
-            } catch (_: Throwable) {
-            }
+            runCatching { webView?.resumeTimers() }
             timersPaused = false
         }
         if (!uiReleased) return
         uiReleased = false
         android.util.Log.d(TAG, "Restoring UI memory policy (foreground)")
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                webView?.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
-            }
-        } catch (_: Throwable) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        runCatching {
+            webView?.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
         }
     }
 }

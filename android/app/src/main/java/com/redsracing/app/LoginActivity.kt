@@ -60,7 +60,7 @@ class LoginActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         if (!::binding.isInitialized) return
-        AppMemoryTrimmer.onActivityStop(binding.loginWebView, null)
+        AppMemoryTrimmer.onTrimMemory(android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN)
     }
 
     override fun onResume() {

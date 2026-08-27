@@ -316,7 +316,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         // Drop compositor / ad bitmaps while not visible (Play bitmap memory guidance).
-        AppMemoryTrimmer.onActivityStop(binding.webview, binding.adView)
+        AppMemoryTrimmer.onTrimMemory(android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN)
         try {
             CookieManager.getInstance().flush()
         } catch (_: Exception) {}
