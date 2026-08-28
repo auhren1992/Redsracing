@@ -16,7 +16,6 @@
     <link rel="stylesheet" href="styles/main.css" />
     <link rel="stylesheet" href="styles/input-fix.css" />
     <link rel="stylesheet" href="styles/mobile-web.css?v=2026080915" />
-    <link rel="stylesheet" href="styles/mobile-menu-tabs.css?v=2026082819" />
     <link rel="stylesheet" href="styles/admin-mobile.css?v=2026082815" />
     <meta name="sentry-dsn" content="https://962693d042f18049bc26bee0c31c54fd@o4510070455992320.ingest.us.sentry.io/4510088885239808" />
     
@@ -858,26 +857,13 @@
       body.mobile-app #admin-menu-bar {
         display: flex !important;
       }
-      /* Admin mobile/native: full-screen site #mobile-menu-tabs (not #admin-sidebar sheet). */
-      body.admin-console-page #mobile-menu-tabs {
-        z-index: 10060;
-      }
-      body.mobile-app #admin-sidebar.admin-sidebar,
-      body.admin-console-page #admin-sidebar-overlay {
-        display: none !important;
-      }
-      @media (max-width: 1023.98px) {
-        html:not(.rr-native-app) body.admin-console-page #admin-sidebar.admin-sidebar {
-          display: none !important;
-        }
-      }
       body.mobile-app header {
         display: none !important;
       }
 
-      /* Legacy overlay/sheet — disabled; site mobile-menu-tabs owns mobile nav */
+      /* Android / mobile web: web admin sidebar slides in from left behind hamburger */
       #admin-sidebar-overlay {
-        display: none !important;
+        display: none;
       }
       #admin-sidebar-app-footer {
         display: none;
@@ -952,12 +938,113 @@
         display: inline-flex;
       }
 
+      body.mobile-app #admin-sidebar-overlay,
+      html:not(.rr-native-app) #admin-sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 10040;
+        background: rgba(2, 6, 23, 0.52);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.28s ease, visibility 0.28s ease;
+      }
+      @media (min-width: 1024px) {
+        html:not(.rr-native-app) #admin-sidebar-overlay {
+          display: none !important;
+        }
+      }
+      body.drawer-sidebar-open #admin-sidebar-overlay {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      /* Native Android WebView: Command Center sidebar as left sheet */
+      body.mobile-app #admin-sidebar.admin-sidebar {
+        display: flex !important;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        height: 100dvh;
+        width: min(20.5rem, 90vw);
+        max-width: 22rem;
+        z-index: 10050;
+        margin: 0;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        transform: translate3d(-105%, 0, 0);
+        transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+        box-shadow: 20px 0 80px rgba(0, 0, 0, 0.55);
+        border-right: 1px solid rgba(251, 191, 36, 0.12);
+        -webkit-overflow-scrolling: touch;
+        will-change: transform;
+      }
+      body.mobile-app.drawer-sidebar-open #admin-sidebar.admin-sidebar {
+        transform: translate3d(0, 0, 0);
+      }
+      body.mobile-app #admin-sidebar-app-footer {
+        display: block !important;
+      }
+      body.mobile-app .admin-sidebar-close {
+        display: inline-flex !important;
+      }
+
+      /* Phone + tablet mobile web: same Command Center sidebar drawer */
       @media (max-width: 1023.98px) {
+        html:not(.rr-native-app) #admin-sidebar.admin-sidebar {
+          display: flex !important;
+          flex-direction: column;
+          position: fixed;
+          top: 0;
+          left: 0;
+          height: 100vh;
+          height: 100dvh;
+          width: min(20.5rem, 90vw);
+          max-width: 22rem;
+          z-index: 10050;
+          margin: 0;
+          padding-top: env(safe-area-inset-top, 0px);
+          padding-bottom: env(safe-area-inset-bottom, 0px);
+          transform: translate3d(-105%, 0, 0);
+          transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+          box-shadow: 20px 0 80px rgba(0, 0, 0, 0.55);
+          border-right: 1px solid rgba(251, 191, 36, 0.12);
+          -webkit-overflow-scrolling: touch;
+          will-change: transform;
+        }
+        html:not(.rr-native-app) body.drawer-sidebar-open #admin-sidebar.admin-sidebar {
+          transform: translate3d(0, 0, 0);
+        }
+        html:not(.rr-native-app) #admin-sidebar-app-footer {
+          display: block !important;
+        }
+        html:not(.rr-native-app) .admin-sidebar-close {
+          display: inline-flex !important;
+        }
         html:not(.rr-native-app) .admin-main,
         html:not(.rr-native-app) .admin-main .admin-card,
         html:not(.rr-native-app) .admin-main .p-4,
         html:not(.rr-native-app) .admin-main .p-6 {
           max-width: 100%;
+        }
+        html:not(.rr-native-app) .admin-main .overflow-x-auto,
+        html:not(.rr-native-app) .admin-main [class*="overflow-x-auto"] {
+          display: block;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        html:not(.rr-native-app) .admin-main table {
+          display: table;
+          width: max-content;
+          min-width: 100%;
         }
       }
 
@@ -984,7 +1071,7 @@
   <body class="admin-console-page min-h-screen">
     <!-- In native app WebView: compact top bar; real nav lives in #admin-sidebar sheet -->
     <div id="admin-menu-bar">
-      <button type="button" id="android-hamburger" class="admin-app-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu-tabs">
+      <button type="button" id="android-hamburger" class="admin-app-hamburger" onclick="toggleAdminDrawer()" aria-label="Open admin menu" aria-expanded="false" aria-controls="admin-sidebar">
         <i class="fas fa-bars" aria-hidden="true"></i>
       </button>
       <span class="admin-app-bar-brand">REDSRACING</span>
@@ -996,44 +1083,46 @@
         <i class="fas fa-home" aria-hidden="true"></i>
       </a>
     </div>
-    <div id="admin-sidebar-overlay" aria-hidden="true"></div>
+    <div id="admin-sidebar-overlay" onclick="closeAdminDrawer()" aria-hidden="true"></div>
 
     <script>
       function toggleAdminDrawer() {
-        if (typeof window.toggleMobileMenu === 'function') {
-          window.toggleMobileMenu();
-          return;
-        }
-        if (typeof window.openMobileMenu === 'function') {
-          var tabs = document.getElementById('mobile-menu-tabs');
-          if (tabs && tabs.classList.contains('active')) window.closeMobileMenu();
-          else window.openMobileMenu();
-        }
+        if (document.body.classList.contains('drawer-sidebar-open')) closeAdminDrawer();
+        else openAdminDrawer();
       }
       function openAdminDrawer() {
-        if (typeof window.openMobileMenu === 'function') window.openMobileMenu();
+        document.body.classList.add('drawer-sidebar-open');
+        ['android-hamburger', 'mobile-menu-button'].forEach(function (id) {
+          var btn = document.getElementById(id);
+          if (btn) btn.setAttribute('aria-expanded', 'true');
+        });
+        document.body.style.overflow = 'hidden';
+        document.documentElement.classList.add('rr-mobile-menu-open');
       }
       function closeAdminDrawer() {
-        if (typeof window.closeMobileMenu === 'function') window.closeMobileMenu();
+        document.body.classList.remove('drawer-sidebar-open');
+        ['android-hamburger', 'mobile-menu-button'].forEach(function (id) {
+          var btn = document.getElementById(id);
+          if (btn) btn.setAttribute('aria-expanded', 'false');
+        });
+        document.body.style.overflow = '';
+        document.documentElement.classList.remove('rr-mobile-menu-open');
       }
-      /* Back-compat for any remaining onclick="closeDrawer()" */
       function closeDrawer() { closeAdminDrawer(); }
       function openDrawer() { openAdminDrawer(); }
-      document.addEventListener("keydown", function (e) {
-        if (e.key !== "Escape") return;
-        var tabs = document.getElementById("mobile-menu-tabs");
-        if (tabs && tabs.classList.contains("active") && typeof closeAdminDrawer === "function") {
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.body.classList.contains('drawer-sidebar-open')) {
           closeAdminDrawer();
         }
       });
-      document.addEventListener("DOMContentLoaded", function () {
-        var side = document.getElementById("admin-sidebar");
+      document.addEventListener('DOMContentLoaded', function () {
+        var side = document.getElementById('admin-sidebar');
         if (side) {
-          side.addEventListener("click", function (e) {
-            var a = e.target.closest && e.target.closest("a");
-            if (a && a.getAttribute("href")) closeAdminDrawer();
-            var b = e.target.closest && e.target.closest("button");
-            if (b && b.id === "mobile-logout-button") closeAdminDrawer();
+          side.addEventListener('click', function (e) {
+            var a = e.target.closest && e.target.closest('a');
+            if (a && a.getAttribute('href')) closeAdminDrawer();
+            var b = e.target.closest && e.target.closest('button');
+            if (b && b.id === 'mobile-logout-button') closeAdminDrawer();
           });
         }
       });
@@ -1043,7 +1132,7 @@
     <header class="bg-black/30 backdrop-blur-md sticky w-full top-0 z-50 border-b border-slate-700/50">
       <nav class="container mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 max-w-full">
         <!-- Mobile hamburger — LEFT on phones -->
-        <button id="mobile-menu-button" class="lg:hidden shrink-0 text-white focus:outline-none" type="button" aria-label="Open menu" aria-controls="mobile-menu-tabs" aria-expanded="false">
+        <button id="mobile-menu-button" class="lg:hidden shrink-0 text-white focus:outline-none" type="button" aria-label="Open admin sections" aria-controls="admin-sidebar" aria-expanded="false">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
           </svg>
@@ -3661,14 +3750,6 @@
                 m.style.cssText = '';
               });
             }
-            var tabs = document.getElementById('mobile-menu-tabs');
-            if (tabs && tabs.classList.contains('active')) {
-              var inMenu = e.target.closest('#mobile-menu-tabs')
-                || e.target.closest('#mobile-menu-button')
-                || e.target.closest('#android-hamburger');
-              if (!inMenu && typeof closeAdminDrawer === 'function') closeAdminDrawer();
-              return;
-            }
             if (!document.body.classList.contains('drawer-sidebar-open')) return;
             const inDrawer = e.target.closest('#admin-sidebar')
               || e.target.closest('#mobile-menu-button')
@@ -3681,7 +3762,6 @@
       });
     </script>
     <script src="vendors.js"></script>
-    <script src="assets/js/mobile-menu-tabs.js?v=2026082819"></script>
     <script type="module" src="assets/js/auth-guard.js"></script>
     <script type="module" src="navigation.js"></script>
     <!-- redsracing-dashboard.js removed: admin console has its own countdown/data loading -->
@@ -3694,7 +3774,7 @@
       (function() {
         'use strict';
 
-        // Mobile/native admin nav uses the same site #mobile-menu-tabs drawer as public pages.
+        // Android / mobile web: Command Center sidebar (#admin-sidebar) slides in from the left.
         
         // --- Firebase initialization helpers (single source of truth) ---
         const FIREBASE_CONFIG = {
