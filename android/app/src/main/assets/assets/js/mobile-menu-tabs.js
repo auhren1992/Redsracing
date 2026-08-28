@@ -16,6 +16,25 @@
     return false;
   }
 
+  function isAdminConsolePage() {
+    try {
+      return document.body && document.body.classList.contains('admin-console-page');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function shouldUseSiteMobileMenu() {
+    if (isAdminConsolePage()) {
+      try {
+        return isNativeAppShell() || window.matchMedia('(max-width: 1023.98px)').matches;
+      } catch (_) {
+        return true;
+      }
+    }
+    return !isNativeAppShell();
+  }
+
   function scrubWebNavChrome() {
     try {
       const orphan = document.getElementById('mobile-menu-button');
@@ -36,8 +55,8 @@
   window.__rrMobileTabsMenu = true;
   try { document.documentElement.classList.add('rr-has-mobile-tabs'); } catch (_) {}
 
-  // In the native app WebView, never install the browser hamburger / tab drawer.
-  if (isNativeAppShell()) {
+  // In the native app WebView, skip browser hamburger — except admin console uses the same site menu.
+  if (isNativeAppShell() && !isAdminConsolePage()) {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', scrubWebNavChrome);
     } else {
@@ -64,6 +83,91 @@
     } catch (_) {}
   }
   
+  function iconStyleFromSidebarIcon(iconEl) {
+    if (!iconEl || !iconEl.className) return '';
+    const c = iconEl.className;
+    if (/text-yellow|text-amber|text-orange/.test(c)) return 'background:rgba(251,191,36,0.2);color:#fbbf24';
+    if (/text-red|text-pink/.test(c)) return 'background:rgba(239,68,68,0.2);color:#ef4444';
+    if (/text-green|text-emerald|text-teal/.test(c)) return 'background:rgba(16,185,129,0.2);color:#10b981';
+    if (/text-purple|text-indigo|text-cyan/.test(c)) return 'background:rgba(139,92,246,0.2);color:#a78bfa';
+    if (/text-blue/.test(c)) return 'background:rgba(59,130,246,0.2);color:#3b82f6';
+    return '';
+  }
+
+  function adminLinkFromSidebar(source) {
+    const href = source.getAttribute('href') || '#';
+    const label = source.querySelector('span');
+    const icon = source.querySelector('i');
+    const a = document.createElement('a');
+    a.href = href;
+    a.className = 'mobile-nav-link';
+    const box = document.createElement('div');
+    box.className = 'mobile-nav-link-icon';
+    const style = iconStyleFromSidebarIcon(icon);
+    if (style) box.setAttribute('style', style);
+    if (icon) {
+      const ic = icon.cloneNode(true);
+      ic.className = ic.className.replace(/\bw-\d+\b|\bmr-\d+\b/g, '').trim();
+      box.appendChild(ic);
+    }
+    a.appendChild(box);
+    const span = document.createElement('span');
+    span.textContent = label ? label.textContent.trim() : href;
+    a.appendChild(span);
+    a.addEventListener('click', function () {
+      closeMobileMenu();
+    });
+    return a;
+  }
+
+  /** Admin console: Command Center hash links use the same Home-tab layout as the public site. */
+  function appendAdminCommandCenterLinks() {
+    if (!isAdminConsolePage() || !mobileMenuElement) return;
+    const home = mobileMenuElement.querySelector('[data-tab-content="home"]');
+    const nav = document.querySelector('#admin-sidebar nav');
+    if (!home || !nav) return;
+    const header = document.createElement('div');
+    header.className = 'mobile-section-header';
+    header.textContent = 'Command Center';
+    home.appendChild(header);
+    nav.querySelectorAll('a.nav-item').forEach(function (link) {
+      home.appendChild(adminLinkFromSidebar(link));
+    });
+  }
+
+  function syncAdminHamburgerAria(isOpen) {
+    if (!isAdminConsolePage()) return;
+    ['android-hamburger', 'mobile-menu-button'].forEach(function (id) {
+      const btn = document.getElementById(id);
+      if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  }
+
+  function toggleMobileMenu() {
+    if (mobileMenuElement && mobileMenuElement.classList.contains('active')) {
+      closeMobileMenu();
+    } else {
+      openMobileMenu();
+    }
+  }
+
+  function bindAdminConsoleHamburgers() {
+    ['android-hamburger', 'mobile-menu-button'].forEach(function (id) {
+      const btn = document.getElementById(id);
+      if (!btn || btn.dataset.rrTabsBound === '1') return;
+      btn.dataset.rrTabsBound = '1';
+      btn.setAttribute('aria-controls', 'mobile-menu-tabs');
+      btn.removeAttribute('onclick');
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        hideClassicMobileMenu();
+        toggleMobileMenu();
+      }, true);
+    });
+  }
+
   function createMobileMenu() {
     // Remove old mobile menu if exists
     const oldMenu = document.getElementById('mobile-menu-tabs');
@@ -294,7 +398,7 @@
     
     document.body.insertAdjacentHTML('beforeend', menuHTML);
     mobileMenuElement = document.getElementById('mobile-menu-tabs');
-    
+    appendAdminCommandCenterLinks();
     initializeMenu();
   }
   
@@ -356,6 +460,7 @@
     mobileMenuElement.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
     document.documentElement.classList.add('rr-mobile-menu-open');
+    syncAdminHamburgerAria(true);
   }
   
   function closeMobileMenu() {
@@ -365,6 +470,7 @@
       document.body.style.overflow = '';
       document.documentElement.classList.remove('rr-mobile-menu-open');
     }
+    syncAdminHamburgerAria(false);
   }
   
   async function updateAuthUI() {
@@ -427,7 +533,7 @@
   }
 
   function createMenuButton() {
-    if (isNativeAppShell()) return;
+    if (isNativeAppShell() && !isAdminConsolePage()) return;
     if (document.getElementById('mobile-menu-button')) return;
     // Never paint a floating orphan hamburger on desktop/tablet landscape.
     // Pages should include a real header button; this is a mobile last-resort only.
@@ -488,26 +594,27 @@
 
   // Initialize when DOM is ready
   function init() {
-    if (isNativeAppShell()) {
+    if (isNativeAppShell() && !isAdminConsolePage()) {
       scrubWebNavChrome();
       return;
     }
+    if (!shouldUseSiteMobileMenu()) return;
     hideClassicMobileMenu();
 
     let mobileMenuBtn = document.getElementById('mobile-menu-button');
     if (mobileMenuBtn) {
-      // Remove old listeners by cloning
       const newBtn = mobileMenuBtn.cloneNode(true);
       mobileMenuBtn.parentNode.replaceChild(newBtn, mobileMenuBtn);
       bindHamburgerButton(newBtn);
-    } else {
-      // Pages that inject nav into #navigation-placeholder (or omit header)
+    } else if (!isAdminConsolePage()) {
       createMenuButton();
     }
 
-    watchForHamburger();
+    if (isAdminConsolePage()) {
+      bindAdminConsoleHamburgers();
+    }
 
-    // Create menu structure
+    watchForHamburger();
     createMobileMenu();
   }
   
@@ -520,4 +627,5 @@
   // Make functions globally available
   window.openMobileMenu = openMobileMenu;
   window.closeMobileMenu = closeMobileMenu;
+  window.toggleMobileMenu = toggleMobileMenu;
 })();
