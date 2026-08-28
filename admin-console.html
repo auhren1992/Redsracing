@@ -812,16 +812,16 @@
         display: none;
         background: linear-gradient(
           95deg,
-          rgba(7, 11, 20, 0.98) 0%,
-          rgba(15, 23, 42, 0.97) 45%,
-          rgba(30, 41, 59, 0.95) 100%
+          #000000 0%,
+          #030712 42%,
+          #0f172a 100%
         );
         padding: 10px 14px 10px calc(12px + env(safe-area-inset-left, 0px));
         align-items: center;
         gap: 14px;
         justify-content: flex-start;
-        border-bottom: 1px solid rgba(251, 191, 36, 0.28);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+        border-bottom: 1px solid rgba(59, 130, 246, 0.45);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
       }
       #admin-menu-bar .admin-app-hamburger {
         width: 44px;
@@ -830,19 +830,21 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid rgba(251, 191, 36, 0.35);
-        background: linear-gradient(145deg, rgba(59, 130, 246, 0.15), rgba(15, 23, 42, 0.85));
-        color: #fbbf24;
+        border: 1px solid rgba(59, 130, 246, 0.55);
+        background: linear-gradient(145deg, rgba(30, 64, 175, 0.35), rgba(0, 0, 0, 0.92));
+        color: #60a5fa;
         font-size: 18px;
         cursor: pointer;
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(96, 165, 250, 0.12);
         transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
       }
       #admin-menu-bar .admin-app-hamburger:active {
         transform: scale(0.96);
+        border-color: rgba(96, 165, 250, 0.75);
+        background: linear-gradient(145deg, rgba(37, 99, 235, 0.45), rgba(0, 0, 0, 0.95));
       }
       #admin-menu-bar .admin-app-bar-title {
-        color: #fbbf24;
+        color: #60a5fa;
         font-weight: 800;
         font-size: 14px;
         letter-spacing: 0.04em;
@@ -887,13 +889,14 @@
           min-height: 44px;
           padding: 10px;
           border-radius: 12px;
-          border: 1px solid rgba(148, 163, 184, 0.25);
-          background: rgba(15, 23, 42, 0.65);
-          color: #fbbf24;
+          border: 1px solid rgba(59, 130, 246, 0.45);
+          background: rgba(0, 0, 0, 0.82);
+          color: #60a5fa;
           text-decoration: none;
         }
         html:not(.rr-native-app) #admin-mobile-home:active {
-          background: rgba(251, 191, 36, 0.18);
+          background: rgba(30, 64, 175, 0.35);
+          border-color: rgba(96, 165, 250, 0.65);
         }
       }
       #admin-drawer-home {
@@ -905,18 +908,21 @@
         margin-bottom: 0.5rem;
         padding: 0.75rem 1rem;
         border-radius: 0.75rem;
-        border: 1px solid rgba(148, 163, 184, 0.28);
-        background: rgba(15, 23, 42, 0.75);
-        color: #e2e8f0;
+        border: 1px solid rgba(59, 130, 246, 0.4);
+        background: rgba(0, 0, 0, 0.88);
+        color: #93c5fd;
         font-weight: 600;
         text-decoration: none;
         transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
       }
+      #admin-drawer-home i {
+        color: #60a5fa;
+      }
       #admin-drawer-home:hover,
       #admin-drawer-home:focus-visible {
-        background: rgba(30, 64, 175, 0.35);
-        border-color: rgba(251, 191, 36, 0.45);
-        color: #fbbf24;
+        background: rgba(30, 64, 175, 0.42);
+        border-color: rgba(96, 165, 250, 0.6);
+        color: #dbeafe;
         outline: none;
       }
       #admin-menu-bar-home {
@@ -928,11 +934,15 @@
         min-height: 44px;
         padding: 10px;
         border-radius: 12px;
-        border: 1px solid rgba(148, 163, 184, 0.3);
-        background: rgba(15, 23, 42, 0.55);
-        color: #fbbf24;
+        border: 1px solid rgba(59, 130, 246, 0.45);
+        background: rgba(0, 0, 0, 0.82);
+        color: #60a5fa;
         text-decoration: none;
         flex-shrink: 0;
+      }
+      #admin-menu-bar-home:active {
+        background: rgba(30, 64, 175, 0.35);
+        border-color: rgba(96, 165, 250, 0.65);
       }
       body.mobile-app #admin-menu-bar-home {
         display: inline-flex;
@@ -944,7 +954,7 @@
         position: fixed;
         inset: 0;
         z-index: 10040;
-        background: rgba(2, 6, 23, 0.52);
+        background: rgba(0, 0, 0, 0.62);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         opacity: 0;
@@ -961,6 +971,36 @@
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
+      }
+
+      /* Drawer shell: blue accent on black (Android + mobile web) */
+      body.mobile-app #admin-sidebar.admin-sidebar,
+      body.drawer-sidebar-open #admin-sidebar.admin-sidebar {
+        background: linear-gradient(180deg, #000000 0%, #020617 45%, #0b1220 100%);
+        border-right: 1px solid rgba(59, 130, 246, 0.38);
+        box-shadow: 20px 0 80px rgba(0, 0, 0, 0.65), inset -1px 0 0 rgba(59, 130, 246, 0.15);
+      }
+      body.mobile-app .sidebar-nav.admin-sidebar .nav-item:hover,
+      body.drawer-sidebar-open .sidebar-nav.admin-sidebar .nav-item:hover {
+        background: rgba(15, 23, 42, 0.92);
+        border-color: rgba(59, 130, 246, 0.45);
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.14);
+      }
+      body.mobile-app .sidebar-nav.admin-sidebar [data-admin-exit-home] i,
+      body.drawer-sidebar-open .sidebar-nav.admin-sidebar [data-admin-exit-home] i {
+        color: #60a5fa !important;
+      }
+      body.mobile-app #admin-sidebar .border-amber-400\/40,
+      body.drawer-sidebar-open #admin-sidebar .border-amber-400\/40 {
+        border-color: rgba(59, 130, 246, 0.45) !important;
+      }
+      body.mobile-app #admin-sidebar .text-amber-300,
+      body.drawer-sidebar-open #admin-sidebar .text-amber-300 {
+        color: #60a5fa !important;
+      }
+      body.mobile-app #admin-sidebar .from-amber-700\/40,
+      body.drawer-sidebar-open #admin-sidebar .from-amber-700\/40 {
+        --tw-gradient-from: rgba(30, 64, 175, 0.45) var(--tw-gradient-from-position);
       }
 
       /* Native Android WebView: Command Center sidebar as left sheet */
@@ -981,7 +1021,7 @@
         transform: translate3d(-105%, 0, 0);
         transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
         box-shadow: 20px 0 80px rgba(0, 0, 0, 0.55);
-        border-right: 1px solid rgba(251, 191, 36, 0.12);
+        border-right: 1px solid rgba(59, 130, 246, 0.38);
         -webkit-overflow-scrolling: touch;
         will-change: transform;
       }
@@ -990,6 +1030,7 @@
       }
       body.mobile-app #admin-sidebar-app-footer {
         display: block !important;
+        border-top-color: rgba(59, 130, 246, 0.22) !important;
       }
       body.mobile-app .admin-sidebar-close {
         display: inline-flex !important;
@@ -1014,15 +1055,17 @@
           transform: translate3d(-105%, 0, 0);
           transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
           box-shadow: 20px 0 80px rgba(0, 0, 0, 0.55);
-          border-right: 1px solid rgba(251, 191, 36, 0.12);
+          border-right: 1px solid rgba(59, 130, 246, 0.38);
           -webkit-overflow-scrolling: touch;
           will-change: transform;
         }
         html:not(.rr-native-app) body.drawer-sidebar-open #admin-sidebar.admin-sidebar {
           transform: translate3d(0, 0, 0);
+          background: linear-gradient(180deg, #000000 0%, #020617 45%, #0b1220 100%);
         }
         html:not(.rr-native-app) #admin-sidebar-app-footer {
           display: block !important;
+          border-top-color: rgba(59, 130, 246, 0.22) !important;
         }
         html:not(.rr-native-app) .admin-sidebar-close {
           display: inline-flex !important;
@@ -1220,8 +1263,8 @@
           <div class="mb-5 shrink-0">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center space-x-3 min-w-0">
-                <div class="w-9 h-9 bg-gradient-to-br from-amber-700/40 to-slate-900 rounded-lg flex items-center justify-center shadow-lg shrink-0 border border-amber-400/40">
-                  <i class="fas fa-crown text-amber-300 text-sm" aria-hidden="true"></i>
+                <div class="w-9 h-9 bg-gradient-to-br from-blue-700/45 to-slate-900 rounded-lg flex items-center justify-center shadow-lg shrink-0 border border-blue-400/45">
+                  <i class="fas fa-crown text-blue-300 text-sm" aria-hidden="true"></i>
                 </div>
                 <div class="min-w-0">
                   <h2 class="text-base font-bold text-white leading-tight tracking-tight">Command Center</h2>
@@ -1239,7 +1282,7 @@
             <div class="mb-3">
               <h3 class="text-[10px] uppercase tracking-[0.2em] text-slate-500 px-3 mb-2 font-bold">Site</h3>
               <a href="index.html" class="nav-item flex items-center px-3 py-2 text-sm font-medium text-slate-300" data-admin-exit-home>
-                <i class="fas fa-home w-5 mr-3 text-amber-300" aria-hidden="true"></i>
+                <i class="fas fa-home w-5 mr-3 text-blue-400" aria-hidden="true"></i>
                 <span>Back to home</span>
               </a>
             </div>
