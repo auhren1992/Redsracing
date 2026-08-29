@@ -112,6 +112,13 @@
           
           <div class="mobile-section-header">Quick Access</div>
 
+          <a href="live.html" class="mobile-nav-link">
+            <div class="mobile-nav-link-icon" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">
+              <i class="fas fa-broadcast-tower"></i>
+            </div>
+            <span>Live Race</span>
+          </a>
+
           <a href="next-race.html" class="mobile-nav-link">
             <div class="mobile-nav-link-icon">
               <i class="fas fa-bolt"></i>
@@ -146,24 +153,26 @@
           <!-- Jon Kirsch Card -->
           <div class="mobile-nav-card">
             <div class="mobile-nav-card-header">
-              <div class="mobile-nav-card-number">#8</div>
               <div class="mobile-nav-card-title">
-                <div class="mobile-nav-card-name">Jon Kirsch</div>
-                <div class="mobile-nav-card-role">Father & Team Leader</div>
+                <div class="mobile-nav-card-icon" style="background: rgba(59, 130, 246, 0.25);">#8</div>
+                <div>
+                  <div class="mobile-nav-card-name">Jon Kirsch</div>
+                  <div class="mobile-nav-card-role">Father & Team Leader</div>
+                </div>
               </div>
             </div>
-            <div class="driver-links">
-              <a href="driver.html" class="driver-link">
-                <span class="driver-link-icon">👤</span>
-                <span class="driver-link-text">Profile</span>
+            <div class="driver-submenu-grid">
+              <a href="driver.html" class="driver-submenu-item">
+                <div class="driver-submenu-item-icon">👤</div>
+                <div class="driver-submenu-item-label">Profile</div>
               </a>
-              <a href="gallery.html" class="driver-link">
-                <span class="driver-link-icon">📸</span>
-                <span class="driver-link-text">Gallery</span>
+              <a href="gallery.html" class="driver-submenu-item">
+                <div class="driver-submenu-item-icon">📸</div>
+                <div class="driver-submenu-item-label">Gallery</div>
               </a>
-              <a href="jons.html" class="driver-link">
-                <span class="driver-link-icon">📊</span>
-                <span class="driver-link-text">K1 Archive</span>
+              <a href="jons.html" class="driver-submenu-item">
+                <div class="driver-submenu-item-icon">📊</div>
+                <div class="driver-submenu-item-label">K1 Archive</div>
               </a>
             </div>
           </div>
@@ -174,13 +183,10 @@
               <div class="mobile-nav-card-title">
                 <div class="mobile-nav-card-icon yellow">🏁</div>
                 <div>
-                  <div>Jonny Kirsch</div>
-                  <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 400;">#88 • Rising Star</div>
+                  <div class="mobile-nav-card-name">Jonny Kirsch</div>
+                  <div class="mobile-nav-card-role">#88 • Rising Star</div>
                 </div>
               </div>
-            </div>
-            <div class="mobile-nav-card-desc">
-              Next generation racer following in championship footsteps
             </div>
             <div class="driver-submenu-grid">
               <a href="jonny.html" class="driver-submenu-item">
@@ -207,8 +213,15 @@
           </a>
         </div>
         
-        <!-- Tab Content: Racing -->
+        <!-- Tab Content: Racing (parity with navigation.js upgradeNavMenus) -->
         <div class="mobile-tab-content" data-tab-content="racing">
+          <a href="live.html" class="mobile-nav-link">
+            <div class="mobile-nav-link-icon" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">
+              <i class="fas fa-broadcast-tower"></i>
+            </div>
+            <span>Live Race</span>
+          </a>
+
           <a href="next-race.html" class="mobile-nav-link">
             <div class="mobile-nav-link-icon" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24;">
               <i class="fas fa-bolt"></i>
@@ -222,12 +235,33 @@
             </div>
             <span>Schedule</span>
           </a>
+
+          <a href="stats.html" class="mobile-nav-link">
+            <div class="mobile-nav-link-icon" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;">
+              <i class="fas fa-chart-bar"></i>
+            </div>
+            <span>Season Stats</span>
+          </a>
+
+          <a href="recaps.html" class="mobile-nav-link">
+            <div class="mobile-nav-link-icon" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">
+              <i class="fas fa-flag-checkered"></i>
+            </div>
+            <span>Race Recaps</span>
+          </a>
           
           <a href="leaderboard.html" class="mobile-nav-link">
             <div class="mobile-nav-link-icon" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24;">
               <i class="fas fa-trophy"></i>
             </div>
             <span>Leaderboard</span>
+          </a>
+
+          <a href="tracks.html" class="mobile-nav-link">
+            <div class="mobile-nav-link-icon" style="background: rgba(139, 92, 246, 0.2); color: #a78bfa;">
+              <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <span>Track Guides</span>
           </a>
           
           <a href="videos.html" class="mobile-nav-link">
@@ -238,8 +272,22 @@
           </a>
         </div>
         
-        <!-- Tab Content: Community -->
+        <!-- Tab Content: Community (parity with navigation.js upgradeNavMenus) -->
         <div class="mobile-tab-content" data-tab-content="community">
+          <a href="predictions.html" class="mobile-nav-link">
+            <div class="mobile-nav-link-icon" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24;">
+              <i class="fas fa-trophy"></i>
+            </div>
+            <span>Predictions</span>
+          </a>
+
+          <a href="fan-wall.html" class="mobile-nav-link">
+            <div class="mobile-nav-link-icon" style="background: rgba(249, 115, 22, 0.2); color: #fb923c;">
+              <i class="fas fa-bullhorn"></i>
+            </div>
+            <span>Fan Wall</span>
+          </a>
+
           <a href="qna.html" class="mobile-nav-link">
             <div class="mobile-nav-link-icon" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">
               <i class="fas fa-question-circle"></i>
@@ -252,6 +300,27 @@
               <i class="fas fa-comments"></i>
             </div>
             <span>Feedback</span>
+          </a>
+
+          <a href="about.html" class="mobile-nav-link">
+            <div class="mobile-nav-link-icon" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;">
+              <i class="fas fa-info-circle"></i>
+            </div>
+            <span>About Us</span>
+          </a>
+
+          <a href="contact.html" class="mobile-nav-link">
+            <div class="mobile-nav-link-icon" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">
+              <i class="fas fa-phone"></i>
+            </div>
+            <span>Contact</span>
+          </a>
+
+          <a href="racing-guide.html" class="mobile-nav-link">
+            <div class="mobile-nav-link-icon" style="background: rgba(139, 92, 246, 0.2); color: #a78bfa;">
+              <i class="fas fa-book"></i>
+            </div>
+            <span>Racing Guide</span>
           </a>
           
           <a href="sponsorship.html" class="mobile-nav-link">
