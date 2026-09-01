@@ -39,7 +39,7 @@
     <link rel="stylesheet" href="styles/input-fix.css" />
     <link rel="stylesheet" href="styles/modern-nav.css" />
     <link rel="stylesheet" href="styles/modern-effects.css" />
-    <link rel="stylesheet" href="styles/hotspot-3d.css" />
+    <link rel="stylesheet" href="styles/speedhive-laps.css?v=2026090114" />
     <style>
       /* Admin delete button styles */
       .admin-delete-btn {
@@ -661,6 +661,10 @@
                 <i class="fas fa-images mr-2"></i>
                 View Gallery
               </a>
+              <a href="#race-results" class="px-8 py-4 border-2 border-blue-400/40 text-blue-200 font-bold rounded-xl hover:bg-blue-500/10 hover:border-blue-300 transition-all duration-300">
+                <i class="fas fa-chart-line mr-2"></i>
+                Race Results
+              </a>
               <a href="#the-car" class="px-8 py-4 border-2 border-white/30 text-white font-bold rounded-xl hover:bg-white/10 hover:border-yellow-400 transition-all duration-300">
                 <i class="fas fa-car mr-2"></i>
                 Meet The Beast
@@ -778,6 +782,17 @@
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- MYLAPS Speedhive Race Results -->
+      <section id="race-results-section" class="py-16 md:py-24 bg-black/5">
+        <div class="container mx-auto px-6">
+          <h2 class="font-racing text-4xl md:text-5xl uppercase mb-4 text-center">MYLAPS Speedhive <span class="neon-yellow">Race Results</span></h2>
+          <p class="text-center text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mb-8 text-sm md:text-base">
+            Official lap times, positions, and session stats. Expand any weekend for lap-by-lap detail when available.
+          </p>
+          <div id="race-results" class="max-w-7xl mx-auto" aria-live="polite"></div>
         </div>
       </section>
 
@@ -1266,7 +1281,7 @@
     <script type="module" src="assets/js/racer-schedule.js"></script>
     <script src="assets/js/gallery-tagging.js"></script>
     <script type="module" src="assets/js/driver.js"></script>
-    <script src="assets/js/speedhive-results.js?v=20251008"></script>
+    <script src="assets/js/speedhive-results.js?v=2026090114"></script>
     <script src="assets/js/hotspot-mobile.js"></script>
     <!-- Sponsor Hotspots (Phase 3) -->
     <script src="assets/js/feature-flags.js"></script>
