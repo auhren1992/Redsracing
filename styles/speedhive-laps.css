@@ -1,0 +1,259 @@
+/* Lap-by-lap detail inside #race-results — matches site surfaces */
+
+#race-results .sh-season-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  justify-content: center;
+}
+
+#race-results .sh-season-tab {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid var(--rr-border);
+  background: var(--rr-surface);
+  color: var(--rr-text);
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+#race-results .sh-season-tab.active,
+#race-results .sh-season-tab:hover {
+  border-color: rgba(214, 177, 94, 0.55);
+  background: var(--rr-surface-strong);
+}
+
+#race-results .sh-season-summary {
+  background: var(--rr-surface);
+  border: 1px solid var(--rr-border);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+#race-results .sh-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  #race-results .sh-stat-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+#race-results .sh-stat {
+  background: var(--rr-bg-elev);
+  border: 1px solid var(--rr-border);
+  border-radius: 0.85rem;
+  padding: 0.85rem 0.65rem;
+  text-align: center;
+}
+
+#race-results .sh-stat-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--rr-accent);
+  line-height: 1.1;
+}
+
+#race-results .sh-stat-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rr-muted);
+  margin-top: 0.25rem;
+}
+
+#race-results .sh-event-expand {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rr-border);
+}
+
+#race-results .sh-session-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+#race-results .sh-session-tab {
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--rr-border);
+  background: var(--rr-bg-elev);
+  color: var(--rr-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#race-results .sh-session-tab.active {
+  border-color: rgba(214, 177, 94, 0.55);
+  background: var(--rr-surface-strong);
+  color: var(--rr-accent);
+}
+
+#race-results .sh-session-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  #race-results .sh-session-summary {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+#race-results .sh-session-stat {
+  background: var(--rr-bg-elev);
+  border: 1px solid var(--rr-border);
+  border-radius: 0.65rem;
+  padding: 0.55rem;
+  text-align: center;
+}
+
+#race-results .sh-session-stat span {
+  display: block;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  color: var(--rr-muted);
+  letter-spacing: 0.06em;
+}
+
+#race-results .sh-session-stat strong {
+  display: block;
+  font-size: 1rem;
+  color: var(--rr-text);
+  margin-top: 0.15rem;
+}
+
+#race-results .sh-charts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+@media (min-width: 768px) {
+  #race-results .sh-charts {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+#race-results .sh-chart-panel {
+  background: var(--rr-bg-elev);
+  border: 1px solid var(--rr-border);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+}
+
+#race-results .sh-chart-title {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--rr-muted);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+#race-results .sh-bar-chart,
+#race-results .sh-pos-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 7rem;
+}
+
+#race-results .sh-bar {
+  flex: 1 1 0;
+  min-width: 4px;
+  max-width: 14px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+#race-results .sh-bar.best {
+  background: linear-gradient(180deg, var(--rr-accent-2) 0%, var(--rr-accent) 100%);
+}
+
+#race-results .sh-pos-bar {
+  flex: 1 1 0;
+  min-width: 4px;
+  max-width: 14px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+}
+
+#race-results .sh-lap-table-wrap {
+  overflow-x: auto;
+  border-radius: 0.65rem;
+  border: 1px solid var(--rr-border);
+}
+
+#race-results .sh-lap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+#race-results .sh-lap-table th {
+  text-align: left;
+  padding: 0.45rem 0.6rem;
+  background: var(--rr-surface-strong);
+  color: var(--rr-muted);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+#race-results .sh-lap-table td {
+  padding: 0.4rem 0.6rem;
+  border-top: 1px solid var(--rr-border);
+  color: var(--rr-text);
+  font-family: ui-monospace, monospace;
+}
+
+#race-results .sh-lap-table tr.best td {
+  background: rgba(214, 177, 94, 0.1);
+  color: var(--rr-accent);
+  font-weight: 700;
+}
+
+#race-results .sh-toggle-laps {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--rr-border);
+  background: var(--rr-bg-elev);
+  color: var(--rr-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#race-results .sh-toggle-laps i {
+  transition: transform 0.2s ease;
+}
+
+#race-results .sh-toggle-laps[aria-expanded="true"] i {
+  transform: rotate(180deg);
+}
+
+#race-results .sh-lap-detail {
+  display: none;
+}
+
+#race-results .sh-lap-detail.open {
+  display: block;
+}
