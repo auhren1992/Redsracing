@@ -1,0 +1,239 @@
+{
+  "driver": "Jon Kirsch",
+  "carNumber": "#8",
+  "series": "American Super Cup Series",
+  "source": "MYLAPS Speedhive Official Timing & Scoring",
+  "lastUpdated": "2026-08-15",
+  "seasonHighlights": {
+    "2026": {
+      "events": 6,
+      "podiums": 1,
+      "heatWins": 2,
+      "poles": 1,
+      "bestLap": "14.986",
+      "bestTrack": "Slinger Super Speedway"
+    },
+    "2025": {
+      "events": 8,
+      "podiums": 2,
+      "heatWins": 2,
+      "poles": 0,
+      "bestLap": "17.475",
+      "bestTrack": "Dells Raceway Park"
+    }
+  },
+  "events": [
+    {
+      "id": "ron-meister-2026",
+      "season": 2026,
+      "name": "Ron Meister Memorial",
+      "date": "2026-08-15",
+      "venue": "Dells Raceway Park",
+      "location": "Wisconsin Dells, WI",
+      "highlights": ["P2 Podium", "Led 13 laps"],
+      "sessions": [
+        {
+          "type": "Qualifying",
+          "position": 6,
+          "bestLap": 17.585,
+          "bestSpeed": 68.24,
+          "laps": [
+            { "lap": 1, "time": 18.066, "speed": 66.423 },
+            { "lap": 2, "time": 17.697, "speed": 67.808 },
+            { "lap": 3, "time": 17.585, "speed": 68.24, "best": true },
+            { "lap": 4, "time": 17.653, "speed": 67.977 }
+          ]
+        },
+        {
+          "type": "Feature",
+          "position": 2,
+          "totalTime": "04:26.541",
+          "bestLap": 17.391,
+          "bestSpeed": 68.995,
+          "laps": [
+            { "lap": 1, "pos": 1, "time": 18.665 },
+            { "lap": 2, "pos": 1, "time": 17.675 },
+            { "lap": 3, "pos": 1, "time": 17.669 },
+            { "lap": 4, "pos": 1, "time": 17.702 },
+            { "lap": 5, "pos": 1, "time": 17.632 },
+            { "lap": 6, "pos": 1, "time": 17.599 },
+            { "lap": 7, "pos": 1, "time": 17.575 },
+            { "lap": 8, "pos": 1, "time": 17.588 },
+            { "lap": 9, "pos": 1, "time": 17.575 },
+            { "lap": 10, "pos": 1, "time": 17.476 },
+            { "lap": 11, "pos": 1, "time": 17.487 },
+            { "lap": 12, "pos": 1, "time": 17.462 },
+            { "lap": 13, "pos": 1, "time": 17.391, "best": true },
+            { "lap": 14, "pos": 2, "time": 18.232 },
+            { "lap": 15, "pos": 2, "time": 17.703 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kwik-trip-2026",
+      "season": 2026,
+      "name": "Kwik Trip Racing",
+      "date": "2026-07-04",
+      "venue": "LaCrosse Fairgrounds Speedway",
+      "location": "West Salem, WI",
+      "highlights": ["Pole Position", "Heat Win"],
+      "sessions": [
+        {
+          "type": "Qualifying",
+          "position": 1,
+          "bestLap": 16.663,
+          "bestSpeed": 117.746,
+          "laps": [{ "lap": 1, "pos": 1, "time": 16.663, "speed": 117.746, "best": true }]
+        },
+        {
+          "type": "Heat 1",
+          "position": 1,
+          "totalTime": "02:18.753",
+          "bestLap": 16.068,
+          "bestSpeed": 122.106,
+          "laps": [
+            { "lap": 1, "pos": 7, "time": 18.164 },
+            { "lap": 2, "pos": 6, "time": 17.362 },
+            { "lap": 3, "pos": 3, "time": 16.848 },
+            { "lap": 4, "pos": 2, "time": 16.736 },
+            { "lap": 5, "pos": 2, "time": 16.382 },
+            { "lap": 6, "pos": 2, "time": 16.321 },
+            { "lap": 7, "pos": 2, "time": 16.138 },
+            { "lap": 8, "pos": 1, "time": 16.068, "best": true }
+          ]
+        },
+        {
+          "type": "Feature",
+          "position": 14,
+          "bestLap": 16.694,
+          "bestSpeed": 117.527,
+          "laps": [
+            { "lap": 1, "pos": 6, "time": 17.828 },
+            { "lap": 2, "pos": 5, "time": 16.694, "best": true },
+            { "lap": 3, "pos": 10, "time": 19.512 },
+            { "lap": 4, "pos": 9, "time": 17.791 },
+            { "lap": 5, "pos": 9, "time": 17.451 },
+            { "lap": 6, "pos": 9, "time": 18.406 },
+            { "lap": 7, "pos": 10, "time": 17.796 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "carl-wegner-2026",
+      "season": 2026,
+      "name": "Carl Wegner Memorial",
+      "date": "2026-08-02",
+      "venue": "Slinger Super Speedway",
+      "location": "Slinger, WI",
+      "highlights": ["Top-5 Qualifying"],
+      "sessions": [
+        {
+          "type": "Qualifying",
+          "position": 5,
+          "bestLap": 15.309,
+          "bestSpeed": 58.789,
+          "laps": [
+            { "lap": 1, "time": 22.331 },
+            { "lap": 2, "time": 15.45 },
+            { "lap": 3, "time": 15.309, "best": true },
+            { "lap": 4, "time": 19.586 }
+          ]
+        },
+        {
+          "type": "Feature",
+          "position": 6,
+          "totalTime": "23:07.682",
+          "bestLap": 15.265,
+          "bestSpeed": 58.958,
+          "laps": [
+            { "lap": 1, "pos": 5, "time": 16.663 },
+            { "lap": 5, "pos": 6, "time": 16.615 },
+            { "lap": 8, "pos": 6, "time": 15.265, "best": true },
+            { "lap": 15, "pos": 6, "time": 15.588 },
+            { "lap": 25, "pos": 6, "time": 15.344 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "labor-day-2025",
+      "season": 2025,
+      "name": "Labor Day of Doom",
+      "date": "2025-08-31",
+      "venue": "Dells Raceway Park",
+      "location": "Wisconsin Dells, WI",
+      "highlights": ["P3 Podium", "Heat Win"],
+      "sessions": [
+        {
+          "type": "Qualifying",
+          "position": 8,
+          "bestLap": 17.565,
+          "bestSpeed": 68.311,
+          "laps": [
+            { "lap": 1, "time": 17.923 },
+            { "lap": 2, "time": 17.826 },
+            { "lap": 3, "time": 17.616 },
+            { "lap": 4, "time": 17.565, "best": true },
+            { "lap": 5, "time": 17.575 }
+          ]
+        },
+        {
+          "type": "Heat 2",
+          "position": 1,
+          "totalTime": "02:25.948",
+          "bestLap": 17.619,
+          "bestSpeed": 68.101,
+          "laps": [
+            { "lap": 1, "pos": 2, "time": 18.749 },
+            { "lap": 4, "pos": 1, "time": 17.746 },
+            { "lap": 7, "pos": 1, "time": 17.619, "best": true },
+            { "lap": 8, "pos": 1, "time": 17.667 }
+          ]
+        },
+        {
+          "type": "Feature",
+          "position": 3,
+          "totalTime": "04:31.305",
+          "bestLap": 17.475,
+          "bestSpeed": 68.663,
+          "laps": [
+            { "lap": 1, "pos": 2, "time": 19.03 },
+            { "lap": 5, "pos": 3, "time": 17.672 },
+            { "lap": 9, "pos": 3, "time": 17.475, "best": true },
+            { "lap": 12, "pos": 3, "time": 17.658 },
+            { "lap": 15, "pos": 3, "time": 17.723 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spring-classic-2026",
+      "season": 2026,
+      "name": "49th Annual Spring Classic",
+      "date": "2026-04-18",
+      "venue": "Grundy County Speedway",
+      "location": "Morris, IL",
+      "highlights": ["P4 Feature"],
+      "summaryOnly": true,
+      "sessions": [
+        { "type": "Heat 1", "position": 4, "bestLap": 19.302, "bestSpeed": 61.548 },
+        { "type": "Feature", "position": 4, "bestLap": 19.201, "bestSpeed": 61.872, "totalTime": "09:51.510" }
+      ]
+    },
+    {
+      "id": "small-car-nationals-2025",
+      "season": 2025,
+      "name": "Small Car Nationals",
+      "date": "2025-07-13",
+      "venue": "Slinger Super Speedway",
+      "location": "Slinger, WI",
+      "highlights": ["P2 Podium"],
+      "summaryOnly": true,
+      "sessions": [
+        { "type": "Feature", "position": 2, "notes": "Podium behind Giovanni Sallee" }
+      ]
+    }
+  ]
+}
