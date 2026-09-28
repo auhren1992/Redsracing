@@ -1,0 +1,33 @@
+# RedsRacing Cursor Rules
+
+## Before adding helpers
+- Always search the codebase for an existing helper that does the same job before creating a new one.
+- Prefer extending a shared utility in `assets/js/`, Android common helpers, or iOS shared helpers over copy-pasting.
+- If a near-duplicate exists across web / Android / iOS, consolidate or document why platform-specific copies must diverge.
+
+## Null safety (strict)
+- Never use force-unwraps or blind casts:
+  - Kotlin: no `!!`
+  - Swift: no `!` force unwraps (prefer `guard let`, `if let`, `??`)
+  - TypeScript / JS: no `as any`, no unchecked non-null assertions (`!`), avoid `any` for public APIs
+- Prefer explicit null/undefined checks, early returns, and typed fallbacks.
+- Treat API payloads as untrusted: validate required fields before use.
+
+## Network & API handling
+- Every network call must handle failure paths (timeouts, non-2xx, parse errors, offline).
+- Do not swallow errors silently; log with context and surface a user-safe message when UI-facing.
+- Keep response handling consistent: same status codes, error shapes, and auth-refresh behavior across Web, Android, and iOS.
+- Never assume a successful body shape; guard missing fields.
+
+## Cross-platform parity
+- Business logic, data models, and API contracts must stay aligned between website, Android, and iOS.
+- Auth token storage, session refresh, and deep-link handling must be reviewed together when one platform changes.
+
+## Performance & leaks
+- Clean up listeners, observers, WebView callbacks, and streams in teardown / `onDestroy` / `deinit`.
+- Avoid retaining Activity / ViewController / DOM references past lifecycle.
+- Prefer cancelable fetches and structured concurrency over fire-and-forget network work.
+
+## Audit / review mindset
+- Flag dead code, unused imports, orphaned mirrored `www` copies that diverge from canonical sources.
+- Prefer fixing canonical web sources then `npm run sync:mobile` — do not hand-edit Android/iOS mirrored bundles unless native-only.
