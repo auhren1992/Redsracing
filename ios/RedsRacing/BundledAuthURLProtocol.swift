@@ -1,6 +1,26 @@
 import Foundation
 
 /// Serves bundled `www` auth files while keeping https://www.redsracing.org URLs (Firebase Auth origin).
+///
+/// - Important: `URLProtocol` registration (`URLProtocol.registerClass`) only
+///   intercepts requests made through `URLSession`/`URLConnection`-based
+///   stacks. **It does not intercept `WKWebView`'s HTTPS network traffic** —
+///   WKWebView's networking is handled entirely by the system's network
+///   process (`com.apple.WebKit.Networking`), which never consults the
+///   app's registered `URLProtocol` subclasses. Apple has never offered an
+///   HTTPS hook here; the only supported way to serve/override bundled
+///   content *inside* a WKWebView is a custom `WKURLSchemeHandler` (for a
+///   custom scheme) or a `WKNavigationDelegate` policy decision, neither of
+///   which this class implements.
+///
+///   In this app, `ContentView`'s `WebView` always loads `https://www.redsracing.org/...`
+///   directly over the network (see `WKWebView.load`), so login/signup keep
+///   working via the live network response regardless of this protocol's
+///   registration. This class remains registered (see `AppDelegate`) for the
+///   narrow case of any `URLSession`-based request the app itself makes to
+///   these paths (e.g. prefetching), not as a WKWebView content override.
+///   Do not rely on it to serve `login.html`/`signup.html` inside the
+///   WebView — it will not fire there.
 final class BundledAuthURLProtocol: URLProtocol {
     private static let siteHosts: Set<String> = ["www.redsracing.org", "redsracing.org"]
 

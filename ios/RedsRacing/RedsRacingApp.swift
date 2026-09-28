@@ -24,7 +24,33 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         }
         requestPushPermissions(application)
         URLProtocol.registerClass(BundledAuthURLProtocol.self)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(applicationWillTerminateNotification),
+            name: UIApplication.willTerminateNotification,
+            object: nil
+        )
         return true
+    }
+
+    /// Removes the Firebase auth listener registered in
+    /// `didFinishLaunchingWithOptions` so it doesn't outlive the app process
+    /// state teardown. `UIApplicationDelegate.applicationWillTerminate` is
+    /// unreliable for apps that support background/suspend without
+    /// termination callbacks firing, so this also listens for the
+    /// `UIApplication.willTerminateNotification` directly as a fallback.
+    @objc private func applicationWillTerminateNotification() {
+        removeAuthListener()
+    }
+
+    func applicationWillTerminate(_ application: UIApplication) {
+        removeAuthListener()
+    }
+
+    private func removeAuthListener() {
+        guard let listener = authListener else { return }
+        Auth.auth().removeStateDidChangeListener(listener)
+        authListener = nil
     }
 
     /// Called when the SwiftUI scene becomes active so Releases "last check-in" stays fresh.
@@ -86,7 +112,19 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
         let buildCode = Int(build) ?? 0
+        // Prefer the native session the WebView bridge recorded
+        // (`firebase_native_auth_uid`/`_email`, written by `ContentView`'s
+        // `storeSession` handler) over `Auth.auth().currentUser`: the WebView
+        // is the source of truth for "who is signed in" in this app, and the
+        // native `FirebaseAuth` SDK instance is not guaranteed to be signed
+        // in to the same account (or signed in at all) since sign-in happens
+        // inside the web content, not through the native SDK.
+        let defaults = UserDefaults.standard
+        let nativeUid = defaults.string(forKey: "firebase_native_auth_uid") ?? ""
+        let nativeEmail = defaults.string(forKey: "firebase_native_auth_email") ?? ""
         let user = Auth.auth().currentUser
+        let authUid = nativeUid.isEmpty ? (user?.uid ?? "") : nativeUid
+        let authEmail = nativeEmail.isEmpty ? (user?.email ?? "") : nativeEmail
         let machine = deviceMachineIdentifier()
         let modelName = UIDevice.current.model
         let usageData: [String: Any] = [
@@ -101,8 +139,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
             "ios_version": UIDevice.current.systemVersion,
             "os_version": UIDevice.current.systemVersion,
             // Optional identity fields (present only when signed in)
-            "auth_uid": user?.uid ?? "",
-            "auth_email": user?.email ?? "",
+            "auth_uid": authUid,
+            "auth_email": authEmail,
             "last_seen": Timestamp()
         ]
         Firestore.firestore().collection("app_usage").document(fcmToken).setData(usageData) { error in

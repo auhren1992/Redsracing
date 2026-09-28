@@ -1,8 +1,8 @@
 import Foundation
 
 /// Mirrors the Android widget's data fetch logic so both apps stay in sync.
-/// Fetches https://redsracing.org/data/schedule.json, picks the next race in
-/// the future, and exposes a small persisted cache for offline rendering.
+/// Fetches https://www.redsracing.org/data/schedule.json, picks the next race
+/// in the future, and exposes a small persisted cache for offline rendering.
 
 struct CachedRace: Codable {
     let raceName: String
@@ -58,20 +58,50 @@ enum NextRaceCache {
 /// MARK: - Network + parsing
 
 enum ScheduleService {
+    /// Result of a fetch attempt, distinguishing "the network/parse failed"
+    /// from "the network succeeded but there's genuinely no upcoming race"
+    /// so the widget can surface an `.error` state instead of silently
+    /// showing "no upcoming race" for a network failure.
+    enum FetchResult {
+        case success(CachedRace?)
+        case failure
+    }
+
     // Optional + nil-coalesced rather than force-unwrapped so a typo in the
     // URL literal can't crash the widget process at first use.
-    static let scheduleURL: URL? = URL(string: "https://redsracing.org/data/schedule.json")
+    // Uses the `www` host (not the apex `redsracing.org`) to match the
+    // canonical hosting domain used everywhere else in the app.
+    static let scheduleURL: URL? = URL(string: "https://www.redsracing.org/data/schedule.json")
 
+    static func fetchNextRaceResult() async -> FetchResult {
+        guard let data = await downloadSchedule() else { return .failure }
+        guard let seasons = parseSeasons(from: data) else {
+            #if DEBUG
+            print("[RedsRacingWidget] Schedule JSON missing/invalid 'seasons' array")
+            #endif
+            return .failure
+        }
+        return .success(earliestUpcomingRace(in: seasons, now: Date()))
+    }
+
+    /// Convenience wrapper for callers that only care about the race, not
+    /// whether a failure occurred (kept for API compatibility).
     static func fetchNextRace() async -> CachedRace? {
-        guard let data = await downloadSchedule() else { return nil }
-        guard let seasons = parseSeasons(from: data) else { return nil }
-        return earliestUpcomingRace(in: seasons, now: Date())
+        if case .success(let race) = await fetchNextRaceResult() {
+            return race
+        }
+        return nil
     }
 
     /// MARK: Network
 
     private static func downloadSchedule() async -> Data? {
-        guard let url = scheduleURL else { return nil }
+        guard let url = scheduleURL else {
+            #if DEBUG
+            print("[RedsRacingWidget] scheduleURL failed to construct")
+            #endif
+            return nil
+        }
         var request = URLRequest(url: url,
                                  cachePolicy: .reloadIgnoringLocalCacheData,
                                  timeoutInterval: 8)
@@ -82,10 +112,17 @@ enum ScheduleService {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let http = response as? HTTPURLResponse,
                   (200..<300).contains(http.statusCode) else {
+                #if DEBUG
+                let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+                print("[RedsRacingWidget] Schedule fetch bad status: \(status)")
+                #endif
                 return nil
             }
             return data
         } catch {
+            #if DEBUG
+            print("[RedsRacingWidget] Schedule fetch error: \(error.localizedDescription)")
+            #endif
             return nil
         }
     }
@@ -126,9 +163,7 @@ enum ScheduleService {
             guard let races = season["races"] as? [[String: Any]] else { continue }
             for race in races {
                 guard let entry = parseRace(race, now: now) else { continue }
-                if best == nil || entry.date < best!.date {
-                    best = entry
-                }
+                best = best.map { entry.date < $0.date ? entry : $0 } ?? entry
             }
         }
         return best?.race

@@ -11,7 +11,7 @@ struct NextRaceEntry: TimelineEntry {
     let raceDate: Date?
     let status: Status
 
-    enum Status {
+    enum Status: Equatable {
         case ok
         case loading
         case noUpcoming
@@ -21,8 +21,8 @@ struct NextRaceEntry: TimelineEntry {
 
 /// MARK: - Timeline provider
 ///
-/// The widget fetches `https://redsracing.org/data/schedule.json` directly and
-/// caches the next future race in the shared App Group container (see
+/// The widget fetches `https://www.redsracing.org/data/schedule.json` directly
+/// and caches the next future race in the shared App Group container (see
 /// `WidgetConfig.appGroup`). WidgetKit asks for new timelines roughly every
 /// 30–60 minutes; we also schedule explicit refreshes so the countdown stays
 /// fresh.
@@ -59,7 +59,22 @@ struct NextRaceProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<NextRaceEntry>) -> Void) {
         Task {
-            let race = await ScheduleService.fetchNextRace() ?? NextRaceCache.read()
+            // Distinguish "fetch failed" from "fetch succeeded, no upcoming
+            // race" so a network failure with no usable cache surfaces as an
+            // explicit `.error` state instead of a misleading "no upcoming
+            // race" message.
+            let result = await ScheduleService.fetchNextRaceResult()
+            let race: CachedRace?
+            let fallbackStatus: NextRaceEntry.Status
+            switch result {
+            case .success(let fetched):
+                race = fetched
+                fallbackStatus = .noUpcoming
+            case .failure:
+                let cached = NextRaceCache.read()
+                race = cached
+                fallbackStatus = cached == nil ? .error : .noUpcoming
+            }
             if let race = race {
                 NextRaceCache.write(race)
             }
@@ -75,10 +90,10 @@ struct NextRaceProvider: TimelineProvider {
                     ?? NextRaceEntry(
                         date: stamp,
                         raceName: "RedsRacing",
-                        track: "No upcoming race",
+                        track: fallbackStatus == .error ? "Unable to load schedule" : "No upcoming race",
                         location: "",
                         raceDate: nil,
-                        status: .noUpcoming
+                        status: fallbackStatus
                     )
                 )
             }
@@ -95,8 +110,6 @@ struct NextRaceProvider: TimelineProvider {
 
 struct NextRaceWidgetView: View {
     var entry: NextRaceEntry
-
-    @Environment(\.widgetFamily) private var family
 
     var body: some View {
         ZStack {
@@ -127,8 +140,10 @@ struct NextRaceWidgetView: View {
     @ViewBuilder
     private var content: some View {
         switch entry.status {
-        case .loading, .error:
+        case .loading:
             placeholderView
+        case .error:
+            errorView
         case .noUpcoming:
             noUpcomingView
         case .ok:
@@ -225,6 +240,19 @@ struct NextRaceWidgetView: View {
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(.white)
             Text("Check back soon")
+                .font(.system(size: 12))
+                .foregroundColor(.gray)
+            Spacer()
+        }
+    }
+
+    private var errorView: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            headerRow
+            Text("Unable to load schedule")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(.white)
+            Text("Tap to retry")
                 .font(.system(size: 12))
                 .foregroundColor(.gray)
             Spacer()
