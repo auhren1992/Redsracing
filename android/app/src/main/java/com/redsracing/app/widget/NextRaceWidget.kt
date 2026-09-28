@@ -11,7 +11,6 @@ import android.net.Uri
 import android.widget.RemoteViews
 import com.redsracing.app.MainActivity
 import com.redsracing.app.R
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -63,7 +62,7 @@ class NextRaceWidget : AppWidgetProvider() {
         private const val KEY_RACE_DATE_ISO = "race_date_iso"
         private const val KEY_LAST_FETCH = "last_fetch_ms"
 
-        private const val SCHEDULE_URL = "https://redsracing.org/data/schedule.json"
+        private const val SCHEDULE_URL = "https://www.redsracing.org/data/schedule.json"
 
         fun prefs(context: Context): SharedPreferences =
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -106,11 +105,7 @@ class NextRaceWidget : AppWidgetProvider() {
         ) {
             val race = try {
                 fetchNextRace()
-            } catch (e: IOException) {
-                null
-            } catch (e: JSONException) {
-                null
-            } catch (e: IllegalArgumentException) {
+            } catch (e: Exception) {
                 null
             }
             if (race != null) {
@@ -285,13 +280,13 @@ class NextRaceWidget : AppWidgetProvider() {
             var connection: HttpURLConnection? = null
             return try {
                 val url = URL(urlStr)
-                connection = (url.openConnection() as HttpURLConnection).apply {
+                connection = (url.openConnection() as? HttpURLConnection)?.apply {
                     requestMethod = "GET"
                     connectTimeout = 8000
                     readTimeout = 8000
                     setRequestProperty("Accept", "application/json")
                     setRequestProperty("Cache-Control", "no-cache")
-                }
+                } ?: return null
                 val code = connection.responseCode
                 if (code in 200..299) connection.inputStream.bufferedReader().readText()
                 else null
