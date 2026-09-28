@@ -11,7 +11,22 @@ import {
   applyPendingInvitationCode,
 } from "./invitation-codes.js";
 
+function ensureYearAndDropdowns() {
+  try {
+    const el = document.getElementById("year");
+    if (el) el.textContent = new Date().getFullYear().toString();
+  } catch (_) {}
+  try {
+    document.querySelectorAll(".dropdown-menu").forEach((menu) => {
+      menu.classList.add("hidden");
+      menu.setAttribute("aria-hidden", "true");
+    });
+  } catch (_) {}
+}
+
 async function initFirebase() {
+  ensureYearAndDropdowns();
+
   try {
     // Capture invitation code from URL as early as possible
     captureInvitationCodeFromURL();

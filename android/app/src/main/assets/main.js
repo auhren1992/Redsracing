@@ -1,4 +1,4 @@
-// Root main.js: small shared helpers
+// Root main.js — year/dropdown helpers + load canonical assets/js/main.js
 (function () {
   'use strict';
 
@@ -28,3 +28,8 @@
     ready();
   }
 })();
+
+// Dynamically load Firebase auth/invite helpers (works from classic or module scripts).
+try {
+  import('./assets/js/main.js').catch(function () {});
+} catch (_) {}

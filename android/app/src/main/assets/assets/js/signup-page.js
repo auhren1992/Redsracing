@@ -62,14 +62,24 @@ export async function handleSignup(email, password, inviteCode, signupRole = 'fa
         const f = getFunctions();
         const setFollowerRole = httpsCallable(f, 'setFollowerRole');
         await setFollowerRole();
-        try { await user.getIdToken(true); } catch(_) {}
+        try {
+          await user.getIdToken(true);
+        } catch (tokenErr) {
+          console.warn('Token refresh after setFollowerRole failed:', tokenErr?.message || tokenErr);
+          throw new Error('Unable to refresh session after role assignment. Please try again.');
+        }
       } catch (e) {
         console.warn('setFollowerRole failed (continuing without blocking):', e?.message || e);
       }
     }
 
     // Ensure auth token is ready before writing to Firestore
-    try { await user.getIdToken(true); } catch (_) {}
+    try {
+      await user.getIdToken(true);
+    } catch (tokenErr) {
+      console.warn('Token refresh before profile write failed:', tokenErr?.message || tokenErr);
+      throw new Error('Unable to refresh session. Please try signing up again.');
+    }
 
     // Create a default profile document in Firestore with signup role
     await createDefaultProfile(user, signupRole);

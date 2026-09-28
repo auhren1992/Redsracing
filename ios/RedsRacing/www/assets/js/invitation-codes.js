@@ -93,8 +93,17 @@ export async function applyPendingInvitationCode(currentUser) {
 export async function userNeedsInvitationCode(currentUser) {
   if (!currentUser) return false;
 
-  const idTokenResult = await currentUser.getIdTokenResult();
-  const userRole = idTokenResult.claims.role;
-
-  return !userRole || userRole === "public-fan";
+  try {
+    const idTokenResult = await currentUser.getIdTokenResult(true);
+    const claims = idTokenResult.claims || {};
+    if (claims.admin === true) return false;
+    const userRole = claims.role;
+    if (userRole === "admin" || userRole === "owner" || userRole === "team-member" || userRole === "crew") {
+      return false;
+    }
+    return !userRole || userRole === "public-fan";
+  } catch (e) {
+    console.warn("[invitation-codes] claim check failed:", e);
+    return false;
+  }
 }

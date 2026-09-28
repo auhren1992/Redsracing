@@ -1,6 +1,7 @@
 // Shared schedule renderer for driver pages
 import "./app.js";
 import { getFirebaseDb } from "./firebase-core.js";
+import { escapeHTML } from "./sanitize.js";
 import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 async function fetchJSON(path) {
@@ -47,15 +48,19 @@ function renderSchedule(root, races, opts = {}) {
     card.className = `schedule-card rounded-lg p-5 card ${isPast ? 'past' : 'upcoming'}`;
     const status = isPast ? '<span class="text-xs text-slate-400">Completed</span>' : '<span class="text-xs text-neon-yellow">Upcoming</span>';
     const subtitle = r.subtitle || [r.track, r.city && r.state ? `${r.city}, ${r.state}` : null].filter(Boolean).join(' — ');
+    const name = escapeHTML(r.eventName || r.name || '');
+    const sub = escapeHTML(subtitle || '');
+    const time = escapeHTML(r.startTime || 'TBA');
+    const dateLabel = escapeHTML(formatDate(r.date));
     card.innerHTML = `
       <div class="flex items-center justify-between">
         <div>
-          <div class="text-xl font-bold">${r.eventName || r.name}</div>
-          ${subtitle ? `<div class="text-slate-400 text-sm">${subtitle}</div>` : ''}
+          <div class="text-xl font-bold">${name}</div>
+          ${sub ? `<div class="text-slate-400 text-sm">${sub}</div>` : ''}
         </div>
         <div class="text-right">
-          <div class="${isPast ? 'text-slate-400' : 'text-neon-yellow'} font-bold">${formatDate(r.date)}</div>
-          <div class="text-slate-400 text-sm">${r.startTime || "TBA"}</div>
+          <div class="${isPast ? 'text-slate-400' : 'text-neon-yellow'} font-bold">${dateLabel}</div>
+          <div class="text-slate-400 text-sm">${time}</div>
           ${status}
         </div>
       </div>

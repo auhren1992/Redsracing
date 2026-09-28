@@ -31,7 +31,7 @@
     hubLabel = 'Racer hub';
     hubColor = 'text-orange-400 border-orange-500/40 bg-orange-500/10';
   } else {
-    loginHref = R + '/follower-login.html';
+    loginHref = R + '/login.html';
     loginLabel = 'Fan login';
     hubLabel = 'Fan hub';
     hubColor = 'text-amber-400 border-amber-500/40 bg-amber-500/10';

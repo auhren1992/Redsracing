@@ -967,7 +967,22 @@ const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/
         try {
           clearAuthError();
 
-          if (user && validToken) {
+          if (user) {
+            if (!validToken) {
+              try {
+                validToken = await user.getIdToken(true);
+              } catch (_) {
+                showAuthError({
+                  code: "token-refresh-failed",
+                  message: "Session refresh failed",
+                  userMessage:
+                    "Unable to refresh your session. Check your connection and try again.",
+                  requiresReauth: false,
+                  retryable: true,
+                });
+                return;
+              }
+            }
             currentUser = user;
             await updateRolePill(user);
             const targetUserId = getUserIdFromUrl() || user.uid;
@@ -983,7 +998,7 @@ const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/
                 userMessage:
                   "Unable to load profile data. Please refresh the page and try again.",
                 requiresReauth: false,
-                retryable: true,
+                  retryable: true,
               });
               showErrorState();
               return;

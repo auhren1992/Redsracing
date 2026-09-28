@@ -47,10 +47,13 @@ export function safeSetHTML(element, htmlString) {
   try {
     // Check if DOMPurify is available before using it
     /* global DOMPurify */
-    const cleanHTML =
-      typeof DOMPurify !== "undefined"
-        ? DOMPurify.sanitize(htmlString)
-        : htmlString;
+    let cleanHTML;
+    if (typeof DOMPurify !== "undefined") {
+      cleanHTML = DOMPurify.sanitize(htmlString);
+    } else {
+      // No sanitizer available — refuse raw HTML; text-escape only.
+      cleanHTML = escapeHTML(htmlString);
+    }
     element.innerHTML = "";
     const tempDiv = document.createElement("div");
     tempDiv.appendChild(
@@ -60,11 +63,7 @@ export function safeSetHTML(element, htmlString) {
       element.appendChild(tempDiv.firstChild);
     }
   } catch (e) {
-    // Fallback to basic innerHTML if anything fails
-    element.innerHTML =
-      typeof DOMPurify !== "undefined"
-        ? DOMPurify.sanitize(htmlString)
-        : htmlString;
+    element.textContent = String(htmlString || "");
   }
 }
 

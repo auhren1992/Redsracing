@@ -81,7 +81,8 @@ export async function validateUserClaims(requiredRoles = [], user = null) {
       };
     }
 
-    const tokenResult = await currentUser.getIdTokenResult(false); // Use cached token
+    const forceRefresh = requiredRoles.length > 0;
+    const tokenResult = await currentUser.getIdTokenResult(forceRefresh);
     const claims = tokenResult.claims;
 
     if (requiredRoles.length > 0) {
@@ -126,14 +127,15 @@ export function monitorAuthState(onAuthChange, onError) {
             const tokenResult = await user.getIdTokenResult(false);
             token = tokenResult.token;
           } catch (tokenErr) {
-            // Still notify listeners: auth-guard clears its grace timer only when
-            // it sees a signed-in user. If getIdTokenResult throws (network,
-            // clock skew, transient SDK error), skipping onAuthChange leaves the
-            // timer running and the admin console redirects to login after 3–4s.
-            onError({
-              message: tokenErr?.message || "Token read failed",
-              recoverable: true,
-            });
+            try {
+              token = (await user.getIdTokenResult(true)).token;
+            } catch (retryErr) {
+              // Still notify listeners with user present — token-null is not logout.
+              onError({
+                message: retryErr?.message || tokenErr?.message || "Token read failed",
+                recoverable: true,
+              });
+            }
           }
           await onAuthChange(user, token);
         } else {

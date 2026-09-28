@@ -599,7 +599,7 @@ exports.fetchSpeedhiveJon = onRequest({ secrets: ["SENTRY_DSN"], timeoutSeconds:
     res.status(200).json({ ok: true, events });
   } catch (error) {
     try { Sentry.captureException(error); } catch (_) {}
-    res.status(200).json({ ok: false, message: 'Failed to fetch Speedhive' });
+    res.status(502).json({ ok: false, message: 'Failed to fetch Speedhive' });
   }
 });
 
@@ -619,6 +619,22 @@ exports.process_queues = onRequest({ secrets: ["SENTRY_DSN"] }, async (req, res)
     cors(req, res, async () => {
       if (req.method !== 'POST') {
         return res.status(405).json({ ok: false, message: 'Method not allowed' });
+      }
+
+      const authHeader = req.get('Authorization') || '';
+      const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+      if (!idToken) {
+        return res.status(401).json({ ok: false, message: 'Unauthorized' });
+      }
+      let decoded;
+      try {
+        decoded = await getAuth().verifyIdToken(idToken);
+      } catch (e) {
+        return res.status(401).json({ ok: false, message: 'Invalid token' });
+      }
+      const isAdmin = decoded.admin === true || decoded.role === 'admin' || decoded.role === 'owner';
+      if (!isAdmin) {
+        return res.status(403).json({ ok: false, message: 'Forbidden' });
       }
 
       const db = getFirestore();
@@ -875,7 +891,7 @@ exports.fetchSpeedhiveEvent = onRequest({ secrets: ["SENTRY_DSN"], timeoutSecond
     res.status(200).json({ ok: true, url: targetUrl, eventName, entriesCount: Array.isArray(parsed) ? parsed.length : 0, entries: parsed });
   } catch (error) {
     try { Sentry.captureException(error); } catch (_) {}
-    res.status(200).json({ ok: false, message: 'Failed to fetch Speedhive event' });
+    res.status(502).json({ ok: false, message: 'Failed to fetch Speedhive event' });
   }
 });
 
