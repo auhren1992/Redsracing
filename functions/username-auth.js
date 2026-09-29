@@ -2,6 +2,7 @@
  * Username claim / resolve helpers for login-by-username.
  * Collection: usernames/{normalizedUsername} -> { uid, email, username, updatedAt }
  */
+/* global require, module */
 /* eslint-env node */
 
 const { HttpsError } = require("firebase-functions/v2/https");
@@ -79,6 +80,34 @@ async function assertUsernameAvailable(tx, unameRef, uid) {
   }
 }
 
+async function previousUsernameKey(tx, userRef) {
+  const userSnap = await tx.get(userRef);
+  const prevRaw = userSnap.exists ? userSnap.data()?.username || "" : "";
+  return prevRaw ? normalizeUsername(prevRaw) : "";
+}
+
+function writeUsernameClaim(tx, { unameRef, userRef, uid, emailNorm, key }) {
+  tx.set(
+    unameRef,
+    {
+      uid,
+      email: emailNorm,
+      username: key,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true },
+  );
+  tx.set(userRef, { username: key }, { merge: true });
+}
+
+async function applyUsernameClaimTx(tx, db, ctx) {
+  const { unameRef, userRef, uid, emailNorm, key } = ctx;
+  await assertUsernameAvailable(tx, unameRef, uid);
+  const prevKey = await previousUsernameKey(tx, userRef);
+  await releasePreviousUsername(tx, db, uid, prevKey, key);
+  writeUsernameClaim(tx, { unameRef, userRef, uid, emailNorm, key });
+}
+
 async function claimUsernameForUser(db, { uid, email, username }) {
   if (!uid) {
     throw new HttpsError("invalid-argument", "Missing user id.");
@@ -89,26 +118,9 @@ async function claimUsernameForUser(db, { uid, email, username }) {
     .toLowerCase();
   const unameRef = db.collection("usernames").doc(key);
   const userRef = db.collection("users").doc(uid);
+  const ctx = { unameRef, userRef, uid, emailNorm, key };
 
-  await db.runTransaction(async (tx) => {
-    await assertUsernameAvailable(tx, unameRef, uid);
-    const userSnap = await tx.get(userRef);
-    const prevRaw = userSnap.exists ? userSnap.data()?.username || "" : "";
-    const prevKey = prevRaw ? normalizeUsername(prevRaw) : "";
-    await releasePreviousUsername(tx, db, uid, prevKey, key);
-    tx.set(
-      unameRef,
-      {
-        uid,
-        email: emailNorm,
-        username: key,
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-    tx.set(userRef, { username: key }, { merge: true });
-  });
-
+  await db.runTransaction((tx) => applyUsernameClaimTx(tx, db, ctx));
   return key;
 }
 
@@ -175,6 +187,15 @@ async function resolveUsernameDoc(db, key) {
   return { email, via: "username", username: key };
 }
 
+async function resolveUsernameIdentifier(db, raw) {
+  const key = parseUsernameKey(raw);
+  const mapped = await resolveUsernameDoc(db, key);
+  if (mapped) return mapped;
+  const legacy = await resolveFromLegacyUsers(db, key);
+  if (legacy) return legacy;
+  throw new HttpsError("not-found", "No account found for that username.");
+}
+
 async function resolveIdentifierToEmail(db, identifier) {
   const raw = String(identifier || "").trim();
   if (!raw) {
@@ -183,15 +204,7 @@ async function resolveIdentifierToEmail(db, identifier) {
   if (isEmailIdentifier(raw)) {
     return { email: raw.toLowerCase(), via: "email" };
   }
-
-  const key = parseUsernameKey(raw);
-  const mapped = await resolveUsernameDoc(db, key);
-  if (mapped) return mapped;
-
-  const legacy = await resolveFromLegacyUsers(db, key);
-  if (legacy) return legacy;
-
-  throw new HttpsError("not-found", "No account found for that username.");
+  return resolveUsernameIdentifier(db, raw);
 }
 
 module.exports = {

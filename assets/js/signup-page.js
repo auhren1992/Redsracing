@@ -135,12 +135,17 @@ function wireUsernameAvailability(usernameInput, helpEl) {
     );
   };
 
-  const runCheck = async () => {
-    const raw = usernameInput.value;
-    if (!raw.trim()) {
-      showIdleHelp();
+  const showAvailability = (result) => {
+    if (result.available) {
+      setUsernameHelp(helpEl, `@${result.username} is available`, "ok");
       return;
     }
+    setUsernameHelp(helpEl, result.error || "That username is taken.", "err");
+  };
+
+  const runCheck = async () => {
+    const raw = usernameInput.value;
+    if (!raw.trim()) return showIdleHelp();
     const formatErr = usernameFormatError(raw);
     if (formatErr) {
       setUsernameHelp(helpEl, formatErr, "err");
@@ -149,12 +154,7 @@ function wireUsernameAvailability(usernameInput, helpEl) {
     }
     usernameInput.classList.remove("border-red-500");
     setUsernameHelp(helpEl, "Checking availability…", "info");
-    const result = await checkUsernameAvailable(raw);
-    if (result.available) {
-      setUsernameHelp(helpEl, `@${result.username} is available`, "ok");
-    } else {
-      setUsernameHelp(helpEl, result.error || "That username is taken.", "err");
-    }
+    showAvailability(await checkUsernameAvailable(raw));
   };
 
   usernameInput.addEventListener("input", () => {

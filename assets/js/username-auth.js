@@ -57,6 +57,14 @@ function mapResolveLookupError(err) {
   return new Error(cleanFirebaseMessage(msg) || "Unable to look up that username.");
 }
 
+async function lookupUsernameEmail(raw) {
+  const fn = await getCallable("resolveLoginIdentifier");
+  const res = await fn({ identifier: raw });
+  const email = res?.data?.email;
+  if (!email) throw new Error("No account found for that username.");
+  return String(email).toLowerCase();
+}
+
 /**
  * Resolve login field (email or username) to a Firebase Auth email.
  */
@@ -64,16 +72,11 @@ export async function resolveLoginEmail(identifier) {
   const raw = String(identifier || "").trim();
   if (!raw) throw new Error("Enter an email or username.");
   if (isEmailIdentifier(raw)) return raw.toLowerCase();
-
-  const formatErr = usernameFormatError(raw);
-  if (formatErr) throw new Error("Enter a valid email address or username.");
-
+  if (usernameFormatError(raw)) {
+    throw new Error("Enter a valid email address or username.");
+  }
   try {
-    const fn = await getCallable("resolveLoginIdentifier");
-    const res = await fn({ identifier: raw });
-    const email = res?.data?.email;
-    if (!email) throw new Error("No account found for that username.");
-    return String(email).toLowerCase();
+    return await lookupUsernameEmail(raw);
   } catch (err) {
     throw mapResolveLookupError(err);
   }
