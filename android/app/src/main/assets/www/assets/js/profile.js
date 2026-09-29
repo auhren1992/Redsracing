@@ -1035,9 +1035,9 @@ const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/9.22.0/
     return;
   }
 
-  // Handle page unload cleanup
+  // pagehide replaces unload (Permissions-Policy blocks unload on this site)
+  window.addEventListener("pagehide", cleanup);
   window.addEventListener("beforeunload", cleanup);
-  window.addEventListener("unload", cleanup);
 
   // Handle visibility change (page becomes hidden)
   if (typeof document.visibilityState !== "undefined") {

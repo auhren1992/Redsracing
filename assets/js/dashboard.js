@@ -640,9 +640,9 @@ import { navigateToInternal } from "./navigation-helpers.js";
     setSafeText(yearEl, new Date().getFullYear().toString());
   }
 
-  // Handle page unload cleanup
+  // pagehide replaces unload (Permissions-Policy blocks unload on this site)
+  window.addEventListener("pagehide", cleanup);
   window.addEventListener("beforeunload", cleanup);
-  window.addEventListener("unload", cleanup);
 
   // Handle visibility change (page becomes hidden)
   if (typeof document.visibilityState !== "undefined") {
