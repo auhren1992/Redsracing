@@ -352,16 +352,20 @@
 
             <form id="login-form" class="space-y-5 mt-5">
               <div class="input-group">
-                <label for="email" class="block text-sm font-semibold text-slate-300 mb-2">Email Address</label>
+                <label for="email" class="block text-sm font-semibold text-slate-300 mb-2">Email or username</label>
                 <input
-                  type="email"
+                  type="text"
                   id="email"
                   name="email"
                   autocomplete="username webauthn"
-                  placeholder="you@example.com"
+                  placeholder="you@example.com or your_username"
                   required
+                  autocapitalize="none"
+                  autocorrect="off"
+                  spellcheck="false"
                   class="form-input modern-input-enhanced mt-1 block w-full px-4 py-3 rounded-lg shadow-sm focus:ring-yellow-400 text-base"
                 />
+                <p class="text-xs text-slate-500 mt-1.5">Sign in with your email address or the username you chose at signup.</p>
               </div>
 
               <div class="input-group">

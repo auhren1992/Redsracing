@@ -105,6 +105,13 @@ service cloud.firestore {
       allow write: if isOwner(userId) || isPrivilegedStaff();
     }
 
+    // Login usernames — claimed only via Cloud Functions (Admin SDK).
+    // Clients may read own mapping; uniqueness writes are server-side only.
+    match /usernames/{usernameKey} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
+
     // User achievements
     match /user_achievements/{achievementId} {
       allow read: if isAuthenticated();

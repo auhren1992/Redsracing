@@ -16,6 +16,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import { navigateToInternal } from "./navigation-helpers.js";
 import { APP_ROLE, resolveAppRoleForUser, defaultDashboardPath } from "./roles.js";
+import { isEmailIdentifier, resolveLoginEmail } from "./username-auth.js";
 
 class FollowerLoginController {
   constructor() {
@@ -196,13 +197,16 @@ class FollowerLoginController {
   }
 
   /**
-   * Validate email field in real-time
+   * Validate email-or-username field in real-time
    */
   validateEmailField() {
-    const email = this.elements.emailInput?.value.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const value = this.elements.emailInput?.value.trim();
+    const looksOk =
+      !value ||
+      isEmailIdentifier(value) ||
+      /^@?[A-Za-z0-9_]{3,20}$/.test(value);
 
-    if (email && !emailRegex.test(email)) {
+    if (value && !looksOk) {
       this.elements.emailInput.classList.add("border-red-500");
       this.elements.emailInput.classList.remove("border-gray-300");
     } else {
@@ -214,15 +218,16 @@ class FollowerLoginController {
   /**
    * Validate login form inputs
    */
-  validateLoginForm(email, password) {
-    if (!email || !password) {
+  validateLoginForm(identifier, password) {
+    if (!identifier || !password) {
       this.showMessage("Please fill in all required fields.");
       return false;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      this.showMessage("Please enter a valid email address.");
+    const looksOk =
+      isEmailIdentifier(identifier) || /^@?[A-Za-z0-9_]{3,20}$/.test(identifier);
+    if (!looksOk) {
+      this.showMessage("Please enter a valid email address or username.");
       return false;
     }
 
@@ -235,7 +240,7 @@ class FollowerLoginController {
   }
 
   /**
-   * Handle email/password sign in
+   * Handle email/username + password sign in
    */
   async handleEmailSignIn() {
     if (!this.isInitialized) {
@@ -243,12 +248,12 @@ class FollowerLoginController {
       return;
     }
 
-    const email = this.elements.emailInput?.value.trim();
+    const identifier = this.elements.emailInput?.value.trim();
     const password = this.elements.passwordInput?.value;
 
     this.hideMessage();
 
-    if (!this.validateLoginForm(email, password)) {
+    if (!this.validateLoginForm(identifier, password)) {
       return;
     }
 
@@ -259,6 +264,7 @@ class FollowerLoginController {
     );
 
     try {
+      const email = await resolveLoginEmail(identifier);
       const userCredential = await signInWithEmailAndPassword(
         this.auth,
         email,
@@ -270,7 +276,11 @@ class FollowerLoginController {
       await this.checkUserRoleAndRedirect(userCredential.user);
     } catch (error) {
       console.error("Email sign in error:", error);
-      this.showMessage(this.getFriendlyErrorMessage(error));
+      this.showMessage(
+        error?.message && !error?.code
+          ? error.message
+          : this.getFriendlyErrorMessage(error),
+      );
     } finally {
       this.setLoadingState(
         this.elements.signinButton,
@@ -381,24 +391,18 @@ class FollowerLoginController {
   async handleForgotPassword(e) {
     e.preventDefault();
 
-    const email = this.elements.emailInput?.value.trim();
+    const identifier = this.elements.emailInput?.value.trim();
 
-    if (!email) {
+    if (!identifier) {
       this.showMessage(
-        "Please enter your email address above, then click 'Forgot password?'.",
+        "Please enter your email or username above, then click 'Forgot password?'.",
       );
       this.elements.emailInput?.focus();
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      this.showMessage("Please enter a valid email address.");
-      this.elements.emailInput?.focus();
-      return;
-    }
-
     try {
+      const email = await resolveLoginEmail(identifier);
       await sendPasswordResetEmail(this.auth, email);
       this.showMessage(
         "Password reset email sent! Please check your inbox and spam folder.",
@@ -406,7 +410,11 @@ class FollowerLoginController {
       );
     } catch (error) {
       console.error("Password reset error:", error);
-      this.showMessage(this.getFriendlyErrorMessage(error));
+      this.showMessage(
+        error?.message && !error?.code
+          ? error.message
+          : this.getFriendlyErrorMessage(error),
+      );
     }
   }
 

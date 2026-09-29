@@ -6,10 +6,11 @@
   visibility: hidden;
   transform: translateY(-10px) scale(0.95);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  background: rgb(15 23 42 / 0.95);
+  border: 1px solid rgb(148 163 184 / 0.2);
+  box-shadow: 0 20px 40px rgb(0 0 0 / 0.3);
 }
 
 .dropdown-menu:not(.hidden) {
@@ -31,7 +32,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgb(251 191 36 / 0.1), transparent);
   transition: left 0.4s ease;
 }
 
@@ -40,7 +41,7 @@
 }
 
 .dropdown-menu a:hover {
-  background: rgba(251, 191, 36, 0.1);
+  background: rgb(251 191 36 / 0.1);
   color: #fbbf24;
   transform: translateX(4px);
 }
@@ -93,10 +94,11 @@ nav a:hover::after {
   top: 100%;
   left: 0;
   right: 0;
-  background: rgba(15, 23, 42, 0.98);
+  background: rgb(15 23 42 / 0.98);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgb(148 163 184 / 0.2);
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.3);
   transform: translateY(-10px);
   opacity: 0;
   visibility: hidden;
@@ -119,7 +121,8 @@ nav a:hover::after {
   right: 0;
 }
 .mobile-dropdown-panel a { display:block; }
-@media (min-width: 768px) {
+
+@media (width >= 768px) {
   .mobile-dropdown-panel { display: none !important; }
 }
 
@@ -142,7 +145,7 @@ header .font-racing {
 
 header .font-racing:hover {
   transform: scale(1.05);
-  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.3));
+  filter: drop-shadow(0 0 10px rgb(251 191 36 / 0.3));
 }
 
 /* Sticky Header Enhancement */
@@ -259,15 +262,16 @@ body[data-auth="signed-in"] #mobile-user-profile.hidden {
 }
 
 header.scrolled {
-  background: rgba(15, 23, 42, 0.98);
+  background: rgb(15 23 42 / 0.98);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+  border-bottom: 1px solid rgb(251 191 36 / 0.2);
 }
 
 /* Navigation Button Effects */
 .bg-red-600 {
   background: linear-gradient(45deg, #dc2626, #b91c1c);
-  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
+  box-shadow: 0 4px 16px rgb(220 38 38 / 0.3);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -280,7 +284,7 @@ header.scrolled {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.2), transparent);
   transition: left 0.6s;
 }
 
@@ -290,7 +294,7 @@ header.scrolled {
 
 .bg-red-600:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+  box-shadow: 0 8px 24px rgb(220 38 38 / 0.4);
 }
 
 /* Mobile Navigation Items */
@@ -305,7 +309,7 @@ header.scrolled {
 }
 
 .mobile-nav-item:hover {
-  background: rgba(251, 191, 36, 0.1);
+  background: rgb(251 191 36 / 0.1);
   color: #fbbf24;
   border-left-color: #fbbf24;
   transform: translateX(4px);
@@ -321,7 +325,7 @@ header.scrolled {
 }
 
 .mobile-nav-subitem:hover {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgb(59 130 246 / 0.1);
   color: #60a5fa;
 }
 
@@ -340,13 +344,13 @@ header.scrolled {
 }
 
 .mobile-accordion:hover {
-  background: rgba(251, 191, 36, 0.1);
+  background: rgb(251 191 36 / 0.1);
   color: #fbbf24;
   border-left-color: #fbbf24;
 }
 
 .mobile-accordion.active {
-  background: rgba(251, 191, 36, 0.15);
+  background: rgb(251 191 36 / 0.15);
   color: #fbbf24;
   border-left-color: #fbbf24;
 }
@@ -381,10 +385,11 @@ header.scrolled {
   visibility: hidden;
   transform: translateX(-10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  background: rgb(15 23 42 / 0.95);
+  border: 1px solid rgb(148 163 184 / 0.2);
+  box-shadow: 0 20px 40px rgb(0 0 0 / 0.3);
   border-radius: 8px;
   padding: 4px 0;
   z-index: 1000;
@@ -397,7 +402,7 @@ header.scrolled {
 }
 
 .dropdown-nested-toggle:hover {
-  background: rgba(251, 191, 36, 0.1);
+  background: rgb(251 191 36 / 0.1);
   color: #fbbf24;
 }
 
@@ -405,14 +410,14 @@ header.scrolled {
 .mobile-accordion-nested {
   padding-left: 32px;
   font-size: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(255 255 255 / 0.03);
 }
 
 .mobile-accordion-content-nested {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: rgba(0, 0, 0, 0.2);
+  background: rgb(0 0 0 / 0.2);
 }
 
 .mobile-accordion-nested.active + .mobile-accordion-content-nested {

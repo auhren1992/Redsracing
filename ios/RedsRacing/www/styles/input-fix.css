@@ -11,8 +11,8 @@ input[type="time"],
 input[type="datetime-local"],
 textarea,
 select {
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
 }
 
 /* Ensure dark backgrounds have good contrast */
@@ -28,7 +28,7 @@ input[type="time"]:not([style*="background"]),
 input[type="datetime-local"]:not([style*="background"]),
 textarea:not([style*="background"]),
 select:not([style*="background"]) {
-    background: rgba(30, 41, 59, 0.9) !important;
+    background: rgb(30 41 59 / 0.9) !important;
 }
 
 /* Placeholder text visibility */
@@ -38,18 +38,18 @@ textarea::placeholder {
     opacity: 1 !important;
 }
 
-input::-webkit-input-placeholder,
-textarea::-webkit-input-placeholder {
+input::input-placeholder,
+textarea::input-placeholder {
     color: #94a3b8 !important;
 }
 
-input::-moz-placeholder,
-textarea::-moz-placeholder {
+input::placeholder,
+textarea::placeholder {
     color: #94a3b8 !important;
 }
 
-input:-ms-input-placeholder,
-textarea:-ms-input-placeholder {
+input:input-placeholder,
+textarea:input-placeholder {
     color: #94a3b8 !important;
 }
 
@@ -57,9 +57,9 @@ textarea:-ms-input-placeholder {
 input:focus,
 textarea:focus,
 select:focus {
-    background: rgba(30, 41, 59, 1) !important;
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+    background: rgb(30 41 59 / 1) !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
 }
 
 /* Autofill override - Chrome/Safari */
@@ -67,8 +67,7 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-    -webkit-text-fill-color: #ffffff !important;
-    -webkit-box-shadow: 0 0 0px 1000px rgba(30, 41, 59, 0.9) inset !important;
-    box-shadow: 0 0 0px 1000px rgba(30, 41, 59, 0.9) inset !important;
+    -webkit-text-fill-color: #fff !important;
+    box-shadow: 0 0 0 1000px rgb(30 41 59 / 0.9) inset !important;
     transition: background-color 5000s ease-in-out 0s;
 }

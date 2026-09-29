@@ -1,18 +1,100 @@
 {
-  "extends": ["stylelint-config-standard", "stylelint-config-standard-scss"],
-  "plugins": ["stylelint-scss"],
+  "extends": [
+    "stylelint-config-standard"
+  ],
+  "ignoreFiles": [
+    "**/node_modules/**",
+    "**/android/**",
+    "**/ios/**",
+    "**/styles/tailwind.css",
+    "**/tailwind.css",
+    "**/dist/**",
+    "**/build/**"
+  ],
   "rules": {
-    "function-disallowed-list": [],
-    "scss/function-unquote-no-unquoted-strings-inside": true,
-    "scss/selector-no-redundant-nesting-selector": true
-  },
-  "overrides": [
-    {
-      "files": ["**/*.scss"],
-      "rules": {
-        "at-rule-no-unknown": null,
-        "scss/at-rule-no-unknown": true
+    "alpha-value-notation": "number",
+    "color-function-notation": "modern",
+    "color-function-alias-notation": "without-alpha",
+    "hue-degree-notation": "angle",
+    "color-hex-length": "short",
+    "length-zero-no-unit": true,
+    "value-keyword-case": [
+      "lower",
+      {
+        "ignoreKeywords": [
+          "optimizeLegibility"
+        ]
       }
-    }
-  ]
+    ],
+    "font-family-name-quotes": "always-where-recommended",
+    "selector-attribute-quotes": "always",
+    "selector-pseudo-element-colon-notation": "double",
+    "keyframe-selector-notation": "percentage-unless-within-keyword-only-block",
+    "media-feature-range-notation": "context",
+    "rule-empty-line-before": [
+      "always-multi-line",
+      {
+        "except": [
+          "first-nested"
+        ],
+        "ignore": [
+          "after-comment"
+        ]
+      }
+    ],
+    "at-rule-empty-line-before": [
+      "always",
+      {
+        "except": [
+          "blockless-after-same-name-blockless",
+          "first-nested"
+        ],
+        "ignore": [
+          "after-comment"
+        ]
+      }
+    ],
+    "selector-class-pattern": null,
+    "keyframes-name-pattern": null,
+    "custom-property-pattern": null,
+    "selector-id-pattern": null,
+    "property-no-vendor-prefix": null,
+    "selector-no-vendor-prefix": null,
+    "value-no-vendor-prefix": null,
+    "declaration-block-single-line-max-declarations": null,
+    "declaration-block-no-redundant-longhand-properties": null,
+    "declaration-block-no-duplicate-properties": [
+      true,
+      {
+        "ignore": [
+          "consecutive-duplicates-with-different-values",
+          "consecutive-duplicates-with-different-syntaxes"
+        ]
+      }
+    ],
+    "no-descending-specificity": null,
+    "no-duplicate-selectors": null,
+    "selector-pseudo-class-no-unknown": [
+      true,
+      {
+        "ignorePseudoClasses": [
+          "input-placeholder",
+          "deep",
+          "global"
+        ]
+      }
+    ],
+    "selector-pseudo-element-no-unknown": [
+      true,
+      {
+        "ignorePseudoElements": [
+          "input-placeholder",
+          "v-deep"
+        ]
+      }
+    ],
+    "media-feature-name-value-no-unknown": null,
+    "declaration-property-value-keyword-no-deprecated": null,
+    "property-no-deprecated": null
+  }
 }

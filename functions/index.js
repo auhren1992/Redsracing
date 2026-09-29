@@ -56,6 +56,63 @@ async function writeSecurityEvent(payload = {}) {
   }
 }
 
+const {
+  claimUsernameForUser,
+  resolveIdentifierToEmail,
+  validateUsernameFormat,
+} = require("./username-auth");
+
+/**
+ * Public: resolve email-or-username login identifier to an email for Firebase Auth.
+ */
+exports.resolveLoginIdentifier = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
+  const identifier = request.data?.identifier;
+  try {
+    return await resolveIdentifierToEmail(getFirestore(), identifier);
+  } catch (error) {
+    if (error instanceof HttpsError) throw error;
+    logger.error("resolveLoginIdentifier failed", error);
+    throw new HttpsError("internal", "Unable to resolve login identifier.");
+  }
+});
+
+/**
+ * Authenticated: claim/change login username (unique).
+ */
+exports.claimUsername = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Sign in to claim a username.");
+  }
+  const username = request.data?.username;
+  const uid = request.auth.uid;
+  const email = request.auth.token?.email || "";
+  try {
+    const key = await claimUsernameForUser(getFirestore(), { uid, email, username });
+    return { status: "success", username: key };
+  } catch (error) {
+    if (error instanceof HttpsError) throw error;
+    logger.error("claimUsername failed", error);
+    throw new HttpsError("internal", "Unable to claim username.");
+  }
+});
+
+/**
+ * Public: check whether a username is available (format + uniqueness).
+ */
+exports.checkUsernameAvailable = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
+  const username = request.data?.username;
+  try {
+    const key = validateUsernameFormat(username);
+    const snap = await getFirestore().collection("usernames").doc(key).get();
+    const available = !snap.exists;
+    return { available, username: key };
+  } catch (error) {
+    if (error instanceof HttpsError) throw error;
+    logger.error("checkUsernameAvailable failed", error);
+    throw new HttpsError("internal", "Unable to check username.");
+  }
+});
+
 /**
  * Processes an invitation code upon user signup.
  *
@@ -944,11 +1001,23 @@ exports.updateProfile = onCall({ secrets: ["SENTRY_DSN"] }, async (request) => {
   const db = getFirestore();
 
   try {
+    const nextUsername =
+      typeof profileData.username === "string" ? profileData.username.trim() : "";
+    if (nextUsername) {
+      const email = request.auth.token?.email || "";
+      profileData.username = await claimUsernameForUser(db, {
+        uid: userId,
+        email,
+        username: nextUsername,
+      });
+    }
+
     const userDocRef = db.collection("users").doc(userId);
     await userDocRef.set(profileData, { merge: true }); // Use merge to avoid overwriting fields
     logger.info(`Profile for user ${userId} updated successfully.`);
     return { status: "success", message: "Profile updated successfully." };
   } catch (error) {
+    if (error instanceof HttpsError) throw error;
     logger.error(`Error updating profile for user ${userId}:`, error);
     throw new HttpsError(
       "internal",

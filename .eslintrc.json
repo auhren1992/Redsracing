@@ -9,5 +9,15 @@
   },
   "rules": {
     "no-undef": "error"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["functions/**/*.js", "functions/**/*.cjs", "scripts/**/*.{js,cjs,mjs}"],
+      "env": {
+        "node": true,
+        "browser": false,
+        "es2021": true
+      }
+    }
+  ]
 }
