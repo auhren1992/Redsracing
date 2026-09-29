@@ -9227,7 +9227,9 @@
             card.type = 'button';
             const selected = _bulkTagSelected.has(p.id);
             card.className = 'relative aspect-square rounded overflow-hidden border ' + (selected ? 'border-yellow-400 ring-2 ring-yellow-400/40' : 'border-slate-700');
-            card.innerHTML = '<img src="' + (p.imageUrl || '') + '" alt="" class="w-full h-full object-cover" />';
+            card.innerHTML = p.imageUrl
+              ? '<img src="' + p.imageUrl + '" alt="" class="w-full h-full object-cover" />'
+              : '<div class="w-full h-full flex items-center justify-center bg-slate-800"><i class="fas fa-image text-slate-500"></i></div>';
             card.addEventListener('click', () => {
               if (_bulkTagSelected.has(p.id)) _bulkTagSelected.delete(p.id);
               else _bulkTagSelected.add(p.id);
@@ -9293,7 +9295,9 @@
               const row = document.createElement('div');
               row.className = 'flex items-center gap-3 bg-slate-800/40 border border-slate-700/50 rounded-md p-2';
               row.innerHTML =
-                '<img src="' + (p.imageUrl || '') + '" alt="" class="w-12 h-12 rounded object-cover flex-shrink-0" />' +
+                (p.imageUrl
+                  ? '<img src="' + p.imageUrl + '" alt="" class="w-12 h-12 rounded object-cover flex-shrink-0" />'
+                  : '<div class="w-12 h-12 rounded flex items-center justify-center bg-slate-800 flex-shrink-0"><i class="fas fa-image text-slate-500 text-xs"></i></div>') +
                 '<input type="text" maxlength="120" placeholder="Describe this photo…" class="flex-1 modern-input text-white text-sm p-1" />' +
                 '<button class="success-btn text-white px-2 py-1 rounded text-xs">Save</button>';
               const input = row.querySelector('input');
@@ -9353,7 +9357,9 @@
               const row = document.createElement('div');
               row.className = 'flex items-start gap-3 bg-slate-800/40 border border-slate-700/50 rounded-lg p-3';
               row.innerHTML = `
-                <img src="${thumb}" alt="" class="w-14 h-14 rounded object-cover flex-shrink-0 bg-slate-700" />
+                ${thumb
+                  ? `<img src="${thumb}" alt="" class="w-14 h-14 rounded object-cover flex-shrink-0 bg-slate-700" />`
+                  : `<div class="w-14 h-14 rounded flex items-center justify-center flex-shrink-0 bg-slate-700"><i class="fas fa-image text-slate-500"></i></div>`}
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-1">
                     <span class="text-white font-semibold text-sm">${(c.authorName || 'Anonymous').replace(/[<>]/g,'')}</span>
