@@ -105,7 +105,9 @@ class NextRaceWidget : AppWidgetProvider() {
         ) {
             val race = try {
                 fetchNextRace()
-            } catch (e: Exception) {
+            } catch (_: org.json.JSONException) {
+                null
+            } catch (_: IllegalArgumentException) {
                 null
             }
             if (race != null) {

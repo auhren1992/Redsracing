@@ -3,27 +3,40 @@
  * Prefer this over per-file UA heuristics.
  */
 
+function hasNativeFlag() {
+  return typeof window !== "undefined" && !!window.__RR_NATIVE_APP__;
+}
+
+function hasNativeDomClass() {
+  if (typeof document === "undefined") return false;
+  const html = document.documentElement;
+  if (html?.classList?.contains("rr-native-app")) return true;
+  return !!document.body?.classList?.contains("mobile-app");
+}
+
+function hasNativeUserAgent() {
+  const ua = (typeof navigator !== "undefined" && navigator.userAgent) || "";
+  return /RedsRacingApp\//i.test(ua);
+}
+
+function hasNativeBridge() {
+  if (typeof window === "undefined") return false;
+  if (window.AndroidNotifications || window.FirebaseAuthBridge) return true;
+  const handlers = window.webkit?.messageHandlers;
+  return !!(handlers?.redsRacingNotifications || handlers?.redsRacingAuth);
+}
+
 export function isNativeApp() {
   try {
-    if (typeof window !== "undefined" && window.__RR_NATIVE_APP__) return true;
-    if (typeof document !== "undefined") {
-      const html = document.documentElement;
-      if (html?.classList?.contains("rr-native-app")) return true;
-      if (document.body?.classList?.contains("mobile-app")) return true;
-    }
-    const ua = (typeof navigator !== "undefined" && navigator.userAgent) || "";
-    if (/RedsRacingApp\//i.test(ua)) return true;
-    if (
-      typeof window !== "undefined" &&
-      (window.AndroidNotifications ||
-        window.FirebaseAuthBridge ||
-        window.webkit?.messageHandlers?.redsRacingNotifications ||
-        window.webkit?.messageHandlers?.redsRacingAuth)
-    ) {
-      return true;
-    }
-  } catch (_) {}
-  return false;
+    return (
+      hasNativeFlag() ||
+      hasNativeDomClass() ||
+      hasNativeUserAgent() ||
+      hasNativeBridge()
+    );
+  } catch (_) {
+    return false;
+  }
 }
 
 export function isAndroidNative() {

@@ -242,15 +242,28 @@ class ModernEffectsManager {
     createNotification(message, type = 'info', duration = 4000) {
         const notification = document.createElement('div');
         notification.className = `notification glass-card ${type}`;
-        notification.innerHTML = `
-            <div class="notification-content">
-                <span class="notification-message">${message}</span>
-                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-        
+
+        const content = document.createElement('div');
+        content.className = 'notification-content';
+
+        const msgEl = document.createElement('span');
+        msgEl.className = 'notification-message';
+        msgEl.textContent = message == null ? '' : String(message);
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'notification-close';
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', 'Dismiss');
+        const closeIcon = document.createElement('i');
+        closeIcon.className = 'fas fa-times';
+        closeIcon.setAttribute('aria-hidden', 'true');
+        closeBtn.appendChild(closeIcon);
+        closeBtn.addEventListener('click', () => notification.remove());
+
+        content.appendChild(msgEl);
+        content.appendChild(closeBtn);
+        notification.appendChild(content);
+
         // Styles
         Object.assign(notification.style, {
             position: 'fixed',

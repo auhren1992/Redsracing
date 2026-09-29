@@ -11,35 +11,55 @@ package com.redsracing.app
  */
 object DeepLinkPolicy {
 
-    /**
-     * Resolve [raw] into a safe absolute URL to load, falling back to the site
-     * home page when the input is missing, non-https, or off the allowed hosts.
-     */
-    fun sanitize(raw: String?): String {
-        val home = MainActivity.siteUrl("index.html")
-        if (raw.isNullOrBlank()) return home
-        // Bare html filename -> same origin as the rest of the app WebView.
-        if (!raw.contains("://") && raw.endsWith(".html")) {
-            return MainActivity.siteUrl(raw.removePrefix("/"))
-        }
+    private fun homeUrl(): String = MainActivity.siteUrl("index.html")
+
+    private fun isAllowedHost(host: String): Boolean {
+        return host == "www.redsracing.org" || host == "redsracing.org"
+    }
+
+    private fun isAllowedPath(path: String): Boolean {
+        return path.endsWith(".html", ignoreCase = true) ||
+            path == "/" ||
+            path.isEmpty()
+    }
+
+    private fun resolveRelativeHtml(raw: String): String? {
+        if (raw.contains("://") || !raw.endsWith(".html")) return null
+        return MainActivity.siteUrl(raw.removePrefix("/"))
+    }
+
+    private fun rewriteApexToWww(uri: android.net.Uri, raw: String): String {
+        val host = uri.host?.lowercase() ?: return raw
+        if (host != "redsracing.org") return raw
+        val tail = (uri.path ?: "/").removePrefix("/").trim()
+        return MainActivity.siteUrl(if (tail.isEmpty()) "index.html" else tail)
+    }
+
+    private fun sanitizeAbsolute(raw: String): String {
+        val home = homeUrl()
         return try {
             val uri = android.net.Uri.parse(raw)
             val scheme = uri.scheme?.lowercase()
             val host = uri.host?.lowercase() ?: ""
             val path = uri.path ?: "/"
-            val allowedHost = host == "www.redsracing.org" || host == "redsracing.org"
-            val allowedPath = path.endsWith(".html", ignoreCase = true) ||
-                path == "/" || path.isEmpty()
-            val allowed = scheme == "https" && allowedHost && allowedPath
-            if (!allowed) return home
-            if (host == "redsracing.org") {
-                val tail = path.removePrefix("/").trim()
-                MainActivity.siteUrl(if (tail.isEmpty()) "index.html" else tail)
-            } else {
-                raw
+            if (scheme != "https" || !isAllowedHost(host) || !isAllowedPath(path)) {
+                return home
             }
-        } catch (_: Throwable) {
+            rewriteApexToWww(uri, raw)
+        } catch (_: IllegalArgumentException) {
+            home
+        } catch (_: NullPointerException) {
             home
         }
+    }
+
+    /**
+     * Resolve [raw] into a safe absolute URL to load, falling back to the site
+     * home page when the input is missing, non-https, or off the allowed hosts.
+     */
+    fun sanitize(raw: String?): String {
+        if (raw.isNullOrBlank()) return homeUrl()
+        resolveRelativeHtml(raw)?.let { return it }
+        return sanitizeAbsolute(raw)
     }
 }
