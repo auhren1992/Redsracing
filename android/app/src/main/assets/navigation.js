@@ -132,7 +132,7 @@
       var assetRoot = /\/(fan|crew|racer)\//i.test(path) ? '../' : '';
 
       if (!has('assets/js/mobile-app-detector.js')) inject(assetRoot + 'assets/js/mobile-app-detector.js');
-      if (!has('global-error-tracker.js')) inject(assetRoot + 'assets/js/global-error-tracker.js?v=2026080913');
+      if (!has('global-error-tracker.js')) inject(assetRoot + 'assets/js/global-error-tracker.js?v=2026092914');
       if (!has('assets/js/user-settings.js')) inject(assetRoot + 'assets/js/user-settings.js?v=20260813s');
 
       // Mobile browser UX stylesheet (skipped for native app class if detector adds it later)
