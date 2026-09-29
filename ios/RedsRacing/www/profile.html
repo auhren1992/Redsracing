@@ -690,8 +690,9 @@
               <div class="p-6 overflow-auto" style="max-height: calc(100vh - 92px);">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label class="rr-kicker block mb-2">Username</label>
-                    <input id="edit-username" class="rr-input" type="text" placeholder="yourname" maxlength="20" />
+                    <label class="rr-kicker block mb-2">Username (login)</label>
+                    <input id="edit-username" class="rr-input" type="text" placeholder="yourname" maxlength="20" autocomplete="username" autocapitalize="none" spellcheck="false" />
+                    <p class="text-xs mt-1" style="color: var(--rr-muted);">Unique. You can sign in with this or your email.</p>
                   </div>
 
                   <div>
