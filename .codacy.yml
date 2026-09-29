@@ -1,0 +1,8 @@
+# Codacy: mirrored mobile www + generated Tailwind amplify Stylelint noise.
+exclude_paths:
+  - "android/**"
+  - "ios/**"
+  - "node_modules/**"
+  - "functions/node_modules/**"
+  - "styles/tailwind.css"
+  - "**/tailwind.css"

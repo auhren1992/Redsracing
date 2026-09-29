@@ -3,7 +3,7 @@
  * Same cards/sections as desktop; tables scroll inside cards, not the page.
  */
 
-@media (max-width: 1023.98px) {
+@media (width <= 1023.98px) {
   html:not(.rr-native-app),
   body.admin-console-page {
     overflow-x: clip;
@@ -149,11 +149,11 @@
 
   body.admin-console-page .admin-main .modern-table td,
   body.admin-console-page .admin-main .modern-table th {
-    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   /* Queue management — stack queue tables vertically like desktop narrow */
-  body.admin-console-page #queue-management-inject .grid.grid-cols-1.lg\\:grid-cols-2 {
+  body.admin-console-page #queue-management-inject .grid.grid-cols-1[class*="lg:grid-cols-2"] {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
@@ -221,7 +221,7 @@
 }
 
 /* Native app WebView — same overflow rules */
-@media (max-width: 1023.98px) {
+@media (width <= 1023.98px) {
   html.rr-native-app body.admin-console-page,
   body.mobile-app.admin-console-page {
     overflow-x: clip;
@@ -245,7 +245,7 @@
   }
 }
 
-@media (min-width: 768px) and (max-width: 1023.98px) {
+@media (width >= 768px) and (width <= 1023.98px) {
   body.admin-console-page .dashboard-grid,
   body.admin-console-page .admin-stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
