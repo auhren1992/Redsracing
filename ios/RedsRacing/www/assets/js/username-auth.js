@@ -39,6 +39,24 @@ async function getCallable(name) {
   return httpsCallable(functions, name);
 }
 
+function cleanFirebaseMessage(msg) {
+  return String(msg || "")
+    .replace(/^Firebase:\s*/i, "")
+    .replace(/\s*\([^)]*\)\s*$/, "");
+}
+
+function mapResolveLookupError(err) {
+  const code = err?.code || "";
+  const msg = err?.message || "";
+  if (code.includes("not-found") || /no account/i.test(msg)) {
+    return new Error("No account found for that username.");
+  }
+  if (code.includes("invalid-argument")) {
+    return new Error("Enter a valid email address or username.");
+  }
+  return new Error(cleanFirebaseMessage(msg) || "Unable to look up that username.");
+}
+
 /**
  * Resolve login field (email or username) to a Firebase Auth email.
  */
@@ -57,15 +75,7 @@ export async function resolveLoginEmail(identifier) {
     if (!email) throw new Error("No account found for that username.");
     return String(email).toLowerCase();
   } catch (err) {
-    const code = err?.code || "";
-    const msg = err?.message || "";
-    if (code.includes("not-found") || /no account/i.test(msg)) {
-      throw new Error("No account found for that username.");
-    }
-    if (code.includes("invalid-argument")) {
-      throw new Error("Enter a valid email address or username.");
-    }
-    throw new Error(msg.replace(/^Firebase:\s*/i, "").replace(/\s*\([^)]*\)\s*$/, "") || "Unable to look up that username.");
+    throw mapResolveLookupError(err);
   }
 }
 

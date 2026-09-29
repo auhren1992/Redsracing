@@ -2,9 +2,11 @@
  * Username claim / resolve helpers for login-by-username.
  * Collection: usernames/{normalizedUsername} -> { uid, email, username, updatedAt }
  */
+/* eslint-env node */
 
 const { HttpsError } = require("firebase-functions/v2/https");
 const { FieldValue } = require("firebase-admin/firestore");
+const { getAuth } = require("firebase-admin/auth");
 
 const USERNAME_MIN = 3;
 const USERNAME_MAX = 20;
@@ -61,6 +63,22 @@ function validateUsernameFormat(raw) {
   return key;
 }
 
+async function releasePreviousUsername(tx, db, uid, prevKey, nextKey) {
+  if (!prevKey || prevKey === nextKey) return;
+  const prevRef = db.collection("usernames").doc(prevKey);
+  const prevSnap = await tx.get(prevRef);
+  if (prevSnap.exists && prevSnap.data()?.uid === uid) {
+    tx.delete(prevRef);
+  }
+}
+
+async function assertUsernameAvailable(tx, unameRef, uid) {
+  const taken = await tx.get(unameRef);
+  if (taken.exists && taken.data()?.uid !== uid) {
+    throw new HttpsError("already-exists", "That username is already taken.");
+  }
+}
+
 async function claimUsernameForUser(db, { uid, email, username }) {
   if (!uid) {
     throw new HttpsError("invalid-argument", "Missing user id.");
@@ -73,22 +91,11 @@ async function claimUsernameForUser(db, { uid, email, username }) {
   const userRef = db.collection("users").doc(uid);
 
   await db.runTransaction(async (tx) => {
-    const taken = await tx.get(unameRef);
-    if (taken.exists && taken.data()?.uid !== uid) {
-      throw new HttpsError("already-exists", "That username is already taken.");
-    }
-
+    await assertUsernameAvailable(tx, unameRef, uid);
     const userSnap = await tx.get(userRef);
     const prevRaw = userSnap.exists ? userSnap.data()?.username || "" : "";
     const prevKey = prevRaw ? normalizeUsername(prevRaw) : "";
-    if (prevKey && prevKey !== key) {
-      const prevRef = db.collection("usernames").doc(prevKey);
-      const prevSnap = await tx.get(prevRef);
-      if (prevSnap.exists && prevSnap.data()?.uid === uid) {
-        tx.delete(prevRef);
-      }
-    }
-
+    await releasePreviousUsername(tx, db, uid, prevKey, key);
     tx.set(
       unameRef,
       {
@@ -105,10 +112,9 @@ async function claimUsernameForUser(db, { uid, email, username }) {
   return key;
 }
 
-async function emailForUid(db, uid) {
+async function emailForUid(uid) {
   if (!uid) return "";
   try {
-    const { getAuth } = require("firebase-admin/auth");
     const user = await getAuth().getUser(uid);
     return String(user.email || "")
       .trim()
@@ -116,6 +122,12 @@ async function emailForUid(db, uid) {
   } catch (_) {
     return "";
   }
+}
+
+function emailFromUsernameDoc(data) {
+  return String(data?.email || "")
+    .trim()
+    .toLowerCase();
 }
 
 /** Legacy profiles may have username without a usernames/ claim — adopt if unique. */
@@ -128,15 +140,37 @@ async function resolveFromLegacyUsers(db, key) {
   if (snap.size !== 1) return null;
   const doc = snap.docs[0];
   const uid = doc.id;
-  let email = String(doc.data()?.email || "")
-    .trim()
-    .toLowerCase();
-  if (!email) email = await emailForUid(db, uid);
+  let email = emailFromUsernameDoc(doc.data());
+  if (!email) email = await emailForUid(uid);
   if (!email) return null;
   try {
     await claimUsernameForUser(db, { uid, email, username: key });
   } catch (_) {
     // Another writer won the race; still return email for login.
+  }
+  return { email, via: "username", username: key };
+}
+
+function parseUsernameKey(raw) {
+  try {
+    return validateUsernameFormat(raw);
+  } catch (_) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Enter a valid email address or username.",
+    );
+  }
+}
+
+async function resolveUsernameDoc(db, key) {
+  const snap = await db.collection("usernames").doc(key).get();
+  if (!snap.exists) return null;
+  const email = emailFromUsernameDoc(snap.data());
+  if (!email) {
+    throw new HttpsError(
+      "failed-precondition",
+      "This username is not linked to an email. Sign in with email or Google instead.",
+    );
   }
   return { email, via: "username", username: key };
 }
@@ -150,29 +184,9 @@ async function resolveIdentifierToEmail(db, identifier) {
     return { email: raw.toLowerCase(), via: "email" };
   }
 
-  let key;
-  try {
-    key = validateUsernameFormat(raw);
-  } catch (err) {
-    throw new HttpsError(
-      "invalid-argument",
-      "Enter a valid email address or username.",
-    );
-  }
-
-  const snap = await db.collection("usernames").doc(key).get();
-  if (snap.exists) {
-    const email = String(snap.data()?.email || "")
-      .trim()
-      .toLowerCase();
-    if (!email) {
-      throw new HttpsError(
-        "failed-precondition",
-        "This username is not linked to an email. Sign in with email or Google instead.",
-      );
-    }
-    return { email, via: "username", username: key };
-  }
+  const key = parseUsernameKey(raw);
+  const mapped = await resolveUsernameDoc(db, key);
+  if (mapped) return mapped;
 
   const legacy = await resolveFromLegacyUsers(db, key);
   if (legacy) return legacy;

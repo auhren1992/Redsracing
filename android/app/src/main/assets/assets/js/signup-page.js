@@ -22,23 +22,68 @@ async function createDefaultProfile(user, signupRole = "fan", username = "") {
     const profileRef = doc(db, "users", user.uid);
     const roleLabels = { fan: "Racing Fan", racer: "Racer", crew: "Crew Member" };
     const handle = username || user.email.split("@")[0];
-    const defaultProfile = {
-      username: handle,
-      displayName: user.displayName || handle,
-      bio: "New member of the RedsRacing community!",
-      avatarUrl: user.photoURL || "",
-      favoriteCars: [],
-      joinDate: new Date().toISOString(),
-      createdAt: new Date(),
-      totalPoints: 0,
-      achievementCount: 0,
-      role: "public-fan",
-      signupRole: signupRole,
-      signupRoleLabel: roleLabels[signupRole] || "Racing Fan",
-    };
-    await setDoc(profileRef, defaultProfile, { merge: true });
-  } catch (error) {
+    await setDoc(
+      profileRef,
+      {
+        username: handle,
+        displayName: user.displayName || handle,
+        bio: "New member of the RedsRacing community!",
+        avatarUrl: user.photoURL || "",
+        favoriteCars: [],
+        joinDate: new Date().toISOString(),
+        createdAt: new Date(),
+        totalPoints: 0,
+        achievementCount: 0,
+        role: "public-fan",
+        signupRole: signupRole,
+        signupRoleLabel: roleLabels[signupRole] || "Racing Fan",
+      },
+      { merge: true },
+    );
+  } catch (_) {
     // Don't fail signup if profile write fails; claimUsername already set username.
+  }
+}
+
+async function applyInviteOrFollowerRole(user, inviteCode) {
+  if (inviteCode && inviteCode.trim()) {
+    try {
+      await processInvitationCode(inviteCode.trim(), user.uid);
+    } catch (e) {
+      console.warn("Invite code processing failed, continuing as follower:", e?.message || e);
+    }
+    return;
+  }
+  try {
+    const { getFunctions, httpsCallable } = await import(
+      "https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js"
+    );
+    const setFollowerRole = httpsCallable(getFunctions(), "setFollowerRole");
+    await setFollowerRole();
+    await user.getIdToken(true);
+  } catch (e) {
+    console.warn("setFollowerRole failed (continuing without blocking):", e?.message || e);
+  }
+}
+
+async function refreshAuthOrThrow(user, message) {
+  try {
+    await user.getIdToken(true);
+  } catch (tokenErr) {
+    console.warn(message, tokenErr?.message || tokenErr);
+    throw new Error(message);
+  }
+}
+
+async function claimUsernameOrThrow(claimed) {
+  try {
+    await claimUsername(claimed);
+  } catch (claimErr) {
+    console.error("Username claim failed after account create:", claimErr);
+    throw new Error(
+      claimErr?.message ||
+        "Account was created but that username could not be claimed. Pick another in Profile settings.",
+    );
   }
 }
 
@@ -56,104 +101,92 @@ export async function handleSignup(email, password, inviteCode, signupRole = "fa
   const user = userCredential.user;
   const claimed = normalizeUsername(username);
 
+  await applyInviteOrFollowerRole(user, inviteCode);
+  await refreshAuthOrThrow(user, "Unable to refresh session. Please try signing up again.");
+  await claimUsernameOrThrow(claimed);
+  await createDefaultProfile(user, signupRole, claimed);
   try {
-    if (inviteCode && inviteCode.trim()) {
-      try {
-        await processInvitationCode(inviteCode.trim(), user.uid);
-      } catch (e) {
-        console.warn("Invite code processing failed, continuing as follower:", e?.message || e);
-      }
-    } else {
-      try {
-        const { getFunctions, httpsCallable } = await import(
-          "https://www.gstatic.com/firebasejs/9.22.0/firebase-functions.js"
-        );
-        const f = getFunctions();
-        const setFollowerRole = httpsCallable(f, "setFollowerRole");
-        await setFollowerRole();
-        try {
-          await user.getIdToken(true);
-        } catch (tokenErr) {
-          console.warn("Token refresh after setFollowerRole failed:", tokenErr?.message || tokenErr);
-          throw new Error("Unable to refresh session after role assignment. Please try again.");
-        }
-      } catch (e) {
-        console.warn("setFollowerRole failed (continuing without blocking):", e?.message || e);
-      }
-    }
+    await sendEmailVerification(user);
+  } catch (_) {}
+  return user;
+}
 
-    try {
-      await user.getIdToken(true);
-    } catch (tokenErr) {
-      console.warn("Token refresh before profile write failed:", tokenErr?.message || tokenErr);
-      throw new Error("Unable to refresh session. Please try signing up again.");
-    }
-
-    try {
-      await claimUsername(claimed);
-    } catch (claimErr) {
-      console.error("Username claim failed after account create:", claimErr);
-      throw new Error(
-        claimErr?.message ||
-          "Account was created but that username could not be claimed. Pick another in Profile settings.",
-      );
-    }
-
-    await createDefaultProfile(user, signupRole, claimed);
-
-    try {
-      await sendEmailVerification(user);
-    } catch (_) {}
-
-    return user;
-  } catch (error) {
-    throw error;
-  }
+function setUsernameHelp(helpEl, text, tone) {
+  if (!helpEl) return;
+  helpEl.textContent = text;
+  const tones = {
+    muted: "text-xs text-slate-500 mt-1.5",
+    info: "text-xs text-slate-400 mt-1.5",
+    ok: "text-xs text-emerald-400 mt-1.5",
+    err: "text-xs text-red-400 mt-1.5",
+  };
+  helpEl.className = tones[tone] || tones.muted;
 }
 
 function wireUsernameAvailability(usernameInput, helpEl) {
   if (!usernameInput) return;
   let timer = null;
+
+  const showIdleHelp = () => {
+    setUsernameHelp(
+      helpEl,
+      "3–20 characters: letters, numbers, underscores. You’ll use this or your email to sign in.",
+      "muted",
+    );
+  };
+
   const runCheck = async () => {
     const raw = usernameInput.value;
-    const formatErr = usernameFormatError(raw);
     if (!raw.trim()) {
-      if (helpEl) {
-        helpEl.textContent =
-          "3–20 characters: letters, numbers, underscores. You’ll use this or your email to sign in.";
-        helpEl.className = "text-xs text-slate-500 mt-1.5";
-      }
+      showIdleHelp();
       return;
     }
+    const formatErr = usernameFormatError(raw);
     if (formatErr) {
-      if (helpEl) {
-        helpEl.textContent = formatErr;
-        helpEl.className = "text-xs text-red-400 mt-1.5";
-      }
+      setUsernameHelp(helpEl, formatErr, "err");
       usernameInput.classList.add("border-red-500");
       return;
     }
     usernameInput.classList.remove("border-red-500");
-    if (helpEl) {
-      helpEl.textContent = "Checking availability…";
-      helpEl.className = "text-xs text-slate-400 mt-1.5";
-    }
+    setUsernameHelp(helpEl, "Checking availability…", "info");
     const result = await checkUsernameAvailable(raw);
-    if (helpEl) {
-      if (result.available) {
-        helpEl.textContent = `@${result.username} is available`;
-        helpEl.className = "text-xs text-emerald-400 mt-1.5";
-      } else {
-        helpEl.textContent = result.error || "That username is taken.";
-        helpEl.className = "text-xs text-red-400 mt-1.5";
-      }
+    if (result.available) {
+      setUsernameHelp(helpEl, `@${result.username} is available`, "ok");
+    } else {
+      setUsernameHelp(helpEl, result.error || "That username is taken.", "err");
     }
   };
+
   usernameInput.addEventListener("input", () => {
     clearTimeout(timer);
     timer = setTimeout(runCheck, 400);
   });
   usernameInput.addEventListener("blur", runCheck);
+}
+
+function persistSignupSession(user, teamRole) {
+  try {
+    localStorage.setItem("rr_signup_role", teamRole || "fan");
+  } catch (_) {}
+  try {
+    localStorage.setItem("rr_auth_uid", user.uid);
+  } catch (_) {}
+  try {
+    if (window.FirebaseAuthBridge) {
+      window.FirebaseAuthBridge.storeAuthUid(user.uid);
+      if (user.email) window.FirebaseAuthBridge.storeAuthEmail(user.email);
+    }
+  } catch (_) {}
+}
+
+function redirectAfterSignup(role) {
+  if (role === "admin") {
+    window.location.href = "/admin/index.html";
+  } else if (role === "team-member") {
+    window.location.href = "/crew/dashboard.html";
+  } else {
+    window.location.href = "/follower/index.html";
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -170,32 +203,25 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("[SIGNUP] Form element not found!");
     return;
   }
-  console.log("[SIGNUP] Form element found, setting up listeners...");
 
   wireUsernameAvailability(usernameInput, usernameHelp);
 
   teamRoleInputs.forEach((input) => {
     input.addEventListener("change", (e) => {
       const role = e.target.value;
-      if (role === "racer" || role === "crew") {
-        if (inviteCodeHelp) inviteCodeHelp.classList.remove("hidden");
-        if (inviteCodeInput) {
-          inviteCodeInput.placeholder = "Invite Code (required)";
-          inviteCodeInput.classList.add("border-yellow-400");
-        }
-      } else {
-        if (inviteCodeHelp) inviteCodeHelp.classList.add("hidden");
-        if (inviteCodeInput) {
-          inviteCodeInput.placeholder = "Invite Code (optional)";
-          inviteCodeInput.classList.remove("border-yellow-400");
-        }
+      const needsInvite = role === "racer" || role === "crew";
+      if (inviteCodeHelp) inviteCodeHelp.classList.toggle("hidden", !needsInvite);
+      if (inviteCodeInput) {
+        inviteCodeInput.placeholder = needsInvite
+          ? "Invite Code (required)"
+          : "Invite Code (optional)";
+        inviteCodeInput.classList.toggle("border-yellow-400", needsInvite);
       }
     });
   });
 
   signupForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    console.log("[SIGNUP] Form submitted!");
     signupError.textContent = "";
 
     const submitBtn = signupForm.querySelector('button[type="submit"]');
@@ -209,14 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const inviteCode = signupForm["invite-code"].value;
     const teamRole = signupForm["team-role"].value;
 
-    console.log("[SIGNUP] Form data:", {
-      email,
-      username,
-      teamRole,
-      hasInviteCode: !!inviteCode,
-    });
-
-    if ((teamRole === "racer" || teamRole === "crew") && (!inviteCode || !inviteCode.trim())) {
+    if ((teamRole === "racer" || teamRole === "crew") && !String(inviteCode || "").trim()) {
       signupError.textContent =
         'Invite code is required for Racer and Crew Member roles. Choose "Racing Fan" to sign up without a code.';
       submitBtn.disabled = false;
@@ -225,36 +244,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      console.log("[SIGNUP] Calling handleSignup...");
       const user = await handleSignup(email, password, inviteCode, teamRole, username);
-      console.log("[SIGNUP] Signup successful!", user.uid);
-
       try {
         await user.getIdToken(true);
         const tokenResult = await user.getIdTokenResult();
-        const role = tokenResult?.claims?.role || null;
-        console.log("[SIGNUP] User role after signup:", role);
-
-        try {
-          localStorage.setItem("rr_signup_role", teamRole || "fan");
-        } catch (_) {}
-        try {
-          localStorage.setItem("rr_auth_uid", user.uid);
-        } catch (_) {}
-        try {
-          if (window.FirebaseAuthBridge) {
-            window.FirebaseAuthBridge.storeAuthUid(user.uid);
-            if (user.email) window.FirebaseAuthBridge.storeAuthEmail(user.email);
-          }
-        } catch (_) {}
-
-        if (role === "admin") {
-          window.location.href = "/admin/index.html";
-        } else if (role === "team-member") {
-          window.location.href = "/crew/dashboard.html";
-        } else {
-          window.location.href = "/follower/index.html";
-        }
+        persistSignupSession(user, teamRole);
+        redirectAfterSignup(tokenResult?.claims?.role || null);
       } catch (e2) {
         console.warn("[SIGNUP] Could not fetch role claims, defaulting to follower dashboard:", e2);
         window.location.href = "/follower/index.html";
