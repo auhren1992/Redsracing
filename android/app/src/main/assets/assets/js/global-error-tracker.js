@@ -10,7 +10,7 @@
   const MAX_ERRORS_PER_SESSION = 50;
   const BATCH_SEND_DELAY = 2000;
   const DEBUG = false;
-  const TRACKER_VERSION = '2026080913';
+  const TRACKER_VERSION = '2026092914';
 
   const FIREBASE_CFG = {
     apiKey: 'AIzaSyARFiFCadGKFUc_s6x3qNX8F4jsVawkzVg',
@@ -397,6 +397,48 @@
     }
   }
 
+  function getResourceFailUrl(el) {
+    return (el && (el.currentSrc || el.src || el.href)) || '';
+  }
+
+  function isAppResourceUrl(resUrl) {
+    if (!resUrl) return true;
+    if (typeof location !== 'undefined' && resUrl.indexOf(location.origin) === 0) return true;
+    return /redsracing\.(org|web\.app)|localhost|127\.0\.0\.1/i.test(resUrl);
+  }
+
+  function isResourceLoadError(event) {
+    const target = event && event.target;
+    return !!target && target !== window && target.nodeType === 1;
+  }
+
+  /** Queue same-origin resource failures; return true if handled (incl. ignored 3p). */
+  function tryQueueResourceError(event) {
+    if (!isResourceLoadError(event)) return false;
+    const resourceTarget = event.target;
+    const resUrl = getResourceFailUrl(resourceTarget);
+    // Ignore third-party CDN/font/ad hiccups — only app assets (or empty src) are actionable.
+    if (!isAppResourceUrl(resUrl)) return true;
+
+    errorCount++;
+    const tag = (resourceTarget.tagName || 'RESOURCE').toUpperCase();
+    const errorData = formatError(
+      'Resource failed to load: ' + tag + (resUrl ? ' ' + resUrl : ' (empty src)'),
+      resUrl || window.location.href,
+      0,
+      0,
+      null
+    );
+    errorData.errorType = 'ResourceError';
+
+    if (DEBUG) console.error('[Error Tracker] Caught resource error:', errorData);
+
+    errorQueue.push(errorData);
+    clearTimeout(window.errorQueueTimer);
+    window.errorQueueTimer = setTimeout(processErrorQueue, BATCH_SEND_DELAY);
+    return true;
+  }
+
   window.addEventListener(
     'error',
     function (event) {
@@ -411,40 +453,9 @@
         !event.error;
       if (isCorsStripped) return;
 
-      // Resource load failures (img/link/script/etc.) surface as plain `error`
-      // events with target = the failed element (not window) and no
-      // message/filename/lineno/error — they are NOT JS errors and were
-      // previously logged as an unhelpful "Unknown error" with no stack.
-      const resourceTarget = event && event.target;
-      const isResourceError = !!resourceTarget && resourceTarget !== window && resourceTarget.nodeType === 1;
-      if (isResourceError) {
-        const resUrl = resourceTarget.currentSrc || resourceTarget.src || resourceTarget.href || '';
-        const isAppAsset =
-          !resUrl ||
-          (typeof location !== 'undefined' && resUrl.indexOf(location.origin) === 0) ||
-          /redsracing\.(org|web\.app)|localhost|127\.0\.0\.1/i.test(resUrl);
-        // Ignore third-party CDN/font/ad hiccups (ad blockers, transient network) —
-        // only same-origin app assets (or an empty/missing src) are actionable.
-        if (!isAppAsset) return;
-
-        errorCount++;
-        const tag = (resourceTarget.tagName || 'RESOURCE').toUpperCase();
-        const errorData = formatError(
-          'Resource failed to load: ' + tag + (resUrl ? ' ' + resUrl : ' (empty src)'),
-          resUrl || window.location.href,
-          0,
-          0,
-          null
-        );
-        errorData.errorType = 'ResourceError';
-
-        if (DEBUG) console.error('[Error Tracker] Caught resource error:', errorData);
-
-        errorQueue.push(errorData);
-        clearTimeout(window.errorQueueTimer);
-        window.errorQueueTimer = setTimeout(processErrorQueue, BATCH_SEND_DELAY);
-        return;
-      }
+      // Resource load failures (img/link/script/etc.) are plain `error` events
+      // with target = the failed element — previously logged as "Unknown error".
+      if (tryQueueResourceError(event)) return;
 
       errorCount++;
 
