@@ -58,7 +58,7 @@ if (protectedPaths.has(pageKey)) {
       clearTimeout(graceTimer);
 
       try {
-        let appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: false });
+        let appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: true });
 
         const ensureUserProfile = async (canonical) => {
           const { getFirebaseDb } = await import("./firebase-core.js");
@@ -125,9 +125,16 @@ if (protectedPaths.has(pageKey)) {
         }
       } catch (error) {
         console.error("[AuthGuard] Error resolving role:", error);
+        safeRedirectToLogin();
       }
     },
-    () => {},
+    (err) => {
+      if (err && err.recoverable) {
+        console.warn("[AuthGuard] Recoverable auth error:", err.message);
+        return;
+      }
+      safeRedirectToLogin();
+    },
   );
 }
 

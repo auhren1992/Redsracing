@@ -167,32 +167,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
      * Returns a deep-link URL that is safe to load into the bridged WebView.
      * Same host policy as [MainActivity.sanitizeNotificationUrl] (www / apex + .html paths).
      */
-    private fun pickSafeDeepLink(raw: String?): String {
-        val home = MainActivity.siteUrl("index.html")
-        if (raw.isNullOrBlank()) return home
-        if (!raw.contains("://") && raw.endsWith(".html")) {
-            return MainActivity.siteUrl(raw.removePrefix("/"))
-        }
-        return try {
-            val uri = android.net.Uri.parse(raw)
-            val scheme = uri.scheme?.lowercase()
-            val host = uri.host?.lowercase() ?: ""
-            val path = uri.path ?: "/"
-            val allowedHost = host == "www.redsracing.org" || host == "redsracing.org"
-            val allowedPath = path.endsWith(".html", ignoreCase = true) ||
-                path == "/" || path.isEmpty()
-            val allowed = (scheme == "https" || scheme == "http") && allowedHost && allowedPath
-            if (!allowed) return home
-            if (host == "redsracing.org") {
-                val tail = path.removePrefix("/").trim()
-                MainActivity.siteUrl(if (tail.isEmpty()) "index.html" else tail)
-            } else {
-                raw
-            }
-        } catch (_: Throwable) {
-            home
-        }
-    }
+    private fun pickSafeDeepLink(raw: String?): String = DeepLinkPolicy.sanitize(raw)
 
     companion object {
         private const val TAG = "FCMService"

@@ -192,8 +192,12 @@ export async function persistNativeAuth(user) {
   const email = user.email || "";
   let token = "";
   try {
-    token = await user.getIdToken();
-  } catch (_) {}
+    token = await user.getIdToken(true);
+  } catch (_) {
+    try {
+      token = await user.getIdToken(false);
+    } catch (_) {}
+  }
 
   try {
     localStorage.setItem("rr_auth_uid", uid);

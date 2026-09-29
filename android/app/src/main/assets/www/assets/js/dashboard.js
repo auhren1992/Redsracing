@@ -520,7 +520,23 @@ import { navigateToInternal } from "./navigation-helpers.js";
         try {
           clearAuthError();
 
-          if (user && validToken) {
+          if (user) {
+            if (!validToken) {
+              try {
+                validToken = await user.getIdToken(true);
+              } catch (_) {
+                showAuthError({
+                  code: "token-refresh-failed",
+                  message: "Session refresh failed",
+                  userMessage:
+                    "Unable to refresh your session. Check your connection and try again.",
+                  requiresReauth: false,
+                  retryable: true,
+                });
+                hideLoadingAndShowFallback();
+                return;
+              }
+            }
             console.log(
               "[Dashboard:Auth] User is authenticated. Loading dashboard data...",
             );
@@ -532,16 +548,15 @@ import { navigateToInternal } from "./navigation-helpers.js";
 
             try {
               console.log(
-                "[Dashboard:Auth] Validating user claims for team-member role.",
+                "[Dashboard:Auth] Resolving staff role for race management.",
               );
-              const claimsResult = await validateUserClaims(["team-member"]);
-              const isTeamMember =
-                claimsResult.success &&
-                claimsResult.claims.role === "team-member";
+              const { resolveAppRoleForUser, isStaffAppRole } = await import("./roles.js");
+              const appRole = await resolveAppRoleForUser(user, { forceTokenRefresh: true });
+              const isTeamMember = isStaffAppRole(appRole);
 
               console.log("[Dashboard:Auth] User role check completed:", {
                 isTeamMember,
-                role: claimsResult.claims?.role,
+                role: appRole,
               });
 
               if (isTeamMember) {

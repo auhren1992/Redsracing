@@ -9,8 +9,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.LinearGradient
 import android.graphics.Shader
-import android.text.SpannableString
-import android.text.style.ForegroundColorSpan
 import android.widget.TextView
 import android.net.Uri
 import android.os.Build
@@ -42,7 +40,6 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
 import com.redsracing.app.databinding.ActivityMainBottomNavBinding
@@ -276,33 +273,7 @@ class MainActivity : AppCompatActivity() {
      * WebView that exposes FirebaseAuthBridge / AndroidAuth / AndroidNotifications
      * to JavaScript.
      */
-    private fun sanitizeNotificationUrl(raw: String?): String {
-        val home = siteUrl("index.html")
-        if (raw.isNullOrBlank()) return home
-        // Bare html filename -> same origin as the rest of the app WebView.
-        if (!raw.contains("://") && raw.endsWith(".html")) {
-            return siteUrl(raw.removePrefix("/"))
-        }
-        return try {
-            val uri = android.net.Uri.parse(raw)
-            val scheme = uri.scheme?.lowercase()
-            val host = uri.host?.lowercase() ?: ""
-            val path = uri.path ?: "/"
-            val allowedHost = host == "www.redsracing.org" || host == "redsracing.org"
-            val allowedPath = path.endsWith(".html", ignoreCase = true) ||
-                path == "/" || path.isEmpty()
-            val allowed = (scheme == "https" || scheme == "http") && allowedHost && allowedPath
-            if (!allowed) return home
-            if (host == "redsracing.org") {
-                val tail = path.removePrefix("/").trim()
-                siteUrl(if (tail.isEmpty()) "index.html" else tail)
-            } else {
-                raw
-            }
-        } catch (_: Throwable) {
-            home
-        }
-    }
+    private fun sanitizeNotificationUrl(raw: String?): String = DeepLinkPolicy.sanitize(raw)
 
     override fun onPause() {
         super.onPause()
@@ -334,6 +305,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        // Release any pending file chooser callback; leaving it unset leaks the
+        // WebView's ValueCallback and can wedge the next chooser invocation.
+        filePathCallback?.onReceiveValue(null)
+        filePathCallback = null
         // Tear down WebView + AdView so we don't leak bitmaps across recreation.
         AppMemoryTrimmer.onActivityDestroy(binding.webview, binding.adView)
         super.onDestroy()
@@ -592,8 +567,10 @@ class MainActivity : AppCompatActivity() {
                         android.webkit.WebStorage.getInstance().deleteAllData()
                     } catch (_: Throwable) {}
                     firebaseAuthBridge.clearAllAuth()
-                    startActivity(Intent(this@MainActivity, LoginActivity::class.java))
-                    finish()
+                    if (!isFinishing && !isDestroyed) {
+                        startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                        finish()
+                    }
                 }
                 hideMenuOverlay()
             } else if (item.url == "login.html") {
@@ -736,6 +713,21 @@ class MainActivity : AppCompatActivity() {
                     return assetLoader.shouldInterceptRequest(url)
                 }
                 return super.shouldInterceptRequest(view, request)
+            }
+
+            override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+                // The renderer crashed/was killed (usually low memory). Returning
+                // true here tells the framework we handled it (default behavior
+                // otherwise kills the whole app process). Reload the current page
+                // instead of leaving a dead/blank WebView on screen.
+                android.util.Log.w("MainActivity", "WebView render process gone: didCrash=${detail?.didCrash()}")
+                if (isFinishing || isDestroyed) return true
+                try {
+                    view?.reload()
+                } catch (e: Exception) {
+                    android.util.Log.e("MainActivity", "Failed to reload after render process gone", e)
+                }
+                return true
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
@@ -905,12 +897,28 @@ class MainActivity : AppCompatActivity() {
                         if (url != null && view != null) {
                             view.loadUrl(url)
                         }
+                        // The temp WebView only exists to capture the popup's target
+                        // URL; once redirected into the main WebView it must be torn
+                        // down or it leaks (still attached via the JS window handle).
+                        Handler(Looper.getMainLooper()).post {
+                            try {
+                                v?.destroy()
+                            } catch (_: Throwable) {
+                            }
+                        }
                     }
                 }
                 val transport = resultMsg?.obj as? WebView.WebViewTransport ?: return false
                 transport.webView = tempWebView
                 resultMsg.sendToTarget()
                 return true
+            }
+
+            override fun onCloseWindow(window: WebView?) {
+                try {
+                    window?.destroy()
+                } catch (_: Throwable) {
+                }
             }
 
             override fun onShowFileChooser(
@@ -943,7 +951,7 @@ class MainActivity : AppCompatActivity() {
         appLockBridge.attachWebView(webView)
         webView.addJavascriptInterface(firebaseAuthBridge, "FirebaseAuthBridge")
         webView.addJavascriptInterface(NotificationsBridge(this), "AndroidNotifications")
-        webView.addJavascriptInterface(AuthBridge(this), "AndroidAuth")
+        webView.addJavascriptInterface(AuthBridge(this, firebaseAuthBridge), "AndroidAuth")
         webView.addJavascriptInterface(appLockBridge, "AppLockBridge")
     }
 
@@ -1035,16 +1043,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun subscribeDefaultFcmTopics() {
         FirebaseMessaging.getInstance().subscribeToTopic("all_users")
-            .addOnCompleteListener { topicTask ->
-                if (topicTask.isSuccessful) {
-                    android.util.Log.d("MainActivity", "Subscribed to all_users topic")
-                }
+            .addOnSuccessListener {
+                android.util.Log.d("MainActivity", "Subscribed to all_users topic")
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.w("MainActivity", "Failed to subscribe to all_users topic", e)
             }
         FirebaseMessaging.getInstance().subscribeToTopic("android_users")
-            .addOnCompleteListener { topicTask ->
-                if (topicTask.isSuccessful) {
-                    android.util.Log.d("MainActivity", "Subscribed to android_users topic")
-                }
+            .addOnSuccessListener {
+                android.util.Log.d("MainActivity", "Subscribed to android_users topic")
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.w("MainActivity", "Failed to subscribe to android_users topic", e)
             }
     }
 
@@ -1331,11 +1341,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAuthAndRoute() {
-        if (firebaseAuthBridge.hasAuthUid()) {
-            android.util.Log.d("MainActivity", "Saved auth UID found, loading home page")
+        if (firebaseAuthBridge.hasValidSession()) {
+            android.util.Log.d("MainActivity", "Valid auth session found, loading home page")
             binding.webview.loadUrl(siteUrl("index.html"))
         } else {
-            android.util.Log.d("MainActivity", "No saved auth, opening standalone native login")
+            if (firebaseAuthBridge.hasAuthUid()) {
+                android.util.Log.w("MainActivity", "Stored UID present but session invalid; clearing auth")
+                firebaseAuthBridge.clearAllAuth()
+            } else {
+                android.util.Log.d("MainActivity", "No saved auth, opening standalone native login")
+            }
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
@@ -1450,6 +1465,7 @@ class MenuAdapter(
 
 class AuthBridge(
     private val context: Context,
+    private val firebaseAuthBridge: FirebaseAuthBridge = FirebaseAuthBridge(context),
     private val onLoginSuccessExtra: (() -> Unit)? = null,
 ) {
     private val prefs by lazy { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
@@ -1464,6 +1480,7 @@ class AuthBridge(
     fun onLogout() {
         prefs.edit().remove("remember_choice").remove("mode").apply()
         AppLockBridge.clear(context)
+        firebaseAuthBridge.clearAllAuth()
     }
 }
 
@@ -1500,6 +1517,6 @@ class NotificationsBridge(private val activity: MainActivity) {
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setAutoCancel(true)
-        nm.notify(System.currentTimeMillis().toInt(), builder.build())
+        nm.notify((System.currentTimeMillis() and 0x7FFFFFFF).toInt(), builder.build())
     }
 }

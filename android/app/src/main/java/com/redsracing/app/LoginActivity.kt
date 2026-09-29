@@ -26,9 +26,13 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         firebaseAuthBridge = FirebaseAuthBridge(this)
-        if (firebaseAuthBridge.hasAuthUid()) {
+        if (firebaseAuthBridge.hasValidSession()) {
             openMainApp()
             return
+        }
+        if (firebaseAuthBridge.hasAuthUid()) {
+            android.util.Log.w("LoginActivity", "Stored UID present but session invalid; clearing auth")
+            firebaseAuthBridge.clearAllAuth()
         }
 
         binding = ActivityLoginBinding.inflate(layoutInflater)
@@ -125,7 +129,7 @@ class LoginActivity : AppCompatActivity() {
         appLockBridge.attachWebView(webView)
         webView.addJavascriptInterface(firebaseAuthBridge, "FirebaseAuthBridge")
         webView.addJavascriptInterface(
-            AuthBridge(this) { openMainApp() },
+            AuthBridge(this, firebaseAuthBridge) { openMainApp() },
             "AndroidAuth",
         )
         webView.addJavascriptInterface(appLockBridge, "AppLockBridge")
@@ -165,12 +169,28 @@ class LoginActivity : AppCompatActivity() {
                     override fun shouldOverrideUrlLoading(v: WebView?, req: WebResourceRequest?): Boolean {
                         val target = req?.url?.toString() ?: return false
                         view?.loadUrl(target)
+                        // Redirect handled by the main WebView; the temp popup
+                        // WebView has served its purpose and must be destroyed
+                        // to avoid leaking it.
+                        android.os.Handler(android.os.Looper.getMainLooper()).post {
+                            try {
+                                v?.destroy()
+                            } catch (_: Throwable) {
+                            }
+                        }
                         return true
                     }
                 }
                 transport.webView = temp
                 resultMsg.sendToTarget()
                 return true
+            }
+
+            override fun onCloseWindow(window: WebView?) {
+                try {
+                    window?.destroy()
+                } catch (_: Throwable) {
+                }
             }
         }
     }
@@ -191,7 +211,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun openMainApp(guest: Boolean = false) {
         val intent = Intent(this, MainActivity::class.java)
-            .putExtra("initialUrl", MainActivity.siteUrl(if (guest) "index.html" else "index.html"))
+            .putExtra("initialUrl", MainActivity.siteUrl("index.html"))
             .putExtra("guest", guest)
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)

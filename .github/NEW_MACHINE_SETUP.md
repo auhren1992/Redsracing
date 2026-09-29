@@ -11,7 +11,7 @@ git checkout main
 git pull origin main
 ```
 
-Latest mobile release on `main` (when this doc was added): **11.2.32 (218)** — Play Store versionCode bump after 217 was already used; keep Android/iOS/Firestore app_config aligned.
+Latest mobile release on `main` (when this doc was added): **11.2.33 (219)** — full audit fixes (auth session, Hosting/API hardening, native leaks/parity); keep Android/iOS/Firestore app_config aligned.
 
 ## Already in Git (you get everything below with `git pull`)
 

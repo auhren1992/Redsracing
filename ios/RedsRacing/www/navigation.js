@@ -22,21 +22,52 @@
     try {
       const root = document.documentElement;
       const key = 'rr_theme';
+      const prefKey = 'rr_theme_pref';
       const stored = localStorage.getItem(key);
+      const pref = localStorage.getItem(prefKey);
       const systemPrefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-      const initial = stored === 'light' || stored === 'dark' ? stored : (systemPrefersLight ? 'light' : 'dark');
+      let initial;
+      if (pref === 'auto') {
+        initial = systemPrefersLight ? 'light' : 'dark';
+      } else if (stored === 'light' || stored === 'dark') {
+        initial = stored;
+      } else if (pref === 'light' || pref === 'dark') {
+        initial = pref;
+      } else {
+        initial = systemPrefersLight ? 'light' : 'dark';
+      }
       root.dataset.theme = initial;
+      root.classList.toggle('dark', initial === 'dark');
 
       // Expose a tiny API for other scripts/pages if needed
       window.__rrTheme = {
         get: () => root.dataset.theme || 'dark',
+        getPref: () => {
+          try {
+            const p = localStorage.getItem(prefKey);
+            if (p === 'auto' || p === 'light' || p === 'dark') return p;
+          } catch (_) {}
+          return stored === 'light' || stored === 'dark' ? stored : 'auto';
+        },
         set: (next) => {
           const t = next === 'light' ? 'light' : 'dark';
           root.dataset.theme = t;
+          root.classList.toggle('dark', t === 'dark');
           try { localStorage.setItem(key, t); } catch (_) {}
+        },
+        setPref: (prefNext) => {
+          const p = prefNext === 'light' || prefNext === 'dark' || prefNext === 'auto' ? prefNext : 'auto';
+          try { localStorage.setItem(prefKey, p); } catch (_) {}
+          if (p === 'auto') {
+            const resolved = systemPrefersLight ? 'light' : 'dark';
+            window.__rrTheme.set(resolved);
+          } else {
+            window.__rrTheme.set(p);
+          }
         },
         toggle: () => {
           const next = (root.dataset.theme === 'light') ? 'dark' : 'light';
+          try { localStorage.setItem(prefKey, next); } catch (_) {}
           window.__rrTheme.set(next);
         }
       };
@@ -102,6 +133,7 @@
 
       if (!has('assets/js/mobile-app-detector.js')) inject(assetRoot + 'assets/js/mobile-app-detector.js');
       if (!has('global-error-tracker.js')) inject(assetRoot + 'assets/js/global-error-tracker.js?v=2026080913');
+      if (!has('assets/js/user-settings.js')) inject(assetRoot + 'assets/js/user-settings.js?v=20260813s');
 
       // Mobile browser UX stylesheet (skipped for native app class if detector adds it later)
       try {

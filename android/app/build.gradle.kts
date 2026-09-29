@@ -21,8 +21,8 @@ android {
         applicationId = "com.redsracing.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 218
-        versionName = "11.2.32"
+        versionCode = 219
+        versionName = "11.2.33"
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
         }
@@ -57,7 +57,7 @@ android {
 
     buildFeatures {
         viewBinding = true
-        dataBinding = true
+        dataBinding = false
         buildConfig = true
     }
 
@@ -100,7 +100,6 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.webkit:webkit:1.11.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("com.google.android.play:integrity:1.5.0")
     // Google Mobile Ads SDK
     implementation("com.google.android.gms:play-services-ads:23.6.0")
     // Firebase

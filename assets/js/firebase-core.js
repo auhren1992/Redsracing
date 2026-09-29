@@ -1,5 +1,6 @@
 // assets/js/firebase-core-fixed.js
 import { getFirebaseConfig } from "./firebase-config.js";
+import { isLikelyEmbeddedWebView } from "./native-env.js";
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 import { getFirestore, initializeFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
@@ -25,9 +26,7 @@ function initializeFirebaseIfNeeded() {
     } catch (e) {}
     // Android/iOS WebView + file:// origins can have issues with Firestore's WebChannel (Listen/channel),
     // causing intermittent HTTP 400s. Force long polling in those environments to stabilize reads/writes.
-    const isLikelyWebView =
-      (typeof navigator !== "undefined" && /wv|Android/i.test(navigator.userAgent || "")) ||
-      (typeof location !== "undefined" && location.protocol === "file:");
+    const isLikelyWebView = isLikelyEmbeddedWebView();
     // Avoid double-init: compat `firebase.firestore()` or earlier getFirestore starts Firestore too;
     // initializeFirestore throws in that case — fall back to the default modular instance.
     try {

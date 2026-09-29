@@ -147,7 +147,11 @@ class AppLockBridge(
                 }
 
                 override fun onAuthenticationFailed() {
-                    onFailure()
+                    // A single failed attempt (e.g. wrong finger) is not terminal —
+                    // BiometricPrompt keeps the sheet open and lets the user retry.
+                    // Calling onFailure() here would prematurely bail (e.g. show a
+                    // toast / dismiss) while the system prompt is still active.
+                    // Terminal failures are reported via onAuthenticationError.
                 }
             }
             val prompt = BiometricPrompt(activity, executor, callback)

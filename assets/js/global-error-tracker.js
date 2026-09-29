@@ -229,8 +229,11 @@
       const app = defaultApp || initializeApp(FIREBASE_CFG);
 
       let fsdb = null;
+      const uaWv = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
       const isLikelyWebView =
-        (typeof navigator !== 'undefined' && /wv|Android/i.test(navigator.userAgent || '')) ||
+        !!(typeof window !== 'undefined' && window.__RR_NATIVE_APP__) ||
+        /RedsRacingApp\//i.test(uaWv) ||
+        /; wv\)/i.test(uaWv) ||
         (typeof location !== 'undefined' && location.protocol === 'file:');
       try {
         fsdb = isLikelyWebView

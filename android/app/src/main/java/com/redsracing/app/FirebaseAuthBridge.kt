@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.webkit.JavascriptInterface
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.google.firebase.auth.FirebaseAuth
 import java.io.IOException
 import java.security.GeneralSecurityException
 
@@ -199,8 +200,30 @@ class FirebaseAuthBridge(private val context: Context) {
 
     /**
      * Check if a UID is stored (called natively on app launch).
+     * NOTE: this only reflects locally-persisted state and does not verify the
+     * stored UID against the current Firebase session. Prefer [hasValidSession]
+     * for routing decisions; this is kept for the biometric app-lock gate, which
+     * intentionally only needs to know "was someone signed in on this device".
      */
     fun hasAuthUid(): Boolean {
         return peekStoredUid().isNotBlank()
+    }
+
+    /**
+     * Check whether the locally stored UID matches the currently signed-in
+     * Firebase user. Returns false (rather than true) whenever this cannot be
+     * verified, e.g. no stored UID, no current Firebase user, or a mismatch —
+     * which typically means a stale/tampered local marker.
+     */
+    fun hasValidSession(): Boolean {
+        val storedUid = peekStoredUid()
+        if (storedUid.isBlank()) return false
+        val currentUid = try {
+            FirebaseAuth.getInstance().currentUser?.uid
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Failed to read current Firebase user", e)
+            null
+        }
+        return !currentUid.isNullOrBlank() && currentUid == storedUid
     }
 }

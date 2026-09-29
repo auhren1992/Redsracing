@@ -782,7 +782,9 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
           likeCount: increment(1),
         });
       }
-    } catch (error) {}
+    } catch (error) {
+      console.warn("[gallery] like toggle failed:", error);
+    }
   };
 
   const showCommentModal = (imageId) => {
@@ -893,6 +895,7 @@ const { deleteObject, ref } = await import("https://www.gstatic.com/firebasejs/9
     }
 
     const commentInput = document.getElementById("comment-input");
+    if (!commentInput) return;
     const commentText = commentInput.value.trim();
 
     if (!commentText) return;

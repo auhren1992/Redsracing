@@ -142,7 +142,8 @@
       if (els.s) els.s.textContent = String(secs);
     }
     tick();
-    setInterval(tick, 1000);
+    if (window.__rrNextRaceTick) clearInterval(window.__rrNextRaceTick);
+    window.__rrNextRaceTick = setInterval(tick, 1000);
   }
 
   function paintWeather(wx, hub) {

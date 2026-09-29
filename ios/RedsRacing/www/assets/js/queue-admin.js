@@ -602,7 +602,15 @@ async function main() {
         try {
           // Call Firebase Cloud Function instead of local endpoint
           const functionUrl = 'https://us-central1-redsracing-a7f8b.cloudfunctions.net/process_queues';
-          const response = await fetch(functionUrl, { method: 'POST' });
+          const { getFirebaseAuth } = await import('./firebase-core.js');
+          const auth = getFirebaseAuth();
+          const user = auth?.currentUser;
+          if (!user) throw new Error('Sign in required');
+          const idToken = await user.getIdToken(true);
+          const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + idToken },
+          });
           if (!response.ok) {
             let detail = "";
             try {

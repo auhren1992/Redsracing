@@ -6,15 +6,15 @@
 (function() {
   'use strict';
   
-  // Detect if running in Android WebView
+  // Detect if running in Android WebView (never match bare "Android" Chrome).
   function isAndroidApp() {
-    const ua = navigator.userAgent.toLowerCase();
+    const ua = navigator.userAgent || '';
     return (
-      ua.indexOf('wv') > -1 || // WebView
-      (window.location.protocol === 'https:' && window.location.host === 'appassets.androidplatform.net') ||
+      window.__RR_NATIVE_APP__ === 'android' ||
       typeof window.AndroidNotifications !== 'undefined' ||
       typeof window.AndroidAuth !== 'undefined' ||
-      window.__RR_NATIVE_APP__ === 'android'
+      (window.location.protocol === 'https:' && window.location.host === 'appassets.androidplatform.net') ||
+      (/; wv\)/i.test(ua) && /Android/i.test(ua))
     );
   }
 
@@ -98,7 +98,11 @@
         }
         ensureAppAuthFab();
         // Keep it up-to-date if auth state changes inside the WebView
-        setInterval(ensureAppAuthFab, 2000);
+        if (window.__rrAppAuthFabTimer) clearInterval(window.__rrAppAuthFabTimer);
+        window.__rrAppAuthFabTimer = setInterval(ensureAppAuthFab, 2000);
+        document.addEventListener('visibilitychange', function () {
+          if (document.visibilityState === 'visible') ensureAppAuthFab();
+        });
       } else {
         setTimeout(addBodyClass, 10);
       }

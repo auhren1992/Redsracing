@@ -5,20 +5,79 @@ import LocalAuthentication
 import FirebaseFirestore
 import FirebaseMessaging
 import UserNotifications
+import Security
 
 private enum AppLockUserDefaultsKeys {
     static let biometricEnabled = "app_biometric_unlock"
     static let lockAuthUid = "app_lock_auth_uid"
 }
 
+/// Non-sensitive identity metadata only. The Firebase ID token itself is
+/// never written here — see `KeychainStore` — so a UserDefaults dump (e.g.
+/// via a jailbroken device or backup extraction) cannot yield a usable token.
 private enum NativeAuthUserDefaultsKeys {
     static let uid = "firebase_native_auth_uid"
     static let email = "firebase_native_auth_email"
-    static let token = "firebase_native_auth_token"
+    /// Lets a returning guest skip the forced-login redirect without a uid.
+    static let guestOk = "rr_native_guest_ok"
 }
 
 private enum AppUpdateUserDefaultsKeys {
     static let optionalDismissedBuild = "rr_optional_update_dismissed_build"
+}
+
+/// Minimal Keychain-backed store for the Firebase ID token (C4). Tokens are
+/// sensitive bearer credentials and must not live in UserDefaults/plist,
+/// which are trivially readable from an unencrypted backup. Writes fail
+/// closed: if the Keychain write fails for any reason, no token is stored
+/// rather than silently falling back to a weaker store.
+enum KeychainStore {
+    private static let service = "org.redsracing.RedsRacing.authtoken"
+    private static let account = "firebaseIdToken"
+
+    private static func baseQuery() -> [String: Any] {
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+    }
+
+    /// Stores `token`, replacing any previous value. Returns `false` (and
+    /// stores nothing) on any Keychain failure — callers must not fall back
+    /// to another storage mechanism when this returns `false`.
+    @discardableResult
+    static func setToken(_ token: String) -> Bool {
+        guard let data = token.data(using: .utf8) else { return false }
+        // Always start from a clean slate so partial/duplicate items can't
+        // cause SecItemAdd to fail with errSecDuplicateItem.
+        SecItemDelete(baseQuery() as CFDictionary)
+        var addQuery = baseQuery()
+        addQuery[kSecValueData as String] = data
+        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
+        return status == errSecSuccess
+    }
+
+    /// Reads the stored token, if any. Optional by design — callers (native
+    /// or the JS bridge's `getAuthToken` parity method) must handle a `nil`/
+    /// empty result gracefully rather than assuming a token always exists.
+    static func getToken() -> String? {
+        var query = baseQuery()
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess, let data = result as? Data,
+              let token = String(data: data, encoding: .utf8), !token.isEmpty else {
+            return nil
+        }
+        return token
+    }
+
+    static func deleteToken() {
+        SecItemDelete(baseQuery() as CFDictionary)
+    }
 }
 
 struct ContentView: View {
@@ -112,8 +171,9 @@ struct ContentView: View {
             Text(updateAlertBody)
         }
         .onReceive(deepLinkPublisher) { notification in
-            guard let page = notification.userInfo?["page"] as? String,
-                  let target = URL(string: "https://www.redsracing.org/" + page) else { return }
+            let requested = notification.userInfo?["page"] as? String ?? ""
+            let page = Self.sanitizedDeepLinkPage(requested)
+            guard let target = URL(string: "https://www.redsracing.org/" + page) else { return }
             // Reset the splash/overlay state so the deep-link page is visible
             // immediately when the user opens the app via the widget.
             withAnimation { showSplash = false }
@@ -299,17 +359,21 @@ struct ContentView: View {
         let defaults = UserDefaults.standard
         defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.uid)
         defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.email)
-        defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.token)
         defaults.removeObject(forKey: AppLockUserDefaultsKeys.lockAuthUid)
         defaults.set(false, forKey: AppLockUserDefaultsKeys.biometricEnabled)
+        KeychainStore.deleteToken()
     }
 
+    /// Skips forcing the login redirect when the user is either signed in
+    /// (uid present) or has explicitly chosen to continue as a guest
+    /// (`rr_native_guest_ok`), matching the web/Android guest-continue flow.
     private func routeToStandaloneLoginIfNeeded() {
         let defaults = UserDefaults.standard
         let uid = defaults.string(forKey: NativeAuthUserDefaultsKeys.uid)
             ?? defaults.string(forKey: AppLockUserDefaultsKeys.lockAuthUid)
             ?? ""
-        guard uid.isEmpty else { return }
+        let guestOk = defaults.bool(forKey: NativeAuthUserDefaultsKeys.guestOk)
+        guard uid.isEmpty && !guestOk else { return }
         let login = URL(string: "https://www.redsracing.org/login.html") ?? currentURL
         if currentURL.absoluteString != login.absoluteString {
             currentURL = login
@@ -343,7 +407,9 @@ struct ContentView: View {
                 if let laError = err as? LAError {
                     switch laError.code {
                     case .userCancel, .appCancel, .systemCancel:
-                        UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
+                        // Just stay on the lock overlay — no private API calls
+                        // (NSXPCConnection.suspend) are needed here.
+                        break
                     default:
                         break
                     }
@@ -459,10 +525,19 @@ struct ContentView: View {
         // Check login state and admin role from cached localStorage values
         if let web = webViewRef {
             web.evaluateJavaScript("(function(){ try { var l=!!localStorage.getItem('rr_auth_uid'); var r=localStorage.getItem('rr_user_role')||''; return JSON.stringify({l:l,r:r}); } catch(e){ return '{\"l\":false,\"r\":\"\"}'; } })();") { result, _ in
-                let resultStr = "\(result ?? "")"
-                let isLoggedIn = resultStr.contains("\"l\":true") || resultStr.contains("\"l\": true")
-                let isAdmin = resultStr.contains("\"r\":\"admin\"") || resultStr.contains("\"r\": \"admin\"")
-                
+                // Parse the JSON payload properly rather than substring-matching
+                // the raw string, which is brittle against key/value reordering
+                // or whitespace differences in the serialized JSON.
+                var isLoggedIn = false
+                var isAdmin = false
+                if let resultStr = result as? String,
+                   let data = resultStr.data(using: .utf8),
+                   let obj = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] {
+                    isLoggedIn = (obj["l"] as? Bool) ?? false
+                    let role = (obj["r"] as? String) ?? ""
+                    isAdmin = role == "admin"
+                }
+
                 var items: [MenuItem] = []
                 items.append(.init(icon: "👤", title: "My Profile", url: "https://www.redsracing.org/profile.html"))
                 
@@ -540,6 +615,24 @@ struct ContentView: View {
     private func load(urlString: String) {
         guard let url = URL(string: urlString) else { return }
         currentURL = url
+    }
+
+    /// Deep-link "page" values arrive from push-notification payloads and the
+    /// widget's `redsracing://target/<page>` URL, neither of which is fully
+    /// trusted input. Only allow a bare `name.html` component — no path
+    /// traversal (`..`), no extra path separators, no scheme/host injection —
+    /// falling back to `index.html` for anything else.
+    private static func sanitizedDeepLinkPage(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty,
+              !trimmed.contains(".."),
+              !trimmed.contains("/"),
+              !trimmed.contains("\\"),
+              trimmed.range(of: "^[a-zA-Z0-9_-]+\\.html$", options: .regularExpression) != nil
+        else {
+            return "index.html"
+        }
+        return trimmed
     }
 }
 
@@ -695,6 +788,19 @@ struct WebView: UIViewRepresentable {
         )
         configuration.userContentController.addUserScript(nativeAppFlag)
 
+        // FirebaseAuthBridge (C4): inject at document start so it exists
+        // before any page script runs, instead of only after `didFinish`
+        // (which left a stale/undefined bridge for scripts that ran during
+        // page load, and never reflected auth changes that happened after
+        // the initial injection). `_uid`/`_email` are updated live by native
+        // whenever the stored session changes — see `pushAuthBridgeState`.
+        let authBridgeScript = WKUserScript(
+            source: WebView.authBridgeSource,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: true
+        )
+        configuration.userContentController.addUserScript(authBridgeScript)
+
         configuration.userContentController.add(context.coordinator, name: "redsRacingAppLock")
         configuration.userContentController.add(context.coordinator, name: "redsRacingAuth")
         configuration.userContentController.add(context.coordinator, name: "redsRacingAppUnlock")
@@ -731,6 +837,57 @@ struct WebView: UIViewRepresentable {
             uiView.load(URLRequest(url: url))
         }
     }
+
+    /// C11: release everything the WebView was holding onto when SwiftUI
+    /// tears the representable down (e.g. view hierarchy replaced), so
+    /// script message handlers and delegate references don't outlive it.
+    static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
+        uiView.configuration.userContentController.removeAllScriptMessageHandlers()
+        uiView.navigationDelegate = nil
+        uiView.uiDelegate = nil
+        uiView.stopLoading()
+        coordinator.webView = nil
+    }
+
+    /// Live-updating auth bridge injected at `.atDocumentStart`. `_uid`/
+    /// `_email` are plain properties that native overwrites after every
+    /// session change (see `pushAuthBridgeState`), so scripts that read them
+    /// early in page load — or that re-check them after a native auth event
+    /// — always see current values instead of a one-shot snapshot baked in
+    /// after `didFinish`. The bearer token itself is intentionally never
+    /// exposed to JS (`getAuthToken` returns `''` here); it lives only in
+    /// the native Keychain (`KeychainStore`).
+    static let authBridgeSource = """
+        (function() {
+          try {
+            var bridge = window.FirebaseAuthBridge || {};
+            bridge._uid = bridge._uid || '';
+            bridge._email = bridge._email || '';
+            bridge.getAuthUid = function() { return bridge._uid || ''; };
+            bridge.getAuthEmail = function() { return bridge._email || ''; };
+            bridge.getAuthToken = function() { return ''; };
+            bridge.storeAuthUid = function(u) {
+              try { window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'storeSession', uid: u }); } catch(e) {}
+            };
+            bridge.storeAuthEmail = function(e) {
+              try { window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'storeSession', email: e }); } catch(err) {}
+            };
+            bridge.storeAuthToken = function(t) {
+              try { window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'storeSession', token: t }); } catch(e) {}
+            };
+            bridge.clearAllAuth = function() {
+              try { window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'clear' }); } catch(e) {}
+            };
+            bridge.clearAuthToken = function() {
+              try { window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'clearToken' }); } catch(e) {}
+            };
+            bridge.guestContinue = function() {
+              try { window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'guestContinue' }); } catch(e) {}
+            };
+            window.FirebaseAuthBridge = bridge;
+          } catch (e) {}
+        })();
+    """
 
     class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         var parent: WebView
@@ -824,15 +981,16 @@ struct WebView: UIViewRepresentable {
                 })();
             """
             webView.evaluateJavaScript(js, completionHandler: nil)
-            
-            // Monitor Firebase auth state (matching Android behavior)
+
+            // C12: guard the (log-only) auth state monitor so it is only
+            // ever installed once per document, even across repeated
+            // `didFinish` calls (SPA navigations, hash routing, etc.).
             let authMonitorJS = """
                 (function() {
-                    // Check if Firebase auth is available (compat mode)
+                    if (window.__rrAuthMonitorInstalled) { return; }
                     if (typeof firebase !== 'undefined' && firebase.auth) {
+                        window.__rrAuthMonitorInstalled = true;
                         var auth = firebase.auth();
-                        
-                        // Listen for auth state changes
                         auth.onAuthStateChanged(function(user) {
                             if (user) {
                                 console.log('[iOS WebView] User signed in:', user.uid);
@@ -845,43 +1003,35 @@ struct WebView: UIViewRepresentable {
             """
             webView.evaluateJavaScript(authMonitorJS, completionHandler: nil)
 
+            Self.pushAuthBridgeState(to: webView)
+        }
+        /// Pushes the current native session's uid/email into the live
+        /// `FirebaseAuthBridge._uid`/`_email` properties (see
+        /// `WebView.authBridgeSource`). Called after every page load and
+        /// whenever a `storeSession`/`clear`/`clearToken`/`guestContinue`
+        /// message updates the stored session, so the bridge never goes
+        /// stale for the lifetime of the WebView.
+        static func pushAuthBridgeState(to webView: WKWebView) {
             let defaults = UserDefaults.standard
             let uid = defaults.string(forKey: NativeAuthUserDefaultsKeys.uid) ?? ""
             let email = defaults.string(forKey: NativeAuthUserDefaultsKeys.email) ?? ""
             let uidJson = (try? JSONEncoder().encode(uid)).flatMap { String(data: $0, encoding: .utf8) } ?? "\"\""
             let emailJson = (try? JSONEncoder().encode(email)).flatMap { String(data: $0, encoding: .utf8) } ?? "\"\""
-            let restoreAuthJS = """
+            let js = """
                 (function() {
                   try {
-                    var uid = \(uidJson);
-                    var email = \(emailJson);
-                    if (uid && uid.length > 0) {
-                      localStorage.setItem('rr_auth_uid', uid);
+                    if (!window.FirebaseAuthBridge) { return; }
+                    window.FirebaseAuthBridge._uid = \(uidJson);
+                    window.FirebaseAuthBridge._email = \(emailJson);
+                    if (\(uidJson).length > 0) {
+                      try { localStorage.setItem('rr_auth_uid', \(uidJson)); } catch (e) {}
                     }
-                    if (!window.FirebaseAuthBridge) {
-                      window.FirebaseAuthBridge = {
-                        getAuthUid: function() { return uid || ''; },
-                        getAuthEmail: function() { return email || ''; },
-                        storeAuthUid: function(u) {
-                          window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'storeSession', uid: u });
-                        },
-                        storeAuthEmail: function(e) {
-                          window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'storeSession', email: e });
-                        },
-                        storeAuthToken: function(t) {
-                          window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'storeSession', token: t });
-                        },
-                        clearAllAuth: function() {
-                          window.webkit.messageHandlers.redsRacingAuth.postMessage({ action: 'clear' });
-                        },
-                        clearAuthToken: function() {}
-                      };
-                    }
-                  } catch (e) { console.warn('[iOS] Auth restore', e); }
+                  } catch (e) { console.warn('[iOS] Auth bridge update', e); }
                 })();
             """
-            webView.evaluateJavaScript(restoreAuthJS, completionHandler: nil)
+            webView.evaluateJavaScript(js, completionHandler: nil)
         }
+
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
             parent.isLoading = false
             print("WebView error: \(error.localizedDescription)")
@@ -890,22 +1040,27 @@ struct WebView: UIViewRepresentable {
             parent.isLoading = false
             print("WebView provisional error: \(error.localizedDescription)")
         }
-        // Auth-related domains that must stay inside the WebView for sign-in to work
-        private static let authDomains = [
+        // Auth-related hosts that must stay inside the WebView for sign-in to
+        // work. Matched against `URL.host` (exact host or subdomain of an
+        // allowlisted domain) rather than a substring of the full URL, so a
+        // hostile URL like `https://evil.example/?x=accounts.google.com`
+        // can't spoof its way past this check.
+        private static let authHostAllowlist: Set<String> = [
             "accounts.google.com",
+            "google.com",
             "googleapis.com",
             "firebaseapp.com",
             "gstatic.com",
-            "google.com/o/oauth",
-            "googleapis.com/identitytoolkit",
             "securetoken.googleapis.com",
             "redsracing-a7f8b.firebaseapp.com",
             "redsracing-a7f8b.web.app"
         ]
-        
+
         private func isAuthURL(_ url: URL) -> Bool {
-            let urlString = url.absoluteString.lowercased()
-            return Coordinator.authDomains.contains { urlString.contains($0) }
+            guard let host = url.host?.lowercased() else { return false }
+            return Coordinator.authHostAllowlist.contains { allowed in
+                host == allowed || host.hasSuffix("." + allowed)
+            }
         }
         
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -945,7 +1100,7 @@ struct WebView: UIViewRepresentable {
         // Handle popup windows (needed for Google OAuth signInWithPopup)
         func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
             // If the target is a popup (no target frame), load it in the current webview
-            if navigationAction.targetFrame == nil || !(navigationAction.targetFrame!.isMainFrame) {
+            if navigationAction.targetFrame?.isMainFrame != true {
                 if let url = navigationAction.request.url {
                     print("[iOS WebView] Popup requested: \(url.absoluteString)")
                     webView.load(navigationAction.request)
@@ -980,9 +1135,22 @@ extension WebView.Coordinator: WKScriptMessageHandler {
             if action == "clear" {
                 defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.uid)
                 defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.email)
-                defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.token)
                 defaults.removeObject(forKey: AppLockUserDefaultsKeys.lockAuthUid)
                 defaults.set(false, forKey: AppLockUserDefaultsKeys.biometricEnabled)
+                KeychainStore.deleteToken()
+                if let webView = self.webView { Self.pushAuthBridgeState(to: webView) }
+                return
+            }
+            if action == "clearToken" {
+                // FirebaseAuthBridge.clearAuthToken() (C4): drop only the
+                // bearer token, keep the uid/email session intact.
+                KeychainStore.deleteToken()
+                return
+            }
+            if action == "guestContinue" {
+                // C3: user explicitly chose to continue as a guest — don't
+                // force them back to the login screen on next launch.
+                defaults.set(true, forKey: NativeAuthUserDefaultsKeys.guestOk)
                 return
             }
             if action == "getSession" {
@@ -1007,16 +1175,24 @@ extension WebView.Coordinator: WKScriptMessageHandler {
             if action == "storeSession" {
                 if let uid = dict["uid"] as? String, !uid.isEmpty {
                     defaults.set(uid, forKey: NativeAuthUserDefaultsKeys.uid)
+                    // A real session takes over from any guest-continue flag.
+                    defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.guestOk)
                 }
                 if let email = dict["email"] as? String, !email.isEmpty {
                     defaults.set(email, forKey: NativeAuthUserDefaultsKeys.email)
                 }
                 if let token = dict["token"] as? String, !token.isEmpty {
-                    defaults.set(token, forKey: NativeAuthUserDefaultsKeys.token)
+                    // C4: the Firebase ID token belongs in the Keychain, not
+                    // UserDefaults. Fail closed — if the write fails, no
+                    // token is persisted rather than silently degrading to a
+                    // less-secure store.
+                    _ = KeychainStore.setToken(token)
                 }
+                if let webView = self.webView { Self.pushAuthBridgeState(to: webView) }
                 return
             }
             if action == "loginComplete" {
+                defaults.removeObject(forKey: NativeAuthUserDefaultsKeys.guestOk)
                 DispatchQueue.main.async {
                     NotificationCenter.default.post(name: .nativeLoginComplete, object: nil)
                 }
