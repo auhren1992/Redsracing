@@ -25,12 +25,16 @@ import android.view.animation.AnimationUtils
 import android.webkit.*
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.webkit.WebViewAssetLoader
@@ -90,9 +94,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
+        // targetSdk 36 draws edge-to-edge; without inset handling the tab bar
+        // sits under the system gesture/nav bar and looks "missing".
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         binding = ActivityMainBottomNavBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        applySystemBarInsets()
 
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
 
@@ -400,7 +408,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Pad chrome for status / gesture bars under targetSdk 36 edge-to-edge.
+     * Root no longer uses fitsSystemWindows (that fought edge-to-edge and buried the tabs).
+     * Material auto-insets on the tab bar are disabled in XML so we own bottom padding.
+     */
+    private fun applySystemBarInsets() {
+        val labelPad = (2 * resources.displayMetrics.density).toInt()
+        ViewCompat.setOnApplyWindowInsetsListener(binding.toolbar) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(top = bars.top)
+            insets
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNav) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(bottom = bars.bottom + labelPad)
+            view.visibility = View.VISIBLE
+            insets
+        }
+        ViewCompat.requestApplyInsets(binding.root)
+    }
+
     private fun setupBottomNavigation() {
+        binding.bottomNav.visibility = View.VISIBLE
+        binding.bottomNav.bringToFront()
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> {
@@ -430,9 +461,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupMenuOverlay() {
-        val overlay = layoutInflater.inflate(R.layout.menu_overlay, binding.root as ViewGroup, false)
-        (binding.root as ViewGroup).addView(overlay)
-        
+        // Attach over the WebView only so Drivers/Racing/etc. sheets never cover
+        // the native tab bar (previous root MATCH_PARENT overlay hid it entirely).
+        val overlay = layoutInflater.inflate(R.layout.menu_overlay, binding.webviewContainer, false)
+        binding.webviewContainer.addView(overlay)
+        binding.bottomNav.bringToFront()
+
         overlay.setOnClickListener {
             hideMenuOverlay()
         }
@@ -588,7 +622,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun hideMenuOverlay() {
-        val overlay = binding.root.findViewById<View>(R.id.menu_overlay)
+        val overlay = binding.root.findViewById<View>(R.id.menu_overlay) ?: return
         val fadeOut = AnimationUtils.loadAnimation(this, android.R.anim.fade_out)
         overlay.startAnimation(fadeOut)
         overlay.visibility = View.GONE
