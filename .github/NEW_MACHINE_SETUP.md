@@ -11,7 +11,7 @@ git checkout main
 git pull origin main
 ```
 
-Latest mobile release on `main` (when this doc was added): **11.2.35 (221)** — username login + email login (includes admin Unknown-error tracker fix); keep Android/iOS/Firestore app_config aligned.
+Latest mobile release on `main` (when this doc was added): **11.2.36 (222)** — restore Android bottom tab bar under edge-to-edge (targetSdk 36); username + email login; keep Android/iOS/Firestore app_config aligned.
 
 ## Already in Git (you get everything below with `git pull`)
 
