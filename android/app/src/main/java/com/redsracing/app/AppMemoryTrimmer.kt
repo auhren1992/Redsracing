@@ -7,13 +7,14 @@ import com.google.android.gms.ads.AdView
 import java.lang.ref.WeakReference
 
 /**
- * Releases WebView / AdMob bitmaps when the app is not visible.
+ * Releases AdMob bitmaps when the app is not visible.
  *
- * Important: never clear the WebView HTTP disk cache from trim callbacks.
- * Clearing cache while the activity is backgrounded (then resumed) left the
- * Chromium compositor / layout in a bad state — the native tab bar looked
- * “gone” until the user wiped app cache/data. Cache invalidation belongs in
- * [MainActivity.clearCacheIfVersionChanged] on APK upgrades only.
+ * Do **not**:
+ * - clear the WebView HTTP disk cache from trim callbacks (left Chromium /
+ *   layout broken until the user wiped app data — see MainActivity
+ *   clearCacheIfVersionChanged for upgrade-only clears)
+ * - call [WebView.pauseTimers] / resumeTimers (process-wide; resume races left
+ *   the native tab bar looking gone after reopen until Clear storage)
  *
  * Call sites must pass the activity's own WebView/AdView so LoginActivity
  * cannot accidentally trim or destroy MainActivity's WebView during the
@@ -21,9 +22,6 @@ import java.lang.ref.WeakReference
  */
 object AppMemoryTrimmer {
     private const val TAG = "AppMemoryTrimmer"
-
-    @Volatile
-    private var timersPaused = false
 
     @Volatile
     private var uiReleased = false
@@ -47,9 +45,9 @@ object AppMemoryTrimmer {
         adView: AdView? = adViewRef?.get(),
     ) {
         if (level >= ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
-            releaseUiHidden(webView, adView)
+            releaseUiHidden(adView)
         }
-        // Do NOT clearCache here — see class KDoc.
+        // Do NOT clearCache or pauseTimers here — see class KDoc.
     }
 
     fun onActivityPause(webView: WebView?, adView: AdView?) {
@@ -75,48 +73,28 @@ object AppMemoryTrimmer {
                 wv.destroy()
             }
         }
-        // Only drop bound refs when they point at the views we just destroyed,
-        // so LoginActivity.onDestroy cannot null out MainActivity's bind().
+        // Only drop bound refs when they point at the views we just destroyed.
+        // Never clear on (null, null) — LoginActivity early-exit (session valid →
+        // open Main without inflating) used to wipe MainActivity's bind().
         if (webView != null && webViewRef?.get() === webView) {
             webViewRef = null
         }
         if (adView != null && adViewRef?.get() === adView) {
             adViewRef = null
         }
-        if (webView == null && adView == null) {
-            webViewRef = null
-            adViewRef = null
-        }
     }
 
-    private fun releaseUiHidden(webView: WebView?, adView: AdView?) {
-        if (!uiReleased) {
-            uiReleased = true
-            dropVisibleBitmaps(webView, adView)
-        }
-        pauseWebTimers(webView)
-    }
-
-    private fun dropVisibleBitmaps(webView: WebView?, adView: AdView?) {
+    private fun releaseUiHidden(adView: AdView?) {
+        if (uiReleased) return
+        uiReleased = true
         android.util.Log.d(TAG, "Releasing UI / bitmap memory (UI hidden)")
         // Keep renderer priority IMPORTANT — WAIVED + cache clears caused blank /
         // broken WebView chrome after reopen until the user cleared app data.
+        // Do not pauseTimers — process-wide pause left the tab bar missing on resume.
         runCatching { adView?.pause() }
     }
 
-    private fun pauseWebTimers(webView: WebView?) {
-        if (timersPaused || webView == null) return
-        runCatching {
-            webView.pauseTimers()
-            timersPaused = true
-        }
-    }
-
     private fun restoreForeground(webView: WebView?) {
-        if (timersPaused) {
-            runCatching { webView?.resumeTimers() }
-            timersPaused = false
-        }
         if (!uiReleased) return
         uiReleased = false
         android.util.Log.d(TAG, "Restoring UI memory policy (foreground)")

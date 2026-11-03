@@ -184,25 +184,28 @@ class MainActivity : AppCompatActivity() {
         setupBottomNavigation()
         setupMenuOverlay()
         
-        // Initialize Mobile Ads SDK and load a compact anchored adaptive banner.
+        // Initialize Mobile Ads SDK and load a standard anchored adaptive banner.
         // Keep the slot GONE until an ad loads so we don't leave empty cushion above the tab bar.
+        // Avoid getLargeAnchoredAdaptiveBannerAdSize — tall banners distorted the vertical
+        // stack and could shove/collapse native chrome after resume.
         try {
             binding.adView.visibility = View.GONE
             MobileAds.initialize(this) {}
             val dm = resources.displayMetrics
             val widthDp = (dm.widthPixels / dm.density).toInt().coerceIn(320, 9999)
-            // GMA 25.x: large anchored adaptive replaces the deprecated
-            // getCurrentOrientationAnchoredAdaptiveBannerAdSize API.
-            val adaptive = AdSize.getLargeAnchoredAdaptiveBannerAdSize(this, widthDp)
+            @Suppress("DEPRECATION")
+            val adaptive = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, widthDp)
             binding.adView.setAdSize(adaptive)
             binding.adView.adListener = object : AdListener() {
                 override fun onAdLoaded() {
                     binding.adView.visibility = View.VISIBLE
+                    ensureBottomNavVisible()
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     android.util.Log.w("MainActivity", "Banner ad failed: ${error.message}")
                     binding.adView.visibility = View.GONE
+                    ensureBottomNavVisible()
                 }
             }
             val adRequest = AdRequest.Builder().build()
@@ -296,7 +299,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        // Pause timers / ads only — never clear WebView HTTP cache here (see AppMemoryTrimmer).
+        // Pause ads only — never clearCache / pauseTimers here (see AppMemoryTrimmer).
         AppMemoryTrimmer.onTrimMemory(
             android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN,
             binding.webview,
@@ -444,12 +447,36 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** Keep the native tab bar visible after resume / inset races / WebView redraws. */
-    private fun ensureBottomNavVisible() {
+    private fun ensureBottomNavVisible(clearStuckOverlay: Boolean = false) {
         if (!::binding.isInitialized) return
-        binding.bottomNav.visibility = View.VISIBLE
-        binding.bottomNav.bringToFront()
-        ViewCompat.requestApplyInsets(binding.bottomNav)
+        if (clearStuckOverlay) {
+            // Stuck Drivers/Racing sheet after process restore must not cover chrome.
+            binding.root.findViewById<View>(R.id.menu_overlay)?.let { overlay ->
+                if (overlay.visibility == View.VISIBLE) {
+                    overlay.clearAnimation()
+                    overlay.visibility = View.GONE
+                }
+            }
+        }
+        val nav = binding.bottomNav
+        nav.visibility = View.VISIBLE
+        nav.alpha = 1f
+        nav.translationY = 0f
+        nav.translationZ = 16f * resources.displayMetrics.density
+        nav.elevation = 16f * resources.displayMetrics.density
+        // LinearLayout last-child already keeps WebView above the bar; still
+        // bringToFront + requestLayout in case compositor restore left a bad transform.
+        nav.bringToFront()
+        nav.requestLayout()
+        ViewCompat.requestApplyInsets(nav)
         ViewCompat.requestApplyInsets(binding.root)
+        nav.post {
+            if (!::binding.isInitialized) return@post
+            binding.bottomNav.visibility = View.VISIBLE
+            binding.bottomNav.alpha = 1f
+            binding.bottomNav.translationY = 0f
+            binding.bottomNav.bringToFront()
+        }
     }
 
     private fun setupBottomNavigation() {
@@ -1279,7 +1306,9 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         AppMemoryTrimmer.onActivityResume(binding.webview, binding.adView)
         // Re-assert tab bar after background/resume (edge-to-edge inset + trim races).
-        ensureBottomNavVisible()
+        ensureBottomNavVisible(clearStuckOverlay = true)
+        // Second pass after the next layout pass — catches late inset / AdView measure.
+        binding.bottomNav.post { ensureBottomNavVisible(clearStuckOverlay = true) }
         // After Settings (pre-33 Enable) or system toggles, finish web opt-in if now allowed.
         try {
             if (pendingWebNotificationSettings && areNotificationsEnabled()) {
@@ -1302,7 +1331,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) ensureBottomNavVisible()
+        if (hasFocus) ensureBottomNavVisible(clearStuckOverlay = true)
     }
 
     private fun currentInstalledVersionCode(): Int {
