@@ -63,8 +63,13 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+        // Pass this activity's WebView only — never trim MainActivity via the singleton.
         if (!::binding.isInitialized) return
-        AppMemoryTrimmer.onTrimMemory(android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN)
+        AppMemoryTrimmer.onTrimMemory(
+            android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN,
+            binding.loginWebView,
+            null,
+        )
     }
 
     override fun onResume() {
@@ -75,13 +80,19 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
-        AppMemoryTrimmer.onTrimMemory(level)
+        if (!::binding.isInitialized) return
+        AppMemoryTrimmer.onTrimMemory(level, binding.loginWebView, null)
     }
 
     @Deprecated("Deprecated in Java")
     override fun onLowMemory() {
         super.onLowMemory()
-        AppMemoryTrimmer.onTrimMemory(android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND)
+        if (!::binding.isInitialized) return
+        AppMemoryTrimmer.onTrimMemory(
+            android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
+            binding.loginWebView,
+            null,
+        )
     }
 
     override fun onDestroy() {
