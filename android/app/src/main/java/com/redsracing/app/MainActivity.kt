@@ -191,7 +191,9 @@ class MainActivity : AppCompatActivity() {
             MobileAds.initialize(this) {}
             val dm = resources.displayMetrics
             val widthDp = (dm.widthPixels / dm.density).toInt().coerceIn(320, 9999)
-            val adaptive = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, widthDp)
+            // GMA 25.x: large anchored adaptive replaces the deprecated
+            // getCurrentOrientationAnchoredAdaptiveBannerAdSize API.
+            val adaptive = AdSize.getLargeAnchoredAdaptiveBannerAdSize(this, widthDp)
             binding.adView.setAdSize(adaptive)
             binding.adView.adListener = object : AdListener() {
                 override fun onAdLoaded() {
@@ -294,8 +296,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        // Drop compositor / ad bitmaps while not visible (Play bitmap memory guidance).
-        AppMemoryTrimmer.onTrimMemory(android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN)
+        // Pause timers / ads only — never clear WebView HTTP cache here (see AppMemoryTrimmer).
+        AppMemoryTrimmer.onTrimMemory(
+            android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN,
+            binding.webview,
+            binding.adView,
+        )
         try {
             CookieManager.getInstance().flush()
         } catch (_: Exception) {}
@@ -303,13 +309,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
-        AppMemoryTrimmer.onTrimMemory(level)
+        if (!::binding.isInitialized) return
+        AppMemoryTrimmer.onTrimMemory(level, binding.webview, binding.adView)
     }
 
     @Deprecated("Deprecated in Java")
     override fun onLowMemory() {
         super.onLowMemory()
-        AppMemoryTrimmer.onTrimMemory(android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND)
+        if (!::binding.isInitialized) return
+        AppMemoryTrimmer.onTrimMemory(
+            android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
+            binding.webview,
+            binding.adView,
+        )
     }
 
     override fun onDestroy() {
@@ -318,7 +330,9 @@ class MainActivity : AppCompatActivity() {
         filePathCallback?.onReceiveValue(null)
         filePathCallback = null
         // Tear down WebView + AdView so we don't leak bitmaps across recreation.
-        AppMemoryTrimmer.onActivityDestroy(binding.webview, binding.adView)
+        if (::binding.isInitialized) {
+            AppMemoryTrimmer.onActivityDestroy(binding.webview, binding.adView)
+        }
         super.onDestroy()
     }
 
@@ -429,9 +443,17 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.requestApplyInsets(binding.root)
     }
 
-    private fun setupBottomNavigation() {
+    /** Keep the native tab bar visible after resume / inset races / WebView redraws. */
+    private fun ensureBottomNavVisible() {
+        if (!::binding.isInitialized) return
         binding.bottomNav.visibility = View.VISIBLE
         binding.bottomNav.bringToFront()
+        ViewCompat.requestApplyInsets(binding.bottomNav)
+        ViewCompat.requestApplyInsets(binding.root)
+    }
+
+    private fun setupBottomNavigation() {
+        ensureBottomNavVisible()
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> {
@@ -808,7 +830,8 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                
+                ensureBottomNavVisible()
+
                 // Hide website navigation and add bottom padding for bottom nav
                 val hideNavJS = """
                     (function(){
@@ -1255,6 +1278,8 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         AppMemoryTrimmer.onActivityResume(binding.webview, binding.adView)
+        // Re-assert tab bar after background/resume (edge-to-edge inset + trim races).
+        ensureBottomNavVisible()
         // After Settings (pre-33 Enable) or system toggles, finish web opt-in if now allowed.
         try {
             if (pendingWebNotificationSettings && areNotificationsEnabled()) {
@@ -1273,6 +1298,11 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Exception) {}
         // Re-check store config so a newly published build shows "Update available" without relaunch.
         checkAppVersion(promptDialog = pendingUpdateForced)
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) ensureBottomNavVisible()
     }
 
     private fun currentInstalledVersionCode(): Int {

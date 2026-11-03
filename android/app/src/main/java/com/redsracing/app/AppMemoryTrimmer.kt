@@ -7,8 +7,17 @@ import com.google.android.gms.ads.AdView
 import java.lang.ref.WeakReference
 
 /**
- * Releases WebView / AdMob bitmap and dynamic memory when the app is not visible
- * (Play / Android 17 guidance: do not hold bitmaps in background or cached states).
+ * Releases WebView / AdMob bitmaps when the app is not visible.
+ *
+ * Important: never clear the WebView HTTP disk cache from trim callbacks.
+ * Clearing cache while the activity is backgrounded (then resumed) left the
+ * Chromium compositor / layout in a bad state — the native tab bar looked
+ * “gone” until the user wiped app cache/data. Cache invalidation belongs in
+ * [MainActivity.clearCacheIfVersionChanged] on APK upgrades only.
+ *
+ * Call sites must pass the activity's own WebView/AdView so LoginActivity
+ * cannot accidentally trim or destroy MainActivity's WebView during the
+ * login → main hand-off (shared singleton refs used to race).
  */
 object AppMemoryTrimmer {
     private const val TAG = "AppMemoryTrimmer"
@@ -27,16 +36,20 @@ object AppMemoryTrimmer {
         adViewRef = adView?.let { WeakReference(it) }
     }
 
-    /** @param level [ComponentCallbacks2] trim level */
-    fun onTrimMemory(level: Int) {
-        val webView = webViewRef?.get()
-        val adView = adViewRef?.get()
+    /**
+     * @param level [ComponentCallbacks2] trim level
+     * @param webView activity-owned WebView (preferred); falls back to last [bind]
+     * @param adView activity-owned AdView (preferred)
+     */
+    fun onTrimMemory(
+        level: Int,
+        webView: WebView? = webViewRef?.get(),
+        adView: AdView? = adViewRef?.get(),
+    ) {
         if (level >= ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
             releaseUiHidden(webView, adView)
         }
-        if (level >= ComponentCallbacks2.TRIM_MEMORY_BACKGROUND) {
-            runCatching { webView?.clearCache(true) }
-        }
+        // Do NOT clearCache here — see class KDoc.
     }
 
     fun onActivityPause(webView: WebView?, adView: AdView?) {
@@ -62,8 +75,18 @@ object AppMemoryTrimmer {
                 wv.destroy()
             }
         }
-        webViewRef = null
-        adViewRef = null
+        // Only drop bound refs when they point at the views we just destroyed,
+        // so LoginActivity.onDestroy cannot null out MainActivity's bind().
+        if (webView != null && webViewRef?.get() === webView) {
+            webViewRef = null
+        }
+        if (adView != null && adViewRef?.get() === adView) {
+            adViewRef = null
+        }
+        if (webView == null && adView == null) {
+            webViewRef = null
+            adViewRef = null
+        }
     }
 
     private fun releaseUiHidden(webView: WebView?, adView: AdView?) {
@@ -76,12 +99,8 @@ object AppMemoryTrimmer {
 
     private fun dropVisibleBitmaps(webView: WebView?, adView: AdView?) {
         android.util.Log.d(TAG, "Releasing UI / bitmap memory (UI hidden)")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            runCatching {
-                webView?.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_WAIVED, true)
-            }
-        }
-        runCatching { webView?.clearCache(false) }
+        // Keep renderer priority IMPORTANT — WAIVED + cache clears caused blank /
+        // broken WebView chrome after reopen until the user cleared app data.
         runCatching { adView?.pause() }
     }
 

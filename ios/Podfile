@@ -3,14 +3,15 @@ platform :ios, '15.0'
 target 'RedsRacing' do
   use_frameworks!
 
-  # Firebase - latest version for better Xcode compatibility
-  pod 'FirebaseCore', '~> 11.0'
-  pod 'FirebaseAuth', '~> 11.0'
-  pod 'FirebaseMessaging', '~> 11.0'
-  pod 'FirebaseFirestore', '~> 11.0'
-  
-  # Google Mobile Ads SDK
-  pod 'Google-Mobile-Ads-SDK'
+  # Firebase Apple SDK — keep in step with Android firebase-bom 35.x (native Auth/FCM/Firestore).
+  pod 'FirebaseCore', '~> 12.0'
+  pod 'FirebaseAuth', '~> 12.0'
+  pod 'FirebaseMessaging', '~> 12.0'
+  pod 'FirebaseFirestore', '~> 12.0'
+
+  # Google Mobile Ads (CocoaPods). Unpinned minor so `pod install --repo-update` in CI
+  # picks a current 12.x; major pin avoids surprise 13.x API breaks.
+  pod 'Google-Mobile-Ads-SDK', '~> 12.0'
 end
 
 post_install do |installer|
