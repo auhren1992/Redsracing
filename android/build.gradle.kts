@@ -9,7 +9,8 @@
 // AGP 9 and a new DSL.
 plugins {
     id("com.android.application") version "8.11.0" apply false
-    id("org.jetbrains.kotlin.android") version "2.2.0" apply false
+    // Firebase Auth 25+ (BOM 35) ships Kotlin metadata 2.4.0 — compiler must match.
+    id("org.jetbrains.kotlin.android") version "2.4.21" apply false
     id("com.github.triplet.play") version "3.12.1" apply false
     id("com.google.gms.google-services") version "4.5.0" apply false
 }

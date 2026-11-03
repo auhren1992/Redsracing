@@ -11,7 +11,7 @@ git checkout main
 git pull origin main
 ```
 
-Latest mobile release on `main` (when this doc was added): **11.2.38 (224)** — Android GMA 25.5.0 + Firebase BOM 35.1.0; iOS Firebase pods ~> 12 + Google-Mobile-Ads-SDK ~> 13; fix Android tab bar after login/reopen.
+Latest mobile release on `main` (when this doc was added): **11.2.39 (225)** — Kotlin 2.4.21 (Firebase Auth 25 metadata); Android GMA 25.5.0 + Firebase BOM 35.1.0; iOS Firebase ~> 12 + GMA ~> 13.
 
 ## Already in Git (you get everything below with `git pull`)
 

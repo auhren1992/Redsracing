@@ -9,9 +9,8 @@ target 'RedsRacing' do
   pod 'FirebaseMessaging', '~> 12.0'
   pod 'FirebaseFirestore', '~> 12.0'
 
-  # Google Mobile Ads (CocoaPods). Unpinned minor so `pod install --repo-update` in CI
-  # picks a current 12.x; major pin avoids surprise 13.x API breaks.
-  pod 'Google-Mobile-Ads-SDK', '~> 12.0'
+  # Google Mobile Ads — CocoaPods 13.x (pairs with Android play-services-ads 25.x).
+  pod 'Google-Mobile-Ads-SDK', '~> 13.0'
 end
 
 post_install do |installer|
