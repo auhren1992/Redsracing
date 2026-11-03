@@ -85,7 +85,19 @@ jobs:
           REDSRACING_KEY_PASSWORD: ${{ secrets.REDSRACING_KEY_PASSWORD }}
         working-directory: android
         run: |
-          ./gradlew bundleRelease --no-daemon --stacktrace -PREDSRACING_KEYSTORE_PASSWORD=$REDSRACING_KEYSTORE_PASSWORD -PREDSRACING_KEY_PASSWORD=$REDSRACING_KEY_PASSWORD 2>&1 | tee bundle-release.log || (echo "--- Last 100 lines ---"; tail -n 100 bundle-release.log; exit 1)
+          set -euo pipefail
+          # pipefail so a Gradle failure is not masked by tee exiting 0
+          ./gradlew bundleRelease --no-daemon --stacktrace \
+            -PREDSRACING_KEYSTORE_PASSWORD="$REDSRACING_KEYSTORE_PASSWORD" \
+            -PREDSRACING_KEY_PASSWORD="$REDSRACING_KEY_PASSWORD" \
+            2>&1 | tee bundle-release.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            echo "--- Last 100 lines of bundle-release.log ---"
+            tail -n 100 bundle-release.log
+            exit "$status"
+          fi
+          ls -la app/build/outputs/bundle/release/*.aab
 
       # Keep the AAB downloadable even when Play publish fails (e.g. version code already used).
       - name: Upload Bundle Artifact
