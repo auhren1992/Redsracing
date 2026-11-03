@@ -5,7 +5,8 @@ import android.content.ComponentCallbacks2
 
 /**
  * Process-level memory callbacks for Android 17 / Play dynamic-memory thresholds.
- * Activity-bound WebView/AdView release is handled via [AppMemoryTrimmer.bind].
+ * Activity-bound AdView pause is handled via [AppMemoryTrimmer.bind].
+ * Does not pause WebView timers or clear HTTP cache (those caused missing tab bar).
  */
 class RedsRacingApp : Application() {
     override fun onTrimMemory(level: Int) {
