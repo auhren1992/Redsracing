@@ -191,7 +191,9 @@ class MainActivity : AppCompatActivity() {
             MobileAds.initialize(this) {}
             val dm = resources.displayMetrics
             val widthDp = (dm.widthPixels / dm.density).toInt().coerceIn(320, 9999)
-            val adaptive = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, widthDp)
+            // GMA 25.x: large anchored adaptive replaces the deprecated
+            // getCurrentOrientationAnchoredAdaptiveBannerAdSize API.
+            val adaptive = AdSize.getLargeAnchoredAdaptiveBannerAdSize(this, widthDp)
             binding.adView.setAdSize(adaptive)
             binding.adView.adListener = object : AdListener() {
                 override fun onAdLoaded() {

@@ -21,8 +21,8 @@ android {
         applicationId = "com.redsracing.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 223
-        versionName = "11.2.37"
+        versionCode = 224
+        versionName = "11.2.38"
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
         }
@@ -101,7 +101,7 @@ dependencies {
     implementation("androidx.webkit:webkit:1.11.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
     // Google Mobile Ads SDK
-    implementation("com.google.android.gms:play-services-ads:24.9.0")
+    implementation("com.google.android.gms:play-services-ads:25.5.0")
     // Firebase BoM 35.x — KTX modules removed; use main artifacts (Kotlin APIs included).
     implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
     implementation("com.google.firebase:firebase-auth")

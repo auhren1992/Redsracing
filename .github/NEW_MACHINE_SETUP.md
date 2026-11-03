@@ -11,7 +11,7 @@ git checkout main
 git pull origin main
 ```
 
-Latest mobile release on `main` (when this doc was added): **11.2.37 (223)** — Firebase BOM 35.1.0; stop WebView cache-trim that hid Android bottom tabs after login/reopen; edge-to-edge tab bar; username + email login.
+Latest mobile release on `main` (when this doc was added): **11.2.38 (224)** — Google Mobile Ads 25.5.0 + Firebase BOM 35.1.0; fix Android tab bar after login/reopen; edge-to-edge tab bar; username + email login.
 
 ## Already in Git (you get everything below with `git pull`)
 
